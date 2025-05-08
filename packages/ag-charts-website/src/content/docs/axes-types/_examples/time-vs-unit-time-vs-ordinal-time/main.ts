@@ -56,7 +56,7 @@ function setUnitTimeAxis() {
         {
             type: 'time',
             position: 'bottom',
-            unit: 'month',
+            unit: time.month,
         },
         {
             type: 'number',

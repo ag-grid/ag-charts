@@ -5,24 +5,6 @@ description: 'Use $framework chart axis labels to provide clear identification a
 
 Axis labels provide clear identification and context for the data represented on each axis in a chart.
 
-## Parent Levels
-
-The `parentLevel` option allows customising key labels of time axes. For example, every January for monthly data, or
-the start of each day for hourly data. It is enabled by default for the Unit Time Axis, and can be opted into for the
-Time Axis and Ordinal Time Axis.
-
-Note that an interval selected is based on the range of data displayed, and changes with zoom.
-
-{% chartExampleRunner title="Parent Level" name="axis-parent-level" type="generated" /%}
-
-```js
-{
-    parentLevel: {
-        enabled: true,
-    },
-}
-```
-
 ## Collision Avoidance
 
 AG Charts has a number of methods to avoid axis label collisions.
@@ -117,44 +99,22 @@ It is called for each label and should return a string.
 
 ### Format
 
-The `label.format` property takes a static string representing a time or number format. This has less flexibility than
-the formatter, but can be serialised. For all time axes, an object format mapping a unit of time to a format string can
-also be used.
+The `label.format` property takes a static string representing a time or number format. This has less flexibility than the formatter, but can be serialised.
 
 {% chartExampleRunner title="Label Format" name="axis-label-format" type="generated" /%}
 
 ```js
 {
     label: {
-        format: "$#{0>6.2f}",
-    }
-}
-```
-
-```js
-{
-    label: {
-        format: {
-            day: "%e",
-            month: "%b",
-        }
-    },
-    parentLevel: {
-        label: {
-            format: {
-                month: "%e\n%b",
-                year: "%b\n%Y",
-            }
-        }
+        format: "%b %Y",
     }
 }
 ```
 
 In the above example:
 
+-   The time axis uses a format to display the short month name and full year for all values.
 -   The number axis uses a format to prepend a `'$'` and use 2 decimal places for all values. Shorter numbers are padding with `'0'`.
--   The time axis uses a format object to display the day of the month for daily data, and short month for monthly data.
--   The time axis' parent label uses a format object to the display `day month` for monthly data, and `month year` for yearly data.
 
 The syntax used in the format strings depends on the axis type.
 
@@ -252,6 +212,54 @@ so that it's clear where the number format begins and ends. For example: `I'm #{
 
 {% /tabItem %}
 {% /tabs %}
+
+## Parent Levels
+
+The `parentLevel` option allows customising key labels of time axes. For example, every January for monthly data, or
+the start of each day for hourly data. It is enabled by default for the Unit Time Axis, and can be opted into for the
+Time Axis and Ordinal Time Axis.
+
+{% chartExampleRunner title="Parent Label" name="axis-parent-label" type="generated" /%}
+
+```js
+{
+    parentLevel: {
+        enabled: true,
+    },
+}
+```
+
+### Format
+
+You can customise the format of these labels using format property. In addition to a format string, this can also be
+specified in an object mapping the granularity of axis labels to time format strings.
+
+{% chartExampleRunner title="Parent Label Format" name="axis-parent-label-format" type="generated" /%}
+
+```js
+{
+    label: {
+        format: {
+            day: '%e',
+            month: '%b',
+        }
+    },
+    parentLevel: {
+        enabled: true,
+        label: {
+            format: {
+                month: '%e\n%b',
+                year: '%b\n%Y',
+            }
+        }
+    }
+}
+```
+
+In this configuration:
+
+-   Parent labels are formatted as `day month` or `month year`, depending on the granularity.
+-   All other labels are formatted as `day` or `month`.
 
 ## Next Up
 

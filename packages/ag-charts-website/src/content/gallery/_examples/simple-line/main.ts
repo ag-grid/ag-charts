@@ -3,6 +3,7 @@ import {
     AgChartOptions,
     AgCharts,
     AgTooltipRendererResult,
+    time,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
@@ -43,7 +44,7 @@ const options: AgChartOptions = {
         {
             position: 'bottom',
             type: 'time',
-            unit: 'month',
+            unit: time.monday,
             title: {
                 text: 'Date',
             },
