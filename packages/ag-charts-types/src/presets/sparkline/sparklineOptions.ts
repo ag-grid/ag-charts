@@ -55,6 +55,14 @@ export interface AgSparklineBaseThemeableOptions {
     max?: number;
     /** Tooltip configuration. */
     tooltip?: AgSparklineTooltip;
+    /**
+     * A nonce to be used by any dynamically injected CSS <style> tags to assist with Content Security Policy.
+     *
+     * See: [MDN none reference](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/nonce)
+     *
+     * Default: `undefined`
+     */
+    styleNonce?: string;
 }
 
 export interface AgSparklineDataKeysOptions {
