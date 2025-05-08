@@ -26,7 +26,7 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
-import { isPatternFill } from '../../scene/util/fill';
+import { isImageFill, isPatternFill } from '../../scene/util/fill';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
@@ -179,8 +179,10 @@ const fillImageDefaults: RequiredInternalAgImageFill = {
     backgroundFill: 'black',
     backgroundFillOpacity: 1,
     rotation: 0,
-    repetition: 'no-repeat',
+    repeat: 'no-repeat',
     fit: 'contain',
+    width: 8,
+    height: 8,
 };
 
 export class Legend extends BaseProperties {
@@ -809,6 +811,14 @@ export class Legend extends BaseProperties {
             fill.height = 8;
             fill.padding = 1;
             fill.strokeWidth = Math.min(2, fill.strokeWidth ?? 2);
+        }
+
+        if (isImageFill(fill)) {
+            fill.fit = 'contain';
+            fill.width = undefined;
+            fill.height = undefined;
+            fill.backgroundFill = 'transparent';
+            fill.repeat = 'no-repeat';
         }
 
         return getShapeStyle(

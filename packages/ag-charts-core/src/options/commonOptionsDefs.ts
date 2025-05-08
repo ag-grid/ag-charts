@@ -160,7 +160,7 @@ export const fillImageDefaults = optionsDefs<InternalAgImageFill>({
     backgroundFill: required(color),
     backgroundFillOpacity: ratio,
     fit: required(union('stretch', 'contain', 'cover')),
-    repetition: required(union('repeat', 'repeat-x', 'repeat-y', 'no-repeat')),
+    repeat: required(union('repeat', 'repeat-x', 'repeat-y', 'no-repeat')),
 });
 
 const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
@@ -206,8 +206,8 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
             backgroundFillOpacity: ratio,
             width: positiveNumber,
             height: positiveNumber,
-            fit: union('stretch', 'contain', 'cover'),
-            repetition: union('repeat', 'repeat-x', 'repeat-y', 'no-repeat'),
+            fit: union('stretch', 'contain', 'cover', 'none'),
+            repeat: union('repeat', 'repeat-x', 'repeat-y', 'no-repeat'),
             rotation: number,
         },
     },

@@ -4,7 +4,7 @@ import type {
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
 import type {
-    AgColorRepetition,
+    AgColorRepeat,
     AgGradientColorBounds,
     AgGradientColorStop,
     AgGradientType,
@@ -172,10 +172,10 @@ export class FillImageDefaults
     backgroundFillOpacity: Opacity = 1;
 
     @Property
-    repetition: AgColorRepetition = 'repeat';
+    repeat: AgColorRepeat = 'no-repeat';
 
     @Property
-    fit: AgImageFillFit = 'stretch';
+    fit: AgImageFillFit = 'contain';
 }
 
 export class HighlightStyle extends BaseProperties {

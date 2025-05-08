@@ -101,7 +101,7 @@ export const FILL_IMAGE_DEFAULTS: WithThemeParams<RequiredInternalAgImageFill> =
     type: 'image',
     backgroundFill: { $palette: 'fillFallback' },
     backgroundFillOpacity: 1,
-    repetition: 'no-repeat',
+    repeat: 'no-repeat',
     fit: 'contain',
     rotation: 0,
 };
