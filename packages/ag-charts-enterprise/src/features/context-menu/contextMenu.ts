@@ -215,13 +215,16 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         button.getElement().insertAdjacentElement('afterend', menu.getElement());
         menu.getElement().style.position = 'absolute';
 
+        const canvasBounds = this.ctx.widgets.chartWidget.getElement().getBoundingClientRect();
         const buttonClientRect = button.getBoundingClientRect();
-        const remainingSpaceOnRight = window.innerWidth - buttonClientRect.right;
+        const remainingSpaceOnRight = canvasBounds.width - buttonClientRect.right;
         const menuOffsetWidth = menu.getElement().offsetWidth;
 
         if (remainingSpaceOnRight >= menuOffsetWidth) {
+            // Right-side popout
             menu.setBounds({ x: bounds.x + bounds.width, y: bounds.y });
         } else {
+            // Left-side popout
             menu.setBounds({ x: bounds.x - menuOffsetWidth, y: bounds.y });
         }
     }
