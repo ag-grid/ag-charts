@@ -1,60 +1,63 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getBenchmark1Data, getBenchmark2Data } from './data';
-import { formatBytes, formatMillis, labelFormatter } from './utils';
+import { regionAdata, regionBdata } from './data';
 
 const commonOptions: AgCartesianChartOptions = {
     sync: { axes: 'xy' },
+    series: [
+        {
+            type: 'bar',
+            xKey: 'date',
+            yKey: 'domestic',
+            yName: 'Domestic',
+        },
+        {
+            type: 'bar',
+            xKey: 'date',
+            yKey: 'international',
+            yName: 'International',
+        },
+        {
+            type: 'line',
+            xKey: 'date',
+            yKey: 'product',
+            yName: 'Product',
+        },
+        {
+            type: 'line',
+            xKey: 'date',
+            yKey: 'services',
+            yName: 'Services',
+        },
+    ],
     axes: [
         {
-            type: 'category',
+            type: 'time',
+            unit: 'day',
         },
         {
             type: 'number',
             position: 'left',
-            keys: [`timeMs`],
-            label: { formatter: labelFormatter(formatMillis) },
+            max: 100,
+            keys: ['domestic', 'international'],
         },
         {
             type: 'number',
             position: 'right',
-            keys: [`heapUsed`, `canvasBytes`],
-            label: { formatter: labelFormatter(formatBytes) },
+
+            keys: ['product', 'services'],
         },
     ],
-    series: [
-        {
-            type: 'bar',
-            xKey: 'name',
-            yKey: `timeMs`,
-            yName: `Time`,
-            stackGroup: 'time',
-        },
-        {
-            type: 'bar',
-            xKey: 'name',
-            yKey: `heapUsed`,
-            yName: `Heap`,
-            stackGroup: 'memory',
-        },
-        {
-            type: 'bar',
-            xKey: 'name',
-            yKey: `canvasBytes`,
-            yName: `Canvas`,
-            stackGroup: 'memory',
-        },
-    ],
-    tooltip: { mode: 'shared' },
+    tooltip: { mode: 'single' },
 };
 
 const chartOptions1 = {
     ...commonOptions,
     container: document.getElementById('myChart1'),
     title: {
-        text: 'Benchmark 1',
+        text: 'Region A',
     },
-    data: getBenchmark1Data(),
+    data: regionAdata,
 };
 
 AgCharts.create(chartOptions1);
@@ -63,9 +66,9 @@ const chartOptions2 = {
     ...commonOptions,
     container: document.getElementById('myChart2'),
     title: {
-        text: 'Benchmark 2',
+        text: 'Region B',
     },
-    data: getBenchmark2Data(),
+    data: regionBdata,
 };
 
 AgCharts.create(chartOptions2);

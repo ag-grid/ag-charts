@@ -29,6 +29,17 @@ function getDirectionKeys(
     return [primaryKeys, secondaryKeys];
 }
 
+function syncedDirections(axes: 'x' | 'y' | 'xy' = 'x') {
+    switch (axes) {
+        case 'x':
+            return [ChartAxisDirection.X];
+        case 'y':
+            return [ChartAxisDirection.Y];
+        case 'xy':
+            return [ChartAxisDirection.X, ChartAxisDirection.Y];
+    }
+}
+
 export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleInstance, AgChartSyncOptions {
     static readonly className = 'Sync';
 
@@ -111,10 +122,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
         const series = event.currentHighlight?.series;
 
-        let mainDirection = ChartAxisDirection.X;
-        if (_ModuleSupport.isChartAxisDirection(this.axes)) {
-            mainDirection = this.axes;
-        }
+        const [mainDirection] = syncedDirections(this.axes);
         const secondaryDirection = mainDirection === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 
         const [primaryKeys, secondaryKeys] = series ? getDirectionKeys(series, mainDirection, secondaryDirection) : [];
@@ -134,8 +142,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             return;
         }
 
-        const useSecondaryDirectionKey = syncManager.getGroupMembers(this.groupId).some((c) => c.series.length > 1);
-
+        const useSecondaryDirectionKey = syncManager.getGroupSyncMode(this.groupId) === 'multi-series';
         this.findMatchingHighlightNodes(
             mainDirection,
             secondaryDirection,
@@ -313,19 +320,65 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     }
 
     private validateAxis(axis: _ModuleSupport.CartesianAxis<any, any>, groupState: _ModuleSupport.SyncGroupState) {
+        const multiSeries = this.moduleContext.syncManager.getGroupSyncMode(this.groupId) === 'multi-series';
+
+        if (!syncedDirections(this.axes).includes(axis.direction)) return;
+
+        if (multiSeries) {
+            this.validateMultiSeries(axis, groupState);
+        } else {
+            this.validateSingleSeries(axis, groupState);
+        }
+    }
+
+    private validateMultiSeries(
+        axis: _ModuleSupport.CartesianAxis<any, any>,
+        groupState: _ModuleSupport.SyncGroupState
+    ) {
+        const { min, max, nice, reverse } = axis as _ModuleSupport.SyncAxisLike;
+        const matchingKeys = new Set(axis.boundSeries.flatMap((s) => s.getKeys(axis.direction)));
+
+        for (const member of groupState.members) {
+            const { axes, modulesManager } = member;
+            const memberSyncDirections = syncedDirections(modulesManager.getModule<ChartSync>('sync')?.axes);
+
+            const keyMatchedAxes = axes
+                .filter((a) => memberSyncDirections.includes(a.direction))
+                .filter((a) => a.boundSeries.some((s) => s.getKeys(a.direction).some((k) => matchingKeys.has(k))));
+            if (keyMatchedAxes.length === 0) continue;
+
+            const [firstAxis] = keyMatchedAxes;
+            if (
+                firstAxis.min !== min ||
+                firstAxis.max !== max ||
+                firstAxis.nice !== nice ||
+                firstAxis.reverse !== reverse
+            ) {
+                Logger.warnOnce(
+                    'To allow synchronization, ensure that all synchronized axes with matching keys have matching min, max, nice, and reverse properties.'
+                );
+                this.enabled = false;
+                return;
+            }
+        }
+    }
+
+    private validateSingleSeries(
+        axis: _ModuleSupport.CartesianAxis<any, any>,
+        groupState: _ModuleSupport.SyncGroupState
+    ) {
         const members = groupState.members;
         const [{ axes: syncAxes }] = members;
 
         const { direction, min, max, nice, reverse } = axis as (typeof syncAxes)[number];
-
-        for (const mainAxis of syncAxes) {
-            if (direction !== mainAxis.direction) continue;
+        for (const nextAxis of syncAxes) {
+            if (direction !== nextAxis.direction) continue;
 
             if (
-                nice !== mainAxis.nice ||
-                reverse !== mainAxis.reverse ||
-                (min !== mainAxis.min && (isFiniteNumber(min) || isFiniteNumber(mainAxis.min))) ||
-                (max !== mainAxis.max && (isFiniteNumber(max) || isFiniteNumber(mainAxis.max)))
+                nice !== nextAxis.nice ||
+                reverse !== nextAxis.reverse ||
+                (min !== nextAxis.min && (isFiniteNumber(min) || isFiniteNumber(nextAxis.min))) ||
+                (max !== nextAxis.max && (isFiniteNumber(max) || isFiniteNumber(nextAxis.max)))
             ) {
                 Logger.warnOnce(
                     'To allow synchronization, ensure that all charts have matching min, max, nice, and reverse properties on the synchronized axes.'
