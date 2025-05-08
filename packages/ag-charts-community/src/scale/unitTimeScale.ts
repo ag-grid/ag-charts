@@ -109,10 +109,10 @@ export class UnitTimeScale extends DiscreteTimeScale {
         if (interval instanceof TimeInterval) {
             intervalTicks = interval.range(domain[0], domain[1], { extend: true, visibleRange });
         } else {
-            const i0Index = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d0);
-            const i1Index = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1);
-            if (i0Index == null || i1Index == null) return;
-            intervalTicks = bands.slice(i0Index, i1Index + 1);
+            const i0Index = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d0) ?? 0;
+            const i1Index =
+                findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1) ?? bands.length - 1;
+            intervalTicks = i1Index - i0Index === bands.length - 1 ? bands : bands.slice(i0Index, i1Index + 1);
         }
 
         let lastIndex: number | undefined;

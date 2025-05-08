@@ -537,7 +537,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const tick = primary && primaryTick?.enabled ? primaryTick : this.tick;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = scale;
-        const sideFlag = label.getSideFlag();
+        const sideFlag = this.label.getSideFlag();
         const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + seriesAreaPadding);
         const visible = text !== '';
 
