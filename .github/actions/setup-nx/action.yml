@@ -47,6 +47,7 @@ runs:
         - name: Dump GitHub context
           env:
               GITHUB_CONTEXT: ${{ toJson(github) }}
+          if: ${{ env.ACTIONS_STEP_DEBUG == 'true' }}
           shell: bash
           run: echo "$GITHUB_CONTEXT"
 

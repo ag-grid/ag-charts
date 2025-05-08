@@ -6,10 +6,6 @@ on:
             - 'latest'
             - 'b[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?'
     pull_request:
-        branches:
-            - 'latest'
-            - 'next'
-            - 'b[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?'
     workflow_dispatch:
         inputs:
             # run_e2e:
@@ -73,7 +69,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref || 'latest' }}
 
             - name: nx build
               id: build
