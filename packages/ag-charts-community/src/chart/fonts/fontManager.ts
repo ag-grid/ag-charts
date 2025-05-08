@@ -27,7 +27,9 @@ export class FontManager {
 
     private loadFonts(fonts: Set<string>) {
         const fontStrings = Array.from(fonts).map((font) => encodeURIComponent(font));
-        const css = `@import url('https://fonts.googleapis.com/css2?family=${fontStrings.join('&family=')}:wght@100;200;300;400;500;600;700;800;900&display=swap');\n`;
+        const fontStyle = ':wght@100;200;300;400;500;600;700;800;900';
+        const joinString = `${fontStyle}&family=`;
+        const css = `@import url('https://fonts.googleapis.com/css2?family=${fontStrings.join(joinString)}${fontStyle}&display=swap');\n`;
         this.domManager.addStyles(`google-font-${fontStrings.join('-')}`, css);
     }
 
