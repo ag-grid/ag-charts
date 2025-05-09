@@ -215,10 +215,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         button.getElement().insertAdjacentElement('afterend', menu.getElement());
         menu.getElement().style.position = 'absolute';
 
-        const canvasBounds = this.ctx.widgets.chartWidget.getElement().getBoundingClientRect();
+        const canvasRect = this.ctx.domManager.getBoundingClientRect();
         const buttonClientRect = button.getBoundingClientRect();
-        const remainingSpaceOnRight = canvasBounds.left + canvasBounds.width - buttonClientRect.right;
-        const remainingSpaceOnLeft = buttonClientRect.left - canvasBounds.left;
+        const remainingSpaceOnRight = canvasRect.left + canvasRect.width - buttonClientRect.right;
+        const remainingSpaceOnLeft = buttonClientRect.left - canvasRect.left;
         const menuOffsetWidth = menu.getElement().offsetWidth;
 
         if (remainingSpaceOnRight >= menuOffsetWidth) {
