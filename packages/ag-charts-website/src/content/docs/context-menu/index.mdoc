@@ -149,34 +149,6 @@ In this configuration:
 -   The built-in Zoom and Legend Menu Items are placed into Sub-Menus.
 -   An additional "Debug Console" Sub-Menu is added to log events.
 
-## Icons
-
-To add Icons beside the Menu Items, use the `iconUrl` property:
-
-{% chartExampleRunner title="Context Menu Icons" name="context-menu-icons" type="generated" /%}
-
-```ts
-contextMenu: {
-    items: [
-        {
-            label: 'Download PNG',
-            iconUrl: DOWNLOAD_URL,
-            action: () => downloadPNG(),
-        },
-        {
-            label: 'Download JSON',
-            iconUrl: JSON_URL,
-            action: () => downloadJSON(),
-        },
-        {
-            label: 'Download CSV',
-            iconUrl: CSV_URL,
-            action: () => downloadCSV(),
-        },
-    ],
-},
-```
-
 ## API Reference
 
 {% tabs %}

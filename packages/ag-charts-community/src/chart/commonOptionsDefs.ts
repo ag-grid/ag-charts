@@ -123,15 +123,18 @@ const contextMenuItemLiterals: AgContextMenuItemLiteral[] = [
     'separator',
 ];
 
-const contextMenuItemObjectValidator: Validator = optionsDefs<Extract<AgContextMenuItem, object>>({
+const contextMenuItemObjectDef: OptionsDefs<Extract<AgContextMenuItem, object>> = {
     type: union('action', 'separator'),
     showOn: union('always', 'series-area', 'series-node', 'legend-item'),
     label: required(string),
     enabled: boolean,
-    iconUrl: string,
     action: callback,
     items: (value, context) => contextMenuItemsArray(value, context),
-});
+};
+// @ts-expect-error undocumented option
+contextMenuItemObjectDef.iconUrl = undocumented(string);
+
+const contextMenuItemObjectValidator: Validator = optionsDefs(contextMenuItemObjectDef);
 
 const contextMenuItemValidator = attachDescription(
     (value: unknown, context: ValidatorContext): boolean | ValidatorResult => {

@@ -23,16 +23,19 @@ const options: AgPolarChartOptions = {
         items: [
             {
                 label: 'Download PNG',
+                // @ts-expect-error undocumented option
                 iconUrl: DOWNLOAD_URL,
                 action: () => downloadPNG(),
             },
             {
                 label: 'Download JSON',
+                // @ts-expect-error undocumented option
                 iconUrl: JSON_URL,
                 action: () => downloadJSON(),
             },
             {
                 label: 'Download CSV',
+                // @ts-expect-error undocumented option
                 iconUrl: CSV_URL,
                 action: () => downloadCSV(),
             },
