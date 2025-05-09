@@ -24,6 +24,7 @@ function itemTheme(
                         $or: [
                             { $isGradient: [{ $palette: `${key}.fill` }] },
                             { $isPattern: [{ $palette: `${key}.fill` }] },
+                            { $isImage: [{ $palette: `${key}.fill` }] },
                         ],
                     },
                     {

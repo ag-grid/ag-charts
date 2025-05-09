@@ -30,6 +30,7 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
                         $or: [
                             { $isGradient: [{ $palette: `${key}.fill` }] },
                             { $isPattern: [{ $palette: `${key}.fill` }] },
+                            { $isImage: [{ $palette: `${key}.fill` }] },
                         ],
                     },
                     {

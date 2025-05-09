@@ -32,7 +32,13 @@ export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]
 
 export const SAFE_FILL_OPERATION: any = {
     $if: [
-        { $or: [{ $isGradient: [{ $palette: 'fill' }] }, { $isPattern: [{ $palette: 'fill' }] }] },
+        {
+            $or: [
+                { $isGradient: [{ $palette: 'fill' }] },
+                { $isPattern: [{ $palette: 'fill' }] },
+                { $isImage: [{ $value: '$1' }] },
+            ],
+        },
         { $palette: 'fillFallback' },
         { $palette: 'fill' },
     ],
@@ -40,7 +46,13 @@ export const SAFE_FILL_OPERATION: any = {
 
 export const SAFE_FILLS_OPERATION: any = {
     $if: [
-        { $or: [{ $isGradient: [{ $palette: 'fill' }] }, { $isPattern: [{ $palette: 'fill' }] }] },
+        {
+            $or: [
+                { $isGradient: [{ $palette: 'fill' }] },
+                { $isPattern: [{ $palette: 'fill' }] },
+                { $isImage: [{ $value: '$1' }] },
+            ],
+        },
         { $palette: 'fillsFallback' },
         { $palette: 'fills' },
     ],
@@ -62,7 +74,13 @@ export const SAFE_STROKE_FILL_OPERATION: any = {
 
 export const SAFE_RANGE2_OPERATION: any = {
     $if: [
-        { $or: [{ $isGradient: [{ $palette: 'fill' }] }, { $isPattern: [{ $palette: 'fill' }] }] },
+        {
+            $or: [
+                { $isGradient: [{ $palette: 'fill' }] },
+                { $isPattern: [{ $palette: 'fill' }] },
+                { $isImage: [{ $value: '$1' }] },
+            ],
+        },
         [{ $palette: 'fillFallback' }, { $palette: 'fillFallback' }],
         { $palette: 'range2' },
     ],
@@ -76,7 +94,7 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
     padding: 2,
     fill: {
         $if: [
-            { $isGradient: [{ $palette: 'fill' }] },
+            { $or: [{ $isGradient: [{ $palette: 'fill' }] }, { $isImage: [{ $palette: 'fill' }] }] },
             { $palette: 'fillFallback' },
             {
                 $if: [
