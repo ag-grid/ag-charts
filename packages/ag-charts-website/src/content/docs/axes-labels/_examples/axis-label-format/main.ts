@@ -1,18 +1,12 @@
-import { AgChartOptions, AgCharts, time } from 'ag-charts-enterprise';
-
-import { getData } from './data';
+import { AgChartOptions, AgCharts, time } from 'ag-charts-community';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(800),
     series: [
         {
             type: 'line',
             xKey: 'date',
-            yKey: 'price',
-            marker: {
-                enabled: false,
-            },
+            yKey: 'temp',
         },
     ],
     axes: [
@@ -25,57 +19,36 @@ const options: AgChartOptions = {
         },
         {
             type: 'time',
+            nice: false,
             position: 'bottom',
-            unit: 'day',
+            interval: { step: time.month },
             label: {
-                format: {
-                    day: '%e',
-                    month: '%b',
-                },
-            },
-            parentLevel: {
-                enabled: true,
-                label: {
-                    format: {
-                        month: '%e\n%b',
-                        year: '%b\n%Y',
-                    },
-                },
+                format: '%b %Y',
             },
         },
     ],
-    zoom: {
-        enabled: true,
-        autoScaling: {
-            enabled: true,
+    data: [
+        {
+            date: new Date('01 Jan 2019 00:00:00 GMT'),
+            temp: 82.0,
         },
-    },
-    navigator: {
-        enabled: true,
-    },
-    initialState: {
-        zoom: {
-            ratioX: { start: 0.95, end: 1 },
+        {
+            date: new Date('01 Feb 2019 00:00:00 GMT'),
+            temp: 75.0,
         },
-    },
+        {
+            date: new Date('01 Mar 2019 00:00:00 GMT'),
+            temp: 62.0,
+        },
+        {
+            date: new Date('01 Apr 2019 00:00:00 GMT'),
+            temp: 99.0,
+        },
+        {
+            date: new Date('01 May 2019 00:00:00 GMT'),
+            temp: 82.0,
+        },
+    ],
 };
 
-const chart = AgCharts.create(options);
-
-function zoomOut() {
-    chart.setState({
-        version: '11.0.0',
-        zoom: {
-            ratioX: { start: 0, end: 1 },
-        },
-    });
-}
-
-function zoomMonth() {
-    chart.setState({
-        version: '11.0.0',
-        zoom: {
-            ratioX: { start: 0.95, end: 1 },
-        },
-    });
-}
+AgCharts.create(options);
