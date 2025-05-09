@@ -217,7 +217,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         const canvasRect = this.ctx.domManager.getBoundingClientRect();
         const buttonClientRect = button.getBoundingClientRect();
-        const remainingSpaceOnRight = canvasRect.left + canvasRect.width - buttonClientRect.right;
+        const remainingSpaceOnRight = canvasRect.right - buttonClientRect.right;
         const remainingSpaceOnLeft = buttonClientRect.left - canvasRect.left;
         const menuOffsetWidth = menu.getElement().offsetWidth;
 
