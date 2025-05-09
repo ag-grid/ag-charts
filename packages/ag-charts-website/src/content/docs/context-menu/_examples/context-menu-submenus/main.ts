@@ -24,24 +24,26 @@ const options: AgCartesianChartOptions = {
                 label: 'Debug Console',
                 items: [
                     {
+                        type: 'action',
                         showOn: 'always',
                         label: `On 'always'`,
-                        action: (param) => console.log('always:', JSON.stringify(param)),
+                        action: () => console.log(`On 'always' clicked.`),
                     },
                     {
                         showOn: 'series-area',
                         label: `On 'series-area'`,
-                        action: (param) => console.log('series-area:', JSON.stringify(param)),
+                        action: () => console.log(`On 'series-area' clicked.`),
                     },
                     {
                         showOn: 'series-node',
                         label: `On 'series-node'`,
-                        action: (param) => console.log('series-node:', JSON.stringify(param)),
+                        action: ({ datum, xKey, yKey }) =>
+                            console.log(`On 'series-node' clicked -`, yKey, datum[xKey!], datum[yKey!]),
                     },
                     {
                         showOn: 'legend-item',
                         label: `On 'legend-item'`,
-                        action: (param) => console.log('legend-item:', JSON.stringify(param)),
+                        action: ({ itemId }) => console.log(`On 'legend-item' clicked -`, itemId),
                     },
                 ],
             },
@@ -58,7 +60,7 @@ const options: AgCartesianChartOptions = {
     ],
     axes: [
         { type: 'number', position: 'left', title: { text: 'GDP (Trillions USD)' } },
-        { type: 'category', position: 'bottom', title: { text: 'Year' } },
+        { type: 'category', position: 'bottom', title: { text: 'Year' }, label: { autoRotate: false } },
     ],
 };
 

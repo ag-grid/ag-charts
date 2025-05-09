@@ -12,7 +12,7 @@ In this example:
 -   Right clicking anywhere on the chart show the Context Menu with the option to download the chart.
 -   Right clicking on a legend item will show the Context Menu with additional options to toggle series visibility.
 
-The context Menu is enabled by default, to disable set `contextMenu.enabled` to `false`.
+The Context Menu is enabled by default, to disable set `contextMenu.enabled` to `false`.
 
 ```ts
 contextMenu: {
@@ -22,25 +22,21 @@ contextMenu: {
 
 ## Built-in Items
 
-By default, the Context Menu includes some Menu Items in a pre-determined
-order. The `contextMenu.items` accepts special string values to conveniently
-reconfigure the defaults:
+The Context Menu displays default items based on the right-clicked element.
 
--   `'defaults'`: This string represents a list of built-in menu-items in the
-    pre-determined order.
--   `'separator'`: The string is an alias for a non-interaction separator.
+The `contextMenu.items` array accepts special string values to conveniently reconfigure these defaults.
 
 {% chartExampleRunner title="Context Menu Built-in Items" name="context-menu-builtins" type="generated" /%}
 
 ```ts
 contextMenu: {
     items: [
-        'toggle-series-visibility',
-        'toggle-other-series',
-        'separator',
-        'zoom-to-cursor',
-        'pan-to-cursor',
-        'separator',
+        'defaults', //all the default menu-items in the pre-determined order.
+        'separator', // a non-interactive horizontal line.
+        'toggle-series-visibility', // used for legend items.
+        'toggle-other-series', // used for legend items in multi-series charts.
+        'zoom-to-cursor', // used with zoom.
+        'pan-to-cursor', // used with zoom.
         'download',
     ],
 },
@@ -48,16 +44,18 @@ contextMenu: {
 
 In this example:
 
--   The "Custom Order" buttom reorders the default built-in Menu Items and adds separators.
+-   The "Custom Order" button reorders the default built-in Menu Items and adds separators.
 -   The "Default Order" button resets the Menu Items to the default `['defaults']` value.
 
-These string values can be used in combination with Custom Actions.
+These string values can be used in combination with [Custom Actions](#custom-actions).
 
 ## Custom Actions
 
-The Context Menu's extra actions can be used to run arbitrary functions based on the element that is right-clicked.
+The Context Menu's custom actions can be used to run arbitrary functions based on the element that is right-clicked.
 
 {% chartExampleRunner title="Context Menu Custom Actions" name="context-menu-actions" type="generated" /%}
+
+Use the `showOn` property to specify when the action should be shown.
 
 ```ts
 contextMenu: {
@@ -88,14 +86,14 @@ contextMenu: {
 
 In this configuration:
 
--   A single additional action is added for the entire chart, the series area, the series node and the legend items.
+-   A single custom action is added for the entire chart, the series area, the series node and the legend items.
     Multiple actions per item can be specified within the array if required.
 -   Right clicking on one of these areas will show these additional actions in the Context Menu.
 -   Clicking these extra actions will display information in the console, demonstrating that the action is aware of details about the right-clicked item.
 
 ## Sub-Menus
 
-To add Sub-Menus to the Context Menu, simply use the `items` property recursively:
+To add Sub-Menus to the Context Menu, simply use the `items` property recursively.
 
 {% chartExampleRunner title="Context Menu Custom Actions" name="context-menu-submenus" type="generated" /%}
 
@@ -121,22 +119,22 @@ contextMenu: {
                     type: 'action',
                     showOn: 'always',
                     label: `On 'always'`,
-                    action: (param) => console.log('always:', JSON.stringify(param)),
+                    action: () => console.log(`On 'always' clicked.`),
                 },
                 {
                     showOn: 'series-area',
                     label: `On 'series-area'`,
-                    action: (param) => console.log('series-area:', JSON.stringify(param)),
+                    action: () => console.log(`On 'series-area' clicked.`),
                 },
                 {
                     showOn: 'series-node',
                     label: `On 'series-node'`,
-                    action: (param) => console.log('series-node:', JSON.stringify(param)),
+                    action: ({datum, xKey, yKey}) => console.log(`On 'series-node' clicked -`, yKey, datum[xKey], datum[yKey]),
                 },
                 {
                     showOn: 'legend-item',
                     label: `On 'legend-item'`,
-                    action: (param) => console.log('legend-item:', JSON.stringify(param)),
+                    action: ({itemId}) => console.log(`On 'legend-item' clicked -`, itemId),
                 },
             ],
         },
@@ -146,20 +144,16 @@ contextMenu: {
 
 In this configuration:
 
--   The built-in Zoom and Legend Menu Items are placed into Sub-Menus.
--   An additional "Debug Console" Sub-Menu is added to log events.
+-   The built-in Zoom and Legend menu items are placed into Sub-Menus.
+-   An additional "Debug Console" Sub-Menu is added with custom actions to log events to the console.
 
 ## API Reference
 
 {% tabs %}
+
 {% tabItem id="AgContextMenuOptions" label="Context Menu" %}
 {% apiReference id="AgContextMenuOptions" /%}
 {% /tabItem %}
-{% /tabs %}
-
-## API Reference (items)
-
-{% tabs %}
 {% tabItem id="AgContextMenuItemAlways" label="Always" %}
 {% apiReference id="AgContextMenuItemAlways" /%}
 {% /tabItem %}
