@@ -211,6 +211,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onSubMenuOpen(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
         const bounds = button.getBounds();
+        button.setFocusOverride(true);
         button.getElement().insertAdjacentElement('afterend', menu.getElement());
         menu.getElement().style.position = 'absolute';
 
@@ -236,7 +237,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             }
         }
     }
-    private onSubMenuClose(_button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
+    private onSubMenuClose(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
+        button.setFocusOverride(undefined);
         menu.remove();
     }
 

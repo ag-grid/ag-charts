@@ -195,6 +195,10 @@ export abstract class Widget<
         this.elem.focus(opts);
     }
 
+    setFocusOverride(focus: boolean | undefined) {
+        setAttribute(this.elem, 'data-focus-override', focus);
+    }
+
     setPreventsDefault(preventDefault: boolean) {
         setAttribute(this.elem, 'data-preventdefault', preventDefault);
     }

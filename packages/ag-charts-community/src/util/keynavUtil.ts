@@ -75,9 +75,9 @@ export function addOverrideFocusVisibleEventListener(
     buttons: HTMLElement[],
     overrideFocusVisible: boolean
 ) {
-    buttons.forEach((b) => b.setAttribute('data-focus-visible-override', overrideFocusVisible.toString()));
+    buttons.forEach((b) => setAttribute(b, 'data-focus-visible-override', overrideFocusVisible));
     const keydownTrueOverrider = () => {
-        buttons.forEach((b) => b.setAttribute('data-focus-visible-override', 'true'));
+        buttons.forEach((b) => setAttribute(b, 'data-focus-visible-override', true));
     };
     addRemovableEventListener(destroyFns, menu, 'keydown', keydownTrueOverrider, { once: true });
 }
