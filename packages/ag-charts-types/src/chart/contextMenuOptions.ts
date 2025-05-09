@@ -27,7 +27,7 @@ interface ItemMixin {
      */
     type?: AgContextMenuItemType;
     /**
-     * Type of `'contextmenu'` clicks that this menu item should be shown for.
+     * Which clicked element this menu item should be shown for.
      *
      * Default: `'always'`
      */
@@ -35,7 +35,7 @@ interface ItemMixin {
     /** The text label of this menu item. This property is required for Accessibility compliance. */
     label: string;
     /**
-     * Dimmed state of this menu-item.
+     * State of this menu-item.
      *
      * Default: `true` */
     enabled?: boolean;
@@ -45,7 +45,7 @@ interface ItemMixin {
 
 export interface AgContextMenuItemAlways extends ItemMixin {
     /**
-     * Type of `'contextmenu'` clicks that this menu item should be shown for. `'always'` menu items are always shown.
+     * Which clicked element this menu item should be shown for. `'always'` menu items are always shown.
      *
      * Default: `'always'`
      */
@@ -55,21 +55,27 @@ export interface AgContextMenuItemAlways extends ItemMixin {
 }
 
 export interface AgContextMenuItemSeriesArea extends ItemMixin {
-    /** Type of `'contextmenu'` clicks that this menu item should be shown for. `'series-area'` menu items are always shown when clicking anywhere in the series area bounds, including on a datum node. */
+    /**
+     *  Which clicked element this menu item should be shown for. `'series-area'` menu items are shown when clicking anywhere within the series area bounds.
+     */
     showOn: 'series-area';
     /** Function called when clicking on this menu item. */
     action?: (event: AgSeriesAreaContextMenuActionEvent) => void;
 }
 
 export interface AgContextMenuItemSeriesNode extends ItemMixin {
-    /** Type of `'contextmenu'` clicks that this menu item should be shown for. `'series-node'` menu items only when clicking on a datum node. */
+    /**
+     *  Which clicked element this menu item should be shown for. `'series-node'` menu items are shown when clicking when clicking on a datum node.
+     */
     showOn: 'series-node';
     /** Function called when clicking on this menu item. */
     action?: (event: AgNodeContextMenuActionEvent) => void;
 }
 
 export interface AgContextMenuItemLegendItem extends ItemMixin {
-    /** Type of `'contextmenu'` clicks that this menu item should be shown for. `'legend-item'` menu items only when clicking on a legend item. */
+    /**
+     *  Which clicked element this menu item should be shown for. `'legend-item'` menu items are shown when clicking on a legend item.
+     */
     showOn: 'legend-item';
     /** Function called when clicking on this menu item. */
     action?: (event: AgChartLegendContextMenuEvent) => void;
