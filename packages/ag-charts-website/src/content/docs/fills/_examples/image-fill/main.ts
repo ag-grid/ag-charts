@@ -14,7 +14,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'timeToDestination',
             fill: {
                 type: 'image',
-                url: 'https://localhost:4600/charts/example-assets/docs-images/map.png',
+                url: '${baseWWWUrl}/example-assets/docs-images/map.png',
             },
         },
     ],
