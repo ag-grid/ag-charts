@@ -50,7 +50,7 @@ export interface AgTimeAxisParentLevel {
     /** Configuration for the axis labels, shown next to the ticks. */
     label?: AgCartesianTimeAxisLabelOptions;
     /** Configuration for the axis ticks. */
-    tick?: AgGroupedCategoryAxisTickOptions;
+    tick?: AgAxisBaseTickOptions;
 }
 
 export interface AgCartesianAxisLabelOptions

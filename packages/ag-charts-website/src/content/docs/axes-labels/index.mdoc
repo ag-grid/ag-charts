@@ -23,6 +23,45 @@ Note that an interval selected is based on the range of data displayed, and chan
 }
 ```
 
+### Customisation
+
+{% chartExampleRunner title="Parent Level Customisation" name="axis-parent-level-customisation" type="generated" /%}
+
+```js
+{
+    tick: {
+        width: 0,
+    },
+    label: {
+        format: {
+            day: '%e',
+            month: '%b',
+        },
+    },
+    parentLevel: {
+        enabled: true,
+        tick: {
+            width: 1,
+        },
+        label: {
+            format: {
+                month: '%e\n%b',
+                year: '%b\n%Y',
+            },
+        },
+    },
+}
+```
+
+In this configuration:
+
+-   The tick is given a width of `0` to hide the ticks.
+-   The label format is set to show the day and month for the `day` interval, and the month for the `month` interval.
+-   The parent level tick is given a width of `1` to show the parent level ticks.
+-   The parent level label format is set to show the day and month for the `month` interval, and the month and year for the `year` interval.
+
+See [Format](#format) for more information on the label format on formatting labels.
+
 ## Collision Avoidance
 
 AG Charts has a number of methods to avoid axis label collisions.
@@ -126,7 +165,7 @@ also be used.
 ```js
 {
     label: {
-        format: "$#{0>6.2f}",
+        format: "%b %Y",
     }
 }
 ```
@@ -134,27 +173,15 @@ also be used.
 ```js
 {
     label: {
-        format: {
-            day: "%e",
-            month: "%b",
-        }
-    },
-    parentLevel: {
-        label: {
-            format: {
-                month: "%e\n%b",
-                year: "%b\n%Y",
-            }
-        }
+        format: "$#{0>6.2f}",
     }
 }
 ```
 
 In the above example:
 
+-   The time axis uses a format to display the short month name and full year for all values.
 -   The number axis uses a format to prepend a `'$'` and use 2 decimal places for all values. Shorter numbers are padding with `'0'`.
--   The time axis uses a format object to display the day of the month for daily data, and short month for monthly data.
--   The time axis' parent label uses a format object to the display `day month` for monthly data, and `month year` for yearly data.
 
 The syntax used in the format strings depends on the axis type.
 
