@@ -99,7 +99,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.addEventListener('contextmenu', (event) => event.preventDefault()); // AG-10223
         // CRT-481 Automatically close the context menu when change focus with TAB / Shift+TAB
         this.element.addEventListener('focusout', ({ relatedTarget }) => {
-            if (relatedTarget instanceof Node && !this.element.contains(relatedTarget)) {
+            if (relatedTarget == null || (relatedTarget instanceof Node && !this.element.contains(relatedTarget))) {
                 this.hide();
             }
         });
