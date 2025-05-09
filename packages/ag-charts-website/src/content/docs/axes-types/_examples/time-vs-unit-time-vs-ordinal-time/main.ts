@@ -27,6 +27,7 @@ const options: AgCartesianChartOptions = {
         {
             type: 'time',
             position: 'bottom',
+            title: { text: 'Time Axis' },
         },
         {
             type: 'number',
@@ -42,6 +43,7 @@ function setTimeAxis() {
         {
             type: 'time',
             position: 'bottom',
+            title: { text: 'Time Axis' },
         },
         {
             type: 'number',
@@ -57,6 +59,7 @@ function setUnitTimeAxis() {
             type: 'time',
             position: 'bottom',
             unit: 'month',
+            title: { text: 'Time Axis with Unit' },
         },
         {
             type: 'number',
@@ -74,6 +77,7 @@ function setOrdinalTimeAxis() {
             interval: {
                 step: time.month,
             },
+            title: { text: 'Ordinal Time Axis' },
         },
         {
             type: 'number',

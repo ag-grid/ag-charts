@@ -45,7 +45,7 @@ export interface AgBaseCartesianAxisOptions<
 }
 
 export interface AgTimeAxisParentLevel {
-    /** Enables parent level grouping. */
+    /** Enables parent level labels and ticks. */
     enabled?: boolean;
     /** Configuration for the axis labels, shown next to the ticks. */
     label?: AgCartesianTimeAxisLabelOptions;
@@ -141,7 +141,7 @@ export interface AgUnitTimeAxisOptions
         // eslint-disable-next-line sonarjs/use-type-alias
         Omit<AgContinuousAxisOptions<Date | number, TimeInterval | TimeIntervalUnit | number>, 'nice'> {
     type: 'time';
-    /** Options for highlighting ticks and labels that fall on the parent interval */
+    /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel;
     /** The size of each band. */
     unit?: TimeInterval | TimeIntervalUnit;
@@ -155,7 +155,7 @@ export interface AgUnitTimeAxisOptions
 
 export interface AgOrdinalTimeAxisOptions extends AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions> {
     type: 'ordinal-time';
-    /** Options for highlighting ticks and labels that fall on the parent interval */
+    /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel;
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisContinuousIntervalOptions<TimeInterval | TimeIntervalUnit | number>;
@@ -181,7 +181,7 @@ export interface AgContinuousTimeAxisOptions
     extends Omit<AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions>, 'interval'>,
         AgContinuousAxisOptions<Date | number, TimeInterval | TimeIntervalUnit | number> {
     type: 'time';
-    /** Options for highlighting ticks and labels that fall on the parent interval */
+    /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel;
 }
 
