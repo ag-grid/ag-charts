@@ -38,7 +38,13 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
                 $map: [
                     {
                         $if: [
-                            { $or: [{ $isGradient: [{ $value: '$1' }] }, { $isPattern: [{ $value: '$1' }] }] },
+                            {
+                                $or: [
+                                    { $isGradient: [{ $value: '$1' }] },
+                                    { $isPattern: [{ $value: '$1' }] },
+                                    { $isImage: [{ $value: '$1' }] },
+                                ],
+                            },
                             { $path: ['../../strokes/$index', { $ref: 'foregroundColor' }] },
                             { $value: '$1' },
                         ],

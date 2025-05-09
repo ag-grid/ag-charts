@@ -8,7 +8,13 @@ export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['the
         direction: 'vertical',
         fill: {
             $if: [
-                { $or: [{ $isGradient: [{ $palette: 'fill' }] }, { $isPattern: [{ $palette: 'fill' }] }] },
+                {
+                    $or: [
+                        { $isGradient: [{ $palette: 'fill' }] },
+                        { $isPattern: [{ $palette: 'fill' }] },
+                        { $isImage: [{ $palette: 'fill' }] },
+                    ],
+                },
                 { $palette: 'fill' },
                 { $mix: [_ModuleSupport.SAFE_FILL_OPERATION, { $ref: 'backgroundColor' }, 0.7] },
             ],
