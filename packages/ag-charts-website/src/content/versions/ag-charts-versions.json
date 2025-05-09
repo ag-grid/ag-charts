@@ -16,6 +16,10 @@
                 "path": "./context-menu/"
             },
             {
+                "text": "Image Fills",
+                "path": "./fills/#images"
+            },
+            {
                 "text": "Support for Google Fonts",
                 "path": "./fonts"
             }

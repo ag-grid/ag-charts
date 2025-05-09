@@ -24,9 +24,6 @@ const options: AgChartOptions = {
             type: 'time',
             position: 'bottom',
             unit: 'day',
-            tick: {
-                width: 0,
-            },
             label: {
                 format: {
                     day: '%e',
