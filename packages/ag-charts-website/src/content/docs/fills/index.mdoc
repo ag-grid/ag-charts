@@ -167,9 +167,23 @@ Any image url or data:url can be provided in the `fill.image.url` property.
 }
 ```
 
-{% chartExampleRunner title="Image Fill Customisation" name="image-fill-customisation" type="generated" /%}
+Images can be tiled by using the `repeat` property.
 
-See the [Image API reference](#reference-AgImageColor) all the available options.
+```js
+{
+    series: {
+        fill: {
+            type: 'image',
+            url: 'url',
+            repeat: 'repeat-x'
+        },
+    },
+}
+```
+
+{% chartExampleRunner title="Image Fill Tiling" name="image-fill-tiling" type="generated" /%}
+
+See the [Image API reference](#reference-AgImageFill) all the available options.
 
 ## API Reference
 

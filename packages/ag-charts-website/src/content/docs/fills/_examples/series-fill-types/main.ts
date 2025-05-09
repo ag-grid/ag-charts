@@ -42,16 +42,16 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function defaultFill() {
-    options.series?.forEach((series) => {
-        (series as AgBarSeriesOptions).fill = undefined;
+    (options.series as AgBarSeriesOptions[])?.forEach((series) => {
+        series.fill = undefined;
     });
 
     chart.update(options);
 }
 
 function gradientFill() {
-    options.series?.forEach((series) => {
-        (series as AgBarSeriesOptions).fill = {
+    (options.series as AgBarSeriesOptions[])?.forEach((series) => {
+        series.fill = {
             type: 'gradient',
         };
     });
@@ -60,9 +60,23 @@ function gradientFill() {
 }
 
 function patternFill() {
-    options.series?.forEach((series) => {
-        (series as AgBarSeriesOptions).fill = {
+    (options.series as AgBarSeriesOptions[])?.forEach((series) => {
+        series.fill = {
             type: 'pattern',
+        };
+    });
+
+    chart.update(options);
+}
+
+function imageFill() {
+    (options.series as AgBarSeriesOptions[])?.forEach((series) => {
+        series.fill = {
+            type: 'image',
+            url: '${baseWWWUrl}/example-assets/docs-images/' + `${series.yKey}.png`,
+            backgroundFillOpacity: 0.4,
+            width: 30,
+            height: 30,
         };
     });
 
