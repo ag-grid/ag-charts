@@ -48,10 +48,16 @@ export class ZoomContextMenu {
         const shouldEnablePanToHere = () => {
             return !isZoomEqual(definedZoomState(this.zoomManager.getZoom()), unitZoomState());
         };
-        return contextMenuRegistry.addListener('context-setup', (event) => {
+        const removeListener = contextMenuRegistry.addListener('context-setup', (event) => {
             contextMenuRegistry.builtins.items['zoom-to-cursor'].enabled = shouldEnableZoomToHere(event);
             contextMenuRegistry.builtins.items['pan-to-cursor'].enabled = shouldEnablePanToHere();
         });
+
+        return () => {
+            removeListener();
+            contextMenuRegistry.setVisible('zoom-to-cursor', false);
+            contextMenuRegistry.setVisible('pan-to-cursor', false);
+        };
     }
 
     private computeOrigin(event: Event): { x: number; y: number } | undefined {
