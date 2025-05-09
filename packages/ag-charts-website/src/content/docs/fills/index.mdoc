@@ -10,13 +10,13 @@ Series and Markers can have solid, gradient and pattern fills, allowing for uniq
 
 Supported Fill Types are:
 
--   **Solid Fill**: A single CSS colour (provided as a `#rgb` hex code, `rgb()` or `rgba()` values, or a CSS colour name such as 'black').
+-   **Solid Fill**: A single CSS colour (provided as a `#rgb` hex code, `rgb()` or `rgba()` values, or [a CSS colour name](https://developer.mozilla.org/en-US/docs/Web/CSS/named-color) such as 'black').
 
 -   **Gradient Fill**: A transition between multiple colours.
 
--   **Pattern Fill**: Predefined patterns including lines and shapes.
+-   **Pattern Fill**: Predefined patterns including lines and shapes, or a user provided path.
 
--   **Image Fill**: An image.
+-   **Image Fill**: An user provided image.
 
 The default colours and fills come from the default or user provided [Theme Palette](./themes/#palette).
 
@@ -119,16 +119,12 @@ Use styling properties such as `stroke`, `fill` and `backgroundFill` to further 
 
 ### Path
 
-SVG Path Data can be used to create custom patterns.
+SVG Path Data can be used to create custom patterns. The path can be a line or a shape.
 
-```html
-<svg viewBox="0 0 16 10">
-    <path d="M0,6 Q4,1 8,6 T16,6" />
-</svg>
-```
+{% chartExampleRunner title="Pattern Custom Path" name="pattern-custom-path" type="generated" /%}
 
--   In the snippet above, the value of the `d` attribute on the SVG <path> element is `M4,6 Q8,1 12,6 T20,6`.
--   It defines the shape of the path and can be used as a string in the `fill.path` property:
+-   To remove the stroke, set `strokeWidth` to `0`
+-   To remove the fill, set `fill` to `none`.
 
 ```js
 {
@@ -141,16 +137,18 @@ SVG Path Data can be used to create custom patterns.
 }
 ```
 
+-   In the snippet above, the string in the `fill.path` property is an SVG path.
+-   It is the value of the `d` attribute on the SVG <path>, in the SVG element shown below.
+
+```html
+<svg viewBox="0 0 16 10">
+    <path d="M0,6 Q4,1 8,6 T16,6" />
+</svg>
+```
+
 For detailed SVG Path Data syntax, refer to the [SVG Path Specification](https://www.w3.org/TR/SVG/paths.html#TheDProperty).
 
 To be valid, the path string must follow the SVG path grammar outlined in the [Path Data BNF](https://www.w3.org/TR/SVG/paths.html#PathDataBNF).
-
-The path can be a line or a shape.
-
-{% chartExampleRunner title="Pattern Custom Path" name="pattern-custom-path" type="generated" /%}
-
--   To remove the stroke, set `strokeWidth` to `0`
--   To remove the fill, set `fill` to `none`.
 
 ## Images
 
