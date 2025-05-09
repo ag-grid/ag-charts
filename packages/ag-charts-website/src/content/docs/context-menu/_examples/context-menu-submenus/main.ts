@@ -27,12 +27,12 @@ const options: AgCartesianChartOptions = {
                         type: 'action',
                         showOn: 'always',
                         label: `On 'always'`,
-                        action: (param) => console.log(`On 'always' clicked.`),
+                        action: () => console.log(`On 'always' clicked.`),
                     },
                     {
                         showOn: 'series-area',
                         label: `On 'series-area'`,
-                        action: (param) => console.log(`On 'series-area' clicked.`),
+                        action: () => console.log(`On 'series-area' clicked.`),
                     },
                     {
                         showOn: 'series-node',
