@@ -17,7 +17,7 @@
     "@nanostores/react": "^0.7.1",
     "ag-charts-community": "11.3.0-beta.20250509.1501",
     "ag-charts-enterprise": "11.3.0-beta.20250509.1501",
-    "ag-grid-community": "32.1.0",
+    "ag-grid-community": "33.2.3",
     "algoliasearch": "^4.18.0",
     "astro": "^5.4.0",
     "cheerio": "^1.0.0-rc.12",
