@@ -969,11 +969,6 @@ export class Legend extends BaseProperties {
             ctx: { chartService },
             toggleSeries,
         } = this;
-        // Integrated charts do not handle double click behaviour correctly due to multiple instances of the
-        // chart being created. See https://ag-grid.atlassian.net/browse/RTI-1381
-        if (chartService.mode === 'integrated') {
-            return false;
-        }
 
         if (!datum) {
             return false;
