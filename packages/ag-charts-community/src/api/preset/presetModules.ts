@@ -136,6 +136,7 @@ const commonSparklineOptionsDef: OptionsDefs<
     listeners: defined,
     locale: defined,
     data: defined,
+    styleNonce: string,
 
     axis: typeUnion<AgSparklineAxisOptions>(
         {
