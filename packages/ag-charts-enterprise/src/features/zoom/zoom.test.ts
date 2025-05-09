@@ -317,6 +317,66 @@ describe('Zoom', () => {
 
             await compare();
         });
+
+        describe('with two y-axes', () => {
+            const twoAxesOptions: AgChartOptions = {
+                data: [
+                    { x: 0, y: 0, y2: 700 },
+                    { x: 1, y: 50, y2: 800 },
+                    { x: 2, y: 25, y2: 1000 },
+                    { x: 3, y: 75, y2: 600 },
+                    { x: 4, y: 50, y2: 750 },
+                    { x: 5, y: 25, y2: 900 },
+                    { x: 6, y: 50, y2: 400 },
+                    { x: 7, y: 75, y2: 800 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y' },
+                    { type: 'line', xKey: 'x', yKey: 'y2' },
+                ],
+                axes: [
+                    { position: 'bottom', type: 'number' },
+                    { position: 'left', type: 'number', keys: ['y'] },
+                    { position: 'right', type: 'number', keys: ['y2'] },
+                ],
+                zoom: {
+                    enabled: true,
+                    axes: 'xy',
+                    scrollingStep: 0.5, // Make sure we zoom enough in a single step so we can detect it
+                    minVisibleItems: 1,
+                },
+            };
+
+            it('should zoom both axes together', async () => {
+                await prepareChart(undefined, undefined, twoAxesOptions);
+
+                const from = { x: 30, y: cy };
+                const to = { x: from.x, y: from.y - cy / 2 };
+
+                await hoverAction(from.x, from.y)(chart);
+                await dragAction(from, to)(chart);
+
+                await compare();
+            });
+
+            it('should allow independent axis zooming', async () => {
+                await prepareChart(undefined, undefined, {
+                    ...twoAxesOptions,
+                    zoom: {
+                        ...twoAxesOptions.zoom,
+                        enableIndependentAxes: true,
+                    } as any,
+                });
+
+                const from = { x: 30, y: cy };
+                const to = { x: from.x, y: from.y - cy / 2 };
+
+                await hoverAction(from.x, from.y)(chart);
+                await dragAction(from, to)(chart);
+
+                await compare();
+            });
+        });
     });
 
     describe('flipped axes', () => {
@@ -448,7 +508,7 @@ describe('Zoom', () => {
     });
 
     describe('data changes during zoom', () => {
-        it('AG-14055', async () => {
+        it('should update the data and zoom as expected', async () => {
             const data = [
                 { x: { id: 0, value: 'a', toString: () => 'a' }, y: 50 },
                 { x: { id: 1, value: 'b', toString: () => 'b' }, y: 30 },
@@ -471,43 +531,8 @@ describe('Zoom', () => {
         });
     });
 
-    describe('secondary axes', () => {
-        it('AG-14509', async () => {
-            const data = [
-                { x: 0, y1: 1, y2: 30 },
-                { x: 1, y1: 2, y2: 25 },
-                { x: 2, y1: 3, y2: 20 },
-                { x: 3, y1: 4, y2: 15 },
-                { x: 4, y1: 5, y2: 10 },
-            ];
-            const options: AgCartesianChartOptions = {
-                ...EXAMPLE_OPTIONS,
-                animation: { enabled: false },
-                data,
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'y1' },
-                    { type: 'line', xKey: 'x', yKey: 'y2' },
-                ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left', keys: ['y1'] },
-                    { type: 'number', position: 'right', keys: ['y2'] },
-                ],
-            };
-            await prepareChart(undefined, undefined, options);
-
-            const from = { x: 30, y: cy };
-            const to = { x: from.x, y: from.y - cy / 2 };
-
-            await hoverAction(from.x, from.y)(chart);
-            await dragAction(from, to)(chart);
-
-            await compare();
-        });
-    });
-
     describe('autoScaling', () => {
-        it('Should auto scale the y axis on a continuous x axis', async () => {
+        it('should auto scale the y axis on a continuous x axis', async () => {
             const options: AgCartesianChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 zoom: {
@@ -527,7 +552,7 @@ describe('Zoom', () => {
             await compare();
         });
 
-        it('Should auto scale the y axis on a category x axis', async () => {
+        it('should auto scale the y axis on a category x axis', async () => {
             const options: AgCartesianChartOptions = {
                 ...EXAMPLE_OPTIONS,
                 zoom: {
