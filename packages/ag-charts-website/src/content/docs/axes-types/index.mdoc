@@ -145,6 +145,12 @@ The domain of a log axis should be strictly positive or strictly negative (becau
 
 ## Time
 
+There are three methods of displaying time along an axis.
+
+-   Time Axis - Data is shown on a continuous scale.
+-   [Time Axis + unit](#unit-time) - Each 'unit' has a dedicated band within the domain.
+-   [Ordinal Time](#ordinal-time) - Only provided values are shown, with missing values omitted.
+
 {% chartExampleRunner title="Time Axis Types" name="time-vs-unit-time-vs-ordinal-time" type="generated" /%}
 
 The time axis is similar to the number axis in the sense that it is also used to plot continuous values. The time axis
@@ -168,9 +174,10 @@ For a full list of configuration options see [Time Axis Options](#reference-AgTi
 
 ## Unit Time
 
-The Time Axis will shows monthly data with different distances between the data, because months have different lengths.
-The `unit` property on the Time Axis can be used to specify the period of the data. It will plot the data on a band
-scale, which will make every interval the same distance apart.
+The Time Axis defaults to using a continuous scale. This accurately portrays the difference between each time value, but this is not always desired.
+For example, data points will not be evenly spaced when plotting monthly data, because of the inconsistent number of days across months.
+
+The `unit` property on the Time Axis can be used to specify the period of each data point. It will plot the data with evenly spaced bands for each unit with the domain.
 
 ```js
 {
@@ -180,7 +187,15 @@ scale, which will make every interval the same distance apart.
 }
 ```
 
-Any data that is not aligned to a unit will align to the closest unit before the datum. The Unit Time Axis does not aggregate data, so no more than one datum should correspond to each band.
+In this example of `unit: 'month'`, any units smaller than 'month' will be ignored. This means that values for 01 Jan and 28 Feb will be displayed identically to values of 31 Jan and 01 Feb.
+
+Valid `unit` values are `'millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'`, or a [TimeInterval object](./axes-intervals/#time-axes).
+
+{% note %}
+
+The Unit Time Axis does not aggregate data, so you should ensure that each series only has one value per `unit`.
+
+{% /note %}
 
 For a full list of configuration options see [Time Axis Options](#reference-AgTimeAxisOptions).
 
