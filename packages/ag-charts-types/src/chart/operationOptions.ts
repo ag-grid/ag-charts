@@ -98,4 +98,5 @@ type ColorOperation =
     | { $foregroundBackgroundAccentMix: [Leaf<number>, Leaf<number>] }
     | { $interpolate: [Leaf, Leaf<number>] }
     | { $isGradient: [Leaf] }
-    | { $isPattern: [Leaf] };
+    | { $isPattern: [Leaf] }
+    | { $isImage: [Leaf] };

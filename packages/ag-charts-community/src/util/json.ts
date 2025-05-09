@@ -479,6 +479,7 @@ enum ColorOperation {
     Interpolate = '$interpolate',
     IsGradient = '$isGradient',
     IsPattern = '$isPattern',
+    IsImage = '$isImage',
 }
 
 type Operation =
@@ -535,6 +536,11 @@ function isGradientFill(fill: any): fill is AgGradientColor {
 // Duplicates `isPatternFill()` from `../scene/util/fill` due to dependency violations
 function isPatternFill(fill: any): fill is AgPatternColor {
     return fill !== null && isObject(fill) && fill.type == 'pattern';
+}
+
+// Duplicates `isImageFill()` from `../scene/util/fill` due to dependency violations
+function isImageFill(fill: any): fill is AgPatternColor {
+    return fill !== null && isObject(fill) && fill.type == 'image';
 }
 
 function resolvePath(root: string[], path: string) {
@@ -619,6 +625,7 @@ const colorOperations: Record<ColorOperation, OperationFn> = {
     $interpolate: interpolate,
     $isGradient: ([value]: string | Array<unknown>) => isGradientFill(value),
     $isPattern: ([value]: string | Array<unknown>) => isPatternFill(value),
+    $isImage: ([value]: string | Array<unknown>) => isImageFill(value),
 };
 
 const operations: Record<Operation, OperationFn<any, any>> = {
