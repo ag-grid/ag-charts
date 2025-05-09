@@ -215,25 +215,34 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         button.getElement().insertAdjacentElement('afterend', menu.getElement());
         menu.getElement().style.position = 'absolute';
 
-        const canvasBounds = this.ctx.widgets.chartWidget.getElement().getBoundingClientRect();
+        const canvasRect = this.ctx.domManager.getBoundingClientRect();
         const buttonClientRect = button.getBoundingClientRect();
-        const remainingSpaceOnRight = canvasBounds.left + canvasBounds.width - buttonClientRect.right;
-        const remainingSpaceOnLeft = buttonClientRect.left - canvasBounds.left;
-        const menuOffsetWidth = menu.getElement().offsetWidth;
+        const remainingSpaceOnRight = canvasRect.right - buttonClientRect.right;
+        const remainingSpaceOnLeft = buttonClientRect.left - canvasRect.left;
+        const { offsetWidth: menuOffsetWidth, offsetHeight: menuOffsetHeight } = menu.getElement();
+
+        let y: number = bounds.y;
+        // Clip the Y-position (if the submenu fits in the canvas).
+        if (canvasRect.height > menuOffsetHeight) {
+            const remainingSpaceOnBottom = canvasRect.bottom - buttonClientRect.top;
+            if (remainingSpaceOnBottom < menuOffsetHeight) {
+                y -= menuOffsetHeight - remainingSpaceOnBottom;
+            }
+        }
 
         if (remainingSpaceOnRight >= menuOffsetWidth) {
             // Right-side Popout
-            menu.setBounds({ x: bounds.x + bounds.width, y: bounds.y });
+            menu.setBounds({ x: bounds.x + bounds.width, y });
         } else {
             // Left-side Popout
             const x = bounds.x - menuOffsetWidth;
             const leftDelta = remainingSpaceOnLeft + x;
             if (leftDelta >= 0) {
                 // Regular Left-side Popout
-                menu.setBounds({ x, y: bounds.y });
+                menu.setBounds({ x, y });
             } else {
                 // Left-side Popout (clipped to the left edge of the canvas)
-                menu.setBounds({ x: x - leftDelta, y: bounds.y });
+                menu.setBounds({ x: x - leftDelta, y });
             }
         }
     }
