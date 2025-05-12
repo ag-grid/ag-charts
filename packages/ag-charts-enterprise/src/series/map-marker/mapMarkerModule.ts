@@ -46,6 +46,10 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             fillOpacity: 0.5,
             label: {
+                enabled: false,
+                fontSize: { $ref: 'fontSize' },
+                fontFamily: { $ref: 'fontFamily' },
+                fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'textColor' },
             },
         },
