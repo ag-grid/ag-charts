@@ -290,9 +290,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private createButtonOnClick(
         showOn: AgContextMenuItemShowOn,
         callback: ContextMenuCallback
-    ): (event: _Widget.MouseWidgetEvent) => void {
+    ): (event: _Widget.WidgetEvent) => void {
         if (ContextMenuRegistry.checkCallback('legend-item', showOn, callback)) {
-            return (widgetEvent: _ModuleSupport.MouseWidgetEvent) => {
+            return (widgetEvent: _ModuleSupport.WidgetEvent) => {
                 const event: Event = widgetEvent.sourceEvent;
                 if (this.pickedLegendItem) {
                     const { seriesId, itemId } = this.pickedLegendItem;
@@ -363,7 +363,15 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         const { showOn, action } = item;
         if (action != null) {
-            button.addListener('click', this.createButtonOnClick(showOn, action));
+            const callback = this.createButtonOnClick(showOn, action);
+            button.addListener('click', callback);
+            // TODO(olegat) move this logic into the MenuItemWidget post-release
+            button.addListener('keydown', (keyEv: _Widget.KeyboardWidgetEvent) => {
+                if (_ModuleSupport.isButtonClickEvent(keyEv.sourceEvent)) {
+                    keyEv.sourceEvent.preventDefault();
+                    callback(keyEv);
+                }
+            });
         }
         button.addListener('mousemove', () => button.focus({ preventScroll: true }));
     }
