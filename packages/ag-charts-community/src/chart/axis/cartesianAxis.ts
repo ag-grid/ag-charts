@@ -23,7 +23,6 @@ import type { TimeInterval } from '../../util/time';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import { ChartAxisDirection } from '../chartAxisDirection';
-import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { AnimationManager } from '../interaction/animationManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
 import type { AxisLabel } from './axisLabel';
@@ -198,13 +197,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     layoutCrossLines(): void {
-        const { position, label } = this;
         const anySeriesActive = this.isAnySeriesActive();
         this.crossLines.forEach((crossLine) => {
-            if (crossLine instanceof CartesianCrossLine) {
-                crossLine.position = position;
-                crossLine.label.parallel ??= label.parallel;
-            }
             crossLine.calculateLayout?.(anySeriesActive, this.reverse);
         });
     }
