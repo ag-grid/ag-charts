@@ -7,6 +7,9 @@ const data = getData();
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data,
+    title: {
+        text: 'Journey Time by Transport Mode',
+    },
     series: [
         {
             type: 'bar',

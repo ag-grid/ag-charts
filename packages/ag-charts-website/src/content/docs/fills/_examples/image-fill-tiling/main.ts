@@ -7,6 +7,9 @@ const data = getData();
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     data,
+    title: {
+        text: 'A City in Motion: How Londoners Commute',
+    },
     series: [
         {
             type: 'donut',
