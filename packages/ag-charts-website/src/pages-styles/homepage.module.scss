@@ -505,6 +505,10 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
             height: 100%;
             border: 10px solid var(--color-bg-primary);
             pointer-events: none;
+
+            #{$selector-darkmode} & {
+                border-color: #192232;
+            }
         }
     }
 }
