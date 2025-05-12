@@ -1,4 +1,4 @@
-import type { ProcessedData, ProcessedOutputDiff } from '../../data/dataModel';
+import type { ProcessedData } from '../../data/dataModel';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { type Scaling, areScalingEqual } from './scaling';
 
@@ -39,15 +39,7 @@ export function calculateDataDiff<N extends CartesianSeriesNodeDatum>(
         };
     }
 
-    return previousContextNodeData
-        ? ({
-              changed: false,
-              added: new Set(),
-              updated: new Set(),
-              removed: new Set(),
-              moved: new Set(),
-          } satisfies ProcessedOutputDiff)
-        : dataDiff;
+    return dataDiff;
 }
 
 function isGroupScaleContext(ctx: unknown): ctx is { groupScale: Scaling } {
