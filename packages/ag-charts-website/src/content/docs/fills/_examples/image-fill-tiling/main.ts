@@ -11,15 +11,15 @@ const options: AgPolarChartOptions = {
         {
             type: 'donut',
             angleKey: 'percent',
-            radiusKey: 'environmentalImpact',
             innerRadiusRatio: 0.2,
+            legendItemKey: 'mode',
             fills: data.map(({ mode }) => {
                 return {
                     type: 'image',
                     url: '${baseWWWUrl}/example-assets/docs-images/' + `${mode}.png`,
                     width: 20,
                     height: 20,
-                    repeat: 'repeat',
+                    repeat: 'no-repeat',
                 };
             }),
         },
@@ -42,24 +42,6 @@ function repeat() {
     series.fills = series.fills?.map((fill) => ({
         ...(fill as AgImageFill),
         repeat: 'repeat',
-    }));
-    chart.update(options);
-}
-
-function repeatX() {
-    const series = options.series![0] as AgDonutSeriesOptions;
-    series.fills = series.fills?.map((fill) => ({
-        ...(fill as AgImageFill),
-        repeat: 'repeat-x',
-    }));
-    chart.update(options);
-}
-
-function repeatY() {
-    const series = options.series![0] as AgDonutSeriesOptions;
-    series.fills = series.fills?.map((fill) => ({
-        ...(fill as AgImageFill),
-        repeat: 'repeat-y',
     }));
     chart.update(options);
 }
