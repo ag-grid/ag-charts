@@ -27,7 +27,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Eccentricity',
             },
             crosshair: {
-                stroke: '#330066',
+                stroke: 'rgb(103,105,235)',
                 strokeWidth: 2,
                 lineDash: [5, 10],
             },
@@ -39,7 +39,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Distance [pc]',
             },
             crosshair: {
-                stroke: '#330066',
+                stroke: 'rgb(103,105,235)',
                 strokeWidth: 2,
                 lineDash: [5, 10],
             },
