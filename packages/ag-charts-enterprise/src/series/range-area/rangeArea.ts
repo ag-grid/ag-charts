@@ -424,7 +424,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         visible: boolean;
         animationEnabled: boolean;
     }) {
-        const { opacity, visible, animationEnabled } = opts;
+        const { opacity, visible } = opts;
         const [fill, stroke] = opts.paths;
 
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
@@ -439,7 +439,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             lineDash: this.properties.lineDash,
             lineDashOffset: this.properties.lineDashOffset,
             opacity,
-            visible: visible || animationEnabled,
+            visible,
         });
 
         const seriesFill = getShapeFill(
@@ -472,7 +472,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             lineJoin: 'round',
             fillShadow: this.properties.shadow,
             opacity,
-            visible: visible || animationEnabled,
+            visible,
         });
 
         updateClipPath(this, stroke);
