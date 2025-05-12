@@ -395,13 +395,13 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private positionLabel(bounds: BBox) {
         const { crossLineLabel, label, anchor } = this;
 
-        const bbox = crossLineLabel.getBBox();
-        if (!bbox) return;
-        const { width, height } = bbox;
-
         crossLineLabel.rotation = toRadians(label.rotation ?? 0);
         crossLineLabel.textBaseline = 'middle';
         crossLineLabel.textAlign = 'center';
+
+        const bbox = crossLineLabel.getBBox();
+        if (!bbox) return;
+        const { width, height } = bbox;
 
         const xOffset = label.padding + width / 2;
         const yOffset = label.padding + height / 2;
