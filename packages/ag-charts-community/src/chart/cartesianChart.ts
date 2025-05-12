@@ -11,6 +11,7 @@ import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
+import { CartesianCrossLine } from './crossline/cartesianCrossLine';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { Series } from './series/series';
 
@@ -226,9 +227,12 @@ export class CartesianChart extends Chart {
         const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0);
         const crossLinePadding = this.buildCrossLinePadding(axisAreaWidths);
 
+        const crossLineHPadding = crossLinePadding.left + crossLinePadding.right;
+        const crossLineVPadding = crossLinePadding.top + crossLinePadding.bottom;
+
         if (
-            axisAreaBound.width <= totalWidth + crossLinePadding.hPadding ||
-            axisAreaBound.height <= totalHeight + crossLinePadding.vPadding
+            axisAreaBound.width <= totalWidth + crossLineHPadding ||
+            axisAreaBound.height <= totalHeight + crossLineVPadding
         ) {
             // Not enough space for rendering
             overflows = true;
@@ -301,10 +305,16 @@ export class CartesianChart extends Chart {
     }
 
     private buildCrossLinePadding(axisAreaSize: AreaWidthMap) {
-        const crossLinePadding = { top: 0, right: 0, bottom: 0, left: 0, hPadding: 0, vPadding: 0 };
+        const crossLinePadding = { top: 0, right: 0, bottom: 0, left: 0 };
 
         this.axes.forEach((axis) => {
+            const { position, label } = axis;
             axis.crossLines?.forEach((crossLine) => {
+                if (crossLine instanceof CartesianCrossLine) {
+                    crossLine.position = position ?? 'top';
+                    crossLine.label.parallel ??= label.parallel;
+                }
+
                 crossLine.calculatePadding?.(crossLinePadding);
             });
         });
@@ -312,9 +322,6 @@ export class CartesianChart extends Chart {
         for (const [side, padding = 0] of entries(crossLinePadding)) {
             crossLinePadding[side] = Math.max(padding - (axisAreaSize.get(side as AgCartesianAxisPosition) ?? 0), 0);
         }
-
-        crossLinePadding.hPadding = crossLinePadding.left + crossLinePadding.right;
-        crossLinePadding.vPadding = crossLinePadding.top + crossLinePadding.bottom;
 
         return crossLinePadding;
     }
