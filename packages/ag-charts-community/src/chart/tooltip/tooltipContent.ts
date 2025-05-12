@@ -96,6 +96,10 @@ function dataHtml(label: string | undefined, value: string, inline: boolean) {
 function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
     let html = '';
 
+    if (content.data?.length && content.data.every((datum) => datum.value == null || datum.value === '')) {
+        return html;
+    }
+
     const dataInline = content.title == null && content.data?.length === 1;
 
     const symbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
