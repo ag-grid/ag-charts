@@ -1,5 +1,5 @@
 import { expect, test } from './fixture';
-import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrls } from './util';
+import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls } from './util';
 
 test.describe('Combination charts', () => {
     setupIntrinsicAssertions();
