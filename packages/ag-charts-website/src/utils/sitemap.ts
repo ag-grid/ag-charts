@@ -1,3 +1,5 @@
+import { FRAMEWORK_REDIRECT_PATH } from '../constants';
+
 /**
  * Example runner pages
  */
@@ -21,7 +23,8 @@ const isRedirectPage = (page: string) => {
         page.endsWith('/react/') ||
         page.endsWith('/angular/') ||
         page.endsWith('/javascript/') ||
-        page.endsWith('/vue/')
+        page.endsWith('/vue/') ||
+        page.includes(`/${FRAMEWORK_REDIRECT_PATH}/`)
     );
 };
 
