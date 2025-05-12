@@ -19,7 +19,7 @@ const options: AgPolarChartOptions = {
             fills: data.map(({ mode }) => {
                 return {
                     type: 'image',
-                    url: '${baseWWWUrl}/example-assets/docs-images/' + `${mode}.png`,
+                    url: '${baseWWWUrl}/example-assets/docs-images/' + `${mode.toLowerCase()}.png`,
                     width: 20,
                     height: 20,
                     repeat: 'no-repeat',
