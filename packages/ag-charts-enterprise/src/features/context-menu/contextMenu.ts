@@ -334,6 +334,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         cellLabel.classList.toggle('ag-charts-context-menu__label', true);
         cellArrow.classList.toggle('ag-charts-context-menu__rightarrowhead', true);
         cellIcon.ariaHidden = 'true';
+        cellLabel.role = 'presentation';
         cellArrow.ariaHidden = 'true';
         elem.append(cellIcon, cellLabel, cellArrow);
         return { cellIcon, cellLabel, cellArrow };
