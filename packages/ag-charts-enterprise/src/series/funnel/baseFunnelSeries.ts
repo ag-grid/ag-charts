@@ -85,7 +85,7 @@ interface FunnelConnectorDatum {
     readonly opacity: number;
 }
 
-interface FunnelContext extends _ModuleSupport.CartesianSeriesNodeDataContext<FunnelNodeDatum, FunnelNodeLabelDatum> {
+interface FunnelContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<FunnelNodeDatum, FunnelNodeLabelDatum> {
     connectorData: FunnelConnectorDatum[];
 }
 
@@ -302,6 +302,7 @@ export abstract class BaseFunnelSeries<
             labelData: [],
             connectorData: [],
             scales: this.calculateScaling(),
+            groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
         };
 

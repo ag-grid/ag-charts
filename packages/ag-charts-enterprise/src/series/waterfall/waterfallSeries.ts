@@ -56,7 +56,7 @@ interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Re
     readonly opacity?: number;
 }
 
-interface WaterfallContext extends _ModuleSupport.CartesianSeriesNodeDataContext<WaterfallNodeDatum> {
+interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<WaterfallNodeDatum> {
     pointData?: WaterfallNodePointDatum[];
 }
 
@@ -239,6 +239,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             labelData: [],
             pointData: [],
             scales: this.calculateScaling(),
+            groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
         };
 

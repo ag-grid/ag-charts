@@ -14,21 +14,42 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { SeriesNodePickMatch } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
-import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
+import type {
+    CartesianAnimationData,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+} from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesProperties } from './cartesianSeries';
 import { type QuadtreeCompatibleNode, addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
+import type { Scaling } from './scaling';
 
 export abstract class AbstractBarSeriesProperties<T extends object> extends CartesianSeriesProperties<T> {
     @Property
     direction: Direction = 'vertical';
 }
 
+export interface AbstractBarSeriesNodeDataContext<
+    TDatum extends CartesianSeriesNodeDatum,
+    TLabel extends SeriesNodeDatum<number> = TDatum,
+> extends CartesianSeriesNodeDataContext<TDatum, TLabel> {
+    groupScale: Scaling | undefined;
+}
+
+export type AbstractBarSeriesAnimationData<
+    TNode extends QuadtreeCompatibleNode,
+    TDatum extends CartesianSeriesNodeDatum,
+    TLabel extends SeriesNodeDatum<number> = TDatum,
+> = CartesianAnimationData<TNode, TDatum, TLabel, AbstractBarSeriesNodeDataContext<TDatum, TLabel>>;
+
 export abstract class AbstractBarSeries<
     TNode extends QuadtreeCompatibleNode,
     TProps extends AbstractBarSeriesProperties<any>,
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum<number> = TDatum,
-    TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
+    TContext extends AbstractBarSeriesNodeDataContext<TDatum, TLabel> = AbstractBarSeriesNodeDataContext<
+        TDatum,
+        TLabel
+    >,
 > extends CartesianSeries<TNode, TProps, TDatum, TLabel, TContext> {
     /**
      * Used to get the position of bars within each group.

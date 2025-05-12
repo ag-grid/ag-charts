@@ -162,6 +162,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             nodeData,
             labelData: [],
             scales: this.calculateScaling(),
+            groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
         };
 
