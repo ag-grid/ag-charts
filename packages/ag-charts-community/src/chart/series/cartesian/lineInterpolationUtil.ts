@@ -74,14 +74,12 @@ export function scale(val: number | string | Date, scaling?: Scaling) {
     if (scaling.type !== 'category') return NaN;
 
     // Category axis case.
-    const matchingIndex = scaling.domain.findIndex((d) => d === val);
-    if (matchingIndex >= 0) {
-        return scaling.inset + scaling.step * matchingIndex;
+    let matchingIndex = scaling.domain.findIndex((d) => d === val);
+    if (matchingIndex === -1) {
+        // Integrated Charts category case.
+        matchingIndex = scaling.domain.findIndex((d) => integratedCategoryMatch(val, d));
     }
-
-    // Integrated Charts category case.
-    const matchingIntegratedIndex = scaling.domain.findIndex((d) => integratedCategoryMatch(val, d));
-    if (matchingIntegratedIndex >= 0) {
+    if (matchingIndex >= 0) {
         return scaling.inset + scaling.step * matchingIndex;
     }
 
