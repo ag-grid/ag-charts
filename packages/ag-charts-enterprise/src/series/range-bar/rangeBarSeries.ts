@@ -32,6 +32,7 @@ const {
     applyShapeStyle,
     findMinMax,
     getShapeStyle,
+    areScalingEqual,
 } = _ModuleSupport;
 
 type Bounds = {
@@ -71,9 +72,9 @@ interface RangeBarNodeDatum
     readonly opacity?: number;
 }
 
-type RangeBarContext = _ModuleSupport.CartesianSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
+type RangeBarContext = _ModuleSupport.AbstractBarSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
 
-type RangeBarAnimationData = _ModuleSupport.CartesianAnimationData<
+type RangeBarAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<
     _ModuleSupport.Rect,
     RangeBarNodeDatum,
     RangeBarNodeLabelDatum
@@ -239,6 +240,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             nodeData: [],
             labelData: [],
             scales: this.calculateScaling(),
+            groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
         };
         if (!visible) return context;
@@ -706,7 +708,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             dataDiff
         );
 
-        if (dataDiff?.changed) {
+        if (dataDiff?.changed || !areScalingEqual(contextData.groupScale, previousContextData?.groupScale)) {
             seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
         }
     }
