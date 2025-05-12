@@ -1,22 +1,11 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-function initAnimation() {
-    const f = () => {
-        (document.querySelector('.gesture-demo') as HTMLElement).style.display = 'none';
-    };
-    document.addEventListener('touchstart', f, { capture: true, once: true });
-    document.addEventListener('wheel', f, { capture: true, once: true });
-    document.addEventListener('mousedown', f, { capture: true, once: true });
-    document.addEventListener('keydown', f, { capture: true, once: true });
-    return { enabled: false };
-}
-
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Financial Performance Overview',
     },
-    animation: initAnimation(),
+    animation: { enabled: false },
     data: [
         { year: 2018, revenue: 120, expenses: 80, profit: 40, investments: 30, taxes: 20, dividends: 10, rAndD: 25 },
         { year: 2019, revenue: 140, expenses: 90, profit: 50, investments: 40, taxes: 25, dividends: 12, rAndD: 30 },
