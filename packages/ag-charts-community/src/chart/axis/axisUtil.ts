@@ -2,7 +2,7 @@ import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
 import type { FromToFns } from '../../motion/fromToMotion';
 import type { Group, TranslatableGroup } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
-import type { RotatableText, TransformableText } from '../../scene/shape/text';
+import type { RotatableText } from '../../scene/shape/text';
 import { findMinMax } from '../../util/number';
 
 export enum NiceMode {
@@ -122,7 +122,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
         },
     };
 
-    const label: FromToFns<TransformableText, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum> = {
+    const label: FromToFns<RotatableText, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum> = {
         fromFn(node, newDatum, status) {
             const datum: AxisLabelDatum = node.previousDatum ?? newDatum;
 
