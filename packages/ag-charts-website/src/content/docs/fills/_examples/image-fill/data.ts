@@ -1,9 +1,9 @@
 export function getData() {
     return [
-        { mode: 'walk', timeToDestination: 30 },
-        { mode: 'bike', timeToDestination: 15 },
-        { mode: 'bus', timeToDestination: 25 },
-        { mode: 'car', timeToDestination: 18 },
-        { mode: 'train', timeToDestination: 20 },
+        { mode: 'Walk', timeToDestination: 30 },
+        { mode: 'Bike', timeToDestination: 15 },
+        { mode: 'Bus', timeToDestination: 25 },
+        { mode: 'Car', timeToDestination: 18 },
+        { mode: 'Train', timeToDestination: 20 },
     ];
 }
