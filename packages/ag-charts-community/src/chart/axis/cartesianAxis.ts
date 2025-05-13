@@ -23,7 +23,6 @@ import type { TimeInterval } from '../../util/time';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import { ChartAxisDirection } from '../chartAxisDirection';
-import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { AnimationManager } from '../interaction/animationManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
 import type { AxisLabel } from './axisLabel';
@@ -198,13 +197,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     layoutCrossLines(): void {
-        const { position, label } = this;
         const anySeriesActive = this.isAnySeriesActive();
         this.crossLines.forEach((crossLine) => {
-            if (crossLine instanceof CartesianCrossLine) {
-                crossLine.position = position;
-                crossLine.label.parallel ??= label.parallel;
-            }
             crossLine.calculateLayout?.(anySeriesActive, this.reverse);
         });
     }
@@ -326,6 +320,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         this.tickLineGroup.visible = this.tick.enabled || (this.primaryTick?.enabled ?? false);
         this.tickLabelGroup.visible = this.label.enabled || (this.primaryTick?.enabled ?? false);
 
+        const { generatedTicks } = this;
+        this.updateTitle(this.scale.domain, generatedTicks?.spacing ?? 0);
+
         if (!this.animatable) {
             this.moduleCtx.animationManager.skipCurrentBatch();
         }
@@ -345,9 +342,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const { enabled, stroke, width } = this.line;
         // Without this the layout isn't consistent when enabling/disabling the line, padding configurations are not respected.
         this.lineNode.setProperties({ stroke, strokeWidth: enabled ? width : 0 });
-
-        const { generatedTicks } = this;
-        this.updateTitle(this.scale.domain, generatedTicks?.spacing ?? 0);
 
         this.updateTickLines();
         this.updateGridLines();
@@ -410,8 +404,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected titleBBox(domain: D[], spacing: number) {
-        this.setTitleProps(this.tempCaption, domain, spacing);
-        return this.tempCaption.node.getBBox();
+        const { tempCaption } = this;
+        tempCaption.node.setProperties(this.titleProps(tempCaption, domain, spacing));
+        return tempCaption.node.getBBox();
     }
 
     private tickBBox(domain: D[], ticks: TickDatum[], labels: LabelNodeDatum[]) {
@@ -461,13 +456,21 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return { bbox, spacing };
     }
 
-    protected setTitleProps(caption: Caption, domain: D[], spacing: number) {
+    protected titleProps(caption: Caption, domain: D[], spacing: number) {
         const { title } = this;
 
         if (!title.enabled) {
             caption.enabled = false;
-            caption.node.visible = false;
-            return;
+            return {
+                visible: false,
+                text: '',
+                textBaseline: 'bottom' as const,
+                x: 0,
+                y: 0,
+                rotationCenterX: 0,
+                rotationCenterY: 0,
+                rotation: 0,
+            };
         }
 
         caption.enabled = true;
@@ -478,7 +481,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         caption.fontWeight = title.fontWeight;
         caption.wrapping = title.wrapping;
 
-        const titleNode = caption.node;
         const padding = (title.spacing ?? 0) + spacing;
 
         const { range } = this;
@@ -518,7 +520,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const text = this.callWithContext(formatter, this.getTitleFormatterParams(domain));
         caption.text = text;
 
-        titleNode.setProperties({
+        return {
             visible: true,
             text,
             textBaseline,
@@ -527,7 +529,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             rotationCenterX: x,
             rotationCenterY: y,
             rotation,
-        });
+        };
     }
 
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
@@ -591,7 +593,12 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected updateTitle(domain: D[], spacing: number): void {
-        this.setTitleProps(this.title.caption, domain, spacing);
+        const { caption } = this.title;
+        const titleProps = this.titleProps(caption, domain, spacing);
+        caption.node.visible = titleProps.visible;
+        caption.node.text = titleProps.text;
+        caption.node.textBaseline = titleProps.textBaseline;
+        caption.node.datum = titleProps;
     }
 
     protected updateLabels() {
@@ -641,6 +648,15 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             (_, d) => d.tickId,
             diff
         );
+        fromToMotion(
+            this.id,
+            'title',
+            animationManager,
+            [this.title.caption.node],
+            fns.label,
+            (_, d) => d.tickId,
+            diff
+        );
     }
 
     protected resetSelectionNodes() {
@@ -650,6 +666,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         );
         resetMotion([this.gridLineGroupSelection, this.tickLineGroupSelection], resetAxisLineSelectionFn());
         resetMotion([this.tickLabelGroupSelection], resetAxisLabelSelectionFn());
+        resetMotion([this.title.caption.node], resetAxisLabelSelectionFn());
         resetMotion([this.lineNode], resetAxisLineSelectionFn());
     }
 }

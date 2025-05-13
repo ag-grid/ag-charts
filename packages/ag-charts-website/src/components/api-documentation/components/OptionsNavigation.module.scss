@@ -28,10 +28,10 @@
         width: 100%;
         padding: $spacing-size-4 var(--horizontal-margin);
         background-color: var(--color-bg-primary);
-        border-bottom: 1px solid var(--color-util-gray-200);
 
         @media screen and (min-width: $breakpoint-options-medium) {
             padding: $spacing-size-4 $spacing-size-4 $spacing-size-4 var(--layout-horizontal-margins);
+            border-bottom: 1px solid var(--color-util-gray-200);
         }
 
         @media screen and (min-width: $breakpoint-options-extra-large) {

@@ -11,6 +11,9 @@ const options: AgChartOptions = {
     footnote: {
         text: 'Source: Department for Environment, Food and Rural Affairs',
     },
+    tooltip: {
+        mode: 'shared',
+    },
     series: [
         {
             type: 'line',

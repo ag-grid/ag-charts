@@ -52,8 +52,6 @@ series: [
 ]
 ```
 
-## Customisation
-
 ## Gradients
 
 {% chartExampleRunner title="Gradient Fill" name="gradient-fill" type="generated" /%}
@@ -152,9 +150,7 @@ To be valid, the path string must follow the SVG path grammar outlined in the [P
 
 ## Images
 
-{% chartExampleRunner title="Image Fill" name="image-fill" type="generated" /%}
-
-Any image url or data:url can be provided in the `fill.image.url` property.
+Any image url or data:url can be provided in the `fill.url` property to fill shapes with an image.
 
 ```js
 {
@@ -167,9 +163,40 @@ Any image url or data:url can be provided in the `fill.image.url` property.
 }
 ```
 
-{% chartExampleRunner title="Image Fill Customisation" name="image-fill-customisation" type="generated" /%}
+Additional configuration options include `fit`, `width`, `height` and `repeat`.
 
-See the [Image API reference](#reference-AgImageColor) all the available options.
+The `backgroundFill` and `backgroundFillOpacity` properties provide a fallback if the image fails to load. These options are also used in any empty space if the image doesn’t fully cover the shape.
+
+### Image Fit
+
+{% chartExampleRunner title="Image Fill" name="image-fill" type="generated" /%}
+
+`image.fit` controls how the image is scaled within the shape. In the example above:
+
+-   **Contain**: Scales the image to fit entirely within the shape area without cropping, preserving the aspect ratio of the image. This may leave empty space in one dimension.
+-   **Cover**: Scales the image to cover the shape area, potentially cropping parts of the image if the aspect ratios don’t match.
+-   **Stretch**: Stretches the image to fill the shape area, ignoring the original aspect ratio, this can distort the image.
+-   **None**: Displays the image at its original size and resolution, without any scaling. The image may be clipped depending on the shape size.
+
+### Image Tiling
+
+Images can be tiled by using the `repeat` property.
+
+```js
+{
+    series: {
+        fill: {
+            type: 'image',
+            url: 'url',
+            repeat: 'repeat-x'
+        },
+    },
+}
+```
+
+{% chartExampleRunner title="Image Fill Tiling" name="image-fill-tiling" type="generated" /%}
+
+See the [Image API reference](#reference-AgImageFill) all the available options.
 
 ## API Reference
 

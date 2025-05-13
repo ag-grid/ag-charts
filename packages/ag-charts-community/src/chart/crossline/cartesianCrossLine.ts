@@ -249,12 +249,11 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     }
 
     calculateLayout(visible: boolean, reversedAxis?: boolean) {
+        this.data = undefined;
+
         if (!visible) return;
 
         const { type, range, value, scale, clippedRange, strokeWidth = 0 } = this;
-
-        this.data = undefined;
-
         if (!scale) return;
 
         const bandwidth = scale.bandwidth ?? 0;
@@ -396,13 +395,13 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private positionLabel(bounds: BBox) {
         const { crossLineLabel, label, anchor } = this;
 
-        const bbox = crossLineLabel.getBBox();
-        if (!bbox) return;
-        const { width, height } = bbox;
-
         crossLineLabel.rotation = toRadians(label.rotation ?? 0);
         crossLineLabel.textBaseline = 'middle';
         crossLineLabel.textAlign = 'center';
+
+        const bbox = crossLineLabel.getBBox();
+        if (!bbox) return;
+        const { width, height } = bbox;
 
         const xOffset = label.padding + width / 2;
         const yOffset = label.padding + height / 2;
@@ -437,8 +436,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     }
 
     calculatePadding(into: Partial<Record<AgCrossLineLabelPosition, number>>) {
-        const { data, label, anchor } = this;
-        if (data == null) return;
+        const { label, anchor } = this;
 
         const size = this.computeLabelSize();
         if (!size) return;

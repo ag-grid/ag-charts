@@ -240,6 +240,7 @@ export abstract class OhlcSeriesBase<
             nodeData,
             labelData: [],
             scales: this.calculateScaling(),
+            groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
         };
         if (!visible) return context;

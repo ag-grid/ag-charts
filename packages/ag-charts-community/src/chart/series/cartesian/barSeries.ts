@@ -34,7 +34,7 @@ import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { applyShapeStyle, getShapeStyle } from '../shapeUtil';
 import { datumStylerProperties } from '../util';
-import { AbstractBarSeries } from './abstractBarSeries';
+import { AbstractBarSeries, type AbstractBarSeriesAnimationData } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
 import {
     checkCrisp,
@@ -44,15 +44,13 @@ import {
     resetBarSelectionsFn,
 } from './barUtil';
 import {
-    type CartesianAnimationData,
-    type CartesianSeriesNodeDataContext,
     type CartesianSeriesNodeDatum,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { calculateDataDiff } from './diffUtil';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
-import { type Scaling } from './scaling';
+import { areScalingEqual } from './scaling';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -78,11 +76,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly label?: BarNodeLabelDatum;
 }
 
-type BarAnimationData = CartesianAnimationData<Rect, BarNodeDatum>;
-
-interface BarSeriesNodeDataContext extends CartesianSeriesNodeDataContext<BarNodeDatum, BarNodeDatum> {
-    groupScale: Scaling | undefined;
-}
+type BarAnimationData = AbstractBarSeriesAnimationData<Rect, BarNodeDatum>;
 
 // Get TS to check these values - but it's faster for the engine to use explicit constants
 export interface BarSeriesAggregationIndexes {
@@ -106,13 +100,7 @@ export interface BarSeriesDataAggregationFilter {
     indexes: BarSeriesAggregationIndexes;
 }
 
-export class BarSeries extends AbstractBarSeries<
-    Rect<BarNodeDatum>,
-    BarSeriesProperties,
-    BarNodeDatum,
-    BarNodeDatum,
-    BarSeriesNodeDataContext
-> {
+export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesProperties, BarNodeDatum, BarNodeDatum> {
     static readonly className = 'BarSeries';
     static readonly type = 'bar' as const;
 
@@ -856,7 +844,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     override animateWaitingUpdateReady(data: BarAnimationData) {
-        const { datumSelection, labelSelection, annotationSelections, previousContextData } = data;
+        const { datumSelection, labelSelection, annotationSelections, contextData, previousContextData } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
         const dataDiff = calculateDataDiff(
@@ -881,7 +869,7 @@ export class BarSeries extends AbstractBarSeries<
             dataDiff
         );
 
-        if (dataDiff?.changed) {
+        if (dataDiff?.changed || !areScalingEqual(contextData.groupScale, previousContextData?.groupScale)) {
             seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
         }

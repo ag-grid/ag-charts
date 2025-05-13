@@ -1,6 +1,7 @@
 import { getDocsExamplePages, getDocsPages } from '@components/docs/utils/pageData';
 import * as docsUrlPaths from '@components/docs/utils/urlPaths';
 import { getExamplePageUrl } from '@components/docs/utils/urlPaths';
+import { FRAMEWORK_REDIRECT_PATH } from '@constants';
 import { getCollection } from 'astro:content';
 
 import { getDebugPageUrls } from './pages';
@@ -65,6 +66,8 @@ const getIgnoredPages = () => {
         urlWithBaseUrl('/404'),
         addTrailingSlash(urlWithBaseUrl('/gallery/examples')),
         addTrailingSlash(urlWithBaseUrl('/archive')),
+        // Redirects
+        addTrailingSlash(urlWithBaseUrl(`/${FRAMEWORK_REDIRECT_PATH}`)),
     ];
 };
 

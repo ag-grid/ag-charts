@@ -15,7 +15,7 @@ import { createTicks, tickStep } from '../../../util/ticks';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';
-import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from '../../data/dataModel';
+import type { AggregatePropertyDefinition, DataGroup, GroupByFn, PropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import {
     SORT_DOMAIN_GROUPS,
@@ -276,6 +276,10 @@ export class HistogramSeries extends CartesianSeries<
         return [yMin, yMax];
     }
 
+    private frequency(group: DataGroup) {
+        return group.datumIndices.reduce((acc, datumIndices) => acc + datumIndices.length, 0);
+    }
+
     override createNodeData() {
         const { id: seriesId, axes, processedData, dataModel } = this;
 
@@ -305,9 +309,9 @@ export class HistogramSeries extends CartesianSeries<
         }
 
         processedData.groups.forEach((group, groupIndex) => {
-            const { keys, datumIndices, aggregation } = group;
+            const { keys, aggregation } = group;
             const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
-            const frequency = datumIndices.length;
+            const frequency = this.frequency(group);
             const domain = keys;
             const [xDomainMin, xDomainMax] = domain;
             const datum = [...dataModel.forEachDatum(this, processedData, group)];
@@ -508,9 +512,9 @@ export class HistogramSeries extends CartesianSeries<
         }
 
         const group = processedData.groups[datumIndex];
-        const { aggregation, datumIndices, keys } = group;
+        const { aggregation, keys } = group;
         const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
-        const frequency = datumIndices.length;
+        const frequency = this.frequency(group);
         const domain = keys;
         const [rangeMin, rangeMax]: number[] = domain;
         const aggregatedValue = negativeAgg + positiveAgg;

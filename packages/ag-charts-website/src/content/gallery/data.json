@@ -176,6 +176,14 @@
                         "name": "bubble-with-categories"
                     },
                     {
+                        "title": "Bubble With Images",
+                        "name": "bubble-with-images"
+                    },
+                    {
+                        "title": "Bubble With Patterns",
+                        "name": "bubble-with-patterns"
+                    },
+                    {
                         "title": "Bubble With Custom Markers",
                         "name": "bubble-with-custom-markers",
                         "hidden": true
