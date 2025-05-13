@@ -70,6 +70,7 @@ export default [
             '**/node_modules',
             '**/dist',
             '**/typings',
+            '**/.cache',
             '**/eslint.config.mjs',
             '**/jest.*.{cjs,js}',
             '**/.dependency-cruiser.js',

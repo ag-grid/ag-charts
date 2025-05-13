@@ -6,6 +6,7 @@ import { expect, test } from './fixture';
 
 const baseUrl = process.env.PUBLIC_SITE_URL ?? 'https://localhost:4600/charts';
 const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'] as const;
+const harCachingEnabled = process.env.HAR_CACHING_ENABLED === 'true';
 
 export const SELECTORS = {
     wrapper: '.ag-charts-wrapper',
@@ -151,9 +152,13 @@ export function repeat(repCount: number, fn: () => unknown) {
 }
 
 export async function gotoExample(page: Page, url: string, opts = { skipStabilityChecks: false }) {
+    if (harCachingEnabled) {
+        await page.routeFromHAR(`./e2e/.cache/request.har`, {
+            notFound: 'abort',
+            url: 'https://cdn.jsdelivr.net/**',
+        });
+    }
     await page.goto(url + '#e2e=true');
-
-    await page.waitForLoadState('networkidle');
 
     expect(await page.title()).not.toMatch(/Page Not Found/);
 
