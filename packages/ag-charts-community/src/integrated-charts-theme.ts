@@ -2,7 +2,7 @@ import type { Operation } from 'ag-charts-types';
 
 import { themes } from './chart/mapping/themes';
 import { ChartTheme } from './chart/themes/chartTheme';
-import { jsonResolveOperations } from './util/json';
+import { jsonResolveOperations } from './util/jsonOperators';
 
 // Only these imports are used by ag-grid.
 // DO NOT ADD EXPORTS UNLESS REQUIRED BY INTEGRATED CHARTS.

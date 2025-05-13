@@ -46,14 +46,8 @@ import {
 } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
 import { Debug } from '../util/debug';
-import {
-    type CloneOptions,
-    deepClone,
-    jsonDiff,
-    jsonPropertyCompare,
-    jsonResolveOperations,
-    jsonWalk,
-} from '../util/json';
+import { type CloneOptions, deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
+import { jsonResolveOperations } from '../util/jsonOperators';
 import { deepFreeze, merge, mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
@@ -159,13 +153,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             this.userOptions = deepClone(merge(deltaOptions, baseChartOptions.userOptions), {
                 ...ChartOptions.OPTIONS_CLONE_OPTS,
-                seen: [],
+                detectCycles: true,
             }) as T;
         } else {
             // Full update case.
             this.userOptions = deepClone(currentUserOptions ?? newUserOptions, {
                 ...ChartOptions.OPTIONS_CLONE_OPTS,
-                seen: [],
+                detectCycles: true,
             });
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
