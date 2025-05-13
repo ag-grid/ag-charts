@@ -80,7 +80,7 @@ if [ "$1" == "--host" ] ; then
   trap cleanup SIGINT SIGTERM ERR EXIT
 
   cd $(git rev-parse --show-toplevel)
-  docker run -d --rm --ipc=host \
+  docker run -d --rm --ipc=host --init \
     -v $(pwd):/data:ro \
     -v $(pwd)/reports:/data/reports \
     -v $(pwd)/packages/ag-charts-website:/data/packages/ag-charts-website \

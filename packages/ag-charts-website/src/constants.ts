@@ -4,6 +4,7 @@ export const FRAMEWORKS: readonly Framework[] = ['react', 'angular', 'vue', 'jav
 export const DEFAULT_FRAMEWORK: Framework = FRAMEWORKS[0];
 export const DEFAULT_INTERNAL_FRAMEWORK: InternalFramework =
     import.meta.env?.PUBLIC_DEFAULT_FRAMEWORK ?? 'reactFunctional';
+export const ENABLE_HOT_RELOAD = import.meta.env?.PUBLIC_ENABLE_HOT_RELOAD === 'true';
 
 export const INTERNAL_FRAMEWORKS: readonly InternalFramework[] = [
     'vanilla',
