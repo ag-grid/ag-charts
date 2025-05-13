@@ -135,8 +135,11 @@ export function createConsoleLogs() {
             const expectedCount: number = calls.length;
             await expect
                 .poll(() => consoleLogs.length, { message: `Waiting for ${expectedCount} console logs` })
-                .toBe(expectedCount);
+                .toBeGreaterThanOrEqual(expectedCount);
             expect(consoleLogs).toEqual(calls);
+        },
+        getLogs() {
+            return consoleLogs;
         },
     };
 }
