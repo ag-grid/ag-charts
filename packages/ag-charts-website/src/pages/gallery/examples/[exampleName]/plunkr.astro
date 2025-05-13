@@ -1,5 +1,5 @@
 ---
-import { getIsDev } from '@utils/env';
+import { getHmrEnabled } from '@utils/env';
 import { getEntry, type CollectionEntry } from 'astro:content';
 import GalleryFrameworkTemplate from '@components/gallery/components/GalleryFrameworkTemplate.astro';
 import { getGalleryExamplePages } from '@components/gallery/utils/pageData';
@@ -13,8 +13,8 @@ export async function getStaticPaths() {
     return pages;
 }
 
-// NOTE: Render as a partial, so that astro does not insert any website styles into the page (when not dev)
-export const partial = !getIsDev();
+// NOTE: Render as a partial, so that astro does not insert any website scripts (eg, hot reload) and styles into the page
+export const partial = !getHmrEnabled();
 
 const { exampleName } = Astro.params;
 ---
