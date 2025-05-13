@@ -39,6 +39,7 @@ const {
      * Checks the `to` paths in `src/utils/htaccess/redirects.ts`
      */
     CHECK_REDIRECTS = 'false',
+    PUBLIC_ENABLE_HOT_RELOAD,
 } = dotenvExpand.expand(dotenv).parsed;
 
 const OUTPUT_DIR = '../../dist/packages/ag-charts-website';
@@ -57,6 +58,7 @@ console.log(
             PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT,
             HTACCESS,
             CHECK_REDIRECTS,
+            PUBLIC_ENABLE_HOT_RELOAD,
         },
         null,
         2
