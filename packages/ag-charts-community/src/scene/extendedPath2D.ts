@@ -1,6 +1,6 @@
 import { normalizeAngle360 } from '../util/angle';
 import { lineDistanceSquared } from '../util/distance';
-import { type SVGPathSegment } from '../util/svg';
+import { parseSvg } from '../util/svg';
 import { BBox } from './bbox';
 import { cubicSegmentIntersections, segmentIntersection } from './intersection';
 import { bezier2DDistance, bezier2DExtrema, evaluateBezier } from './util/bezier';
@@ -193,7 +193,10 @@ export class ExtendedPath2D {
         this.ellipse(x, y, r, r, 0, sAngle, eAngle, counterClockwise);
     }
 
-    appendSvg(parts: SVGPathSegment[]) {
+    appendSvg(svg: string) {
+        const parts = parseSvg(svg);
+        if (parts == null) return false;
+
         let sx = 0; // start of path x
         let sy = 0; // start of path y
 
@@ -345,6 +348,8 @@ export class ExtendedPath2D {
                     throw new Error(`Could not translate command '${command}' with '${params.join(' ')}'`);
             }
         }
+
+        return true;
     }
 
     private svgEllipse(
