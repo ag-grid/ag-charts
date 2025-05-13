@@ -22,7 +22,7 @@ type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): str
 
 interface ButtonListener {
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): void;
-    onDoubleClick(event: MouseEvent, datum: CategoryLegendDatum): void;
+    onDoubleClick(event: Event, datum: CategoryLegendDatum): void;
     onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel): void;
     onLeave(): void;
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel): void;

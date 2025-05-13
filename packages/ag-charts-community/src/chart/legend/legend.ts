@@ -957,7 +957,7 @@ export class Legend extends BaseProperties {
         return true;
     }
 
-    onDoubleClick(event: MouseEvent, datum: CategoryLegendDatum) {
+    onDoubleClick(event: Event, datum: CategoryLegendDatum) {
         if (this.doDoubleClick(event, datum)) {
             event.preventDefault();
         }

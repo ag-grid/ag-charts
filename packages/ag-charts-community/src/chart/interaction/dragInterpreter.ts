@@ -1,6 +1,13 @@
 import { Listeners } from '../../util/listeners';
 import type { Widget } from '../../widget/widget';
-import type { DragWidgetEvent, MouseWidgetEvent, TouchWidgetEvent, WidgetEventMap } from '../../widget/widgetEvents';
+import type {
+    DragWidgetEvent,
+    MouseWidgetEvent,
+    NativeMouseWidgetEvent,
+    TouchSyntheticMouseWidgetEvent,
+    TouchWidgetEvent,
+    WidgetEventMap,
+} from '../../widget/widgetEvents';
 
 const DRAG_THRESHOLD_PX = 3;
 const DOUBLE_TAP_TIMER_MS = 505;
@@ -13,13 +20,15 @@ type Device = MouseWidgetEvent['device'];
  * A `DragInterpreterClickEvent` is either a native 'click' MouseEvent, or a sythetic click event fired by a single
  * finger 'touchstart' and 'touchend'.
  */
-export type DragInterpreterClickEvent = MouseWidgetEvent<'click'>;
+export type DragInterpreterClickEvent = NativeMouseWidgetEvent<'click'> | TouchSyntheticMouseWidgetEvent<'click'>;
 
 /**
  * A `DragInterpreterDblClickEvent` is either a native 'dblclick' MouseEvent, or a sythetic click event fired by two
  * finger 'touchstart' and 'touchend' in quick succession (DOUBLE_TAP_TIMER_MS).
  */
-export type DragInterpreterDblClickEvent = MouseWidgetEvent<'dblclick'>;
+export type DragInterpreterDblClickEvent =
+    | NativeMouseWidgetEvent<'dblclick'>
+    | TouchSyntheticMouseWidgetEvent<'dblclick'>;
 
 type WE<D extends Device> = DragWidgetEvent & { device: D };
 function makeSynthetic<T extends TSythetic>(type: T, event: WE<'mouse'>): MouseWidgetEvent<T> & { device: 'mouse' };

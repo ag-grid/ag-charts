@@ -363,15 +363,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         const { showOn, action } = item;
         if (action != null) {
-            const callback = this.createButtonOnClick(showOn, action);
-            button.addListener('click', callback);
-            // TODO(olegat) move this logic into the MenuItemWidget post-release
-            button.addListener('keydown', (keyEv: _Widget.KeyboardWidgetEvent) => {
-                if (_ModuleSupport.isButtonClickEvent(keyEv.sourceEvent)) {
-                    keyEv.sourceEvent.preventDefault();
-                    callback(keyEv);
-                }
-            });
+            button.addListener('click', this.createButtonOnClick(showOn, action));
         }
         button.addListener('mousemove', () => button.focus({ preventScroll: true }));
     }

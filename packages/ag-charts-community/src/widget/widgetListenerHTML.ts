@@ -26,9 +26,7 @@ export class WidgetListenerHTML {
         if (!(type in (this.sourceListeners ?? {}))) {
             const sourceHandler = (sourceEvent: SourceEventMap[K]): void => {
                 const widgetEvent = WidgetEventUtil.alloc(type, sourceEvent, target.getElement());
-                for (const widgetListener of this.widgetListeners?.[type] ?? []) {
-                    widgetListener(widgetEvent, target);
-                }
+                this.dispatch(type, target, widgetEvent);
             };
             const opts: AddEventListenerOptions = {};
             if (type.startsWith('touch')) opts.passive = false;
@@ -59,5 +57,11 @@ export class WidgetListenerHTML {
         }
         this.widgetListeners = undefined;
         this.sourceListeners = undefined;
+    }
+
+    dispatch<T extends Targetable, K extends EventType>(type: K, target: T, event: EventMap[K]): void {
+        for (const widgetListener of this.widgetListeners?.[type] ?? []) {
+            widgetListener(event, target);
+        }
     }
 }

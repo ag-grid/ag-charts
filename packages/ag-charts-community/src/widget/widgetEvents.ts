@@ -1,5 +1,6 @@
 type FocusWidgetEventType = 'blur' | 'focus';
 type KeyboardWidgetEventType = 'keyup' | 'keydown';
+type KeyboardSyntheticMouseWidgetEventType = 'click';
 type MouseWidgetEventType = 'contextmenu' | 'click' | 'dblclick' | 'mouseenter' | 'mousemove' | 'mouseleave';
 type TouchWidgetEventType = 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel';
 type TouchSyntheticMouseWidgetEventType = 'click' | 'dblclick';
@@ -17,6 +18,14 @@ export type FocusWidgetEvent<T extends FocusWidgetEventType = FocusWidgetEventTy
 
 export type KeyboardWidgetEvent<T extends KeyboardWidgetEventType = KeyboardWidgetEventType> = {
     readonly type: T;
+    readonly sourceEvent: KeyboardEvent;
+};
+
+export type KeyboardSyntheticMouseWidgetEvent<
+    T extends MouseWidgetEventType & KeyboardSyntheticMouseWidgetEventType = KeyboardSyntheticMouseWidgetEventType,
+> = {
+    readonly type: T;
+    readonly device: 'keyboard';
     readonly sourceEvent: KeyboardEvent;
 };
 
@@ -53,7 +62,8 @@ export type NativeMouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetE
 
 export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventType> =
     | NativeMouseWidgetEvent<T>
-    | (T extends TouchSyntheticMouseWidgetEventType ? TouchSyntheticMouseWidgetEvent<T> : never);
+    | (T extends TouchSyntheticMouseWidgetEventType ? TouchSyntheticMouseWidgetEvent<T> : never)
+    | (T extends KeyboardSyntheticMouseWidgetEventType ? KeyboardSyntheticMouseWidgetEvent<T> : never);
 
 export type WheelWidgetEvent = {
     readonly type: 'wheel';

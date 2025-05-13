@@ -66,7 +66,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.ctx.domManager.removeChild('canvas-overlay', DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
     }
 
-    private onMouseMove(e: _Widget.MouseWidgetEvent) {
+    private onMouseMove(e: _Widget.MouseWidgetEvent<'mousemove'>) {
         if (this.ctx.interactionManager.isState(InteractionState.Clickable)) this.show(e);
     }
 
