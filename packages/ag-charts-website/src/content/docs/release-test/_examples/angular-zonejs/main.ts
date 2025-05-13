@@ -1,8 +1,7 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 function checkAngularZone(handler: string) {
-    const zone = globalThis.Zone?.current;
-    if (zone?.name !== 'angular') {
+    if ((globalThis as any).Zone?.current?.name !== 'angular') {
         console.error(`${handler} must be called from Angular Zone`);
     } else {
         console.log(`${handler} called from Angular Zone`);
@@ -39,10 +38,10 @@ const options: AgCartesianChartOptions = {
             xKey: 'quarter',
             yKey: 'petrol',
             listeners: {
-                nodeClick: (params) => {
+                nodeClick: () => {
                     checkAngularZone('nodeClick');
                 },
-                nodeDoubleClick: (params) => {
+                nodeDoubleClick: () => {
                     checkAngularZone('nodeDoubleClick');
                 },
             },
@@ -53,16 +52,16 @@ const options: AgCartesianChartOptions = {
         },
     ],
     listeners: {
-        seriesNodeClick: (params) => {
+        seriesNodeClick: () => {
             checkAngularZone('seriesNodeClick');
         },
-        seriesNodeDoubleClick: (params) => {
+        seriesNodeDoubleClick: () => {
             checkAngularZone('seriesNodeDoubleClick');
         },
-        click: (params) => {
+        click: () => {
             checkAngularZone('click');
         },
-        doubleClick: (params) => {
+        doubleClick: () => {
             checkAngularZone('doubleClick');
         },
     },
