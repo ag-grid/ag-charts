@@ -1,5 +1,5 @@
 import type { ExtendedPath2D } from '../../../scene/extendedPath2D';
-import { solveBezier, splitBezier } from '../../../scene/util/bezier';
+import { solveBezier, splitBezier2D } from '../../../scene/util/bezier';
 import { type CubicSpan, type LinearSpan, type Span, SpanJoin, type StepSpan, spanRange } from './lineInterpolation';
 
 type SpanSupertype = {
@@ -42,7 +42,7 @@ function linearSupertype(span: LinearSpan, stepX: number): SpanSupertype {
 function bezierSupertype(span: CubicSpan, stepX: number): SpanSupertype {
     const { cp0x, cp0y, cp1x, cp1y, cp2x, cp2y, cp3x, cp3y } = span;
     const t = solveBezier(cp0x, cp1x, cp2x, cp3x, stepX);
-    const [left, right] = splitBezier(cp0x, cp0y, cp1x, cp1y, cp2x, cp2y, cp3x, cp3y, t);
+    const [left, right] = splitBezier2D(cp0x, cp0y, cp1x, cp1y, cp2x, cp2y, cp3x, cp3y, t);
     const stepY = left[3].y;
     return {
         leftCp1x: left[1].x,

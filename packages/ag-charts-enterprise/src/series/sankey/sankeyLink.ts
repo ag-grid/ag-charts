@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { BBox, Path, SceneChangeDetection, splitBezier } = _ModuleSupport;
+const { BBox, Path, SceneChangeDetection, splitBezier2D } = _ModuleSupport;
 
 function offsetTrivialCubicBezier(
     path: _ModuleSupport.ExtendedPath2D,
@@ -118,7 +118,7 @@ export class SankeyLink<D = any> extends Path<D> {
             path.lineTo(p3x, p3y + height / 2);
             path.cubicCurveTo(p2x, p2y + height / 2, p1x, p1y + height / 2, p0x, p0y + height / 2);
         } else {
-            const [a, b] = splitBezier(p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y, 0.5);
+            const [a, b] = splitBezier2D(p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y, 0.5);
             const offset = ((y2 > y1 ? 1 : -1) * height) / 2;
 
             offsetTrivialCubicBezier(path, a[0].x, a[0].y, a[1].x, a[1].y, a[2].x, a[2].y, a[3].x, a[3].y, offset);

@@ -22,6 +22,7 @@ export * from './utils/functions';
 export * from './utils/geoJson';
 export * from './utils/id';
 export * from './utils/iterators';
+export * from './utils/linkedList';
 export * from './utils/numberFormat';
 export * from './utils/numbers';
 export * from './utils/strings';
