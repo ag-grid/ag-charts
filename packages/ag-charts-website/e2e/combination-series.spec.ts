@@ -8,17 +8,18 @@ test.describe('Combination charts', () => {
         test.describe(`for ${framework}`, () => {
             test('loads combination chart', async ({ page }) => {
                 await gotoExample(page, url);
-                await expect(page).toHaveScreenshot('combination.png');
 
                 const controlButtons = await page.locator('.controls-row button').all();
-                await controlButtons[0].click();
-                await expect(page).toHaveScreenshot('combination-2.png');
-                await controlButtons[1].click();
-                await expect(page).toHaveScreenshot('combination.png');
-                await controlButtons[0].click();
-                await expect(page).toHaveScreenshot('combination-2.png');
-                await controlButtons[1].click();
-                await expect(page).toHaveScreenshot('combination.png');
+                await expect(page).toHaveScreenshot(`combination-${controlButtons.length - 1}.png`);
+
+                for (let i = 0; i < controlButtons.length; i++) {
+                    await controlButtons[i].click();
+                    await expect(page).toHaveScreenshot(`combination-${i}.png`);
+                }
+                for (let i = 0; i < controlButtons.length; i++) {
+                    await controlButtons[i].click();
+                    await expect(page).toHaveScreenshot(`combination-${i}.png`);
+                }
             });
         });
     }
