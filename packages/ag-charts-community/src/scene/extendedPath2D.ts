@@ -130,88 +130,24 @@ export class ExtendedPath2D {
         rotation: number,
         sAngle: number,
         eAngle: number,
-        counterClockwise: boolean
+        counterClockwise: boolean = false
     ) {
-        if (counterClockwise) {
-            [sAngle, eAngle] = [eAngle, sAngle];
-        }
+        const r = rx;
+        const scaleY = ry / rx;
+        const mxx = Math.cos(rotation);
+        const myx = Math.sin(rotation);
+        const mxy = -scaleY * myx;
+        const myy = scaleY * mxx;
 
-        const params: number[] = [];
-        const f90 = 0.5522847498307935; // approximation for cubic Bézier control points
-
-        // initial rotation matrix values
-        const sinS = Math.sin(sAngle);
-        const cosS = Math.cos(sAngle);
-        const sinR = Math.sin(rotation);
-        const cosR = Math.cos(rotation);
-
-        let xx = cosR * cosS * rx - sinR * sinS * ry;
-        let yx = sinR * cosS * rx + cosR * sinS * ry;
-        let xy = -cosR * sinS * rx - sinR * cosS * ry;
-        let yy = -sinR * sinS * rx + cosR * cosS * ry;
-
-        params.push(xx + cx, yx + cy); // do we need this
-
-        eAngle -= sAngle;
-        eAngle = normalizeAngle360(eAngle);
-
-        const rightAngle = Math.PI / 2;
-        const fullRightAngles = Math.floor(eAngle / rightAngle); // number of full 90 degree arcs
-        const remainderAngle = eAngle % rightAngle;
-
-        for (let i = 0; i < fullRightAngles; i++) {
-            params.push(
-                xx + xy * f90 + cx,
-                yx + yy * f90 + cy,
-                xx * f90 + xy + cx,
-                yx * f90 + yy + cy,
-                xy + cx,
-                yy + cy
-            );
-
-            // rotate by Math.PI / 2
-            [xx, xy] = [xy, -xx];
-            [yx, yy] = [yy, -yx];
-        }
-
-        if (remainderAngle > 0) {
-            const sinRA = Math.sin(remainderAngle);
-            const cosRA = Math.cos(remainderAngle);
-            const factor = Math.tan(remainderAngle / 4) * (4 / 3);
-            const cpx = cosRA + factor * sinRA;
-            const cpy = sinRA - factor * cosRA;
-
-            params.push(
-                xx + xy * factor + cx,
-                yx + yy * factor + cy,
-                xx * cpx + xy * cpy + cx,
-                yx * cpx + yy * cpy + cy,
-                xx * cosRA + xy * sinRA + cx,
-                yx * cosRA + yy * sinRA + cy
-            );
-        }
-
-        if (counterClockwise) {
-            for (let i = 0, j = params.length - 2; i < j; i += 2, j -= 2) {
-                [params[i], params[j]] = [params[j], params[i]];
-                [params[i + 1], params[j + 1]] = [params[j + 1], params[i + 1]];
-            }
-        }
-
-        for (let i = 2; i < params.length; i += 6) {
-            const [cx1, cy1, cx2, cy2, x, y] = params.slice(i, i + 6);
-            this.cubicCurveTo(cx1, cy1, cx2, cy2, x, y);
-        }
-    }
-
-    arc(x: number, y: number, r: number, sAngle: number, eAngle: number, counterClockwise?: boolean) {
-        const x0 = x + r * Math.cos(sAngle);
-        const y0 = y + r * Math.sin(sAngle);
-        const distanceSquared = (x0 - this.cx) ** 2 + (y0 - this.cy) ** 2;
+        const x0 = r * Math.cos(sAngle);
+        const y0 = r * Math.sin(sAngle);
+        const sx = cx + mxx * x0 + mxy * y0;
+        const sy = cy + myx * x0 + myy * y0;
+        const distanceSquared = (sx - this.cx) ** 2 + (sy - this.cy) ** 2;
         if (!this.openedPath) {
-            this.moveTo(x0, y0);
+            this.moveTo(sx, sy);
         } else if (distanceSquared > 1e-6) {
-            this.lineTo(x0, y0);
+            this.lineTo(sx, sy);
         }
 
         let sweep = counterClockwise ? -normalizeAngle360(sAngle - eAngle) : normalizeAngle360(eAngle - sAngle);
@@ -235,15 +171,26 @@ export class ExtendedPath2D {
             const rSinEnd = r * Math.sin(a1);
             const rCosEnd = r * Math.cos(a1);
 
+            const cp1x = rCosStart - h * rSinStart;
+            const cp1y = rSinStart + h * rCosStart;
+            const cp2x = rCosEnd + h * rSinEnd;
+            const cp2y = rSinEnd - h * rCosEnd;
+            const cp3x = rCosEnd;
+            const cp3y = rSinEnd;
+
             this.cubicCurveTo(
-                x + rCosStart - h * rSinStart,
-                y + rSinStart + h * rCosStart,
-                x + rCosEnd + h * rSinEnd,
-                y + rSinEnd - h * rCosEnd,
-                x + rCosEnd,
-                y + rSinEnd
+                cx + mxx * cp1x + mxy * cp1y,
+                cy + myx * cp1x + myy * cp1y,
+                cx + mxx * cp2x + mxy * cp2y,
+                cy + myx * cp2x + myy * cp2y,
+                cx + mxx * cp3x + mxy * cp3y,
+                cy + myx * cp3x + myy * cp3y
             );
         }
+    }
+
+    arc(x: number, y: number, r: number, sAngle: number, eAngle: number, counterClockwise?: boolean) {
+        this.ellipse(x, y, r, r, 0, sAngle, eAngle, counterClockwise);
     }
 
     appendSvg(parts: SVGPathSegment[]) {
