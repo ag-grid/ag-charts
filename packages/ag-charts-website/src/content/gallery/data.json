@@ -184,6 +184,10 @@
                         "name": "bubble-with-patterns"
                     },
                     {
+                        "title": "Bubble With Custom SVG Patterns",
+                        "name": "bubble-with-custom-svg-patterns"
+                    },
+                    {
                         "title": "Bubble With Custom Markers",
                         "name": "bubble-with-custom-markers",
                         "hidden": true

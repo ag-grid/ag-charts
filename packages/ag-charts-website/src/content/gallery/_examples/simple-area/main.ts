@@ -6,53 +6,50 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Total Visitors to Tate Galleries',
+        text: 'User Engagement Trends',
     },
     footnote: {
-        text: 'Source: Department for Digital, Culture, Media & Sport',
+        text: 'Daily snew signups for May 1–14, 2025',
     },
     series: [
         {
             type: 'area',
             xKey: 'date',
-            yKey: 'Tate Modern',
-            yName: 'Tate Modern',
-        },
-        {
-            type: 'area',
-            xKey: 'date',
-            yKey: 'Tate Britain',
-            yName: 'Tate Britain',
-        },
-        {
-            type: 'area',
-            xKey: 'date',
-            yKey: 'Tate Liverpool',
-            yName: 'Tate Liverpool',
-        },
-        {
-            type: 'area',
-            xKey: 'date',
-            yKey: 'Tate St Ives',
-            yName: 'Tate St Ives',
+            yKey: 'newSignups',
+            yName: 'Sign Ups',
+            fillOpacity: 1,
+            fill: {
+                type: 'image',
+                url: '${baseWWWUrl}/example-assets/docs-images/brandColorsTile.png',
+                width: 50,
+                height: 50,
+                repeat: 'repeat',
+            },
+            interpolation: {
+                type: 'smooth',
+            },
         },
     ],
     axes: [
         {
             type: 'time',
             position: 'bottom',
-            unit: 'month',
+            unit: 'day',
+            label: {
+                formatter: ({ value }) => {
+                    const day = value.getDate();
+                    const suffixes = ['st', 'nd', 'rd'];
+                    const suffix = suffixes[day - 1] ?? 'th';
+
+                    return `${day}${suffix} May`;
+                },
+            },
         },
         {
             type: 'number',
             position: 'left',
             title: {
-                text: 'Total visitors',
-            },
-            label: {
-                formatter: (params) => {
-                    return params.value / 1000 + 'k';
-                },
+                text: 'Sign Ups',
             },
         },
     ],
