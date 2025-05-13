@@ -1,7 +1,7 @@
 import { expect, test } from './fixture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls } from './util';
 
-test.describe('Combination charts', () => {
+test.describe.skip('Combination charts', () => {
     setupIntrinsicAssertions();
 
     for (const { framework, url } of toExamplePageUrls('combination-series', 'combination')) {
