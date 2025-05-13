@@ -11,8 +11,8 @@ function linearRoot(a: number, b: number): number[] {
  * Finds the roots of a parametric quadratic equation in `t`,
  * where `t` lies in the interval of `[0,1]`.
  */
-function quadraticRoots(a: number, b: number, c: number): number[] {
-    if (a === 0) {
+function quadraticRoots(a: number, b: number, c: number, delta = 1e-6): number[] {
+    if (Math.abs(a) < delta) {
         return linearRoot(b, c);
     }
 
@@ -20,7 +20,7 @@ function quadraticRoots(a: number, b: number, c: number): number[] {
 
     const roots: number[] = [];
 
-    if (D === 0) {
+    if (Math.abs(D) < delta) {
         // A single real root.
         const t = -b / (2 * a);
         if (t >= 0 && t <= 1) {
@@ -52,9 +52,9 @@ function quadraticRoots(a: number, b: number, c: number): number[] {
  * or in the imaginary plane).
  * An adaptation of http://www.particleincell.com/blog/2013/cubic-line-intersection/
  */
-export function cubicRoots(a: number, b: number, c: number, d: number): number[] {
-    if (a === 0) {
-        return quadraticRoots(b, c, d);
+export function cubicRoots(a: number, b: number, c: number, d: number, delta = 1e-6): number[] {
+    if (Math.abs(a) < delta) {
+        return quadraticRoots(b, c, d, delta);
     }
 
     const A = b / a;
@@ -79,7 +79,7 @@ export function cubicRoots(a: number, b: number, c: number, d: number): number[]
             roots.push(t);
         }
 
-        if (Im === 0) {
+        if (Math.abs(Im) < delta) {
             const t2 = -third * A - (S + T) / 2; // The real part of a complex root.
             if (t2 >= 0 && t2 <= 1) {
                 roots.push(t2);

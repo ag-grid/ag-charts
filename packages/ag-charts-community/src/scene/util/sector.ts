@@ -1,6 +1,6 @@
 import { angleBetween, isBetweenAngles, normalizeAngle180, normalizeAngle360 } from '../../util/angle';
 import { BBox } from '../bbox';
-import { arcIntersections, segmentIntersection } from '../intersection';
+import { segmentIntersection } from '../intersection';
 
 interface SectorBoundaries {
     startAngle: number;
@@ -67,6 +67,66 @@ export function isPointInSector(x: number, y: number, sector: SectorBoundaries) 
     return startAngle < endAngle
         ? angle <= endAngle && angle >= startAngle
         : (angle <= endAngle && angle >= -Math.PI) || (angle >= startAngle && angle <= Math.PI);
+}
+
+/**
+ * Returns intersection points of the arc and the line segment.
+ * Takes in arc parameters and line segment start/end points.
+ */
+function arcIntersections(
+    cx: number,
+    cy: number,
+    r: number,
+    startAngle: number,
+    endAngle: number,
+    counterClockwise: boolean,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number
+): number {
+    if (isNaN(cx) || isNaN(cy)) {
+        return 0;
+    }
+    if (counterClockwise) {
+        [endAngle, startAngle] = [startAngle, endAngle];
+    }
+
+    // Solving the quadratic equation:
+    // 1. y = k * x + y0
+    // 2. (x - cx)^2 + (y - cy)^2 = r^2
+    const k = (y2 - y1) / (x2 - x1);
+    const y0 = y1 - k * x1;
+
+    const a = Math.pow(k, 2) + 1;
+    const b = 2 * (k * (y0 - cy) - cx);
+    const c = Math.pow(cx, 2) + Math.pow(y0 - cy, 2) - Math.pow(r, 2);
+    const d = Math.pow(b, 2) - 4 * a * c;
+    if (d < 0) {
+        return 0;
+    }
+
+    const i1x = (-b + Math.sqrt(d)) / 2 / a;
+    const i2x = (-b - Math.sqrt(d)) / 2 / a;
+
+    let intersections = 0;
+    [i1x, i2x].forEach((x) => {
+        const isXInsideLine = x >= Math.min(x1, x2) && x <= Math.max(x1, x2);
+        if (!isXInsideLine) {
+            return;
+        }
+
+        const y = k * x + y0;
+
+        const adjacent = x - cx;
+        const opposite = y - cy;
+        const angle = Math.atan2(opposite, adjacent);
+        if (isBetweenAngles(angle, startAngle, endAngle)) {
+            intersections++;
+        }
+    });
+
+    return intersections;
 }
 
 function lineCollidesSector(line: LineCoordinates, sector: SectorBoundaries) {

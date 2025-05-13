@@ -1,3 +1,5 @@
+import { type LinkedList, insertListItemsSorted } from 'ag-charts-core';
+
 import type { Point } from '../point';
 
 export function evaluateBezier(p0: number, p1: number, p2: number, p3: number, t: number): number {
@@ -27,7 +29,7 @@ export function solveBezier(p0: number, p1: number, p2: number, p3: number, valu
     return t;
 }
 
-export function splitBezier(
+export function splitBezier2D(
     p0x: number,
     p0y: number,
     p1x: number,
@@ -68,7 +70,7 @@ export function splitBezier(
 }
 
 // Find the extreme points where the derivative is zero
-export function calculateDerivativeExtrema(p0: number, p1: number, p2: number, p3: number): number[] {
+function calculateDerivativeExtrema(p0: number, p1: number, p2: number, p3: number): number[] {
     const a = -p0 + 3 * p1 - 3 * p2 + p3;
     const b = 2 * (p0 - 2 * p1 + p2);
     const c = -p0 + p1;
@@ -94,17 +96,98 @@ export function calculateDerivativeExtrema(p0: number, p1: number, p2: number, p
     return [];
 }
 
-export function calculateDerivativeExtremaXY(
-    sx: number,
-    sy: number,
+export function bezier2DExtrema(
+    cp0x: number,
+    cp0y: number,
     cp1x: number,
     cp1y: number,
     cp2x: number,
     cp2y: number,
-    x: number,
-    y: number
+    cp3x: number,
+    cp3y: number
 ): number[] {
-    const tx = calculateDerivativeExtrema(sx, cp1x, cp2x, x);
-    const ty = calculateDerivativeExtrema(sy, cp1y, cp2y, y);
+    const tx = calculateDerivativeExtrema(cp0x, cp1x, cp2x, cp3x);
+    const ty = calculateDerivativeExtrema(cp0y, cp1y, cp2y, cp3y);
     return [...tx, ...ty];
 }
+
+interface BezierCandidate {
+    points: readonly [Point, Point, Point, Point];
+    distance: number;
+    minDistance: number;
+}
+
+function bezierCandidate(points: readonly [Point, Point, Point, Point], x: number, y: number): BezierCandidate {
+    const midX = evaluateBezier(points[0].x, points[1].x, points[2].x, points[3].x, 0.5);
+    const midY = evaluateBezier(points[0].y, points[1].y, points[2].y, points[3].y, 0.5);
+    const distance = Math.hypot(midX - x, midY - y);
+    const minDistance = Math.min(
+        Math.hypot(points[0].x - x, points[0].y - y),
+        Math.hypot(points[1].x - x, points[1].y - y),
+        Math.hypot(points[2].x - x, points[2].y - y),
+        Math.hypot(points[3].x - x, points[3].y - y)
+    );
+    return { points, distance, minDistance };
+}
+
+export function bezier2DDistance(
+    cp0x: number,
+    cp0y: number,
+    cp1x: number,
+    cp1y: number,
+    cp2x: number,
+    cp2y: number,
+    cp3x: number,
+    cp3y: number,
+    x: number,
+    y: number,
+    precision = 1
+) {
+    const points0 = [
+        { x: cp0x, y: cp0y },
+        { x: cp1x, y: cp1y },
+        { x: cp2x, y: cp2y },
+        { x: cp3x, y: cp3y },
+    ] as const;
+    let queue: LinkedList<BezierCandidate> = {
+        value: bezierCandidate(points0, x, y),
+        next: null,
+    };
+
+    let bestResult: { distance: number; minDistance: number } | undefined;
+
+    while (queue != null) {
+        const { points, distance, minDistance } = queue.value;
+        queue = queue.next;
+
+        if (bestResult == null || distance < bestResult.distance) {
+            bestResult = { distance, minDistance };
+        }
+
+        if (bestResult != null && bestResult.distance - minDistance <= precision) {
+            continue;
+        }
+
+        const [leftPoints, rightPoints] = splitBezier2D(
+            points[0].x,
+            points[0].y,
+            points[1].x,
+            points[1].y,
+            points[2].x,
+            points[2].y,
+            points[3].x,
+            points[3].y,
+            0.5
+        );
+
+        const newCandidates = [bezierCandidate(leftPoints, x, y), bezierCandidate(rightPoints, x, y)].sort(
+            bezierCandidateCmp
+        );
+
+        queue = insertListItemsSorted(queue, newCandidates, bezierCandidateCmp);
+    }
+
+    return bestResult?.distance ?? Infinity;
+}
+
+const bezierCandidateCmp = (a: BezierCandidate, b: BezierCandidate) => b.minDistance - a.minDistance;
