@@ -73,6 +73,9 @@ export function setupIntrinsicAssertions() {
             // We don't care about the AG Charts license error message.
             if (msg.text().startsWith('*')) return;
 
+            // Ignore Firefox Quirks Mode warning.
+            if (msg.text().includes('This page is in Quirks Mode')) return;
+
             // Ignore 404s when expected
             const notFoundMatcher = /the server responded with a status of 404 \(Not Found\)/;
             if (msg.location().url.includes('/favicon.ico')) return;
