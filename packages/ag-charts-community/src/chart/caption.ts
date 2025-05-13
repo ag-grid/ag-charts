@@ -111,7 +111,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         }
     }
 
-    private handleMouseMove(moduleCtx: ModuleContext, event?: MouseWidgetEvent) {
+    private handleMouseMove(moduleCtx: ModuleContext, event?: MouseWidgetEvent<'mousemove'>) {
         if (event != null && this.enabled && this.node.visible && this.truncated) {
             const { x, y } = Transformable.toCanvas(this.node);
             const canvasX = event.sourceEvent.offsetX + x;
@@ -122,7 +122,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         }
     }
 
-    private handleMouseLeave(moduleCtx: ModuleContext, _event: MouseWidgetEvent) {
+    private handleMouseLeave(moduleCtx: ModuleContext, _event: MouseWidgetEvent<'mouseleave'>) {
         moduleCtx.tooltipManager.removeTooltip(this.id);
     }
 }

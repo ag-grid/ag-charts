@@ -61,15 +61,8 @@ export interface SeriesAreaChartDependencies {
     mode: ChartMode;
 }
 
-type ClickLikeEvent =
-    | DragInterpreterClickEvent
-    | DragInterpreterDblClickEvent
-    | (MouseWidgetEvent<'click'> & { device?: void })
-    | (MouseWidgetEvent<'dblclick'> & { device?: void });
-type HoverLikeEvent =
-    | ClickLikeEvent
-    | (MouseWidgetEvent<'mousemove'> & { device?: void })
-    | DragWidgetEvent<'drag-move'>;
+type ClickLikeEvent = DragInterpreterClickEvent | DragInterpreterDblClickEvent | MouseWidgetEvent<'click' | 'dblclick'>;
+type HoverLikeEvent = ClickLikeEvent | MouseWidgetEvent<'mousemove'> | DragWidgetEvent<'drag-move'>;
 
 type PickedNodes = {
     matches: PickedNode[];

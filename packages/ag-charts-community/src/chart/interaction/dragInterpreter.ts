@@ -7,34 +7,25 @@ const DOUBLE_TAP_TIMER_MS = 505;
 const DOUBLE_TAP_THRESHOLD_PX = 30;
 
 type TSythetic = 'click' | 'dblclick';
-type SytheticMap<T extends TSythetic> = {
-    mouse: { device: 'mouse' } & MouseWidgetEvent<T>;
-    touch: { device: 'touch'; sourceEvent: TouchEvent } & Omit<MouseWidgetEvent<T>, 'sourceEvent'>;
-};
-type Device = keyof SytheticMap<TSythetic>;
-type SyntheticEvent<D extends Device, T extends TSythetic> = SytheticMap<T>[D];
+type Device = MouseWidgetEvent['device'];
 
 /**
  * A `DragInterpreterClickEvent` is either a native 'click' MouseEvent, or a sythetic click event fired by a single
  * finger 'touchstart' and 'touchend'.
  */
-type MouseClick = SyntheticEvent<'mouse', 'click'>;
-type TouchClick = SyntheticEvent<'touch', 'click'>;
-export type DragInterpreterClickEvent = MouseClick | TouchClick;
+export type DragInterpreterClickEvent = MouseWidgetEvent<'click'>;
 
 /**
  * A `DragInterpreterDblClickEvent` is either a native 'dblclick' MouseEvent, or a sythetic click event fired by two
  * finger 'touchstart' and 'touchend' in quick succession (DOUBLE_TAP_TIMER_MS).
  */
-type MouseDblClick = SyntheticEvent<'mouse', 'dblclick'>;
-type TouchDblClick = SyntheticEvent<'touch', 'dblclick'>;
-export type DragInterpreterDblClickEvent = MouseDblClick | TouchDblClick;
+export type DragInterpreterDblClickEvent = MouseWidgetEvent<'dblclick'>;
 
 type WE<D extends Device> = DragWidgetEvent & { device: D };
-function makeSynthetic<T extends TSythetic>(device: 'mouse', type: T, event: WE<'mouse'>): SyntheticEvent<'mouse', T>;
-function makeSynthetic<T extends TSythetic>(device: 'touch', type: T, event: WE<'touch'>): SyntheticEvent<'touch', T>;
-function makeSynthetic(device: Device, type: TSythetic, event: DragWidgetEvent) {
-    const { offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent } = event;
+function makeSynthetic<T extends TSythetic>(type: T, event: WE<'mouse'>): MouseWidgetEvent<T> & { device: 'mouse' };
+function makeSynthetic<T extends TSythetic>(type: T, event: WE<'touch'>): MouseWidgetEvent<T> & { device: 'touch' };
+function makeSynthetic(type: TSythetic, event: DragWidgetEvent) {
+    const { device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent } = event;
     return { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
 }
 
@@ -136,7 +127,7 @@ export class DragInterpreter {
     }
 
     private onDblClick(event: MouseWidgetEvent<'dblclick'>) {
-        this.dispatch({ device: 'mouse', ...event });
+        this.dispatch(event);
     }
 
     private onDragStart(event: DragWidgetEvent<'drag-start'>) {
@@ -166,7 +157,7 @@ export class DragInterpreter {
         }
 
         if (event.device === 'mouse') {
-            const click = makeSynthetic('mouse', 'click', event);
+            const click = makeSynthetic('click', event);
             this.dispatch(click);
         }
         // ignore 'drag-end' events from 'touchstart' or 'touchcancel'
@@ -175,7 +166,7 @@ export class DragInterpreter {
                 return; // this is a drag not a click, do not dispatch a 'click' event.
             }
 
-            const click = makeSynthetic('touch', 'click', event);
+            const click = makeSynthetic('click', event);
             this.dispatch(click);
 
             // Handle double-click logic
@@ -185,7 +176,7 @@ export class DragInterpreter {
                 now - this.lastClick.time <= DOUBLE_TAP_TIMER_MS &&
                 checkDoubleTapDistance(this.lastClick, event)
             ) {
-                const dblClick = makeSynthetic(event.device, 'dblclick', event);
+                const dblClick = makeSynthetic('dblclick', event);
                 this.dispatch(dblClick);
                 this.lastClick = undefined;
             } else {
