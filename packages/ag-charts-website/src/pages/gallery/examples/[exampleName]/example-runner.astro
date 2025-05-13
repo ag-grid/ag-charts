@@ -10,7 +10,7 @@ export async function getStaticPaths() {
     return pages;
 }
 
-// NOTE: Render as a partial, so that astro does not insert any website styles into the page (when not dev)
+// NOTE: Render as a partial, so that astro does not insert any website scripts (eg, hot reload) and styles into the page
 export const partial = !getHmrEnabled();
 
 const { exampleName } = Astro.params;
