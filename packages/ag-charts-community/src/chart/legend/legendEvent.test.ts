@@ -65,6 +65,7 @@ describe('LegendEvent', () => {
                 type: null,
                 seriesId: null,
                 itemId: null,
+                label: null,
                 event: null,
                 preventDefault: null,
             });
@@ -79,6 +80,7 @@ describe('LegendEvent', () => {
                 type: null,
                 seriesId: null,
                 itemId: null,
+                label: null,
                 event: null,
                 preventDefault: null,
             });
