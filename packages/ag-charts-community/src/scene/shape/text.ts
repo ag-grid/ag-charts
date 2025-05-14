@@ -55,7 +55,7 @@ export class Text<D = any> extends Shape<D> {
     fontWeight?: FontWeight;
 
     @SceneChangeDetection()
-    fontSize?: number = 10;
+    fontSize: number = 10;
 
     @SceneChangeDetection()
     fontFamily?: string = 'sans-serif';
@@ -70,15 +70,22 @@ export class Text<D = any> extends Shape<D> {
     @SceneChangeDetection()
     lineHeight?: number;
 
-    static computeBBox(lines: string | string[], x: number, y: number, opts: MeasureOptions): BBox {
+    static computeBBox(
+        lines: string | string[],
+        x: number,
+        y: number,
+        opts: MeasureOptions,
+        useLineHeight: boolean = false
+    ): BBox {
         const { offsetTop, offsetLeft, width, height: exactHeight } = CachedTextMeasurerPool.measureLines(lines, opts);
-        const height = opts.lineHeight ? opts.lineHeight * lines.length : exactHeight;
+        const lineHeight = opts.lineHeight ?? (useLineHeight ? TextUtils.getLineHeight(opts.font.fontSize) : undefined);
+        const height = lineHeight == null ? exactHeight : lineHeight * lines.length;
         return new BBox(x - offsetLeft, y - offsetTop, width, height);
     }
 
-    protected override computeBBox(): BBox {
+    protected override computeBBox(useLineHeight: boolean = false): BBox {
         const { x, y, lines, textBaseline, textAlign, lineHeight } = this;
-        return Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign, lineHeight });
+        return Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign, lineHeight }, useLineHeight);
     }
 
     getTextMeasureBBox() {
@@ -165,7 +172,7 @@ export class Text<D = any> extends Shape<D> {
 
     private renderLines(renderCallback: (line: string, x: number, y: number) => void): void {
         const { lines, x, y } = this;
-        const lineHeight = this.lineHeight ?? TextUtils.getLineHeight(this.fontSize!);
+        const lineHeight = this.lineHeight ?? TextUtils.getLineHeight(this.fontSize);
         let offsetY = (lineHeight - lineHeight * lines.length) * TextUtils.getVerticalModifier(this.textBaseline);
 
         for (const line of lines) {
@@ -176,7 +183,7 @@ export class Text<D = any> extends Shape<D> {
 
     setFont(props: TextSizeProperties) {
         this.fontFamily = props.fontFamily;
-        this.fontSize = props.fontSize;
+        this.fontSize = props.fontSize ?? 10;
         this.fontStyle = props.fontStyle;
         this.fontWeight = props.fontWeight;
     }

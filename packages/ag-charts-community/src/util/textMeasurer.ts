@@ -6,7 +6,7 @@ import { LRUCache } from './lruCache';
 
 // Configuration options create a font string.
 export interface FontOptions {
-    fontSize?: FontSize;
+    fontSize: FontSize;
     fontStyle?: FontStyle;
     fontWeight?: FontWeight;
     fontFamily?: FontFamily;
@@ -15,7 +15,7 @@ export interface FontOptions {
 
 // Configuration options for measuring text.
 export interface MeasureOptions {
-    font: string | FontOptions;
+    font: FontOptions;
     textAlign?: CanvasTextAlign;
     textBaseline?: CanvasTextBaseline;
     lineHeight?: number;

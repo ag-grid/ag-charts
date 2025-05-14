@@ -354,7 +354,7 @@ export class RadialGaugeSeries
             specifier: typeof label.format === 'string' ? label.format : undefined,
         });
 
-        const font = label.getFont();
+        const measurer = CachedTextMeasurerPool.getMeasurer({ font: label });
         const tickData = ticks.map((value, index): RadialGaugeTickDatum => {
             let text: string | undefined;
             if (label.formatter) {
@@ -368,7 +368,7 @@ export class RadialGaugeSeries
             if (text === undefined) {
                 text = tickFormatter(value);
             }
-            const { width, height } = CachedTextMeasurerPool.measureText(text, { font });
+            const { width, height } = measurer.measureText(text);
             return { index, value, text, width, height };
         });
 

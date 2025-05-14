@@ -198,7 +198,7 @@ export class MapLineSeries extends TopologySeries<
         datum: any,
         labelValue: string | undefined,
         projectedGeometry: _ModuleSupport.Geometry | undefined,
-        font: string
+        measurer: _ModuleSupport.CachedTextMeasurer
     ): MapLineNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null) return;
 
@@ -221,7 +221,7 @@ export class MapLineSeries extends TopologySeries<
         });
         if (labelText == null) return;
 
-        const labelSize = CachedTextMeasurerPool.measureText(String(labelText), { font });
+        const labelSize = measurer.measureText(String(labelText));
         const labelCenter = lineStringCenter(lineString);
         if (labelCenter == null) return;
 
@@ -257,7 +257,7 @@ export class MapLineSeries extends TopologySeries<
 
         const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
         sizeScale.range = [Math.min(properties.strokeWidth, maxStrokeWidth), maxStrokeWidth];
-        const font = label.getFont();
+        const measurer = CachedTextMeasurerPool.getMeasurer({ font: label });
 
         const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
         processedData.dataSources.get(this.id)?.forEach((_datum, datumIndex) => {
@@ -284,7 +284,7 @@ export class MapLineSeries extends TopologySeries<
                 missingGeometries.push(idValue);
             }
 
-            const labelDatum = this.getLabelDatum(datum, labelValue, projectedGeometry, font);
+            const labelDatum = this.getLabelDatum(datum, labelValue, projectedGeometry, measurer);
             if (labelDatum != null) {
                 labelData.push(labelDatum);
             }
