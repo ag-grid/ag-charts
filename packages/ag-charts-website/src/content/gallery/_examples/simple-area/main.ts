@@ -9,7 +9,7 @@ const options: AgChartOptions = {
         text: 'User Engagement Trends',
     },
     footnote: {
-        text: 'Daily snew signups for May 1–14, 2025',
+        text: 'Daily new signups for May 1–14, 2025',
     },
     series: [
         {
@@ -20,10 +20,11 @@ const options: AgChartOptions = {
             fillOpacity: 1,
             fill: {
                 type: 'image',
-                url: '${baseWWWUrl}/example-assets/docs-images/brandColorsTile.png',
+                url: '${baseWWWUrl}/example-assets/docs-images/tile.png',
                 width: 50,
                 height: 50,
                 repeat: 'repeat',
+                backgroundFillOpacity: 0.3,
             },
             interpolation: {
                 type: 'smooth',
