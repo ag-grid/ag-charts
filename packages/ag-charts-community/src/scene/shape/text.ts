@@ -176,21 +176,15 @@ export class Text<D = any> extends Shape<D> {
         if (ctx.font !== font) {
             ctx.font = font;
         }
-        ctx.textAlign = this.textAlign;
 
-        const { fontSize, lineHeight = TextUtils.getLineHeight(fontSize) } = this;
+        const { fontSize, lineHeight = TextUtils.getLineHeight(fontSize), textAlign, textBaseline } = this;
 
         const lines = this.lines.length;
-        let lineOriginY: number;
-        const { textBaseline } = this;
-        if (textBaseline === 'alphabetic') {
-            lineOriginY = 0;
-            ctx.textBaseline = 'alphabetic';
-        } else {
-            const padding = (lineHeight - fontSize) / 2;
-            lineOriginY = padding - TextUtils.getVerticalModifier(textBaseline) * lineHeight * lines;
-            ctx.textBaseline = 'top';
-        }
+        const lineOriginY =
+            textBaseline === 'alphabetic' ? 0 : -TextUtils.getVerticalModifier(textBaseline) * lineHeight * (lines - 1);
+
+        ctx.textAlign = textAlign;
+        ctx.textBaseline = textBaseline;
 
         if (fill) {
             this.applyFillAndAlpha(ctx);
