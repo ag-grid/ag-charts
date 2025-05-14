@@ -1,6 +1,6 @@
-import { type List, insertManySorted } from './linkedList';
+import { type LinkedList, insertListItemsSorted } from './linkedList';
 
-const toArray = <T>(list: List<T>): T[] => {
+const toArray = <T>(list: LinkedList<T>): T[] => {
     const out: T[] = [];
     for (let current = list; current != null; current = current.next) {
         out.push(current.value);
@@ -9,9 +9,9 @@ const toArray = <T>(list: List<T>): T[] => {
 };
 
 describe('linkedList', () => {
-    describe('#insertManySorted', () => {
+    describe('#insertListItemsSorted', () => {
         it('should insert multiple items from a sorted array', () => {
-            const result = insertManySorted(
+            const result = insertListItemsSorted(
                 { value: 3, next: { value: 5, next: { value: 8, next: null } } },
                 [1, 2, 3, 4, 5, 6, 7, 8, 9],
                 (a, b) => a - b

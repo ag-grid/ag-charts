@@ -1,16 +1,13 @@
-import { Logger } from 'ag-charts-core';
-
 import { normalizeAngle360 } from '../util/angle';
-import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
-import { type SVGPathSegment } from '../util/svg';
+import { lineDistanceSquared } from '../util/distance';
+import { parseSvg } from '../util/svg';
 import { BBox } from './bbox';
-import { arcIntersections, cubicSegmentIntersections, segmentIntersection } from './intersection';
-import { calculateDerivativeExtremaXY, evaluateBezier } from './util/bezier';
+import { cubicSegmentIntersections, segmentIntersection } from './intersection';
+import { bezier2DDistance, bezier2DExtrema, evaluateBezier } from './util/bezier';
 
 enum Command {
     Move,
     Line,
-    Arc,
     Curve,
     ClosePath,
 }
@@ -28,6 +25,10 @@ export class ExtendedPath2D {
     commands: Command[] = [];
     params: number[] = [];
 
+    cx = NaN;
+    cy = NaN;
+    sx = NaN;
+    sy = NaN;
     openedPath: boolean = false;
     closedPath: boolean = false;
 
@@ -51,6 +52,10 @@ export class ExtendedPath2D {
 
     moveTo(x: number, y: number) {
         this.openedPath = true;
+        this.sx = x;
+        this.sy = y;
+        this.cx = x;
+        this.cy = y;
         this.path2d.moveTo(x, y);
         this.commands.push(Command.Move);
         this.params.push(x, y);
@@ -58,11 +63,35 @@ export class ExtendedPath2D {
 
     lineTo(x: number, y: number) {
         if (this.openedPath) {
+            this.cx = x;
+            this.cy = y;
             this.path2d.lineTo(x, y);
             this.commands.push(Command.Line);
             this.params.push(x, y);
         } else {
             this.moveTo(x, y);
+        }
+    }
+
+    cubicCurveTo(cx1: number, cy1: number, cx2: number, cy2: number, x: number, y: number) {
+        if (!this.openedPath) {
+            this.moveTo(cx1, cy1);
+        }
+        this.path2d.bezierCurveTo(cx1, cy1, cx2, cy2, x, y);
+        this.commands.push(Command.Curve);
+        this.params.push(cx1, cy1, cx2, cy2, x, y);
+    }
+
+    closePath() {
+        if (this.openedPath) {
+            this.cx = this.sx;
+            this.cy = this.sy;
+            this.sx = NaN;
+            this.sy = NaN;
+            this.path2d.closePath();
+            this.commands.push(Command.ClosePath);
+            this.openedPath = false;
+            this.closedPath = true;
         }
     }
 
@@ -74,7 +103,100 @@ export class ExtendedPath2D {
         this.closePath();
     }
 
-    appendSvg(parts: SVGPathSegment[]) {
+    roundRect(x: number, y: number, width: number, height: number, radii: number) {
+        // Newer API - so support is limited
+        // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/roundRect
+        radii = Math.min(radii, width / 2, height / 2);
+        this.moveTo(x, y + radii);
+        this.arc(x + radii, y + radii, radii, Math.PI, 1.5 * Math.PI);
+        this.lineTo(x + radii, y);
+        this.lineTo(x + width - radii, y);
+        this.arc(x + width - radii, y + radii, radii, 1.5 * Math.PI, 2 * Math.PI);
+        this.lineTo(x + width, y + radii);
+        this.lineTo(x + width, y + height - radii);
+        this.arc(x + width - radii, y + height - radii, radii, 0, Math.PI / 2);
+        this.lineTo(x + width - radii, y + height);
+        this.lineTo(x + radii, y + height);
+        this.arc(x + +radii, y + height - radii, radii, Math.PI / 2, Math.PI);
+        this.lineTo(x, y + height - radii);
+        this.closePath();
+    }
+
+    ellipse(
+        cx: number,
+        cy: number,
+        rx: number,
+        ry: number,
+        rotation: number,
+        sAngle: number,
+        eAngle: number,
+        counterClockwise: boolean = false
+    ) {
+        const r = rx;
+        const scaleY = ry / rx;
+        const mxx = Math.cos(rotation);
+        const myx = Math.sin(rotation);
+        const mxy = -scaleY * myx;
+        const myy = scaleY * mxx;
+
+        const x0 = r * Math.cos(sAngle);
+        const y0 = r * Math.sin(sAngle);
+        const sx = cx + mxx * x0 + mxy * y0;
+        const sy = cy + myx * x0 + myy * y0;
+        const distanceSquared = (sx - this.cx) ** 2 + (sy - this.cy) ** 2;
+        if (!this.openedPath) {
+            this.moveTo(sx, sy);
+        } else if (distanceSquared > 1e-6) {
+            this.lineTo(sx, sy);
+        }
+
+        let sweep = counterClockwise ? -normalizeAngle360(sAngle - eAngle) : normalizeAngle360(eAngle - sAngle);
+        if (Math.abs(Math.abs(eAngle - sAngle) - 2 * Math.PI) < 1e-6 && sweep < 2 * Math.PI) {
+            sweep += 2 * Math.PI * (counterClockwise ? -1 : 1);
+        }
+
+        const arcSections = Math.max(Math.ceil(Math.abs(sweep) / (Math.PI / 2)), 1);
+
+        const step = sweep / arcSections;
+        const h = (4 / 3) * Math.tan(step / 4);
+
+        for (let i = 0; i < arcSections; i += 1) {
+            const a0 = sAngle + step * (i + 0);
+            const a1 = sAngle + step * (i + 1);
+
+            // "Approximation of circular arcs by cubic polynomials",
+            // Michael Goldapp, Computer Aided Geometric Design 8 (1991) 227-238
+            const rSinStart = r * Math.sin(a0);
+            const rCosStart = r * Math.cos(a0);
+            const rSinEnd = r * Math.sin(a1);
+            const rCosEnd = r * Math.cos(a1);
+
+            const cp1x = rCosStart - h * rSinStart;
+            const cp1y = rSinStart + h * rCosStart;
+            const cp2x = rCosEnd + h * rSinEnd;
+            const cp2y = rSinEnd - h * rCosEnd;
+            const cp3x = rCosEnd;
+            const cp3y = rSinEnd;
+
+            this.cubicCurveTo(
+                cx + mxx * cp1x + mxy * cp1y,
+                cy + myx * cp1x + myy * cp1y,
+                cx + mxx * cp2x + mxy * cp2y,
+                cy + myx * cp2x + myy * cp2y,
+                cx + mxx * cp3x + mxy * cp3y,
+                cy + myx * cp3x + myy * cp3y
+            );
+        }
+    }
+
+    arc(x: number, y: number, r: number, sAngle: number, eAngle: number, counterClockwise?: boolean) {
+        this.ellipse(x, y, r, r, 0, sAngle, eAngle, counterClockwise);
+    }
+
+    appendSvg(svg: string) {
+        const parts = parseSvg(svg);
+        if (parts == null) return false;
+
         let sx = 0; // start of path x
         let sy = 0; // start of path y
 
@@ -179,7 +301,7 @@ export class ExtendedPath2D {
                     break;
 
                 case 'a':
-                    this.ellipse(
+                    this.svgEllipse(
                         cx,
                         cy,
                         params[0],
@@ -226,9 +348,11 @@ export class ExtendedPath2D {
                     throw new Error(`Could not translate command '${command}' with '${params.join(' ')}'`);
             }
         }
+
+        return true;
     }
 
-    ellipse(
+    private svgEllipse(
         x1: number,
         y1: number,
         rx: number,
@@ -289,133 +413,7 @@ export class ExtendedPath2D {
         const eAngle = sAngle + deltaTheta;
         const counterClockwise = !!(1 - fS);
 
-        this.ellipticalArc(cx, cy, rx, ry, rotation, sAngle, eAngle, counterClockwise);
-    }
-
-    ellipticalArc(
-        cx: number,
-        cy: number,
-        rx: number,
-        ry: number,
-        rotation: number,
-        sAngle: number,
-        eAngle: number,
-        counterClockwise: boolean
-    ) {
-        if (counterClockwise) {
-            [sAngle, eAngle] = [eAngle, sAngle];
-        }
-
-        const params: number[] = [];
-        const f90 = 0.5522847498307935; // approximation for cubic Bézier control points
-
-        // initial rotation matrix values
-        const sinS = Math.sin(sAngle);
-        const cosS = Math.cos(sAngle);
-        const sinR = Math.sin(rotation);
-        const cosR = Math.cos(rotation);
-
-        let xx = cosR * cosS * rx - sinR * sinS * ry;
-        let yx = sinR * cosS * rx + cosR * sinS * ry;
-        let xy = -cosR * sinS * rx - sinR * cosS * ry;
-        let yy = -sinR * sinS * rx + cosR * cosS * ry;
-
-        params.push(xx + cx, yx + cy); // do we need this
-
-        eAngle -= sAngle;
-        eAngle = normalizeAngle360(eAngle);
-
-        const rightAngle = Math.PI / 2;
-        const fullRightAngles = Math.floor(eAngle / rightAngle); // number of full 90 degree arcs
-        const remainderAngle = eAngle % rightAngle;
-
-        for (let i = 0; i < fullRightAngles; i++) {
-            params.push(
-                xx + xy * f90 + cx,
-                yx + yy * f90 + cy,
-                xx * f90 + xy + cx,
-                yx * f90 + yy + cy,
-                xy + cx,
-                yy + cy
-            );
-
-            // rotate by Math.PI / 2
-            [xx, xy] = [xy, -xx];
-            [yx, yy] = [yy, -yx];
-        }
-
-        if (remainderAngle > 0) {
-            const sinRA = Math.sin(remainderAngle);
-            const cosRA = Math.cos(remainderAngle);
-            const factor = Math.tan(remainderAngle / 4) * (4 / 3);
-            const cpx = cosRA + factor * sinRA;
-            const cpy = sinRA - factor * cosRA;
-
-            params.push(
-                xx + xy * factor + cx,
-                yx + yy * factor + cy,
-                xx * cpx + xy * cpy + cx,
-                yx * cpx + yy * cpy + cy,
-                xx * cosRA + xy * sinRA + cx,
-                yx * cosRA + yy * sinRA + cy
-            );
-        }
-
-        if (counterClockwise) {
-            for (let i = 0, j = params.length - 2; i < j; i += 2, j -= 2) {
-                [params[i], params[j]] = [params[j], params[i]];
-                [params[i + 1], params[j + 1]] = [params[j + 1], params[i + 1]];
-            }
-        }
-
-        for (let i = 2; i < params.length; i += 6) {
-            const [cx1, cy1, cx2, cy2, x, y] = params.slice(i, i + 6);
-            this.cubicCurveTo(cx1, cy1, cx2, cy2, x, y);
-        }
-    }
-
-    roundRect(x: number, y: number, width: number, height: number, radii: number) {
-        // Newer API - so support is limited
-        // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/roundRect
-        radii = Math.min(radii, width / 2, height / 2);
-        this.moveTo(x, y + radii);
-        this.arc(x + radii, y + radii, radii, Math.PI, 1.5 * Math.PI);
-        this.lineTo(x + radii, y);
-        this.lineTo(x + width - radii, y);
-        this.arc(x + width - radii, y + radii, radii, 1.5 * Math.PI, 2 * Math.PI);
-        this.lineTo(x + width, y + radii);
-        this.lineTo(x + width, y + height - radii);
-        this.arc(x + width - radii, y + height - radii, radii, 0, Math.PI / 2);
-        this.lineTo(x + width - radii, y + height);
-        this.lineTo(x + radii, y + height);
-        this.arc(x + +radii, y + height - radii, radii, Math.PI / 2, Math.PI);
-        this.lineTo(x, y + height - radii);
-        this.closePath();
-    }
-
-    arc(x: number, y: number, r: number, sAngle: number, eAngle: number, counterClockwise?: boolean) {
-        this.openedPath = true;
-        this.path2d.arc(x, y, r, sAngle, eAngle, counterClockwise);
-        this.commands.push(Command.Arc);
-        this.params.push(x, y, r, sAngle, eAngle, counterClockwise ? 1 : 0);
-    }
-
-    cubicCurveTo(cx1: number, cy1: number, cx2: number, cy2: number, x: number, y: number) {
-        if (!this.openedPath) {
-            this.moveTo(cx1, cy1);
-        }
-        this.path2d.bezierCurveTo(cx1, cy1, cx2, cy2, x, y);
-        this.commands.push(Command.Curve);
-        this.params.push(cx1, cy1, cx2, cy2, x, y);
-    }
-
-    closePath() {
-        if (this.openedPath) {
-            this.path2d.closePath();
-            this.commands.push(Command.ClosePath);
-            this.openedPath = false;
-            this.closedPath = true;
-        }
+        this.ellipse(cx, cy, rx, ry, rotation, sAngle, eAngle, counterClockwise);
     }
 
     clear(trackChanges?: boolean) {
@@ -489,36 +487,6 @@ export class ExtendedPath2D {
                     px = params[pi - 2];
                     py = params[pi - 1];
                     break;
-                case Command.Arc: {
-                    const cx = params[pi++];
-                    const cy = params[pi++];
-                    const r = params[pi++];
-                    const startAngle = params[pi++];
-                    const endAngle = params[pi++];
-                    const counterClockwise = Boolean(params[pi++]);
-                    intersectionCount += arcIntersections(
-                        cx,
-                        cy,
-                        r,
-                        startAngle,
-                        endAngle,
-                        counterClockwise,
-                        ox,
-                        oy,
-                        x,
-                        y
-                    );
-                    if (!isNaN(sx)) {
-                        // AG-10199 the arc() command draws a connector line between previous position and the starting
-                        // position of the arc. So we need to check if there's an intersection with this connector line.
-                        const startX = cx + Math.cos(startAngle) * r;
-                        const startY = cy + Math.sin(startAngle) * r;
-                        intersectionCount += segmentIntersection(px, py, startX, startY, ox, oy, x, y);
-                    }
-                    px = cx + Math.cos(endAngle) * r;
-                    py = cy + Math.sin(endAngle) * r;
-                    break;
-                }
                 case Command.ClosePath:
                     intersectionCount += segmentIntersection(sx, sy, px, py, ox, oy, x, y);
                     break;
@@ -537,41 +505,36 @@ export class ExtendedPath2D {
         let sx: number = NaN;
         let sy: number = NaN;
         // the previous point of the current path
-        let px = 0;
-        let py = 0;
+        let cx = 0;
+        let cy = 0;
 
         for (let ci = 0, pi = 0; ci < cn; ci++) {
             switch (commands[ci]) {
                 case Command.Move:
-                    px = sx = params[pi++];
-                    py = sy = params[pi++];
+                    cx = sx = params[pi++];
+                    cy = sy = params[pi++];
                     break;
                 case Command.Line: {
-                    const nx = params[pi++];
-                    const ny = params[pi++];
-                    best = lineDistanceSquared(x, y, px, py, nx, ny, best);
+                    const x0 = cx;
+                    const y0 = cy;
+                    cx = params[pi++];
+                    cy = params[pi++];
+                    best = lineDistanceSquared(x, y, x0, y0, cx, cy, best);
                     break;
                 }
                 case Command.Curve:
-                    Logger.error('Command.Curve distanceSquare not implemented');
+                    const cp0x = cx;
+                    const cp0y = cy;
+                    const cp1x = params[pi++];
+                    const cp1y = params[pi++];
+                    const cp2x = params[pi++];
+                    const cp2y = params[pi++];
+                    cx = params[pi++];
+                    cy = params[pi++];
+                    best = bezier2DDistance(cp0x, cp0y, cp1x, cp1y, cp2x, cp2y, cx, cy, x, y) ** 2;
                     break;
-                case Command.Arc: {
-                    const cx = params[pi++];
-                    const cy = params[pi++];
-                    const r = params[pi++];
-                    const startAngle = params[pi++];
-                    const endAngle = params[pi++];
-                    const startX = cx + Math.cos(startAngle) * r;
-                    const startY = cy + Math.sin(startAngle) * r;
-                    const counterClockwise = Boolean(params[pi++]);
-                    best = lineDistanceSquared(x, y, px, py, startX, startY, best);
-                    best = arcDistanceSquared(x, y, cx, cy, r, startAngle, endAngle, counterClockwise, best);
-                    px = cx + Math.cos(endAngle) * r;
-                    py = cy + Math.sin(endAngle) * r;
-                    break;
-                }
                 case Command.ClosePath:
-                    best = lineDistanceSquared(x, y, px, py, sx, sy, best);
+                    best = lineDistanceSquared(x, y, cx, cy, sx, sy, best);
                     break;
             }
         }
@@ -584,10 +547,10 @@ export class ExtendedPath2D {
         const buffer: (string | number)[] = [];
         const { commands, params } = this;
 
-        const addCommand = (command: string, ...points: number[]) => {
+        const addCommand = (command: string, count: number) => {
             buffer.push(command);
-            for (let i = 0; i < points.length; i += 2) {
-                const { x, y } = transform(points[i], points[i + 1]);
+            for (let i = 0; i < count; i += 2) {
+                const { x, y } = transform(params[pi++], params[pi++]);
                 buffer.push(x, y);
             }
         };
@@ -596,64 +559,16 @@ export class ExtendedPath2D {
         for (const command of commands) {
             switch (command) {
                 case Command.Move:
-                    addCommand('M', params[pi++], params[pi++]);
+                    addCommand('M', 2);
                     break;
                 case Command.Line:
-                    addCommand('L', params[pi++], params[pi++]);
+                    addCommand('L', 2);
                     break;
                 case Command.Curve:
-                    addCommand('C', params[pi++], params[pi++], params[pi++], params[pi++], params[pi++], params[pi++]);
+                    addCommand('C', 6);
                     break;
-                case Command.Arc: {
-                    const cx = params[pi++];
-                    const cy = params[pi++];
-                    const r = params[pi++];
-                    const A0 = params[pi++];
-                    const A1 = params[pi++];
-                    const ccw = params[pi++];
-
-                    let sweep = ccw ? A0 - A1 : A1 - A0;
-                    if (sweep < 0) {
-                        sweep += Math.ceil(-sweep / (2 * Math.PI)) * 2 * Math.PI;
-                    }
-                    if (ccw) {
-                        sweep = -sweep;
-                    }
-
-                    // A bezier curve can handle at most one quarter turn
-                    const arcSections = Math.max(Math.ceil(Math.abs(sweep) / (Math.PI / 2)), 1);
-
-                    const step = sweep / arcSections;
-                    const h = (4 / 3) * Math.tan(step / 4);
-
-                    const move = buffer.length === 0 ? 'M' : 'L';
-                    addCommand(move, cx + Math.cos(A0) * r, cy + Math.sin(A0) * r);
-
-                    for (let i = 0; i < arcSections; i += 1) {
-                        const a0 = A0 + step * (i + 0);
-                        const a1 = A0 + step * (i + 1);
-
-                        // "Approximation of circular arcs by cubic polynomials",
-                        // Michael Goldapp, Computer Aided Geometric Design 8 (1991) 227-238
-                        const rSinStart = r * Math.sin(a0);
-                        const rCosStart = r * Math.cos(a0);
-                        const rSinEnd = r * Math.sin(a1);
-                        const rCosEnd = r * Math.cos(a1);
-
-                        addCommand(
-                            'C',
-                            cx + rCosStart - h * rSinStart,
-                            cy + rSinStart + h * rCosStart,
-                            cx + rCosEnd + h * rSinEnd,
-                            cy + rSinEnd - h * rCosEnd,
-                            cx + rCosEnd,
-                            cy + rSinEnd
-                        );
-                    }
-                    break;
-                }
                 case Command.ClosePath:
-                    buffer.push('Z');
+                    addCommand('Z', 0);
                     break;
             }
         }
@@ -664,76 +579,56 @@ export class ExtendedPath2D {
     computeBBox(): BBox {
         const { commands, params } = this;
         let [top, left, right, bot] = [Infinity, Infinity, -Infinity, -Infinity];
-        let [sx, sy] = [NaN, NaN]; // the starting point of the current path
-        let [mx, my] = [NaN, NaN]; // the end point for a ClosePath command.
+        let [cx, cy] = [NaN, NaN]; // the starting point of the current path
+        let [sx, sy] = [NaN, NaN]; // the end point for a ClosePath command.
 
-        const joinPoint = (x: number, y: number, updatestart?: boolean) => {
+        const joinPoint = (x: number, y: number) => {
             top = Math.min(y, top);
             left = Math.min(x, left);
             right = Math.max(x, right);
             bot = Math.max(y, bot);
 
-            if (updatestart) {
-                [sx, sy] = [x, y];
-            }
-        };
-        const joinAngle = (cx: number, cy: number, r: number, angle: number, updatestart?: boolean) => {
-            const px = cx + r * Math.cos(angle);
-            const py = cy + r * Math.sin(angle);
-            joinPoint(px, py, updatestart);
+            cx = x;
+            cy = y;
         };
 
         let pi = 0;
         for (const command of commands) {
             switch (command) {
                 case Command.Move:
-                    joinPoint(params[pi++], params[pi++], true);
-                    [mx, my] = [sx, sy];
+                    joinPoint(params[pi++], params[pi++]);
+                    sx = cx;
+                    sy = cy;
                     break;
                 case Command.Line:
-                    joinPoint(params[pi++], params[pi++], true);
+                    joinPoint(params[pi++], params[pi++]);
                     break;
                 case Command.Curve: {
+                    const cp0x = cx;
+                    const cp0y = cy;
                     const cp1x = params[pi++];
                     const cp1y = params[pi++];
                     const cp2x = params[pi++];
                     const cp2y = params[pi++];
-                    const x = params[pi++];
-                    const y = params[pi++];
+                    const cp3x = params[pi++];
+                    const cp3y = params[pi++];
 
-                    const ts = calculateDerivativeExtremaXY(sx, sy, cp1x, cp1y, cp2x, cp2y, x, y);
+                    const ts = bezier2DExtrema(cp0x, cp0y, cp1x, cp1y, cp2x, cp2y, cp3x, cp3y);
 
                     // Check points where the derivative is zero
                     ts.forEach((t: number) => {
-                        const px = evaluateBezier(sx, cp1x, cp2x, x, t);
-                        const py = evaluateBezier(sy, cp1y, cp2y, y, t);
+                        const px = evaluateBezier(cp0x, cp1x, cp2x, cp3x, t);
+                        const py = evaluateBezier(cp0y, cp1y, cp2y, cp3y, t);
                         joinPoint(px, py);
                     });
 
-                    joinPoint(x, y, true);
-                    break;
-                }
-                case Command.Arc: {
-                    const cx = params[pi++];
-                    const cy = params[pi++];
-                    const r = params[pi++];
-                    const a0 = normalizeAngle360(params[pi++]);
-                    const a1 = normalizeAngle360(params[pi++]);
-                    const ccw = params[pi++];
-
-                    joinAngle(cx, cy, r, a0);
-                    const criticalAngles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
-                    const [r0, r1] = ccw ? [a1, a0] : [a0, a1];
-                    for (const crit of criticalAngles) {
-                        if ((r0 < r1 && r0 <= crit && crit <= r1) || (r0 > r1 && (r0 <= crit || crit <= r1))) {
-                            joinAngle(cx, cy, r, crit);
-                        }
-                    }
-                    joinAngle(cx, cy, r, a1, true);
+                    joinPoint(cp3x, cp3y);
                     break;
                 }
                 case Command.ClosePath:
-                    [sx, sy] = [mx, my];
+                    joinPoint(sx, sy);
+                    sx = NaN;
+                    sy = NaN;
                     break;
             }
         }

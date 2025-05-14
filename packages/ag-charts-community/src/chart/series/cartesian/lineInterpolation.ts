@@ -1,5 +1,5 @@
 import type { Point } from '../../../scene/point';
-import { solveBezier, splitBezier } from '../../../scene/util/bezier';
+import { solveBezier, splitBezier2D } from '../../../scene/util/bezier';
 
 export type LinearSpan = {
     type: 'linear';
@@ -170,7 +170,7 @@ export function clipSpanX(span: Span, x0: number, x1: number): Span {
             }
         case 'cubic': {
             const t0 = solveBezier(span.cp0x, span.cp1x, span.cp2x, span.cp3x, x0);
-            let [_unused, bezier] = splitBezier(
+            let [_unused, bezier] = splitBezier2D(
                 span.cp0x,
                 span.cp0y,
                 span.cp1x,
@@ -182,7 +182,7 @@ export function clipSpanX(span: Span, x0: number, x1: number): Span {
                 t0
             );
             const t1 = solveBezier(bezier[0].x, bezier[1].x, bezier[2].x, bezier[3].x, x1);
-            [bezier, _unused] = splitBezier(
+            [bezier, _unused] = splitBezier2D(
                 bezier[0].x,
                 bezier[0].y,
                 bezier[1].x,

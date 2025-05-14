@@ -189,7 +189,7 @@ export { sectorBox } from './scene/util/sector';
 export { drawCorner } from './scene/util/corner';
 export type { Corner } from './scene/util/corner';
 export type { ShapeLineCap, ShapeLineJoin, ShapeColor } from './scene/shape/shape';
-export { SvgPath } from './scene/shape/svgPath';
+export { SvgPath, TranslatableSvgPath } from './scene/shape/svgPath';
 export { Text, RotatableText, TransformableText } from './scene/shape/text';
 export type { Scale } from './scale/scale';
 export { ContinuousScale } from './scale/continuousScale';

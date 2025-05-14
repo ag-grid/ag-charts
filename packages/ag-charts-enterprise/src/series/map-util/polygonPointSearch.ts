@@ -1,6 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
+import { type LinkedList, insertListItemsSorted } from 'ag-charts-core';
 
-import { type List, insertManySorted } from './linkedList';
 import { polygonBbox, polygonCentroid, polygonDistance } from './polygonUtil';
 
 interface LabelPlacement {
@@ -68,7 +68,7 @@ export function polygonPointSearch(
     };
 
     const initialStride = Math.min(boundingWidth, boundingHeight) / 2;
-    let queue: List<LabelPlacement> = {
+    let queue: LinkedList<LabelPlacement> = {
         value: createLabelPlacement(boundingXCenter, boundingYCenter, initialStride),
         next: null,
     };
@@ -95,7 +95,7 @@ export function polygonPointSearch(
 
         newLabelPlacements.sort(labelPlacementCmp);
 
-        queue = insertManySorted(queue, newLabelPlacements, labelPlacementCmp);
+        queue = insertListItemsSorted(queue, newLabelPlacements, labelPlacementCmp);
     }
 
     if (bestResult == null) return;

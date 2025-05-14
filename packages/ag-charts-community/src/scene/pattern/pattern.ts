@@ -7,7 +7,6 @@ import {
 import type { AgPatternName, CssColor } from 'ag-charts-types';
 
 import { normalizeAngle360FromDegrees } from '../../util/angle';
-import { parseSvg } from '../../util/svg';
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { PATTERNS } from './patterns';
@@ -50,11 +49,12 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
 
         const path = new ExtendedPath2D();
 
-        const svgParts = parseSvg(svgPath);
+        let renderPattern = PATTERNS[pattern] != null;
+        if (svgPath) {
+            renderPattern &&= !path.appendSvg(svgPath);
+        }
 
-        if (svgParts) {
-            path.appendSvg(svgParts);
-        } else {
+        if (renderPattern) {
             PATTERNS[pattern](path, { width, height, pixelRatio, strokeWidth, padding });
         }
 
