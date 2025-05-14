@@ -81,6 +81,11 @@ export interface AgChartLegendEvent<T extends string> {
     seriesId: string;
     /** Legend item id - usually yKey value for cartesian series. */
     itemId: string;
+    /** Legend label. */
+    label: {
+        /** Legend text value. */
+        text: string;
+    };
     /** The browser event that triggered the legend event. */
     event: Event;
 }

@@ -528,7 +528,7 @@ jobs:
                   WORKFLOW_STATUS="success"
                   if [[ "${{steps.snapshot_check.outputs.updated}}"  == 'true' ]] ; then
                     WORKFLOW_STATUS="failure"
-                  if [[ "${{ needs.build_lint.result }}" == "failure" ]] ; then
+                  elif [[ "${{ needs.build_lint.result }}" == "failure" ]] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.init.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
