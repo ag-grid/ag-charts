@@ -1,4 +1,4 @@
-import { findMaxIndex, findMinIndex } from 'ag-charts-core';
+import { findMaxIndex, findMinIndex, isPlainObject } from 'ag-charts-core';
 import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import { intervalFloor, intervalMilliseconds, intervalRange } from '../util/time';
@@ -104,10 +104,19 @@ export class UnitTimeScale extends DiscreteTimeScale {
         const d0 = Math.min(domain[0].valueOf(), domain[1].valueOf());
         const d1 = Math.max(domain[0].valueOf(), domain[1].valueOf());
 
-        const intervalTicks = bands; // Could be large array - avoid copying
-        const intervalStartIndex = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d0) ?? 0;
-        const intervalEndIndex =
-            findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1) ?? bands.length - 1;
+        let intervalTicks: Date[];
+        let intervalStartIndex: number;
+        let intervalEndIndex: number;
+        if (isPlainObject(interval) || typeof interval === 'string') {
+            intervalTicks = intervalRange(interval, domain[0], domain[1], { extend: true, visibleRange });
+            intervalStartIndex = 0;
+            intervalEndIndex = intervalTicks.length - 1;
+        } else {
+            intervalTicks = bands; // Could be large array - avoid copying
+            intervalStartIndex = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d0) ?? 0;
+            intervalEndIndex =
+                findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1) ?? bands.length - 1;
+        }
 
         const ticks: Date[] = [];
         let lastIndex: number | undefined;
