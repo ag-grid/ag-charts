@@ -1,7 +1,8 @@
 import { setAttribute } from 'ag-charts-core';
 
+import { isButtonClickEvent } from '../util/keynavUtil';
 import { Widget } from './widget';
-import type { WidgetEventMap as EventMap } from './widgetEvents';
+import type { WidgetEventMap as EventMap, KeyboardWidgetEvent } from './widgetEvents';
 
 type R = ReturnType<Widget['addListener']>;
 
@@ -10,6 +11,12 @@ export class AbstractButtonWidget<TElement extends HTMLElement> extends Widget<T
         super(element);
         setAttribute(this.elem, 'role', role);
         this.setEnabled(true);
+        this.addListener('keydown', ({ sourceEvent }: KeyboardWidgetEvent) => {
+            if (isButtonClickEvent(sourceEvent)) {
+                sourceEvent.preventDefault();
+                this.htmlListener?.dispatch('click', this, { type: 'click', device: 'keyboard', sourceEvent });
+            }
+        });
     }
 
     protected override destructor() {

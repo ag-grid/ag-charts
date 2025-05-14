@@ -273,7 +273,7 @@ export class Pagination extends BaseProperties {
         return { previous: this.previousButtonDisabled, next: this.nextButtonDisabled }[node] ? undefined : 'pointer';
     }
 
-    public onClick(event: MouseEvent, node: 'previous' | 'next') {
+    public onClick(event: MouseEvent | TouchEvent | KeyboardEvent, node: 'previous' | 'next') {
         event.preventDefault();
         if (node === 'next' && !this.nextButtonDisabled) {
             this.incrementPage();

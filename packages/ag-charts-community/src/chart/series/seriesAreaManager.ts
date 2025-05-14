@@ -15,6 +15,7 @@ import { Vec4 } from '../../util/vector4';
 import type { Widget } from '../../widget/widget';
 import type {
     DragWidgetEvent,
+    KeyboardSyntheticMouseWidgetEvent,
     KeyboardWidgetEvent,
     MouseWidgetEvent,
     WheelWidgetEvent,
@@ -24,7 +25,6 @@ import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { ChartType } from '../factory/chartTypes';
-import type { DragInterpreterClickEvent, DragInterpreterDblClickEvent } from '../interaction/dragInterpreter';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
@@ -61,15 +61,8 @@ export interface SeriesAreaChartDependencies {
     mode: ChartMode;
 }
 
-type ClickLikeEvent =
-    | DragInterpreterClickEvent
-    | DragInterpreterDblClickEvent
-    | (MouseWidgetEvent<'click'> & { device?: void })
-    | (MouseWidgetEvent<'dblclick'> & { device?: void });
-type HoverLikeEvent =
-    | ClickLikeEvent
-    | (MouseWidgetEvent<'mousemove'> & { device?: void })
-    | DragWidgetEvent<'drag-move'>;
+type ClickLikeEvent = MouseWidgetEvent<'click' | 'dblclick'> & { device: 'mouse' | 'touch' };
+type HoverLikeEvent = ClickLikeEvent | MouseWidgetEvent<'mousemove'> | DragWidgetEvent<'drag-move'>;
 
 type PickedNodes = {
     matches: PickedNode[];
@@ -423,7 +416,10 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private onClick(event: ClickLikeEvent, current: Widget) {
+    private onClick(event: ClickLikeEvent | KeyboardSyntheticMouseWidgetEvent, current: Widget) {
+        if (event.device === 'keyboard') {
+            return; // already handled natively by 'keydown' listener
+        }
         // Skip any playing animations
         if (current === this.chart.ctx.widgets.seriesWidget && this.chart.ctx.animationManager.isActive()) {
             this.chart.ctx.animationManager.skipCurrentBatch();

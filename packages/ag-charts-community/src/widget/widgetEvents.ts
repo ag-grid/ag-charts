@@ -1,7 +1,9 @@
 type FocusWidgetEventType = 'blur' | 'focus';
 type KeyboardWidgetEventType = 'keyup' | 'keydown';
+type KeyboardSyntheticMouseWidgetEventType = 'click';
 type MouseWidgetEventType = 'contextmenu' | 'click' | 'dblclick' | 'mouseenter' | 'mousemove' | 'mouseleave';
 type TouchWidgetEventType = 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel';
+type TouchSyntheticMouseWidgetEventType = 'click' | 'dblclick';
 type DragWidgetEventType = 'drag-start' | 'drag-move' | 'drag-end';
 
 export type WidgetEvent = {
@@ -19,8 +21,36 @@ export type KeyboardWidgetEvent<T extends KeyboardWidgetEventType = KeyboardWidg
     readonly sourceEvent: KeyboardEvent;
 };
 
-export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventType> = {
+export type KeyboardSyntheticMouseWidgetEvent<
+    T extends MouseWidgetEventType & KeyboardSyntheticMouseWidgetEventType = KeyboardSyntheticMouseWidgetEventType,
+> = {
     readonly type: T;
+    readonly device: 'keyboard';
+    readonly sourceEvent: KeyboardEvent;
+};
+
+export type TouchWidgetEvent<T extends TouchWidgetEventType = TouchWidgetEventType> = {
+    readonly type: T;
+    readonly sourceEvent: TouchEvent;
+};
+
+export type TouchSyntheticMouseWidgetEvent<
+    T extends MouseWidgetEventType & TouchSyntheticMouseWidgetEventType = TouchSyntheticMouseWidgetEventType,
+> = {
+    readonly type: T;
+    readonly device: 'touch';
+    readonly offsetX: number;
+    readonly offsetY: number;
+    readonly clientX: number;
+    readonly clientY: number;
+    readonly currentX: number;
+    readonly currentY: number;
+    readonly sourceEvent: TouchEvent;
+};
+
+export type NativeMouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventType> = {
+    readonly type: T;
+    readonly device: 'mouse';
     readonly offsetX: number;
     readonly offsetY: number;
     readonly clientX: number;
@@ -29,6 +59,11 @@ export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventTy
     readonly currentY: number;
     readonly sourceEvent: MouseEvent;
 };
+
+export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventType> =
+    | NativeMouseWidgetEvent<T>
+    | (T extends TouchSyntheticMouseWidgetEventType ? TouchSyntheticMouseWidgetEvent<T> : never)
+    | (T extends KeyboardSyntheticMouseWidgetEventType ? KeyboardSyntheticMouseWidgetEvent<T> : never);
 
 export type WheelWidgetEvent = {
     readonly type: 'wheel';
@@ -39,11 +74,6 @@ export type WheelWidgetEvent = {
     readonly deltaX: number;
     readonly deltaY: number;
     readonly sourceEvent: WheelEvent;
-};
-
-export type TouchWidgetEvent<T extends TouchWidgetEventType = TouchWidgetEventType> = {
-    readonly type: T;
-    readonly sourceEvent: TouchEvent;
 };
 
 // `originDelta` is the offset relative to position of the HTML element when the drag initiated.
@@ -130,14 +160,15 @@ export const WIDGET_HTML_EVENTS: readonly (keyof WidgetEventMap & keyof HTMLElem
     'touchcancel',
 ] satisfies (keyof WidgetEventMap & keyof HTMLElementEventMap)[];
 
-export type WidgetSourceEventMap = {
-    [K in keyof WidgetEventMap]: WidgetEventMap[K]['sourceEvent'];
+export type WidgetSourceEventMap = { [K in keyof WidgetEventMap]: WidgetEventMap[K]['sourceEvent'] } & {
+    click: MouseEvent; // exclude synthetic click sourceEvent types
+    dblclick: MouseEvent; // exclude synthetic double-click sourceEvent types
 };
 
 function allocMouseEvent<T extends MouseWidgetEventType>(type: T, sourceEvent: MouseEvent, current: HTMLElement) {
     const { offsetX, offsetY, clientX, clientY } = sourceEvent;
     const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current, sourceEvent);
-    return { type, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
+    return { type, device: 'mouse' as const, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
 }
 
 function allocTouchEvent<T extends TouchWidgetEventType>(type: T, sourceEvent: TouchEvent, _current: HTMLElement) {
