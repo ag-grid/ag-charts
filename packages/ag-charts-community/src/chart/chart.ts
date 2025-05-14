@@ -6,7 +6,6 @@ import {
     entries,
     groupBy,
     isFiniteNumber,
-    isFunction,
     pause,
 } from 'ag-charts-core';
 import type {
@@ -37,8 +36,7 @@ import { mergeDefaults, without } from '../util/object';
 import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
 import { Padding } from '../util/padding';
-import { BaseProperties } from '../util/properties';
-import { Property } from '../util/properties';
+import { BaseProperties, Property } from '../util/properties';
 import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { Widget } from '../widget/widget';
@@ -1659,10 +1657,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (listeners) {
-            this.registerListeners(target, listeners as Record<string, TypedEventListener>, {
-                nodeClick: 'seriesNodeClick',
-                nodeDoubleClick: 'seriesNodeDoubleClick',
-            });
+            this.registerListeners(target, listeners as Record<string, TypedEventListener>);
         }
 
         if ('seriesGrouping' in options) {
@@ -1711,34 +1706,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
     }
 
-    private registerListeners(
-        source: Observable,
-        listeners: Record<string, TypedEventListener>,
-        mapping?: Record<string, string>
-    ) {
+    private registerListeners(source: Observable, listeners: Record<string, TypedEventListener>) {
         source.clearEventListeners();
         for (const [property, listener] of entries(listeners)) {
-            if (isFunction(listener)) {
-                const mappedEventName = mapping?.[property];
-                if (mappedEventName == null) {
-                    source.addEventListener(property, listener);
-                } else {
-                    // @todo(AG-10006) - remove this
-                    source.addEventListener(mappedEventName, (e: any) => {
-                        if (e?.type === mappedEventName) {
-                            const clone = new Proxy(e, {
-                                get(target, p, receiver) {
-                                    return p === 'type' ? property : Reflect.get(target, p, receiver);
-                                },
-                            });
-
-                            listener(clone);
-                        } else {
-                            listener(e);
-                        }
-                    });
-                }
-            }
+            source.addEventListener(property, listener);
         }
     }
 }

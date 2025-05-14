@@ -261,19 +261,6 @@ export function gauge(
     opts: AgGaugeOptions,
     presetTheme: AgRadialGaugeThemeOverrides | AgLinearGaugeThemeOverrides | undefined
 ): AgGaugeChartOptions {
-    // PATCH for backwards compatibility - remove in v12.x.x
-    if (opts.listeners) {
-        const { nodeClick, nodeDoubleClick, ...listeners } = opts.listeners as any;
-        opts = {
-            ...opts,
-            listeners: {
-                seriesNodeClick: nodeClick,
-                seriesNodeDoubleClick: nodeDoubleClick,
-                ...listeners,
-            },
-        };
-    }
-
     switch (opts.type) {
         case 'radial-gauge':
             const radialGaugeOpts = applyThemeDefaults(opts, presetTheme as any);

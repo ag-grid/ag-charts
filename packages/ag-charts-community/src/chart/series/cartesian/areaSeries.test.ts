@@ -599,10 +599,10 @@ describe('AreaSeries', () => {
                     yKey: 'amount',
                     marker: { size: 5 },
                     listeners: {
-                        nodeClick: (event) => {
+                        seriesNodeClick: (event) => {
                             clicks.push(event.datum.asset);
                         },
-                        nodeDoubleClick: (event) => {
+                        seriesNodeDoubleClick: (event) => {
                             doubleClicks.push(event.datum.asset);
                         },
                     },
