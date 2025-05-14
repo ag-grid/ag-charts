@@ -1,0 +1,58 @@
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+
+import { asteroid, getData } from './data';
+
+const options: AgCartesianChartOptions = {
+    container: document.getElementById('myChart'),
+    data: getData(),
+    title: {
+        text: 'Meteorite Landings in the Sahara: Location vs. Mass',
+    },
+    series: [
+        {
+            type: 'bubble',
+            title: 'Meteorites',
+            xKey: 'longitude',
+            yKey: 'latitude',
+            sizeKey: 'mass',
+            maxSize: 60,
+            strokeWidth: 0,
+            fill: {
+                type: 'pattern',
+                path: asteroid,
+                width: 60,
+                height: 60,
+                stroke: 'gray',
+            },
+        },
+    ],
+    animation: {
+        enabled: false,
+    },
+    axes: [
+        {
+            type: 'number',
+            position: 'bottom',
+            title: { text: 'Longitude' },
+            interval: {
+                step: 0.1,
+            },
+            gridLine: {
+                width: 1,
+            },
+        },
+        {
+            type: 'number',
+            position: 'left',
+            gridLine: {
+                width: 1,
+            },
+            title: { text: 'Latitude' },
+            interval: {
+                step: 0.1,
+            },
+        },
+    ],
+};
+
+AgCharts.create(options);
