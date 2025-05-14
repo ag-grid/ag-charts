@@ -87,6 +87,7 @@
       "configurations": {
         "ci": {
           "outputFile": "../../reports/ag-charts-website.xml",
+          "update": true,
           "reporters": ["junit"]
         },
         "watch": {
