@@ -233,6 +233,50 @@ jobs:
               if: matrix.shard == 0
               id: pack-verify
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t pack:verify
+
+            - name: Stash Snapshot Changes
+              id: stash-snapshot-changes
+              run: |
+                  git add packages/ag-charts-{community,enterprise}/{benchmarks,src}/
+                  git status
+                  if [[ $(git diff --cached --name-only | wc -l) -gt 0 ]] ; then
+                      echo "Stashing changes."
+                      git stash push -S
+                      echo "updates=true" >> $GITHUB_OUTPUT
+                  else
+                      echo "No changes to commit."
+                      echo "updates=false" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Push Snapshot Changes
+              if: steps.stash-snapshot-changes.outputs.updates == 'true'
+              id: push
+              run: |
+                  set -x
+                  if [[ "${{github.head_ref || github.ref}}" == "refs/heads/latest" ]] ; then
+                      git fetch origin ${{github.head_ref || github.ref}}
+                      git switch latest
+                  fi
+
+                  git checkout -b ${{needs.init.outputs.snapshot_branch}}
+
+                  git stash pop
+                  git add packages/ag-charts-{community,enterprise}/{benchmarks,src}/
+                  # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git commit -m "Update E2E snapshots."
+
+                  while ! (git push origin HEAD:${{needs.init.outputs.snapshot_branch}}) ; do
+                      git pull origin ${{needs.init.outputs.snapshot_branch}} --rebase
+                  done
+
+            - name: Fail PR checks if updates needed
+              if: steps.stash-snapshot-changes.outputs.updates == 'true' && github.head_ref
+              run: |
+                  echo "Snapshots need to be updated, failing test execution."
+                  exit 1
+
             - name: Perist test results
               if: always()
               uses: actions/upload-artifact@v4

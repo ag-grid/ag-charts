@@ -284,7 +284,8 @@
       },
       "configurations": {
         "ci": {
-          "ci": true
+          "ci": true,
+          "update": true
         }
       }
     },

@@ -76,6 +76,9 @@
         "passWithNoTests": false
       },
       "configurations": {
+        "ci": {
+          "updateSnapshot": true
+        },
         "watch": {
           "watch": true
         },
