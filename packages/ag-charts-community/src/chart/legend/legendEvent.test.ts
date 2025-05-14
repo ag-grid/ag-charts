@@ -275,12 +275,12 @@ describe('LegendEvent', () => {
                 ],
                 legend: { listeners: { legendItemClick } },
             });
-            await clickAction(89, 573)(chart);
-            await clickAction(216, 574)(chart);
-            await clickAction(347, 571)(chart);
-            await clickAction(472, 570)(chart);
-            await clickAction(596, 571)(chart);
-            await clickAction(709, 570)(chart);
+            await clickAction(272, 550)(chart);
+            await clickAction(401, 550)(chart);
+            await clickAction(538, 550)(chart);
+            await clickAction(275, 572)(chart);
+            await clickAction(402, 572)(chart);
+            await clickAction(525, 572)(chart);
 
             expect(legendItemClick.mock.calls[0][0].label).toEqual({ text: '2020 - Labour' });
             expect(legendItemClick.mock.calls[1][0].label).toEqual({ text: '2020 - LibDem' });
