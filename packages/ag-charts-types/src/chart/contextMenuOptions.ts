@@ -11,9 +11,9 @@ export type AgContextMenuItemLiteral =
     | 'download'
     | 'zoom-to-cursor'
     | 'pan-to-cursor'
+    | 'reset-zoom'
     | 'toggle-series-visibility'
     | 'toggle-other-series'
-    | 'reset-zoom'
     | 'separator';
 
 export type AgContextMenuItemShowOn = 'always' | 'series-area' | 'series-node' | 'legend-item';

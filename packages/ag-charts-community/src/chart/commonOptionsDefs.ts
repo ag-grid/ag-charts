@@ -118,9 +118,9 @@ const contextMenuItemLiterals: AgContextMenuItemLiteral[] = [
     'download',
     'zoom-to-cursor',
     'pan-to-cursor',
+    'reset-zoom',
     'toggle-series-visibility',
     'toggle-other-series',
-    'reset-zoom',
     'separator',
 ];
 
