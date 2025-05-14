@@ -160,6 +160,7 @@ class ContextMenuBuiltinItemLists implements ContextMenuBuiltinItemListsRules {
         'download',
         'zoom-to-cursor',
         'pan-to-cursor',
+        'reset-zoom',
         'toggle-series-visibility',
         'toggle-other-series',
     ];
