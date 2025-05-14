@@ -1,11 +1,14 @@
+import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { TimeScale } from '../../scale/timeScale';
 import type { UnitTimeScale } from '../../scale/unitTimeScale';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
-import { TimeInterval } from '../../util/time';
 
-export type TickInterval<S> = S extends TimeScale | OrdinalTimeScale | UnitTimeScale ? number | TimeInterval : number;
+export type TickInterval<S> = S extends TimeScale | OrdinalTimeScale | UnitTimeScale
+    ? number | TimeInterval | TimeIntervalUnit
+    : number;
 
 export class AxisTick extends BaseProperties {
     @Property

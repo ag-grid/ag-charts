@@ -456,9 +456,9 @@ describe('json module', () => {
 
         it('should skip specified properties', () => {
             const target = new TestApply();
-            jsonApply(target, json, { skip: ['recurse.str', 'str'] });
+            jsonApply(target, json, { skip: ['recurse', 'recurse.str', 'str'] });
             expect(target.str).toEqual(undefined);
-            expect(target.recurse?.str).toEqual(undefined);
+            expect((target as any).recurse?.str).toEqual(undefined);
         });
 
         it('should error on unrecognised properties', () => {
@@ -471,6 +471,7 @@ describe('json module', () => {
 
         it('should error on undefined objects', () => {
             const target = new TestApply();
+            delete target.recurse;
 
             jsonApply(target, json);
             expect(console.warn).toBeCalledWith(

@@ -1,18 +1,20 @@
 import { expect, test } from '@jest/globals';
 
-import { year } from './year';
+import { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+
+import { intervalCeil, intervalFloor, intervalRange } from './index';
 
 test('year', () => {
-    const interval = year;
+    const interval: TimeInterval | TimeIntervalUnit = 'year';
     const date = new Date(2023, 2, 18, 8, 31, 5, 125);
 
-    const floor = interval.floor(date);
+    const floor = intervalFloor(interval, date);
     expect(floor).toEqual(new Date(2023, 0, 1, 0, 0, 0, 0));
 
-    const ceil = interval.ceil(date);
+    const ceil = intervalCeil(interval, date);
     expect(ceil).toEqual(new Date(2024, 0, 1, 0, 0, 0, 0));
 
-    const range = interval.range(new Date(2023, 2, 18, 8, 31, 5, 125), new Date(2026, 3, 18, 8, 31, 5, 127));
+    const range = intervalRange(interval, new Date(2023, 2, 18, 8, 31, 5, 125), new Date(2026, 3, 18, 8, 31, 5, 127));
     expect(range).toEqual([
         new Date(2024, 0, 1, 0, 0, 0, 0),
         new Date(2025, 0, 1, 0, 0, 0, 0),
@@ -21,16 +23,16 @@ test('year', () => {
 });
 
 test('year.every', () => {
-    const interval = year.every(100);
+    const interval: TimeInterval | TimeIntervalUnit = { unit: 'year', step: 100 };
     const date = new Date(2023, 2, 18, 8, 31, 5, 125);
 
-    const floor = interval.floor(date);
+    const floor = intervalFloor(interval, date);
     expect(floor).toEqual(new Date(2000, 0, 1, 0, 0, 0, 0));
 
-    const ceil = interval.ceil(date);
+    const ceil = intervalCeil(interval, date);
     expect(ceil).toEqual(new Date(2100, 0, 1, 0, 0, 0, 0));
 
-    const range = interval.range(new Date(2023, 2, 18, 8, 31, 5, 125), new Date(2345, 11, 18, 8, 31, 5, 127));
+    const range = intervalRange(interval, new Date(2023, 2, 18, 8, 31, 5, 125), new Date(2345, 11, 18, 8, 31, 5, 127));
     expect(range).toEqual([
         new Date(2123, 0, 1, 0, 0, 0, 0),
         new Date(2223, 0, 1, 0, 0, 0, 0),
@@ -38,9 +40,11 @@ test('year.every', () => {
     ]);
 });
 
-test('year.every with snapTo: null', () => {
-    const interval = year.every(100, { snapTo: null! });
-    const range = interval.range(new Date(2023, 2, 18, 8, 31, 5, 125), new Date(2345, 11, 18, 8, 31, 5, 127));
+test('year.every with defaultAlignment: interval', () => {
+    const interval: TimeInterval | TimeIntervalUnit = { unit: 'year', step: 100 };
+    const range = intervalRange(interval, new Date(2023, 2, 18, 8, 31, 5, 125), new Date(2345, 11, 18, 8, 31, 5, 127), {
+        defaultAlignment: 'interval',
+    });
     expect(range).toEqual([
         new Date(2100, 0, 1, 0, 0, 0, 0),
         new Date(2200, 0, 1, 0, 0, 0, 0),

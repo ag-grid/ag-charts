@@ -1,7 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+
 import { datesSortOrder } from '../util/date';
-import { day, hour, minute, month, year } from '../util/time';
 import {
     durationDay,
     durationHour,
@@ -284,10 +285,14 @@ describe('OrdinalTimeScale', () => {
         });
 
         describe(`time interval`, () => {
-            const TIME_INTERVALS = [
+            const TIME_INTERVALS: Array<{
+                name: string;
+                interval: TimeInterval | TimeIntervalUnit;
+                domain: Date[];
+            }> = [
                 {
                     name: 'every minute',
-                    interval: minute,
+                    interval: 'minute',
                     domain: [
                         // Datum every 20 seconds
                         new Date(2024, 0, 1, 17, 53, 0),
@@ -315,7 +320,7 @@ describe('OrdinalTimeScale', () => {
                 },
                 {
                     name: 'every hour',
-                    interval: hour,
+                    interval: 'hour',
                     domain: [
                         // datum every 15 mins, tick every hour
                         new Date(2024, 0, 1, 11, 0),
@@ -337,7 +342,7 @@ describe('OrdinalTimeScale', () => {
                 },
                 {
                     name: 'every day',
-                    interval: day,
+                    interval: 'day',
                     domain: [
                         // datum every hour spanning 3 days, tick every day
                         new Date(2024, 0, 1, 14, 0),
@@ -375,7 +380,7 @@ describe('OrdinalTimeScale', () => {
                 },
                 {
                     name: 'every 3 days',
-                    interval: day.every(3),
+                    interval: { unit: 'day', step: 3 },
                     domain: [
                         // datum twice a day
                         new Date(2024, 0, 1, 7, 0),
@@ -403,7 +408,7 @@ describe('OrdinalTimeScale', () => {
                 },
                 {
                     name: 'every month',
-                    interval: month,
+                    interval: 'month',
                     domain: [
                         new Date(2024, 0, 1),
                         new Date(2024, 0, 8),
@@ -419,7 +424,7 @@ describe('OrdinalTimeScale', () => {
                 },
                 {
                     name: 'every 2 months',
-                    interval: month.every(2),
+                    interval: { unit: 'month', step: 2 },
                     domain: [
                         // datum every 15th of the month spanning across two years
                         new Date(2023, 0, 15),
@@ -441,7 +446,7 @@ describe('OrdinalTimeScale', () => {
                 },
                 {
                     name: 'every 6 months',
-                    interval: month.every(6),
+                    interval: { unit: 'month', step: 6 },
                     domain: [
                         // datum every month spanning across two years
                         new Date(2023, 0, 0),
@@ -463,7 +468,7 @@ describe('OrdinalTimeScale', () => {
                 },
                 {
                     name: 'every year',
-                    interval: year,
+                    interval: 'year',
                     domain: [
                         // datum every year
                         new Date(2018, 0, 0),
@@ -477,7 +482,7 @@ describe('OrdinalTimeScale', () => {
                 },
                 {
                     name: 'every 3 year',
-                    interval: year.every(3),
+                    interval: { unit: 'year', step: 3 },
                     domain: [
                         // datum every 6 months
                         new Date(2018, 0, 0),

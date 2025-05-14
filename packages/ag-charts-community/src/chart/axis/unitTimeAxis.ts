@@ -1,9 +1,8 @@
-import type { TimeIntervalUnit } from 'ag-charts-types';
+import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { Property } from '../../util/properties';
-import type { TimeInterval } from '../../util/time';
 import type { AxisLabel } from './axisLabel';
 import type { AxisTick } from './axisTick';
 import { CategoryAxis } from './categoryAxis';
@@ -23,7 +22,7 @@ export class UnitTimeAxis extends CategoryAxis<UnitTimeScale> {
     max?: Date | number = undefined;
 
     @Property
-    unit: TimeInterval | TimeIntervalUnit | undefined;
+    unit: TimeInterval | TimeIntervalUnit | undefined = undefined;
 
     override get primaryLabel(): AxisLabel | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;

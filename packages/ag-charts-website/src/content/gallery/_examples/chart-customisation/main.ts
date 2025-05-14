@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts, time } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -60,7 +60,9 @@ const options: AgChartOptions = {
         {
             type: 'time',
             position: 'top',
-            interval: { step: time.year.every(10) },
+            interval: {
+                step: { unit: 'year', step: 10 },
+            },
             tick: {
                 width: 3,
                 stroke: '#3f7cbf',

@@ -9,7 +9,6 @@ import {
     constant,
     date,
     fontOptionsDef,
-    instanceOf,
     isPlainObject,
     number,
     or,
@@ -36,6 +35,7 @@ import {
     cartesianTimeAxisLabel,
     cartesianTimeAxisParentLevel,
     continuousAxisOptions,
+    timeInterval,
     timeIntervalUnit,
 } from '../chart/axesOptionsDefs';
 import { CategoryAxis } from '../chart/axis/categoryAxis';
@@ -44,7 +44,6 @@ import { LogAxis } from '../chart/axis/logAxis';
 import { NumberAxis } from '../chart/axis/numberAxis';
 import { TimeAxis } from '../chart/axis/timeAxis';
 import { UnitTimeAxis } from '../chart/axis/unitTimeAxis';
-import { TimeInterval } from '../util/time';
 import type { ModuleContext } from './moduleContext';
 
 export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
@@ -126,7 +125,7 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     // ...without(continuousAxisOptions(or(number, date), true), ['nice']),
     ...continuousAxisOptions(or(number, date), true),
     type: required(constant('unit-time')),
-    unit: or(instanceOf(TimeInterval), timeIntervalUnit),
+    unit: or(timeInterval, timeIntervalUnit),
     label: cartesianTimeAxisLabel,
     parentLevel: cartesianTimeAxisParentLevel,
     paddingInner: ratio,

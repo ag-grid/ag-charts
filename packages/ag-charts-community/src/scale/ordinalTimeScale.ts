@@ -1,5 +1,6 @@
+import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+
 import { datesSortOrder, sortAndUniqueDates } from '../util/date';
-import type { TimeInterval } from '../util/time';
 import { dateToNumber } from '../util/timeFormatDefaults';
 import { DiscreteTimeScale } from './discreteTimeScale';
 import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams, ScaleTickResult } from './scale';
@@ -60,7 +61,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
     }
 
     override ticks(
-        { interval, maxTickCount }: ScaleTickParams<TimeInterval | number>,
+        { interval, maxTickCount }: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1],
         // Only used for OrdinalTimeScale

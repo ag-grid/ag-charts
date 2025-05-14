@@ -193,24 +193,8 @@ export interface AgAxisGridStyle {
 export type TimeIntervalUnit = 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'month' | 'year';
 
 export interface TimeInterval {
-    /**
-     * Returns a new date representing the latest interval boundary date before or equal to date.
-     * For example, `day.floor(date)` typically returns 12:00 AM local time on the given date.
-     * @param date
-     */
-    floor(date: Date | number): Date;
-
-    /**
-     * Returns a new date representing the earliest interval boundary date after or equal to date.
-     * @param date
-     */
-    ceil(date: Date | number): Date;
-
-    /**
-     * Returns an array of dates representing every interval boundary after or equal to start (inclusive) and before stop (exclusive).
-     * @param start Range start.
-     * @param stop Range end.
-     * @param params If specified, the requested range will be extended to the closest "nice" values.
-     */
-    range(start: Date, stop: Date, params?: { extend?: boolean }): Date[];
+    unit: TimeIntervalUnit;
+    step?: number;
+    epoch?: Date;
+    utc?: boolean;
 }

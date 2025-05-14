@@ -1,18 +1,21 @@
 import { expect, test } from '@jest/globals';
 
-import { utcMonth } from './utcMonth';
+import { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+
+import { intervalCeil, intervalFloor, intervalRange } from './index';
 
 test('UTC month', () => {
-    const interval = utcMonth;
+    const interval: TimeInterval | TimeIntervalUnit = { unit: 'month', utc: true };
     const date = new Date(Date.UTC(2023, 0, 18, 8, 31, 5, 125));
 
-    const floor = interval.floor(date);
+    const floor = intervalFloor(interval, date);
     expect(floor).toEqual(new Date(Date.UTC(2023, 0, 1, 0, 0, 0, 0)));
 
-    const ceil = interval.ceil(date);
+    const ceil = intervalCeil(interval, date);
     expect(ceil).toEqual(new Date(Date.UTC(2023, 1, 1, 0, 0, 0, 0)));
 
-    const range = interval.range(
+    const range = intervalRange(
+        interval,
         new Date(Date.UTC(2023, 0, 18, 8, 31, 5, 125)),
         new Date(Date.UTC(2023, 3, 18, 8, 31, 5, 127))
     );
@@ -24,16 +27,17 @@ test('UTC month', () => {
 });
 
 test('UTC month.every', () => {
-    const interval = utcMonth.every(3);
+    const interval: TimeInterval | TimeIntervalUnit = { unit: 'month', step: 3, utc: true };
     const date = new Date(Date.UTC(2023, 1, 18, 8, 31, 5, 125));
 
-    const floor = interval.floor(date);
+    const floor = intervalFloor(interval, date);
     expect(floor).toEqual(new Date(Date.UTC(2023, 0, 1, 0, 0, 0, 0)));
 
-    const ceil = interval.ceil(date);
+    const ceil = intervalCeil(interval, date);
     expect(ceil).toEqual(new Date(Date.UTC(2023, 3, 1, 0, 0, 0, 0)));
 
-    const range = interval.range(
+    const range = intervalRange(
+        interval,
         new Date(Date.UTC(2023, 1, 18, 8, 31, 5, 125)),
         new Date(Date.UTC(2023, 11, 18, 8, 31, 5, 127))
     );
@@ -44,12 +48,14 @@ test('UTC month.every', () => {
     ]);
 });
 
-test('UTC month.every with snapTo: null', () => {
-    const interval = utcMonth.every(3, { snapTo: null! });
+test('UTC month.every with defaultAlignment: interval', () => {
+    const interval: TimeInterval | TimeIntervalUnit = { unit: 'month', step: 3, utc: true };
 
-    const range = interval.range(
+    const range = intervalRange(
+        interval,
         new Date(Date.UTC(2023, 1, 18, 8, 31, 5, 125)),
-        new Date(Date.UTC(2023, 11, 18, 8, 31, 5, 127))
+        new Date(Date.UTC(2023, 11, 18, 8, 31, 5, 127)),
+        { defaultAlignment: 'interval' }
     );
     expect(range).toEqual([
         new Date(Date.UTC(2023, 3, 1, 0, 0, 0, 0)),

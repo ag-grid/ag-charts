@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, time } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -118,7 +118,7 @@ const options: AgCartesianChartOptions = {
             gridLine: {
                 enabled: true,
             },
-            interval: { step: time.year.every(4) },
+            interval: { step: { unit: 'year', step: 4 } },
         },
     ],
     legend: {

@@ -1,7 +1,6 @@
 import { findMaxIndex, findMinIndex } from 'ag-charts-core';
-import type { TimeIntervalUnit } from 'ag-charts-types';
+import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
-import { type TimeInterval } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';

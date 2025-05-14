@@ -7,7 +7,7 @@ import type {
     AgCartesianChartOptions,
     AgPolarChartOptions,
 } from 'ag-charts-community';
-import { _ModuleSupport, time } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -102,7 +102,7 @@ const DATA = [
 const BASIC_ORDINAL_TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
     data: DATA,
     axes: [
-        { type: 'ordinal-time', position: 'bottom', interval: { step: time.day.every(7) } },
+        { type: 'ordinal-time', position: 'bottom', interval: { step: { unit: 'day', step: 7 } } },
         { type: 'number', position: 'left' },
     ],
     series: [

@@ -1,7 +1,6 @@
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import { mergeDefaults } from '../../util/object';
-import { day } from '../../util/time';
 import { DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED } from './data';
 import * as data from './data-axes';
 import * as examples from './examples';
@@ -60,7 +59,7 @@ export const CATEGORY_AXIS_UNIFORM_BASIC_EXAMPLE: AgCartesianChartOptions = {
 export const TIME_AXIS_BASIC_EXAMPLE: AgCartesianChartOptions = {
     data: data.DATA_YOUTUBE_VIDEOS_STATS_BY_DATE,
     axes: [
-        { type: 'time', position: 'bottom', interval: { step: day.every(7, { snapTo: 'start' }) } },
+        { type: 'time', position: 'bottom', interval: { step: { unit: 'day', step: 7 } } },
         { type: 'number', position: 'left' },
     ],
     series: [
@@ -82,7 +81,7 @@ export const TIME_AXIS_MIN_MAX_DATE_EXAMPLE: AgCartesianChartOptions = {
             position: 'bottom',
             min: new Date(2022, 1, 15, 0, 0, 0),
             max: new Date(2022, 2, 15, 0, 0, 0),
-            interval: { step: day.every(3, { snapTo: 'start' }) },
+            interval: { step: { unit: 'day', step: 3 } },
         },
         { type: 'number', position: 'left' },
     ],
@@ -96,7 +95,7 @@ export const TIME_AXIS_MIN_MAX_NUMBER_EXAMPLE: AgCartesianChartOptions = {
             position: 'bottom',
             min: new Date(2022, 1, 15, 0, 0, 0).getTime(),
             max: new Date(2022, 2, 15, 0, 0, 0).getTime(),
-            interval: { step: day.every(3, { snapTo: 'start' }) },
+            interval: { step: { unit: 'day', step: 3 } },
         },
         { type: 'number', position: 'left' },
     ],

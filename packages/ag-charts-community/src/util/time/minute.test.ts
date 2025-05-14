@@ -1,18 +1,20 @@
 import { expect, test } from '@jest/globals';
 
-import { minute } from './minute';
+import { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+
+import { intervalCeil, intervalFloor, intervalRange } from './index';
 
 test('minute', () => {
-    const interval = minute;
+    const interval: TimeInterval | TimeIntervalUnit = 'minute';
     const date = new Date(2019, 7, 23, 15, 17, 5, 100);
 
-    const floor = interval.floor(date);
+    const floor = intervalFloor(interval, date);
     expect(floor).toEqual(new Date(2019, 7, 23, 15, 17, 0, 0));
 
-    const ceil = interval.ceil(date);
+    const ceil = intervalCeil(interval, date);
     expect(ceil).toEqual(new Date(2019, 7, 23, 15, 18, 0, 0));
 
-    const range = interval.range(new Date(2019, 7, 23, 15, 17, 5, 100), new Date(2019, 7, 23, 15, 20, 5, 100));
+    const range = intervalRange(interval, new Date(2019, 7, 23, 15, 17, 5, 100), new Date(2019, 7, 23, 15, 20, 5, 100));
     expect(range).toEqual([
         new Date(2019, 7, 23, 15, 18, 0, 0),
         new Date(2019, 7, 23, 15, 19, 0, 0),
@@ -21,16 +23,16 @@ test('minute', () => {
 });
 
 test('minute.every', () => {
-    const interval = minute.every(5);
+    const interval: TimeInterval | TimeIntervalUnit = { unit: 'minute', step: 5 };
     const date = new Date(2019, 7, 23, 15, 17, 5, 100);
 
-    const floor = interval.floor(date);
+    const floor = intervalFloor(interval, date);
     expect(floor).toEqual(new Date(2019, 7, 23, 15, 15, 0, 0));
 
-    const ceil = interval.ceil(date);
+    const ceil = intervalCeil(interval, date);
     expect(ceil).toEqual(new Date(2019, 7, 23, 15, 20, 0, 0));
 
-    const range = interval.range(new Date(2019, 7, 23, 15, 17, 5, 100), new Date(2019, 7, 23, 15, 32, 5, 100));
+    const range = intervalRange(interval, new Date(2019, 7, 23, 15, 17, 5, 100), new Date(2019, 7, 23, 15, 32, 5, 100));
     expect(range).toEqual([
         new Date(2019, 7, 23, 15, 22, 0, 0),
         new Date(2019, 7, 23, 15, 27, 0, 0),
@@ -38,10 +40,15 @@ test('minute.every', () => {
     ]);
 });
 
-test('minute.every with snapTo: null', () => {
-    const interval = minute.every(5, { snapTo: null! });
+test('minute.every with defaultAlignment: interval', () => {
+    const interval: TimeInterval | TimeIntervalUnit = { unit: 'minute', step: 5 };
 
-    const range = interval.range(new Date(2019, 7, 23, 15, 17, 5, 100), new Date(2019, 7, 23, 15, 32, 5, 100));
+    const range = intervalRange(
+        interval,
+        new Date(2019, 7, 23, 15, 17, 5, 100),
+        new Date(2019, 7, 23, 15, 32, 5, 100),
+        { defaultAlignment: 'interval' }
+    );
     expect(range).toEqual([
         new Date(2019, 7, 23, 15, 20, 0, 0),
         new Date(2019, 7, 23, 15, 25, 0, 0),

@@ -24,12 +24,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         ],
       },
       "interval": {
-        "step": TimeInterval {
-          "_decode": [Function],
-          "_encode": [Function],
-          "_rangeCallback": [Function],
-          "hierarchy": undefined,
-          "milliseconds": 315569519999.99994,
+        "step": {
           "step": 10,
           "unit": "year",
         },
@@ -11041,12 +11036,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         ],
       },
       "interval": {
-        "step": TimeInterval {
-          "_decode": [Function],
-          "_encode": [Function],
-          "_rangeCallback": [Function],
-          "hierarchy": undefined,
-          "milliseconds": 63113903999.99999,
+        "step": {
           "step": 2,
           "unit": "year",
         },
@@ -12290,20 +12280,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         ],
       },
       "interval": {
-        "step": TimeInterval {
-          "_decode": [Function],
-          "_encode": [Function],
-          "_rangeCallback": [Function],
-          "hierarchy": TimeInterval {
-            "_decode": [Function],
-            "_encode": [Function],
-            "_rangeCallback": undefined,
-            "hierarchy": undefined,
-            "milliseconds": 31556951999.999996,
-            "step": 1,
-            "unit": "year",
-          },
-          "milliseconds": 5259491999.999999,
+        "step": {
           "step": 2,
           "unit": "month",
         },
@@ -13180,23 +13157,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         ],
       },
       "interval": {
-        "step": TimeInterval {
-          "_decode": [Function],
-          "_encode": [Function],
-          "_rangeCallback": undefined,
-          "hierarchy": TimeInterval {
-            "_decode": [Function],
-            "_encode": [Function],
-            "_rangeCallback": undefined,
-            "hierarchy": undefined,
-            "milliseconds": 31556951999.999996,
-            "step": 1,
-            "unit": "year",
-          },
-          "milliseconds": 2629745999.9999995,
-          "step": 1,
-          "unit": "month",
-        },
+        "step": "month",
       },
       "keys": [],
       "label": {

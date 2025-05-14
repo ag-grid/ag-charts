@@ -1,16 +1,8 @@
 import { Logger, clamp, countFractionDigits, createNumberFormatter, parseNumberFormat } from 'ag-charts-core';
+import type { TimeInterval } from 'ag-charts-types';
 
-import { day, hour, millisecond, minute, month, second, sunday as week, year } from './time';
-import {
-    durationDay,
-    durationHour,
-    durationMinute,
-    durationMonth,
-    durationSecond,
-    durationWeek,
-    durationYear,
-} from './time/duration';
-import { type TimeInterval } from './time/interval';
+import { durationMonth, durationWeek, intervalHierarchy, intervalMilliseconds, intervalStep } from './time';
+import { durationYear } from './time';
 
 interface TickInterval {
     duration: number;
@@ -18,36 +10,36 @@ interface TickInterval {
     step: number;
 }
 
-const tInterval = (timeInterval: TimeInterval, baseDuration: number, step: number): TickInterval => ({
-    duration: baseDuration * step,
+const tInterval = (timeInterval: TimeInterval, step: number): TickInterval => ({
+    duration: intervalMilliseconds(timeInterval) * step,
     timeInterval,
     step,
 });
 
 export const TickIntervals: TickInterval[] = [
-    tInterval(second, durationSecond, 1),
-    tInterval(second, durationSecond, 5),
-    tInterval(second, durationSecond, 15),
-    tInterval(second, durationSecond, 30),
-    tInterval(minute, durationMinute, 1),
-    tInterval(minute, durationMinute, 5),
-    tInterval(minute, durationMinute, 15),
-    tInterval(minute, durationMinute, 30),
-    tInterval(hour, durationHour, 1),
-    tInterval(hour, durationHour, 3),
-    tInterval(hour, durationHour, 6),
-    tInterval(hour, durationHour, 12),
-    tInterval(day, durationDay, 1),
-    tInterval(day, durationDay, 2),
-    tInterval(week, durationWeek, 1),
-    tInterval(week, durationWeek, 2),
-    tInterval(week, durationWeek, 3),
-    tInterval(month, durationMonth, 1),
-    tInterval(month, durationMonth, 2),
-    tInterval(month, durationMonth, 3),
-    tInterval(month, durationMonth, 4),
-    tInterval(month, durationMonth, 6),
-    tInterval(year, durationYear, 1),
+    tInterval({ unit: 'second' }, 1),
+    tInterval({ unit: 'second' }, 5),
+    tInterval({ unit: 'second' }, 15),
+    tInterval({ unit: 'second' }, 30),
+    tInterval({ unit: 'minute' }, 1),
+    tInterval({ unit: 'minute' }, 5),
+    tInterval({ unit: 'minute' }, 15),
+    tInterval({ unit: 'minute' }, 30),
+    tInterval({ unit: 'hour' }, 1),
+    tInterval({ unit: 'hour' }, 3),
+    tInterval({ unit: 'hour' }, 6),
+    tInterval({ unit: 'hour' }, 12),
+    tInterval({ unit: 'day' }, 1),
+    tInterval({ unit: 'day' }, 2),
+    tInterval({ unit: 'day', step: 7 }, 1),
+    tInterval({ unit: 'day', step: 7 }, 2),
+    tInterval({ unit: 'day', step: 7 }, 3),
+    tInterval({ unit: 'month' }, 1),
+    tInterval({ unit: 'month' }, 2),
+    tInterval({ unit: 'month' }, 3),
+    tInterval({ unit: 'month' }, 4),
+    tInterval({ unit: 'month' }, 6),
+    tInterval({ unit: 'year' }, 1),
 ];
 
 const TickMultipliers = [1, 2, 5, 10];
@@ -96,12 +88,20 @@ export function createTicks(
     return { ticks, count: countTicks(start, stop, step) };
 }
 
-const minPrimaryTickRatio = Math.floor(((2 * week.milliseconds) / month.milliseconds) * 10) / 10;
+const minPrimaryTickRatio = Math.floor(((2 * durationWeek) / durationMonth) * 10) / 10;
 function isPrimaryTickInterval({ timeInterval, step }: TickInterval) {
     // Don't include TickIntervals that will have 2 or fewer values between their hierarchy interval
     // I.e. not every 12 hours, because you'll have this interval twice within a day
-    const milliseconds = timeInterval.milliseconds * step;
-    return milliseconds <= (timeInterval.hierarchy?.milliseconds ?? Infinity) * minPrimaryTickRatio;
+    const milliseconds = intervalMilliseconds(timeInterval) * step;
+    const hierarchy = intervalHierarchy(timeInterval);
+    const hierarchyMilliseconds = hierarchy ? intervalMilliseconds(hierarchy) : undefined;
+    return milliseconds <= (hierarchyMilliseconds ?? Infinity) * minPrimaryTickRatio;
+}
+
+export function defaultEpoch(timeInterval: TimeInterval, { weekStart }: { weekStart: Date | undefined }) {
+    if (timeInterval.unit === 'day' && timeInterval.step === 7) {
+        return weekStart;
+    }
 }
 
 export function getTickTimeInterval(
@@ -115,7 +115,7 @@ export function getTickTimeInterval(
         primaryOnly = false,
         targetInterval,
     }: {
-        weekStart: TimeInterval | undefined;
+        weekStart: Date | undefined;
         primaryOnly?: boolean;
         targetInterval?: number;
     }
@@ -129,18 +129,20 @@ export function getTickTimeInterval(
 
     if (i0 == null) {
         const step = Math.max(tickStep(start, stop, count, minCount, maxCount), 1);
-        return millisecond.every(step);
+        return { unit: 'millisecond', step };
     } else if (i1 == null) {
         const step =
             targetInterval == null ? tickStep(start / durationYear, stop / durationYear, count, minCount, maxCount) : 1;
-        return year.every(step);
+        return { unit: 'year', step };
     }
 
     const { timeInterval, step } = target - i0.duration < i1.duration - target ? i0 : i1;
-    if (timeInterval === week) {
-        return weekStart?.every(step) ?? day.every(7 * step);
-    }
-    return timeInterval.every(step);
+
+    return {
+        unit: timeInterval.unit,
+        step: intervalStep(timeInterval) * step,
+        epoch: defaultEpoch(timeInterval, { weekStart }),
+    };
 }
 
 export function tickStep(start: number, end: number, count: number, minCount = 0, maxCount = Infinity): number {

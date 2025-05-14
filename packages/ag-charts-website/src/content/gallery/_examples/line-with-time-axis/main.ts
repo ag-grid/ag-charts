@@ -66,7 +66,7 @@ const options: AgChartOptions = {
             unit: 'year',
             nice: false,
             interval: {
-                step: time.year.every(5),
+                step: { unit: 'year', step: 5 },
             },
             crosshair: {
                 label: {

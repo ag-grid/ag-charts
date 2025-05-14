@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, AgNumberAxisOptions, AgTimeAxisOptions, time } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgTimeAxisOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -50,7 +50,7 @@ const options: AgCartesianChartOptions = {
                 style: [],
             },
             interval: {
-                step: time.month.every(6),
+                step: { unit: 'month', step: 6 },
             },
             crosshair: {
                 enabled: true,

@@ -1,8 +1,7 @@
 import { findMaxIndex, findMinIndex } from 'ag-charts-core';
-import type { TimeIntervalUnit } from 'ag-charts-types';
+import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
-import { TimeInterval } from '../util/time';
-import { intervalFloor, intervalMilliseconds, intervalRange } from '../util/timeInterop';
+import { intervalFloor, intervalMilliseconds, intervalRange } from '../util/time';
 import { normalizeContinuousDomains } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
 import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams, ScaleTickResult } from './scale';
@@ -104,22 +103,13 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
         const d0 = Math.min(domain[0].valueOf(), domain[1].valueOf());
         const d1 = Math.max(domain[0].valueOf(), domain[1].valueOf());
+
+        const intervalTicks = bands; // Could be large array - avoid copying
+        const intervalStartIndex = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d0) ?? 0;
+        const intervalEndIndex =
+            findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1) ?? bands.length - 1;
+
         const ticks: Date[] = [];
-
-        let intervalTicks: Date[];
-        let intervalStartIndex: number;
-        let intervalEndIndex: number;
-        if (interval instanceof TimeInterval) {
-            intervalTicks = interval.range(domain[0], domain[1], { extend: true, visibleRange });
-            intervalStartIndex = 0;
-            intervalEndIndex = intervalTicks.length - 1;
-        } else {
-            intervalTicks = bands; // Could be large array - avoid copying
-            intervalStartIndex = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d0) ?? 0;
-            intervalEndIndex =
-                findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1) ?? bands.length - 1;
-        }
-
         let lastIndex: number | undefined;
         for (let i = intervalStartIndex; i <= intervalEndIndex; i++) {
             const intervalTickValue = intervalTicks[i].valueOf();

@@ -1,18 +1,20 @@
 import { expect, test } from '@jest/globals';
 
-import { second } from './second';
+import { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+
+import { intervalCeil, intervalFloor, intervalRange } from './index';
 
 test('second', () => {
-    const interval = second;
+    const interval: TimeInterval | TimeIntervalUnit = 'second';
     const date = new Date(2023, 0, 18, 8, 31, 5, 125);
 
-    const floor = interval.floor(date);
+    const floor = intervalFloor(interval, date);
     expect(floor).toEqual(new Date(2023, 0, 18, 8, 31, 5, 0));
 
-    const ceil = interval.ceil(date);
+    const ceil = intervalCeil(interval, date);
     expect(ceil).toEqual(new Date(2023, 0, 18, 8, 31, 6, 0));
 
-    const range = interval.range(new Date(2023, 0, 18, 8, 31, 5, 125), new Date(2023, 0, 18, 8, 31, 8, 127));
+    const range = intervalRange(interval, new Date(2023, 0, 18, 8, 31, 5, 125), new Date(2023, 0, 18, 8, 31, 8, 127));
     expect(range).toEqual([
         new Date(2023, 0, 18, 8, 31, 6, 0),
         new Date(2023, 0, 18, 8, 31, 7, 0),
@@ -21,16 +23,16 @@ test('second', () => {
 });
 
 test('second.every', () => {
-    const interval = second.every(10);
+    const interval: TimeInterval | TimeIntervalUnit = { unit: 'second', step: 10 };
     const date = new Date(2023, 0, 18, 8, 31, 25, 125);
 
-    const floor = interval.floor(date);
+    const floor = intervalFloor(interval, date);
     expect(floor).toEqual(new Date(2023, 0, 18, 8, 31, 20, 0));
 
-    const ceil = interval.ceil(date);
+    const ceil = intervalCeil(interval, date);
     expect(ceil).toEqual(new Date(2023, 0, 18, 8, 31, 30, 0));
 
-    const range = interval.range(new Date(2023, 0, 18, 8, 31, 25, 125), new Date(2023, 0, 18, 8, 31, 55, 457));
+    const range = intervalRange(interval, new Date(2023, 0, 18, 8, 31, 25, 125), new Date(2023, 0, 18, 8, 31, 55, 457));
     expect(range).toEqual([
         new Date(2023, 0, 18, 8, 31, 35, 0),
         new Date(2023, 0, 18, 8, 31, 45, 0),
@@ -38,10 +40,15 @@ test('second.every', () => {
     ]);
 });
 
-test('second.every with snapTo: null', () => {
-    const interval = second.every(10, { snapTo: null! });
+test('second.every with defaultAlignment: interval', () => {
+    const interval: TimeInterval | TimeIntervalUnit = { unit: 'second', step: 10 };
 
-    const range = interval.range(new Date(2023, 0, 18, 8, 31, 25, 125), new Date(2023, 0, 18, 8, 31, 55, 457));
+    const range = intervalRange(
+        interval,
+        new Date(2023, 0, 18, 8, 31, 25, 125),
+        new Date(2023, 0, 18, 8, 31, 55, 457),
+        { defaultAlignment: 'interval' }
+    );
     expect(range).toEqual([
         new Date(2023, 0, 18, 8, 31, 30, 0),
         new Date(2023, 0, 18, 8, 31, 40, 0),
