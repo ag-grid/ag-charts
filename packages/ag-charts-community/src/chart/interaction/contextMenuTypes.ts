@@ -125,8 +125,7 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         type: 'action',
         showOn: 'series-area',
         label: 'contextMenuResetZoom',
-        enable: true,
-        iconUrl: undefined,
+        enabled: true,
         action: undefined,
         items: undefined,
     };
