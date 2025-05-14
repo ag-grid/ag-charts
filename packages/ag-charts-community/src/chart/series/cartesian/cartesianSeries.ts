@@ -375,8 +375,8 @@ export abstract class CartesianSeries<
         const resize = this.checkResize(seriesRect);
         const highlightItems = this.updateHighlightSelection(seriesHighlighted);
 
-        this.updateSelections(visible);
-        this.updateNodes(highlightItems, seriesHighlighted, visible);
+        const dataChanged = this.updateSelections(visible);
+        this.updateNodes(highlightItems, seriesHighlighted, visible, resize || dataChanged);
 
         const animationData = this.getAnimationData(seriesRect, previousContextData);
         if (!animationData) return;
@@ -390,12 +390,13 @@ export abstract class CartesianSeries<
     protected updateSelections(anySeriesItemEnabled: boolean) {
         const animationSkipUpdate = !this.opts.animationAlwaysUpdateSelections && this.ctx.animationManager.isSkipped();
         if (!anySeriesItemEnabled && animationSkipUpdate) {
-            return;
+            return false;
         }
-        if (!this.nodeDataRefresh && !this.isPathOrSelectionDirty()) {
-            return;
+        const { nodeDataRefresh } = this;
+        if (!nodeDataRefresh && !this.isPathOrSelectionDirty()) {
+            return false;
         }
-        if (this.nodeDataRefresh) {
+        if (nodeDataRefresh) {
             this.nodeDataRefresh = false;
 
             this.debug(`CartesianSeries.updateSelections() - calling createNodeData() for`, this.id);
@@ -411,9 +412,10 @@ export abstract class CartesianSeries<
             if (dataModel !== undefined && processedData !== undefined) {
                 this.dispatch('data-update', { dataModel, processedData });
             }
+            this.updateSeriesSelections();
         }
 
-        this.updateSeriesSelections();
+        return nodeDataRefresh;
     }
 
     private updateSeriesSelections(seriesHighlighted?: boolean) {
@@ -457,7 +459,8 @@ export abstract class CartesianSeries<
     protected updateNodes(
         highlightedItems: TDatum[] | undefined,
         seriesHighlighted: boolean,
-        anySeriesItemEnabled: boolean
+        anySeriesItemEnabled: boolean,
+        nodeRefresh: boolean
     ) {
         const {
             highlightSelection,
@@ -518,12 +521,15 @@ export abstract class CartesianSeries<
             return;
         }
 
-        this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false });
-        if (!this.usesPlacedLabels) {
-            this.updateLabelNodes({ labelSelection });
-        }
-        if (hasMarkers) {
-            this.updateMarkerNodes({ markerSelection, isHighlight: false });
+        const strokeWidthChangesOnHighlight = this.properties.highlightStyle.series.strokeWidth != null;
+        if (nodeRefresh || strokeWidthChangesOnHighlight) {
+            this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false });
+            if (!this.usesPlacedLabels) {
+                this.updateLabelNodes({ labelSelection });
+            }
+            if (hasMarkers) {
+                this.updateMarkerNodes({ markerSelection, isHighlight: false });
+            }
         }
     }
 

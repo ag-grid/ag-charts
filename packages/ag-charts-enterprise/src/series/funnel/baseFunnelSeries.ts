@@ -457,9 +457,10 @@ export abstract class BaseFunnelSeries<
     protected override updateNodes(
         highlightedItems: FunnelNodeDatum[] | undefined,
         seriesHighlighted: boolean,
-        anySeriesItemEnabled: boolean
+        anySeriesItemEnabled: boolean,
+        nodeRefresh: boolean
     ) {
-        super.updateNodes(highlightedItems, seriesHighlighted, anySeriesItemEnabled);
+        super.updateNodes(highlightedItems, seriesHighlighted, anySeriesItemEnabled, nodeRefresh);
 
         const { connectorSelection } = this;
         const connectorData = this.contextNodeData?.connectorData ?? [];

@@ -22,6 +22,14 @@ class InternalMarker<D = any> extends Path<D> {
     @SceneChangeDetection({ convertor: Math.abs })
     size: number = 12;
 
+    override isPointInPath(x: number, y: number): boolean {
+        return this.distanceSquared(x, y) <= 0;
+    }
+
+    override distanceSquared(x: number, y: number): number {
+        return Math.max(Math.hypot(x - this.x, y - this.y) - this.size / 2, 0);
+    }
+
     override updatePath(): void {
         const { path, shape, x, y, size } = this;
 
