@@ -448,7 +448,7 @@ jobs:
 
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
-              if: steps.raise-pr.outputs.url
+              if: steps.snapshot_check.outputs.updated == 'true' && github.ref == 'refs/heads/latest'
               env:
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
                   SLACK_COLOR: 'warning'
@@ -482,6 +482,8 @@ jobs:
               if: always() && github.ref == 'refs/heads/latest'
               run: |
                   WORKFLOW_STATUS="success"
+                  if [[ "${{steps.snapshot_check.outputs.updated}}"  == 'true' ]] ; then
+                    WORKFLOW_STATUS="failure"
                   if [[ "${{ needs.build_lint.result }}" == "failure" ]] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.init.result }}" == "failure" ] ; then
@@ -550,6 +552,12 @@ jobs:
                       *Changes:*
 
                       ${{ env.GIT_LOG }}
+
+            - name: Fail job if workflow failed
+              if: success() && steps.lastJobStatus.outputs.workflowStatus == 'failure'
+              run: |
+                  echo "Workflow failed, failing the build."
+                  exit 1
 
     sonarqube:
         runs-on: ubuntu-24.04
