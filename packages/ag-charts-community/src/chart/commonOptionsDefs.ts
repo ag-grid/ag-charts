@@ -120,6 +120,7 @@ const contextMenuItemLiterals: AgContextMenuItemLiteral[] = [
     'pan-to-cursor',
     'toggle-series-visibility',
     'toggle-other-series',
+    'reset-zoom',
     'separator',
 ];
 

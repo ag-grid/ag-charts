@@ -121,6 +121,15 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         action: undefined,
         items: undefined,
     };
+    readonly 'reset-zoom': RequireOptional<AgContextMenuItemSeriesArea> = {
+        type: 'action',
+        showOn: 'series-area',
+        label: 'contextMenuResetZoom',
+        enable: true,
+        iconUrl: undefined,
+        action: undefined,
+        items: undefined,
+    };
     readonly 'toggle-series-visibility': RequireOptional<AgContextMenuItemLegendItem> = {
         type: 'action',
         showOn: 'legend-item',

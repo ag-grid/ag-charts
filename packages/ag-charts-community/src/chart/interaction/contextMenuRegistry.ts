@@ -14,6 +14,7 @@ export class ContextMenuRegistry extends BaseManager<ContextMenuEventType, Conte
         super();
         this.setVisible('zoom-to-cursor', false);
         this.setVisible('pan-to-cursor', false);
+        this.setVisible('reset-zoom', false);
     }
 
     public static check<T extends AgContextMenuItemShowOn>(
