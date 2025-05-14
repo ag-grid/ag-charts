@@ -294,6 +294,9 @@ exports[`Extra Actions - deprecated callbacks 2`] = `
       {
         "event": "<Event>",
         "itemId": "sweaters",
+        "label": {
+          "text": "sweaters",
+        },
         "seriesId": "BarSeries-1",
         "type": "contextmenu",
       },
@@ -305,6 +308,9 @@ exports[`Extra Actions - deprecated callbacks 2`] = `
       {
         "event": "<Event>",
         "itemId": "hats",
+        "label": {
+          "text": "hats",
+        },
         "seriesId": "BarSeries-2",
         "type": "contextmenu",
       },
