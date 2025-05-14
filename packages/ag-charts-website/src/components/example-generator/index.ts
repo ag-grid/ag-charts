@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import { getIsDev } from '../../utils/env';
 import { getExampleRootFileUrl } from '../../utils/pages';
-import type { InternalFramework } from './types';
+import type { ExampleSubstitutions, InternalFramework } from './types';
 
 type GeneratedExampleParams = ExampleParams & (GalleryExampleParams | DocsExampleParams);
 
@@ -52,7 +52,7 @@ type GeneratedContents = {
     scriptFiles: string[];
 };
 
-const DEFAULT_SUBSTITUTIONS: Record<string, string> = {
+const DEFAULT_SUBSTITUTIONS: ExampleSubstitutions = {
     '${baseWWWUrl}': `${process.env.PUBLIC_SITE_URL ?? 'https://www.ag-grid.com'}${process.env.PUBLIC_BASE_URL ?? '/'}`,
 };
 
@@ -101,13 +101,13 @@ export const getGeneratedContents = async (params: GeneratedExampleParams) => {
     return readContentJson(params);
 };
 
-function applySubstitutions(content?: GeneratedContents, substitutions?: Record<string, string>) {
+function applySubstitutions(content?: GeneratedContents, substitutions?: ExampleSubstitutions) {
     if (content == null || substitutions == null) {
         return content;
     }
 
     Object.keys(substitutions).forEach((key) => {
-        const value = substitutions[key];
+        const value = substitutions[key as keyof ExampleSubstitutions];
         if (value == null) {
             throw new Error(`Substitution value is null for key: ${key}`);
         }
