@@ -198,4 +198,97 @@ describe('LegendEvent', () => {
             });
         });
     });
+
+    describe('label.text', () => {
+        test('line', async () => {
+            // https://plnkr.co/edit/95LNJoaB0eYqh6DU?open=main.js&preview
+            const legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {});
+            chart = await createChart({
+                data: [
+                    { x: 0, Au: 3, Ag: 5, Cu: 3 },
+                    { x: 1, Au: 5, Ag: 7, Cu: 3 },
+                    { x: 2, Au: 1, Ag: 2, Cu: 6 },
+                ],
+                series: [
+                    { xKey: 'x', yKey: 'Au', yName: 'Gold' },
+                    { xKey: 'x', yKey: 'Ag', yName: 'Silver' },
+                    { xKey: 'x', yKey: 'Cu', yName: 'Copper' },
+                ],
+                legend: { listeners: { legendItemClick } },
+            });
+            await clickAction(313, 573)(chart);
+            await clickAction(394, 573)(chart);
+            await clickAction(493, 573)(chart);
+            expect(legendItemClick.mock.calls[0][0].label).toEqual({ text: 'Gold' });
+            expect(legendItemClick.mock.calls[1][0].label).toEqual({ text: 'Silver' });
+            expect(legendItemClick.mock.calls[2][0].label).toEqual({ text: 'Copper' });
+            expect(legendItemClick).toBeCalledTimes(3);
+        });
+
+        test('pie', async () => {
+            // https://plnkr.co/edit/BoHbSyw1KYOpprOg?open=main.js
+            const legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {});
+            chart = await createChart({
+                data: [
+                    { votes: 30, name: 'Labour' },
+                    { votes: 30, name: 'LibDem' },
+                    { votes: 30, name: 'Greens' },
+                ],
+                series: [{ type: 'pie', angleKey: 'votes', legendItemKey: 'name' }],
+                legend: { listeners: { legendItemClick } },
+            });
+            await clickAction(325, 573)(chart);
+            await clickAction(398, 573)(chart);
+            await clickAction(496, 573)(chart);
+            expect(legendItemClick.mock.calls[0][0].label).toEqual({ text: 'Labour' });
+            expect(legendItemClick.mock.calls[1][0].label).toEqual({ text: 'LibDem' });
+            expect(legendItemClick.mock.calls[2][0].label).toEqual({ text: 'Greens' });
+            expect(legendItemClick).toBeCalledTimes(3);
+        });
+
+        test('donuts', async () => {
+            // https://plnkr.co/edit/BoHbSyw1KYOpprOg?open=main.js
+            const legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {});
+            chart = await createChart({
+                data: [
+                    { votes2020: 10, votes2024: 30, name: 'Labour' },
+                    { votes2020: 20, votes2024: 30, name: 'LibDem' },
+                    { votes2020: 30, votes2024: 30, name: 'Greens' },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'votes2020',
+                        calloutLabelKey: 'name',
+                        outerRadiusRatio: 0.6,
+                        innerRadiusRatio: 0.4,
+                        title: { text: '2020', showInLegend: true },
+                    },
+                    {
+                        type: 'donut',
+                        angleKey: 'votes2024',
+                        calloutLabelKey: 'name',
+                        outerRadiusRatio: 1,
+                        innerRadiusRatio: 0.8,
+                        title: { text: '2024', showInLegend: true },
+                    },
+                ],
+                legend: { listeners: { legendItemClick } },
+            });
+            await clickAction(89, 573)(chart);
+            await clickAction(216, 574)(chart);
+            await clickAction(347, 571)(chart);
+            await clickAction(472, 570)(chart);
+            await clickAction(596, 571)(chart);
+            await clickAction(709, 570)(chart);
+
+            expect(legendItemClick.mock.calls[0][0].label).toEqual({ text: '2020 - Labour' });
+            expect(legendItemClick.mock.calls[1][0].label).toEqual({ text: '2020 - LibDem' });
+            expect(legendItemClick.mock.calls[2][0].label).toEqual({ text: '2020 - Greens' });
+            expect(legendItemClick.mock.calls[3][0].label).toEqual({ text: '2024 - Labour' });
+            expect(legendItemClick.mock.calls[4][0].label).toEqual({ text: '2024 - LibDem' });
+            expect(legendItemClick.mock.calls[5][0].label).toEqual({ text: '2024 - Greens' });
+            expect(legendItemClick).toBeCalledTimes(6);
+        });
+    });
 });
