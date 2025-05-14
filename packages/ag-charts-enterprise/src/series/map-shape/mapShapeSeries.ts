@@ -211,7 +211,7 @@ export class MapShapeSeries
     private getLabelLayout(
         datum: any,
         labelValue: string | undefined,
-        font: string,
+        measurer: _ModuleSupport.CachedTextMeasurer,
         geometry: _ModuleSupport.Geometry | undefined,
         previousLabelLayout: LabelLayout | undefined
     ): LabelLayout | undefined {
@@ -231,7 +231,7 @@ export class MapShapeSeries
         });
         if (labelText == null) return;
 
-        const baseSize = CachedTextMeasurerPool.measureText(String(labelText), { font });
+        const baseSize = measurer.measureText(String(labelText));
         const numLines = labelText.split('\n').length;
         const aspectRatio =
             (baseSize.width + 2 * padding) / (numLines * TextUtils.getLineHeight(label.fontSize) + 2 * padding);
@@ -321,7 +321,7 @@ export class MapShapeSeries
         const colorValues =
             colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
 
-        const font = label.getFont();
+        const measurer = CachedTextMeasurerPool.getMeasurer({ font: label });
 
         const labelLayouts = new Map<string, LabelLayout>();
         this.previousLabelLayouts = labelLayouts;
@@ -343,7 +343,7 @@ export class MapShapeSeries
             const labelLayout = this.getLabelLayout(
                 datum,
                 labelValue,
-                font,
+                measurer,
                 geometry,
                 previousLabelLayouts?.get(idValue)
             );

@@ -10,7 +10,6 @@ import type {
 
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
-import { TextUtils } from '../../util/textMeasurer';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 
 export class AxisLabel extends BaseProperties implements ChartAxisLabel {
@@ -111,8 +110,4 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
 
     @Property
     format?: string | Record<string, string>;
-
-    getFont(): string {
-        return TextUtils.toFontString(this);
-    }
 }

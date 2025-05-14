@@ -162,7 +162,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         let labelInset = 0;
         if (this.isLabelEnabled()) {
-            const canvasFont = this.properties.label.getFont();
+            const measurer = CachedTextMeasurerPool.getMeasurer({ font: this.properties.label });
             let maxMeasuredLabelWidth = 0;
             nodeGraph.forEach(({ datum: node }) => {
                 const { id, label } = node;
@@ -173,11 +173,7 @@ export class ChordSeries extends FlowProportionSeries<
                     font: this.properties.label,
                     textWrap: 'never',
                 });
-                const { width } = CachedTextMeasurerPool.measureText(text, {
-                    font: canvasFont,
-                    textAlign: 'left',
-                    textBaseline: 'middle',
-                });
+                const { width } = measurer.measureText(text);
                 maxMeasuredLabelWidth = Math.max(width, maxMeasuredLabelWidth);
 
                 labelData.push({

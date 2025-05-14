@@ -103,6 +103,7 @@ export interface ChartAxis {
 }
 
 export interface ChartAxisLabel extends FontOptions {
+    fontSize: number; // This is required
     getSideFlag(): ChartAxisLabelFlipFlag;
     set(props: object): void;
     autoRotate?: boolean;

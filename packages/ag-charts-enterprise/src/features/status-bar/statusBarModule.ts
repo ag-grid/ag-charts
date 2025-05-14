@@ -16,7 +16,7 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
             title: {
                 color: { $ref: 'textColor' },
                 fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $ref: 'fontSize' },
+                fontSize: 20,
                 fontWeight: { $ref: 'fontWeight' },
             },
             positive: {

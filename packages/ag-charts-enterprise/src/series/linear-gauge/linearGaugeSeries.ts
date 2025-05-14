@@ -521,7 +521,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
         const lines = label.text?.split('\n');
 
-        const font = label.getFont();
+        const measurer = CachedTextMeasurerPool.getMeasurer({ font: label });
         const ticks =
             scaleProps.interval.values ??
             scale.ticks({
@@ -536,7 +536,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             lines ?? ticks?.map((tick) => getLabelText(this.id, this.ctx, this.labelDatum(label, tick)) ?? '');
 
         const labelSize = linesOrTicks.reduce((accum, text) => {
-            const { width } = CachedTextMeasurerPool.measureText(text, { font });
+            const { width } = measurer.measureText(text);
             return Math.max(accum, width);
         }, 0);
 

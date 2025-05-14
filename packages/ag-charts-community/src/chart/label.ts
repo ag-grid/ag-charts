@@ -14,7 +14,7 @@ import type { Matrix } from '../scene/matrix';
 import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
 import { normalizeAngle360FromDegrees } from '../util/angle';
 import { BaseProperties, Property } from '../util/properties';
-import { type TextMeasurer, TextUtils } from '../util/textMeasurer';
+import { type TextMeasurer } from '../util/textMeasurer';
 import type { TimeInterval } from '../util/time';
 import { intervalHierarchy, intervalRange, intervalUnit } from '../util/timeInterop';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from './chartAxis';
@@ -43,10 +43,6 @@ export class Label<TParams = never, TDatum = any>
 
     @Property
     formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
-
-    getFont(): string {
-        return TextUtils.toFontString(this);
-    }
 }
 
 export function calculateLabelRotation(

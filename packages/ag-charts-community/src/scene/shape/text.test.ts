@@ -407,14 +407,14 @@ describe('Text', () => {
         it('should measure text currently', () => {
             expect(
                 CachedTextMeasurerPool.measureText('Hello world!', {
-                    font: '24px serif',
+                    font: { fontSize: 24, fontFamily: 'serif' },
                     textBaseline: 'bottom',
                     textAlign: 'start',
                 })
             ).toMatchSnapshot();
             expect(
                 CachedTextMeasurerPool.measureText('Hello world!', {
-                    font: 'bold 48px serif',
+                    font: { fontSize: 48, fontFamily: 'serif', fontWeight: 'bold' },
                     textBaseline: 'middle',
                     textAlign: 'center',
                 })
@@ -422,8 +422,23 @@ describe('Text', () => {
         });
 
         it('should measure text size currently', () => {
-            expect(CachedTextMeasurerPool.measureText('Hello world!', { font: '24px serif' })).toMatchSnapshot();
-            expect(CachedTextMeasurerPool.measureText('Hello world!', { font: 'bold 48px serif' })).toMatchSnapshot();
+            expect(
+                CachedTextMeasurerPool.measureText('Hello world!', {
+                    font: {
+                        fontSize: 24,
+                        fontFamily: 'serif',
+                    },
+                })
+            ).toMatchSnapshot();
+            expect(
+                CachedTextMeasurerPool.measureText('Hello world!', {
+                    font: {
+                        fontSize: 48,
+                        fontFamily: 'serif',
+                        fontWeight: 'bold',
+                    },
+                })
+            ).toMatchSnapshot();
         });
     });
 });

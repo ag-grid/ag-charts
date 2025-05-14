@@ -6,7 +6,7 @@ import { LRUCache } from './lruCache';
 
 // Configuration options create a font string.
 export interface FontOptions {
-    fontSize?: FontSize;
+    fontSize: FontSize;
     fontStyle?: FontStyle;
     fontWeight?: FontWeight;
     fontFamily?: FontFamily;
@@ -15,7 +15,7 @@ export interface FontOptions {
 
 // Configuration options for measuring text.
 export interface MeasureOptions {
-    font: string | FontOptions;
+    font: FontOptions;
     textAlign?: CanvasTextAlign;
     textBaseline?: CanvasTextBaseline;
     lineHeight?: number;
@@ -36,6 +36,7 @@ export interface MultilineMetrics {
     height: number;
     offsetTop: number;
     offsetLeft: number;
+    alphabeticBaseline: number;
     lineMetrics: ({ text: string } & LineMetrics)[];
 }
 
@@ -175,6 +176,21 @@ export class TextUtils {
         return Math.ceil(fontSize * this.defaultLineHeight);
     }
 
+    static getHorizontalModifier(textAlign?: CanvasTextAlign): number {
+        switch (textAlign) {
+            case 'left':
+            case 'start':
+                return 0;
+            case 'center':
+                return 0.5;
+            case 'right':
+            case 'end':
+                return 1;
+            default:
+                return 0;
+        }
+    }
+
     // Determines vertical offset modifier based on text baseline.
     static getVerticalModifier(textBaseline?: CanvasTextBaseline): number {
         switch (textBaseline) {
@@ -183,7 +199,7 @@ export class TextUtils {
                 return 0;
             case 'middle':
                 return 0.5;
-            case 'alphabetic':
+            case 'alphabetic': // Alphabetic is not correct here - but it's not called
             case 'bottom':
             case 'ideographic':
             default:
@@ -224,6 +240,7 @@ export class SimpleTextMeasurer implements TextMeasurer {
         let offsetTop = 0;
         let offsetLeft = 0;
         let baselineDistance = 0; // Distance between first and last baselines.
+        let alphabeticBaseline = 0;
 
         const verticalModifier = TextUtils.getVerticalModifier(this.textBaseline);
         const lineMetrics = [];
@@ -245,6 +262,7 @@ export class SimpleTextMeasurer implements TextMeasurer {
             if (index === 0) {
                 height += m.actualBoundingBoxAscent;
                 offsetTop += m.actualBoundingBoxAscent;
+                alphabeticBaseline = m.alphabeticBaseline;
             } else {
                 baselineDistance += m.fontBoundingBoxAscent;
             }
@@ -268,7 +286,7 @@ export class SimpleTextMeasurer implements TextMeasurer {
         height += baselineDistance;
         offsetTop += baselineDistance * verticalModifier;
 
-        return { width, height, offsetTop, offsetLeft, lineMetrics };
+        return { width, height, offsetTop, offsetLeft, alphabeticBaseline, lineMetrics };
     }
 
     textWidth(text: string, estimate?: boolean): number {
