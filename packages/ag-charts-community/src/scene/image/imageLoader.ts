@@ -16,25 +16,27 @@ export class ImageLoader extends EventEmitter<EventMap> {
     private readonly cache = new Map<string, CacheEntry>();
     private imageLoadingCount = 0;
 
-    public loadImage(uri: string, node?: NotifiableNode): HTMLImageElement | undefined {
+    public loadImage(uri: string, affectedNode?: NotifiableNode): HTMLImageElement | undefined {
         const entry = this.cache.get(uri);
         if (entry?.image) {
             return entry.image;
-        } else if (entry != null && node) {
-            entry.nodes.add(node);
+        } else if (entry != null && affectedNode) {
+            entry.nodes.add(affectedNode);
             return;
         }
 
-        if (!node) {
+        if (!affectedNode) {
             return;
         }
 
-        const nextEntry: CacheEntry = { image: undefined, nodes: new Set([node]) };
+        const nextEntry: CacheEntry = { image: undefined, nodes: new Set([affectedNode]) };
         const image = new Image();
         this.imageLoadingCount++;
         image.onload = () => {
             nextEntry.image = image;
-            nextEntry.nodes.forEach((n) => n.markDirty());
+            for (const node of nextEntry.nodes) {
+                node.markDirty();
+            }
             nextEntry.nodes.clear();
             this.imageLoadingCount--;
             this.emit('image-loaded', { uri });
