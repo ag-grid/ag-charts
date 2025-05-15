@@ -52,6 +52,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private showEvent: MouseEvent | undefined = undefined;
     private x: number = 0;
     private y: number = 0;
+    private closingSubMenus = 0;
 
     // HTML elements
     private readonly element: HTMLElement;
@@ -99,6 +100,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.addEventListener('contextmenu', (event) => event.preventDefault()); // AG-10223
         // CRT-481 Automatically close the context menu when change focus with TAB / Shift+TAB
         this.element.addEventListener('focusout', ({ relatedTarget }) => {
+            if (this.closingSubMenus > 0) return;
             if (relatedTarget == null || (relatedTarget instanceof Node && !this.element.contains(relatedTarget))) {
                 this.hide();
             }
@@ -248,7 +250,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
     private onSubMenuClose(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
         button.setFocusOverride(undefined);
+        // AG-14931 Removing HTML elements can fire a 'focusout' event with `relatedTarget: null` and dismiss the whole
+        // context menu, we want to avoid that.
+        this.closingSubMenus++;
         menu.remove();
+        this.closingSubMenus--;
     }
 
     private createMenu(expandedItems: ContextMenuItem[]) {
