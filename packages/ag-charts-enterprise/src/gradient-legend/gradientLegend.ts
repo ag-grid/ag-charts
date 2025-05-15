@@ -1,9 +1,10 @@
 import { type AgChartLegendPosition, type AgGradientLegendScaleOptions, _ModuleSupport } from 'ag-charts-community';
 import { createId } from 'ag-charts-core';
 
+import { AxisTicks } from './axisTicks';
+
 const {
     BaseProperties,
-    AxisTicks,
     ZIndexMap,
     ProxyProperty,
     Property,
@@ -24,7 +25,7 @@ class GradientBar extends BaseProperties {
 }
 
 class GradientLegendScale implements Omit<AgGradientLegendScaleOptions, 'label'> {
-    constructor(protected axisTicks: _ModuleSupport.AxisTicks) {}
+    constructor(protected axisTicks: AxisTicks) {}
 
     @ProxyProperty('axisTicks.label')
     label!: _ModuleSupport.AxisLabel;
@@ -33,7 +34,7 @@ class GradientLegendScale implements Omit<AgGradientLegendScaleOptions, 'label'>
     interval!: _ModuleSupport.AxisInterval<number>;
 
     @ProxyProperty('axisTicks.padding')
-    padding?: _ModuleSupport.AxisTicks['padding'];
+    padding?: AxisTicks['padding'];
 }
 
 export class GradientLegend {
@@ -41,7 +42,7 @@ export class GradientLegend {
 
     readonly id = createId(this);
 
-    private readonly axisTicks: _ModuleSupport.AxisTicks;
+    private readonly axisTicks: AxisTicks;
     private readonly highlightManager: _ModuleSupport.HighlightManager;
 
     private readonly legendGroup = new TranslatableGroup({ name: 'legend', zIndex: ZIndexMap.LEGEND });
@@ -151,8 +152,8 @@ export class GradientLegend {
     }
 
     private updateGradientRect(shrinkRect: _ModuleSupport.BBox, colorRange: string[]) {
-        const { gradientRect } = this;
-        const { preferredLength, thickness } = this.gradient;
+        const { gradientRect, gradient } = this;
+        const { preferredLength, thickness } = gradient;
 
         let angle: number;
         if (this.isVertical()) {
@@ -178,17 +179,24 @@ export class GradientLegend {
     }
 
     private updateAxis(data: _ModuleSupport.GradientLegendDatum) {
-        const { axisTicks } = this;
+        const { position, axisTicks, gradient, scale, gradientRect } = this;
         const vertical = this.isVertical();
         const positiveAxis = this.reverseOrder !== vertical;
 
-        axisTicks.position = this.position;
-        axisTicks.translationX = vertical ? this.gradient.thickness : 0;
-        axisTicks.translationY = vertical ? 0 : this.gradient.thickness;
+        axisTicks.position = position;
+        const offset = gradient.thickness + (scale.padding ?? 0);
+        axisTicks.translationX = vertical ? offset : 0;
+        axisTicks.translationY = vertical ? 0 : offset;
         axisTicks.scale.domain = positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain;
-        axisTicks.scale.range = vertical ? [0, this.gradientRect.height] : [0, this.gradientRect.width];
+        axisTicks.scale.range = vertical ? [0, gradientRect.height] : [0, gradientRect.width];
 
-        return axisTicks.calculateLayout();
+        let bbox = new BBox(0, 0, gradientRect.width, gradientRect.height);
+        const axisBbox = axisTicks.calculateLayout();
+        if (axisBbox) {
+            bbox = BBox.merge([bbox, axisBbox]);
+        }
+
+        return bbox;
     }
 
     private updateArrow() {
@@ -225,16 +233,7 @@ export class GradientLegend {
 
     private getMeasurements(shrinkRect: _ModuleSupport.BBox, axisBox: _ModuleSupport.BBox) {
         let { x: left, y: top } = shrinkRect;
-        let { width, height } = this.gradientRect;
-
-        // Because of the rotation technique used by axes rendering labels are padded 5px off,
-        // which need to be account for in these calculations to make sure labels aren't being clipped.
-        // This will become obsolete only once axes rotation technique would be removed.
-        if (this.isVertical()) {
-            width += axisBox.width + 5;
-        } else {
-            height += axisBox.height + 5;
-        }
+        const { width, height } = axisBox;
 
         switch (this.position) {
             case 'left':

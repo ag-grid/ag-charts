@@ -14,6 +14,8 @@ export interface AgGradientLegendLabelOptions {
     fontFamily?: FontFamilyFull;
     /** The colour to use for the labels. */
     color?: CssColor;
+    /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */
+    minSpacing?: PixelSize;
     /** Format string used when rendering labels. */
     format?: string;
     /** Function used to render scale labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between intervals; for example, a interval step of `0.0005` would have `fractionDigits` set to `4`. */
