@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
+    AgBarSeriesItemStylerParams,
+    AgBarSeriesStyle,
+    AgCartesianChartOptions,
     type AgErrorBarItemStylerParams,
     type AgErrorBarThemeableOptions,
     type AgScatterSeriesOptions,
@@ -786,6 +789,47 @@ describe('ErrorBars', () => {
         await hoverAction(0, 0)(chart);
         await waitForChartStability(chart);
         expect(result).toStrictEqual([false]);
+    });
+
+    it('AG-14263 should set itemStyler seriesId', async () => {
+        type TDatum = { x: string; y: number; yLower: number; yUpper: number };
+        const barSeriesItemStyler = jest.fn((_p: AgBarSeriesItemStylerParams<TDatum>): AgBarSeriesStyle => {
+            return {};
+        });
+        const errorBarItemStyler = jest.fn((_p: AgErrorBarItemStylerParams<TDatum>): AgErrorBarThemeableOptions => {
+            return {};
+        });
+        const opts: AgCartesianChartOptions = {
+            data: [
+                { x: 'Jan', y: 2.5, yLower: 1.5, yUpper: 3.5 },
+                { x: 'Feb', y: 3.0, yLower: 2.3, yUpper: 3.7 },
+                { x: 'Mar', y: 2.8, yLower: 2.1, yUpper: 3.5 },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    itemStyler: barSeriesItemStyler,
+                    errorBar: {
+                        itemStyler: errorBarItemStyler,
+                        yLowerKey: 'yLower',
+                        yUpperKey: 'yUpper',
+                    },
+                },
+            ],
+        };
+        chart = await createEnterpriseChart(opts);
+
+        expect(errorBarItemStyler).toBeCalledTimes(3);
+        expect(errorBarItemStyler.mock.calls[0][0]).toMatchObject({ seriesId: 'BarSeries2-1' });
+        expect(errorBarItemStyler.mock.calls[1][0]).toMatchObject({ seriesId: 'BarSeries2-1' });
+        expect(errorBarItemStyler.mock.calls[2][0]).toMatchObject({ seriesId: 'BarSeries2-1' });
+
+        expect(barSeriesItemStyler).toBeCalledTimes(3);
+        expect(barSeriesItemStyler.mock.calls[0][0]).toMatchObject({ seriesId: 'BarSeries2-1' });
+        expect(barSeriesItemStyler.mock.calls[2][0]).toMatchObject({ seriesId: 'BarSeries2-1' });
+        expect(barSeriesItemStyler.mock.calls[1][0]).toMatchObject({ seriesId: 'BarSeries2-1' });
     });
 
     it('should use correct cursor', async () => {
