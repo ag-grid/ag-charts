@@ -1,8 +1,23 @@
-import { getGeneratedContents, getGeneratedContentsFileList } from '@components/example-generator';
+import type { InternalFramework } from '@ag-grid-types';
+import {
+    type GeneratedExampleParams,
+    getGeneratedContents,
+    getGeneratedContentsFileList,
+} from '@components/example-generator';
 import { FRAMEWORKS } from '@constants';
 import type { DocsPage } from '@utils/pages';
 
 import { getInternalFrameworkExamples, getPagesList } from './filesData';
+
+type DocExamplePages = Awaited<ReturnType<typeof getDocsExamplePages>>;
+type DocExamplePage = DocExamplePages[number]['params'] & {
+    isEnterprise: boolean;
+    isIntegratedCharts?: boolean;
+    isLocale?: boolean;
+    hasExampleConsoleLog?: boolean;
+    sourceFileList?: string[];
+};
+type DocFrameworkExamples = Record<InternalFramework, DocExamplePage>;
 
 export function getDocsPages(pages: DocsPage[]) {
     const frameworkPages = FRAMEWORKS.flatMap((framework) => {
@@ -62,7 +77,7 @@ function flattenDocsExampleContents(data: Record<string, DocFrameworkExamples>) 
     return Object.values(data).map((frameworkExamples) => {
         // eslint-disable-next-line no-restricted-properties
         const frameworkEntries = Object.entries(frameworkExamples);
-        const [_, { pageName, exampleName }] = frameworkEntries[0];
+        const [_, { pageName, exampleName, sourceFileList }] = frameworkEntries[0];
         const isEnterprise = allPropertiesAreTruthy(frameworkEntries, 'isEnterprise');
         const isIntegratedCharts = allPropertiesAreTruthy(frameworkEntries, 'isIntegratedCharts');
         const isLocale = allPropertiesAreTruthy(frameworkEntries, 'isLocale');
@@ -72,6 +87,7 @@ function flattenDocsExampleContents(data: Record<string, DocFrameworkExamples>) 
             id: `${pageName}-${exampleName}`,
             pageName,
             exampleName,
+            sourceFileList,
             isEnterprise,
             isIntegratedCharts,
             isLocale,
@@ -106,6 +122,7 @@ export async function getDocsExampleContents({ pages }: { pages: DocsPage[] }) {
             isIntegratedCharts: contents?.isIntegratedCharts,
             isLocale: contents?.isLocale,
             hasExampleConsoleLog: contents?.hasExampleConsoleLog,
+            sourceFileList: contents?.sourceFileList,
             ...example.params,
         };
     });

@@ -10,7 +10,7 @@ import {
 
 const pages = await getCollection('docs');
 const exampleContents = await getDocsExampleContents({ pages });
-const properties: ExampleProperty[] = ['isEnterprise', 'hasExampleConsoleLog'];
+const properties: ExampleProperty[] = ['sourceFileList', 'isEnterprise', 'hasExampleConsoleLog'];
 ---
 
 <DebugLayout title={`Debug: Docs Example Pages`}>
