@@ -54,15 +54,17 @@ import type {
 
 export const timeIntervalUnit = union('millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year');
 
-export const timeInterval = optionsDefs<TimeInterval>(
-    {
-        unit: required(timeIntervalUnit),
-        step: positiveNumberNonZero,
-        epoch: date,
-        utc: boolean,
-    },
-    'a time interval object'
-);
+const timeIntervalDefs: OptionsDefs<TimeInterval> = {
+    unit: required(timeIntervalUnit),
+    step: positiveNumberNonZero,
+    epoch: date,
+    utc: boolean,
+};
+
+// @ts-expect-error undocumented option - required for interop
+timeIntervalDefs.every = callback;
+
+export const timeInterval = optionsDefs<TimeInterval>(timeIntervalDefs, 'a time interval object');
 
 export const numberFormatValidator = attachDescription(isValidNumberFormat, 'a valid number format string');
 
