@@ -88,7 +88,7 @@ export class ErrorBarNode extends _ModuleSupport.Group {
         return {
             ...(style as Required<AgErrorBarThemeableOptions>),
             datum: datum.datum,
-            seriesId: datum.datum.seriesId,
+            seriesId: datum.series.id,
             xKey: datum.xKey,
             yKey: datum.yKey,
             xLowerKey,
