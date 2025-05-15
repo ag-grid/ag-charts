@@ -253,12 +253,16 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             };
         }
 
+        const { range, reverse, defaultTickMinSpacing } = this;
         const removeOverflowLabels = this.horizontal && ContinuousScale.is(this.scale);
         const tickGenerationResult = this.tickGenerator.generateTicks({
             domain,
+            range,
+            reverse,
             niceMode,
             visibleRange,
             primaryTickCount: initialPrimaryTickCount,
+            defaultTickMinSpacing,
             parallelFlipRotation,
             regularFlipRotation,
             labelX,
