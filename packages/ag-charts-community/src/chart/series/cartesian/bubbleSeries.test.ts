@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartInstance, AgChartOptions, AgPatternName } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions, AgColorRepeat, AgImageFillFit, AgPatternName } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import * as examples from '../../test/examples';
@@ -133,6 +133,66 @@ describe('BubbleSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+    });
+
+    describe('image fill', () => {
+        it.each(['repeat', 'no-repeat'] as AgColorRepeat[])(
+            'it should create a chart with repeat %s image',
+            async (repetition) => {
+                const options: AgChartOptions = {
+                    theme: {
+                        overrides: {
+                            bubble: {
+                                series: {
+                                    fillOpacity: 1,
+                                    fill: {
+                                        type: 'image',
+                                        url: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/ag-grid-logomark.png`,
+                                        width: 25,
+                                        height: 25,
+                                        repeat: repetition,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
+                };
+
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await compare();
+            }
+        );
+
+        it.each(['contain', 'cover', 'stretch', 'none'] as AgImageFillFit[])(
+            'it should create a chart with fit %s image',
+            async (fit) => {
+                const options: AgChartOptions = {
+                    theme: {
+                        overrides: {
+                            bubble: {
+                                series: {
+                                    fillOpacity: 1,
+                                    fill: {
+                                        type: 'image',
+                                        url: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/ag-grid-logomark.png`,
+                                        fit,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
+                };
+
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await compare();
+            }
+        );
     });
 
     describe('gradient fill', () => {
