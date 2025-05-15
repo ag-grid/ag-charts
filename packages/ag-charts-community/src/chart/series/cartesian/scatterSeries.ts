@@ -165,8 +165,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const nodeData: ScatterNodeDatum[] = [];
 
-        const font = label.getFont();
-        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
+        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font: label });
         const rawData = processedData.dataSources.get(this.id) ?? [];
         rawData.forEach((datum, datumIndex) => {
             const xDatum = xDataValues[datumIndex];

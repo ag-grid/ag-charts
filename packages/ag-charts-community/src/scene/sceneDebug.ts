@@ -14,6 +14,7 @@ export enum DebugSelectors {
     SCENE_STATS = 'scene:stats',
     SCENE_STATS_VERBOSE = 'scene:stats:verbose',
     SCENE_DIRTY_TREE = 'scene:dirtyTree',
+    SCENE_TEXT = 'scene:text',
 }
 
 type BuildTree = { name?: string; node?: any; dirty?: boolean };

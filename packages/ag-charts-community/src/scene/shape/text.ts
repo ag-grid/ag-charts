@@ -1,10 +1,12 @@
 import { createSvgElement, isDefined } from 'ag-charts-core';
 import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
+import { Debug } from '../../util/debug';
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
+import { DebugSelectors } from '../sceneDebug';
 import { Rotatable, Translatable } from '../transformable';
 import { Shape } from './shape';
 
@@ -18,8 +20,13 @@ export interface TextSizeProperties {
     textAlign?: CanvasTextAlign;
 }
 
+// @todo() - Workaround for subclassing
+let externUseGlyphIndependentMeasurements = false;
+
 export class Text<D = any> extends Shape<D> {
     static readonly className = 'Text';
+
+    private static readonly debug = Debug.create(true, DebugSelectors.SCENE_TEXT);
 
     static override readonly defaultStyles = {
         ...Shape.defaultStyles,
@@ -55,7 +62,7 @@ export class Text<D = any> extends Shape<D> {
     fontWeight?: FontWeight;
 
     @SceneChangeDetection()
-    fontSize?: number = 10;
+    fontSize: number = 10;
 
     @SceneChangeDetection()
     fontFamily?: string = 'sans-serif';
@@ -70,15 +77,71 @@ export class Text<D = any> extends Shape<D> {
     @SceneChangeDetection()
     lineHeight?: number;
 
-    static computeBBox(lines: string | string[], x: number, y: number, opts: MeasureOptions): BBox {
-        const { offsetTop, offsetLeft, width, height: exactHeight } = CachedTextMeasurerPool.measureLines(lines, opts);
-        const height = opts.lineHeight ? opts.lineHeight * lines.length : exactHeight;
+    static computeBBox(
+        lines: string | string[],
+        x: number,
+        y: number,
+        opts: MeasureOptions,
+        useGlyphIndependentMeasurements: boolean = false
+    ): BBox {
+        const {
+            font,
+            font: { fontSize },
+            textAlign,
+            textBaseline = 'alphabetic',
+            lineHeight = useGlyphIndependentMeasurements ? TextUtils.getLineHeight(fontSize) : undefined,
+        } = opts;
+        const {
+            width,
+            alphabeticBaseline,
+            offsetLeft: exactOffsetLeft,
+            offsetTop: exactOffsetTop,
+            height: exactHeight,
+        } = CachedTextMeasurerPool.measureLines(
+            lines,
+            useGlyphIndependentMeasurements ? { font, lineHeight, textAlign: 'left', textBaseline: 'top' } : opts
+        );
+        const height = lineHeight == null ? exactHeight : lineHeight * lines.length;
+
+        let offsetTop: number;
+        if (lineHeight == null) {
+            offsetTop = exactOffsetTop;
+        } else if (textBaseline === 'alphabetic') {
+            const padding = (lineHeight - fontSize) / 2;
+            offsetTop = padding - alphabeticBaseline;
+        } else {
+            offsetTop = TextUtils.getVerticalModifier(textBaseline) * height;
+        }
+
+        const offsetLeft = useGlyphIndependentMeasurements
+            ? width * TextUtils.getHorizontalModifier(textAlign)
+            : exactOffsetLeft;
+
         return new BBox(x - offsetLeft, y - offsetTop, width, height);
     }
 
-    protected override computeBBox(): BBox {
+    protected override computeBBox(
+        useGlyphIndependentMeasurements: boolean = externUseGlyphIndependentMeasurements
+    ): BBox {
         const { x, y, lines, textBaseline, textAlign, lineHeight } = this;
-        return Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign, lineHeight });
+        const bbox = Text.computeBBox(
+            lines,
+            x,
+            y,
+            { font: this, textBaseline, textAlign, lineHeight },
+            useGlyphIndependentMeasurements
+        );
+        return bbox;
+    }
+
+    override getBBox(useGlyphIndependentMeasurements: boolean = false): BBox {
+        if (useGlyphIndependentMeasurements) {
+            externUseGlyphIndependentMeasurements = true;
+            const bbox = this.computeBBox(true);
+            externUseGlyphIndependentMeasurements = false;
+            return bbox;
+        }
+        return super.getBBox();
     }
 
     getTextMeasureBBox() {
@@ -113,8 +176,15 @@ export class Text<D = any> extends Shape<D> {
         if (ctx.font !== font) {
             ctx.font = font;
         }
-        ctx.textAlign = this.textAlign;
-        ctx.textBaseline = this.textBaseline;
+
+        const { fontSize, lineHeight = TextUtils.getLineHeight(fontSize), textAlign, textBaseline } = this;
+
+        const lines = this.lines.length;
+        const lineOriginY =
+            textBaseline === 'alphabetic' ? 0 : -TextUtils.getVerticalModifier(textBaseline) * lineHeight * (lines - 1);
+
+        ctx.textAlign = textAlign;
+        ctx.textBaseline = textBaseline;
 
         if (fill) {
             this.applyFillAndAlpha(ctx);
@@ -128,7 +198,7 @@ export class Text<D = any> extends Shape<D> {
                 ctx.shadowBlur = fillShadow.blur * pixelRatio;
             }
 
-            this.renderLines((line, x, y) => ctx.fillText(line, x, y));
+            this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.fillText(line, x, y));
 
             ctx.globalAlpha = globalAlpha;
         }
@@ -155,18 +225,27 @@ export class Text<D = any> extends Shape<D> {
                 ctx.lineJoin = lineJoin;
             }
 
-            this.renderLines((line, x, y) => ctx.strokeText(line, x, y));
+            this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.strokeText(line, x, y));
 
             ctx.globalAlpha = globalAlpha;
+        }
+
+        if (Text.debug.check()) {
+            const bbox = this.getBBox(true);
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
         }
 
         super.render(renderCtx);
     }
 
-    private renderLines(renderCallback: (line: string, x: number, y: number) => void): void {
+    private renderLines(
+        offsetY: number,
+        lineHeight: number,
+        renderCallback: (line: string, x: number, y: number) => void
+    ): void {
         const { lines, x, y } = this;
-        const lineHeight = this.lineHeight ?? TextUtils.getLineHeight(this.fontSize!);
-        let offsetY = (lineHeight - lineHeight * lines.length) * TextUtils.getVerticalModifier(this.textBaseline);
 
         for (const line of lines) {
             renderCallback(line, x, y + offsetY);
@@ -176,7 +255,7 @@ export class Text<D = any> extends Shape<D> {
 
     setFont(props: TextSizeProperties) {
         this.fontFamily = props.fontFamily;
-        this.fontSize = props.fontSize;
+        this.fontSize = props.fontSize ?? 10;
         this.fontStyle = props.fontStyle;
         this.fontWeight = props.fontWeight;
     }
