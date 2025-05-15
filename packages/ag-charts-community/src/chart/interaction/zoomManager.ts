@@ -263,6 +263,10 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     public setAutoScaleYAxis(enabled: boolean, padding: number) {
         this.autoScaleYAxis.enabled = enabled;
         this.autoScaleYAxis.padding = padding;
+
+        if (enabled) {
+            this.autoScaleYZoom('toggle-auto-scale');
+        }
     }
 
     public setNavigatorEnabled(enabled = true) {
