@@ -11,7 +11,7 @@ export function createTask(parentProject: string, srcRelativeInputPath: string) 
             ],
             inputs: [
                 '{projectRoot}/**',
-                '{workspaceRoot}/plugins/ag-charts-generate-chart-thumbnail/dist/**/*',
+                '{workspaceRoot}/plugins/ag-charts-generate-chart-thumbnail/{src,dist}/**/*',
                 '{workspaceRoot}/packages/ag-charts-core/dist/package/*.cjs.js',
                 '{workspaceRoot}/packages/ag-charts-community/dist/package/*.cjs.js',
                 '{workspaceRoot}/packages/ag-charts-enterprise/dist/package/*.cjs.js',
