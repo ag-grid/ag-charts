@@ -161,11 +161,15 @@ export abstract class RadiusAxis<
         const sideFlag = this.label.getSideFlag();
         const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
 
+        const { range, reverse, defaultTickMinSpacing } = this;
         const tickGenerationResult = this.tickGenerator.generateTicks({
             domain,
+            range,
+            reverse,
             niceMode,
             visibleRange,
             primaryTickCount: undefined,
+            defaultTickMinSpacing,
             parallelFlipRotation,
             regularFlipRotation,
             labelX,

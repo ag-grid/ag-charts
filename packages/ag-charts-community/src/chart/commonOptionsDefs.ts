@@ -325,6 +325,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         scale: {
             label: {
                 ...fontOptionsDef,
+                minSpacing: positiveNumber,
                 format: numberFormatValidator,
                 formatter: callback,
             },

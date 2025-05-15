@@ -122,18 +122,6 @@ class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSuppor
         private readonly ctx: _ModuleSupport.ModuleContext
     ) {}
 
-    get defaultTickMinSpacing(): number {
-        return 0;
-    }
-
-    get range(): [number, number] {
-        return this.gauge.range;
-    }
-
-    get reverse(): boolean {
-        return false;
-    }
-
     get scale() {
         return this.gauge.scale;
     }
@@ -604,7 +592,10 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
         const { ticks: tickData } = this.tickGenerator.generateTicks({
             domain: scale.domain,
+            range: this.range,
+            reverse: false,
             primaryTickCount: undefined,
+            defaultTickMinSpacing: 0,
             visibleRange: [0, 1],
             niceMode: NiceMode.Off,
             labelX: 0,

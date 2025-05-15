@@ -131,7 +131,6 @@ export * from './chart/axis/categoryAxis';
 export * from './chart/axis/groupedCategoryAxis';
 export * from './chart/axis/cartesianAxis';
 export { TimeAxisParentLevel } from './chart/axis/timeAxis';
-export { AxisTicks } from './chart/axis/axisTicks';
 export * from './chart/chartAxis';
 export * from './chart/crossline/crossLine';
 export * from './chart/crossline/crossLineLabelPosition';
@@ -159,6 +158,7 @@ export { isGradientFill, isPatternFill, isImageFill, isGradientOrPatternFill } f
 export * from './util/bboxinterface';
 export { Padding } from './util/padding';
 export { lineDistanceSquared } from './util/distance';
+export { createIdsGenerator } from './util/tempUtils';
 export * from './scale/timeScale';
 export * from './scale/logScale';
 export * from './scale/bandScale';
