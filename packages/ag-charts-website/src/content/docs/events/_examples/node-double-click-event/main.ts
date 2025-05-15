@@ -19,7 +19,7 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'units',
             listeners: {
-                nodeDoubleClick: (event: any) => {
+                seriesNodeDoubleClick: (event: any) => {
                     var datum = event.datum;
                     console.log(
                         'Cars sold in ' +
