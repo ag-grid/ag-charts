@@ -285,7 +285,7 @@ export class MapMarkerSeries
         x: number,
         y: number,
         size: number,
-        font: string
+        measurer: _ModuleSupport.CachedTextMeasurer
     ): MapMarkerNodeLabelDatum | undefined {
         if (labelValue == null) return;
 
@@ -324,7 +324,7 @@ export class MapMarkerSeries
         });
         if (labelText == null) return;
 
-        const { width, height } = CachedTextMeasurerPool.measureText(String(labelText), { font });
+        const { width, height } = measurer.measureText(String(labelText));
         const anchor = Marker.anchor(shape);
 
         return {
@@ -360,7 +360,7 @@ export class MapMarkerSeries
 
         const markerMaxSize = properties.maxSize ?? properties.size;
         sizeScale.range = [Math.min(properties.size, markerMaxSize), markerMaxSize];
-        const font = label.getFont();
+        const measurer = CachedTextMeasurerPool.getMeasurer({ font: label });
 
         let projectedGeometries: Map<string, _ModuleSupport.Geometry> | undefined;
         if (idValues != null && featureValues != null) {
@@ -398,7 +398,7 @@ export class MapMarkerSeries
             if (lonValue != null && latValue != null) {
                 const [x, y] = scale.convert([lonValue, latValue]);
 
-                const labelDatum = this.getLabelDatum(datum, labelValue, x, y, size, font);
+                const labelDatum = this.getLabelDatum(datum, labelValue, x, y, size, measurer);
                 if (labelDatum) {
                     labelData.push(labelDatum);
                 }
@@ -420,7 +420,7 @@ export class MapMarkerSeries
                 });
             } else if (projectedGeometry != null) {
                 markerPositions(projectedGeometry, 1).forEach(([x, y], index) => {
-                    const labelDatum = this.getLabelDatum(datum, labelValue, x, y, size, font);
+                    const labelDatum = this.getLabelDatum(datum, labelValue, x, y, size, measurer);
                     if (labelDatum) {
                         labelData.push(labelDatum);
                     }

@@ -428,7 +428,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
                 tempText.setProperties(datum);
 
-                const box = tempText.getBBox();
+                const box = tempText.getBBox(false);
                 if (box) {
                     boxes.push(box);
                 }
@@ -453,6 +453,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         }
 
         const bbox = BBox.merge(boxes);
+        // if (this.position === 'bottom') {
+        //     console.log(bbox.height);
+        // }
         return { bbox, spacing };
     }
 

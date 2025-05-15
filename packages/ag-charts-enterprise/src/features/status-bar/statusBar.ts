@@ -337,22 +337,22 @@ export class StatusBar
 
             const maxValueWidth = Math.max(
                 CachedTextMeasurerPool.measureText(formatter.format(domain[0]), {
-                    font: this.positive.getFont(),
+                    font: this.positive,
                     textBaseline: textVAlign,
                     textAlign: 'left',
                 }).width,
                 CachedTextMeasurerPool.measureText(formatter.format(domain[1]), {
-                    font: this.positive.getFont(),
+                    font: this.positive,
                     textBaseline: textVAlign,
                     textAlign: 'left',
                 }).width,
                 CachedTextMeasurerPool.measureText(formatter.format(domain[0]), {
-                    font: this.negative.getFont(),
+                    font: this.negative,
                     textBaseline: textVAlign,
                     textAlign: 'left',
                 }).width,
                 CachedTextMeasurerPool.measureText(formatter.format(domain[1]), {
-                    font: this.negative.getFont(),
+                    font: this.negative,
                     textBaseline: textVAlign,
                     textAlign: 'left',
                 }).width
@@ -362,7 +362,7 @@ export class StatusBar
             value.visible = true;
 
             const titleMetrics = CachedTextMeasurerPool.measureText(label, {
-                font: this.title.getFont(),
+                font: this.title,
                 textBaseline: textVAlign,
                 textAlign: 'left',
             });
