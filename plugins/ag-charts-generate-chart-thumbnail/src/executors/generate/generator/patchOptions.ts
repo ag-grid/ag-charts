@@ -11,6 +11,7 @@ export function patchOptions(
     delete options.gradientLegend;
 
     options.legend = { enabled: false };
+    options.animation = { enabled: false };
 
     if (options.series?.some((s) => ['treemap', 'heatmap', 'sunburst'].includes(s.type))) {
         options.gradientLegend = { enabled: false };

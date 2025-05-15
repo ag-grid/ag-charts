@@ -122,10 +122,6 @@ function applySubstitutions(content?: GeneratedContents, substitutions?: Record<
                     throw new Error('Substitution limit of 1000 reached, is this a bug?');
                 }
             }
-            if (count > 0) {
-                // eslint-disable-next-line no-console
-                console.info(`[${file}] Applied ${count} substitutions for ${key} => ${value}`);
-            }
         });
     });
 

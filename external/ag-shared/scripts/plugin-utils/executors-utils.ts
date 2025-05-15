@@ -123,6 +123,7 @@ export function batchWorkerExecutor<ExecutorOptions>(workerModule: string, extra
             runtime: 'child_process',
             filename: workerModule,
             maxThreads: threadCount,
+            env: process.env as Record<string, string>,
         });
         process.on('exit', () => {
             pool.cancelPendingTasks();
