@@ -31,7 +31,7 @@ import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
-import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
+import { CachedTextMeasurer, CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
@@ -389,7 +389,7 @@ export class Legend extends BaseProperties {
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
 
-        const font = TextUtils.toFontString(label);
+        const measurer = CachedTextMeasurerPool.getMeasurer({ font: label });
 
         const itemMaxWidthPercentage = 0.8;
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
@@ -406,7 +406,7 @@ export class Legend extends BaseProperties {
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
-            markerLabel.text = this.truncate(text, maxLength, maxItemWidth, paddedSymbolWidth, font, id);
+            markerLabel.text = this.truncate(text, maxLength, maxItemWidth, paddedSymbolWidth, measurer, id);
 
             bboxes.push(markerLabel.getTextMeasureBBox());
         });
@@ -549,7 +549,7 @@ export class Legend extends BaseProperties {
         maxCharLength: number,
         maxItemWidth: number,
         paddedMarkerWidth: number,
-        font: string,
+        measurer: CachedTextMeasurer,
         id: string
     ): string {
         let addEllipsis = false;
@@ -558,7 +558,6 @@ export class Legend extends BaseProperties {
             addEllipsis = true;
         }
 
-        const measurer = CachedTextMeasurerPool.getMeasurer({ font });
         const result = TextWrapper.truncateLine(text, measurer, maxItemWidth - paddedMarkerWidth, addEllipsis);
 
         if (result.endsWith(TextUtils.EllipsisChar)) {
@@ -918,7 +917,7 @@ export class Legend extends BaseProperties {
         }
 
         let newEnabled = enabled;
-        const clickEvent = makeLegendItemEvent('click', itemId, series.id, event);
+        const clickEvent = makeLegendItemEvent('click', datum, event);
         legendItemClick?.(clickEvent.apiEvent);
 
         if (clickEvent.defaultPrevented) return true;
@@ -980,7 +979,7 @@ export class Legend extends BaseProperties {
             return false;
         }
 
-        const doubleClickEvent = makeLegendItemEvent('dblclick', itemId, series.id, event);
+        const doubleClickEvent = makeLegendItemEvent('dblclick', datum, event);
         legendItemDoubleClick?.(doubleClickEvent.apiEvent);
 
         if (doubleClickEvent.defaultPrevented) return true;

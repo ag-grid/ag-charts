@@ -97,7 +97,7 @@ describe('Chart', () => {
                   }
                 : { enabled: false };
 
-            const listeners = params.onNodeClick ? { nodeClick: params.onNodeClick } : undefined;
+            const listeners = params.onNodeClick ? { seriesNodeClick: params.onNodeClick } : undefined;
             const nodeClickRangeParams = params.nodeClickRange ? { nodeClickRange: params.nodeClickRange } : {};
             const options: AgCartesianChartOptions | AgPolarChartOptions = {
                 container: document.body,
@@ -715,8 +715,8 @@ describe('Chart', () => {
                         xKey: 'xValue',
                         yKey: 'yValue',
                         listeners: {
-                            nodeClick,
-                            nodeDoubleClick,
+                            seriesNodeClick: nodeClick,
+                            seriesNodeDoubleClick: nodeDoubleClick,
                         },
                     },
                 ],
@@ -736,7 +736,7 @@ describe('Chart', () => {
             expect(nodeDoubleClick).toHaveBeenCalledTimes(0);
             expect(seriesNodeDoubleClick).toHaveBeenCalledTimes(0);
 
-            expect(nodeClick).toHaveBeenCalledWith(expect.objectContaining({ type: 'nodeClick' }));
+            expect(nodeClick).toHaveBeenCalledWith(expect.objectContaining({ type: 'seriesNodeClick' }));
             expect(seriesNodeClick).toHaveBeenCalledWith(expect.objectContaining({ type: 'seriesNodeClick' }));
 
             await doubleClickAction(200, 200)(agChartInstance);
@@ -744,7 +744,7 @@ describe('Chart', () => {
             expect(nodeDoubleClick).toHaveBeenCalledTimes(1);
             expect(seriesNodeDoubleClick).toHaveBeenCalledTimes(1);
 
-            expect(nodeDoubleClick).toHaveBeenCalledWith(expect.objectContaining({ type: 'nodeDoubleClick' }));
+            expect(nodeDoubleClick).toHaveBeenCalledWith(expect.objectContaining({ type: 'seriesNodeDoubleClick' }));
             expect(seriesNodeDoubleClick).toHaveBeenCalledWith(
                 expect.objectContaining({ type: 'seriesNodeDoubleClick' })
             );

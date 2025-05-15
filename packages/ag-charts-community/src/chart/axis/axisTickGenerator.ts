@@ -15,7 +15,7 @@ import { compareDates } from '../../util/date';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { type AxisPrimaryTickCount, calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { createIdsGenerator } from '../../util/tempUtils';
-import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
+import { CachedTextMeasurerPool } from '../../util/textMeasurer';
 import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
 import {
     intervalCeil,
@@ -201,7 +201,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             parallelFlipFlag,
             primaryLabel == null
         );
-        const font = TextUtils.toFontString({ fontFamily, fontSize, fontStyle, fontWeight });
+        const font = { fontFamily, fontSize, fontStyle, fontWeight };
         const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
 
         const textProps: TextSizeProperties = {

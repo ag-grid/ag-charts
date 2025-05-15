@@ -63,7 +63,7 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
         const {
             window,
             window: { document },
-        } = new JSDOM(`<html><head><style></style></head><body></body></html>`);
+        } = new JSDOM(`<html><head><style></style></head><body></body></html>`, { url: 'http://localhost/' });
         window.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 
         // Note - we'll need one instance per DPI setting
@@ -109,7 +109,6 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
 
         const chartProxy = AgCharts[api]({
             ...options,
-            animation: { enabled: false },
             document,
             window,
             width,

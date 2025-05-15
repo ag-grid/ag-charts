@@ -5,7 +5,7 @@ import { getIsDev } from '../../utils/env';
 import { getExampleRootFileUrl } from '../../utils/pages';
 import type { InternalFramework } from './types';
 
-type GeneratedExampleParams = ExampleParams & (GalleryExampleParams | DocsExampleParams);
+export type GeneratedExampleParams = ExampleParams & (GalleryExampleParams | DocsExampleParams);
 
 type ExampleParams = {
     exampleName: string;
@@ -121,10 +121,6 @@ function applySubstitutions(content?: GeneratedContents, substitutions?: Record<
                 if (count > 1000) {
                     throw new Error('Substitution limit of 1000 reached, is this a bug?');
                 }
-            }
-            if (count > 0) {
-                // eslint-disable-next-line no-console
-                console.info(`[${file}] Applied ${count} substitutions for ${key} => ${value}`);
             }
         });
     });

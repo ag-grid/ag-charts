@@ -38,10 +38,10 @@ const options: AgCartesianChartOptions = {
             xKey: 'quarter',
             yKey: 'petrol',
             listeners: {
-                nodeClick: () => {
+                seriesNodeClick: () => {
                     checkAngularZone('nodeClick');
                 },
-                nodeDoubleClick: () => {
+                seriesNodeDoubleClick: () => {
                     checkAngularZone('nodeDoubleClick');
                 },
             },

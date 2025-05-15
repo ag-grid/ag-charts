@@ -8,6 +8,7 @@ const CUSTOM_ORDER: AgContextMenuItemLiteral[] = [
     'separator',
     'zoom-to-cursor',
     'pan-to-cursor',
+    'reset-zoom',
     'separator',
     'download',
 ];

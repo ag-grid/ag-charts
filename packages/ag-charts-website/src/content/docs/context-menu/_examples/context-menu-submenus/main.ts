@@ -12,7 +12,7 @@ const options: AgCartesianChartOptions = {
             {
                 showOn: 'series-area',
                 label: 'Zoom Controls',
-                items: ['zoom-to-cursor', 'pan-to-cursor'],
+                items: ['zoom-to-cursor', 'pan-to-cursor', 'reset-zoom'],
             },
             {
                 showOn: 'legend-item',

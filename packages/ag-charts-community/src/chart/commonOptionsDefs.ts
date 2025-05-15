@@ -118,6 +118,7 @@ const contextMenuItemLiterals: AgContextMenuItemLiteral[] = [
     'download',
     'zoom-to-cursor',
     'pan-to-cursor',
+    'reset-zoom',
     'toggle-series-visibility',
     'toggle-other-series',
     'separator',
@@ -509,8 +510,8 @@ export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeable
     showInLegend: boolean,
     nodeClickRange: rangeValidator,
     listeners: {
-        nodeClick: callback,
-        nodeDoubleClick: callback,
+        seriesNodeClick: callback,
+        seriesNodeDoubleClick: callback,
     },
     highlightStyle: {
         item: { ...fillOptionsDef, ...strokeOptionsDef },

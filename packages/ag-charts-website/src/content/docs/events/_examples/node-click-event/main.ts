@@ -19,8 +19,8 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'units',
             listeners: {
-                nodeClick: (event: any) => console.log(makeMessage('[click]', event, event.datum)),
-                nodeDoubleClick: (event: any) => console.log(makeMessage('[double click]', event, event.datum)),
+                seriesNodeClick: (event: any) => console.log(makeMessage('[click]', event, event.datum)),
+                seriesNodeDoubleClick: (event: any) => console.log(makeMessage('[double click]', event, event.datum)),
             },
         },
     ],

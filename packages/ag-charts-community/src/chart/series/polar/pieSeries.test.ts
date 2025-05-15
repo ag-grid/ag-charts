@@ -475,10 +475,10 @@ describe('PieSeries', () => {
                     angleKey: 'amount',
                     legendItemKey: 'asset',
                     listeners: {
-                        nodeClick: (event) => {
+                        seriesNodeClick: (event) => {
                             clicks.push(event.datum.asset);
                         },
-                        nodeDoubleClick: (event) => {
+                        seriesNodeDoubleClick: (event) => {
                             doubleClicks.push(event.datum.asset);
                         },
                     },

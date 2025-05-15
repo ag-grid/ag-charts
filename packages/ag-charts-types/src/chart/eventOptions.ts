@@ -105,7 +105,7 @@ export interface AgBaseChartListeners<TDatum> {
 
 export interface AgSeriesListeners<TDatum> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in the series is clicked. */
-    nodeClick?: Listener<AgNodeClickEvent<'nodeClick', TDatum>>;
+    seriesNodeClick?: Listener<AgNodeClickEvent<'seriesNodeClick', TDatum>>;
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in the series is double-clicked. */
-    nodeDoubleClick?: Listener<AgNodeClickEvent<'nodeDoubleClick', TDatum>>;
+    seriesNodeDoubleClick?: Listener<AgNodeClickEvent<'seriesNodeDoubleClick', TDatum>>;
 }

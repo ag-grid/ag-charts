@@ -63,7 +63,7 @@ export const ZoomModule: _ModuleSupport.Module = {
             panKey: 'alt',
             scrollingStep: 0.1,
             autoScaling: {
-                enabled: false,
+                enabled: { $eq: [{ $path: '../axes' }, 'x'] },
                 padding: 0.05,
             },
         },

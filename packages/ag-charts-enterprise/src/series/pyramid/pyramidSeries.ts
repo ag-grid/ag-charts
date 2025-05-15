@@ -199,7 +199,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const xValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
         const yValues = dataModel.resolveColumnById<number>(this, `yValue`, processedData);
 
-        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font: stageLabel.getFont() });
+        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font: stageLabel });
 
         let textAlign: CanvasTextAlign;
         let textBaseline: CanvasTextBaseline;

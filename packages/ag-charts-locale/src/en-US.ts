@@ -225,6 +225,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     contextMenuZoomToCursor: 'Zoom to here',
     // Text for the context menu's pan to point button
     contextMenuPanToCursor: 'Pan to here',
+    // Text for the context menu's reset zoom button
+    contextMenuResetZoom: 'Reset zoom',
     // Text for the annotation dialog's header channel tab label
     dialogHeaderChannel: 'Channel',
     // Text for the annotation dialog's header line tab label

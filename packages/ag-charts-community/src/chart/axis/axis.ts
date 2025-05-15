@@ -57,7 +57,7 @@ export interface LabelNodeDatum {
     tickId: string;
     fill?: CssColor;
     fontFamily?: FontFamily;
-    fontSize?: FontSize;
+    fontSize: FontSize;
     fontStyle?: FontStyle;
     fontWeight?: FontWeight;
     rotation: number;

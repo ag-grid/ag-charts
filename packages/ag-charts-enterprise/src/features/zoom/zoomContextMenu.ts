@@ -30,14 +30,17 @@ export class ZoomContextMenu {
         if (enabled) {
             contextMenuRegistry.setVisible('zoom-to-cursor', true);
             contextMenuRegistry.setVisible('pan-to-cursor', true);
+            contextMenuRegistry.setVisible('reset-zoom', true);
         } else {
             contextMenuRegistry.setVisible('zoom-to-cursor', false);
             contextMenuRegistry.setVisible('pan-to-cursor', false);
+            contextMenuRegistry.setVisible('reset-zoom', false);
             return;
         }
 
         contextMenuRegistry.builtins.items['zoom-to-cursor'].action = this.onZoomToHere.bind(this);
         contextMenuRegistry.builtins.items['pan-to-cursor'].action = this.onPanToHere.bind(this);
+        contextMenuRegistry.builtins.items['reset-zoom'].action = this.onResetZoom.bind(this);
 
         const shouldEnableZoomToHere = (event: _ModuleSupport.ContextMenuEvent) => {
             const rect = this.getRect();
@@ -57,6 +60,7 @@ export class ZoomContextMenu {
             removeListener();
             contextMenuRegistry.setVisible('zoom-to-cursor', false);
             contextMenuRegistry.setVisible('pan-to-cursor', false);
+            contextMenuRegistry.setVisible('reset-zoom', false);
         };
     }
 
@@ -103,6 +107,10 @@ export class ZoomContextMenu {
         newZoom = translateZoom(newZoom, zoom.x.min - origin.x + scaledOriginX, zoom.y.min - origin.y + scaledOriginY);
 
         this.updateZoom(constrainZoom(newZoom));
+    }
+
+    private onResetZoom(_actionEvent: AgSeriesAreaContextMenuActionEvent) {
+        this.zoomManager.resetZoom('zoom');
     }
 
     private iterateFindNextZoomAtPoint(origin: _ModuleSupport.Vec2) {

@@ -25,7 +25,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'month',
             yKey: 'units',
             listeners: {
-                nodeClick: (event: any) => {
+                seriesNodeClick: (event: any) => {
                     toggleDatum(event, event.datum);
                 },
             },

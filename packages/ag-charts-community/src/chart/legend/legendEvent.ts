@@ -1,5 +1,7 @@
 import type { AgChartLegendClickEvent, AgChartLegendDoubleClickEvent } from 'ag-charts-types';
 
+import type { CategoryLegendDatum } from './legendDatum';
+
 type LegendEventState<T extends AgChartLegendClickEvent | AgChartLegendDoubleClickEvent> = {
     apiEvent: T;
     defaultPrevented: boolean;
@@ -7,22 +9,19 @@ type LegendEventState<T extends AgChartLegendClickEvent | AgChartLegendDoubleCli
 
 export function makeLegendItemEvent<T extends 'click'>(
     type: T,
-    itemId: string,
-    seriesId: string,
+    datum: CategoryLegendDatum,
     event: Event
 ): LegendEventState<AgChartLegendClickEvent>;
 
 export function makeLegendItemEvent<T extends 'dblclick'>(
     type: T,
-    itemId: string,
-    seriesId: string,
+    datum: CategoryLegendDatum,
     event: Event
 ): LegendEventState<AgChartLegendDoubleClickEvent>;
 
 export function makeLegendItemEvent(
     type: 'click' | 'dblclick',
-    itemId: string,
-    seriesId: string,
+    { itemId, seriesId, label }: CategoryLegendDatum,
     event: Event
 ): LegendEventState<AgChartLegendClickEvent | AgChartLegendDoubleClickEvent> {
     const result: LegendEventState<AgChartLegendClickEvent | AgChartLegendDoubleClickEvent> = {
@@ -31,6 +30,7 @@ export function makeLegendItemEvent(
             type,
             itemId,
             seriesId,
+            label,
             event,
             preventDefault: () => (result.defaultPrevented = true),
         },
