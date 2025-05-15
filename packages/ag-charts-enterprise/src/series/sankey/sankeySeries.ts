@@ -264,7 +264,7 @@ export class SankeySeries extends FlowProportionSeries<
         const nodeData: SankeyDatum[] = [];
         const labelData: SankeyNodeLabelDatum[] = [];
         const { fontSize } = this.properties.label;
-        const canvasFont = this.properties.label.getFont();
+        const measurer = CachedTextMeasurerPool.getMeasurer({ font: this.properties.label });
         columns.forEach((column, index) => {
             const leading = index === 0;
             const trailing = index === columns.length - 1;
@@ -314,11 +314,7 @@ export class SankeySeries extends FlowProportionSeries<
                 }
                 if (text === '') return;
 
-                const { height } = CachedTextMeasurerPool.measureText(text, {
-                    font: canvasFont,
-                    textAlign: 'left',
-                    textBaseline: 'middle',
-                });
+                const { height } = measurer.measureText(text);
                 const y0 = y - height / 2;
                 const y1 = y + height / 2;
 

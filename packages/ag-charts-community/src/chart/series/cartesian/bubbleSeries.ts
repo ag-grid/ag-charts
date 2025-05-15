@@ -225,8 +225,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
         sizeScale.range = [marker.size, marker.maxSize];
 
-        const font = label.getFont();
-        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
+        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font: label });
         processedData.dataSources.get(this.id)?.forEach((datum, datumIndex) => {
             const xDatum = xDataValues[datumIndex];
             const yDatum = yDataValues[datumIndex];
