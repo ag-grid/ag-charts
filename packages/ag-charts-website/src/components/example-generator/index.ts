@@ -5,7 +5,7 @@ import { getIsDev } from '../../utils/env';
 import { getExampleRootFileUrl } from '../../utils/pages';
 import type { InternalFramework } from './types';
 
-type GeneratedExampleParams = ExampleParams & (GalleryExampleParams | DocsExampleParams);
+export type GeneratedExampleParams = ExampleParams & (GalleryExampleParams | DocsExampleParams);
 
 type ExampleParams = {
     exampleName: string;
