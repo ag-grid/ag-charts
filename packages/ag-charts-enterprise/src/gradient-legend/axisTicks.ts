@@ -93,8 +93,25 @@ export class AxisTicks {
         return boxes.length > 0 ? BBox.merge(boxes).translate(translationX, translationY) : undefined;
     }
 
-    formatTick(tick: number, fractionDigits: number): string {
-        return formatValue(tick, fractionDigits);
+    formatTick(value: number, fractionDigits: number): string {
+        const {
+            label: { formatter },
+        } = this;
+
+        let result: string | undefined;
+        if (formatter) {
+            result = formatter({
+                value,
+                index: NaN,
+                domain: this.scale.domain,
+                fractionDigits,
+                unit: undefined,
+                step: undefined,
+                boundSeries: [],
+            });
+        }
+        result ??= formatValue(value, fractionDigits);
+        return result;
     }
 
     inRange(x: number, tolerance = 0.001): boolean {
