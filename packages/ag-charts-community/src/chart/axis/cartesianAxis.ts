@@ -1,5 +1,5 @@
 import { arraysEqual, countLines, diffArrays, isPlainObject } from 'ag-charts-core';
-import type { AgCartesianAxisPosition, TimeIntervalUnit } from 'ag-charts-types';
+import type { AgCartesianAxisPosition, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
 import type { ModuleContext } from '../../module/moduleContext';
@@ -19,7 +19,6 @@ import { Property } from '../../util/properties';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import { StateMachine } from '../../util/stateMachine';
 import { TextUtils } from '../../util/textMeasurer';
-import type { TimeInterval } from '../../util/time';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import { ChartAxisDirection } from '../chartAxisDirection';

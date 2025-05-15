@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, AgTimeAxisThemeOptions, time } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgTimeAxisThemeOptions } from 'ag-charts-community';
 
 const options: AgCartesianChartOptions & { axes: AgTimeAxisThemeOptions[] } = {
     container: document.getElementById('myChart'),
@@ -17,7 +17,7 @@ const options: AgCartesianChartOptions & { axes: AgTimeAxisThemeOptions[] } = {
             type: 'time',
             nice: false,
             position: 'bottom',
-            interval: { step: time.month },
+            interval: { step: 'month' },
             label: {
                 format: '%b %Y',
             },
@@ -65,11 +65,11 @@ const options: AgCartesianChartOptions & { axes: AgTimeAxisThemeOptions[] } = {
 const chart = AgCharts.create(options);
 
 function setOneMonthInterval() {
-    options.axes![0].interval!.step = time.month;
+    options.axes![0].interval!.step = 'month';
     chart.update(options);
 }
 
 function setTwoMonthInterval() {
-    options.axes![0].interval!.step = time.month.every(2);
+    options.axes![0].interval!.step = { unit: 'month', step: 2 };
     chart.update(options);
 }

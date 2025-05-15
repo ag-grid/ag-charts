@@ -1,8 +1,7 @@
 import { isPlainObject } from 'ag-charts-core';
-import type { TimeIntervalUnit } from 'ag-charts-types';
+import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
-import type { TimeInterval } from '../../util/time';
-import { intervalUnit } from '../../util/timeInterop';
+import { intervalUnit } from '../../util/time';
 
 const hardCodedTimeFormats: Record<TimeIntervalUnit, string> = {
     millisecond: '%Y %b %e %H:%M:%S.%L',

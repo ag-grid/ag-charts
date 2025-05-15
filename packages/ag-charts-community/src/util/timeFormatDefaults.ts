@@ -1,6 +1,6 @@
 import { findMinMax } from './number';
-import { day, hour, minute, month, second, sunday as week, year } from './time';
-import { durationDay, durationHour, durationMinute, durationSecond, durationWeek, durationYear } from './time/duration';
+import { intervalFloor } from './time';
+import { durationDay, durationHour, durationMinute, durationSecond, durationWeek, durationYear } from './time';
 import { buildFormatter } from './timeFormat';
 
 enum DefaultTimeFormats {
@@ -62,20 +62,20 @@ function getIntervalLowestGranularityFormat(value: number, ticks: any[]): Defaul
 }
 
 function getLowestGranularityFormat(value: Date | number): DefaultTimeFormats {
-    if (second.floor(value) < value) {
+    if (intervalFloor('second', value) < value) {
         return DefaultTimeFormats.MILLISECOND;
-    } else if (minute.floor(value) < value) {
+    } else if (intervalFloor('minute', value) < value) {
         return DefaultTimeFormats.SECOND;
-    } else if (hour.floor(value) < value) {
+    } else if (intervalFloor('hour', value) < value) {
         return DefaultTimeFormats.MINUTE;
-    } else if (day.floor(value) < value) {
+    } else if (intervalFloor('day', value) < value) {
         return DefaultTimeFormats.HOUR;
-    } else if (month.floor(value) < value) {
-        if (week.floor(value) < value) {
+    } else if (intervalFloor('month', value) < value) {
+        if (intervalFloor({ unit: 'day', step: 7 }, value) < value) {
             return DefaultTimeFormats.WEEK_DAY;
         }
         return DefaultTimeFormats.SHORT_MONTH;
-    } else if (year.floor(value) < value) {
+    } else if (intervalFloor('year', value) < value) {
         return DefaultTimeFormats.MONTH;
     }
 

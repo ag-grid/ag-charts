@@ -7,6 +7,7 @@ import type {
     FontSize,
     FontStyle,
     FontWeight,
+    TimeInterval,
     TimeIntervalUnit,
 } from 'ag-charts-types';
 
@@ -33,8 +34,7 @@ import type { Padding } from '../../util/padding';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
-import type { TimeInterval } from '../../util/time';
-import { intervalStep, intervalUnit } from '../../util/timeInterop';
+import { intervalStep, intervalUnit } from '../../util/time';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { AxisGroups, ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';

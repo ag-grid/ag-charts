@@ -1,5 +1,5 @@
 import { countFractionDigits, dropFirstWhile, dropLastWhile } from 'ag-charts-core';
-import type { TimeIntervalUnit } from 'ag-charts-types';
+import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -17,8 +17,16 @@ import { type AxisPrimaryTickCount, calculateNiceSecondaryAxis } from '../../uti
 import { createIdsGenerator } from '../../util/tempUtils';
 import { CachedTextMeasurerPool } from '../../util/textMeasurer';
 import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
-import { TimeInterval, sunday } from '../../util/time';
-import { intervalHierarchy, intervalInstance, intervalMilliseconds } from '../../util/timeInterop';
+import {
+    intervalCeil,
+    intervalExtent,
+    intervalFloor,
+    intervalHierarchy,
+    intervalMilliseconds,
+    intervalNext,
+    intervalPrevious,
+    intervalRange,
+} from '../../util/time';
 import type { ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
 import {
     calculateLabelRotation,
@@ -108,6 +116,8 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
         formatter?: (datum: any) => string
     ): string;
 }
+
+const sunday = new Date(1970, 0, 4);
 
 function ticksSpacing(ticks: TickDatum[]) {
     if (ticks.length < 2) return Infinity;
@@ -489,12 +499,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const dv1 = Math.max(scale.domain[0].valueOf(), scale.domain[scale.domain.length - 1].valueOf());
 
         // Generate at least one tick outside the range on each side
-        let [dp0, dp1] = TimeInterval.extent(new Date(dv0), new Date(dv1), visibleRange);
-        dp0 = parentInterval.floor(dp0);
-        if (dp0.valueOf() >= dv0) dp0 = parentInterval.previous(dp0);
-        dp1 = parentInterval.ceil(dp1);
-        if (dp1.valueOf() <= dv1) dp1 = parentInterval.next(dp1);
-        const primaryTicks = parentInterval.range(dp0, dp1);
+        let [dp0, dp1] = intervalExtent(new Date(dv0), new Date(dv1), visibleRange);
+        dp0 = intervalFloor(parentInterval, dp0);
+        if (dp0.valueOf() >= dv0) dp0 = intervalPrevious(parentInterval, dp0);
+        dp1 = intervalCeil(parentInterval, dp1);
+        if (dp1.valueOf() <= dv1) dp1 = intervalNext(parentInterval, dp1);
+        const primaryTicks = intervalRange(parentInterval, dp0, dp1);
 
         const milliseconds = intervalMilliseconds(timeInterval);
         const interpolate =
@@ -590,9 +600,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const d1 = domain[1].valueOf();
 
         if (typeof interval !== 'number') {
-            return intervalInstance(interval)
-                .every(1, { snapTo: domain[0] })
-                .range(domain[0], domain[1], { visibleRange, extend });
+            const epoch = domain[0];
+            const alignedInterval: TimeInterval =
+                typeof interval === 'string' ? { unit: interval, epoch } : { ...interval, epoch };
+            return intervalRange(alignedInterval, domain[0], domain[1], { visibleRange, extend });
         }
 
         const ticks: Date[] = [];

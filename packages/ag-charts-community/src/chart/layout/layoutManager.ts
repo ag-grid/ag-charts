@@ -1,9 +1,9 @@
 import { EventEmitter, type EventListener } from 'ag-charts-core';
+import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import type { LayoutContext as ILayoutContext } from '../../module/baseModule';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
-import type { TimeInterval } from '../../util/time';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 
 export interface AxisLayout {
@@ -19,7 +19,7 @@ export interface AxisLayout {
     };
     direction: ChartAxisDirection;
     domain: any[];
-    scale: Scale<any, any, number | TimeInterval>;
+    scale: Scale<any, any, number | TimeInterval | TimeIntervalUnit>;
 }
 
 export type LayoutCompleteEvent = {

@@ -1,18 +1,21 @@
 import { expect, test } from '@jest/globals';
 
-import { utcDay } from './utcDay';
+import { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+
+import { intervalCeil, intervalFloor, intervalRange } from './index';
 
 test('UTC day', () => {
-    const interval = utcDay;
+    const interval: TimeInterval | TimeIntervalUnit = { unit: 'day', utc: true };
     const date = new Date(Date.UTC(2023, 0, 18, 8, 31, 5, 100));
 
-    const floor = interval.floor(date);
+    const floor = intervalFloor(interval, date);
     expect(floor).toEqual(new Date(Date.UTC(2023, 0, 18, 0, 0, 0, 0)));
 
-    const ceil = interval.ceil(date);
+    const ceil = intervalCeil(interval, date);
     expect(ceil).toEqual(new Date(Date.UTC(2023, 0, 19, 0, 0, 0, 0)));
 
-    const range = interval.range(
+    const range = intervalRange(
+        interval,
         new Date(Date.UTC(2023, 0, 18, 8, 31, 5, 100)),
         new Date(Date.UTC(2023, 0, 21, 8, 31, 5, 100))
     );
@@ -24,16 +27,17 @@ test('UTC day', () => {
 });
 
 test('UTC day.every', () => {
-    const interval = utcDay.every(2);
+    const interval: TimeInterval | TimeIntervalUnit = { unit: 'day', step: 2, utc: true };
     const date = new Date(Date.UTC(2023, 0, 17, 8, 31, 5, 100));
 
-    const floor = interval.floor(date);
+    const floor = intervalFloor(interval, date);
     expect(floor).toEqual(new Date(Date.UTC(2023, 0, 17, 0, 0, 0, 0)));
 
-    const ceil = interval.ceil(date);
+    const ceil = intervalCeil(interval, date);
     expect(ceil).toEqual(new Date(Date.UTC(2023, 0, 19, 0, 0, 0, 0)));
 
-    const range = interval.range(
+    const range = intervalRange(
+        interval,
         new Date(Date.UTC(2023, 0, 17, 8, 31, 5, 100)),
         new Date(Date.UTC(2023, 0, 23, 21, 31, 5, 100))
     );
@@ -44,12 +48,14 @@ test('UTC day.every', () => {
     ]);
 });
 
-test('UTC day.every with snapTo: null', () => {
-    const interval = utcDay.every(2, { snapTo: null! });
+test('UTC day.every with defaultAlignment: interval', () => {
+    const interval: TimeInterval | TimeIntervalUnit = { unit: 'day', step: 2, utc: true };
 
-    const range = interval.range(
+    const range = intervalRange(
+        interval,
         new Date(Date.UTC(2023, 0, 17, 8, 31, 5, 100)),
-        new Date(Date.UTC(2023, 0, 23, 21, 31, 5, 100))
+        new Date(Date.UTC(2023, 0, 23, 21, 31, 5, 100)),
+        { defaultAlignment: 'interval' }
     );
     expect(range).toEqual([
         new Date(Date.UTC(2023, 0, 19, 0, 0, 0, 0)),

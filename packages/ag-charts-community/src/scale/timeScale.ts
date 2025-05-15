@@ -1,12 +1,14 @@
-import type { TimeIntervalUnit } from 'ag-charts-types';
+import { isPlainObject } from 'ag-charts-core';
+import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
-import { TickIntervals, getTickTimeInterval, isDenseInterval } from '../util/ticks';
-import { TimeInterval, sunday } from '../util/time';
+import { TickIntervals, defaultEpoch, getTickTimeInterval, isDenseInterval } from '../util/ticks';
+import { intervalRange, intervalStep } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
-import { intervalRange } from '../util/timeInterop';
 import { ContinuousScale } from './continuousScale';
 import type { ScaleFormatParams, ScaleTickParams, ScaleTickResult } from './scale';
+
+const sunday = new Date(1970, 0, 4);
 
 // eslint-disable-next-line sonarjs/use-type-alias
 export class TimeScale extends ContinuousScale<Date, TimeInterval | TimeIntervalUnit | number> {
@@ -54,7 +56,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | TimeInterval
      * Returns uniformly-spaced dates that represent the scale's domain.
      */
     override ticks(
-        params: ScaleTickParams<TimeInterval | number>,
+        params: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1],
         extend = false
@@ -125,7 +127,7 @@ function getDefaultDateTicks({
     extend: boolean;
 }) {
     const t = getTickTimeInterval(start, stop, tickCount, minTickCount, maxTickCount, { weekStart: sunday });
-    return t ? t.range(new Date(start), new Date(stop), { visibleRange, extend }) : []; // inclusive stop
+    return t ? intervalRange(t, new Date(start), new Date(stop), { visibleRange, extend }) : []; // inclusive stop
 }
 
 export function getDateTicksForInterval({
@@ -147,7 +149,7 @@ export function getDateTicksForInterval({
         return [];
     }
 
-    if (interval instanceof TimeInterval || typeof interval === 'string') {
+    if (isPlainObject(interval) || typeof interval === 'string') {
         const ticks = intervalRange(interval, new Date(start), new Date(stop), { visibleRange, extend });
         if (isDenseInterval(ticks.length, availableRange)) {
             return;
@@ -160,11 +162,16 @@ export function getDateTicksForInterval({
 
     if (isDenseInterval(Math.abs(stop - start) / absInterval, availableRange)) return;
 
-    const timeInterval = TickIntervals.findLast((tickInterval) => absInterval % tickInterval.duration === 0);
+    const tickInterval = TickIntervals.findLast((t) => absInterval % t.duration === 0);
 
-    if (timeInterval) {
-        const i = timeInterval.timeInterval.every(absInterval / (timeInterval.duration / timeInterval.step));
-        return i.range(new Date(start), new Date(stop), { visibleRange, extend });
+    if (tickInterval) {
+        const { timeInterval, step, duration } = tickInterval;
+        const alignedInterval: TimeInterval = {
+            ...timeInterval,
+            step: step * intervalStep(timeInterval) * Math.round(absInterval / duration),
+            epoch: defaultEpoch(timeInterval, { weekStart: sunday }),
+        };
+        return intervalRange(alignedInterval, new Date(start), new Date(stop), { visibleRange, extend });
     }
 
     let date = new Date(Math.min(start, stop));
@@ -191,9 +198,7 @@ function updateNiceDomainIteration(
 
     let i: TimeInterval | TimeIntervalUnit | undefined;
 
-    if (interval instanceof TimeInterval) {
-        i = interval;
-    } else if (typeof interval === 'string') {
+    if (isPlainObject(interval) || typeof interval === 'string') {
         i = interval;
     } else {
         let tickCount: number | undefined;

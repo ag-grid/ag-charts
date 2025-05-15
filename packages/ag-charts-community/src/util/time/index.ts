@@ -1,14 +1,31 @@
-export { millisecond } from './millisecond';
-export { second } from './second';
-export { minute } from './minute';
-export { hour } from './hour';
-export { day } from './day';
-export { sunday, monday, tuesday, wednesday, thursday, friday, saturday } from './week';
-export { month } from './month';
-export { year } from './year';
-export { utcMinute } from './utcMinute';
-export { utcHour } from './utcHour';
-export { utcDay } from './utcDay';
-export { utcMonth } from './utcMonth';
-export { utcYear } from './utcYear';
-export { TimeInterval } from './interval';
+import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+
+import { unitEncoding } from './encoding';
+
+export {
+    durationSecond,
+    durationMinute,
+    durationHour,
+    durationDay,
+    durationWeek,
+    durationMonth,
+    durationYear,
+} from './duration';
+export { intervalFloor, intervalCeil, intervalPrevious, intervalNext, intervalExtent, intervalRange } from './range';
+
+export function intervalUnit(interval: TimeInterval | TimeIntervalUnit): TimeIntervalUnit {
+    return typeof interval === 'string' ? interval : interval.unit;
+}
+
+export function intervalStep(interval: TimeInterval | TimeIntervalUnit): number {
+    return typeof interval === 'string' ? 1 : interval.step ?? 1;
+}
+
+export function intervalHierarchy(interval: TimeInterval | TimeIntervalUnit): TimeIntervalUnit | undefined {
+    return unitEncoding[intervalUnit(interval)].hierarchy;
+}
+
+export function intervalMilliseconds(interval: TimeInterval | TimeIntervalUnit): number {
+    const step = intervalStep(interval);
+    return step * unitEncoding[intervalUnit(interval)].milliseconds;
+}

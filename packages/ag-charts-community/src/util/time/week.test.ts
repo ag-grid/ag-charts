@@ -3,7 +3,15 @@
  */
 import { expect, test } from '@jest/globals';
 
-import { sunday } from './week';
+import { TimeInterval } from 'ag-charts-types';
+
+import { intervalFloor, intervalRange } from './index';
+
+const sunday: TimeInterval = {
+    unit: 'day',
+    step: 7,
+    epoch: new Date(Date.UTC(1970, 0, 4)), // 1970-01-04 is a Sunday
+};
 
 it('should execute with UTC timezone', () => {
     expect(new Date(2023, 0, 1).getTimezoneOffset()).toEqual(0);
@@ -19,21 +27,21 @@ test.each([
     new Date(2019, 7, 23, 15, 10, 5, 100),
     new Date(2019, 7, 24, 15, 10, 5, 100),
 ])('sunday.get/floor for %s', (date) => {
-    const sundayDate = sunday.floor(date);
+    const sundayDate = intervalFloor(sunday, date);
     expect(sundayDate).toEqual(new Date(2019, 7, 18, 0, 0, 0, 0));
 });
 
 test('sunday.get/floor twice', () => {
     const date = new Date(2019, 7, 23, 15, 10, 5, 100); // 7 == August
-    const sundayDate = sunday.floor(date);
-    expect(sundayDate).toEqual(sunday.floor(sundayDate));
+    const sundayDate = intervalFloor(sunday, date);
+    expect(sundayDate).toEqual(intervalFloor(sunday, sundayDate));
 });
 
 test('sunday.range', () => {
     const d0 = new Date(2019, 7, 23, 15, 10, 5, 100);
     const d1 = new Date(2019, 8, 27, 10, 12, 2, 700);
 
-    const sundays = sunday.range(d0, d1);
+    const sundays = intervalRange(sunday, d0, d1);
     expect(sundays.length).toBe(5);
     expect(sundays[0]).toEqual(new Date(2019, 7, 25, 0, 0, 0, 0));
     expect(sundays[1]).toEqual(new Date(2019, 8, 1, 0, 0, 0, 0));

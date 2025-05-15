@@ -1,11 +1,15 @@
 import { isArray } from 'ag-charts-core';
-import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from 'ag-charts-types';
+import type {
+    AgBaseCrossLineLabelOptions,
+    AgCrossLineLabelPosition,
+    TimeInterval,
+    TimeIntervalUnit,
+} from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale } from '../../scale/scale';
 import type { Group } from '../../scene/group';
-import type { TimeInterval } from '../../util/time';
 import { checkDatum } from '../../util/value';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 
@@ -56,7 +60,7 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     labelGroup: Group;
     lineDash?: number[];
     range?: [any, any];
-    scale?: Scale<any, number, number | TimeInterval>;
+    scale?: Scale<any, number, number | TimeInterval | TimeIntervalUnit>;
     stroke?: string;
     strokeOpacity?: number;
     strokeWidth?: number;

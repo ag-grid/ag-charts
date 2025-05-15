@@ -1,5 +1,4 @@
 import { AgCharts, AgSparklineOptions } from 'ag-charts-community';
-import { time } from 'ag-charts-community';
 
 import { data } from './data';
 

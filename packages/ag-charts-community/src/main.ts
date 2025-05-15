@@ -10,7 +10,7 @@ import { VERSION } from './version';
 // Documented APIs.
 export { AG_CHARTS_LOCALE_EN_US } from 'ag-charts-locale';
 export * from 'ag-charts-types';
-export * as time from './util/time';
+export { time } from './util/time-interop';
 export { AgCharts, VERSION };
 
 // Undocumented APIs used by Enterprise Modules.

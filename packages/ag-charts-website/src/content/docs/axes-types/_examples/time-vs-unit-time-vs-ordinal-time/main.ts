@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, time } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -75,7 +75,7 @@ function setOrdinalTimeAxis() {
             type: 'ordinal-time',
             position: 'bottom',
             interval: {
-                step: time.month,
+                step: 'month',
             },
             title: { text: 'Ordinal Time Axis' },
         },

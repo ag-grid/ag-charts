@@ -1,7 +1,5 @@
-import type {
-    AgChartOptions,
-} from 'ag-charts-community';
-import { AgCharts, time } from 'ag-charts-community';
+import type { AgChartOptions } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -57,7 +55,7 @@ const options: AgChartOptions = {
             type: 'time',
             position: 'bottom',
             interval: {
-                step: time.month.every(2),
+                step: { unit: 'month', step: 2 },
             },
             title: {
                 text: 'Date',

@@ -11,10 +11,10 @@ import {
     callbackDefs,
     callbackOf,
     color,
+    date,
     defined,
     fontOptionsDef,
     greaterThan,
-    instanceOf,
     isValidNumberFormat,
     lessThan,
     lineDashOptionsDef,
@@ -49,11 +49,22 @@ import type {
     AgCrosshairLabelRendererResult,
     AgCrosshairOptions,
     AgTimeAxisParentLevel,
+    TimeInterval,
 } from 'ag-charts-types';
 
-import { TimeInterval } from '../util/time';
-
 export const timeIntervalUnit = union('millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year');
+
+const timeIntervalDefs: OptionsDefs<TimeInterval> = {
+    unit: required(timeIntervalUnit),
+    step: positiveNumberNonZero,
+    epoch: date,
+    utc: boolean,
+};
+
+// @ts-expect-error undocumented option - required for interop
+timeIntervalDefs.every = callback;
+
+export const timeInterval = optionsDefs<TimeInterval>(timeIntervalDefs, 'a time interval object');
 
 export const numberFormatValidator = attachDescription(isValidNumberFormat, 'a valid number format string');
 
@@ -255,7 +266,7 @@ export function continuousAxisOptions(
         nice: boolean,
         interval: {
             step: supportTimeInterval
-                ? or(positiveNumberNonZero, timeIntervalUnit, instanceOf(TimeInterval))
+                ? or(positiveNumberNonZero, timeIntervalUnit, timeInterval)
                 : positiveNumberNonZero,
             values: arrayOf(validDatum),
             minSpacing: and(positiveNumber, lessThan('maxSpacing')),

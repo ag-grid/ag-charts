@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { day, hour, minute, month, year } from '../util/time';
+import { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+
 import {
     durationDay,
     durationHour,
@@ -124,45 +125,49 @@ describe('TimeScale', () => {
         });
 
         describe(`time interval`, () => {
-            const TIME_INTERVALS = [
+            const TIME_INTERVALS: Array<{
+                name: string;
+                interval: TimeInterval | TimeIntervalUnit;
+                domain: [Date, Date];
+            }> = [
                 {
                     name: 'every minute',
-                    interval: minute,
+                    interval: 'minute',
                     domain: [new Date(2022, 0, 1, 12), new Date(2022, 0, 1, 13)],
                 },
                 {
                     name: 'every hour',
-                    interval: hour,
+                    interval: 'hour',
                     domain: [new Date(2022, 0, 1, 9), new Date(2022, 0, 1, 17)],
                 },
                 {
                     name: 'every day',
-                    interval: day,
+                    interval: 'day',
                     domain: [new Date(2022, 0, 1), new Date(2022, 0, 15)],
                 },
                 {
                     name: 'every 3 days',
-                    interval: day.every(3),
+                    interval: { unit: 'day', step: 3 },
                     domain: [new Date(2022, 0, 1), new Date(2022, 0, 21)],
                 },
                 {
                     name: 'every month',
-                    interval: month,
+                    interval: 'month',
                     domain: [new Date(2022, 0, 1), new Date(2022, 6, 1)],
                 },
                 {
                     name: 'every two months',
-                    interval: month.every(2),
+                    interval: { unit: 'month', step: 2 },
                     domain: [new Date(2022, 0, 1), new Date(2023, 0, 1)],
                 },
                 {
                     name: 'every 6 months',
-                    interval: month.every(6),
+                    interval: { unit: 'month', step: 6 },
                     domain: [new Date(2021, 0, 1), new Date(2023, 0, 1)],
                 },
                 {
                     name: 'every year',
-                    interval: year,
+                    interval: 'year',
                     domain: [new Date(2021, 0, 1), new Date(2023, 0, 1)],
                 },
             ];

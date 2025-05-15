@@ -5,6 +5,7 @@ import type {
     FontStyle,
     FontWeight,
     Formatter,
+    TimeInterval,
     TimeIntervalUnit,
 } from 'ag-charts-types';
 
@@ -15,8 +16,7 @@ import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
 import { normalizeAngle360FromDegrees } from '../util/angle';
 import { BaseProperties, Property } from '../util/properties';
 import { type TextMeasurer } from '../util/textMeasurer';
-import type { TimeInterval } from '../util/time';
-import { intervalHierarchy, intervalRange, intervalUnit } from '../util/timeInterop';
+import { intervalHierarchy, intervalRange, intervalUnit } from '../util/time';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from './chartAxis';
 
 export class Label<TParams = never, TDatum = any>
@@ -164,9 +164,11 @@ export function timeIntervalMaxLabelSize(
     const d0 = new Date(domain[0] as any);
     const d1 = new Date(domain[domain.length - 1] as any);
 
-    const hierarchyRange = hierarchy?.range(new Date(domain[0] as any), new Date(domain[domain.length - 1] as any), {
-        extend: true,
-    });
+    const hierarchyRange = hierarchy
+        ? intervalRange(hierarchy, new Date(domain[0] as any), new Date(domain[domain.length - 1] as any), {
+              extend: true,
+          })
+        : undefined;
 
     let maxWidth = 0;
     let maxHeight = 0;
