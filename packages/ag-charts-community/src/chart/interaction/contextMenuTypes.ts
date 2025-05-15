@@ -121,6 +121,14 @@ class ContextMenuBuiltinItems implements ContextMenuBuiltinItemsRules {
         action: undefined,
         items: undefined,
     };
+    readonly 'reset-zoom': RequireOptional<AgContextMenuItemSeriesArea> = {
+        type: 'action',
+        showOn: 'series-area',
+        label: 'contextMenuResetZoom',
+        enabled: true,
+        action: undefined,
+        items: undefined,
+    };
     readonly 'toggle-series-visibility': RequireOptional<AgContextMenuItemLegendItem> = {
         type: 'action',
         showOn: 'legend-item',
@@ -152,6 +160,7 @@ class ContextMenuBuiltinItemLists implements ContextMenuBuiltinItemListsRules {
         'download',
         'zoom-to-cursor',
         'pan-to-cursor',
+        'reset-zoom',
         'toggle-series-visibility',
         'toggle-other-series',
     ];

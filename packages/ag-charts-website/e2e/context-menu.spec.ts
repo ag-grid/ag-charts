@@ -33,6 +33,12 @@ test.describe('context-menu', () => {
 
                 await page.locator('.ag-charts-context-menu__item').filter({ hasText: 'Pan to here' }).click();
                 await expect(page).toHaveScreenshot('pan-to-here.png', { animations: 'disabled' });
+
+                p = point(width / 10, height / 2);
+                await page.mouse.click(p.x, p.y, { button: 'right' });
+
+                await page.locator('.ag-charts-context-menu__item').filter({ hasText: 'Reset zoom' }).click();
+                await expect(page).toHaveScreenshot('reset-zoom.png', { animations: 'disabled' });
             });
         });
     }

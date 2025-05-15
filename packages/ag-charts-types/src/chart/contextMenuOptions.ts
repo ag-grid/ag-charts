@@ -11,6 +11,7 @@ export type AgContextMenuItemLiteral =
     | 'download'
     | 'zoom-to-cursor'
     | 'pan-to-cursor'
+    | 'reset-zoom'
     | 'toggle-series-visibility'
     | 'toggle-other-series'
     | 'separator';

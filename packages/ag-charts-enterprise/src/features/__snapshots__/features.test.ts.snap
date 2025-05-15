@@ -66,6 +66,24 @@ HTMLCollection [
           class="ag-charts-context-menu__rightarrowhead"
         />
       </div>
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+        >
+          Reset zoom
+        </div>
+        <div
+          class="ag-charts-context-menu__rightarrowhead"
+        />
+      </div>
     </div>
   </div>,
 ]
@@ -137,6 +155,24 @@ HTMLCollection [
           class="ag-charts-context-menu__rightarrowhead"
         />
       </div>
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+        >
+          Reset zoom
+        </div>
+        <div
+          class="ag-charts-context-menu__rightarrowhead"
+        />
+      </div>
     </div>
   </div>,
 ]
@@ -203,6 +239,24 @@ HTMLCollection [
           class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
         >
           Pan to here
+        </div>
+        <div
+          class="ag-charts-context-menu__rightarrowhead"
+        />
+      </div>
+      <div
+        aria-disabled="false"
+        class="ag-charts-context-menu__item"
+        role="menuitem"
+        tabindex="-1"
+      >
+        <div
+          class="ag-charts-context-menu__icon"
+        />
+        <div
+          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+        >
+          Reset zoom
         </div>
         <div
           class="ag-charts-context-menu__rightarrowhead"
