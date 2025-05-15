@@ -822,14 +822,14 @@ describe('ErrorBars', () => {
         chart = await createEnterpriseChart(opts);
 
         expect(errorBarItemStyler).toBeCalledTimes(3);
-        expect(errorBarItemStyler.mock.calls[0][0]).toMatchObject({ seriesId: 'BarSeries2-1' });
-        expect(errorBarItemStyler.mock.calls[1][0]).toMatchObject({ seriesId: 'BarSeries2-1' });
-        expect(errorBarItemStyler.mock.calls[2][0]).toMatchObject({ seriesId: 'BarSeries2-1' });
+        expect(errorBarItemStyler.mock.calls[0][0]).toMatchObject({ seriesId: 'BarSeries-1' });
+        expect(errorBarItemStyler.mock.calls[1][0]).toMatchObject({ seriesId: 'BarSeries-1' });
+        expect(errorBarItemStyler.mock.calls[2][0]).toMatchObject({ seriesId: 'BarSeries-1' });
 
         expect(barSeriesItemStyler).toBeCalledTimes(3);
-        expect(barSeriesItemStyler.mock.calls[0][0]).toMatchObject({ seriesId: 'BarSeries2-1' });
-        expect(barSeriesItemStyler.mock.calls[2][0]).toMatchObject({ seriesId: 'BarSeries2-1' });
-        expect(barSeriesItemStyler.mock.calls[1][0]).toMatchObject({ seriesId: 'BarSeries2-1' });
+        expect(barSeriesItemStyler.mock.calls[0][0]).toMatchObject({ seriesId: 'BarSeries-1' });
+        expect(barSeriesItemStyler.mock.calls[2][0]).toMatchObject({ seriesId: 'BarSeries-1' });
+        expect(barSeriesItemStyler.mock.calls[1][0]).toMatchObject({ seriesId: 'BarSeries-1' });
     });
 
     it('should use correct cursor', async () => {
