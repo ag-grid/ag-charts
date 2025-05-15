@@ -255,7 +255,7 @@ export class Text<D = any> extends Shape<D> {
 
     setFont(props: TextSizeProperties) {
         this.fontFamily = props.fontFamily;
-        this.fontSize = props.fontSize ?? 10;
+        this.fontSize = props.fontSize ?? Text.defaultStyles.fontSize;
         this.fontStyle = props.fontStyle;
         this.fontWeight = props.fontWeight;
     }
