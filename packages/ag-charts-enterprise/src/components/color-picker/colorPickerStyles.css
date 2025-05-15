@@ -92,8 +92,11 @@
     --inset: calc((var(--thumb-size) - var(--track-height)) / 2);
 }
 
+.ag-charts-color-picker__hue-input::-moz-range-thumb,
+.ag-charts-color-picker__alpha-input::-moz-range-thumb,
 .ag-charts-color-picker__hue-input::-webkit-slider-thumb,
 .ag-charts-color-picker__alpha-input::-webkit-slider-thumb {
+    appearance: none;
     -webkit-appearance: none;
     /* Copied from .ag-charts-color-picker__palette::after */
     width: var(--thumb-size);
@@ -105,24 +108,31 @@
     transform: translate3d(0, 0, 0);
 }
 
+.ag-charts-color-picker__hue-input::-moz-range-thumb,
 .ag-charts-color-picker__hue-input::-webkit-slider-thumb {
     background: hsl(var(--h), 100%, 50%);
 }
 
+.ag-charts-color-picker__alpha-input::-moz-range-thumb,
 .ag-charts-color-picker__alpha-input::-webkit-slider-thumb {
     background: transparent;
 }
 
+.ag-charts-color-picker__alpha-input--opaque::-moz-range-thumb,
 .ag-charts-color-picker__alpha-input--opaque::-webkit-slider-thumb {
     background: var(--color);
 }
 
+.ag-charts-color-picker__hue-input:focus-visible::-moz-range-thumb,
+.ag-charts-color-picker__alpha-input:focus-visible::-moz-range-thumb,
 .ag-charts-color-picker__hue-input:focus-visible::-webkit-slider-thumb,
 .ag-charts-color-picker__alpha-input:focus-visible::-webkit-slider-thumb {
     outline: var(--ag-charts-focus-border);
     box-shadow: var(--box-shadow), var(--ag-charts-focus-border-shadow);
 }
 
+.ag-charts-color-picker__hue-input::-moz-range-track,
+.ag-charts-color-picker__alpha-input::-moz-range-track,
 .ag-charts-color-picker__hue-input::before,
 .ag-charts-color-picker__alpha-input::before {
     position: absolute;
@@ -160,6 +170,7 @@
     flex: 1 0 0;
 }
 
+.ag-charts-color-picker__hue-input::-moz-range-track,
 .ag-charts-color-picker__hue-input::before {
     /* Conceptually we're insetting the gradient by thumb-size */
     /* However, the track has a negative margin, so the actual value is track-height */
@@ -180,6 +191,7 @@
     margin-bottom: 7px;
 }
 
+.ag-charts-color-picker__alpha-input::-moz-range-track,
 .ag-charts-color-picker__alpha-input::before {
     background:
         linear-gradient(to right, transparent, var(--color)),
