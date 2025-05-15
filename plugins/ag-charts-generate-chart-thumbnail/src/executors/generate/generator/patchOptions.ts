@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+
 import type { AgCartesianChartOptions, AgChartOptions, AgChartTheme, AgChartThemeName } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { ExampleSubstitutions } from 'ag-charts-generate-example-files';
@@ -94,8 +96,10 @@ const maybeApplySubstitutions = (node: unknown) => {
             for (const key of Object.keys(nodes)) {
                 const value = nodes[key];
                 if (typeof value === 'string') {
+                    // Inline static string case.
                     nodes[key] = applySubstitutions(value, DEFAULT_SUBSTITUTIONS);
                 } else if (typeof value === 'function') {
+                    // Callback function case (apply substitutions to the result).
                     nodes[key] = (...args) => {
                         return maybeApplySubstitutions(value(...args));
                     };
@@ -120,13 +124,14 @@ const applySubstitutions = (content: string, substitutions?: ExampleSubstitution
             throw new Error(`Substitution value is null for key: ${key}`);
         }
 
-        const newContent = content.replace(key, value);
-        if (content !== newContent) {
-            // eslint-disable-next-line no-console
-            console.info(`Applied substitutions for ${key} => ${newContent}`);
-        }
+        content = content.replace(key, value);
 
-        content = newContent;
+        // Inline images to simplify processing.
+        if (content.endsWith('.png') || content.endsWith('.svg')) {
+            const imageBuffer = fs.readFileSync(content);
+            const imageType = content.endsWith('.png') ? 'png' : 'svg+xml';
+            content = `data:image/${imageType};base64,${imageBuffer.toString('base64')}`;
+        }
     });
 
     return content;
