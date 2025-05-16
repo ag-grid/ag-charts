@@ -116,6 +116,7 @@
     transform: translate3d(0, 0, 0);
 }
 
+/* AG-14069 - Firefox fixes  - cannot be combined with following rules, but should be kept in sync. */
 .ag-charts-color-picker__hue-input::-moz-range-thumb {
     background: hsl(var(--h), 100%, 50%);
 }
@@ -124,6 +125,7 @@
     background: hsl(var(--h), 100%, 50%);
 }
 
+/*  AG-14069 - Firefox fixes  - cannot be combined with following rules, but should be kept in sync. */
 .ag-charts-color-picker__alpha-input::-moz-range-thumb {
     background: transparent;
 }
@@ -132,6 +134,7 @@
     background: transparent;
 }
 
+/* AG-14069 - Firefox fixes  - cannot be combined with following rules, but should be kept in sync. */
 .ag-charts-color-picker__alpha-input--opaque::-moz-range-thumb {
     background: var(--color);
 }
@@ -140,6 +143,7 @@
     background: var(--color);
 }
 
+/* AG-14069 - Firefox fixes  - cannot be combined with following rules, but should be kept in sync. */
 .ag-charts-color-picker__hue-input:focus-visible::-moz-range-thumb,
 .ag-charts-color-picker__alpha-input:focus-visible::-moz-range-thumb {
     outline: var(--ag-charts-focus-border);
@@ -152,6 +156,7 @@
     box-shadow: var(--box-shadow), var(--ag-charts-focus-border-shadow);
 }
 
+/* AG-14069 - Firefox fixes  - cannot be combined with following rules, but should be kept in sync. */
 .ag-charts-color-picker__hue-input::-moz-range-track,
 .ag-charts-color-picker__alpha-input::-moz-range-track {
     position: absolute;
@@ -202,6 +207,7 @@
     flex: 1 0 0;
 }
 
+/* AG-14069 - Firefox fixes  - cannot be combined with following rules, but should be kept in sync. */
 .ag-charts-color-picker__hue-input::-moz-range-track {
     /* Conceptually we're insetting the gradient by thumb-size */
     /* However, the track has a negative margin, so the actual value is track-height */
@@ -238,6 +244,7 @@
     margin-bottom: 7px;
 }
 
+/* AG-14069 - Firefox fixes  - cannot be combined with following rules, but should be kept in sync. */
 .ag-charts-color-picker__alpha-input::-moz-range-track {
     background:
         linear-gradient(to right, transparent, var(--color)),
