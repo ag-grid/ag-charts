@@ -92,6 +92,17 @@
     --inset: calc((var(--thumb-size) - var(--track-height)) / 2);
 }
 
+.ag-charts-color-picker__hue-input::-moz-range-thumb,
+.ag-charts-color-picker__alpha-input::-moz-range-thumb {
+    appearance: none;
+    /* Copied from .ag-charts-color-picker__palette::after */
+    width: var(--thumb-size);
+    height: var(--thumb-size);
+    border-radius: calc(var(--ag-charts-border-radius) * 99);
+    box-shadow: var(--box-shadow);
+    --box-shadow: inset 0 0 0 3px white, inset 0 0 1px 3px #0006, 0 0 5px #00000038;
+}
+
 .ag-charts-color-picker__hue-input::-webkit-slider-thumb,
 .ag-charts-color-picker__alpha-input::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -105,22 +116,58 @@
     transform: translate3d(0, 0, 0);
 }
 
+/* AG-14069 - Firefox fixes  - cannot be combined with following rules, but should be kept in sync. */
+.ag-charts-color-picker__hue-input::-moz-range-thumb {
+    background: hsl(var(--h), 100%, 50%);
+}
+
 .ag-charts-color-picker__hue-input::-webkit-slider-thumb {
     background: hsl(var(--h), 100%, 50%);
+}
+
+/*  AG-14069 - Firefox fixes  - cannot be combined with following rules, but should be kept in sync. */
+.ag-charts-color-picker__alpha-input::-moz-range-thumb {
+    background: transparent;
 }
 
 .ag-charts-color-picker__alpha-input::-webkit-slider-thumb {
     background: transparent;
 }
 
+/* AG-14069 - Firefox fixes  - cannot be combined with following rules, but should be kept in sync. */
+.ag-charts-color-picker__alpha-input--opaque::-moz-range-thumb {
+    background: var(--color);
+}
+
 .ag-charts-color-picker__alpha-input--opaque::-webkit-slider-thumb {
     background: var(--color);
+}
+
+/* AG-14069 - Firefox fixes  - cannot be combined with following rules, but should be kept in sync. */
+.ag-charts-color-picker__hue-input:focus-visible::-moz-range-thumb,
+.ag-charts-color-picker__alpha-input:focus-visible::-moz-range-thumb {
+    outline: var(--ag-charts-focus-border);
+    box-shadow: var(--box-shadow), var(--ag-charts-focus-border-shadow);
 }
 
 .ag-charts-color-picker__hue-input:focus-visible::-webkit-slider-thumb,
 .ag-charts-color-picker__alpha-input:focus-visible::-webkit-slider-thumb {
     outline: var(--ag-charts-focus-border);
     box-shadow: var(--box-shadow), var(--ag-charts-focus-border-shadow);
+}
+
+/* AG-14069 - Firefox fixes  - cannot be combined with following rules, but should be kept in sync. */
+.ag-charts-color-picker__hue-input::-moz-range-track,
+.ag-charts-color-picker__alpha-input::-moz-range-track {
+    position: absolute;
+    content: '';
+    display: block;
+    top: calc(50% - var(--track-height) / 2);
+    left: var(--inset);
+    right: var(--inset);
+    height: var(--track-height);
+    border-radius: calc(var(--ag-charts-border-radius) * 99);
+    box-shadow: inset 0 0 0 1px #0003;
 }
 
 .ag-charts-color-picker__hue-input::before,
@@ -160,6 +207,23 @@
     flex: 1 0 0;
 }
 
+/* AG-14069 - Firefox fixes  - cannot be combined with following rules, but should be kept in sync. */
+.ag-charts-color-picker__hue-input::-moz-range-track {
+    /* Conceptually we're insetting the gradient by thumb-size */
+    /* However, the track has a negative margin, so the actual value is track-height */
+    background: linear-gradient(
+        to right,
+        #f00,
+        #f00 calc((100% - var(--track-height)) * 0 / 6 + var(--track-height) / 2),
+        #ff0 calc((100% - var(--track-height)) * 1 / 6 + var(--track-height) / 2),
+        #0f0 calc((100% - var(--track-height)) * 2 / 6 + var(--track-height) / 2),
+        #0ff calc((100% - var(--track-height)) * 3 / 6 + var(--track-height) / 2),
+        #00f calc((100% - var(--track-height)) * 4 / 6 + var(--track-height) / 2),
+        #f0f calc((100% - var(--track-height)) * 5 / 6 + var(--track-height) / 2),
+        #f00 calc((100% - var(--track-height)) * 6 / 6 + var(--track-height) / 2)
+    );
+}
+
 .ag-charts-color-picker__hue-input::before {
     /* Conceptually we're insetting the gradient by thumb-size */
     /* However, the track has a negative margin, so the actual value is track-height */
@@ -178,6 +242,13 @@
 
 .ag-charts-color-picker__alpha-input {
     margin-bottom: 7px;
+}
+
+/* AG-14069 - Firefox fixes  - cannot be combined with following rules, but should be kept in sync. */
+.ag-charts-color-picker__alpha-input::-moz-range-track {
+    background:
+        linear-gradient(to right, transparent, var(--color)),
+        var(--checker) top left / 4px 4px;
 }
 
 .ag-charts-color-picker__alpha-input::before {
