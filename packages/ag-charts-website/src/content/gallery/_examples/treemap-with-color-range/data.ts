@@ -368,7 +368,7 @@ export const data = [
                 description: 'Motorola Solutions, Inc.',
                 color: '#6acb64',
                 valuation: 504,
-                change: 4.99,
+                change: 5,
             },
             {
                 name: 'HPE',
@@ -563,7 +563,7 @@ export const data = [
                 change: 2.7,
             },
         ],
-        change: -4.96,
+        change: -5,
     },
     {
         name: 'Internet Information Providers',
