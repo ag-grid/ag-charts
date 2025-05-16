@@ -92,8 +92,12 @@ interface RangeParams {
     limit?: number;
 }
 
-export function intervalExtent(start: Date, stop: Date, visibleRange?: [number, number]): [Date, Date] {
-    if (start.getTime() > stop.getTime()) {
+export function intervalExtent(
+    start: Date | number,
+    stop: Date | number,
+    visibleRange?: [number, number]
+): [Date, Date] {
+    if (start.valueOf() > stop.valueOf()) {
         [start, stop] = [stop, start];
 
         if (visibleRange != null) {
@@ -102,14 +106,14 @@ export function intervalExtent(start: Date, stop: Date, visibleRange?: [number, 
     }
 
     if (visibleRange != null) {
-        const delta = stop.getTime() - start.getTime();
-        const t0 = start.getTime();
+        const delta = stop.valueOf() - start.valueOf();
+        const t0 = start.valueOf();
 
         start = new Date(t0 + visibleRange[0] * delta);
         stop = new Date(t0 + visibleRange[1] * delta);
     }
 
-    return [start, stop];
+    return [new Date(start), new Date(stop)];
 }
 
 export function intervalRange(
@@ -125,7 +129,7 @@ export function intervalRange(
         epoch = params.epoch;
     } else if (defaultAlignment === 'interval') {
         epoch = undefined;
-    } else if (start.getTime() > stop.getTime()) {
+    } else if (start.valueOf() > stop.valueOf()) {
         epoch = stop;
     } else {
         epoch = start;

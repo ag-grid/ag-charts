@@ -3073,7 +3073,6 @@ export const COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     axes: [
         {
             type: 'time',
-            nice: false,
             position: 'bottom',
         },
         {
@@ -3936,7 +3935,6 @@ export const BAR_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     axes: [
         {
             type: 'time',
-            nice: false,
             position: 'left',
         },
         {
