@@ -26,8 +26,7 @@ import {
     unitZoomState,
 } from './zoomUtils';
 
-const { ActionOnSet, ChartAxisDirection, ChartUpdateType, Deprecated, Property, InteractionState, ProxyProperty } =
-    _ModuleSupport;
+const { ActionOnSet, ChartAxisDirection, ChartUpdateType, Property, InteractionState, ProxyProperty } = _ModuleSupport;
 
 const round = (value: number) => roundTo(value, 10);
 
@@ -118,14 +117,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     @Property
     public minVisibleItems = 2;
-
-    @Deprecated('Use [minVisibleItems] instead.')
-    @Property
-    public minVisibleItemsX?: number;
-
-    @Deprecated('Use [minVisibleItems] instead.')
-    @Property
-    public minVisibleItemsY?: number;
 
     @Property
     public anchorPointX: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_X;
@@ -630,8 +621,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private isZoomValid(newZoom: DefinedZoomState) {
         const {
             minVisibleItems,
-            minVisibleItemsX,
-            minVisibleItemsY,
             ctx: { zoomManager },
         } = this;
 
@@ -643,24 +632,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const zoomedInY = round(dy(newZoom)) < round(dy(zoom));
         if (!zoomedInX && !zoomedInY) return true;
 
-        // @deprecated
-        if (minVisibleItemsX != null && zoomedInX) {
-            return zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItemsX);
-        }
-
-        // @deprecated
-        if (minVisibleItemsY != null && zoomedInY) {
-            return zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItemsY);
-        }
-
         return zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems);
     }
 
     private isAxisZoomValid(direction: _ModuleSupport.CartesianAxisDirection, axisZoom: _ModuleSupport.ZoomState) {
         const {
             minVisibleItems,
-            minVisibleItemsX,
-            minVisibleItemsY,
             ctx: { zoomManager },
         } = this;
 
@@ -670,12 +647,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const deltaOld = zoom[direction].max - zoom[direction].min;
         const newZoom = { ...zoom, [direction]: axisZoom };
 
-        // @deprecated
-        const minVisibleDir = direction === ChartAxisDirection.X ? minVisibleItemsX : minVisibleItemsY;
-
-        return (
-            deltaAxis >= deltaOld || zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleDir ?? minVisibleItems)
-        );
+        return deltaAxis >= deltaOld || zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems);
     }
 
     private resetZoom() {

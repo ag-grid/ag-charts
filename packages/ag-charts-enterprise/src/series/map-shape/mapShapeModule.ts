@@ -13,7 +13,6 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
 
     identifier: 'map-shape',
     moduleFactory: (ctx) => new MapShapeSeries(ctx),
-    tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {

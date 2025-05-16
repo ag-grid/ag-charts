@@ -18,7 +18,6 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
 
     identifier: 'map-marker',
     moduleFactory: (ctx) => new MapMarkerSeries(ctx),
-    tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {

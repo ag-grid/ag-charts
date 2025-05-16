@@ -31,10 +31,10 @@ import {
     type DataModelSeriesNodeDataContext,
     type DataModelSeriesNodeDatum,
 } from '../dataModelSeries';
-import type { SeriesDirectionKeysMapping, SeriesNodeEventTypes, SeriesNodePickMatch } from '../series';
+import type { SeriesDirectionKeysMapping, SeriesNodePickMatch } from '../series';
 import { SeriesNodeEvent } from '../series';
 import { SeriesProperties } from '../seriesProperties';
-import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
+import type { ISeries, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type { Scaling } from './scaling';

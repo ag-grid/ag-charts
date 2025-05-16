@@ -1,5 +1,5 @@
 import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgScatterSeriesOptions, AgTooltipPositionOptions, WithThemeParams } from 'ag-charts-types';
+import type { AgScatterSeriesOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -16,7 +16,6 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
 
     identifier: 'scatter',
     moduleFactory: (ctx) => new ScatterSeries(ctx),
-    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
@@ -45,7 +44,6 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             fillImageDefaults: FILL_IMAGE_DEFAULTS,
             fillOpacity: 0.8,
-            tooltip: { position: { _seriesOverrideType: 'node' } as AgTooltipPositionOptions },
             label: {
                 enabled: false,
                 fontSize: { $ref: 'fontSize' },
@@ -56,6 +54,12 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             errorBar: {
                 cap: {
                     lengthRatio: 1,
+                },
+            },
+            tooltip: {
+                range: { $path: ['/tooltip/range', 'nearest'] },
+                position: {
+                    anchorTo: { $path: ['/tooltip/anchorTo', 'node'] },
                 },
             },
         },

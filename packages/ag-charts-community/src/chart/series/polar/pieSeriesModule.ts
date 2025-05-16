@@ -15,7 +15,6 @@ export const PieSeriesModule: SeriesModule<'pie'> = {
 
     identifier: 'pie',
     moduleFactory: (ctx) => new PieSeries(ctx),
-    tooltipDefaults: { range: 'exact' },
     themeTemplate: pieTheme,
 };
 

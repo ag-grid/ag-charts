@@ -19,7 +19,6 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     moduleFactory: (ctx) => new BarSeries(ctx),
     stackable: true,
     groupable: true,
-    tooltipDefaults: { range: 'exact' },
     defaultAxes: DIRECTION_SWAP_AXES,
     themeTemplate: {
         series: {

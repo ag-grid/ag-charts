@@ -46,6 +46,9 @@ export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>[
         interpolation: {
             type: 'linear',
         },
+        tooltip: {
+            range: { $path: ['/tooltip/range', 'nearest'] },
+        },
     },
     axes: {
         [_ModuleSupport.ThemeConstants.CARTESIAN_AXIS_TYPE.NUMBER]: {

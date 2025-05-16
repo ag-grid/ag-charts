@@ -1,5 +1,5 @@
 import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgLineSeriesOptions, AgTooltipPositionOptions, WithThemeParams } from 'ag-charts-types';
+import type { AgLineSeriesOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -17,7 +17,6 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     identifier: 'line',
     moduleFactory: (ctx) => new LineSeries(ctx),
     stackable: true,
-    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
@@ -30,7 +29,6 @@ export const LineSeriesModule: SeriesModule<'line'> = {
     ],
     themeTemplate: {
         series: {
-            tooltip: { position: { _seriesOverrideType: 'node' } as AgTooltipPositionOptions },
             stroke: SAFE_STROKE_FILL_OPERATION,
             strokeWidth: 2,
             strokeOpacity: 1,
@@ -67,6 +65,12 @@ export const LineSeriesModule: SeriesModule<'line'> = {
             errorBar: {
                 cap: {
                     lengthRatio: 1,
+                },
+            },
+            tooltip: {
+                range: { $path: ['/tooltip/range', 'nearest'] },
+                position: {
+                    anchorTo: { $path: ['/tooltip/anchorTo', 'node'] },
                 },
             },
         },

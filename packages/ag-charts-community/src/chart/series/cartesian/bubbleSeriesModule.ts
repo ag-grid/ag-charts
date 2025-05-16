@@ -1,5 +1,5 @@
 import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgBubbleSeriesOptions, AgTooltipPositionOptions, WithThemeParams } from 'ag-charts-types';
+import type { AgBubbleSeriesOptions, WithThemeParams } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -16,7 +16,6 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
 
     identifier: 'bubble',
     moduleFactory: (ctx) => new BubbleSeries(ctx),
-    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
@@ -46,13 +45,18 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
             fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             fillImageDefaults: FILL_IMAGE_DEFAULTS,
             fillOpacity: 0.8,
-            tooltip: { position: { _seriesOverrideType: 'node' } as AgTooltipPositionOptions },
             label: {
                 enabled: false,
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'textColor' },
+            },
+            tooltip: {
+                range: { $path: ['/tooltip/range', 'nearest'] },
+                position: {
+                    anchorTo: { $path: ['/tooltip/anchorTo', 'node'] },
+                },
             },
         },
     },

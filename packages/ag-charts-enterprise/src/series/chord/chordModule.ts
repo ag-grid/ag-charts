@@ -12,7 +12,6 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
     solo: true,
 
     identifier: 'chord',
-    tooltipDefaults: { range: 'exact' },
     moduleFactory: (ctx) => new ChordSeries(ctx),
 
     themeTemplate: {

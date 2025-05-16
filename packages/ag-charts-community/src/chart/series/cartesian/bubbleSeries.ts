@@ -26,9 +26,9 @@ import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
-import type { PickFocusInputs, SeriesNodeEventTypes } from '../series';
-import { SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import type { SeriesNodeEventTypes } from '../seriesTypes';
 import { type BubbleNodeDatum, BubbleSeriesProperties } from './bubbleSeriesProperties';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {

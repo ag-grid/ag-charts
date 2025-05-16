@@ -14,7 +14,6 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
 
     identifier: 'sunburst',
     moduleFactory: (ctx) => new SunburstSeries(ctx),
-    tooltipDefaults: { range: 'exact' },
     solo: true,
     themeTemplate: {
         series: {

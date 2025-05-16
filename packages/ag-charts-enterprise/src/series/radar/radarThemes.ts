@@ -87,6 +87,9 @@ export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>[
                     fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
                     fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
                 },
+                tooltip: {
+                    range: { $path: ['/tooltip/range', 'nearest'] },
+                },
             },
         },
         BASE_RADAR_SERIES_THEME

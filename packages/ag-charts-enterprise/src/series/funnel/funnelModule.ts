@@ -14,7 +14,6 @@ export const FunnelModule: _ModuleSupport.SeriesModule<'funnel'> = {
     identifier: 'funnel',
     moduleFactory: (ctx) => new FunnelSeries(ctx),
     solo: true,
-    tooltipDefaults: { range: 'exact' },
     defaultAxes: FUNNEL_SERIES_AXES,
     themeTemplate: FUNNEL_SERIES_THEME,
 };

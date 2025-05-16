@@ -41,8 +41,7 @@ import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartCaptionOptions,
     AgChartLabelOptions,
-    AgChartOverlayOptions, // eslint-disable-next-line sonarjs/deprecation
-    AgContextMenuAction,
+    AgChartOverlayOptions,
     AgContextMenuItem,
     AgContextMenuItemLiteral,
     AgDropShadowOptions,
@@ -76,18 +75,6 @@ const tooltipPlacementValidator = union(
     'bottom-left',
     'top-left',
     'center'
-);
-const tooltipDeprecatedTypeValidator = union(
-    'pointer',
-    'node',
-    'top',
-    'right',
-    'bottom',
-    'left',
-    'top-left',
-    'top-right',
-    'bottom-left',
-    'bottom-right'
 );
 export const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
 
@@ -164,15 +151,6 @@ const contextMenuItemValidator = attachDescription(
 );
 
 const contextMenuItemsArray = arrayOf(contextMenuItemValidator, 'a menu items array', false);
-
-// eslint-disable-next-line sonarjs/deprecation
-const contextMenuActionsArray = arrayOfDefs<AgContextMenuAction>(
-    {
-        label: required(string),
-        action: required(callback),
-    },
-    'a context menu actions array'
-);
 
 export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
     label: string,
@@ -366,7 +344,6 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         wrapping: textWrapValidator,
         mode: union('single', 'shared', 'compact'),
         position: {
-            type: tooltipDeprecatedTypeValidator,
             anchorTo: union('pointer', 'node', 'chart'),
             placement: or(tooltipPlacementValidator, arrayOf(tooltipPlacementValidator)),
             xOffset: number,
@@ -380,10 +357,6 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     contextMenu: {
         enabled: boolean,
         items: contextMenuItemsArray,
-        extraActions: contextMenuActionsArray,
-        extraSeriesAreaActions: contextMenuActionsArray,
-        extraNodeActions: contextMenuActionsArray,
-        extraLegendItemActions: contextMenuActionsArray,
     },
     dataSource: {
         getData: callback,
@@ -447,8 +420,6 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         axes: union('x', 'y', 'xy'),
         deceleration: or(union('off', 'short', 'long'), ratio),
         minVisibleItems: positiveNumber,
-        minVisibleItemsX: positiveNumber,
-        minVisibleItemsY: positiveNumber,
         panKey: union('alt', 'ctrl', 'meta', 'shift'),
         scrollingStep: ratio,
         autoScaling: {
@@ -626,7 +597,6 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
         )
     ),
     position: {
-        type: tooltipDeprecatedTypeValidator,
         anchorTo: union('node', 'pointer', 'chart'),
         placement: or(tooltipPlacementValidator, arrayOf(tooltipPlacementValidator)),
         xOffset: number,
@@ -636,9 +606,6 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
         enabled: boolean,
     },
 };
-
-// @ts-expect-error undocumented option
-tooltipOptionsDefs.position._seriesOverrideType = undocumented(tooltipDeprecatedTypeValidator);
 
 export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     enabled: boolean,

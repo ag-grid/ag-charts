@@ -46,7 +46,7 @@ import type { SeriesEventType } from './seriesEvents';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
-import type { ISeries, NodeDataDependencies, SeriesNodeDatum } from './seriesTypes';
+import type { INodeEvent, ISeries, NodeDataDependencies, SeriesNodeDatum, SeriesNodeEventTypes } from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
 import { type ShapeFillBBox, applyShapeStyle, getShapeStyle } from './shapeUtil';
 
@@ -87,21 +87,6 @@ export type PickFocusOutputs = {
 };
 
 export type PickResult = { pickMode: SeriesNodePickMode; datums: SeriesNodeDatum<unknown>[]; distance: number };
-
-export type SeriesNodeEventTypes =
-    | 'nodeContextMenuAction'
-    | 'groupingChanged'
-    | 'seriesNodeClick'
-    | 'seriesNodeDoubleClick';
-
-interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
-    readonly type: TEvent;
-    // Note: this is typically a MouseEvent, but it can be a TouchEvent or KeyboardEvent too.
-    readonly event: Event;
-    readonly datum: unknown;
-    readonly seriesId: string;
-    readonly defaultPrevented: boolean;
-}
 
 export type INodeEventConstructor<
     TDatum extends SeriesNodeDatum<unknown>,

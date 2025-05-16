@@ -15,7 +15,6 @@ export const RadarLineModule: _ModuleSupport.SeriesModule<'radar-line'> = {
 
     identifier: 'radar-line',
     moduleFactory: (ctx) => new RadarLineSeries(ctx),
-    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
     themeTemplate: RADAR_LINE_SERIES_THEME,
 };

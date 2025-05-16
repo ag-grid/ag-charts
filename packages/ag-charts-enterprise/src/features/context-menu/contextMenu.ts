@@ -1,25 +1,16 @@
-import type { AgContextMenuItem, AgContextMenuItemShowOn, AgContextMenuOptions } from 'ag-charts-community';
+import type { AgContextMenuItem, AgContextMenuItemShowOn } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { type AnyFn, Logger, clamp, createElement } from 'ag-charts-core';
+import { Logger, clamp, createElement } from 'ag-charts-core';
 
 import { ContextMenuItem, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuCallback = _ModuleSupport.ContextMenuCallback<AgContextMenuItemShowOn>;
-type DeprecatedOption = 'extraActions' | 'extraNodeActions' | 'extraSeriesAreaActions' | 'extraLegendItemActions';
-type DeprecatedAction<T extends DeprecatedOption> = NonNullable<AgContextMenuOptions[T]>;
-type DeprecatedMap = {
-    readonly [K in DeprecatedOption]: {
-        readonly items: DeprecatedAction<K>;
-        readonly showOn: AgContextMenuItemShowOn;
-    };
-};
 
-const { Deprecated, Property, ContextMenuRegistry } = _ModuleSupport;
+const { Property, ContextMenuRegistry } = _ModuleSupport;
 
 const moduleId = 'context-menu';
-const DEPRECATION_MESSAGE = 'Use [items] instead';
 
 export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Property
@@ -30,17 +21,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     @Property
     readonly items: readonly Readonly<AgContextMenuItem>[] = ['defaults'];
-
-    @Deprecated(DEPRECATION_MESSAGE)
-    public extraActions?: DeprecatedAction<'extraActions'>;
-    @Deprecated(DEPRECATION_MESSAGE)
-    public extraNodeActions?: DeprecatedAction<'extraNodeActions'>;
-    @Deprecated(DEPRECATION_MESSAGE)
-    public extraSeriesAreaActions?: DeprecatedAction<'extraSeriesAreaActions'>;
-    @Deprecated(DEPRECATION_MESSAGE)
-    public extraLegendItemActions?: DeprecatedAction<'extraLegendItemActions'>;
-
-    private readonly deprecationMap: DeprecatedMap;
 
     // Module context
     private readonly interactionManager: _ModuleSupport.InteractionManager;
@@ -61,33 +41,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
-        const that = this;
-        this.deprecationMap = {
-            extraActions: {
-                get items() {
-                    return that.extraActions ?? [];
-                },
-                showOn: 'always',
-            },
-            extraSeriesAreaActions: {
-                get items() {
-                    return that.extraSeriesAreaActions ?? [];
-                },
-                showOn: 'series-area',
-            },
-            extraNodeActions: {
-                get items() {
-                    return that.extraNodeActions ?? [];
-                },
-                showOn: 'series-node',
-            },
-            extraLegendItemActions: {
-                get items() {
-                    return that.extraLegendItemActions ?? [];
-                },
-                showOn: 'legend-item',
-            },
-        };
 
         // Module context
         this.interactionManager = ctx.interactionManager;
@@ -138,29 +91,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.destroyFns.push(this.registry.addListener('context-complete', (e) => this.onContext(e)));
     }
 
-    private createDeprecatedAdaptorItems(): typeof this.items {
-        const result: AgContextMenuItem[] = [] satisfies typeof this.items;
-        for (const deprecatedKey of Object.keys(this.deprecationMap) as (keyof typeof this.deprecationMap)[]) {
-            const { items, showOn } = this.deprecationMap[deprecatedKey];
-            result.push('separator');
-            for (const { action, label } of items) {
-                const type = 'action';
-                const enabled = true;
-                // Signature typing cannot be verified at compile, because callbacks in api options are just JS
-                // functions assigned at runtime (typing info is lost).
-                action satisfies AnyFn;
-                result.push({ type, showOn, enabled, label, action: action as AnyFn });
-            }
-        }
-        return result;
-    }
-
     private expandItemsOptions(showing: AgContextMenuItemShowOn): ContextMenuItem[] {
         const result: ContextMenuItem[] = [];
-        const deprecatedItems = this.createDeprecatedAdaptorItems();
 
         expandItems(showing, this.ctx.contextMenuRegistry, this.items, result);
-        expandItems(showing, this.ctx.contextMenuRegistry, deprecatedItems, result);
 
         return result;
     }

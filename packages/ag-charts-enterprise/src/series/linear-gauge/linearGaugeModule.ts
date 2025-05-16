@@ -11,7 +11,6 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
 
     identifier: 'linear-gauge',
     moduleFactory: (ctx) => new LinearGaugeSeries(ctx),
-    tooltipDefaults: { range: 10 },
     themeTemplate: {
         minWidth: 200,
         minHeight: 200,
@@ -78,6 +77,9 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 color: { $ref: 'backgroundColor' },
             },
             margin: 4,
+            tooltip: {
+                range: { $path: ['/tooltip/range', 10] },
+            },
         },
     },
 };

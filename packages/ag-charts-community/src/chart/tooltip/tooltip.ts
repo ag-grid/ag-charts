@@ -3,7 +3,6 @@ import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionR
 
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import { Deprecated } from '../../util/deprecation';
 import { type Bounds, type Placement, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
@@ -28,18 +27,6 @@ export {
     type TooltipStructuredContent,
 } from './tooltipContent';
 
-type TooltipPositionType =
-    | 'pointer'
-    | 'node'
-    | 'top'
-    | 'right'
-    | 'bottom'
-    | 'left'
-    | 'top-left'
-    | 'top-right'
-    | 'bottom-right'
-    | 'bottom-left';
-
 type TooltipOffsets = { canvasX: number; canvasY: number; nodeCanvasX?: number; nodeCanvasY?: number };
 export type TooltipEventType = 'pointermove' | 'click' | 'dblclick' | 'keyboard';
 export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = Readonly<TooltipOffsets> & {
@@ -48,9 +35,7 @@ export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> =
 
 export interface TooltipMetaPosition {
     anchorTo?: AgTooltipAnchorTo;
-    defaultAnchorTo?: AgTooltipAnchorTo;
     placement?: AgTooltipPlacement | AgTooltipPlacement[];
-    defaultPlacement?: AgTooltipPlacement | AgTooltipPlacement[];
     xOffset?: number;
     yOffset?: number;
 }
@@ -123,23 +108,13 @@ const directionChecks: Record<AgTooltipPlacement, DirectionCheck> = {
     center: DirectionCheck.None,
 };
 
-export class TooltipPosition extends BaseProperties {
-    /**
-     * @todo(AG-10870) - this should never be undefined, but there's something odd going on with
-     * theming that doesn't look so easy to fix. This property will be removed in the next major,
-     * so for now we'll just work around. It's marked as protected no code outside of this class
-     * can use it, and all code will use the newer `placement` and `anchorTo` properties, which
-     * derive their defaults from this property. Eventually those properties will be set via the
-     * theme, and we'll make sure they are applied normally.
-     */
-    @Property
-    @Deprecated('Use `anchorTo` and/or `placement` options instead.')
-    /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
-    protected type?: TooltipPositionType;
-    /** @todo Remove this when type is removed. */
-    @Property
-    protected _seriesOverrideType?: TooltipPositionType;
+const defaultPlacements: Record<AgTooltipAnchorTo, AgTooltipPlacement> = {
+    pointer: 'top',
+    node: 'top',
+    chart: 'top-left',
+};
 
+export class TooltipPosition extends BaseProperties {
     @Property
     /** The horizontal offset in pixels for the position of the tooltip. */
     xOffset: number = 0;
@@ -153,28 +128,6 @@ export class TooltipPosition extends BaseProperties {
 
     @Property
     placement?: AgTooltipPlacement | AgTooltipPlacement[];
-
-    get defaultAnchorTo(): AgTooltipAnchorTo {
-        const { type, _seriesOverrideType } = this;
-        const defaultType = type ?? _seriesOverrideType ?? 'pointer';
-
-        if (defaultType === 'node' || defaultType === 'pointer') {
-            return defaultType;
-        } else {
-            return 'chart';
-        }
-    }
-
-    get defaultPlacement(): AgTooltipPlacement {
-        const { type, _seriesOverrideType } = this;
-        const defaultType = type ?? _seriesOverrideType ?? 'pointer';
-
-        if (defaultType === 'node' || defaultType === 'pointer') {
-            return 'top';
-        }
-
-        return defaultType;
-    }
 }
 
 export class Tooltip extends BaseProperties {
@@ -283,19 +236,11 @@ export class Tooltip extends BaseProperties {
         const { canvasRect, relativeRect, meta } = positionParams;
         const { x: canvasX, y: canvasY } = this.springAnimation;
 
-        let placements =
-            meta.position?.placement ??
-            this.position.placement ??
-            meta.position?.defaultPlacement ??
-            this.position.defaultPlacement;
+        const anchorTo = meta.position?.anchorTo ?? 'pointer';
+        let placements = meta.position?.placement ?? defaultPlacements[anchorTo];
         if (!Array.isArray(placements)) {
             placements = [placements];
         }
-        const anchorTo =
-            meta.position?.anchorTo ??
-            this.position.anchorTo ??
-            meta.position?.defaultAnchorTo ??
-            this.position.defaultAnchorTo;
         const xOffset = meta.position?.xOffset ?? 0;
         const yOffset = meta.position?.yOffset ?? 0;
 
@@ -385,11 +330,7 @@ export class Tooltip extends BaseProperties {
             meta,
         };
 
-        const anchorTo =
-            meta.position?.anchorTo ??
-            this.position.anchorTo ??
-            meta.position?.defaultAnchorTo ??
-            this.position.defaultAnchorTo;
+        const anchorTo = meta.position?.anchorTo ?? 'pointer';
         switch (anchorTo) {
             case 'node':
                 this.springAnimation.update(meta.nodeCanvasX ?? meta.canvasX, meta.nodeCanvasY ?? meta.canvasY);
