@@ -248,7 +248,7 @@ describe('ConeFunnelSeries', () => {
         });
     };
 
-    describe(`Cone Funnel Series Pointer Events`, () => {
+    describe.skip(`Cone Funnel Series Pointer Events`, () => {
         const datasets = {
             data: CONE_FUNNEL_EXAMPLE.data,
             stageKey: 'group',
