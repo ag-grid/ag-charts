@@ -445,7 +445,9 @@ export class SeriesAreaManager extends BaseManager {
 
         this.focusIndicator?.overrideFocusVisible(false);
 
-        this.onHoverLikeEvent(event);
+        if (current === this.chart.ctx.widgets.seriesWidget) {
+            this.onHoverLikeEvent(event);
+        }
 
         // Do not run chartOptions click handlers if an annotation is selected.
         if (!this.isState(InteractionState.Default)) return;
