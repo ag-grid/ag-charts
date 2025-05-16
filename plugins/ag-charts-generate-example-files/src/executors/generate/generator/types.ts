@@ -20,6 +20,7 @@ export interface ExampleConfig {
     iframeSelector?: string;
 }
 
+// Make sure to update the Astro copy of this interface when making changes.
 export interface GeneratedContents {
     files: FileContents;
     entryFileName: string;
@@ -36,6 +37,11 @@ export interface GeneratedContents {
     generatedFiles: FileContents;
     packageJson: Record<string, any>;
     exampleConfig: ExampleConfig;
+}
+
+// Make sure to update the Astro copy of this interface when making changes.
+export interface ExampleSubstitutions {
+    '${baseWWWUrl}': string;
 }
 
 export type InternalFramework = 'vanilla' | 'typescript' | 'reactFunctional' | 'reactFunctionalTs' | 'angular' | 'vue3';

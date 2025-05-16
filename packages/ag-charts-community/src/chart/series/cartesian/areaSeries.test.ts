@@ -5,6 +5,8 @@ import type {
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
+    AgColorRepeat,
+    AgImageFillFit,
     AgPatternName,
     AgTimeAxisOptions,
 } from 'ag-charts-types';
@@ -813,6 +815,64 @@ describe('AreaSeries', () => {
                 await compare();
 
                 expect(console.warn).toHaveBeenCalledWith(warningMessage);
+            }
+        );
+    });
+
+    describe('image fill', () => {
+        const EXAMPLE = deepClone(examples.SIMPLE_AREA_GRAPH_EXAMPLE);
+
+        it.each(['repeat', 'no-repeat'] as AgColorRepeat[])(
+            'it should create a chart with repeat %s image',
+            async (repetition) => {
+                const series = (EXAMPLE.series as AgAreaSeriesOptions[])[0];
+                const options: AgChartOptions = {
+                    ...EXAMPLE,
+                    series: [
+                        {
+                            ...series,
+                            normalizedTo: 100,
+                            fillOpacity: 1,
+                            fill: {
+                                type: 'image',
+                                url: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
+                                width: 50,
+                                height: 50,
+                                repeat: repetition,
+                            },
+                        },
+                    ] as AgAreaSeriesOptions[],
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await compare();
+            }
+        );
+
+        it.each(['contain', 'cover', 'stretch', 'none'] as AgImageFillFit[])(
+            'it should create a chart with fit %s image',
+            async (fit) => {
+                const series = (EXAMPLE.series as AgAreaSeriesOptions[])[0];
+                const options: AgChartOptions = {
+                    ...EXAMPLE,
+                    series: [
+                        {
+                            ...series,
+                            normalizedTo: 100,
+                            fillOpacity: 1,
+                            fill: {
+                                type: 'image',
+                                url: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/ag-grid-logomark.png`,
+                                fit,
+                            },
+                        },
+                    ] as AgAreaSeriesOptions[],
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await compare();
             }
         );
     });

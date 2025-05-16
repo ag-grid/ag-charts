@@ -48,6 +48,21 @@ Object.defineProperty(CanvasRenderingContext2D.prototype, 'transform', {
     configurable: true,
 });
 
+// https://github.com/Automattic/node-canvas/issues/1852
+const context2dCreatePattern = CanvasRenderingContext2D.prototype.createPattern;
+Object.defineProperty(CanvasRenderingContext2D.prototype, 'createPattern', {
+    value: function createPattern(image: any, repeat: any) {
+        const pattern = context2dCreatePattern.call(this, image, repeat);
+        if (image instanceof Image) {
+            (pattern as any).__skipSetTransformWorkaround = true;
+        }
+        return pattern;
+    },
+    enumerable: false,
+    writable: true,
+    configurable: true,
+});
+
 const canvasPatternSetTransform = CanvasPattern.prototype.setTransform;
 Object.defineProperty(CanvasPattern.prototype, 'setTransform', {
     value: function setTransform(matrix: DOMMatrix) {

@@ -8,6 +8,7 @@ export interface ExampleSettings {
 
 export type FileContents = Record<string, string>;
 
+// Make sure to update the Nx plugin copy of this interface when making changes.
 export interface GeneratedContents {
     files: FileContents;
     entryFileName: string;
@@ -23,6 +24,11 @@ export interface GeneratedContents {
     providedExamples: FileContents;
     generatedFiles: FileContents;
     packageJson: Record<string, any>;
+}
+
+// Make sure to update the Nx plugin copy of this interface when making changes.
+export interface ExampleSubstitutions {
+    '${baseWWWUrl}': string;
 }
 
 export type InternalFramework = 'vanilla' | 'typescript' | 'reactFunctional' | 'reactFunctionalTs' | 'angular' | 'vue3';

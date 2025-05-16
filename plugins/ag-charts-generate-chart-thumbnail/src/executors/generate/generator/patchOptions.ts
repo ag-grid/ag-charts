@@ -1,4 +1,8 @@
+import * as fs from 'fs';
+
 import type { AgCartesianChartOptions, AgChartOptions, AgChartTheme, AgChartThemeName } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
+import { ExampleSubstitutions } from 'ag-charts-generate-example-files';
 
 export function patchOptions(
     options: AgChartOptions,
@@ -79,4 +83,57 @@ export function patchOptions(
             left: 20,
         };
     }
+
+    return maybeApplySubstitutions(options);
 }
+
+const DEFAULT_SUBSTITUTIONS: ExampleSubstitutions = {
+    '${baseWWWUrl}': `${process.cwd()}/packages/ag-charts-website/public`,
+};
+
+const maybeApplySubstitutions = (node: unknown) => {
+    if (typeof node === 'object') {
+        _ModuleSupport.jsonWalk(node, (nodes) => {
+            for (const key of Object.keys(nodes)) {
+                const value = nodes[key];
+                if (typeof value === 'string') {
+                    // Inline static string case.
+                    nodes[key] = applySubstitutions(value, DEFAULT_SUBSTITUTIONS);
+                } else if (typeof value === 'function') {
+                    // Callback function case (apply substitutions to the result).
+                    nodes[key] = (...args) => {
+                        return maybeApplySubstitutions(value(...args));
+                    };
+                }
+            }
+        });
+    } else if (typeof node === 'string') {
+        return applySubstitutions(node, DEFAULT_SUBSTITUTIONS);
+    }
+
+    return node;
+};
+
+const applySubstitutions = (content: string, substitutions?: ExampleSubstitutions) => {
+    if (content == null || substitutions == null || !content.includes('${')) {
+        return content;
+    }
+
+    Object.keys(substitutions).forEach((key) => {
+        const value = substitutions[key];
+        if (value == null) {
+            throw new Error(`Substitution value is null for key: ${key}`);
+        }
+
+        content = content.replace(key, value);
+
+        // Inline images to simplify processing.
+        if (content.endsWith('.png') || content.endsWith('.svg')) {
+            const imageBuffer = fs.readFileSync(content);
+            const imageType = content.endsWith('.png') ? 'png' : 'svg+xml';
+            content = `data:image/${imageType};base64,${imageBuffer.toString('base64')}`;
+        }
+    });
+
+    return content;
+};

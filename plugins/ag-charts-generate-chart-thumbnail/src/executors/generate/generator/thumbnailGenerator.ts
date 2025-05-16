@@ -76,11 +76,11 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
         mockCanvas.setup(mockCtx);
         /* End TODO */
 
-        const options = optionsById.get(id);
+        let options = optionsById.get(id);
         if (options == null) {
             throw new Error(`No options found for container with id "${id}"`);
         }
-        patchOptions(options, theme, output.multiple, api);
+        options = patchOptions(options, theme, output.multiple, api);
 
         const containerWidth = (DEFAULT_THUMBNAIL_WIDTH / columns) | 0;
         const containerHeight = (DEFAULT_THUMBNAIL_HEIGHT / rows) | 0;
