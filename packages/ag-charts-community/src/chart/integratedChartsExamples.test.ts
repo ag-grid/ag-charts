@@ -47,13 +47,6 @@ describe('Integrated Charts Examples', () => {
             index++;
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                const compare = async () => {
-                    await waitForChartStability(chart);
-
-                    const imageData = extractImageData(ctx);
-                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
-                };
-
                 const startingOptions: AgChartOptions = EXAMPLES[index - 1]?.options ?? {};
                 prepareTestOptions(startingOptions);
 
