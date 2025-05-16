@@ -1784,9 +1784,6 @@ export const CATEGORY_LINE_ANIMATION_QUARTERS = Array.from({ length: 14 }, (_, i
 
 const CATEGORY_LINE_ANIMATION: AgCartesianChartOptions = {
     theme: BASE_THEME,
-    animation: {
-        enabled: true,
-    },
     data: [
         { quarter: CATEGORY_LINE_ANIMATION_QUARTERS[3], week: 3, iphone: 60, android: 50 },
         { quarter: CATEGORY_LINE_ANIMATION_QUARTERS[4], week: 4, iphone: 185, android: 90 },
