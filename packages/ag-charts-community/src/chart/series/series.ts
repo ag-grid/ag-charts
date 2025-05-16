@@ -509,6 +509,8 @@ export abstract class Series<
         return Infinity;
     }
 
+    abstract dataCount(): number;
+
     // Get the 'community' domain (excluding any additional data from series-option modules).
     abstract getSeriesDomain(direction: ChartAxisDirection): any[];
 

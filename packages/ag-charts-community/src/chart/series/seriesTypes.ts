@@ -43,6 +43,7 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     getDomain(direction: ChartAxisDirection): any[];
     getRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[];
     getVisibleItems(xVisibleRange: [number, number], yVisibleRange: [number, number], minVisibleItems: number): number;
+    dataCount(): number;
     shouldFlipXY?: () => boolean;
     getKeys(direction: ChartAxisDirection): string[];
     getKeyProperties(direction: ChartAxisDirection): string[];

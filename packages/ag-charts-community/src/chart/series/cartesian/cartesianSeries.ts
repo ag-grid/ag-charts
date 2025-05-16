@@ -19,8 +19,8 @@ import { findMinMax } from '../../../util/number';
 import { Property } from '../../../util/properties';
 import { StateMachine } from '../../../util/stateMachine';
 import { CategoryAxis } from '../../axis/categoryAxis';
+import { ContinuousTimeAxis } from '../../axis/continuousTimeAxis';
 import { NumberAxis } from '../../axis/numberAxis';
-import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -1159,7 +1159,7 @@ function axisExtent(axis: ChartAxis): [number | Date, number | Date] | undefined
     let min: number | Date | undefined;
     let max: number | Date | undefined;
 
-    if (axis instanceof NumberAxis || axis instanceof TimeAxis) {
+    if (axis instanceof NumberAxis || axis instanceof ContinuousTimeAxis) {
         ({ min, max } = axis);
     }
 

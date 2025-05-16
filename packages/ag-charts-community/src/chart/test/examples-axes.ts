@@ -239,7 +239,7 @@ export const AXIS_TICK_MIN_SPACING: AgCartesianChartOptions = {
     ...examples.ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS,
     axes: [
         {
-            type: 'time',
+            type: 'continuous-time',
             position: 'bottom',
             interval: { minSpacing: 200 },
         },

@@ -23,6 +23,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           },
         ],
       },
+      "groupPaddingInner": 0.1,
       "interval": {
         "step": {
           "step": 10,
@@ -31,13 +32,22 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       },
       "keys": [],
       "label": {
+        "autoRotate": false,
         "avoidCollisions": true,
         "color": "#3f7cbf",
         "enabled": true,
         "fontFamily": "Impact, Charcoal, Sans-Serif",
         "fontSize": 14,
         "fontWeight": "bold",
-        "format": {},
+        "format": {
+          "day": "%e",
+          "hour": "%H:%M",
+          "millisecond": "%H:%M:%S.%L",
+          "minute": "%H:%M",
+          "month": "%b",
+          "second": "%H:%M:%S",
+          "year": "%Y",
+        },
         "rotation": -30,
         "spacing": 11,
       },
@@ -48,7 +58,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       },
       "nice": false,
       "parentLevel": {
-        "enabled": false,
+        "enabled": true,
         "label": {
           "avoidCollisions": true,
           "color": "#3f7cbf",
@@ -2915,8 +2925,10 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           },
         ],
       },
+      "groupPaddingInner": 0.1,
       "keys": [],
       "label": {
+        "autoRotate": false,
         "avoidCollisions": true,
         "color": "#464646",
         "enabled": true,
@@ -2932,7 +2944,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "width": 1,
       },
       "parentLevel": {
-        "enabled": false,
+        "enabled": true,
         "label": {
           "avoidCollisions": true,
           "color": "#464646",
@@ -11035,6 +11047,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           },
         ],
       },
+      "groupPaddingInner": 0.1,
       "interval": {
         "step": {
           "step": 2,
@@ -11043,13 +11056,22 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "keys": [],
       "label": {
+        "autoRotate": false,
         "avoidCollisions": true,
         "color": "#464646",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "format": {},
+        "format": {
+          "day": "%e",
+          "hour": "%H:%M",
+          "millisecond": "%H:%M:%S.%L",
+          "minute": "%H:%M",
+          "month": "%b",
+          "second": "%H:%M:%S",
+          "year": "%Y",
+        },
         "spacing": 11,
       },
       "line": {
@@ -11058,7 +11080,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "width": 1,
       },
       "parentLevel": {
-        "enabled": false,
+        "enabled": true,
         "label": {
           "avoidCollisions": true,
           "color": "#464646",
@@ -12279,6 +12301,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           },
         ],
       },
+      "groupPaddingInner": 0.1,
       "interval": {
         "step": {
           "step": 2,
@@ -12294,7 +12317,15 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
-        "format": {},
+        "format": {
+          "day": "%e",
+          "hour": "%H:%M",
+          "millisecond": "%H:%M:%S.%L",
+          "minute": "%H:%M",
+          "month": "%b",
+          "second": "%H:%M:%S",
+          "year": "%Y",
+        },
         "spacing": 11,
       },
       "line": {
@@ -12303,7 +12334,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "width": 1,
       },
       "parentLevel": {
-        "enabled": false,
+        "enabled": true,
         "label": {
           "avoidCollisions": true,
           "color": "#464646",
@@ -13156,6 +13187,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           },
         ],
       },
+      "groupPaddingInner": 0.1,
       "interval": {
         "step": "month",
       },
@@ -13177,7 +13209,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "width": 1,
       },
       "parentLevel": {
-        "enabled": false,
+        "enabled": true,
         "label": {
           "avoidCollisions": true,
           "color": "#464646",

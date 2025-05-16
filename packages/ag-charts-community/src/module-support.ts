@@ -166,7 +166,7 @@ export * from './scale/categoryScale';
 export * from './scale/continuousScale';
 export * from './scale/discreteTimeScale';
 export * from './scale/ordinalTimeScale';
-export * from './scale/unitTimeScale';
+export * from './scale/continuousTimeScale';
 export * from './scale/colorScale';
 export * from './scale/linearScale';
 export * from './scale/scale';

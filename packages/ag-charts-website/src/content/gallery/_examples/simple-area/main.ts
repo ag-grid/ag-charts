@@ -35,7 +35,6 @@ const options: AgChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            unit: 'day',
             label: {
                 formatter: ({ value }) => {
                     const day = value.getDate();

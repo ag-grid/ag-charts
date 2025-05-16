@@ -41,6 +41,10 @@ export abstract class DataModelSeries<
         this.clipFocusBox = clipFocusBox ?? true;
     }
 
+    dataCount() {
+        return this.processedData?.dataSources?.get(this.id)?.length ?? 0;
+    }
+
     protected getScaleInformation({
         xScale,
         yScale,
