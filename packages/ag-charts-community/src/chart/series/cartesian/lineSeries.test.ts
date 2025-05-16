@@ -156,7 +156,7 @@ describe('LineSeries', () => {
     const compare = async () => {
         await waitForChartStability(chart);
 
-        const imageData = extractImageData(ctx);
+        const imageData = await extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
@@ -526,7 +526,7 @@ describe('LineSeries', () => {
             // TODO: replace with `compare()` with 0 percent threshold
             await waitForChartStability(chart);
 
-            const imageData = extractImageData(ctx);
+            const imageData = await extractImageData(ctx);
             expect(imageData).toMatchImageSnapshot({
                 failureThreshold: 0,
                 failureThresholdType: 'percent',
@@ -568,7 +568,7 @@ describe('LineSeries', () => {
             // TODO: replace with `compare()` with 0 percent threshold
             await waitForChartStability(chart);
 
-            const imageData = extractImageData(ctx);
+            const imageData = await extractImageData(ctx);
             expect(imageData).toMatchImageSnapshot({
                 failureThreshold: 0,
                 failureThresholdType: 'percent',
@@ -601,7 +601,7 @@ describe('LineSeries', () => {
 
             await chart.setState(state);
 
-            const imageData = extractImageData(ctx);
+            const imageData = await extractImageData(ctx);
             expect(imageData).toMatchImageSnapshot();
         });
     });

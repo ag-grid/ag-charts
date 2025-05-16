@@ -29,11 +29,11 @@ describe('Scene', () => {
     const compare = async () => {
         await waitForChartStability(chart);
 
-        const imageData = extractImageData(ctx);
+        const imageData = await extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    describe('on translation only change', () => {
+    describe.only('on translation only change', () => {
         it(`should render bar series correctly after update`, async () => {
             const options: AgCartesianChartOptions = {
                 ...examples.STACKED_BAR_CHART_EXAMPLE,

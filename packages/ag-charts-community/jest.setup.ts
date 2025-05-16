@@ -1,22 +1,21 @@
 import { expect } from '@jest/globals';
-import { CanvasRenderingContext2D, DOMMatrix, Image } from 'canvas';
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
-import { Path2D, applyPath2DToCanvasRenderingContext } from 'path2d';
+import { Canvas, DOMMatrix, Path2D } from 'skia-canvas';
 import { URL } from 'url';
 import { TextDecoder, TextEncoder } from 'util';
 
 import { toMatchImage } from './src/chart/test/utils';
 
+// Canvas globals
+// note if we're using the JSDom setup, these are already set - and must not be reset
+// @ts-expect-error types don't exactly align
+global.OffscreenCanvas ??= Canvas;
+// @ts-expect-error types don't exactly align
+global.DOMMatrix ??= DOMMatrix;
+// @ts-expect-error types don't exactly align
+global.Path2D ??= Path2D;
+
 global.Blob = Blob;
-
-// @ts-expect-error types don't exactly align
-global.DOMMatrix = DOMMatrix;
-
-// @ts-expect-error types don't exactly align
-global.Image = Image;
-
-// @ts-expect-error types don't exactly align
-global.Path2D = Path2D;
 
 // @ts-expect-error types don't exactly align
 global.TextDecoder = TextDecoder;
@@ -37,8 +36,6 @@ global.HTMLElement.prototype.togglePopover = function (visible) {
 
     return visible;
 };
-
-applyPath2DToCanvasRenderingContext(CanvasRenderingContext2D);
 
 declare module 'expect' {
     interface Matchers<R> {

@@ -127,23 +127,23 @@ describe('Log Axis Examples', () => {
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
-            const axisCompare = () => {
+            const axisCompare = async () => {
                 for (const axis of chart.axes) {
                     if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
                         continue;
                     }
 
-                    const imageData = extractImageData({ ...ctx, bbox: axis.getBBox() });
+                    const imageData = await extractImageData({ ...ctx, bbox: axis.getBBox() });
                     expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
                 }
             };
 
             chart = await createChart(example.options);
-            axisCompare();
+            await axisCompare();
 
             if (example.extraScreenshotActions) {
                 await example.extraScreenshotActions(chart);
-                axisCompare();
+                await axisCompare();
             }
         });
     }

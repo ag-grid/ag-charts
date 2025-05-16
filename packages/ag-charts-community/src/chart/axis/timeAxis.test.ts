@@ -519,7 +519,7 @@ describe('Time Axis Examples', () => {
                     await waitForChartStability(chart);
                     const axisBbox = calculateAxisBBox(axis);
 
-                    const imageData = extractImageData({ ...ctx, bbox: axisBbox });
+                    const imageData = await extractImageData({ ...ctx, bbox: axisBbox });
 
                     expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
                 }

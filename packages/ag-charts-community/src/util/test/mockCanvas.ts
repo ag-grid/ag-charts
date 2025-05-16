@@ -1,4 +1,3 @@
-import { Canvas, type PngConfig, createCanvas } from 'canvas';
 import * as fs from 'fs';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
@@ -8,13 +7,17 @@ import { mockCanvas } from 'ag-charts-test';
 
 export const CANVAS_WIDTH = 800;
 export const CANVAS_HEIGHT = 600;
-export const CANVAS_TO_BUFFER_DEFAULTS: PngConfig = { compressionLevel: 6, filters: new Canvas(0, 0).PNG_NO_FILTERS };
+
+interface NodeCanvas extends OffscreenCanvas {
+    readonly png: Promise<Buffer>;
+    toBuffer(format: 'png'): Promise<Buffer>;
+}
 
 export function extractImageData({
     nodeCanvas,
     bbox,
 }: {
-    nodeCanvas: Canvas;
+    nodeCanvas: NodeCanvas;
     bbox?: { x: number; y: number; width: number; height: number };
 }) {
     let sourceCanvas = nodeCanvas;
@@ -26,10 +29,10 @@ export function extractImageData({
             throw new Error('Invalid image size provided, dimensions must be greater than zero.');
         }
 
-        sourceCanvas = createCanvas(width, height);
+        sourceCanvas = new OffscreenCanvas(width, height) as any;
         sourceCanvas
-            ?.getContext('2d')
-            .drawImage(
+            .getContext('2d')
+            ?.drawImage(
                 nodeCanvas,
                 Math.round(x),
                 Math.round(y),
@@ -42,15 +45,17 @@ export function extractImageData({
             );
     }
 
-    return sourceCanvas?.toBuffer('image/png', CANVAS_TO_BUFFER_DEFAULTS);
+    return (sourceCanvas as any)?.png;
 }
 
-export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT } = {}): {
-    nodeCanvas: Canvas;
+interface MockCanvas {
+    nodeCanvas: NodeCanvas;
     getRenderContext2D: () => CanvasRenderingContext2D;
-    getActiveCanvasInstances: () => Canvas[];
+    getActiveCanvasInstances: () => OffscreenCanvas[];
     getActiveOffscreenCanvasInstances: () => OffscreenCanvas[];
-} {
+}
+
+export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT } = {}): MockCanvas {
     const mockCtx: mockCanvas.MockContext = new mockCanvas.MockContext(width, height, document);
     mockCtx.mockText = true;
 
@@ -64,7 +69,7 @@ export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT }
         mockCanvas.teardown(mockCtx);
     });
 
-    return mockCtx.ctx;
+    return mockCtx.ctx as MockCanvas;
 }
 
 export function toMatchImage(this: any, actual: Buffer, expected: Buffer, { writeDiff = true } = {}) {

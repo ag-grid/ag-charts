@@ -155,7 +155,7 @@ describe('Grouped Category Axis Examples', () => {
     const compare = async () => {
         await waitForChartStability(chart);
 
-        const newImageData = extractImageData(ctx);
+        const newImageData = await extractImageData(ctx);
         expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 

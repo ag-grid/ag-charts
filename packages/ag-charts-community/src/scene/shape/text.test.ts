@@ -216,7 +216,7 @@ describe('Text', () => {
             },
         ];
 
-        it('should render as expected', () => {
+        it('should render as expected', async () => {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.strokeStyle = 'black';
@@ -255,11 +255,11 @@ describe('Text', () => {
                 }
             }
 
-            const imageData = extractImageData(canvasCtx);
+            const imageData = await extractImageData(canvasCtx);
             expect(imageData).toMatchImageSnapshot();
         });
 
-        it('should wrap and render as expected', () => {
+        it('should wrap and render as expected', async () => {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.strokeStyle = 'black';
@@ -313,7 +313,7 @@ describe('Text', () => {
                 }
             }
 
-            const imageData = extractImageData(canvasCtx);
+            const imageData = await extractImageData(canvasCtx);
             expect(imageData).toMatchImageSnapshot();
         });
     });

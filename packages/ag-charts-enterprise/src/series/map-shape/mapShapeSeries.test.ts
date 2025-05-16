@@ -66,7 +66,7 @@ describe('MapShapeSeries', () => {
     const compare = async (options?: MatchImageSnapshotOptions) => {
         await waitForChartStability(chart);
 
-        const imageData = extractImageData(ctx);
+        const imageData = await extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
     };
 

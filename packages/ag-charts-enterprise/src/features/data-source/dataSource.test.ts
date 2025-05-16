@@ -98,7 +98,7 @@ describe('DataSource', () => {
         await delay((EXAMPLE_OPTIONS.dataSource as any).requestThrottle);
         await waitForChartStability(chart);
 
-        const imageData = extractImageData(ctx);
+        const imageData = await extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot();
     };
 

@@ -22,7 +22,7 @@ describe('PieSeries', () => {
     const compareSnapshot = async () => {
         await waitForChartStability(chart);
 
-        const imageData = extractImageData(ctx);
+        const imageData = await extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 

@@ -31,7 +31,7 @@ describe('BackgroundImage', () => {
     const compare = async (chartInstance: AgChartInstance) => {
         await waitForChartStability(chartInstance);
 
-        const imageData = extractImageData(ctx);
+        const imageData = await extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 

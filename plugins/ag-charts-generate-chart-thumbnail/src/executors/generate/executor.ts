@@ -1,9 +1,8 @@
 /* eslint-disable no-console */
 import type { ExecutorContext } from '@nx/devkit';
 import { consolePrefix, ensureDirectory, readJSONFile } from 'ag-shared/plugin-utils';
-import { Canvas, CanvasRenderingContext2D, DOMMatrix, Image } from 'canvas';
 import path from 'path';
-import { Path2D, applyPath2DToCanvasRenderingContext } from 'path2d';
+import { Canvas, DOMMatrix, Image, Path2D } from 'skia-canvas';
 
 import type { AgChartThemeName } from 'ag-charts-community';
 
@@ -13,8 +12,6 @@ global.Path2D = Path2D;
 global.DOMMatrix = DOMMatrix as any;
 global.Image = Image as any;
 global.OffscreenCanvas = Canvas as any;
-
-applyPath2DToCanvasRenderingContext(CanvasRenderingContext2D);
 
 export type ExecutorOptions = {
     outputPath: string;

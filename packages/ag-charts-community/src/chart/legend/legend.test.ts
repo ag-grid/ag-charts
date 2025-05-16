@@ -129,13 +129,13 @@ describe('Legend', () => {
     const compare = async (chartInstance: Chart, customSnapshotIdentifier?: string) => {
         await waitForChartStability(chartInstance);
 
-        const imageData = extractImageData(ctx);
+        const imageData = await extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, customSnapshotIdentifier });
     };
 
     const compareSnapshot = async (options: AgChartOptions) => {
         chart = await createChart(options);
-        const imageData = extractImageData(ctx);
+        const imageData = await extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 

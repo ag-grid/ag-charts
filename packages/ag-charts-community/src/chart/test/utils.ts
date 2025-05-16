@@ -19,7 +19,6 @@ import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
 import {
     CANVAS_HEIGHT,
-    CANVAS_TO_BUFFER_DEFAULTS,
     CANVAS_WIDTH,
     extractImageData,
     setupMockCanvas,
@@ -725,7 +724,7 @@ export function twoFingerEnd(
     ]);
 }
 
-export { setupMockCanvas, toMatchImage, CANVAS_TO_BUFFER_DEFAULTS, extractImageData };
+export { setupMockCanvas, toMatchImage, extractImageData };
 
 export async function createChart(options: AgChartOptions) {
     options = prepareTestOptions({ ...options });

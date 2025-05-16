@@ -203,7 +203,7 @@ describe('CartesianChart', () => {
     const compare = async (chartInstance: Chart, options?: MatchImageSnapshotOptions) => {
         await waitForChartStability(chartInstance);
 
-        const imageData = extractImageData(ctx);
+        const imageData = await extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
     };
 

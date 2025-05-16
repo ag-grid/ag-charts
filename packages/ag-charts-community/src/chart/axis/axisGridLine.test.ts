@@ -29,7 +29,7 @@ describe('AxisGridLine', () => {
     const compare = async () => {
         await waitForChartStability(chart);
 
-        const newImageData = extractImageData(ctx);
+        const newImageData = await extractImageData(ctx);
         expect(newImageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 

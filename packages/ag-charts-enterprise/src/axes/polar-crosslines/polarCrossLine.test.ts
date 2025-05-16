@@ -21,7 +21,7 @@ const compare = async (chart: TChart | AgChartInstance | undefined, ctx: TCtx) =
     if (chart === undefined) return;
 
     await waitForChartStability(chart as TChart);
-    const imageData = extractImageData(ctx);
+    const imageData = await extractImageData(ctx);
     expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
 };
 

@@ -310,13 +310,13 @@ describe('Axis Examples', () => {
 
     const snapshot = async () => {
         await waitForChartStability(chart);
-        return ctx.nodeCanvas?.toBuffer('raw');
+        return ctx.nodeCanvas?.toBuffer('png');
     };
 
     const compare = async () => {
         await waitForChartStability(chart);
 
-        const newImageData = extractImageData(ctx);
+        const newImageData = await extractImageData(ctx);
         expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
@@ -327,25 +327,25 @@ describe('Axis Examples', () => {
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
-            const axisCompare = () => {
+            const axisCompare = async () => {
                 for (const axis of deproxy(chart).axes) {
                     if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
                         continue;
                     }
 
                     const axesBBox = calculateAxisBBox(axis);
-                    const imageData = extractImageData({ ...ctx, bbox: axesBBox });
+                    const imageData = await extractImageData({ ...ctx, bbox: axesBBox });
 
                     expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
                 }
             };
 
             chart = await createChart(example.options);
-            axisCompare();
+            await axisCompare();
 
             if (example.extraScreenshotActions) {
                 await example.extraScreenshotActions(chart);
-                axisCompare();
+                await axisCompare();
             }
         });
     }

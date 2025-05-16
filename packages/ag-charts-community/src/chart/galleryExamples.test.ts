@@ -48,7 +48,7 @@ describe('Gallery Examples', () => {
                 const compare = async () => {
                     await waitForChartStability(chart);
 
-                    const imageData = extractImageData(ctx);
+                    const imageData = await extractImageData(ctx);
                     expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
                 };
 
@@ -95,7 +95,7 @@ describe('Gallery Examples', () => {
                 const snapshot = async () => {
                     await waitForChartStability(chart);
 
-                    return ctx.nodeCanvas.toBuffer('raw');
+                    return ctx.nodeCanvas.toBuffer('png');
                 };
 
                 await chart.update(options);

@@ -62,7 +62,7 @@ describe('Range', () => {
             })),
         ];
 
-        it('should render as expected', () => {
+        it('should render as expected', async () => {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.canvas.width = CANVAS_WIDTH;
             ctx.fillStyle = 'white';
@@ -105,7 +105,7 @@ describe('Range', () => {
             }
 
             // Check rendering.
-            const imageData = extractImageData(canvasCtx);
+            const imageData = await extractImageData(canvasCtx);
             expect(imageData).toMatchImageSnapshot();
         });
     });

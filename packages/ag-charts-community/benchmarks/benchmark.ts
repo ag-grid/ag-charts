@@ -138,7 +138,7 @@ export function benchmark(
 
             const { autoSnapshot, ...expected } = expectations;
             if (autoSnapshot ?? true) {
-                const newImageData = extractImageData(ctx.canvasCtx);
+                const newImageData = await extractImageData(ctx.canvasCtx);
                 expect(newImageData).toMatchImageSnapshot({ failureThresholdType: 'pixel', failureThreshold: 5 });
             }
 

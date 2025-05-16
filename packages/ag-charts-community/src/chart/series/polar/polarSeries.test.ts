@@ -109,7 +109,7 @@ describe('PolarSeries', () => {
     const compare = async () => {
         await waitForChartStability(chart);
 
-        const imageData = extractImageData(ctx);
+        const imageData = await extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
@@ -234,7 +234,7 @@ describe('PolarSeries', () => {
             const snapshot = async () => {
                 await waitForChartStability(chart);
 
-                return ctx.nodeCanvas?.toBuffer('raw');
+                return ctx.nodeCanvas?.toBuffer('png');
             };
 
             const options: AgPolarChartOptions = { ...examples.PIE_SERIES };

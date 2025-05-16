@@ -84,7 +84,7 @@ describe('Time Axis Examples', () => {
             const { width, height } = axisBbox;
 
             if (width >= 1 && height >= 1) {
-                const imageData = extractImageData({ ...ctx, bbox: axisBbox });
+                const imageData = await extractImageData({ ...ctx, bbox: axisBbox });
                 expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
             }
         }

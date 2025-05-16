@@ -321,7 +321,7 @@ describe('Rect', () => {
             })(),
         ];
 
-        it('should render as expected', () => {
+        it('should render as expected', async () => {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
@@ -365,7 +365,7 @@ describe('Rect', () => {
             }
 
             // Check rendering.
-            const imageData = extractImageData(canvasCtx);
+            const imageData = await extractImageData(canvasCtx);
             expect(imageData).toMatchImageSnapshot();
         });
     });

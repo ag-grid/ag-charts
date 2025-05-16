@@ -394,7 +394,7 @@ describe('Shape', () => {
             ],
         ];
 
-        it('should render stock patterns as expected', () => {
+        it('should render stock patterns as expected', async () => {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
@@ -438,11 +438,11 @@ describe('Shape', () => {
             }
 
             // Check rendering.
-            const imageData = extractImageData(canvasCtx);
+            const imageData = await extractImageData(canvasCtx);
             expect(imageData).toMatchImageSnapshot();
         });
 
-        it('should render stock patterns with rotation as expected', () => {
+        it('should render stock patterns with rotation as expected', async () => {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
@@ -486,11 +486,11 @@ describe('Shape', () => {
             }
 
             // Check rendering.
-            const imageData = extractImageData(canvasCtx);
+            const imageData = await extractImageData(canvasCtx);
             expect(imageData).toMatchImageSnapshot();
         });
 
-        it('should render stock patterns with configured dimensions as expected', () => {
+        it('should render stock patterns with configured dimensions as expected', async () => {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
@@ -534,11 +534,11 @@ describe('Shape', () => {
             }
 
             // Check rendering.
-            const imageData = extractImageData(canvasCtx);
+            const imageData = await extractImageData(canvasCtx);
             expect(imageData).toMatchImageSnapshot();
         });
 
-        it('should render custom patterns as expected', () => {
+        it('should render custom patterns as expected', async () => {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
@@ -582,11 +582,11 @@ describe('Shape', () => {
             }
 
             // Check rendering.
-            const imageData = extractImageData(canvasCtx);
+            const imageData = await extractImageData(canvasCtx);
             expect(imageData).toMatchImageSnapshot();
         });
 
-        it('should render custom svg patterns as expected', () => {
+        it('should render custom svg patterns as expected', async () => {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
@@ -630,11 +630,11 @@ describe('Shape', () => {
             }
 
             // Check rendering.
-            const imageData = extractImageData(canvasCtx);
+            const imageData = await extractImageData(canvasCtx);
             expect(imageData).toMatchImageSnapshot();
         });
 
-        it('should render more complex custom svg path patterns as expected', () => {
+        it('should render more complex custom svg path patterns as expected', async () => {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
@@ -678,11 +678,11 @@ describe('Shape', () => {
             }
 
             // Check rendering.
-            const imageData = extractImageData(canvasCtx);
+            const imageData = await extractImageData(canvasCtx);
             expect(imageData).toMatchImageSnapshot();
         });
 
-        it('should render custom svg path patterns with elliptical arcs as expected', () => {
+        it('should render custom svg path patterns with elliptical arcs as expected', async () => {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
@@ -726,7 +726,7 @@ describe('Shape', () => {
             }
 
             // Check rendering.
-            const imageData = extractImageData(canvasCtx);
+            const imageData = await extractImageData(canvasCtx);
             expect(imageData).toMatchImageSnapshot();
         });
     });

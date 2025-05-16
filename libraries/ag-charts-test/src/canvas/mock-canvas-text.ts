@@ -1,4 +1,4 @@
-import { CanvasRenderingContext2D } from 'canvas';
+// import { CanvasRenderingContext2D, TextMetrics } from 'skia-canvas';
 
 export function mockCanvasText(context: CanvasRenderingContext2D): CanvasRenderingContext2D {
     // Returning a proxy doesn't seem to work here
