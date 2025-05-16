@@ -82,7 +82,7 @@ export class Text<D = any> extends Shape<D> {
         x: number,
         y: number,
         opts: MeasureOptions,
-        useGlyphIndependentMeasurements: boolean = false
+        useGlyphIndependentMeasurements: boolean = true
     ): BBox {
         const {
             font,
@@ -134,7 +134,7 @@ export class Text<D = any> extends Shape<D> {
         return bbox;
     }
 
-    override getBBox(useGlyphIndependentMeasurements: boolean = false): BBox {
+    override getBBox(useGlyphIndependentMeasurements: boolean = true): BBox {
         if (useGlyphIndependentMeasurements) {
             externUseGlyphIndependentMeasurements = true;
             const bbox = this.computeBBox(true);
