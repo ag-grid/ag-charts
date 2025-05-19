@@ -2517,12 +2517,14 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     ],
     series: [
         {
+            type: 'line',
             data: DATA_TIME_SENSOR,
             xKey: 'time',
             yKey: 'sensor',
             yName: 'Internal',
         },
         {
+            type: 'line',
             data: DATA_SINGLE_DATUM_TIME_SENSOR,
             xKey: 'time',
             yKey: 'sensor',
@@ -2547,12 +2549,14 @@ export const LINE_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions = {
     ],
     series: [
         {
+            type: 'line',
             data: DATA_TIME_SENSOR,
             yKey: 'time',
             xKey: 'sensor',
             yName: 'Internal',
         },
         {
+            type: 'line',
             data: DATA_SINGLE_DATUM_TIME_SENSOR,
             yKey: 'time',
             xKey: 'sensor',
@@ -2638,6 +2642,7 @@ export const LINE_NUMBER_AXES_0_X_DOMAIN: AgCartesianChartOptions = {
     ],
     series: [
         {
+            type: 'line',
             data: DATA_TIME_SENSOR.map((datum) => {
                 return { ...datum, time: 0 };
             }),
@@ -2646,6 +2651,7 @@ export const LINE_NUMBER_AXES_0_X_DOMAIN: AgCartesianChartOptions = {
             yName: 'Internal',
         },
         {
+            type: 'line',
             data: DATA_SINGLE_DATUM_TIME_SENSOR.map((datum) => {
                 return { ...datum, time: 0 };
             }),
@@ -2672,6 +2678,7 @@ export const LINE_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions = {
     ],
     series: [
         {
+            type: 'line',
             data: DATA_TIME_SENSOR.map((datum) => {
                 return { ...datum, time: 0 };
             }),
@@ -2680,6 +2687,7 @@ export const LINE_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions = {
             yName: 'Internal',
         },
         {
+            type: 'line',
             data: DATA_SINGLE_DATUM_TIME_SENSOR.map((datum) => {
                 return { ...datum, time: 0 };
             }),

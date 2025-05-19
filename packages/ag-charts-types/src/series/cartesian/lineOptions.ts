@@ -74,7 +74,7 @@ export interface AgLineSeriesOptions<TDatum = any>
         AgLineSeriesOptionsNames,
         AgLineSeriesThemeableOptions<TDatum> {
     /** Configuration for the Line Series. */
-    type?: 'line';
+    type: 'line';
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions<TDatum>;
     /** The number to normalise the line stacks to. For example, if `normalizedTo` is set to `100`, the stacks will all be scaled proportionally so that their total height is always 100. */

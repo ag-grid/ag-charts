@@ -665,7 +665,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private getSeriesGrouping(allSeries: GroupingSeriesOptions[]) {
         const groupMap = new Map<string, SeriesGroup>();
         return allSeries.reduce<SeriesGroup[]>((result, series) => {
-            const seriesType = series.type!;
+            const seriesType = series.type;
             if (!series.stacked && !series.grouped) {
                 result.push({ groupType: GroupingType.DEFAULT, seriesType, series: [series], groupId: '__default__' });
             } else {

@@ -3,14 +3,14 @@ import type { AgChartOptions } from 'ag-charts-types';
 
 import type { LegendModule, RootModule } from '../../module/coreModules';
 import { moduleRegistry } from '../../module/module';
-import { isAgGaugeChartOptions, optionsType } from '../mapping/types';
+import { isAgGaugeChartOptions } from '../mapping/types';
 import { chartTypes } from './chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './expectedEnterpriseModules';
 
 export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(options: T, silent?: boolean) {
     let usedOptions: string[] = [];
     const isGaugeChart = isAgGaugeChartOptions(options);
-    const optsType = optionsType(options);
+    const optsType = options?.series?.[0]?.type;
     const optionsChartType = optsType ? chartTypes.get(optsType) : 'unknown';
     for (const module of EXPECTED_ENTERPRISE_MODULES) {
         if (optionsChartType !== 'unknown' && !module.chartTypes.includes(optionsChartType)) continue;
@@ -73,8 +73,9 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
 
             usedOptions.push(`series.${module.optionsKey}`);
             options.series.forEach((series) => {
-                if (series[module.optionsKey as keyof typeof series]) {
-                    delete series[module.optionsKey as keyof typeof series];
+                type SeriesModuleKey = Exclude<keyof typeof series, 'type'>;
+                if (series[module.optionsKey as SeriesModuleKey]) {
+                    delete series[module.optionsKey as SeriesModuleKey];
                 }
             });
         }

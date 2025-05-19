@@ -28,9 +28,9 @@ function getSeriesOptions(seriesType: string, mapper?: <T>(series: T) => T) {
     return mapper ? seriesOptions.map(mapper) : seriesOptions;
 }
 
-function switchSeriesType(
+function setSeriesType(
     type: 'bar' | 'line' | 'area',
-    series: AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions
+    series: Omit<AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions, 'type'>
 ): AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions {
     return { ...series, type } as any;
 }
@@ -56,16 +56,16 @@ const baseSeriesServices = {
     yName: 'Services',
 };
 
-const colSeriesIPhone = switchSeriesType('bar', baseSeriesIPhone);
-const colSeriesMac = switchSeriesType('bar', baseSeriesMac);
-const colSeriesWearables = switchSeriesType('bar', baseSeriesWearables);
-const colSeriesServices = switchSeriesType('bar', baseSeriesServices);
-const lineSeriesIPhone = switchSeriesType('line', baseSeriesIPhone);
-const lineSeriesMac = switchSeriesType('line', baseSeriesMac);
-const areaSeriesIPhone = switchSeriesType('area', baseSeriesIPhone);
-const areaSeriesMac = switchSeriesType('area', baseSeriesMac);
-const areaSeriesWearables = switchSeriesType('area', baseSeriesWearables);
-const areaSeriesServices = switchSeriesType('area', baseSeriesServices);
+const colSeriesIPhone = setSeriesType('bar', baseSeriesIPhone);
+const colSeriesMac = setSeriesType('bar', baseSeriesMac);
+const colSeriesWearables = setSeriesType('bar', baseSeriesWearables);
+const colSeriesServices = setSeriesType('bar', baseSeriesServices);
+const lineSeriesIPhone = setSeriesType('line', baseSeriesIPhone);
+const lineSeriesMac = setSeriesType('line', baseSeriesMac);
+const areaSeriesIPhone = setSeriesType('area', baseSeriesIPhone);
+const areaSeriesMac = setSeriesType('area', baseSeriesMac);
+const areaSeriesWearables = setSeriesType('area', baseSeriesWearables);
+const areaSeriesServices = setSeriesType('area', baseSeriesServices);
 
 const seriesOptions: Array<AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions> = [
     {
