@@ -9,12 +9,14 @@ const options: AgChartOptions = {
     },
     series: [
         {
+            type: 'line',
             data: getLoungeData(),
             xKey: 'time',
             yKey: 'sensor',
             yName: 'Lounge',
         },
         {
+            type: 'line',
             data: getOfficeData(),
             xKey: 'time',
             yKey: 'sensor',

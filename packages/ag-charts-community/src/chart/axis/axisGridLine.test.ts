@@ -38,7 +38,7 @@ describe('AxisGridLine', () => {
         chart = AgCharts.create({
             ...opts,
             data: [{ x: 0, y: 0 }],
-            series: [{ xKey: 'x', yKey: 'y' }],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             axes: [
                 {
                     type: 'number',
@@ -60,7 +60,7 @@ describe('AxisGridLine', () => {
         chart = AgCharts.create({
             ...opts,
             data: [{ x: 0, y: 0 }],
-            series: [{ xKey: 'x', yKey: 'y' }],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             axes: [
                 {
                     type: 'number',

@@ -10,6 +10,7 @@ const options: AgChartOptions = {
     data: getData(),
     series: [
         {
+            type: 'line',
             xKey: 'quarter',
             yKey: 'petrol',
             title: 'Petrol',
@@ -19,6 +20,7 @@ const options: AgChartOptions = {
             },
         },
         {
+            type: 'line',
             xKey: 'quarter',
             yKey: 'diesel',
             title: 'Diesel',
@@ -30,6 +32,7 @@ const options: AgChartOptions = {
             },
         },
         {
+            type: 'line',
             xKey: 'quarter',
             yKey: 'electric',
             title: 'Electric',

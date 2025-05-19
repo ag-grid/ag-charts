@@ -60,7 +60,7 @@ describe('AgChart', () => {
             data: revenueProfitData,
             series: [
                 {
-                    // series type if optional because `line` is default for `cartesian` charts
+                    type: 'line',
                     xKey: 'month',
                     yKey: 'revenue',
                     marker: {
@@ -104,7 +104,7 @@ describe('AgChart', () => {
             },
             series: [
                 {
-                    // series type if optional because `line` is default for `cartesian` charts
+                    type: 'line',
                     xKey: 'month',
                     yKey: 'revenue',
                     marker: {
@@ -158,6 +158,7 @@ describe('AgChart', () => {
             data: revenueProfitData,
             series: [
                 {
+                    type: 'line',
                     xKey: 'month',
                     yKey: 'revenue',
                     marker: {},
@@ -198,7 +199,7 @@ describe('AgChart', () => {
             data: revenueProfitData,
             series: [
                 {
-                    // series type is optional because `line` is default for `cartesian` charts
+                    type: 'line',
                     xKey: 'month',
                     yKey: 'revenue',
                     marker: {
@@ -223,7 +224,7 @@ describe('AgChart', () => {
             data: revenueProfitData,
             series: [
                 {
-                    // series type if optional because `line` is default for `cartesian` charts
+                    type: 'line',
                     xKey: 'month',
                     yKey: 'revenue',
                     marker: {
@@ -272,7 +273,7 @@ describe('AgChart', () => {
             data: revenueProfitData,
             series: [
                 {
-                    // series type is optional because `line` is default for `cartesian` charts
+                    type: 'line',
                     xKey: 'month',
                     yKey: 'revenue',
                     marker: {
@@ -320,7 +321,7 @@ describe('AgChart', () => {
                     fill: 'cyan',
                 },
                 {
-                    // series type is optional because `line` is default for `cartesian` charts
+                    type: 'line',
                     xKey: 'month',
                     yKey: 'revenue',
                     marker: {
@@ -365,7 +366,7 @@ describe('AgChart', () => {
                     fill: 'cyan',
                 },
                 {
-                    // series type if optional because `line` is default for `cartesian` charts
+                    type: 'line',
                     xKey: 'month',
                     yKey: 'revenue',
                     marker: {
@@ -388,23 +389,13 @@ describe('AgChart', () => {
     test('axes', async () => {
         chartProxy = AgCharts.create({
             data: revenueProfitData,
-            series: [
-                {
-                    xKey: 'month',
-                    yKey: 'revenue',
-                },
-            ],
+            series: [{ type: 'line', xKey: 'month', yKey: 'revenue' }],
         });
         await waitForChartStability(chartProxy);
 
         await chartProxy.update({
             data: revenueProfitData,
-            series: [
-                {
-                    xKey: 'profit',
-                    yKey: 'revenue',
-                },
-            ],
+            series: [{ type: 'line', xKey: 'profit', yKey: 'revenue' }],
             axes: [
                 {
                     type: 'number',
@@ -434,12 +425,7 @@ describe('AgChart', () => {
         expect(leftAxis?.gridLine.style).toEqual([{ stroke: '#e0eaf2', lineDash: [] }]);
         await chartProxy.update({
             data: revenueProfitData,
-            series: [
-                {
-                    xKey: 'profit',
-                    yKey: 'revenue',
-                },
-            ],
+            series: [{ type: 'line', xKey: 'profit', yKey: 'revenue' }],
             axes: [
                 {
                     type: 'number',
@@ -487,6 +473,7 @@ describe('AgChart', () => {
             data: revenueProfitData,
             series: [
                 {
+                    type: 'line',
                     xKey: 'month',
                     yKey: 'revenue',
                 },
@@ -527,6 +514,7 @@ describe('AgChart', () => {
             },
             series: [
                 {
+                    type: 'line',
                     xKey: 'month',
                     yKey: 'revenue',
                 },

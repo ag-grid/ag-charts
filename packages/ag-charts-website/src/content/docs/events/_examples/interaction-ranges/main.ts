@@ -26,6 +26,7 @@ let options: AgCartesianChartOptions = {
     ],
     series: [
         {
+            type: 'line',
             xKey: 'quarter',
             yKey: 'petrol',
             nodeClickRange: 'exact',
@@ -34,6 +35,7 @@ let options: AgCartesianChartOptions = {
             },
         },
         {
+            type: 'line',
             xKey: 'quarter',
             yKey: 'diesel',
             nodeClickRange: 'exact',

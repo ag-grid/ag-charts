@@ -8,6 +8,7 @@ const options: AgChartOptions = {
     data: [],
     series: [
         {
+            type: 'line',
             xKey: 'year',
             yKey: 'spending',
         },

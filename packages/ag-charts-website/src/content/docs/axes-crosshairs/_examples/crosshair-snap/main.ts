@@ -10,6 +10,7 @@ const options: AgCartesianChartOptions = {
     },
     series: [
         {
+            type: 'line',
             yKey: 'population',
             xKey: 'year',
             stroke: '#6769EB',

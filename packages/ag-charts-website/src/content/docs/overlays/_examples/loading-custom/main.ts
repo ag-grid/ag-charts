@@ -54,6 +54,7 @@ const options: AgChartOptions = {
     },
     series: [
         {
+            type: 'line',
             xKey: 'year',
             yKey: 'spending',
         },

@@ -297,7 +297,7 @@ describe('ErrorBars', () => {
 
     it('should extend Y axis on line series as expected', async () => {
         chart = await createEnterpriseChart({
-            series: [{ ...SERIES_CANADA, data: EXTENDING_BARS }],
+            series: [{ ...SERIES_CANADA, type: 'line', data: EXTENDING_BARS }],
         });
         await compare();
     });
@@ -483,6 +483,7 @@ describe('ErrorBars', () => {
             series: [
                 {
                     ...SERIES_CANADA,
+                    type: 'line',
                     errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 75.0 } },
                 },
             ],
@@ -583,7 +584,10 @@ describe('ErrorBars', () => {
 
     it('should dim opacity on highlight', async () => {
         chart = await createEnterpriseChart({
-            series: [{ ...SERIES_CANADA }, { ...SERIES_AUSTRALIA, highlightStyle: { series: { dimOpacity: 0.3 } } }],
+            series: [
+                { type: 'line', ...SERIES_CANADA },
+                { type: 'line', ...SERIES_AUSTRALIA, highlightStyle: { series: { dimOpacity: 0.3 } } },
+            ],
         });
 
         // Highlight Canada (Australia should be dimmed)
@@ -744,6 +748,7 @@ describe('ErrorBars', () => {
             series: [
                 {
                     ...SERIES_CANADA,
+                    type: 'line',
                     marker: { size: 25 },
                     errorBar: {
                         ...SERIES_CANADA.errorBar,
@@ -762,6 +767,7 @@ describe('ErrorBars', () => {
             series: [
                 {
                     ...SERIES_CANADA,
+                    type: 'line',
                     errorBar: {
                         ...SERIES_CANADA.errorBar,
                         itemStyler: (param: AgErrorBarItemStylerParams<any>) => {

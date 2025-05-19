@@ -69,8 +69,8 @@ describe('Overlay', () => {
             chart = await createChart({
                 data: [],
                 series: [
-                    { xKey: 'x', yKey: 'y1' },
-                    { xKey: 'x', yKey: 'y2' },
+                    { type: 'line', xKey: 'x', yKey: 'y1' },
+                    { type: 'line', xKey: 'x', yKey: 'y2' },
                 ],
             });
             const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
@@ -85,8 +85,8 @@ describe('Overlay', () => {
                     { x: 'c', y1: 5, y2: 2 },
                 ],
                 series: [
-                    { xKey: 'x', yKey: 'y1', visible: false },
-                    { xKey: 'x', yKey: 'y2', visible: false },
+                    { type: 'line', xKey: 'x', yKey: 'y1', visible: false },
+                    { type: 'line', xKey: 'x', yKey: 'y2', visible: false },
                 ],
             });
             const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
@@ -97,8 +97,8 @@ describe('Overlay', () => {
             chart = await createChart({
                 data: [],
                 series: [
-                    { xKey: 'x', yKey: 'y1', visible: false },
-                    { xKey: 'x', yKey: 'y2', visible: false },
+                    { type: 'line', xKey: 'x', yKey: 'y1', visible: false },
+                    { type: 'line', xKey: 'x', yKey: 'y2', visible: false },
                 ],
             });
             const overlayEl = getDocument('body').querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
@@ -109,8 +109,8 @@ describe('Overlay', () => {
             chart = await createChart({
                 data: [],
                 series: [
-                    { xKey: 'x', yKey: 'y1' },
-                    { xKey: 'x', yKey: 'y2' },
+                    { type: 'line', xKey: 'x', yKey: 'y1' },
+                    { type: 'line', xKey: 'x', yKey: 'y2' },
                 ],
                 overlays: {
                     noData: { text: 'TEST CUSTOM NO DATA TEXT' },
@@ -123,7 +123,7 @@ describe('Overlay', () => {
         test('custom no data text with html', async () => {
             chart = await createChart({
                 data: [],
-                series: [{ xKey: 'x', yKey: 'y1' }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
                 overlays: {
                     noData: { renderer: () => '<div>TEST CUSTOM NO DATA TEXT</div>' },
                 },
@@ -141,7 +141,7 @@ HTMLCollection [
         test('custom no data text with multiple html elements', async () => {
             chart = await createChart({
                 data: [],
-                series: [{ xKey: 'x', yKey: 'y1' }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
                 overlays: {
                     noData: { renderer: () => '<div>TEST CUSTOM NO DATA TEXT</div><div>CUSTOM NO DATA TEXT 2</div>' },
                 },
@@ -169,8 +169,8 @@ HTMLCollection [
                     { x: 'c', y1: 5, y2: 2 },
                 ],
                 series: [
-                    { xKey: 'x', yKey: 'y1', visible: false },
-                    { xKey: 'x', yKey: 'y2', visible: false },
+                    { type: 'line', xKey: 'x', yKey: 'y1', visible: false },
+                    { type: 'line', xKey: 'x', yKey: 'y2', visible: false },
                 ],
                 overlays: {
                     noVisibleSeries: { text: 'TEST CUSTOM NO VISIBLE SERIES TEXT' },

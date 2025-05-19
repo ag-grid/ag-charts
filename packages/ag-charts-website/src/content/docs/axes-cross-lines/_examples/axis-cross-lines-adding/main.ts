@@ -7,6 +7,7 @@ const options: AgChartOptions = {
     data: getData(),
     series: [
         {
+            type: 'line',
             xKey: 'month',
             yKey: 'temp',
         },
