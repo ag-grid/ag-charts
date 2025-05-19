@@ -4,6 +4,8 @@ import sonarjs from 'eslint-plugin-sonarjs';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+import requireExplicitGeneric from './eslint-rules/require-explicit-generic.mjs';
+
 let env = 'unknown';
 if (process.env.CI != null) {
     env = 'ci';
@@ -105,6 +107,13 @@ export default [
     },
     {
         files: ['**/*.{js,ts,tsx}'],
+        plugins: {
+            aglint: {
+                rules: {
+                    'require-explicit-generic': requireExplicitGeneric,
+                },
+            },
+        },
         rules: {
             'no-lonely-if': 2,
             'no-negated-condition': 1,
@@ -114,6 +123,7 @@ export default [
             'no-console': 2,
             'no-unused-vars': 0,
             'no-case-declarations': 0,
+            'aglint/require-explicit-generic': 2,
             '@typescript-eslint/no-explicit-any': 0,
             '@typescript-eslint/consistent-type-imports': 0,
             '@typescript-eslint/no-redundant-type-constituents': 1,
