@@ -13,7 +13,6 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
 
     identifier: 'map-line',
     moduleFactory: (ctx) => new MapLineSeries(ctx),
-    tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {

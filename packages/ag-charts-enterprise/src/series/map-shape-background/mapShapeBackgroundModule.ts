@@ -13,7 +13,6 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
 
     identifier: 'map-shape-background',
     moduleFactory: (ctx) => new MapShapeBackgroundSeries(ctx),
-    tooltipDefaults: { range: 'exact' },
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {

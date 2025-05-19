@@ -14,7 +14,6 @@ export const PyramidModule: _ModuleSupport.SeriesModule<'pyramid'> = {
     identifier: 'pyramid',
     moduleFactory: (ctx) => new PyramidSeries(ctx),
     solo: true,
-    tooltipDefaults: { range: 'exact' },
     themeTemplate: PYRAMID_SERIES_THEME,
 };
 

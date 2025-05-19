@@ -18,7 +18,6 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     identifier: 'area',
     moduleFactory: (ctx) => new AreaSeries(ctx),
     stackable: true,
-    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
@@ -32,8 +31,6 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     themeTemplate: {
         series: {
             nodeClickRange: 'nearest',
-            // @ts-expect-error deprecated type field fallback value
-            tooltip: { position: { _seriesOverrideType: 'node' } },
             fill: { $palette: 'fill' },
             fillGradientDefaults: {
                 type: 'gradient',
@@ -85,6 +82,12 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'textColor' },
+            },
+            tooltip: {
+                range: { $path: ['/tooltip/range', 'nearest'] },
+                position: {
+                    anchorTo: { $path: ['/tooltip/anchorTo', 'node'] },
+                },
             },
         },
     },

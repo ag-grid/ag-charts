@@ -500,6 +500,11 @@ describe('ChartOptions', () => {
     "stroke": "#2b5c95",
     "strokeWidth": 0,
     "tooltip": {
+      "position": {
+        "anchorTo": "pointer",
+        "xOffset": 0,
+        "yOffset": 0,
+      },
       "range": "exact",
     },
     "type": "bar",
@@ -578,6 +583,11 @@ describe('ChartOptions', () => {
     "stroke": "#cc6f10",
     "strokeWidth": 0,
     "tooltip": {
+      "position": {
+        "anchorTo": "pointer",
+        "xOffset": 0,
+        "yOffset": 0,
+      },
       "range": "exact",
     },
     "type": "bar",
@@ -656,6 +666,11 @@ describe('ChartOptions', () => {
     "stroke": "#1e652e",
     "strokeWidth": 0,
     "tooltip": {
+      "position": {
+        "anchorTo": "pointer",
+        "xOffset": 0,
+        "yOffset": 0,
+      },
       "range": "exact",
     },
     "type": "bar",
@@ -734,6 +749,11 @@ describe('ChartOptions', () => {
     "stroke": "#18859e",
     "strokeWidth": 0,
     "tooltip": {
+      "position": {
+        "anchorTo": "pointer",
+        "xOffset": 0,
+        "yOffset": 0,
+      },
       "range": "exact",
     },
     "type": "bar",
@@ -805,7 +825,9 @@ describe('ChartOptions', () => {
     "strokeWidth": 2,
     "tooltip": {
       "position": {
-        "_seriesOverrideType": "node",
+        "anchorTo": "node",
+        "xOffset": 0,
+        "yOffset": 0,
       },
       "range": "nearest",
     },
@@ -878,7 +900,9 @@ describe('ChartOptions', () => {
     "strokeWidth": 2,
     "tooltip": {
       "position": {
-        "_seriesOverrideType": "node",
+        "anchorTo": "node",
+        "xOffset": 0,
+        "yOffset": 0,
       },
       "range": "nearest",
     },
@@ -969,6 +993,11 @@ describe('ChartOptions', () => {
     "stroke": "#2b5c95",
     "strokeWidth": 0,
     "tooltip": {
+      "position": {
+        "anchorTo": "pointer",
+        "xOffset": 0,
+        "yOffset": 0,
+      },
       "range": "exact",
     },
     "type": "bar",
@@ -1047,6 +1076,11 @@ describe('ChartOptions', () => {
     "stroke": "#cc6f10",
     "strokeWidth": 0,
     "tooltip": {
+      "position": {
+        "anchorTo": "pointer",
+        "xOffset": 0,
+        "yOffset": 0,
+      },
       "range": "exact",
     },
     "type": "bar",
@@ -1125,6 +1159,11 @@ describe('ChartOptions', () => {
     "stroke": "#1e652e",
     "strokeWidth": 0,
     "tooltip": {
+      "position": {
+        "anchorTo": "pointer",
+        "xOffset": 0,
+        "yOffset": 0,
+      },
       "range": "exact",
     },
     "type": "bar",
@@ -1203,6 +1242,11 @@ describe('ChartOptions', () => {
     "stroke": "#18859e",
     "strokeWidth": 0,
     "tooltip": {
+      "position": {
+        "anchorTo": "pointer",
+        "xOffset": 0,
+        "yOffset": 0,
+      },
       "range": "exact",
     },
     "type": "bar",
@@ -1274,7 +1318,9 @@ describe('ChartOptions', () => {
     "strokeWidth": 2,
     "tooltip": {
       "position": {
-        "_seriesOverrideType": "node",
+        "anchorTo": "node",
+        "xOffset": 0,
+        "yOffset": 0,
       },
       "range": "nearest",
     },
@@ -1347,7 +1393,9 @@ describe('ChartOptions', () => {
     "strokeWidth": 2,
     "tooltip": {
       "position": {
-        "_seriesOverrideType": "node",
+        "anchorTo": "node",
+        "xOffset": 0,
+        "yOffset": 0,
       },
       "range": "nearest",
     },
@@ -1438,6 +1486,11 @@ describe('ChartOptions', () => {
     "stroke": "#2b5c95",
     "strokeWidth": 0,
     "tooltip": {
+      "position": {
+        "anchorTo": "pointer",
+        "xOffset": 0,
+        "yOffset": 0,
+      },
       "range": "exact",
     },
     "type": "bar",
@@ -1516,6 +1569,11 @@ describe('ChartOptions', () => {
     "stroke": "#cc6f10",
     "strokeWidth": 0,
     "tooltip": {
+      "position": {
+        "anchorTo": "pointer",
+        "xOffset": 0,
+        "yOffset": 0,
+      },
       "range": "exact",
     },
     "type": "bar",
@@ -1594,6 +1652,11 @@ describe('ChartOptions', () => {
     "stroke": "#1e652e",
     "strokeWidth": 0,
     "tooltip": {
+      "position": {
+        "anchorTo": "pointer",
+        "xOffset": 0,
+        "yOffset": 0,
+      },
       "range": "exact",
     },
     "type": "bar",
@@ -1672,6 +1735,11 @@ describe('ChartOptions', () => {
     "stroke": "#18859e",
     "strokeWidth": 0,
     "tooltip": {
+      "position": {
+        "anchorTo": "pointer",
+        "xOffset": 0,
+        "yOffset": 0,
+      },
       "range": "exact",
     },
     "type": "bar",
@@ -1743,7 +1811,9 @@ describe('ChartOptions', () => {
     "strokeWidth": 2,
     "tooltip": {
       "position": {
-        "_seriesOverrideType": "node",
+        "anchorTo": "node",
+        "xOffset": 0,
+        "yOffset": 0,
       },
       "range": "nearest",
     },
@@ -1816,7 +1886,9 @@ describe('ChartOptions', () => {
     "strokeWidth": 2,
     "tooltip": {
       "position": {
-        "_seriesOverrideType": "node",
+        "anchorTo": "node",
+        "xOffset": 0,
+        "yOffset": 0,
       },
       "range": "nearest",
     },

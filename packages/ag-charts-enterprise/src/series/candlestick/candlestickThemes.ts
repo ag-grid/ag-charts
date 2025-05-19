@@ -64,6 +64,9 @@ export const CANDLESTICK_SERIES_THEME: _ModuleSupport.SeriesModule<'candlestick'
         highlightStyle: {
             item: { strokeWidth: 3 },
         },
+        tooltip: {
+            range: { $path: ['/tooltip/range', 'nearest'] },
+        },
     },
     animation: { enabled: false },
     axes: {

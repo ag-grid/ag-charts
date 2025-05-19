@@ -17,7 +17,6 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
 
     identifier: 'heatmap',
     moduleFactory: (ctx) => new HeatmapSeries(ctx),
-    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.LEFT },
         { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },

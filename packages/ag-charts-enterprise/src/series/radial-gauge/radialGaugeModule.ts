@@ -13,7 +13,6 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
 
     identifier: 'radial-gauge',
     moduleFactory: (ctx) => new RadialGaugeSeries(ctx),
-    tooltipDefaults: { range: 10 },
     themeTemplate: {
         minWidth: 200,
         minHeight: 200,
@@ -88,6 +87,9 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 minimumFontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
                 color: { $ref: 'subtleTextColor' },
+            },
+            tooltip: {
+                range: { $path: ['/tooltip/range', 10] },
             },
         },
     },

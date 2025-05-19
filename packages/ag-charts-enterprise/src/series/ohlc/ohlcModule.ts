@@ -14,7 +14,6 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
 
     identifier: 'ohlc',
     moduleFactory: (ctx) => new OhlcSeries(ctx),
-    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
         { type: CARTESIAN_AXIS_TYPE.ORDINAL_TIME, position: CARTESIAN_POSITION.BOTTOM },
@@ -41,6 +40,9 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
                         ],
                     },
                 },
+            },
+            tooltip: {
+                range: { $path: ['/tooltip/range', 'nearest'] },
             },
         },
         axes: {

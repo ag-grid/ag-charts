@@ -140,16 +140,6 @@ export interface AgZoomOptions {
      */
     minVisibleItems?: number;
     /**
-     * The minimum number of x-axis items to be shown, beyond which zooming is stopped.
-     * @deprecated v11.1.0 use `minVisibleItems` instead.
-     */
-    minVisibleItemsX?: number;
-    /**
-     * The minimum number of y-axis items to be shown, beyond which zooming is stopped.
-     * @deprecated v11.1.0 use `minVisibleItems` instead.
-     */
-    minVisibleItemsY?: number;
-    /**
      * The key that should be pressed to allow dragging to pan around while zoomed, one of `alt`, `ctrl`, `meta` or `shift`.
      *
      * Default: `alt`

@@ -454,6 +454,17 @@ export class ChartTheme {
             },
             overlays: { darkTheme: IS_DARK_THEME },
             listeners: {},
+            series: {
+                tooltip: {
+                    range: { $path: ['/tooltip/range', 'exact'] },
+                    position: {
+                        anchorTo: { $path: ['/tooltip/anchorTo', 'pointer'] },
+                        placement: { $path: ['/tooltip/placement', undefined] } as any,
+                        xOffset: { $path: ['/tooltip/xOffset', 0] },
+                        yOffset: { $path: ['/tooltip/yOffset', 0] },
+                    },
+                },
+            },
         };
     }
 
@@ -657,6 +668,10 @@ export class ChartTheme {
                         axisRegistry.getThemeTemplate(axisType),
                         (ChartTheme.axisDefault as any)[axisType]
                     );
+                }
+
+                if (seriesType === 'map-shape-background' || seriesType === 'map-line-background') {
+                    delete (result[seriesType].series as any).tooltip;
                 }
             }
 

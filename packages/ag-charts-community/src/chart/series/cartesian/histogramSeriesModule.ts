@@ -17,7 +17,6 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
 
     identifier: 'histogram',
     moduleFactory: (ctx) => new HistogramSeries(ctx),
-    tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

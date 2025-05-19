@@ -1,9 +1,8 @@
-import type { AgContextMenuOptions } from 'ag-charts-types';
-
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
+import type { TypedEvent } from '../../util/observable';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltip';
@@ -13,11 +12,20 @@ interface ChartAxisLike {
     id: string;
 }
 
-// Ensure that the created contextmenu event matches the API option contract:
-type NodeContextMenuActionEvent = Parameters<
-    // eslint-disable-next-line sonarjs/deprecation
-    NonNullable<AgContextMenuOptions['extraNodeActions']>[number]['action']
->[0];
+export type SeriesNodeEventTypes =
+    | 'nodeContextMenuAction'
+    | 'groupingChanged'
+    | 'seriesNodeClick'
+    | 'seriesNodeDoubleClick';
+
+export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
+    readonly type: TEvent;
+    // Note: this is typically a MouseEvent, but it can be a TouchEvent or KeyboardEvent too.
+    readonly event: Event;
+    readonly datum: unknown;
+    readonly seriesId: string;
+    readonly defaultPrevented: boolean;
+}
 
 export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     id: string;
@@ -30,7 +38,7 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
     fireNodeClickEvent(event: Event, datum: SeriesNodeDatum<unknown>): boolean;
     fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum<unknown>): void;
-    createNodeContextMenuActionEvent(event: Event, datum: TDatum): NodeContextMenuActionEvent;
+    createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent<'nodeContextMenuAction'>;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getLabelData(): (TLabel & PointLabelDatum)[];

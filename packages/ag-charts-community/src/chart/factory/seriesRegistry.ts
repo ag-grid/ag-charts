@@ -1,4 +1,4 @@
-import type { SeriesDefaultAxes, SeriesFactory, SeriesModule, SeriesTooltipDefaults } from '../../module/coreModules';
+import type { SeriesDefaultAxes, SeriesFactory, SeriesModule } from '../../module/coreModules';
 import type { RequiredSeriesType } from '../../module/coreModulesTypes';
 import type { ModuleContext } from '../../module/moduleContext';
 import { deepClone } from '../../util/json';
@@ -10,7 +10,6 @@ import { chartTypes, publicChartTypes } from './chartTypes';
 interface SeriesRegistryRecord {
     moduleFactory?: SeriesFactory;
     defaultAxes?: SeriesDefaultAxes<RequiredSeriesType>;
-    tooltipDefaults?: SeriesTooltipDefaults;
     solo?: boolean;
     groupable?: boolean;
     stackable?: boolean;
@@ -26,7 +25,6 @@ class SeriesRegistry {
         {
             chartTypes: [chartType],
             moduleFactory,
-            tooltipDefaults,
             defaultAxes,
             themeTemplate,
             solo,
@@ -39,7 +37,6 @@ class SeriesRegistry {
         this.setThemeTemplate(seriesType, themeTemplate);
         this.seriesMap.set(seriesType, {
             moduleFactory,
-            tooltipDefaults,
             defaultAxes,
             solo,
             stackable,
@@ -73,10 +70,6 @@ class SeriesRegistry {
 
     getThemeTemplate(seriesType: string) {
         return this.themeTemplates.get(seriesType);
-    }
-
-    getTooltipDefauls(seriesType: SeriesType) {
-        return this.seriesMap.get(seriesType)?.tooltipDefaults;
     }
 
     isSolo(seriesType: SeriesType) {

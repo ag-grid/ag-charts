@@ -15,7 +15,6 @@ export const DonutSeriesModule: SeriesModule<'donut'> = {
 
     identifier: 'donut',
     moduleFactory: (ctx) => new DonutSeries(ctx),
-    tooltipDefaults: { range: 'exact' },
     themeTemplate: donutTheme,
 };
 

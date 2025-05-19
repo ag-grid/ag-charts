@@ -100,7 +100,7 @@ export class TooltipManager {
     ): TooltipMeta {
         const { canvasX, canvasY } = event;
         const tooltip = series.properties.tooltip as SeriesTooltip<any>;
-        const { placement, defaultPlacement, anchorTo, defaultAnchorTo, xOffset, yOffset } = tooltip.position;
+        const { placement, anchorTo, xOffset, yOffset } = tooltip.position;
         const refPoint = getDatumRefPoint(series, datum, movedBounds);
         const meta: TooltipMeta = {
             canvasX,
@@ -111,9 +111,7 @@ export class TooltipManager {
             showArrow: tooltip.showArrow,
             position: {
                 placement,
-                defaultPlacement,
                 anchorTo,
-                defaultAnchorTo,
                 xOffset,
                 yOffset,
             },

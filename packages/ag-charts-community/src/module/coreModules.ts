@@ -98,7 +98,6 @@ export interface SeriesModule<
     moduleFactory: SeriesFactory;
     hidden?: boolean;
 
-    tooltipDefaults: SeriesTooltipDefaults;
     defaultAxes?: SeriesDefaultAxes<SeriesType>;
     themeTemplate: ExtensibleTheme<SeriesType>;
     solo?: boolean;

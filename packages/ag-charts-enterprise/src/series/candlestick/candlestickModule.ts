@@ -15,7 +15,6 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
 
     identifier: 'candlestick',
     moduleFactory: (ctx) => new CandlestickSeries(ctx),
-    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,

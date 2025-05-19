@@ -9,11 +9,7 @@ import {
     groupBy,
     hasRequiredInPath,
     isArray,
-    isEnumValue,
-    isFiniteNumber,
     isObject,
-    isPlainObject,
-    isString,
     isSymbol,
     joinFormatted,
     setDocument,
@@ -28,10 +24,6 @@ import {
     type AgPolarAxisOptions,
     type AgPresetOptions,
     type AgPresetOverrides,
-    AgTooltipAnchorToType,
-    AgTooltipPlacementType,
-    type AgTooltipPositionOptions,
-    AgTooltipPositionType, // eslint-disable-line sonarjs/deprecation
     type WithThemeParams,
 } from 'ag-charts-types';
 
@@ -57,7 +49,6 @@ import {
 import { deepFreeze, merge, mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
-import type { SeriesType } from './optionsModuleTypes';
 
 export interface ChartSpecialOverrides {
     document: Document;
@@ -545,23 +536,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private processSeriesOptions(options: T, activeTheme: ChartTheme) {
-        const defaultTooltipPosition = this.getTooltipPositionDefaults(options);
-
         const processedSeries = (options.series as SeriesOptionsTypes[])?.map((series) => {
             series.type ??= 'line'; // TODO remove this behaviour
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type, activeTheme).series ?? {};
 
             const seriesDef = ModuleRegistry.getSeriesModule(series.type);
-            const tooltipDefined = Boolean(seriesDef?.options.tooltip);
             const visibleDefined = Boolean(seriesDef?.options.visible);
-            const defaultTooltipRange = tooltipDefined && this.getTooltipRangeDefaults(options, series.type);
 
             const seriesOptions = mergeDefaults(
                 this.getSeriesGroupingOptions(series),
                 series,
-                tooltipDefined && defaultTooltipPosition,
-                defaultTooltipRange,
                 seriesTheme,
                 visibleDefined && { visible: true }
             );
@@ -695,52 +680,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
             return result;
         }, []);
-    }
-
-    private getTooltipPositionDefaults(options: T) {
-        const position = options.tooltip?.position;
-        if (!isPlainObject(position)) {
-            return;
-        }
-
-        // eslint-disable-next-line sonarjs/deprecation
-        const { type, anchorTo, placement, xOffset, yOffset } = position;
-        const result: AgTooltipPositionOptions = {};
-
-        // eslint-disable-next-line sonarjs/deprecation
-        if (isString(type) && isEnumValue(AgTooltipPositionType, type)) {
-            // eslint-disable-next-line sonarjs/deprecation
-            result.type = type;
-        }
-        if (isString(anchorTo) && isEnumValue(AgTooltipAnchorToType, anchorTo)) {
-            result.anchorTo = anchorTo;
-        }
-        if (isString(placement) && isEnumValue(AgTooltipPlacementType, placement)) {
-            result.placement = placement;
-        }
-        if (isFiniteNumber(xOffset)) {
-            result.xOffset = xOffset;
-        }
-        if (isFiniteNumber(yOffset)) {
-            result.yOffset = yOffset;
-        }
-        return { tooltip: { position: result } };
-    }
-
-    // AG-11591 Support for new series-specific & legacy chart-global 'tooltip.range' options
-    //
-    // The `chart.series[].tooltip.range` option is a bit different for legacy reason. This use to be
-    // global option (`chart.tooltip.range`) that could override the theme. But now, the tooltip range
-    // option is series-specific.
-    //
-    // To preserve backward compatibility, the `chart.tooltip.range` theme default has been changed from
-    // 'nearest' to undefined.
-    private getTooltipRangeDefaults(options: T, seriesType: SeriesType) {
-        return {
-            tooltip: {
-                range: options.tooltip?.range ?? seriesRegistry.getTooltipDefauls(seriesType)?.range,
-            },
-        };
     }
 
     private soloSeriesIntegrity(options: Partial<T>) {

@@ -15,7 +15,6 @@ export const RadialBarModule: _ModuleSupport.SeriesModule<'radial-bar'> = {
 
     identifier: 'radial-bar',
     moduleFactory: (ctx) => new RadialBarSeries(ctx),
-    tooltipDefaults: { range: 'exact' },
     defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_NUMBER }, { type: POLAR_AXIS_TYPE.RADIUS_CATEGORY }],
     themeTemplate: RADIAL_BAR_SERIES_THEME,
     stackable: true,

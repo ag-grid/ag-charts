@@ -17,7 +17,6 @@ export const RadarAreaModule: _ModuleSupport.SeriesModule<'radar-area'> = {
 
     identifier: 'radar-area',
     moduleFactory: (ctx) => new RadarAreaSeries(ctx),
-    tooltipDefaults: { range: 'nearest' },
     defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
     themeTemplate: RADAR_AREA_SERIES_THEME,
 };

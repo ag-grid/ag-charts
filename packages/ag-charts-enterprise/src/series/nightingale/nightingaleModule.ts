@@ -17,7 +17,6 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
 
     identifier: 'nightingale',
     moduleFactory: (ctx) => new NightingaleSeries(ctx),
-    tooltipDefaults: { range: 'exact' },
     defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
     themeTemplate: NIGHTINGALE_SERIES_THEME,
     stackable: true,

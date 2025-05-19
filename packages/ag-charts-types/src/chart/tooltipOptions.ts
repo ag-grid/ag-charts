@@ -52,27 +52,7 @@ export interface AgChartTooltipOptions {
     wrapping?: TextWrap;
 }
 
-/** @deprecated v11.2.0 use `anchorTo` and `placement` instead. */
-export enum AgTooltipPositionType {
-    POINTER = 'pointer',
-    NODE = 'node',
-    TOP = 'top',
-    RIGHT = 'right',
-    BOTTOM = 'bottom',
-    LEFT = 'left',
-    TOP_LEFT = 'top-left',
-    TOP_RIGHT = 'top-right',
-    BOTTOM_RIGHT = 'bottom-right',
-    BOTTOM_LEFT = 'bottom-left',
-}
-
 export interface AgTooltipPositionOptions {
-    /**
-     * The type of positioning for the tooltip. By default, the tooltip follows the mouse pointer for series without markers, and it is anchored to the highlighted marker node for series with markers.
-     * @deprecated v11.2.0 use `anchorTo` and `placement` instead.
-     */
-    // eslint-disable-next-line sonarjs/deprecation
-    type?: `${AgTooltipPositionType}`;
     /** The element or point to position the tooltip relative to. */
     anchorTo?: AgTooltipAnchorTo;
     /**

@@ -13,7 +13,6 @@ export const RangeBarModule: _ModuleSupport.SeriesModule<'range-bar'> = {
 
     identifier: 'range-bar',
     moduleFactory: (ctx) => new RangeBarSeries(ctx),
-    tooltipDefaults: { range: 'exact' },
     defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
     themeTemplate: RANGE_BAR_SERIES_THEME,
     groupable: true,

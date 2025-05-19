@@ -15,7 +15,6 @@ export const ConeFunnelModule: _ModuleSupport.SeriesModule<'cone-funnel'> = {
     identifier: 'cone-funnel',
     moduleFactory: (ctx) => new ConeFunnelSeries(ctx),
     solo: true,
-    tooltipDefaults: { range: 'nearest' },
     defaultAxes: FUNNEL_SERIES_AXES,
     themeTemplate: CONE_FUNNEL_SERIES_THEME,
 };
