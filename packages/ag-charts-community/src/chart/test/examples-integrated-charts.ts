@@ -1776,6 +1776,50 @@ const CROSSFILTER_COLUMN_FILTERED: AgCartesianChartOptions = {
     ],
 };
 
+export const CATEGORY_LINE_ANIMATION_QUARTERS = Array.from({ length: 14 }, (_, id) => ({
+    id,
+    label: `week ${id}`,
+    toString: () => `week ${id}`,
+}));
+
+const CATEGORY_LINE_ANIMATION: AgCartesianChartOptions = {
+    theme: BASE_THEME,
+    data: [
+        { quarter: CATEGORY_LINE_ANIMATION_QUARTERS[3], week: 3, iphone: 60, android: 50 },
+        { quarter: CATEGORY_LINE_ANIMATION_QUARTERS[4], week: 4, iphone: 185, android: 90 },
+        { quarter: CATEGORY_LINE_ANIMATION_QUARTERS[5], week: 5, iphone: 148, android: 70 },
+        { quarter: CATEGORY_LINE_ANIMATION_QUARTERS[6], week: 6, iphone: 130, android: 130 },
+        { quarter: CATEGORY_LINE_ANIMATION_QUARTERS[9], week: 9, iphone: 62, android: 120 },
+        { quarter: CATEGORY_LINE_ANIMATION_QUARTERS[10], week: 10, iphone: 137, android: 105 },
+        { quarter: CATEGORY_LINE_ANIMATION_QUARTERS[11], week: 11, iphone: 121, android: 100 },
+    ],
+    series: [
+        {
+            type: 'line' as const,
+            xKey: 'quarter',
+            yKey: 'iphone',
+        },
+        {
+            type: 'line' as const,
+            xKey: 'quarter',
+            yKey: 'android',
+        },
+    ],
+    axes: [
+        {
+            position: 'left',
+            type: 'number',
+        },
+        {
+            position: 'bottom',
+            type: 'category',
+        },
+    ],
+
+    // @ts-expect-error Not part of the public API.
+    mode: 'integrated' as const,
+};
+
 type TestCase = {
     options: AgChartOptions;
     enterpriseCharts?: boolean;
@@ -1806,4 +1850,5 @@ export const EXAMPLES: Record<string, TestCase> = {
     CROSSFILTER_PIE_FILTERED: { options: CROSSFILTER_PIE_FILTERED },
     CROSSFILTER_BAR_FILTERED: { options: CROSSFILTER_BAR_FILTERED },
     CROSSFILTER_COLUMN_FILTERED: { options: CROSSFILTER_COLUMN_FILTERED },
+    CATEGORY_LINE_ANIMATION: { options: CATEGORY_LINE_ANIMATION },
 };
