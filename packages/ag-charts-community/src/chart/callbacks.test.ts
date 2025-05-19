@@ -293,7 +293,7 @@ describe('AG-13024 API context validation', () => {
     test('tooltip.context error', async () => {
         const opts: AgCartesianChartOptions & { tooltip: { context: unknown } } = {
             data: [{ x: 0, y: 0 }],
-            series: [{ xKey: 'x', yKey: 'y' }],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             tooltip: { context: {} },
         };
         chart = await createChart(opts);
@@ -302,7 +302,7 @@ describe('AG-13024 API context validation', () => {
     test('legend.context error', async () => {
         const opts: AgCartesianChartOptions & { legend: { context: unknown } } = {
             data: [{ x: 0, y: 0 }],
-            series: [{ xKey: 'x', yKey: 'y' }],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             legend: { context: {} },
         };
         chart = await createChart(opts);

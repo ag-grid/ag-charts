@@ -210,9 +210,9 @@ describe('LegendEvent', () => {
                     { x: 2, Au: 1, Ag: 2, Cu: 6 },
                 ],
                 series: [
-                    { xKey: 'x', yKey: 'Au', yName: 'Gold' },
-                    { xKey: 'x', yKey: 'Ag', yName: 'Silver' },
-                    { xKey: 'x', yKey: 'Cu', yName: 'Copper' },
+                    { type: 'line', xKey: 'x', yKey: 'Au', yName: 'Gold' },
+                    { type: 'line', xKey: 'x', yKey: 'Ag', yName: 'Silver' },
+                    { type: 'line', xKey: 'x', yKey: 'Cu', yName: 'Copper' },
                 ],
                 legend: { listeners: { legendItemClick } },
             });

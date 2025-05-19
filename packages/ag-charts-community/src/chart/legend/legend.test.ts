@@ -4,6 +4,7 @@ import type {
     AgCartesianChartOptions,
     AgChartLegendListeners,
     AgChartOptions,
+    AgLineSeriesOptions,
     AgMarkerShapeFnParams,
     AgPath,
 } from 'ag-charts-types';
@@ -29,8 +30,9 @@ import {
 } from '../test/utils';
 import type { AgChartProxy } from '../test/utils';
 
-function buildSeries(data: { x: number; y: number }) {
+function buildSeries(data: { x: number; y: number }): AgLineSeriesOptions {
     return {
+        type: 'line',
         data: [data],
         xKey: 'x',
         yKey: 'y',
@@ -38,7 +40,7 @@ function buildSeries(data: { x: number; y: number }) {
     };
 }
 
-const SERIES: { data: { x: number; y: number }[]; xKey: string; yKey: string; yName: string }[] = [];
+const SERIES: AgLineSeriesOptions[] = [];
 const seriesDataRandom = seedRandom(10763960837);
 
 for (let i = 0; i < 200; i++) {
@@ -270,7 +272,7 @@ describe('Legend', () => {
             listeners.legendItemDoubleClick = jest.fn();
             const options = prepareTestOptions({
                 data: [{ x: 'Q1', y: 200 }],
-                series: [{ xKey: 'x', yKey: 'y' }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 legend: { enabled: true, listeners },
             });
             chart = deproxy(AgCharts.create(options));
@@ -302,8 +304,8 @@ describe('Legend', () => {
             await compareSnapshot({
                 data,
                 series: [
-                    { xKey: 'x', yKey: 'a', stroke: 'palegreen' },
-                    { xKey: 'x', yKey: 'b', stroke: 'blue' },
+                    { type: 'line', xKey: 'x', yKey: 'a', stroke: 'palegreen' },
+                    { type: 'line', xKey: 'x', yKey: 'b', stroke: 'blue' },
                 ],
                 legend: { item: { showSeriesStroke: true } },
             });
@@ -370,7 +372,7 @@ describe('Legend', () => {
             await compareSnapshot({
                 data,
                 series: [
-                    { xKey: 'x', yKey: 'a', marker: { enabled: false }, lineDash: [5, 5] },
+                    { type: 'line', xKey: 'x', yKey: 'a', marker: { enabled: false }, lineDash: [5, 5] },
                     { type: 'area', xKey: 'x', yKey: 'b', strokeWidth: 2, lineDash: [2, 2] },
                 ],
                 legend: { item: { showSeriesStroke: true } },
@@ -418,8 +420,8 @@ describe('Legend', () => {
                     { x: 'x2', a: 1, b: 2 },
                 ],
                 series: [
-                    { visible: false, xKey: 'x', yKey: 'a', marker: { shape: 'diamond' } },
-                    { visible: false, xKey: 'x', yKey: 'b', marker: { shape: 'triangle' } },
+                    { type: 'line', visible: false, xKey: 'x', yKey: 'a', marker: { shape: 'diamond' } },
+                    { type: 'line', visible: false, xKey: 'x', yKey: 'b', marker: { shape: 'triangle' } },
                 ],
                 legend: { item: { marker: { size: 30, strokeWidth: 10 }, line: { length: 70 } } },
             });
@@ -496,7 +498,7 @@ describe('Legend', () => {
             const legendItemClick = jest.fn();
             const options = prepareTestOptions({
                 data: [{ x: 'Q1', y: 200 }],
-                series: [{ xKey: 'x', yKey: 'y' }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 legend: { enabled: true, listeners: { legendItemClick } },
             });
 
@@ -513,7 +515,7 @@ describe('Legend', () => {
             const legendItemClick = jest.fn();
             const options = prepareTestOptions({
                 data: [{ x: 'Q1', y: 200 }],
-                series: [{ xKey: 'x', yKey: 'y' }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 legend: { enabled: true, listeners: { legendItemClick } },
             });
 
@@ -546,7 +548,7 @@ describe('Legend', () => {
             const legendItemDoubleClick = jest.fn();
             const options = prepareTestOptions({
                 data: [{ x: 'Q1', y: 200 }],
-                series: [{ xKey: 'x', yKey: 'y' }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 legend: { enabled: true, listeners: { legendItemDoubleClick } },
             });
 

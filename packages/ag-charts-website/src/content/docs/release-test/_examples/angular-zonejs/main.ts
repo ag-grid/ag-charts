@@ -35,6 +35,7 @@ const options: AgCartesianChartOptions = {
     ],
     series: [
         {
+            type: 'line',
             xKey: 'quarter',
             yKey: 'petrol',
             listeners: {
@@ -47,6 +48,7 @@ const options: AgCartesianChartOptions = {
             },
         },
         {
+            type: 'line',
             xKey: 'quarter',
             yKey: 'diesel',
         },
