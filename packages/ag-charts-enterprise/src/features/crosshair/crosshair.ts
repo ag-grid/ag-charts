@@ -1,6 +1,7 @@
 import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Widget } from 'ag-charts-community';
 import { type AnyFn, createId, isInteger } from 'ag-charts-core';
 
+import { readDatum } from '../../utils/datum';
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
 
 const {
@@ -294,8 +295,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     } {
         const { axisCtx } = this;
         const key = 'pointer';
-        const { datum, xKey = '', yKey = '' } = this.activeHighlight ?? {};
+        const { xKey = '', yKey = '' } = this.activeHighlight ?? {};
         const { currentX, currentY } = event;
+        const datum = readDatum(this.activeHighlight);
 
         const isVertical = this.isVertical();
         const position = isVertical ? currentX : currentY;
@@ -312,7 +314,8 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         activeHighlight: Exclude<_ModuleSupport.HighlightChangeEvent['currentHighlight'], undefined>
     ): { [key: string]: { position: number; value: any } } {
         const { axisCtx } = this;
-        const { datum, series, xKey = '', aggregatedValue, cumulativeValue, midPoint } = activeHighlight;
+        const { series, xKey = '', aggregatedValue, cumulativeValue, midPoint } = activeHighlight;
+        const datum = readDatum(activeHighlight);
         const seriesKeyProperties = series.getKeyProperties(axisCtx.direction);
 
         const halfBandwidth = (axisCtx.scale.bandwidth ?? 0) / 2;
@@ -334,7 +337,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         if (isXKey) {
             const position = (this.isVertical() ? midPoint?.x : midPoint?.y) ?? 0;
-            const value = axisCtx.continuous ? axisCtx.scaleInvert(position) : datum[xKey];
+            const value = axisCtx.continuous ? axisCtx.scaleInvert(position) : datum?.[xKey];
             return this.isInRange(position) ? { xKey: { value, position } } : {};
         }
 
@@ -342,7 +345,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         seriesKeyProperties.forEach((key) => {
             const keyValue = series.properties[key];
-            const value = datum[keyValue];
+            const value = datum?.[keyValue];
             const position = axisCtx.scale.convert(value) + halfBandwidth;
             const isInRange = this.isInRange(position);
 
