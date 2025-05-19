@@ -6,7 +6,7 @@ import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOption
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgRadialSeriesOptionsKeys, AgRadialSeriesOptionsNames } from './radialOptions';
 
-export interface AgRadarSeriesThemeableOptions<TDatum = any>
+export interface AgRadarSeriesThemeableOptions<TDatum>
     extends StrokeOptions,
         LineDashOptions,
         AgBaseSeriesThemeableOptions<TDatum> {
@@ -20,7 +20,7 @@ export interface AgRadarSeriesThemeableOptions<TDatum = any>
     connectMissingData?: boolean;
 }
 
-export interface AgBaseRadarSeriesOptions<TDatum = any>
+export interface AgBaseRadarSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgRadialSeriesOptionsKeys,
         AgRadialSeriesOptionsNames,

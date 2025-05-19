@@ -15,7 +15,7 @@ export type AgMapMarkerSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & 
 
 export type AgMapMarkerSeriesLabelFormatterParams = AgMapMarkerSeriesOptionsKeys & AgMapMarkerSeriesOptionsNames;
 
-export type AgMapMarkerSeriesItemStylerParams<TDatum = any> = DatumCallbackParams<TDatum> &
+export type AgMapMarkerSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgMapMarkerSeriesOptionsKeys &
     Required<AgMapMarkerSeriesStyle>;
 
@@ -66,7 +66,7 @@ export interface AgMapMarkerSeriesLabel<TDatum>
     placement?: LabelPlacement;
 }
 
-export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
+export interface AgMapMarkerSeriesThemeableOptions<TDatum>
     extends AgMapMarkerSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** Determines the largest size a marker can be in pixels. */
@@ -85,7 +85,7 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
     highlightStyle?: AgMapMarkerSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgMapMarkerSeriesOptions<TDatum = any>
+export interface AgMapMarkerSeriesOptions<TDatum>
     extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
         AgMapMarkerSeriesOptionsKeys,
         AgMapMarkerSeriesOptionsNames,

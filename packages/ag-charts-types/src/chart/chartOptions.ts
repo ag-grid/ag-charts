@@ -179,7 +179,7 @@ export interface AgTouchOptions {
     dragAction?: 'none' | 'drag' | 'hover';
 }
 
-export interface AgBaseThemeableChartOptions<TDatum = any> {
+export interface AgBaseThemeableChartOptions<TDatum> {
     /** The width of the chart in pixels. */
     width?: PixelSize;
     /** The height of the chart in pixels. */
@@ -267,7 +267,7 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
 }
 
 /** Configuration common to all charts.  */
-export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOptions<TDatum> {
+export interface AgBaseChartOptions<TDatum> extends AgBaseThemeableChartOptions<TDatum> {
     /** Context object to use in callbacks */
     context?: unknown;
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */

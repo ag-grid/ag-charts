@@ -27,13 +27,13 @@ export interface AgConeFunnelSeriesStyle extends FillOptions, StrokeOptions, Lin
 
 export interface AgConeFunnelSeriesLabelFormatterParams extends AgConeFunnelSeriesOptionsKeys {}
 
-export interface AgConeFunnelSeriesTooltipRendererParams<TDatum = any>
+export interface AgConeFunnelSeriesTooltipRendererParams<TDatum>
     extends AgConeFunnelSeriesOptionsKeys,
         AgConeFunnelSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum>,
         AgConeFunnelSeriesStyle {}
 
-export interface AgConeFunnelSeriesThemeableOptions<TDatum = any>
+export interface AgConeFunnelSeriesThemeableOptions<TDatum>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
         LineDashOptions {
     /** The colours to cycle through for the fills of the drop-offs. */
@@ -65,7 +65,7 @@ export interface AgConeFunnelSeriesOptionsKeys {
 
 export interface AgConeFunnelSeriesOptionsNames {}
 
-export interface AgConeFunnelSeriesOptions<TDatum = any>
+export interface AgConeFunnelSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgConeFunnelSeriesOptionsKeys,
         AgConeFunnelSeriesOptionsNames,

@@ -1,6 +1,6 @@
 import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 
-export interface AgCartesianSeriesTooltipRendererParams<TDatum = any> extends AgSeriesTooltipRendererParams<TDatum> {
+export interface AgCartesianSeriesTooltipRendererParams<TDatum> extends AgSeriesTooltipRendererParams<TDatum> {
     /** xKey as specified on series options. */
     readonly xKey: string;
     /** xName as specified on series options. */

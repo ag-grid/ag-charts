@@ -48,7 +48,7 @@ export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOp
 
 export type AgBarSeriesLabelFormatterParams = AgBarSeriesOptionsKeys & AgBarSeriesOptionsNames;
 
-export interface AgBarSeriesTooltipRendererParams<TDatum = any>
+export interface AgBarSeriesTooltipRendererParams<TDatum>
     extends AgBarSeriesOptionsKeys,
         AgBarSeriesOptionsNames,
         AgBarSeriesStyle,
@@ -57,9 +57,7 @@ export interface AgBarSeriesTooltipRendererParams<TDatum = any>
     readonly stackGroup?: string;
 }
 
-export interface AgBarSeriesThemeableOptions<TDatum = any>
-    extends AgBarSeriesStyle,
-        AgBaseCartesianThemeableOptions<TDatum> {
+export interface AgBarSeriesThemeableOptions<TDatum> extends AgBarSeriesStyle, AgBaseCartesianThemeableOptions<TDatum> {
     /**
      * Bar rendering direction.
      *
@@ -96,7 +94,7 @@ export interface AgBarSeriesOptionsNames {
     legendItemName?: string;
 }
 
-export interface AgBarSeriesOptions<TDatum = any>
+export interface AgBarSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgBarSeriesOptionsKeys,
         AgBarSeriesOptionsNames,

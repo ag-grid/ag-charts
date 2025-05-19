@@ -21,7 +21,7 @@ export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, Line
     cornerRadius?: PixelSize;
 }
 
-export interface AgWaterfallSeriesTooltipRendererParams<TDatum = any>
+export interface AgWaterfallSeriesTooltipRendererParams<TDatum>
     extends AgCartesianSeriesTooltipRendererParams<TDatum>,
         AgWaterfallSeriesStyle {
     /** The Id to distinguish the type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
@@ -47,7 +47,7 @@ export type AgWaterfallSeriesLabelPlacement =
     | 'outside-start'
     | 'outside-end';
 
-export interface AgWaterfallSeriesThemeableOptions<TDatum = any> extends AgBaseCartesianThemeableOptions<TDatum> {
+export interface AgWaterfallSeriesThemeableOptions<TDatum> extends AgBaseCartesianThemeableOptions<TDatum> {
     /**
      * Bar rendering direction.
      *
@@ -78,7 +78,7 @@ export interface AgWaterfallSeriesOptionsNames {
     yName?: string;
 }
 
-export interface AgWaterfallSeriesOptions<TDatum = any>
+export interface AgWaterfallSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgWaterfallSeriesOptionsKeys,
         AgWaterfallSeriesOptionsNames,

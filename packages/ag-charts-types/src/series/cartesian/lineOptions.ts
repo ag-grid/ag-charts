@@ -10,14 +10,14 @@ import type {
 } from './cartesianSeriesTooltipOptions';
 import type { LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgLineSeriesTooltipRendererParams<TDatum = any>
+export interface AgLineSeriesTooltipRendererParams<TDatum>
     extends AgCartesianSeriesTooltipRendererParams<TDatum>,
         AgErrorBoundSeriesTooltipRendererParams,
         AgSeriesMarkerStyle {}
 
 export type AgLineSeriesLabelFormatterParams = AgLineSeriesOptionsKeys & AgLineSeriesOptionsNames;
 
-export interface AgLineSeriesThemeableOptions<TDatum = any>
+export interface AgLineSeriesThemeableOptions<TDatum>
     extends StrokeOptions,
         LineDashOptions,
         AgBaseCartesianThemeableOptions<TDatum> {
@@ -68,7 +68,7 @@ export interface AgLineSeriesOptionsNames {
     legendItemName?: string;
 }
 
-export interface AgLineSeriesOptions<TDatum = any>
+export interface AgLineSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgLineSeriesOptionsKeys,
         AgLineSeriesOptionsNames,

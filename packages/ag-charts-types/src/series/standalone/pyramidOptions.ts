@@ -24,13 +24,13 @@ export interface AgPyramidSeriesStyle extends FillOptions, StrokeOptions, LineDa
 
 export interface AgPyramidSeriesLabelFormatterParams extends AgPyramidSeriesOptionsKeys {}
 
-export interface AgPyramidSeriesTooltipRendererParams<TDatum = any>
+export interface AgPyramidSeriesTooltipRendererParams<TDatum>
     extends AgPyramidSeriesOptionsKeys,
         AgPyramidSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum>,
         AgPyramidSeriesStyle {}
 
-export interface AgPyramidSeriesThemeableOptions<TDatum = any> extends LineDashOptions {
+export interface AgPyramidSeriesThemeableOptions<TDatum> extends LineDashOptions {
     /** The colours to cycle through for the fills of the stages. */
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the stages. */
@@ -70,7 +70,7 @@ export interface AgPyramidSeriesOptionsKeys {
 
 export interface AgPyramidSeriesOptionsNames {}
 
-export interface AgPyramidSeriesOptions<TDatum = any>
+export interface AgPyramidSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgPyramidSeriesOptionsKeys,
         AgPyramidSeriesOptionsNames,

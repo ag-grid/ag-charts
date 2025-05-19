@@ -1,4 +1,4 @@
-export interface AgChartCallbackParams<TDatum = any> {
+export interface AgChartCallbackParams<TDatum> {
     /** The data point associated with the label. */
     datum: TDatum;
     /** The unique identifier of the item. */

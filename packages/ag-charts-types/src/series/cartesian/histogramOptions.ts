@@ -27,7 +27,7 @@ export interface AgHistogramBinDatum<TDatum> {
     domain: [number, number];
 }
 
-export interface AgHistogramSeriesThemeableOptions<TDatum = any>
+export interface AgHistogramSeriesThemeableOptions<TDatum>
     extends AgBaseCartesianThemeableOptions<TDatum>,
         FillOptions,
         StrokeOptions,
@@ -56,7 +56,7 @@ export interface AgHistogramSeriesOptionsNames {
     yName?: string;
 }
 
-export interface AgHistogramSeriesOptions<TDatum = any>
+export interface AgHistogramSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgHistogramSeriesOptionsKeys,
         AgHistogramSeriesOptionsNames,

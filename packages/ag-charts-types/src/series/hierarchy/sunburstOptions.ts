@@ -31,7 +31,7 @@ export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSunburstSeries
     secondaryLabel?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
 }
 
-export interface AgSunburstSeriesThemeableOptions<TDatum = any>
+export interface AgSunburstSeriesThemeableOptions<TDatum>
     extends Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** Options for the label in a sector. */
     label?: AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>;
@@ -63,7 +63,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = any>
     highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgSunburstSeriesOptions<TDatum = any>
+export interface AgSunburstSeriesOptions<TDatum>
     extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
         AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames,
@@ -101,7 +101,7 @@ export interface AgSunburstSeriesItemStylerParams<TDatum>
     depth: number;
 }
 
-export interface AgSunburstSeriesLabelFormatterParams<_TDatum = any>
+export interface AgSunburstSeriesLabelFormatterParams<_TDatum>
     extends AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */

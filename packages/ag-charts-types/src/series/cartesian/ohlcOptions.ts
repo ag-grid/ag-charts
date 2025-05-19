@@ -29,7 +29,7 @@ export interface AgOhlcSeriesStyles {
     item?: AgOhlcSeriesItem;
 }
 
-export interface AgOhlcSeriesThemeableOptions<TDatum = any>
+export interface AgOhlcSeriesThemeableOptions<TDatum>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
         AgOhlcSeriesStyles {
     /** Series-specific tooltip configuration. */
@@ -38,7 +38,7 @@ export interface AgOhlcSeriesThemeableOptions<TDatum = any>
     itemStyler?: Styler<AgOhlcSeriesItemStylerParams<TDatum>, AgOhlcSeriesItemOptions>;
 }
 
-export interface AgOhlcSeriesOptions<TDatum = any>
+export interface AgOhlcSeriesOptions<TDatum>
     extends AgOhlcSeriesThemeableOptions<TDatum>,
         AgBaseSeriesOptions<TDatum>,
         AgOhlcSeriesBaseOptions,

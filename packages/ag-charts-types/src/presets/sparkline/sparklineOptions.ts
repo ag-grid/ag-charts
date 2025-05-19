@@ -27,7 +27,7 @@ export interface AgSparklineTooltipRendererResult {
     content?: string;
 }
 
-export interface AgSparklineTooltip<TDatum = any> {
+export interface AgSparklineTooltip<TDatum> {
     /** Whether to show tooltips when the series are hovered over. */
     enabled?: boolean;
     /** The tooltip arrow is displayed by default, unless the container restricts it or a position offset is provided. To always display the arrow, set `showArrow` to `true`. To remove the arrow, set `showArrow` to `false`.  */

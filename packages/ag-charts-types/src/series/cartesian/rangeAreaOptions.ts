@@ -28,7 +28,7 @@ export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';
 
 export type AgRangeAreaSeriesLabelFormatterParams = AgRangeAreaSeriesOptionsKeys & AgRangeAreaSeriesOptionsNames;
 
-export interface AgRangeAreaSeriesThemeableOptions<TDatum = any>
+export interface AgRangeAreaSeriesThemeableOptions<TDatum>
     extends StrokeOptions,
         FillOptions,
         LineDashOptions,
@@ -69,7 +69,7 @@ export interface AgRangeAreaSeriesOptionsNames {
     yName?: string;
 }
 
-export interface AgRangeAreaSeriesOptions<TDatum = any>
+export interface AgRangeAreaSeriesOptions<TDatum>
     extends AgBaseSeriesOptions<TDatum>,
         AgRangeAreaSeriesOptionsKeys,
         AgRangeAreaSeriesOptionsNames,
