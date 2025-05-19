@@ -19,4 +19,6 @@ function checkFileExists {
 
 checkFileExists $SSH_LOCATION
 
-ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "JIRA_CREDENTIALS=$JIRA_CREDENTIALS && cd /home/ubuntu/jira_reports && ./getChartsChangelog.sh && ./getChartsPipeline.sh"
+CURRENT_HOST=$1
+
+ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "JIRA_CREDENTIALS=$JIRA_CREDENTIALS && cd /home/ubuntu/jira_reports && ./getChartsChangelog.sh && ./getChartsPipeline.sh"
