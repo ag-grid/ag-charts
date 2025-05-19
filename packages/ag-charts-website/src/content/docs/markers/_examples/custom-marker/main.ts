@@ -25,6 +25,7 @@ const options: AgChartOptions = {
     data: getData(),
     series: [
         {
+            type: 'line',
             xKey: 'quarter',
             yKey: 'electric',
             title: 'Electric',

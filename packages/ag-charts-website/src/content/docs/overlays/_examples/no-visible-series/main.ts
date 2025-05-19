@@ -9,8 +9,8 @@ const options: AgChartOptions = {
         { quarter: 'Q4', petrol: 400, diesel: 200 },
     ],
     series: [
-        { xKey: 'quarter', yKey: 'petrol', visible: false },
-        { xKey: 'quarter', yKey: 'diesel', visible: false },
+        { type: 'line', xKey: 'quarter', yKey: 'petrol', visible: false },
+        { type: 'line', xKey: 'quarter', yKey: 'diesel', visible: false },
     ],
 };
 

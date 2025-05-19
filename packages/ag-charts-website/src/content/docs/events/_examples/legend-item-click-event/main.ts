@@ -31,10 +31,12 @@ let options: AgCartesianChartOptions = {
     ],
     series: [
         {
+            type: 'line',
             xKey: 'quarter',
             yKey: 'petrol',
         },
         {
+            type: 'line',
             xKey: 'quarter',
             yKey: 'diesel',
         },

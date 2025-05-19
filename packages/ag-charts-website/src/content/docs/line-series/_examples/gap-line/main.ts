@@ -13,6 +13,7 @@ const options: AgCartesianChartOptions = {
     },
     series: [
         {
+            type: 'line',
             xKey: 'year',
             yKey: 'visitors',
             connectMissingData: false,

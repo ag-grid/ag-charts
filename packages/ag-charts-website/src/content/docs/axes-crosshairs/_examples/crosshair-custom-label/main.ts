@@ -19,8 +19,9 @@ const buildSeries = () => {
     return Object.entries(data[0])
         .filter(([key]) => key !== 'All fuels' && key !== 'year')
         .map(([key]) => ({
-            yKey: key,
+            type: 'line' as const,
             xKey: 'year',
+            yKey: key,
         }));
 };
 

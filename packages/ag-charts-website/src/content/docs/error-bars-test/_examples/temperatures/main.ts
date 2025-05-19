@@ -30,6 +30,7 @@ const options: AgCartesianChartOptions = {
     },
     series: [
         {
+            type: 'line',
             data: getData(),
             xKey: 'month',
             yKey: 'temperature',
@@ -42,6 +43,7 @@ const options: AgCartesianChartOptions = {
             highlightStyle,
         },
         {
+            type: 'line',
             data: getData2(),
             xKey: 'month',
             yKey: 'temperature',

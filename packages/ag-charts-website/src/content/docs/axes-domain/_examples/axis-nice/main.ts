@@ -9,6 +9,7 @@ const options: AgCartesianChartOptions = {
     ],
     series: [
         {
+            type: 'line',
             xKey: 'os',
             yKey: 'share',
         },
