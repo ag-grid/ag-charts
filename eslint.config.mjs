@@ -84,7 +84,7 @@ export default [
         languageOptions: {
             globals: globals.browser,
             parserOptions: {
-                // projectService: true,
+                projectService: true,
                 project: './tsconfig.lint.json',
             },
         },

@@ -1,37 +1,66 @@
-// -*- Mode: js2 -*-
-
 /**
- * @fileoverview Enforce explicit generic arguments for specified types
+ * @fileoverview Enforce explicit generic arguments for all generic types in the project
  */
 
+import { ESLintUtils } from '@typescript-eslint/utils';
+import ts from 'typescript';
+
+/** @type {import('eslint').Rule.RuleModule} */
 export default {
     meta: {
         type: 'problem',
         docs: {
-            description: 'Require explicit generic type arguments for specific types',
+            description: 'Require explicit generic type arguments for all exported generic types/interfaces.',
         },
         messages: {
-            requireGeneric: "'{{name}}' requires explicit generic type arguments.",
+            requireGeneric: "'{{name}}' is a generic type and requires explicit type arguments.",
         },
-        schema: [], // No options for now
+        schema: [],
     },
 
     create(context) {
-        const TARGET_NAMES = ['AgContextMenuItemSeriesNode', 'AgNodeContextMenuActionEvent']; // ✅ Modify this list
+        const parserServices = ESLintUtils.getParserServices(context);
+        if (!parserServices || !parserServices.program) {
+            console.error('parserServices not available — make sure you are using @typescript-eslint/parser with project config!');
+            return {};
+        }
+
+        const program = parserServices.program;
+        const typeChecker = program.getTypeChecker();
+
+        // Collect all generic type declarations (interfaces/types with type parameters)
+        const genericTypeNames = new Set();
+
+        for (const sourceFile of program.getSourceFiles()) {
+            if (sourceFile.isDeclarationFile || sourceFile.fileName.includes('node_modules')) continue;
+
+            ts.forEachChild(sourceFile, (node) => {
+                if (
+                    (ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node)) &&
+                    node.typeParameters &&
+                    node.typeParameters.length > 0 &&
+                    node.name
+                ) {
+                    const symbol = typeChecker.getSymbolAtLocation(node.name);
+                    if (symbol) {
+                        genericTypeNames.add(symbol.getName());
+                    }
+                }
+            });
+        }
 
         return {
             TSTypeReference(node) {
+                const name = node.typeName?.name;
                 if (
-                    node.typeName.type === 'Identifier' &&
-                    TARGET_NAMES.includes(node.typeName.name) &&
+                    name &&
+                    genericTypeNames.has(name) &&
                     (!node.typeParameters || node.typeParameters.params.length === 0)
                 ) {
                     context.report({
                         node,
                         messageId: 'requireGeneric',
-                        data: {
-                            name: node.typeName.name,
-                        },
+                        data: { name },
                     });
                 }
             },
