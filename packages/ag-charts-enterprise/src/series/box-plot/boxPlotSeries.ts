@@ -1,6 +1,7 @@
 import { type AgBoxPlotSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { type DeepRequired } from 'ag-charts-core';
 
+import { readDatum } from '../../utils/datum';
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotGroup } from './boxPlotGroup';
 import { BoxPlotSeriesProperties } from './boxPlotSeriesProperties';
@@ -547,7 +548,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             fillPatternDefaults,
             fillImageDefaults,
         } = properties;
-        const { datum, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
+        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
+        const datum = readDatum(nodeDatum);
         let fill;
         let fillOpacity: number = 1;
 
@@ -577,7 +579,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         );
 
         if (itemStyler) {
-            const formatStyles = this.cachedDatumCallback(createDatumId(datum.index, scope), () =>
+            const formatStyles = this.cachedDatumCallback(createDatumId(datum?.index as any, scope), () =>
                 this.callWithContext(itemStyler, {
                     datum,
                     seriesId,

@@ -2,6 +2,7 @@ import { type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { type RequiredInternalAgGradientColor, isDefined } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
+import { readDatum } from '../../utils/datum';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialBarSeriesProperties } from './radialBarSeriesProperties';
 import { prepareRadialBarSeriesAnimationFunctions, resetRadialBarSelectionsFn } from './radialBarUtil';
@@ -429,7 +430,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
-                const { datum, datumIndex } = nodeDatum;
+                const { datumIndex } = nodeDatum;
+                const datum = readDatum(nodeDatum);
+                if (datum == null) return;
                 const overrides = this.getItemStyleOverrides(String(datumIndex), datum, style, highlighted);
 
                 const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;

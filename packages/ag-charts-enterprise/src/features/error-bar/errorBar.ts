@@ -2,6 +2,7 @@ import type { AgErrorBarThemeableOptions, AgSeriesVisibilityChange } from 'ag-ch
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport } from 'ag-charts-community';
 import { Logger, isDefined } from 'ag-charts-core';
 
+import { readDatum } from '../../utils/datum';
 import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
 import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
 import { ErrorBarProperties } from './errorBarProperties';
@@ -249,12 +250,17 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         return { xLowerKey, xUpperKey, xErrorsID, yLowerKey, yUpperKey, yErrorsID };
     }
 
-    private static getDatumKey(datum: ErrorBarNodeDatum, key: string | undefined, offset: number): number | undefined {
+    private static getDatumKey(
+        nodeDatum: ErrorBarNodeDatum,
+        key: string | undefined,
+        offset: number
+    ): number | undefined {
         // Check if the user input datum has the error value for `key`:
         if (key == null) {
             return;
         }
-        const value: unknown = datum.datum[key];
+        const datum = readDatum(nodeDatum);
+        const value: unknown = datum?.[key];
         if (value == null) {
             return;
         }

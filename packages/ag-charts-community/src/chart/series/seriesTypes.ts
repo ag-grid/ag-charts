@@ -70,7 +70,7 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
 export interface SeriesNodeDatum<I> {
     readonly series: ISeries<I, any, any>;
     readonly itemId?: any;
-    readonly datum: any;
+    readonly datum: unknown;
     readonly datumIndex: I;
     readonly point?: Readonly<Point> & SizedPoint;
     readonly missing?: boolean;

@@ -1,6 +1,8 @@
 import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
 import { AsyncAwaitQueue, Logger, arraysEqual, isDate, isDefined, isFiniteNumber, unique } from 'ag-charts-core';
 
+import { readDatum } from '../../utils/datum';
+
 const {
     BaseProperties,
     CartesianAxis,
@@ -126,9 +128,11 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const secondaryDirection = mainDirection === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 
         const [primaryKeys, secondaryKeys] = series ? getDirectionKeys(series, mainDirection, secondaryDirection) : [];
-        let eventValue = primaryKeys?.[0] ? event.currentHighlight?.datum?.[primaryKeys[0]] : undefined;
-        const valueIsDate = isDate(eventValue);
-        if (valueIsDate) {
+        const datum = readDatum(event.currentHighlight);
+        let eventValue = primaryKeys?.[0] ? datum?.[primaryKeys[0]] : undefined;
+        let valueIsDate: boolean = false;
+        if (isDate(eventValue)) {
+            valueIsDate = true;
             eventValue = eventValue.getTime();
         }
 
