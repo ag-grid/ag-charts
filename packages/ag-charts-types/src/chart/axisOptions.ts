@@ -40,7 +40,7 @@ export interface AgAxisCaptionOptions {
     formatter?: Formatter<AgAxisCaptionFormatterParams>;
 }
 
-export interface AgBaseAxisOptions<LabelType = any> {
+export interface AgBaseAxisOptions<LabelType> {
     /** Axis type identifier. */
     type: string;
     /** Context object to use in callbacks */
