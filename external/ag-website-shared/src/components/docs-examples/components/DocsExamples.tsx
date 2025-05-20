@@ -126,13 +126,13 @@ export const DocsExamples: FunctionComponent<Props> = ({ library, properties = [
     const [colDefs] = useState<(ColDef | ColGroupDef)[]>([
         {
             field: 'pageName',
-            rowGroup: true,
-            hide: true,
+            initialHide: true,
+            initialRowGroup: true,
             enableRowGroup: true,
         },
         {
             field: 'exampleName',
-            hide: true,
+            initialHide: true,
         },
         ...ALL_PROPERTIES.filter((property) => properties.includes(property.field)),
 
