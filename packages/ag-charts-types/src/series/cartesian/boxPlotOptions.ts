@@ -75,9 +75,9 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum>
     itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum>, AgBoxPlotSeriesStyle>;
 }
 
-export interface AgBoxPlotSeriesOptions<TDatum>
+export interface AgBoxPlotSeriesOptions<TDatum, TContext>
     extends AgBoxPlotSeriesThemeableOptions<TDatum>,
-        AgBaseSeriesOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum, TContext>,
         BoxPlotOptionsKeys,
         BoxPlotOptionsNames {
     /** Configuration for the Box Plot Series. */

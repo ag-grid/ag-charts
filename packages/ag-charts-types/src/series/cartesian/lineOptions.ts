@@ -68,8 +68,8 @@ export interface AgLineSeriesOptionsNames {
     legendItemName?: string;
 }
 
-export interface AgLineSeriesOptions<TDatum>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgLineSeriesOptions<TDatum, TContext>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgLineSeriesOptionsKeys,
         AgLineSeriesOptionsNames,
         AgLineSeriesThemeableOptions<TDatum> {

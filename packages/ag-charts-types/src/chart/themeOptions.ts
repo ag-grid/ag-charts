@@ -349,13 +349,13 @@ export interface AgThemeOverrides<TDatum> extends AgChartThemeOverrides<TDatum>,
 // Use Typescript function types to verify that all series types are present in the manually
 // maintained AgBaseChartThemeOverrides type.
 type VerifyAgBaseChartThemeOverrides<T = AgBaseChartOptions<never>> = {
-    [K in NonNullable<AgCartesianSeriesOptions<never>['type']>]?: T;
+    [K in NonNullable<AgCartesianSeriesOptions<never, never>['type']>]?: T;
 } & {
-    [K in NonNullable<AgPolarSeriesOptions<never>['type']>]?: T;
+    [K in NonNullable<AgPolarSeriesOptions<never, never>['type']>]?: T;
 } & {
-    [K in NonNullable<AgHierarchySeriesOptions<never>['type']>]?: T;
+    [K in NonNullable<AgHierarchySeriesOptions<never, never>['type']>]?: T;
 } & {
-    [K in NonNullable<AgSankeySeriesOptions<never>['type']>]?: T;
+    [K in NonNullable<AgSankeySeriesOptions<never, never>['type']>]?: T;
 } & {
     common?: Partial<T>;
 };

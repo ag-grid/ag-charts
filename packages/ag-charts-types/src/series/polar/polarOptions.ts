@@ -17,14 +17,14 @@ import type { AgRadarLineSeriesOptions } from './radarLineOptions';
 import type { AgRadialBarSeriesOptions } from './radialBarOptions';
 import type { AgRadialColumnSeriesOptions } from './radialColumnOptions';
 
-export type AgPolarSeriesOptions<TDatum> =
-    | AgDonutSeriesOptions<TDatum>
-    | AgPieSeriesOptions<TDatum>
-    | AgRadarLineSeriesOptions<TDatum>
-    | AgRadarAreaSeriesOptions<TDatum>
-    | AgRadialBarSeriesOptions<TDatum>
-    | AgRadialColumnSeriesOptions<TDatum>
-    | AgNightingaleSeriesOptions<TDatum>;
+export type AgPolarSeriesOptions<TDatum, TContext> =
+    | AgDonutSeriesOptions<TDatum, TContext>
+    | AgPieSeriesOptions<TDatum, TContext>
+    | AgRadarLineSeriesOptions<TDatum, TContext>
+    | AgRadarAreaSeriesOptions<TDatum, TContext>
+    | AgRadialBarSeriesOptions<TDatum, TContext>
+    | AgRadialColumnSeriesOptions<TDatum, TContext>
+    | AgNightingaleSeriesOptions<TDatum, TContext>;
 
 export type AgPolarAxisOptions<TContext> =
     | AgAngleCategoryAxisOptions<TContext>
@@ -36,7 +36,7 @@ export type AgPolarAxisType<TContext> = AgPolarAxisOptions<TContext>['type'];
 
 export interface AgBasePolarChartOptions<TDatum, TContext> {
     /** Series configurations. */
-    series?: AgPolarSeriesOptions<TDatum>[];
+    series?: AgPolarSeriesOptions<TDatum, TContext>[];
 
     /** Axis configurations. */
     axes?: AgPolarAxisOptions<TContext>[];

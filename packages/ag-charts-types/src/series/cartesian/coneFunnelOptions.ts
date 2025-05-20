@@ -65,8 +65,8 @@ export interface AgConeFunnelSeriesOptionsKeys {
 
 export interface AgConeFunnelSeriesOptionsNames {}
 
-export interface AgConeFunnelSeriesOptions<TDatum>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgConeFunnelSeriesOptions<TDatum, TContext>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgConeFunnelSeriesOptionsKeys,
         AgConeFunnelSeriesOptionsNames,
         AgConeFunnelSeriesThemeableOptions<TDatum> {

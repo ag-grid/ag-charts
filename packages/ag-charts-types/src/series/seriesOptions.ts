@@ -37,7 +37,7 @@ export interface AgBaseCartesianThemeableOptions<TDatum> extends AgBaseSeriesThe
     showInMiniChart?: boolean;
 }
 
-export interface AgBaseSeriesOptions<TDatum> extends AgBaseSeriesThemeableOptions<TDatum> {
+export interface AgBaseSeriesOptions<TDatum, TContext> extends AgBaseSeriesThemeableOptions<TDatum> {
     /**
      * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series. Auto-generated ids are subject to future change without warning, if your callbacks need to vary behaviour by series please supply your own unique `id` value.
      *
@@ -45,7 +45,7 @@ export interface AgBaseSeriesOptions<TDatum> extends AgBaseSeriesThemeableOption
      */
     id?: string;
     /** Context object to use in callbacks */
-    context?: unknown;
+    context?: TContext;
     /** The data to use when rendering the series. If this is not supplied, data must be set on the chart instead. */
     data?: TDatum[];
     /** Whether to display the series. */

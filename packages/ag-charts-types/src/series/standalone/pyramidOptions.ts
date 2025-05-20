@@ -70,8 +70,8 @@ export interface AgPyramidSeriesOptionsKeys {
 
 export interface AgPyramidSeriesOptionsNames {}
 
-export interface AgPyramidSeriesOptions<TDatum>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgPyramidSeriesOptions<TDatum, TContext>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgPyramidSeriesOptionsKeys,
         AgPyramidSeriesOptionsNames,
         AgPyramidSeriesThemeableOptions<TDatum> {

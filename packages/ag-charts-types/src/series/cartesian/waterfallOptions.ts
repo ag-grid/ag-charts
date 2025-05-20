@@ -78,8 +78,8 @@ export interface AgWaterfallSeriesOptionsNames {
     yName?: string;
 }
 
-export interface AgWaterfallSeriesOptions<TDatum>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgWaterfallSeriesOptions<TDatum, TContext>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgWaterfallSeriesOptionsKeys,
         AgWaterfallSeriesOptionsNames,
         AgWaterfallSeriesThemeableOptions<TDatum> {

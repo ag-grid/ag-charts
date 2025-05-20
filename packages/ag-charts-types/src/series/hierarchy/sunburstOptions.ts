@@ -63,8 +63,8 @@ export interface AgSunburstSeriesThemeableOptions<TDatum>
     highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgSunburstSeriesOptions<TDatum>
-    extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
+export interface AgSunburstSeriesOptions<TDatum, TContext>
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
         AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames,
         AgSunburstSeriesThemeableOptions<TDatum> {

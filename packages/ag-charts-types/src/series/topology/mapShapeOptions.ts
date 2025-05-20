@@ -56,8 +56,8 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum>
     highlightStyle?: AgMapShapeSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgMapShapeSeriesOptions<TDatum>
-    extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
+export interface AgMapShapeSeriesOptions<TDatum, TContext>
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
         AgMapShapeSeriesOptionsKeys,
         AgMapShapeSeriesOptionsNames,
         AgMapShapeSeriesThemeableOptions<TDatum> {

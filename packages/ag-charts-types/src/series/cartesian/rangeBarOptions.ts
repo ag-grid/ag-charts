@@ -73,11 +73,11 @@ export interface AgRangeBarSeriesOptionsNames {
     yHighName?: string;
 }
 
-export interface AgRangeBarSeriesOptions<TDatum>
+export interface AgRangeBarSeriesOptions<TDatum, TContext>
     extends AgRangeBarSeriesOptionsKeys,
         AgRangeBarSeriesOptionsNames,
         AgRangeBarSeriesThemeableOptions<TDatum>,
-        AgBaseSeriesOptions<TDatum> {
+        AgBaseSeriesOptions<TDatum, TContext> {
     /** Configuration for the Range Bar Series. */
     type: 'range-bar';
 }

@@ -69,8 +69,8 @@ export interface AgRangeAreaSeriesOptionsNames {
     yName?: string;
 }
 
-export interface AgRangeAreaSeriesOptions<TDatum>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgRangeAreaSeriesOptions<TDatum, TContext>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgRangeAreaSeriesOptionsKeys,
         AgRangeAreaSeriesOptionsNames,
         AgRangeAreaSeriesThemeableOptions<TDatum> {

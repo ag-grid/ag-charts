@@ -64,8 +64,8 @@ export interface AgScatterSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgScatterSeriesOptions<TDatum>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgScatterSeriesOptions<TDatum, TContext>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgScatterSeriesOptionsKeys,
         AgScatterSeriesOptionsNames,
         AgScatterSeriesThemeableOptions<TDatum> {

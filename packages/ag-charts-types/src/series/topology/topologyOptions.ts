@@ -6,16 +6,16 @@ import type { AgMapMarkerSeriesOptions } from './mapMarkerOptions';
 import type { AgMapShapeBackgroundOptions } from './mapShapeBackgroundOptions';
 import type { AgMapShapeSeriesOptions } from './mapShapeOptions';
 
-export type AgTopologySeriesOptions<TDatum> =
-    | AgMapShapeSeriesOptions<TDatum>
-    | AgMapLineSeriesOptions<TDatum>
-    | AgMapMarkerSeriesOptions<TDatum>
+export type AgTopologySeriesOptions<TDatum, TContext> =
+    | AgMapShapeSeriesOptions<TDatum, TContext>
+    | AgMapLineSeriesOptions<TDatum, TContext>
+    | AgMapMarkerSeriesOptions<TDatum, TContext>
     | AgMapShapeBackgroundOptions
     | AgMapLineBackgroundOptions;
 
-export interface AgBaseTopologyChartOptions<TDatum> {
+export interface AgBaseTopologyChartOptions<TDatum, TContext> {
     /** Series configurations. */
-    series?: AgTopologySeriesOptions<TDatum>[];
+    series?: AgTopologySeriesOptions<TDatum, TContext>[];
     /** Topology to use in all series. */
     topology?: GeoJSON;
 }

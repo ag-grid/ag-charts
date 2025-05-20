@@ -56,8 +56,8 @@ export interface AgHistogramSeriesOptionsNames {
     yName?: string;
 }
 
-export interface AgHistogramSeriesOptions<TDatum>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgHistogramSeriesOptions<TDatum, TContext>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgHistogramSeriesOptionsKeys,
         AgHistogramSeriesOptionsNames,
         AgHistogramSeriesThemeableOptions<TDatum> {

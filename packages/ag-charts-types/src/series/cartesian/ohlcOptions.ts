@@ -38,9 +38,9 @@ export interface AgOhlcSeriesThemeableOptions<TDatum>
     itemStyler?: Styler<AgOhlcSeriesItemStylerParams<TDatum>, AgOhlcSeriesItemOptions>;
 }
 
-export interface AgOhlcSeriesOptions<TDatum>
+export interface AgOhlcSeriesOptions<TDatum, TContext>
     extends AgOhlcSeriesThemeableOptions<TDatum>,
-        AgBaseSeriesOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum, TContext>,
         AgOhlcSeriesBaseOptions,
         Omit<AxisOptions, 'yKey'> {
     /** Configuration for the OHLC Series. */

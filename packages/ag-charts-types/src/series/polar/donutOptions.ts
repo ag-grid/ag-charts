@@ -127,11 +127,11 @@ export interface AgDonutSeriesThemeableOptions<TDatum> extends AgBaseSeriesTheme
     itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum>, AgDonutSeriesStyle>;
 }
 
-export interface AgDonutSeriesOptions<TDatum>
+export interface AgDonutSeriesOptions<TDatum, TContext>
     extends Omit<AgDonutSeriesThemeableOptions<TDatum>, 'innerLabels'>,
         AgDonutSeriesOptionsKeys,
         AgDonutSeriesOptionsNames,
-        AgBaseSeriesOptions<TDatum> {
+        AgBaseSeriesOptions<TDatum, TContext> {
     /** Configuration for Donut Series. */
     type: 'donut';
     /** Configuration for the text lines to display inside the series. */

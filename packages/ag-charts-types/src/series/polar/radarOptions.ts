@@ -20,8 +20,8 @@ export interface AgRadarSeriesThemeableOptions<TDatum>
     connectMissingData?: boolean;
 }
 
-export interface AgBaseRadarSeriesOptions<TDatum>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgBaseRadarSeriesOptions<TDatum, TContext>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgRadialSeriesOptionsKeys,
         AgRadialSeriesOptionsNames,
         AgRadarSeriesThemeableOptions<TDatum> {

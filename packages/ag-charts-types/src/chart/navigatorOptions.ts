@@ -67,6 +67,7 @@ export interface AgNavigatorMiniChartPadding {
 }
 
 export type CommonIgnoredProperties =
+    | 'context'
     | 'cursor'
     | 'highlightStyle'
     | 'listeners'
@@ -79,32 +80,32 @@ export type CommonIgnoredProperties =
     | 'yName';
 
 export interface AgLineMiniChartSeriesOptions<TDatum>
-    extends Omit<AgLineSeriesOptions<TDatum>, CommonIgnoredProperties | 'errorBar' | 'title' | 'label'> {}
+    extends Omit<AgLineSeriesOptions<TDatum, never>, CommonIgnoredProperties | 'errorBar' | 'title' | 'label'> {}
 
 export interface AgScatterMiniChartSeriesOptions<TDatum>
     extends Omit<
-        AgScatterSeriesOptions<TDatum>,
+        AgScatterSeriesOptions<TDatum, never>,
         CommonIgnoredProperties | 'errorBar' | 'title' | 'label' | 'labelKey' | 'labelName'
     > {}
 
 export interface AgBubbleMiniChartSeriesOptions<TDatum>
     extends Omit<
-        AgBubbleSeriesOptions<TDatum>,
+        AgBubbleSeriesOptions<TDatum, never>,
         CommonIgnoredProperties | 'title' | 'label' | 'labelKey' | 'labelName' | 'sizeName'
     > {}
 
 export interface AgAreaMiniChartSeriesOptions<TDatum>
-    extends Omit<AgAreaSeriesOptions<TDatum>, CommonIgnoredProperties> {}
+    extends Omit<AgAreaSeriesOptions<TDatum, never>, CommonIgnoredProperties> {}
 
 export interface AgBarMiniChartSeriesOptions<TDatum>
     extends Omit<
-        AgBarSeriesOptions<TDatum>,
+        AgBarSeriesOptions<TDatum, never>,
         CommonIgnoredProperties | 'errorBar' | 'label' | 'legendItemName' | 'direction'
     > {}
 
 export interface AgBoxPlotMiniChartSeriesOptions<TDatum>
     extends Omit<
-        AgBoxPlotSeriesOptions<TDatum>,
+        AgBoxPlotSeriesOptions<TDatum, never>,
         | CommonIgnoredProperties
         | 'direction'
         | 'legendItemName'
@@ -116,11 +117,11 @@ export interface AgBoxPlotMiniChartSeriesOptions<TDatum>
     > {}
 
 export interface AgHistogramMiniChartSeriesOptions<TDatum>
-    extends Omit<AgHistogramSeriesOptions<TDatum>, CommonIgnoredProperties | 'label'> {}
+    extends Omit<AgHistogramSeriesOptions<TDatum, never>, CommonIgnoredProperties | 'label'> {}
 
 export interface AgHeatmapMiniChartSeriesOptions<TDatum>
     extends Omit<
-        AgHeatmapSeriesOptions<TDatum>,
+        AgHeatmapSeriesOptions<TDatum, never>,
         | CommonIgnoredProperties
         | 'title'
         | 'label'
@@ -132,22 +133,25 @@ export interface AgHeatmapMiniChartSeriesOptions<TDatum>
     > {}
 
 export interface AgWaterfallMiniChartSeriesOptions<TDatum>
-    extends Omit<AgWaterfallSeriesOptions<TDatum>, CommonIgnoredProperties | 'direction'> {}
+    extends Omit<AgWaterfallSeriesOptions<TDatum, never>, CommonIgnoredProperties | 'direction'> {}
 
 export interface AgRangeBarMiniChartSeriesOptions<TDatum>
     extends Omit<
-        AgRangeBarSeriesOptions<TDatum>,
+        AgRangeBarSeriesOptions<TDatum, never>,
         CommonIgnoredProperties | 'label' | 'direction' | 'yLowName' | 'yHighName'
     > {}
 
 export interface AgRangeAreaMiniChartSeriesOptions<TDatum>
-    extends Omit<AgRangeAreaSeriesOptions<TDatum>, CommonIgnoredProperties | 'label' | 'yLowName' | 'yHighName'> {}
+    extends Omit<
+        AgRangeAreaSeriesOptions<TDatum, never>,
+        CommonIgnoredProperties | 'label' | 'yLowName' | 'yHighName'
+    > {}
 
 export interface AgCandlestickMiniChartSeriesOptions<TDatum>
-    extends Omit<AgCandlestickSeriesOptions<TDatum>, CommonIgnoredProperties> {}
+    extends Omit<AgCandlestickSeriesOptions<TDatum, never>, CommonIgnoredProperties> {}
 
 export interface AgOhlcMiniChartSeriesOptions<TDatum>
-    extends Omit<AgOhlcSeriesOptions<TDatum>, CommonIgnoredProperties> {}
+    extends Omit<AgOhlcSeriesOptions<TDatum, never>, CommonIgnoredProperties> {}
 
 export type AgMiniChartSeriesOptions<TDatum> =
     | AgLineMiniChartSeriesOptions<TDatum>
@@ -188,7 +192,7 @@ const __MINI_CHART_SERIES_OPTIONS = undefined as any as Record<
 >;
 // @ts-expect-error TS6133 - this is used to validate completeness by the compiler, but is deliberately unused.
 let __VERIFY_MINI_CHART_SERIES_OPTIONS: Record<
-    NonNullable<AgCartesianSeriesOptions<never>['type']>,
+    NonNullable<AgCartesianSeriesOptions<never, never>['type']>,
     string
 > = undefined as any;
 __VERIFY_MINI_CHART_SERIES_OPTIONS = __MINI_CHART_SERIES_OPTIONS;

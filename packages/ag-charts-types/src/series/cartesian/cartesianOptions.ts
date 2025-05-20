@@ -83,7 +83,7 @@ export interface AgBaseCartesianChartOptions<TDatum, TContext> {
     /** Axis configurations. */
     axes?: AgCartesianAxisOptions<TContext>[];
     /** Series configurations. */
-    series?: AgCartesianSeriesOptions<TDatum>[];
+    series?: AgCartesianSeriesOptions<TDatum, TContext>[];
     /** Annotations configurations. */
     annotations?: AgAnnotationsOptions;
 }

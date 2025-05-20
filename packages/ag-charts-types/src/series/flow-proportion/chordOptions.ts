@@ -5,8 +5,8 @@ import type { CssColor, PixelSize, Ratio } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
-export interface AgChordSeriesOptions<TDatum>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgChordSeriesOptions<TDatum, TContext>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgChordSeriesOptionsKeys,
         AgChordSeriesOptionsNames,
         AgChordSeriesThemeableOptions<TDatum> {

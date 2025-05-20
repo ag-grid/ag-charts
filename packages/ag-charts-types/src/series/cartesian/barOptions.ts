@@ -94,8 +94,8 @@ export interface AgBarSeriesOptionsNames {
     legendItemName?: string;
 }
 
-export interface AgBarSeriesOptions<TDatum>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgBarSeriesOptions<TDatum, TContext>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgBarSeriesOptionsKeys,
         AgBarSeriesOptionsNames,
         AgBarSeriesThemeableOptions<TDatum> {

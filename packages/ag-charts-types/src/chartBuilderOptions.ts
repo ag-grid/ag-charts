@@ -40,24 +40,26 @@ export interface AgPolarChartOptions<TDatum, TContext>
     theme?: AgChartTheme<TDatum> | AgChartThemeName;
 }
 
-export interface AgHierarchyChartOptions<TDatum>
-    extends AgBaseHierarchyChartOptions<TDatum>,
+export interface AgHierarchyChartOptions<TDatum, TContext>
+    extends AgBaseHierarchyChartOptions<TDatum, TContext>,
         AgBaseChartOptions<TDatum> {
     theme?: AgChartTheme<TDatum> | AgChartThemeName;
 }
 
-export interface AgTopologyChartOptions<TDatum> extends AgBaseTopologyChartOptions<TDatum>, AgBaseChartOptions<TDatum> {
-    theme?: AgChartTheme<TDatum> | AgChartThemeName;
-}
-
-export interface AgFlowProportionChartOptions<TDatum>
-    extends AgBaseFlowProportionChartOptions<TDatum>,
+export interface AgTopologyChartOptions<TDatum, TContext>
+    extends AgBaseTopologyChartOptions<TDatum, TContext>,
         AgBaseChartOptions<TDatum> {
     theme?: AgChartTheme<TDatum> | AgChartThemeName;
 }
 
-export interface AgStandaloneChartOptions<TDatum>
-    extends AgBaseStandaloneChartOptions<TDatum>,
+export interface AgFlowProportionChartOptions<TDatum, TContext>
+    extends AgBaseFlowProportionChartOptions<TDatum, TContext>,
+        AgBaseChartOptions<TDatum> {
+    theme?: AgChartTheme<TDatum> | AgChartThemeName;
+}
+
+export interface AgStandaloneChartOptions<TDatum, TContext>
+    extends AgBaseStandaloneChartOptions<TDatum, TContext>,
         AgBaseChartOptions<TDatum> {
     theme?: AgChartTheme<TDatum> | AgChartThemeName;
 }
@@ -69,10 +71,10 @@ export interface AgGaugeChartOptions<TDatum> extends AgBaseChartOptions<TDatum> 
 export type AgChartOptions<TDatum, TContext> =
     | AgCartesianChartOptions<TDatum, TContext>
     | AgPolarChartOptions<TDatum, TContext>
-    | AgHierarchyChartOptions<TDatum>
-    | AgTopologyChartOptions<TDatum>
-    | AgFlowProportionChartOptions<TDatum>
-    | AgStandaloneChartOptions<TDatum>;
+    | AgHierarchyChartOptions<TDatum, TContext>
+    | AgTopologyChartOptions<TDatum, TContext>
+    | AgFlowProportionChartOptions<TDatum, TContext>
+    | AgStandaloneChartOptions<TDatum, TContext>;
 
 export type AgBaseFinancialPresetOptions<TDatum> = Pick<
     AgCartesianChartOptions<TDatum, never>,

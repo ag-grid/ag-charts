@@ -99,11 +99,11 @@ export interface AgPieSeriesThemeableOptions<TDatum> extends AgBaseSeriesThemeab
     itemStyler?: Styler<AgPieSeriesItemStylerParams<TDatum>, AgPieSeriesStyle>;
 }
 
-export interface AgPieSeriesOptions<TDatum>
+export interface AgPieSeriesOptions<TDatum, TContext>
     extends Omit<AgPieSeriesThemeableOptions<TDatum>, 'innerLabels'>,
         AgPieSeriesOptionsKeys,
         AgPieSeriesOptionsNames,
-        AgBaseSeriesOptions<TDatum> {
+        AgBaseSeriesOptions<TDatum, TContext> {
     /** Configuration for Pie Series. */
     type: 'pie';
 }

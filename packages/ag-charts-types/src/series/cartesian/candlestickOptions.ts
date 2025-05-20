@@ -46,9 +46,9 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum>
     itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<TDatum>, AgCandlestickSeriesItemOptions>;
 }
 
-export interface AgCandlestickSeriesOptions<TDatum>
+export interface AgCandlestickSeriesOptions<TDatum, TContext>
     extends AgCandlestickSeriesThemeableOptions<TDatum>,
-        AgBaseSeriesOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum, TContext>,
         AgOhlcSeriesBaseOptions,
         Omit<AxisOptions, 'yKey'> {
     /** Configuration for the Candlestick Series. */

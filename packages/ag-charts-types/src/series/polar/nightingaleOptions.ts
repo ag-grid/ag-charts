@@ -4,9 +4,9 @@ import type { AgBaseRadialSeriesThemeableOptions } from './radialOptions';
 
 export interface AgNightingaleSeriesThemeableOptions<TDatum> extends AgBaseRadialSeriesThemeableOptions<TDatum> {}
 
-export interface AgNightingaleSeriesOptions<TDatum>
+export interface AgNightingaleSeriesOptions<TDatum, TContext>
     extends AgNightingaleSeriesThemeableOptions<TDatum>,
-        AgBaseRadialColumnSeriesOptions<TDatum> {
+        AgBaseRadialColumnSeriesOptions<TDatum, TContext> {
     /** Configuration for Nightingale Series. */
     type: 'nightingale';
     /** Apply rounded corners to each sector. */

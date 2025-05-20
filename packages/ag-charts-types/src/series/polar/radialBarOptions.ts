@@ -7,8 +7,8 @@ import type {
 
 export type AgRadialBarSeriesThemeableOptions<TDatum> = AgBaseRadialSeriesThemeableOptions<TDatum>;
 
-export interface AgRadialBarSeriesOptions<TDatum>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgRadialBarSeriesOptions<TDatum, TContext>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgRadialSeriesOptionsKeys,
         AgRadialSeriesOptionsNames,
         AgBaseRadialSeriesThemeableOptions<TDatum> {

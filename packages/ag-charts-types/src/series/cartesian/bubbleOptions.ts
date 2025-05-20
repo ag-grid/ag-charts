@@ -71,8 +71,8 @@ export interface AgBubbleSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgBubbleSeriesOptions<TDatum>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgBubbleSeriesOptions<TDatum, TContext>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgBubbleSeriesThemeableOptions<TDatum>,
         AgBubbleSeriesOptionsKeys,
         AgBubbleSeriesOptionsNames {

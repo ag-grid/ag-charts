@@ -55,8 +55,8 @@ export interface AgHeatmapSeriesOptionsNames {
     colorName?: string;
 }
 
-export interface AgHeatmapSeriesOptions<TDatum>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgHeatmapSeriesOptions<TDatum, TContext>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgHeatmapSeriesOptionsKeys,
         AgHeatmapSeriesOptionsNames,
         AgHeatmapSeriesThemeableOptions<TDatum> {

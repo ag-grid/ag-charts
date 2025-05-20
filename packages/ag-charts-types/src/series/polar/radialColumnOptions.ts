@@ -6,8 +6,8 @@ import type {
     AgRadialSeriesOptionsNames,
 } from './radialOptions';
 
-export interface AgBaseRadialColumnSeriesOptions<TDatum>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgBaseRadialColumnSeriesOptions<TDatum, TContext>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgRadialSeriesOptionsKeys,
         AgRadialSeriesOptionsNames,
         AgBaseRadialSeriesThemeableOptions<TDatum> {
@@ -31,9 +31,9 @@ export interface AgRadialColumnSeriesThemeableOptions<TDatum> extends AgBaseRadi
     maxColumnWidthRatio?: Ratio;
 }
 
-export interface AgRadialColumnSeriesOptions<TDatum>
+export interface AgRadialColumnSeriesOptions<TDatum, TContext>
     extends AgRadialColumnSeriesThemeableOptions<TDatum>,
-        AgBaseRadialColumnSeriesOptions<TDatum> {
+        AgBaseRadialColumnSeriesOptions<TDatum, TContext> {
     /** Configuration for Radial Column Series. */
     type: 'radial-column';
 }
