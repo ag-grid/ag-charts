@@ -26,33 +26,36 @@ export type AgPolarSeriesOptions<TDatum> =
     | AgRadialColumnSeriesOptions<TDatum>
     | AgNightingaleSeriesOptions<TDatum>;
 
-export type AgPolarAxisOptions =
-    | AgAngleCategoryAxisOptions
-    | AgAngleNumberAxisOptions
-    | AgRadiusCategoryAxisOptions
-    | AgRadiusNumberAxisOptions;
+export type AgPolarAxisOptions<TContext> =
+    | AgAngleCategoryAxisOptions<TContext>
+    | AgAngleNumberAxisOptions<TContext>
+    | AgRadiusCategoryAxisOptions<TContext>
+    | AgRadiusNumberAxisOptions<TContext>;
 
-export type AgPolarAxisType = AgPolarAxisOptions['type'];
+export type AgPolarAxisType<TContext> = AgPolarAxisOptions<TContext>['type'];
 
-export interface AgBasePolarChartOptions<TDatum> {
+export interface AgBasePolarChartOptions<TDatum, TContext> {
     /** Series configurations. */
     series?: AgPolarSeriesOptions<TDatum>[];
 
     /** Axis configurations. */
-    axes?: AgPolarAxisOptions[];
+    axes?: AgPolarAxisOptions<TContext>[];
 }
 
 export interface AgAngleCategoryAxisThemeOptions
-    extends Omit<AgAngleCategoryAxisOptions, 'type' | 'crossLines'>,
+    extends Omit<AgAngleCategoryAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
         AgAngleAxesCrossLineThemeOptions {}
+
 export interface AgAngleNumberAxisThemeOptions
-    extends Omit<AgAngleNumberAxisOptions, 'type' | 'crossLines'>,
+    extends Omit<AgAngleNumberAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
         AgAngleAxesCrossLineThemeOptions {}
+
 export interface AgRadiusCategoryAxisThemeOptions
-    extends Omit<AgRadiusCategoryAxisOptions, 'type' | 'crossLines'>,
+    extends Omit<AgRadiusCategoryAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
         AgRadiusAxesCrossLineThemeOptions {}
+
 export interface AgRadiusNumberAxisThemeOptions
-    extends Omit<AgRadiusNumberAxisOptions, 'type' | 'crossLines'>,
+    extends Omit<AgRadiusNumberAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
         AgRadiusAxesCrossLineThemeOptions {}
 
 export interface AgPolarAxesTheme {

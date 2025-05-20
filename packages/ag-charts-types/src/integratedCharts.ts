@@ -96,8 +96,12 @@ export interface IntegratedModule {
     _Scene: _IScene;
     _Theme: _ITheme;
     _Util: _IUtil;
-    create(options: AgChartInstanceOptions<unknown>): AgChartInstance<AgChartInstanceOptions<unknown>>;
-    createSparkline(options: AgSparklineOptions<unknown>): AgChartInstance<AgSparklineOptions<unknown>>;
+    create(
+        options: AgChartInstanceOptions<unknown, unknown>
+    ): AgChartInstance<unknown, unknown, AgChartInstanceOptions<unknown, unknown>>;
+    createSparkline(
+        options: AgSparklineOptions<unknown>
+    ): AgChartInstance<unknown, unknown, AgSparklineOptions<unknown>>;
     setup(): void;
     setGridContext?(gridContext: boolean): void;
     setLicenseKey?(licenseKey: string): void;

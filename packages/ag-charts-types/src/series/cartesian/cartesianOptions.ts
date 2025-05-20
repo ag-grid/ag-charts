@@ -27,9 +27,10 @@ import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
 
 /** Configuration for axes in cartesian charts. */
 export interface AgBaseCartesianAxisOptions<
+    TContext,
     LabelType = AgCartesianAxisLabelOptions,
     CrosshairLabelType = AgCrosshairLabel,
-> extends AgBaseAxisOptions<LabelType> {
+> extends AgBaseAxisOptions<TContext, LabelType> {
     /** An array of keys determining which series are charted on this axis. */
     keys?: string[];
     /** The position on the chart where the axis should be rendered. */
@@ -78,9 +79,9 @@ export interface AgGroupedCategoryAxisLabelStylerParams extends AgAxisLabelStyle
     readonly depth: number;
 }
 
-export interface AgBaseCartesianChartOptions<TDatum> {
+export interface AgBaseCartesianChartOptions<TDatum, TContext> {
     /** Axis configurations. */
-    axes?: AgCartesianAxisOptions[];
+    axes?: AgCartesianAxisOptions<TContext>[];
     /** Series configurations. */
     series?: AgCartesianSeriesOptions<TDatum>[];
     /** Annotations configurations. */
@@ -107,8 +108,8 @@ export interface AgGroupedCategoryDepthOptions {
     tick?: AgGroupedCategoryDepthTickOptions;
 }
 
-export interface AgCategoryAxisOptions
-    extends AgBaseCartesianAxisOptions<AgBaseCartesianAxisLabelOptions, AgBaseCrosshairLabel> {
+export interface AgCategoryAxisOptions<TContext>
+    extends AgBaseCartesianAxisOptions<TContext, AgBaseCartesianAxisLabelOptions, AgBaseCrosshairLabel> {
     type: 'category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
@@ -120,9 +121,9 @@ export interface AgCategoryAxisOptions
 
 type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;
 
-export interface AgGroupedCategoryAxisOptions
+export interface AgGroupedCategoryAxisOptions<TContext>
     extends Omit<
-        AgBaseCartesianAxisOptions<AgGroupedCategoryAxisLabelOptions, AgBaseCrosshairLabel>,
+        AgBaseCartesianAxisOptions<TContext, AgGroupedCategoryAxisLabelOptions, AgBaseCrosshairLabel>,
         'crossLines' | 'tick'
     > {
     type: 'grouped-category';
@@ -136,8 +137,8 @@ export interface AgGroupedCategoryAxisOptions
     tick?: AgGroupedCategoryAxisTickOptions;
 }
 
-export interface AgUnitTimeAxisOptions
-    extends Omit<AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions>, 'interval'>,
+export interface AgUnitTimeAxisOptions<TContext>
+    extends Omit<AgBaseCartesianAxisOptions<TContext, AgCartesianTimeAxisLabelOptions>, 'interval'>,
         // eslint-disable-next-line sonarjs/use-type-alias
         Omit<AgContinuousAxisOptions<Date | number, TimeInterval | TimeIntervalUnit | number>, 'nice'> {
     type: 'time';
@@ -153,7 +154,8 @@ export interface AgUnitTimeAxisOptions
     groupPaddingInner?: Ratio;
 }
 
-export interface AgOrdinalTimeAxisOptions extends AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions> {
+export interface AgOrdinalTimeAxisOptions<TContext>
+    extends AgBaseCartesianAxisOptions<TContext, AgCartesianTimeAxisLabelOptions> {
     type: 'ordinal-time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel;
@@ -167,37 +169,43 @@ export interface AgOrdinalTimeAxisOptions extends AgBaseCartesianAxisOptions<AgC
     groupPaddingInner?: Ratio;
 }
 
-export interface AgNumberAxisOptions extends Omit<AgBaseCartesianAxisOptions, 'interval'>, AgContinuousAxisOptions {
+export interface AgNumberAxisOptions<TContext>
+    extends Omit<AgBaseCartesianAxisOptions<TContext>, 'interval'>,
+        AgContinuousAxisOptions {
     type: 'number';
 }
 
-export interface AgLogAxisOptions extends Omit<AgBaseCartesianAxisOptions, 'interval'>, AgContinuousAxisOptions {
+export interface AgLogAxisOptions<TContext>
+    extends Omit<AgBaseCartesianAxisOptions<TContext>, 'interval'>,
+        AgContinuousAxisOptions {
     type: 'log';
     /** The base of the logarithm used. */
     base?: number;
 }
 
-export interface AgContinuousTimeAxisOptions
-    extends Omit<AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions>, 'interval'>,
+export interface AgContinuousTimeAxisOptions<TContext>
+    extends Omit<AgBaseCartesianAxisOptions<TContext, AgCartesianTimeAxisLabelOptions>, 'interval'>,
         AgContinuousAxisOptions<Date | number, TimeInterval | TimeIntervalUnit | number> {
     type: 'time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel;
 }
 
-export interface AgTimeAxisOptions extends AgContinuousTimeAxisOptions, AgUnitTimeAxisOptions {}
+export interface AgTimeAxisOptions<TContext>
+    extends AgContinuousTimeAxisOptions<TContext>,
+        AgUnitTimeAxisOptions<TContext> {}
 
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';
 
-export type AgCartesianAxisOptions =
-    | AgNumberAxisOptions
-    | AgLogAxisOptions
-    | AgCategoryAxisOptions
-    | AgOrdinalTimeAxisOptions
-    | AgGroupedCategoryAxisOptions
-    | AgTimeAxisOptions;
+export type AgCartesianAxisOptions<TContext> =
+    | AgNumberAxisOptions<TContext>
+    | AgLogAxisOptions<TContext>
+    | AgCategoryAxisOptions<TContext>
+    | AgOrdinalTimeAxisOptions<TContext>
+    | AgGroupedCategoryAxisOptions<TContext>
+    | AgTimeAxisOptions<TContext>;
 
-export type AgCartesianAxisType = AgCartesianAxisOptions['type'];
+export type AgCartesianAxisType<TContext> = AgCartesianAxisOptions<TContext>['type'];
 
 type AgCartesianAxisThemeSpecialOptions = 'position' | 'type' | 'crossLines';
 /** This is the configuration shared by all types of axis. */
@@ -241,32 +249,38 @@ export interface AgCartesianAxesTheme {
 export type AgContinuousCartesianAxesTheme = Pick<AgCartesianAxesTheme, 'number' | 'log' | 'time'>;
 
 export interface AgNumberAxisThemeOptions
-    extends Omit<AgNumberAxisOptions, 'type' | 'crossLines'>,
-        AgCartesianAxisThemeOptions<AgNumberAxisOptions>,
+    extends Omit<AgNumberAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+        AgCartesianAxisThemeOptions<AgNumberAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
+
 export interface AgLogAxisThemeOptions
-    extends Omit<AgLogAxisOptions, 'type' | 'crossLines'>,
-        AgCartesianAxisThemeOptions<AgLogAxisOptions>,
+    extends Omit<AgLogAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+        AgCartesianAxisThemeOptions<AgLogAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
+
 export interface AgCategoryAxisThemeOptions
-    extends Omit<AgCategoryAxisOptions, 'type' | 'crossLines'>,
-        AgCartesianAxisThemeOptions<AgCategoryAxisOptions>,
+    extends Omit<AgCategoryAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+        AgCartesianAxisThemeOptions<AgCategoryAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
+
 export interface AgOrdinalTimeAxisThemeOptions
-    extends Omit<AgOrdinalTimeAxisOptions, 'type' | 'crossLines'>,
-        AgCartesianAxisThemeOptions<AgOrdinalTimeAxisOptions>,
+    extends Omit<AgOrdinalTimeAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+        AgCartesianAxisThemeOptions<AgOrdinalTimeAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
+
 export interface AgGroupedCategoryAxisThemeOptions
-    extends Omit<AgGroupedCategoryAxisOptions, 'type' | 'crossLines'>,
-        AgCartesianAxisThemeOptions<AgGroupedCategoryAxisOptions>,
+    extends Omit<AgGroupedCategoryAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+        AgCartesianAxisThemeOptions<AgGroupedCategoryAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
+
 export interface AgTimeAxisThemeOptions
-    extends Omit<AgContinuousTimeAxisOptions, 'type' | 'crossLines'>,
-        AgCartesianAxisThemeOptions<AgContinuousTimeAxisOptions>,
+    extends Omit<AgContinuousTimeAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+        AgCartesianAxisThemeOptions<AgContinuousTimeAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
+
 export interface AgUnitTimeAxisThemeOptions
-    extends Omit<AgUnitTimeAxisOptions, 'type' | 'crossLines'>,
-        AgCartesianAxisThemeOptions<AgUnitTimeAxisOptions>,
+    extends Omit<AgUnitTimeAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+        AgCartesianAxisThemeOptions<AgUnitTimeAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
 
 export interface AgCartesianCrossLineOptions extends AgBaseCrossLineOptions<AgCartesianCrossLineLabelOptions> {}

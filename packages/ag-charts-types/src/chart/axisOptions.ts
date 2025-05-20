@@ -40,11 +40,11 @@ export interface AgAxisCaptionOptions {
     formatter?: Formatter<AgAxisCaptionFormatterParams>;
 }
 
-export interface AgBaseAxisOptions<LabelType> {
+export interface AgBaseAxisOptions<TContext, LabelType> {
     /** Axis type identifier. */
     type: string;
     /** Context object to use in callbacks */
-    context?: unknown;
+    context?: TContext;
     /** Reverse the axis scale domain if `true`. */
     reverse?: boolean;
     /** Configuration for the axis line. */

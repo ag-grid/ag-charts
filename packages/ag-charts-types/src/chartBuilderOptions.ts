@@ -22,8 +22,8 @@ import type { AgBaseTopologyChartOptions } from './series/topology/topologyOptio
 
 export interface AgChartThemeOptions<TDatum> extends AgBaseChartThemeOptions<TDatum> {}
 
-export interface AgCartesianChartOptions<TDatum>
-    extends AgBaseCartesianChartOptions<TDatum>,
+export interface AgCartesianChartOptions<TDatum, TContext>
+    extends AgBaseCartesianChartOptions<TDatum, TContext>,
         AgBaseChartOptions<TDatum> {
     /**
      * A predefined theme name or an object containing theme overrides.
@@ -34,7 +34,9 @@ export interface AgCartesianChartOptions<TDatum>
     theme?: AgChartTheme<TDatum> | AgChartThemeName;
 }
 
-export interface AgPolarChartOptions<TDatum> extends AgBasePolarChartOptions<TDatum>, AgBaseChartOptions<TDatum> {
+export interface AgPolarChartOptions<TDatum, TContext>
+    extends AgBasePolarChartOptions<TDatum, TContext>,
+        AgBaseChartOptions<TDatum> {
     theme?: AgChartTheme<TDatum> | AgChartThemeName;
 }
 
@@ -64,16 +66,16 @@ export interface AgGaugeChartOptions<TDatum> extends AgBaseChartOptions<TDatum> 
     theme?: AgChartTheme<TDatum> | AgChartThemeName;
 }
 
-export type AgChartOptions<TDatum> =
-    | AgCartesianChartOptions<TDatum>
-    | AgPolarChartOptions<TDatum>
+export type AgChartOptions<TDatum, TContext> =
+    | AgCartesianChartOptions<TDatum, TContext>
+    | AgPolarChartOptions<TDatum, TContext>
     | AgHierarchyChartOptions<TDatum>
     | AgTopologyChartOptions<TDatum>
     | AgFlowProportionChartOptions<TDatum>
     | AgStandaloneChartOptions<TDatum>;
 
 export type AgBaseFinancialPresetOptions<TDatum> = Pick<
-    AgCartesianChartOptions<TDatum>,
+    AgCartesianChartOptions<TDatum, never>,
     | 'container'
     | 'width'
     | 'height'
@@ -88,7 +90,7 @@ export type AgBaseFinancialPresetOptions<TDatum> = Pick<
 
 export type AgBaseSparklinePresetThemeOptions<TDatum> = AgSparklineBaseThemeableOptions<TDatum> &
     Pick<
-        AgCartesianChartOptions<TDatum>,
+        AgCartesianChartOptions<TDatum, never>,
         | 'background'
         | 'container'
         | 'height'
@@ -121,11 +123,15 @@ export type AgSparklineOptions<TDatum> = AgBaseSparklinePresetOptions<TDatum> & 
 
 export type AgPresetOptions<TDatum> = AgFinancialChartOptions<TDatum> | AgGaugeOptions | AgSparklineOptions<TDatum>;
 
-export type AgChartInstanceOptions<TDatum> = AgChartOptions<TDatum> | AgPresetOptions<TDatum>;
+export type AgChartInstanceOptions<TDatum, TContext> = AgChartOptions<TDatum, TContext> | AgPresetOptions<TDatum>;
 
 type DeepPartial<T> = T extends Array<unknown> ? T : T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
 
-export interface AgChartInstance<TDatum, O extends AgChartInstanceOptions<TDatum> = AgChartOptions<TDatum>> {
+export interface AgChartInstance<
+    TDatum,
+    TContext,
+    O extends AgChartInstanceOptions<TDatum, TContext> = AgChartOptions<TDatum, TContext>,
+> {
     /**
      * Update an existing `AgChartInstance`. Options provided should be complete and not
      * partial.
@@ -182,10 +188,11 @@ export interface AgChartInstance<TDatum, O extends AgChartInstanceOptions<TDatum
 }
 
 // @ts-expect-error Expected to be unused in code, simplified typings to enable rendering for API docs.
-interface _AgChartInstanceInterface<TDatum> extends AgChartInstance<TDatum, AgChartOptions<TDatum>> {
-    update(options: AgChartOptions<TDatum>): Promise<void>;
-    updateDelta(deltaOptions: AgChartOptions<TDatum>): Promise<void>;
-    getOptions(): AgChartOptions<TDatum>;
+interface _AgChartInstanceInterface<TDatum, TContext>
+    extends AgChartInstance<TDatum, TContext, AgChartOptions<TDatum, TContext>> {
+    update(options: AgChartOptions<TDatum, TContext>): Promise<void>;
+    updateDelta(deltaOptions: AgChartOptions<TDatum, TContext>): Promise<void>;
+    getOptions(): AgChartOptions<TDatum, TContext>;
 }
 
 export interface DownloadOptions extends ImageDataUrlOptions {
