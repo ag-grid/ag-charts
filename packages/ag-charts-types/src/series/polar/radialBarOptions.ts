@@ -1,3 +1,4 @@
+import type { TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 import type {
     AgBaseRadialSeriesThemeableOptions,
@@ -5,9 +6,9 @@ import type {
     AgRadialSeriesOptionsNames,
 } from './radialOptions';
 
-export type AgRadialBarSeriesThemeableOptions<TDatum> = AgBaseRadialSeriesThemeableOptions<TDatum>;
+export type AgRadialBarSeriesThemeableOptions<TDatum = TDatumDefault> = AgBaseRadialSeriesThemeableOptions<TDatum>;
 
-export interface AgRadialBarSeriesOptions<TDatum, TContext>
+export interface AgRadialBarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgRadialSeriesOptionsKeys,
         AgRadialSeriesOptionsNames,

@@ -17,7 +17,16 @@ import type { AgScatterSeriesOptions, AgScatterSeriesThemeableOptions } from '..
 import type { AgWaterfallSeriesOptions, AgWaterfallSeriesThemeableOptions } from '../series/cartesian/waterfallOptions';
 import type { AgAxisLabelFormatterParams } from './axisOptions';
 import type { Formatter } from './callbackOptions';
-import type { CssColor, FontFamilyFull, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
+import type {
+    CssColor,
+    FontFamilyFull,
+    FontSize,
+    FontStyle,
+    FontWeight,
+    Opacity,
+    PixelSize,
+    TDatumDefault,
+} from './types';
 
 type SharedProperties<A, B> = {
     [K in keyof A & keyof B as A[K] extends B[K] ? (B[K] extends A[K] ? K : never) : never]: A[K];
@@ -79,31 +88,31 @@ export type CommonIgnoredProperties =
     | 'xName'
     | 'yName';
 
-export interface AgLineMiniChartSeriesOptions<TDatum>
+export interface AgLineMiniChartSeriesOptions<TDatum = TDatumDefault>
     extends Omit<AgLineSeriesOptions<TDatum, never>, CommonIgnoredProperties | 'errorBar' | 'title' | 'label'> {}
 
-export interface AgScatterMiniChartSeriesOptions<TDatum>
+export interface AgScatterMiniChartSeriesOptions<TDatum = TDatumDefault>
     extends Omit<
         AgScatterSeriesOptions<TDatum, never>,
         CommonIgnoredProperties | 'errorBar' | 'title' | 'label' | 'labelKey' | 'labelName'
     > {}
 
-export interface AgBubbleMiniChartSeriesOptions<TDatum>
+export interface AgBubbleMiniChartSeriesOptions<TDatum = TDatumDefault>
     extends Omit<
         AgBubbleSeriesOptions<TDatum, never>,
         CommonIgnoredProperties | 'title' | 'label' | 'labelKey' | 'labelName' | 'sizeName'
     > {}
 
-export interface AgAreaMiniChartSeriesOptions<TDatum>
+export interface AgAreaMiniChartSeriesOptions<TDatum = TDatumDefault>
     extends Omit<AgAreaSeriesOptions<TDatum, never>, CommonIgnoredProperties> {}
 
-export interface AgBarMiniChartSeriesOptions<TDatum>
+export interface AgBarMiniChartSeriesOptions<TDatum = TDatumDefault>
     extends Omit<
         AgBarSeriesOptions<TDatum, never>,
         CommonIgnoredProperties | 'errorBar' | 'label' | 'legendItemName' | 'direction'
     > {}
 
-export interface AgBoxPlotMiniChartSeriesOptions<TDatum>
+export interface AgBoxPlotMiniChartSeriesOptions<TDatum = TDatumDefault>
     extends Omit<
         AgBoxPlotSeriesOptions<TDatum, never>,
         | CommonIgnoredProperties
@@ -116,10 +125,10 @@ export interface AgBoxPlotMiniChartSeriesOptions<TDatum>
         | 'maxName'
     > {}
 
-export interface AgHistogramMiniChartSeriesOptions<TDatum>
+export interface AgHistogramMiniChartSeriesOptions<TDatum = TDatumDefault>
     extends Omit<AgHistogramSeriesOptions<TDatum, never>, CommonIgnoredProperties | 'label'> {}
 
-export interface AgHeatmapMiniChartSeriesOptions<TDatum>
+export interface AgHeatmapMiniChartSeriesOptions<TDatum = TDatumDefault>
     extends Omit<
         AgHeatmapSeriesOptions<TDatum, never>,
         | CommonIgnoredProperties
@@ -132,28 +141,28 @@ export interface AgHeatmapMiniChartSeriesOptions<TDatum>
         | 'colorRange'
     > {}
 
-export interface AgWaterfallMiniChartSeriesOptions<TDatum>
+export interface AgWaterfallMiniChartSeriesOptions<TDatum = TDatumDefault>
     extends Omit<AgWaterfallSeriesOptions<TDatum, never>, CommonIgnoredProperties | 'direction'> {}
 
-export interface AgRangeBarMiniChartSeriesOptions<TDatum>
+export interface AgRangeBarMiniChartSeriesOptions<TDatum = TDatumDefault>
     extends Omit<
         AgRangeBarSeriesOptions<TDatum, never>,
         CommonIgnoredProperties | 'label' | 'direction' | 'yLowName' | 'yHighName'
     > {}
 
-export interface AgRangeAreaMiniChartSeriesOptions<TDatum>
+export interface AgRangeAreaMiniChartSeriesOptions<TDatum = TDatumDefault>
     extends Omit<
         AgRangeAreaSeriesOptions<TDatum, never>,
         CommonIgnoredProperties | 'label' | 'yLowName' | 'yHighName'
     > {}
 
-export interface AgCandlestickMiniChartSeriesOptions<TDatum>
+export interface AgCandlestickMiniChartSeriesOptions<TDatum = TDatumDefault>
     extends Omit<AgCandlestickSeriesOptions<TDatum, never>, CommonIgnoredProperties> {}
 
-export interface AgOhlcMiniChartSeriesOptions<TDatum>
+export interface AgOhlcMiniChartSeriesOptions<TDatum = TDatumDefault>
     extends Omit<AgOhlcSeriesOptions<TDatum, never>, CommonIgnoredProperties> {}
 
-export type AgMiniChartSeriesOptions<TDatum> =
+export type AgMiniChartSeriesOptions<TDatum = TDatumDefault> =
     | AgLineMiniChartSeriesOptions<TDatum>
     | AgScatterMiniChartSeriesOptions<TDatum>
     | AgBubbleMiniChartSeriesOptions<TDatum>
@@ -168,7 +177,7 @@ export type AgMiniChartSeriesOptions<TDatum> =
     | AgCandlestickMiniChartSeriesOptions<TDatum>
     | AgOhlcMiniChartSeriesOptions<TDatum>;
 
-export type AgMiniChartSeriesThemeableOptions<TDatum> =
+export type AgMiniChartSeriesThemeableOptions<TDatum = TDatumDefault> =
     | SharedProperties<AgLineMiniChartSeriesOptions<TDatum>, AgLineSeriesThemeableOptions<TDatum>>
     | SharedProperties<AgScatterMiniChartSeriesOptions<TDatum>, AgScatterSeriesThemeableOptions<TDatum>>
     | SharedProperties<AgBubbleMiniChartSeriesOptions<TDatum>, AgBubbleSeriesThemeableOptions<TDatum>>
@@ -197,7 +206,7 @@ let __VERIFY_MINI_CHART_SERIES_OPTIONS: Record<
 > = undefined as any;
 __VERIFY_MINI_CHART_SERIES_OPTIONS = __MINI_CHART_SERIES_OPTIONS;
 
-export interface AgNavigatorMiniChartOptions<TDatum> {
+export interface AgNavigatorMiniChartOptions<TDatum = TDatumDefault> {
     /** Whether to show a Mini Chart in the Navigator. */
     enabled?: boolean;
     /** Override series used in Mini Chart. */
@@ -208,7 +217,7 @@ export interface AgNavigatorMiniChartOptions<TDatum> {
     padding?: AgNavigatorMiniChartPadding;
 }
 
-export interface AgNavigatorMiniChartThemeableOptions<TDatum> {
+export interface AgNavigatorMiniChartThemeableOptions<TDatum = TDatumDefault> {
     /** Whether to show a Mini Chart in the Navigator. */
     enabled?: boolean;
     /** Override series used in Mini Chart. */
@@ -247,7 +256,7 @@ export interface AgNavigatorHandleOptions {
     grip?: boolean;
 }
 
-export interface AgNavigatorOptions<TDatum> {
+export interface AgNavigatorOptions<TDatum = TDatumDefault> {
     /** Whether to show the Navigator. */
     enabled?: boolean;
     /** The height of the Navigator. */
@@ -266,7 +275,8 @@ export interface AgNavigatorOptions<TDatum> {
     miniChart?: AgNavigatorMiniChartOptions<TDatum>;
 }
 
-export interface AgNavigatorThemeableOptions<TDatum> extends Omit<AgNavigatorOptions<TDatum>, 'miniChart'> {
+export interface AgNavigatorThemeableOptions<TDatum = TDatumDefault>
+    extends Omit<AgNavigatorOptions<TDatum>, 'miniChart'> {
     /** Mini Chart options. */
     miniChart?: AgNavigatorMiniChartThemeableOptions<TDatum>;
 }

@@ -2,7 +2,7 @@ import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Opacity, PixelSize } from '../../chart/types';
+import type { CssColor, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 
@@ -24,13 +24,13 @@ export interface AgPyramidSeriesStyle extends FillOptions, StrokeOptions, LineDa
 
 export interface AgPyramidSeriesLabelFormatterParams extends AgPyramidSeriesOptionsKeys {}
 
-export interface AgPyramidSeriesTooltipRendererParams<TDatum>
+export interface AgPyramidSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends AgPyramidSeriesOptionsKeys,
         AgPyramidSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum>,
         AgPyramidSeriesStyle {}
 
-export interface AgPyramidSeriesThemeableOptions<TDatum> extends LineDashOptions {
+export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault> extends LineDashOptions {
     /** The colours to cycle through for the fills of the stages. */
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the stages. */
@@ -70,7 +70,7 @@ export interface AgPyramidSeriesOptionsKeys {
 
 export interface AgPyramidSeriesOptionsNames {}
 
-export interface AgPyramidSeriesOptions<TDatum, TContext>
+export interface AgPyramidSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgPyramidSeriesOptionsKeys,
         AgPyramidSeriesOptionsNames,

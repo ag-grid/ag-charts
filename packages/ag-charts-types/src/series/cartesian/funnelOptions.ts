@@ -3,7 +3,7 @@ import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Opacity, PixelSize, Ratio } from '../../chart/types';
+import type { CssColor, Opacity, PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -23,7 +23,7 @@ export interface AgFunnelSeriesStyle extends FillOptions, StrokeOptions, LineDas
 
 export interface AgFunnelSeriesLabelFormatterParams extends AgFunnelSeriesOptionsKeys {}
 
-export interface AgFunnelSeriesTooltipRendererParams<TDatum>
+export interface AgFunnelSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends AgFunnelSeriesOptionsKeys,
         AgFunnelSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum>,
@@ -34,7 +34,7 @@ export interface AgFunnelSeriesDropOff extends FillOptions, StrokeOptions, LineD
     enabled?: boolean;
 }
 
-export interface AgFunnelSeriesThemeableOptions<TDatum>
+export interface AgFunnelSeriesThemeableOptions<TDatum = TDatumDefault>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
         LineDashOptions {
     /** The colours to cycle through for the fills of the bars. */
@@ -76,7 +76,7 @@ export interface AgFunnelSeriesOptionsKeys {
 
 export interface AgFunnelSeriesOptionsNames {}
 
-export interface AgFunnelSeriesOptions<TDatum, TContext>
+export interface AgFunnelSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgFunnelSeriesOptionsKeys,
         AgFunnelSeriesOptionsNames,

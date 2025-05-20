@@ -2,7 +2,7 @@ import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Degree, Opacity, PixelSize, Ratio } from '../../chart/types';
+import type { CssColor, Degree, Opacity, PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
 import type {
     AgColorType,
     FillOptions,
@@ -72,7 +72,9 @@ export interface AgDonutInnerCircle {
     fillOpacity?: Opacity;
 }
 
-export interface AgDonutSeriesThemeableOptions<TDatum> extends AgBaseSeriesThemeableOptions<TDatum>, LineDashOptions {
+export interface AgDonutSeriesThemeableOptions<TDatum = TDatumDefault>
+    extends AgBaseSeriesThemeableOptions<TDatum>,
+        LineDashOptions {
     /** Configuration for the series title. */
     title?: AgDonutTitleOptions;
     /** Configuration for the labels used outside the sectors. */
@@ -127,7 +129,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum> extends AgBaseSeriesTheme
     itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum>, AgDonutSeriesStyle>;
 }
 
-export interface AgDonutSeriesOptions<TDatum, TContext>
+export interface AgDonutSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends Omit<AgDonutSeriesThemeableOptions<TDatum>, 'innerLabels'>,
         AgDonutSeriesOptionsKeys,
         AgDonutSeriesOptionsNames,

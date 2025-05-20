@@ -18,6 +18,8 @@ import type {
     FontStyle,
     FontWeight,
     PixelSize,
+    TContextDefault,
+    TDatumDefault,
     TextAlign,
     TextWrap,
 } from './types';
@@ -179,7 +181,7 @@ export interface AgTouchOptions {
     dragAction?: 'none' | 'drag' | 'hover';
 }
 
-export interface AgBaseThemeableChartOptions<TDatum> {
+export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault> {
     /** The width of the chart in pixels. */
     width?: PixelSize;
     /** The height of the chart in pixels. */
@@ -267,7 +269,8 @@ export interface AgBaseThemeableChartOptions<TDatum> {
 }
 
 /** Configuration common to all charts.  */
-export interface AgBaseChartOptions<TDatum, TContext> extends AgBaseThemeableChartOptions<TDatum> {
+export interface AgBaseChartOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseThemeableChartOptions<TDatum> {
     /** Context object to use in callbacks */
     context?: TContext;
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */

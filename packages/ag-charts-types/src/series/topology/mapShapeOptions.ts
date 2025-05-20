@@ -1,7 +1,7 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, GeoJSON, PixelSize } from '../../chart/types';
+import type { CssColor, GeoJSON, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -17,7 +17,7 @@ export type AgMapShapeSeriesStyle = FillOptions & StrokeOptions & LineDashOption
 
 export type AgMapShapeSeriesLabelFormatterParams = AgMapShapeSeriesOptionsKeys & AgMapShapeSeriesOptionsNames;
 
-export type AgMapShapeSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
+export type AgMapShapeSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
     AgMapShapeSeriesOptionsKeys &
     Required<AgMapShapeSeriesStyle>;
 
@@ -39,7 +39,7 @@ export interface AgMapShapeSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgMapShapeSeriesThemeableOptions<TDatum>
+export interface AgMapShapeSeriesThemeableOptions<TDatum = TDatumDefault>
     extends AgMapShapeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
@@ -56,7 +56,7 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum>
     highlightStyle?: AgMapShapeSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgMapShapeSeriesOptions<TDatum, TContext>
+export interface AgMapShapeSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
         AgMapShapeSeriesOptionsKeys,
         AgMapShapeSeriesOptionsNames,

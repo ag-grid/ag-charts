@@ -1,6 +1,7 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
@@ -10,14 +11,14 @@ import type {
 } from './cartesianSeriesTooltipOptions';
 import type { LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgLineSeriesTooltipRendererParams<TDatum>
+export interface AgLineSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends AgCartesianSeriesTooltipRendererParams<TDatum>,
         AgErrorBoundSeriesTooltipRendererParams,
         AgSeriesMarkerStyle {}
 
 export type AgLineSeriesLabelFormatterParams = AgLineSeriesOptionsKeys & AgLineSeriesOptionsNames;
 
-export interface AgLineSeriesThemeableOptions<TDatum>
+export interface AgLineSeriesThemeableOptions<TDatum = TDatumDefault>
     extends StrokeOptions,
         LineDashOptions,
         AgBaseCartesianThemeableOptions<TDatum> {
@@ -68,7 +69,7 @@ export interface AgLineSeriesOptionsNames {
     legendItemName?: string;
 }
 
-export interface AgLineSeriesOptions<TDatum, TContext>
+export interface AgLineSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgLineSeriesOptionsKeys,
         AgLineSeriesOptionsNames,

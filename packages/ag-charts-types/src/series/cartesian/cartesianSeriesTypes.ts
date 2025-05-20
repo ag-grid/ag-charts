@@ -1,3 +1,4 @@
+import type { TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgAreaSeriesOptions } from './areaOptions';
 import type { AgBarSeriesOptions } from './barOptions';
 import type { AgBoxPlotSeriesOptions } from './boxPlotOptions';
@@ -14,7 +15,7 @@ import type { AgRangeBarSeriesOptions } from './rangeBarOptions';
 import type { AgScatterSeriesOptions } from './scatterOptions';
 import type { AgWaterfallSeriesOptions } from './waterfallOptions';
 
-export type AgCartesianSeriesOptions<TDatum, TContext> =
+export type AgCartesianSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault> =
     | AgAreaSeriesOptions<TDatum, TContext>
     | AgBarSeriesOptions<TDatum, TContext>
     | AgBoxPlotSeriesOptions<TDatum, TContext>

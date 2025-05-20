@@ -2,13 +2,13 @@ import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { LabelPlacement } from '../../chart/types';
+import type { LabelPlacement, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
 
-export interface AgScatterSeriesTooltipRendererParams<TDatum>
+export interface AgScatterSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgScatterSeriesOptionsKeys,
         AgScatterSeriesOptionsNames,
@@ -31,7 +31,7 @@ export interface AgScatterSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum
     placement?: LabelPlacement;
 }
 
-export interface AgScatterSeriesThemeableOptions<TDatum>
+export interface AgScatterSeriesThemeableOptions<TDatum = TDatumDefault>
     extends AgBaseCartesianThemeableOptions<TDatum>,
         AgSeriesMarkerStyle {
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
@@ -64,7 +64,7 @@ export interface AgScatterSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgScatterSeriesOptions<TDatum, TContext>
+export interface AgScatterSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgScatterSeriesOptionsKeys,
         AgScatterSeriesOptionsNames,

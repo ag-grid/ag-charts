@@ -1,4 +1,6 @@
-export interface AgDataSourceOptions<TDatum> {
+import type { TDatumDefault } from './types';
+
+export interface AgDataSourceOptions<TDatum = TDatumDefault> {
     /** Asynchronous callback to load data into the chart. */
     getData: (params: AgDataSourceCallbackParams) => Promise<TDatum[]>;
 }

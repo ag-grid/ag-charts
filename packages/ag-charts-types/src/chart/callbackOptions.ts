@@ -1,4 +1,6 @@
-export interface AgChartCallbackParams<TDatum> {
+import type { TDatumDefault } from './types';
+
+export interface AgChartCallbackParams<TDatum = TDatumDefault> {
     /** The data point associated with the label. */
     datum: TDatum;
     /** The unique identifier of the item. */

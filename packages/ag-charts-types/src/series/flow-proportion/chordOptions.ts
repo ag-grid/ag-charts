@@ -1,11 +1,11 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, PixelSize, Ratio } from '../../chart/types';
+import type { CssColor, PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
-export interface AgChordSeriesOptions<TDatum, TContext>
+export interface AgChordSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgChordSeriesOptionsKeys,
         AgChordSeriesOptionsNames,
@@ -29,7 +29,7 @@ export interface AgChordSeriesNodeItemStylerParams<TDatum>
     size: number;
 }
 
-export interface AgChordSeriesThemeableOptions<TDatum> extends AgBaseSeriesThemeableOptions<TDatum> {
+export interface AgChordSeriesThemeableOptions<TDatum = TDatumDefault> extends AgBaseSeriesThemeableOptions<TDatum> {
     /** Options for the label for each node. */
     label?: AgChordSeriesLabelOptions<TDatum>;
     /** The colours to cycle through for the fills of the nodes and links. */
@@ -102,4 +102,6 @@ export interface AgChordSeriesTooltipRendererParams<TDatum>
         StrokeOptions,
         LineDashOptions {}
 
-export interface AgChordSeriesLabelFormatterParams<_TDatum> extends AgChordSeriesOptionsKeys, SizeParams {}
+export interface AgChordSeriesLabelFormatterParams<_TDatum = TDatumDefault>
+    extends AgChordSeriesOptionsKeys,
+        SizeParams {}

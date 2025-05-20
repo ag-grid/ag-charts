@@ -1,7 +1,7 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
+import type { PixelSize, TContextDefault, TDatumDefault, TextAlign, VerticalAlign } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
 
@@ -18,7 +18,7 @@ export type AgHeatmapSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRender
     AgHeatmapSeriesOptionsNames &
     AgHeatmapSeriesStyle;
 
-export interface AgHeatmapSeriesThemeableOptions<TDatum>
+export interface AgHeatmapSeriesThemeableOptions<TDatum = TDatumDefault>
     extends StrokeOptions,
         AgBaseCartesianThemeableOptions<TDatum> {
     /** Options for the label in each cell. */
@@ -55,7 +55,7 @@ export interface AgHeatmapSeriesOptionsNames {
     colorName?: string;
 }
 
-export interface AgHeatmapSeriesOptions<TDatum, TContext>
+export interface AgHeatmapSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgHeatmapSeriesOptionsKeys,
         AgHeatmapSeriesOptionsNames,

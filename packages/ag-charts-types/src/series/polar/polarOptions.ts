@@ -9,6 +9,7 @@ import type {
     AgRadiusCategoryAxisOptions,
     AgRadiusNumberAxisOptions,
 } from '../../chart/radiusAxisOptions';
+import type { TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgDonutSeriesOptions } from './donutOptions';
 import type { AgNightingaleSeriesOptions } from './nightingaleOptions';
 import type { AgPieSeriesOptions } from './pieOptions';
@@ -17,7 +18,7 @@ import type { AgRadarLineSeriesOptions } from './radarLineOptions';
 import type { AgRadialBarSeriesOptions } from './radialBarOptions';
 import type { AgRadialColumnSeriesOptions } from './radialColumnOptions';
 
-export type AgPolarSeriesOptions<TDatum, TContext> =
+export type AgPolarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault> =
     | AgDonutSeriesOptions<TDatum, TContext>
     | AgPieSeriesOptions<TDatum, TContext>
     | AgRadarLineSeriesOptions<TDatum, TContext>
@@ -26,15 +27,15 @@ export type AgPolarSeriesOptions<TDatum, TContext> =
     | AgRadialColumnSeriesOptions<TDatum, TContext>
     | AgNightingaleSeriesOptions<TDatum, TContext>;
 
-export type AgPolarAxisOptions<TContext> =
+export type AgPolarAxisOptions<TContext = TContextDefault> =
     | AgAngleCategoryAxisOptions<TContext>
     | AgAngleNumberAxisOptions<TContext>
     | AgRadiusCategoryAxisOptions<TContext>
     | AgRadiusNumberAxisOptions<TContext>;
 
-export type AgPolarAxisType<TContext> = AgPolarAxisOptions<TContext>['type'];
+export type AgPolarAxisType<TContext = TContextDefault> = AgPolarAxisOptions<TContext>['type'];
 
-export interface AgBasePolarChartOptions<TDatum, TContext> {
+export interface AgBasePolarChartOptions<TDatum = TDatumDefault, TContext = TContextDefault> {
     /** Series configurations. */
     series?: AgPolarSeriesOptions<TDatum, TContext>[];
 
@@ -65,7 +66,7 @@ export interface AgPolarAxesTheme {
     'radius-number'?: AgRadiusNumberAxisThemeOptions;
 }
 
-export interface AgBasePolarThemeOptions<TDatum> extends AgBaseThemeableChartOptions<TDatum> {
+export interface AgBasePolarThemeOptions<TDatum = TDatumDefault> extends AgBaseThemeableChartOptions<TDatum> {
     /** Axis configurations. */
     axes?: AgPolarAxesTheme;
 }

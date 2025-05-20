@@ -2,7 +2,7 @@ import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { PixelSize } from '../../chart/types';
+import type { PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -30,7 +30,7 @@ export interface AgRangeBarSeriesLabelOptions<TDatum>
 
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 
-export interface AgRangeBarSeriesThemeableOptions<TDatum>
+export interface AgRangeBarSeriesThemeableOptions<TDatum = TDatumDefault>
     extends AgBaseCartesianThemeableOptions<TDatum>,
         AgRangeBarSeriesStyle {
     /**
@@ -73,7 +73,7 @@ export interface AgRangeBarSeriesOptionsNames {
     yHighName?: string;
 }
 
-export interface AgRangeBarSeriesOptions<TDatum, TContext>
+export interface AgRangeBarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgRangeBarSeriesOptionsKeys,
         AgRangeBarSeriesOptionsNames,
         AgRangeBarSeriesThemeableOptions<TDatum>,

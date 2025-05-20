@@ -1,7 +1,15 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { AgMarkerShape, CssColor, GeoJSON, LabelPlacement, PixelSize } from '../../chart/types';
+import type {
+    AgMarkerShape,
+    CssColor,
+    GeoJSON,
+    LabelPlacement,
+    PixelSize,
+    TContextDefault,
+    TDatumDefault,
+} from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -15,7 +23,7 @@ export type AgMapMarkerSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & 
 
 export type AgMapMarkerSeriesLabelFormatterParams = AgMapMarkerSeriesOptionsKeys & AgMapMarkerSeriesOptionsNames;
 
-export type AgMapMarkerSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
+export type AgMapMarkerSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
     AgMapMarkerSeriesOptionsKeys &
     Required<AgMapMarkerSeriesStyle>;
 
@@ -66,7 +74,7 @@ export interface AgMapMarkerSeriesLabel<TDatum>
     placement?: LabelPlacement;
 }
 
-export interface AgMapMarkerSeriesThemeableOptions<TDatum>
+export interface AgMapMarkerSeriesThemeableOptions<TDatum = TDatumDefault>
     extends AgMapMarkerSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** Determines the largest size a marker can be in pixels. */
@@ -85,7 +93,7 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum>
     highlightStyle?: AgMapMarkerSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgMapMarkerSeriesOptions<TDatum, TContext>
+export interface AgMapMarkerSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
         AgMapMarkerSeriesOptionsKeys,
         AgMapMarkerSeriesOptionsNames,

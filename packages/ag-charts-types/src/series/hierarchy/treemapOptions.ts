@@ -5,7 +5,7 @@ import type {
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
+import type { CssColor, PixelSize, TContextDefault, TDatumDefault, TextAlign, VerticalAlign } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
@@ -96,7 +96,7 @@ export interface AgTreemapSeriesHighlightStyle<TDatum> {
     tile?: AgTreemapSeriesTileHighlightStyle<TDatum>;
 }
 
-export interface AgTreemapSeriesThemeableOptions<TDatum>
+export interface AgTreemapSeriesThemeableOptions<TDatum = TDatumDefault>
     extends Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** The colours to cycle through for the fills of the groups and tiles. */
     fills?: CssColor[];
@@ -116,7 +116,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum>
     highlightStyle?: AgTreemapSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgTreemapSeriesOptions<TDatum, TContext>
+export interface AgTreemapSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesOptionsNames,
@@ -154,7 +154,7 @@ export interface AgTreemapSeriesItemStylerParams<TDatum>
     depth: number;
 }
 
-export interface AgTreemapSeriesLabelFormatterParams<_TDatum>
+export interface AgTreemapSeriesLabelFormatterParams<_TDatum = TDatumDefault>
     extends AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */

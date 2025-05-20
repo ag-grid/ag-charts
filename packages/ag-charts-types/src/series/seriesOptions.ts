@@ -1,5 +1,5 @@
 import type { AgSeriesListeners } from '../chart/eventOptions';
-import type { InteractionRange, Opacity, PixelSize } from '../chart/types';
+import type { InteractionRange, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../chart/types';
 import type { FillOptions, StrokeOptions } from './cartesian/commonOptions';
 
 export type AgSeriesHighlightMarkerStyle = FillOptions & StrokeOptions;
@@ -37,7 +37,8 @@ export interface AgBaseCartesianThemeableOptions<TDatum> extends AgBaseSeriesThe
     showInMiniChart?: boolean;
 }
 
-export interface AgBaseSeriesOptions<TDatum, TContext> extends AgBaseSeriesThemeableOptions<TDatum> {
+export interface AgBaseSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseSeriesThemeableOptions<TDatum> {
     /**
      * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series. Auto-generated ids are subject to future change without warning, if your callbacks need to vary behaviour by series please supply your own unique `id` value.
      *

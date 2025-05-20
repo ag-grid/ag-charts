@@ -5,7 +5,7 @@ import type {
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Opacity, PixelSize } from '../../chart/types';
+import type { CssColor, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
@@ -31,7 +31,7 @@ export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSunburstSeries
     secondaryLabel?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
 }
 
-export interface AgSunburstSeriesThemeableOptions<TDatum>
+export interface AgSunburstSeriesThemeableOptions<TDatum = TDatumDefault>
     extends Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** Options for the label in a sector. */
     label?: AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>;
@@ -63,7 +63,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum>
     highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgSunburstSeriesOptions<TDatum, TContext>
+export interface AgSunburstSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
         AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames,
@@ -101,7 +101,7 @@ export interface AgSunburstSeriesItemStylerParams<TDatum>
     depth: number;
 }
 
-export interface AgSunburstSeriesLabelFormatterParams<_TDatum>
+export interface AgSunburstSeriesLabelFormatterParams<_TDatum = TDatumDefault>
     extends AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */

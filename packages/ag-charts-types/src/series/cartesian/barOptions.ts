@@ -3,7 +3,7 @@ import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { PixelSize } from '../../chart/types';
+import type { PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
@@ -48,7 +48,7 @@ export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOp
 
 export type AgBarSeriesLabelFormatterParams = AgBarSeriesOptionsKeys & AgBarSeriesOptionsNames;
 
-export interface AgBarSeriesTooltipRendererParams<TDatum>
+export interface AgBarSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends AgBarSeriesOptionsKeys,
         AgBarSeriesOptionsNames,
         AgBarSeriesStyle,
@@ -57,7 +57,9 @@ export interface AgBarSeriesTooltipRendererParams<TDatum>
     readonly stackGroup?: string;
 }
 
-export interface AgBarSeriesThemeableOptions<TDatum> extends AgBarSeriesStyle, AgBaseCartesianThemeableOptions<TDatum> {
+export interface AgBarSeriesThemeableOptions<TDatum = TDatumDefault>
+    extends AgBarSeriesStyle,
+        AgBaseCartesianThemeableOptions<TDatum> {
     /**
      * Bar rendering direction.
      *
@@ -94,7 +96,7 @@ export interface AgBarSeriesOptionsNames {
     legendItemName?: string;
 }
 
-export interface AgBarSeriesOptions<TDatum, TContext>
+export interface AgBarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgBarSeriesOptionsKeys,
         AgBarSeriesOptionsNames,
