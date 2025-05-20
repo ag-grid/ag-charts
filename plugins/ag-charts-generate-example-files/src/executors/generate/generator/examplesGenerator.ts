@@ -9,6 +9,7 @@ import type { GeneratedContents, InternalFramework } from './types';
 import {
     getEntryFileName,
     getHasExampleConsoleLog,
+    getHasExampleControls,
     getHasLocale,
     getIsEnterprise,
     getProvidedExampleFiles,
@@ -162,6 +163,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         internalFramework,
     });
     const hasExampleConsoleLog = getHasExampleConsoleLog({ contents: entryFile });
+    const hasExampleControls = getHasExampleControls({ contents: indexHtml });
     const mainEntryFilename = getEntryFileName(internalFramework);
     const providedExampleEntries = await Promise.all(
         providedExampleFileNames.map(async (fileName) => {
@@ -233,6 +235,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         isEnterprise,
         hasLocale,
         hasExampleConsoleLog,
+        hasExampleControls,
         exampleConfig,
         scriptFiles,
         styleFiles: Object.keys(styleFiles),
