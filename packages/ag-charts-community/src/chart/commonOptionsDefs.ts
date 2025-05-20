@@ -354,7 +354,6 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         enabled: boolean,
         duration: positiveNumber,
     },
-    context: defined,
     contextMenu: {
         enabled: boolean,
         items: contextMenuItemsArray,

@@ -27,6 +27,7 @@ import { commonChartOptionsDefs } from './commonOptionsDefs';
 const commonChartOptions = {
     mode: undocumented(union('integrated', 'standalone')),
     container: htmlElement,
+    context: defined,
     theme: defined,
     series: array,
     annotations: defined,
