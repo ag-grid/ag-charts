@@ -228,7 +228,7 @@ export interface AgPyramidThemeOverrides<TDatum> extends AgBaseStandaloneThemeOp
 }
 
 export type AgBaseGaugePresetThemeOptions = Pick<
-    AgBaseChartOptions<never>,
+    AgBaseChartOptions<never, never>,
     | 'animation'
     | 'background'
     | 'contextMenu'
@@ -348,7 +348,7 @@ export interface AgThemeOverrides<TDatum> extends AgChartThemeOverrides<TDatum>,
 
 // Use Typescript function types to verify that all series types are present in the manually
 // maintained AgBaseChartThemeOverrides type.
-type VerifyAgBaseChartThemeOverrides<T = AgBaseChartOptions<never>> = {
+type VerifyAgBaseChartThemeOverrides<T = AgBaseChartOptions<never, never>> = {
     [K in NonNullable<AgCartesianSeriesOptions<never, never>['type']>]?: T;
 } & {
     [K in NonNullable<AgPolarSeriesOptions<never, never>['type']>]?: T;

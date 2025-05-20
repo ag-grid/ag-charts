@@ -24,7 +24,7 @@ export interface AgChartThemeOptions<TDatum> extends AgBaseChartThemeOptions<TDa
 
 export interface AgCartesianChartOptions<TDatum, TContext>
     extends AgBaseCartesianChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum> {
+        AgBaseChartOptions<TDatum, TContext> {
     /**
      * A predefined theme name or an object containing theme overrides.
      *
@@ -36,35 +36,35 @@ export interface AgCartesianChartOptions<TDatum, TContext>
 
 export interface AgPolarChartOptions<TDatum, TContext>
     extends AgBasePolarChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum> {
+        AgBaseChartOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum> | AgChartThemeName;
 }
 
 export interface AgHierarchyChartOptions<TDatum, TContext>
     extends AgBaseHierarchyChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum> {
+        AgBaseChartOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum> | AgChartThemeName;
 }
 
 export interface AgTopologyChartOptions<TDatum, TContext>
     extends AgBaseTopologyChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum> {
+        AgBaseChartOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum> | AgChartThemeName;
 }
 
 export interface AgFlowProportionChartOptions<TDatum, TContext>
     extends AgBaseFlowProportionChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum> {
+        AgBaseChartOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum> | AgChartThemeName;
 }
 
 export interface AgStandaloneChartOptions<TDatum, TContext>
     extends AgBaseStandaloneChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum> {
+        AgBaseChartOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum> | AgChartThemeName;
 }
 
-export interface AgGaugeChartOptions<TDatum> extends AgBaseChartOptions<TDatum> {
+export interface AgGaugeChartOptions<TDatum, TContext> extends AgBaseChartOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum> | AgChartThemeName;
 }
 
