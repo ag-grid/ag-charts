@@ -92,8 +92,12 @@ interface RangeParams {
     limit?: number;
 }
 
-export function intervalExtent(start: Date, stop: Date, visibleRange?: [number, number]): [Date, Date] {
-    if (start.getTime() > stop.getTime()) {
+export function intervalExtent(
+    start: Date | number,
+    stop: Date | number,
+    visibleRange?: [number, number]
+): [Date, Date] {
+    if (start.valueOf() > stop.valueOf()) {
         [start, stop] = [stop, start];
 
         if (visibleRange != null) {
@@ -102,22 +106,22 @@ export function intervalExtent(start: Date, stop: Date, visibleRange?: [number, 
     }
 
     if (visibleRange != null) {
-        const delta = stop.getTime() - start.getTime();
-        const t0 = start.getTime();
+        const delta = stop.valueOf() - start.valueOf();
+        const t0 = start.valueOf();
 
         start = new Date(t0 + visibleRange[0] * delta);
         stop = new Date(t0 + visibleRange[1] * delta);
     }
 
-    return [start, stop];
+    return [new Date(start), new Date(stop)];
 }
 
-export function intervalRange(
+function rangeData(
     interval: TimeInterval | TimeIntervalUnit,
     start: Date,
     stop: Date,
     { extend = false, visibleRange = [0, 1], limit, defaultAlignment = 'start' }: RangeParams = {}
-): Date[] {
+) {
     const params = timeInterval(interval);
     const { unit, step, utc } = params;
     let epoch: Date | undefined;
@@ -125,7 +129,7 @@ export function intervalRange(
         epoch = params.epoch;
     } else if (defaultAlignment === 'interval') {
         epoch = undefined;
-    } else if (start.getTime() > stop.getTime()) {
+    } else if (start.valueOf() > stop.valueOf()) {
         epoch = stop;
     } else {
         epoch = start;
@@ -143,6 +147,41 @@ export function intervalRange(
     if (limit != null && e1 - e0 > limit) {
         e1 = e0 + limit;
     }
+
+    return {
+        range: [e0, e1],
+        unit,
+        step,
+        utc,
+        offset,
+    };
+}
+
+export function intervalRangeCount(
+    interval: TimeInterval | TimeIntervalUnit,
+    start: Date,
+    stop: Date,
+    params?: RangeParams
+) {
+    const {
+        range: [e0, e1],
+    } = rangeData(interval, start, stop, params);
+    return Math.abs(e1 - e0);
+}
+
+export function intervalRange(
+    interval: TimeInterval | TimeIntervalUnit,
+    start: Date,
+    stop: Date,
+    params?: RangeParams
+): Date[] {
+    const {
+        range: [e0, e1],
+        unit,
+        step,
+        utc,
+        offset,
+    } = rangeData(interval, start, stop, params);
 
     const range: Date[] = [];
     for (let e = e0; e <= e1; e += 1) {

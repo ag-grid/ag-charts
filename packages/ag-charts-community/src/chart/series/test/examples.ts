@@ -714,7 +714,7 @@ export const HISTOGRAM_DATE_BASED_BUCKETS: AgCartesianChartOptions = {
             },
         },
         {
-            type: 'time',
+            type: 'continuous-time',
             position: 'bottom',
             label: {
                 format: `%b %d`,

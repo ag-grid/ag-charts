@@ -21,7 +21,6 @@ const options: AgCartesianChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            nice: false,
             interval: {
                 minSpacing: 50,
                 maxSpacing: 200,

@@ -11,7 +11,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         return value instanceof BandScale;
     }
 
-    abstract override readonly type: 'band' | 'ordinal-time' | 'unit-time';
+    abstract override readonly type: 'band' | 'time' | 'ordinal-time';
 
     protected invalid = true;
 

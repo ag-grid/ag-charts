@@ -14,7 +14,7 @@ export interface LogScaling extends ContinuousScaling<'log'> {
 
 export interface CategoryScaling {
     type: 'category';
-    domain: string[];
+    domain: readonly string[] | readonly Date[];
     inset: number;
     step: number;
 }

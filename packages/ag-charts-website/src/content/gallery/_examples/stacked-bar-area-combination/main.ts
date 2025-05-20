@@ -111,7 +111,6 @@ const options: AgCartesianChartOptions = {
             position: 'bottom',
             min: new Date(1974, 0, 0),
             max: new Date(2024, 12, 0),
-            nice: false,
             tick: {
                 enabled: true,
             },

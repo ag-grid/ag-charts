@@ -29,9 +29,9 @@ function getValidationFn(scaleType?: ScaleType) {
     switch (scaleType) {
         case 'number':
         case 'log':
-        case 'ordinal-time':
-        case 'unit-time':
         case 'time':
+        case 'ordinal-time':
+        case 'continuous-time':
         case 'color':
             return basicContinuousCheckDatumValidation;
         default:
@@ -43,7 +43,7 @@ function getValueType(scaleType?: ScaleType) {
     switch (scaleType) {
         case 'number':
         case 'log':
-        case 'time':
+        case 'continuous-time':
         case 'color':
             return 'range';
         default:

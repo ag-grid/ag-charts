@@ -2,7 +2,7 @@ import type { AxisContext } from './axisContext';
 import type { BaseOptionsModule, ModuleInstance } from './baseModule';
 import type { ModuleContextWithParent } from './moduleContext';
 
-type AxisType = 'category' | 'number' | 'log' | 'time' | 'ordinal-time' | 'unit-time';
+type AxisType = 'category' | 'number' | 'log' | 'time' | 'ordinal-time' | 'continuous-time';
 
 export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> extends BaseOptionsModule {
     type: 'axis-option';

@@ -64,7 +64,6 @@ const options: AgChartOptions = {
             interval: {
                 step: { unit: 'year', step: 10 },
             },
-            nice: false,
             tick: {
                 width: 3,
                 stroke: '#3f7cbf',

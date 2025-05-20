@@ -190,7 +190,7 @@ describe('RangeBarSeries', () => {
             },
         ],
         axes: [
-            { type: 'time', position: 'left' },
+            { type: 'continuous-time', position: 'left' },
             { type: 'category', position: 'bottom' },
         ],
     };
