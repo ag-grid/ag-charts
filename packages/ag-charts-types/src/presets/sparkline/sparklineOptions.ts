@@ -71,6 +71,7 @@ export interface AgSparklineDataKeysOptions {
 }
 
 type AgSparklineSeriesOmit =
+    | 'context'
     | 'showInLegend'
     | 'showInMiniChart'
     | 'grouped'
