@@ -201,10 +201,12 @@ export abstract class Shape<D = any> extends Node<D> {
 
     private cachedDefaultGradientFillBBox?: BBox;
 
+    override markDirty(property?: string): void {
+        super.markDirty(property);
+        this.cachedDefaultGradientFillBBox = undefined;
+    }
+
     override preRender(renderCtx: RenderContext, thisComplexity?: number) {
-        if (this.dirty) {
-            this.cachedDefaultGradientFillBBox = undefined;
-        }
         return super.preRender(renderCtx, thisComplexity);
     }
 
