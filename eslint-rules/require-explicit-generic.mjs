@@ -1,7 +1,6 @@
 /**
  * @fileoverview Enforce explicit generic arguments for all generic types in the project
  */
-
 import { ESLintUtils } from '@typescript-eslint/utils';
 import ts from 'typescript';
 
@@ -21,7 +20,9 @@ export default {
     create(context) {
         const parserServices = ESLintUtils.getParserServices(context);
         if (!parserServices || !parserServices.program) {
-            console.error('parserServices not available — make sure you are using @typescript-eslint/parser with project config!');
+            console.error(
+                'parserServices not available — make sure you are using @typescript-eslint/parser with project config!'
+            );
             return {};
         }
 
