@@ -44,6 +44,8 @@ export interface AgBaseSeriesOptions<TDatum> extends AgBaseSeriesThemeableOption
      * Default: `auto-generated value`
      */
     id?: string;
+    /** Context object to use in callbacks */
+    context?: unknown;
     /** The data to use when rendering the series. If this is not supplied, data must be set on the chart instead. */
     data?: TDatum[];
     /** Whether to display the series. */
