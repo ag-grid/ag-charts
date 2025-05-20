@@ -285,7 +285,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             }
 
             const [clippedRange0, clippedRange1] = findMinMax(clippedRange);
-            if (clampedYStart === clampedYEnd || clampedYStart >= clippedRange1 || clampedYEnd <= clippedRange0) {
+            if (clampedYStart >= clippedRange1 || clampedYEnd <= clippedRange0) {
                 return;
             }
 
