@@ -8,8 +8,8 @@ import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHigh
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgRangeAreaSeriesTooltipRendererParams
-    extends Omit<AgCartesianSeriesTooltipRendererParams, 'xKey' | 'xName' | 'yKey' | 'yName'>,
+export interface AgRangeAreaSeriesTooltipRendererParams<TDatum>
+    extends Omit<AgCartesianSeriesTooltipRendererParams<TDatum>, 'xKey' | 'xName' | 'yKey' | 'yName'>,
         AgRangeAreaSeriesOptionsKeys,
         AgRangeAreaSeriesOptionsNames,
         Omit<AgSeriesMarkerStyle, 'shape'> {
@@ -44,7 +44,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum>
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams<TDatum>>;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
 }

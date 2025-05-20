@@ -71,7 +71,7 @@ export interface AgBarSeriesThemeableOptions<TDatum> extends AgBarSeriesStyle, A
     /** Configuration for the labels shown on bars. */
     label?: AgBarSeriesLabelOptions<TDatum, AgBarSeriesLabelFormatterParams>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgBarSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgBarSeriesTooltipRendererParams<TDatum>>;
     /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgBarSeriesItemStylerParams<TDatum>, AgBarSeriesStyle>;
     /** Configuration for the Error Bars. */

@@ -28,9 +28,9 @@ export interface AgWaterfallSeriesTooltipRendererParams<TDatum>
     itemId: AgWaterfallSeriesItemType;
 }
 
-export interface AgWaterfallSeriesItemTooltip {
+export interface AgWaterfallSeriesItemTooltip<TDatum> {
     /** Function used to create the content for tooltips. */
-    renderer?: Renderer<AgWaterfallSeriesTooltipRendererParams, AgTooltipRendererResult>;
+    renderer?: Renderer<AgWaterfallSeriesTooltipRendererParams<TDatum>, AgTooltipRendererResult>;
 }
 
 export interface AgWaterfallSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
@@ -59,7 +59,7 @@ export interface AgWaterfallSeriesThemeableOptions<TDatum> extends AgBaseCartesi
     /** Configuration for the connector lines. */
     line?: AgWaterfallSeriesLineOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams<TDatum>>;
     /** Configuration for the waterfall series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
 }
@@ -118,7 +118,7 @@ export interface AgWaterfallSeriesItemOptions<TDatum> extends AgWaterfallSeriesS
     /** Function used to return formatting for individual Waterfall series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgWaterfallSeriesItemStylerParams<TDatum>, AgWaterfallSeriesStyle>;
     /** Series item specific tooltip configuration. */
-    tooltip?: AgWaterfallSeriesItemTooltip;
+    tooltip?: AgWaterfallSeriesItemTooltip<TDatum>;
 }
 
 export interface AgWaterfallSeriesLineOptions {

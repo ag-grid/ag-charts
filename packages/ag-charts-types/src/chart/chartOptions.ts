@@ -224,7 +224,7 @@ export interface AgBaseThemeableChartOptions<TDatum> {
     /** Configuration for asynchronously loaded data. */
     dataSource?: AgDataSourceOptions<TDatum>;
     /** Configuration for the context menu. */
-    contextMenu?: AgContextMenuOptions;
+    contextMenu?: AgContextMenuOptions<TDatum>;
     /** Configuration for localisation. */
     locale?: AgLocaleOptions;
     /** Configuration for the ranges buttons. */
@@ -259,7 +259,7 @@ export interface AgBaseThemeableChartOptions<TDatum> {
 
     // Cartesian-specific options - special care required.
     /** Configuration for the Navigator. */
-    navigator?: AgNavigatorOptions;
+    navigator?: AgNavigatorOptions<TDatum>;
     /** Configuration for synchronizing multiple charts. */
     sync?: AgChartSyncOptions;
     /** Configuration for the zoom options. */

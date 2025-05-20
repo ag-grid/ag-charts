@@ -51,7 +51,7 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapShapeSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Map shape based on the input parameters. */
-    itemStyler?: Styler<AgMapShapeSeriesItemStylerParams, AgMapShapeSeriesStyle>;
+    itemStyler?: Styler<AgMapShapeSeriesItemStylerParams<TDatum>, AgMapShapeSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapShapeSeriesHighlightStyle<TDatum>;
 }

@@ -42,7 +42,7 @@ export interface AgSparklineTooltip<TDatum> {
     renderer?: Renderer<AgSparklineTooltipRendererParams<TDatum>, AgSparklineTooltipRendererResult>;
 }
 
-export interface AgSparklineBaseThemeableOptions {
+export interface AgSparklineBaseThemeableOptions<TDatum> {
     /** Context to use for tooltips. */
     context?: any;
     /** Crosshair configurations. */
@@ -54,7 +54,7 @@ export interface AgSparklineBaseThemeableOptions {
     /** User override for the automatically determined max value (based on series data). */
     max?: number;
     /** Tooltip configuration. */
-    tooltip?: AgSparklineTooltip;
+    tooltip?: AgSparklineTooltip<TDatum>;
     /**
      * A nonce to be used by any dynamically injected CSS <style> tags to assist with Content Security Policy.
      *
@@ -83,21 +83,24 @@ type AgSparklineSeriesOmit =
     | 'xKey'
     | 'yKey';
 
-export interface AgAreaSparklinePreset
-    extends AgSparklineBaseThemeableOptions,
+export interface AgAreaSparklinePreset<TDatum>
+    extends AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
-        Omit<AgAreaSeriesOptions, AgSparklineSeriesOmit> {}
+        Omit<AgAreaSeriesOptions<TDatum>, AgSparklineSeriesOmit> {}
 
-export interface AgBarSparklinePreset
-    extends AgSparklineBaseThemeableOptions,
+export interface AgBarSparklinePreset<TDatum>
+    extends AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
-        Omit<AgBarSeriesOptions, AgSparklineSeriesOmit> {}
+        Omit<AgBarSeriesOptions<TDatum>, AgSparklineSeriesOmit> {}
 
-export interface AgLineSparklinePreset
-    extends AgSparklineBaseThemeableOptions,
+export interface AgLineSparklinePreset<TDatum>
+    extends AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
-        Omit<AgLineSeriesOptions, AgSparklineSeriesOmit> {
+        Omit<AgLineSeriesOptions<TDatum>, AgSparklineSeriesOmit> {
     type: 'line';
 }
 
-export type AgSparklinePresets = AgBarSparklinePreset | AgLineSparklinePreset | AgAreaSparklinePreset;
+export type AgSparklinePresets<TDatum> =
+    | AgBarSparklinePreset<TDatum>
+    | AgLineSparklinePreset<TDatum>
+    | AgAreaSparklinePreset<TDatum>;

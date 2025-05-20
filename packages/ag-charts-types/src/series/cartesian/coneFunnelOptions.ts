@@ -53,7 +53,7 @@ export interface AgConeFunnelSeriesThemeableOptions<TDatum>
     /** Configuration for the stage labels. */
     stageLabel?: AgConeFunnelSeriesStageLabelOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgConeFunnelSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgConeFunnelSeriesTooltipRendererParams<TDatum>>;
 }
 
 export interface AgConeFunnelSeriesOptionsKeys {

@@ -62,7 +62,7 @@ export interface AgFunnelSeriesThemeableOptions<TDatum>
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgFunnelSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgFunnelSeriesTooltipRendererParams<TDatum>>;
     /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<TDatum>, AgFunnelSeriesStyle>;
 }

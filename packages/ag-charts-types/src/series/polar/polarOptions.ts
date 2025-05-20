@@ -17,14 +17,14 @@ import type { AgRadarLineSeriesOptions } from './radarLineOptions';
 import type { AgRadialBarSeriesOptions } from './radialBarOptions';
 import type { AgRadialColumnSeriesOptions } from './radialColumnOptions';
 
-export type AgPolarSeriesOptions =
-    | AgDonutSeriesOptions
-    | AgPieSeriesOptions
-    | AgRadarLineSeriesOptions
-    | AgRadarAreaSeriesOptions
-    | AgRadialBarSeriesOptions
-    | AgRadialColumnSeriesOptions
-    | AgNightingaleSeriesOptions;
+export type AgPolarSeriesOptions<TDatum> =
+    | AgDonutSeriesOptions<TDatum>
+    | AgPieSeriesOptions<TDatum>
+    | AgRadarLineSeriesOptions<TDatum>
+    | AgRadarAreaSeriesOptions<TDatum>
+    | AgRadialBarSeriesOptions<TDatum>
+    | AgRadialColumnSeriesOptions<TDatum>
+    | AgNightingaleSeriesOptions<TDatum>;
 
 export type AgPolarAxisOptions =
     | AgAngleCategoryAxisOptions
@@ -34,9 +34,9 @@ export type AgPolarAxisOptions =
 
 export type AgPolarAxisType = AgPolarAxisOptions['type'];
 
-export interface AgBasePolarChartOptions {
+export interface AgBasePolarChartOptions<TDatum> {
     /** Series configurations. */
-    series?: AgPolarSeriesOptions[];
+    series?: AgPolarSeriesOptions<TDatum>[];
 
     /** Axis configurations. */
     axes?: AgPolarAxisOptions[];
@@ -62,7 +62,7 @@ export interface AgPolarAxesTheme {
     'radius-number'?: AgRadiusNumberAxisThemeOptions;
 }
 
-export interface AgBasePolarThemeOptions extends AgBaseThemeableChartOptions {
+export interface AgBasePolarThemeOptions<TDatum> extends AgBaseThemeableChartOptions<TDatum> {
     /** Axis configurations. */
     axes?: AgPolarAxesTheme;
 }
