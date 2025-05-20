@@ -1,10 +1,17 @@
+import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import { extent } from '../../util/extent';
-import { BaseProperties, Property } from '../../util/properties';
+import { objectsEqual } from '../../util/object';
+import { Property } from '../../util/properties';
+import { BaseProperties } from '../../util/properties';
+import { intervalFloor, intervalMilliseconds } from '../../util/time';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
-import { CartesianAxis } from './cartesianAxis';
+import { CategoryAxis } from './categoryAxis';
+
+const autoUnits: TimeIntervalUnit[] = ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'];
 
 export class TimeAxisParentLevel extends BaseProperties {
     @Property
@@ -17,9 +24,9 @@ export class TimeAxisParentLevel extends BaseProperties {
     readonly tick = new AxisTick();
 }
 
-export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
-    static readonly className = 'TimeAxis';
-    static readonly type = 'time' as const;
+export class TimeAxis extends CategoryAxis<TimeScale> {
+    static override readonly className = 'TimeAxis' as const;
+    static override readonly type = 'time' as const;
 
     @Property
     readonly parentLevel = new TimeAxisParentLevel();
@@ -30,17 +37,8 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     @Property
     max?: Date | number = undefined;
 
-    // @todo(AG-14472) - Remove padding options
     @Property
-    groupPaddingInner: number = 0.1;
-    @Property
-    paddingInner?: number;
-    @Property
-    paddingOuter?: number;
-
-    constructor(moduleCtx: ModuleContext) {
-        super(moduleCtx, new TimeScale());
-    }
+    unit: TimeInterval | TimeIntervalUnit | undefined = undefined;
 
     override get primaryLabel(): AxisLabel | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
@@ -50,8 +48,71 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
     }
 
-    override normaliseDataDomain(d: Date[]) {
-        return normaliseTimeDataDomain(d, this.min, this.max);
+    constructor(moduleCtx: ModuleContext) {
+        super(moduleCtx, new TimeScale());
+    }
+
+    private defaultUnit(): TimeInterval | undefined {
+        const { direction, min, max } = this;
+
+        let start: number | undefined;
+        let end: number | undefined;
+        let interval: number | undefined;
+        for (const series of this.boundSeries) {
+            const { domain } = normaliseTimeDataDomain(series.getDomain(direction), undefined, undefined);
+            if (domain.length !== 2) continue;
+
+            const d0 = domain[0].valueOf();
+            const d1 = domain[1].valueOf();
+
+            start = Math.min(start ?? Infinity, d0, d1);
+            end = Math.max(end ?? -Infinity, d0, d1);
+            const domainExtent = Math.abs(d1 - d0);
+            if (domainExtent === 0) continue;
+
+            const dataCount = series.dataCount();
+            if (dataCount <= 1) continue;
+
+            const i = domainExtent / (dataCount - 1);
+            interval = Math.min(interval ?? Infinity, i);
+        }
+
+        if (min != null || max != null) {
+            start = Math.min(start ?? Infinity, min?.valueOf() ?? Infinity, max?.valueOf() ?? Infinity);
+            end = Math.max(end ?? Infinity, min?.valueOf() ?? Infinity, max?.valueOf() ?? Infinity);
+        }
+
+        if (start != null && end != null) {
+            interval ??= Math.abs(end - start);
+        } else {
+            interval ??= 0;
+        }
+
+        const unit = autoUnits.findLast((u) => intervalMilliseconds(u) <= interval) ?? 'millisecond';
+        const step = Math.max(Math.round(interval / intervalMilliseconds(unit)), 1);
+        const epoch = start != null && step !== 1 ? intervalFloor(unit, start) : undefined;
+
+        return { unit, step, epoch };
+    }
+
+    private _defaultUnit: TimeInterval | undefined = undefined;
+    protected override updateScale(): void {
+        super.updateScale();
+
+        let { unit } = this;
+        if (unit == null) {
+            const defaultUnit = this.defaultUnit();
+            unit = objectsEqual(this._defaultUnit, defaultUnit) ? this._defaultUnit : defaultUnit;
+            this._defaultUnit = defaultUnit;
+        } else {
+            this._defaultUnit = undefined;
+        }
+
+        this.scale.interval = unit;
+    }
+
+    override normaliseDataDomain(domain: Date[]) {
+        return normaliseTimeDataDomain(domain, this.min, this.max);
     }
 }
 

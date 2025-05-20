@@ -25,7 +25,6 @@ const commonOptions: AgChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            nice: false,
             interval: {
                 maxSpacing: 180,
             },

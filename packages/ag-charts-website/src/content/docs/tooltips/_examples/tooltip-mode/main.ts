@@ -44,7 +44,6 @@ const options: AgCartesianChartOptions = {
         {
             position: 'bottom',
             type: 'time',
-            nice: false,
         },
         {
             position: 'right',

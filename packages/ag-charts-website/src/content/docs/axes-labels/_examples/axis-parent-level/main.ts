@@ -19,7 +19,6 @@ const options: AgCartesianChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            unit: 'day',
             parentLevel: {
                 enabled: true,
             },

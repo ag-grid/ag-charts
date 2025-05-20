@@ -19,11 +19,11 @@ import { NewDonutSeriesModule } from './chart/series/polar/donutSeriesModule';
 import { NewPieSeriesModule } from './chart/series/polar/pieSeriesModule';
 import {
     CategoryAxisModule,
+    ContinuousTimeAxisModule,
     GroupedCategoryAxisModule,
     LogAxisModule,
     NumberAxisModule,
     TimeAxisModule,
-    UnitTimeAxisModule,
 } from './module/axisModules';
 
 export { ModuleRegistry } from 'ag-charts-core';
@@ -35,7 +35,7 @@ export {
     TimeAxisModule,
     CategoryAxisModule,
     GroupedCategoryAxisModule,
-    UnitTimeAxisModule,
+    ContinuousTimeAxisModule,
     NewAreaSeriesModule,
     NewBarSeriesModule,
     NewBubbleSeriesModule,
@@ -54,7 +54,7 @@ export const AllCartesianCommunityModules = [
     TimeAxisModule,
     CategoryAxisModule,
     GroupedCategoryAxisModule,
-    UnitTimeAxisModule,
+    ContinuousTimeAxisModule,
     NewAreaSeriesModule,
     NewBarSeriesModule,
     NewBubbleSeriesModule,

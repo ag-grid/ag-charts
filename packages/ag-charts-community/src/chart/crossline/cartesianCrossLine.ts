@@ -16,7 +16,7 @@ import { PointerEvents } from '../../scene/node';
 import { Range } from '../../scene/shape/range';
 import { TransformableText } from '../../scene/shape/text';
 import { toRadians } from '../../util/angle';
-import { clampArray } from '../../util/number';
+import { clampArray, findMinMax } from '../../util/number';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
 import { type CrossLine, type CrossLineType, getCrossLineValue, validateCrossLineValue } from './crossLine';
@@ -259,6 +259,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const bandwidth = scale.bandwidth ?? 0;
         const step = scale.step ?? 0;
         const rangePadding = (reversedAxis ? -1 : 1) * (scale instanceof BandScale ? (step - bandwidth) / 2 : 0);
+        const ordinalTimeScalePadding =
+            type === 'range' && OrdinalTimeScale.is(scale) ? bandwidth / 2 + rangePadding : 0;
 
         let yStart: number;
         let yEnd: number;
@@ -272,12 +274,30 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             clampedYEnd = NaN;
         } else if (range) {
             const [r0, r1] = range;
-            const ordinalTimeScalePadding =
-                r0?.valueOf() === r1?.valueOf() && OrdinalTimeScale.is(scale) ? bandwidth / 2 + rangePadding : 0;
-            yStart = scale.convert(r0 as any) + ordinalTimeScalePadding;
-            yEnd = scale.convert(r1 as any) + bandwidth;
-            clampedYStart = scale.convert(r0 as any, { clamp: true }) + ordinalTimeScalePadding - rangePadding;
-            clampedYEnd = scale.convert(r1 as any, { clamp: true }) + bandwidth + rangePadding;
+            yStart = scale.convert(r0 as any);
+            yEnd = scale.convert(r1 as any);
+            clampedYStart = scale.convert(r0 as any, { clamp: true });
+            clampedYEnd = scale.convert(r1 as any, { clamp: true });
+
+            if (clampedYStart > clampedYEnd) {
+                [clampedYStart, clampedYEnd] = [clampedYEnd, clampedYStart];
+                [yStart, yEnd] = [yEnd, yStart];
+            }
+
+            const [clippedRange0, clippedRange1] = findMinMax(clippedRange);
+            if (clampedYStart >= clippedRange1 || clampedYEnd <= clippedRange0) {
+                return;
+            }
+
+            if (Number.isFinite(yStart)) {
+                yStart += ordinalTimeScalePadding;
+                clampedYStart += ordinalTimeScalePadding - rangePadding;
+            }
+
+            if (Number.isFinite(yEnd)) {
+                yEnd += bandwidth;
+                clampedYEnd += bandwidth + rangePadding;
+            }
         } else {
             return;
         }
@@ -285,22 +305,11 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         clampedYStart = clampArray(clampedYStart, clippedRange);
         clampedYEnd = clampArray(clampedYEnd, clippedRange);
 
-        const validRange =
-            (yStart === clampedYStart || yEnd === clampedYEnd || clampedYStart !== clampedYEnd) &&
-            Math.abs(clampedYEnd - clampedYStart) > 0;
-
-        if (validRange && clampedYStart > clampedYEnd) {
-            [clampedYStart, clampedYEnd] = [clampedYEnd, clampedYStart];
-            [yStart, yEnd] = [yEnd, yStart];
-        }
-
         if (yStart - rangePadding >= clampedYStart) yStart -= rangePadding;
         if (yEnd + rangePadding <= clampedYEnd) yEnd += rangePadding;
 
         this.startLine = strokeWidth > 0 && yStart >= clampedYStart && yStart <= clampedYStart + rangePadding;
         this.endLine = strokeWidth > 0 && yEnd >= clampedYEnd - bandwidth - rangePadding && yEnd <= clampedYEnd;
-
-        if (type === 'range' && !validRange && !this.startLine && !this.endLine) return;
 
         this.data = [clampedYStart, clampedYEnd];
 

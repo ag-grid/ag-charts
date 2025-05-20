@@ -19,7 +19,7 @@ import { ModuleMap } from '../../module/moduleMap';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale, ScaleFormatParams } from '../../scale/scale';
-import { UnitTimeScale } from '../../scale/unitTimeScale';
+import { TimeScale } from '../../scale/timeScale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
@@ -504,7 +504,7 @@ export abstract class Axis<
                 ? { zoomed: rawTickCount, unzoomed: unzoomedTickCount }
                 : undefined;
 
-        const timeInterval = UnitTimeScale.is(scale) ? scale.interval : undefined;
+        const timeInterval = TimeScale.is(scale) ? scale.interval : undefined;
 
         this.scale.domain = niceDomain;
 

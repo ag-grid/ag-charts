@@ -515,6 +515,10 @@ export abstract class FlowProportionSeries<
         // Does not reset any animations
     }
 
+    override dataCount(): number {
+        return NaN; // Not used
+    }
+
     override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
         return [];
     }

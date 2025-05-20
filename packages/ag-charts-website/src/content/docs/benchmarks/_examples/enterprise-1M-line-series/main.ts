@@ -34,7 +34,7 @@ const options: AgChartOptions = {
     ],
     axes: [
         { type: 'number', keys: ['price'], position: 'left' },
-        { type: 'time', nice: false, position: 'bottom' },
+        { type: 'time', position: 'bottom' },
         { type: 'number', keys: ['volume'], position: 'right' },
     ],
 };

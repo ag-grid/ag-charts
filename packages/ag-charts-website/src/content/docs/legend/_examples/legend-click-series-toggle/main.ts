@@ -74,7 +74,6 @@ const options: AgChartOptions = {
         {
             position: 'bottom',
             type: 'time',
-            nice: false,
         },
         {
             position: 'left',

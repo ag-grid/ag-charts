@@ -44,11 +44,11 @@ import {
 } from '../../api/preset/gaugeOptionsDefs';
 import {
     categoryAxisOptionsDefs,
+    continuousTimeAxisOptionsDefs,
     groupedCategoryAxisOptionsDefs,
     logAxisOptionsDefs,
     numberAxisOptionsDefs,
     timeAxisOptionsDefs,
-    unitTimeAxisOptionsDefs,
 } from '../../module/axisModules';
 import { without } from '../../util/object';
 import {
@@ -285,20 +285,20 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
         left: without(timeAxisOptionsDefs, ['type', 'crossLines', 'position']),
         crossLines: without(cartesianCrossLineOptionsDefs, ['type']),
     },
+    'continuous-time': {
+        ...without(continuousTimeAxisOptionsDefs, ['type', 'crossLines']),
+        top: without(continuousTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        right: without(continuousTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        bottom: without(continuousTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        left: without(continuousTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
+        crossLines: without(cartesianCrossLineOptionsDefs, ['type']),
+    },
     'grouped-category': {
         ...without(groupedCategoryAxisOptionsDefs, ['type']),
         top: without(groupedCategoryAxisOptionsDefs, ['type', 'position']),
         right: without(groupedCategoryAxisOptionsDefs, ['type', 'position']),
         bottom: without(groupedCategoryAxisOptionsDefs, ['type', 'position']),
         left: without(groupedCategoryAxisOptionsDefs, ['type', 'position']),
-        crossLines: without(cartesianCrossLineOptionsDefs, ['type']),
-    },
-    'unit-time': {
-        ...without(unitTimeAxisOptionsDefs, ['type', 'crossLines']),
-        top: without(unitTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
-        right: without(unitTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
-        bottom: without(unitTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
-        left: without(unitTimeAxisOptionsDefs, ['type', 'crossLines', 'position']),
         crossLines: without(cartesianCrossLineOptionsDefs, ['type']),
     },
     'ordinal-time': {
@@ -481,7 +481,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
     },
     histogram: {
         ...commonChartOptionsDefs,
-        axes: without(cartesianAxesThemeDef, ['category', 'grouped-category', 'ordinal-time', 'unit-time']),
+        axes: without(cartesianAxesThemeDef, ['category', 'grouped-category', 'time', 'ordinal-time']),
         series: histogramSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
         ...undocumentedSeriesOptionsDef,

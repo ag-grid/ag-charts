@@ -58,6 +58,10 @@ function integratedCategoryMatch(a: unknown, b: unknown) {
     return a.toString() === b.toString();
 }
 
+function toAxisValue(value: any) {
+    return transformIntegratedCategoryValue(value).valueOf();
+}
+
 export function scale(val: number | string | Date, scaling?: Scaling) {
     if (!scaling) return NaN;
 
@@ -74,7 +78,8 @@ export function scale(val: number | string | Date, scaling?: Scaling) {
     if (scaling.type !== 'category') return NaN;
 
     // Category axis case.
-    let matchingIndex = scaling.domain.findIndex((d) => d === val);
+    const axisValue = toAxisValue(val);
+    let matchingIndex = scaling.domain.findIndex((d) => toAxisValue(d) === axisValue);
     if (matchingIndex === -1) {
         // Integrated Charts category case.
         matchingIndex = scaling.domain.findIndex((d) => integratedCategoryMatch(val, d));
@@ -90,10 +95,6 @@ export function scale(val: number | string | Date, scaling?: Scaling) {
 interface ValueEntry {
     axisValue: AxisValue;
     value: any;
-}
-
-function toAxisValue(value: any) {
-    return transformIntegratedCategoryValue(value).valueOf();
 }
 
 function getAxisIndices({ data }: SpanContext, values: any[]): SpanIndices[] {

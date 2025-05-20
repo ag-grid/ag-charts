@@ -429,10 +429,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         let validAxesTypes: string | undefined;
         for (let index = 0; index < axesCount; index++) {
             const keyPath = `axes[${index}]`;
-            let axisOptions = options.axes[index];
-            if (axisOptions.type === 'time' && (axisOptions as any).unit != null) {
-                axisOptions = { ...axisOptions, type: 'unit-time' } as any;
-            }
+            const axisOptions = options.axes[index];
             const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
 
             if (axisDef == null) {
