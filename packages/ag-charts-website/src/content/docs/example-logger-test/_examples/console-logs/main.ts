@@ -1,3 +1,4 @@
+// @ag-skip-fws
 import { AgBarSeriesOptions, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 interface IData {
