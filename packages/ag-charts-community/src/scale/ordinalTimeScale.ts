@@ -2,9 +2,9 @@ import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import { datesSortOrder, sortAndUniqueDates } from '../util/date';
 import { dateToNumber } from '../util/timeFormatDefaults';
+import { getDateTicksForInterval } from './continuousTimeScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
 import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams, ScaleTickResult } from './scale';
-import { getDateTicksForInterval } from './timeScale';
 
 export class OrdinalTimeScale extends DiscreteTimeScale {
     readonly type = 'ordinal-time';

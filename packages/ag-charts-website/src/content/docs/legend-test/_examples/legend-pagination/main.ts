@@ -77,7 +77,6 @@ const options: AgCartesianChartOptions = {
             gridLine: {
                 style: [],
             },
-            nice: false,
         },
         {
             position: 'right',

@@ -32,7 +32,6 @@ const options: AgCartesianChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            nice: false,
         },
         {
             type: 'number',

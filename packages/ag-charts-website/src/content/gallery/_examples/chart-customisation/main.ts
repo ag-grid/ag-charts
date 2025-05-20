@@ -67,7 +67,6 @@ const options: AgChartOptions = {
                 width: 3,
                 stroke: '#3f7cbf',
             },
-            nice: false,
             label: {
                 rotation: -30,
                 color: '#3f7cbf',

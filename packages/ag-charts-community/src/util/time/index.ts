@@ -11,7 +11,15 @@ export {
     durationMonth,
     durationYear,
 } from './duration';
-export { intervalFloor, intervalCeil, intervalPrevious, intervalNext, intervalExtent, intervalRange } from './range';
+export {
+    intervalFloor,
+    intervalCeil,
+    intervalPrevious,
+    intervalNext,
+    intervalExtent,
+    intervalRangeCount,
+    intervalRange,
+} from './range';
 
 export function intervalUnit(interval: TimeInterval | TimeIntervalUnit): TimeIntervalUnit {
     return typeof interval === 'string' ? interval : interval.unit;

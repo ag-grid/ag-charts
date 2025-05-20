@@ -275,6 +275,10 @@ export abstract class HierarchySeries<
         }
     }
 
+    override dataCount(): number {
+        return NaN; // Not used
+    }
+
     override getSeriesDomain() {
         return [NaN, NaN];
     }

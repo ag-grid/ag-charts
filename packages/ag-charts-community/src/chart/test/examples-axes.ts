@@ -187,7 +187,7 @@ export const TIME_AXIS_TICK_VALUES: AgCartesianChartOptions = {
     ...examples.ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS,
     axes: [
         {
-            type: 'time',
+            type: 'continuous-time',
             position: 'bottom',
             interval: {
                 values: [new Date(2020, 0, 1), new Date(2020, 0, 4), new Date(2020, 0, 17), new Date(2020, 0, 28)],
@@ -239,7 +239,7 @@ export const AXIS_TICK_MIN_SPACING: AgCartesianChartOptions = {
     ...examples.ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS,
     axes: [
         {
-            type: 'time',
+            type: 'continuous-time',
             position: 'bottom',
             interval: { minSpacing: 200 },
         },

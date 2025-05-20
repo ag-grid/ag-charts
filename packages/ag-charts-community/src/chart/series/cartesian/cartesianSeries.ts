@@ -6,6 +6,7 @@ import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { LogScale } from '../../../scale/logScale';
 import type { Scale } from '../../../scale/scale';
+import { TimeScale } from '../../../scale/timeScale';
 import { BBox } from '../../../scene/bbox';
 import { Group, TranslatableGroup } from '../../../scene/group';
 import type { Node, NodeWithOpacity } from '../../../scene/node';
@@ -19,8 +20,8 @@ import { findMinMax } from '../../../util/number';
 import { Property } from '../../../util/properties';
 import { StateMachine } from '../../../util/stateMachine';
 import { CategoryAxis } from '../../axis/categoryAxis';
+import { ContinuousTimeAxis } from '../../axis/continuousTimeAxis';
 import { NumberAxis } from '../../axis/numberAxis';
-import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -1127,7 +1128,7 @@ export abstract class CartesianSeries<
                 range: [range[0], range[1]],
             };
         } else if (scale instanceof BandScale) {
-            const { domain } = scale;
+            const domain = scale instanceof TimeScale ? scale.bands : scale.domain;
 
             return {
                 type: 'category',
@@ -1159,7 +1160,7 @@ function axisExtent(axis: ChartAxis): [number | Date, number | Date] | undefined
     let min: number | Date | undefined;
     let max: number | Date | undefined;
 
-    if (axis instanceof NumberAxis || axis instanceof TimeAxis) {
+    if (axis instanceof NumberAxis || axis instanceof ContinuousTimeAxis) {
         ({ min, max } = axis);
     }
 

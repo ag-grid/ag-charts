@@ -1296,6 +1296,10 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return [0, 1];
     }
 
+    override dataCount(): number {
+        return NaN; // Not used
+    }
+
     override getSeriesRange(
         _direction: _ModuleSupport.ChartAxisDirection,
         _visibleRange: [any, any]

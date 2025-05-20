@@ -34,7 +34,7 @@ export function validateCrossLineValue(value: unknown, scale: Scale<any, number>
     }
 
     const isContinuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
-    const validValue = (val: unknown) => checkDatum(val, isContinuous) && !isNaN(scale.convert(val));
+    const validValue = (val: unknown) => checkDatum(val, isContinuous) && !isNaN(scale.convert(val, { clamp: true }));
 
     if (isArray(value)) {
         const [start, end] = value;
