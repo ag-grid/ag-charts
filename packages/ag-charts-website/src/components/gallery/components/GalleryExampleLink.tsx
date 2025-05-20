@@ -12,7 +12,13 @@ interface Props {
     enableDprScaling: boolean;
 }
 
+const REDUCED_DPR_SCALING_EXAMPLES = ['bubble-with-patterns', '100--stacked-area'];
+
 export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, id, enableDprScaling }) => {
+    if (REDUCED_DPR_SCALING_EXAMPLES.includes(exampleName)) {
+        enableDprScaling = false;
+    }
+
     return (
         <a
             className={classnames(styles.link, 'galleryExample', styles[`layout-3-col`], 'text-sm', 'text-secondary')}
