@@ -291,7 +291,8 @@ export abstract class Node<D = any> {
             node.setScene(this.scene);
         }
 
-        this.markDirtyZIndex();
+        this.markDirtyChildrenOrder();
+        this.markDirty();
     }
 
     appendChild<T extends Node>(node: T): T {
@@ -309,7 +310,8 @@ export abstract class Node<D = any> {
         delete node.parentNode;
         node.setScene();
 
-        this.markDirtyZIndex();
+        this.markDirtyChildrenOrder();
+        this.markDirty();
     }
 
     remove() {
@@ -403,8 +405,8 @@ export abstract class Node<D = any> {
         this.markDirty(property);
     }
 
-    markDirtyZIndex() {
-        this.parentNode?.markDirtyZIndex();
+    markDirtyChildrenOrder() {
+        this.cachedBBox = undefined;
     }
 
     markDirty(property?: string) {
@@ -454,11 +456,7 @@ export abstract class Node<D = any> {
     }
 
     protected onZIndexChange() {
-        const { parentNode } = this;
-
-        if (parentNode) {
-            parentNode.markDirtyZIndex();
-        }
+        this.parentNode?.markDirtyChildrenOrder();
     }
 
     toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

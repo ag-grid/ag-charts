@@ -190,8 +190,7 @@ export function buildTree(node: Node, mode: 'json' | 'console'): BuildTree {
     return {
         node: mode === 'json' ? nodeProps(node) : node,
         name: node.name ?? node.id,
-        // dirty: node.dirty,
-        dirty: false,
+        dirty: node instanceof Group ? node.dirty : undefined,
         ...Array.from(node.children(), (c) => buildTree(c, mode)).reduce<Record<string, object>>(
             (result, childTree) => {
                 let { name: treeNodeName } = childTree;
@@ -236,9 +235,10 @@ export function buildDirtyTree(node: Node): {
     dirtyTree: { name?: string; node?: any; dirty?: boolean };
     paths: string[];
 } {
-    // if (!node.dirty) {
-    //     return { dirtyTree: {}, paths: [] };
-    // }
+    const nodeDirty = node instanceof Group ? node.dirty : undefined;
+    if (!nodeDirty) {
+        return { dirtyTree: {}, paths: [] };
+    }
 
     const childrenDirtyTree = Array.from(node.children(), (c) => buildDirtyTree(c)).filter((c) => c.paths.length > 0);
     const name = Group.is(node) ? node.name ?? node.id : node.id;
@@ -250,15 +250,14 @@ export function buildDirtyTree(node: Node): {
         dirtyTree: {
             name,
             node,
-            dirty: false,
-            // dirty: node.dirty,
-            // ...childrenDirtyTree
-            //     .map((c) => c.dirtyTree)
-            //     .filter((t) => t.dirty != null)
-            //     .reduce<Record<string, object>>((result, childTree) => {
-            //         result[childTree.name ?? '<unknown>'] = childTree;
-            //         return result;
-            //     }, {}),
+            dirty: nodeDirty,
+            ...childrenDirtyTree
+                .map((c) => c.dirtyTree)
+                .filter((t) => t.dirty != null)
+                .reduce<Record<string, object>>((result, childTree) => {
+                    result[childTree.name ?? '<unknown>'] = childTree;
+                    return result;
+                }, {}),
         },
         paths,
     };

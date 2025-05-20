@@ -34,7 +34,7 @@ export class Group<D = any> extends Node<D> {
         return compareZIndex(a.zIndex, b.zIndex) || a.serialNumber - b.serialNumber;
     }
 
-    private dirty = false;
+    public dirty = false;
     private dirtyZIndex: boolean = false;
     private clipRect?: BBox;
 
@@ -110,10 +110,10 @@ export class Group<D = any> extends Node<D> {
         super.markDirty(property);
     }
 
-    override markDirtyZIndex(): void {
-        this.dirty = true;
+    override markDirtyChildrenOrder(): void {
+        super.markDirtyChildrenOrder();
         this.dirtyZIndex = true;
-        super.markDirtyZIndex();
+        this.markDirty();
     }
 
     private _lastWidth = NaN;
