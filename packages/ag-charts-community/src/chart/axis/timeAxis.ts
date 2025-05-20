@@ -55,10 +55,12 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
     private defaultUnit(): TimeInterval | undefined {
         const { direction, min, max } = this;
 
-        let start: number | undefined;
-        let end: number | undefined;
+        let start = Infinity;
+        let end = -Infinity;
         let interval: number | undefined;
         for (const series of this.boundSeries) {
+            if (!series.visible) continue;
+
             const { domain } = normaliseTimeDataDomain(series.getDomain(direction), undefined, undefined);
             if (domain.length !== 2) continue;
 
@@ -67,6 +69,7 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
 
             start = Math.min(start ?? Infinity, d0, d1);
             end = Math.max(end ?? -Infinity, d0, d1);
+
             const domainExtent = Math.abs(d1 - d0);
             if (domainExtent === 0) continue;
 
@@ -77,10 +80,10 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
             interval = Math.min(interval ?? Infinity, i);
         }
 
-        if (start == null || end == null) return; // No data
-
         start = Math.min(start, min?.valueOf() ?? Infinity, max?.valueOf() ?? Infinity);
         end = Math.max(end, min?.valueOf() ?? -Infinity, max?.valueOf() ?? -Infinity);
+
+        if (!Number.isFinite(start) || !Number.isFinite(end)) return;
 
         interval ??= Math.abs(end - start);
 

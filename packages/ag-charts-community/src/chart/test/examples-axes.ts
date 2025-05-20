@@ -290,7 +290,7 @@ export const TIME_AXIS_NO_SERIES_FIXED_DOMAIN: AgCartesianChartOptions = {
     axes: TIME_AXIS_NO_SERIES.axes?.map((a) => {
         if (a.position === 'left' && a.type === 'number') {
             return { ...a, min: 2.4, max: 4.7 };
-        } else if (a.position === 'bottom' && a.type === 'time') {
+        } else if (a.position === 'bottom' && a.type === 'continuous-time') {
             return {
                 ...a,
                 min: new Date('2020-01-01T00:25:35.920Z'),
