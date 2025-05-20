@@ -77,16 +77,12 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
             interval = Math.min(interval ?? Infinity, i);
         }
 
-        if (min != null || max != null) {
-            start = Math.min(start ?? Infinity, min?.valueOf() ?? Infinity, max?.valueOf() ?? Infinity);
-            end = Math.max(end ?? Infinity, min?.valueOf() ?? Infinity, max?.valueOf() ?? Infinity);
-        }
+        if (start == null || end == null) return; // No data
 
-        if (start != null && end != null) {
-            interval ??= Math.abs(end - start);
-        } else {
-            interval ??= 0;
-        }
+        start = Math.min(start, min?.valueOf() ?? Infinity, max?.valueOf() ?? Infinity);
+        end = Math.max(end, min?.valueOf() ?? -Infinity, max?.valueOf() ?? -Infinity);
+
+        interval ??= Math.abs(end - start);
 
         const unit = autoUnits.findLast((u) => intervalMilliseconds(u) <= interval) ?? 'millisecond';
         const step = Math.max(Math.round(interval / intervalMilliseconds(unit)), 1);
