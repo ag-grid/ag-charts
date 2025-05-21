@@ -27,9 +27,9 @@ import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
 
 /** Configuration for axes in cartesian charts. */
 export interface AgBaseCartesianAxisOptions<
-    TContext,
     LabelType = AgCartesianAxisLabelOptions,
     CrosshairLabelType = AgCrosshairLabel,
+    TContext = TContextDefault,
 > extends AgBaseAxisOptions<LabelType, TContext> {
     /** An array of keys determining which series are charted on this axis. */
     keys?: string[];
@@ -109,7 +109,7 @@ export interface AgGroupedCategoryDepthOptions {
 }
 
 export interface AgCategoryAxisOptions<TContext = TContextDefault>
-    extends AgBaseCartesianAxisOptions<TContext, AgBaseCartesianAxisLabelOptions, AgBaseCrosshairLabel> {
+    extends AgBaseCartesianAxisOptions<AgBaseCartesianAxisLabelOptions, AgBaseCrosshairLabel, TContext> {
     type: 'category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
@@ -123,7 +123,7 @@ type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;
 
 export interface AgGroupedCategoryAxisOptions<TContext = TContextDefault>
     extends Omit<
-        AgBaseCartesianAxisOptions<TContext, AgGroupedCategoryAxisLabelOptions, AgBaseCrosshairLabel>,
+        AgBaseCartesianAxisOptions<AgGroupedCategoryAxisLabelOptions, AgBaseCrosshairLabel, TContext>,
         'crossLines' | 'tick'
     > {
     type: 'grouped-category';
@@ -138,7 +138,7 @@ export interface AgGroupedCategoryAxisOptions<TContext = TContextDefault>
 }
 
 export interface AgUnitTimeAxisOptions<TContext = TContextDefault>
-    extends Omit<AgBaseCartesianAxisOptions<TContext, AgCartesianTimeAxisLabelOptions>, 'interval'>,
+    extends Omit<AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions, AgCrosshairLabel, TContext>, 'interval'>,
         // eslint-disable-next-line sonarjs/use-type-alias
         Omit<AgContinuousAxisOptions<Date | number, TimeInterval | TimeIntervalUnit | number>, 'nice'> {
     type: 'time';
@@ -155,7 +155,7 @@ export interface AgUnitTimeAxisOptions<TContext = TContextDefault>
 }
 
 export interface AgOrdinalTimeAxisOptions<TContext = TContextDefault>
-    extends AgBaseCartesianAxisOptions<TContext, AgCartesianTimeAxisLabelOptions> {
+    extends AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions, AgCrosshairLabel, TContext> {
     type: 'ordinal-time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel;
@@ -170,13 +170,13 @@ export interface AgOrdinalTimeAxisOptions<TContext = TContextDefault>
 }
 
 export interface AgNumberAxisOptions<TContext = TContextDefault>
-    extends Omit<AgBaseCartesianAxisOptions<TContext>, 'interval'>,
+    extends Omit<AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions, AgCrosshairLabel, TContext>, 'interval'>,
         AgContinuousAxisOptions {
     type: 'number';
 }
 
 export interface AgLogAxisOptions<TContext = TContextDefault>
-    extends Omit<AgBaseCartesianAxisOptions<TContext>, 'interval'>,
+    extends Omit<AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions, AgCrosshairLabel, TContext>, 'interval'>,
         AgContinuousAxisOptions {
     type: 'log';
     /** The base of the logarithm used. */
@@ -184,7 +184,7 @@ export interface AgLogAxisOptions<TContext = TContextDefault>
 }
 
 export interface AgContinuousTimeAxisOptions<TContext = TContextDefault>
-    extends Omit<AgBaseCartesianAxisOptions<TContext, AgCartesianTimeAxisLabelOptions>, 'interval'>,
+    extends Omit<AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions, AgCrosshairLabel, TContext>, 'interval'>,
         AgContinuousAxisOptions<Date | number, TimeInterval | TimeIntervalUnit | number> {
     type: 'time';
     /** Options for labels and ticks for the parent level intervals. */
