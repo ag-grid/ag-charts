@@ -43,20 +43,22 @@ export interface AgBasePolarChartOptions<TDatum = TDatumDefault, TContext = TCon
     axes?: AgPolarAxisOptions<TContext>[];
 }
 
+type ThemeOmittedAxisOptions = 'context' | 'type' | 'crossLines';
+
 export interface AgAngleCategoryAxisThemeOptions
-    extends Omit<AgAngleCategoryAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+    extends Omit<AgAngleCategoryAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgAngleAxesCrossLineThemeOptions {}
 
 export interface AgAngleNumberAxisThemeOptions
-    extends Omit<AgAngleNumberAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+    extends Omit<AgAngleNumberAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgAngleAxesCrossLineThemeOptions {}
 
 export interface AgRadiusCategoryAxisThemeOptions
-    extends Omit<AgRadiusCategoryAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+    extends Omit<AgRadiusCategoryAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgRadiusAxesCrossLineThemeOptions {}
 
 export interface AgRadiusNumberAxisThemeOptions
-    extends Omit<AgRadiusNumberAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+    extends Omit<AgRadiusNumberAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgRadiusAxesCrossLineThemeOptions {}
 
 export interface AgPolarAxesTheme {

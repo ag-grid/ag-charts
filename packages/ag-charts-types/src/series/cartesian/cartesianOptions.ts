@@ -248,38 +248,40 @@ export interface AgCartesianAxesTheme {
 
 export type AgContinuousCartesianAxesTheme = Pick<AgCartesianAxesTheme, 'number' | 'log' | 'time'>;
 
+type ThemeOmittedAxisOptions = 'context' | 'type' | 'crossLines';
+
 export interface AgNumberAxisThemeOptions
-    extends Omit<AgNumberAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+    extends Omit<AgNumberAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgNumberAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
 
 export interface AgLogAxisThemeOptions
-    extends Omit<AgLogAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+    extends Omit<AgLogAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgLogAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
 
 export interface AgCategoryAxisThemeOptions
-    extends Omit<AgCategoryAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+    extends Omit<AgCategoryAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgCategoryAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
 
 export interface AgOrdinalTimeAxisThemeOptions
-    extends Omit<AgOrdinalTimeAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+    extends Omit<AgOrdinalTimeAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgOrdinalTimeAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
 
 export interface AgGroupedCategoryAxisThemeOptions
-    extends Omit<AgGroupedCategoryAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+    extends Omit<AgGroupedCategoryAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgGroupedCategoryAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
 
 export interface AgTimeAxisThemeOptions
-    extends Omit<AgContinuousTimeAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+    extends Omit<AgContinuousTimeAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgContinuousTimeAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
 
 export interface AgUnitTimeAxisThemeOptions
-    extends Omit<AgUnitTimeAxisOptions<never>, 'context' | 'type' | 'crossLines'>,
+    extends Omit<AgUnitTimeAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgUnitTimeAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
 
