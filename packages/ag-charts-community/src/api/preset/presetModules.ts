@@ -123,7 +123,7 @@ const commonSparklineAxisOptionsDef: OptionsDefs<AgSparklineBaseAxisOptions> = {
 const commonSparklineOptionsDef: OptionsDefs<
     AgBaseSparklinePresetOptions & AgSparklineBaseThemeableOptions & AgSparklineDataKeysOptions
 > = {
-    context: defined,
+    context: () => true,
     tooltip: defined,
     theme: defined,
     background: defined,

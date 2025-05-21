@@ -497,7 +497,7 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     ...commonSeriesThemeableOptionsDefs,
     id: string,
     visible: boolean,
-    context: defined,
+    context: () => true,
     data: array,
 };
 

@@ -191,7 +191,7 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
         stroke: color,
     },
     tick: cartesianAxisTick,
-    context: defined,
+    context: () => true,
 };
 
 // @ts-expect-error undocumented option
