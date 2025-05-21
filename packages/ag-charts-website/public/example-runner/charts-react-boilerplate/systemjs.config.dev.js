@@ -52,7 +52,7 @@
             ...systemJsPaths,
         },
         map: {
-            css: boilerplatePath + 'css.js',
+            css: (boilerplatePath.length === 0 ? `./` : `${boilerplatePath}/`) + 'css.js',
 
             // react
             ...reactConfig.map,
