@@ -268,6 +268,8 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
 
 /** Configuration common to all charts.  */
 export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOptions<TDatum> {
+    /** Context object to use in callbacks */
+    context?: unknown;
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
     data?: TDatum[];
     /** The element to place the rendered chart into. */
