@@ -110,7 +110,7 @@ export type AgFinancialChartOptions<TDatum = TDatumDefault> = AgBaseFinancialPre
     AgFinancialChartPresets;
 
 export interface AgBaseGaugePresetOptions extends AgBaseGaugePresetThemeOptions {
-    theme?: AgChartTheme<never> | AgChartThemeName;
+    theme?: AgChartTheme<TDatumDefault> | AgChartThemeName;
     /** The element to place the rendered chart into. */
     container?: HTMLElement | null;
 }
@@ -138,11 +138,7 @@ export type AgChartInstanceOptions<TDatum = TDatumDefault, TContext = TContextDe
 
 type DeepPartial<T> = T extends Array<unknown> ? T : T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
 
-export interface AgChartInstance<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
-    O extends AgChartInstanceOptions<TDatum, TContext> = AgChartOptions<TDatum, TContext>,
-> {
+export interface AgTypedChartInstance<TDatum, TContext, O extends AgChartInstanceOptions<TDatum, TContext>> {
     /**
      * Update an existing `AgChartInstance`. Options provided should be complete and not
      * partial.
@@ -198,9 +194,16 @@ export interface AgChartInstance<
     destroy(): void;
 }
 
+export interface AgChartInstance<
+    TOptions extends AgChartInstanceOptions<TDatumDefault, TContextDefault> = AgChartOptions<
+        TDatumDefault,
+        TContextDefault
+    >,
+> extends AgTypedChartInstance<TDatumDefault, TContextDefault, TOptions> {}
+
 // @ts-expect-error Expected to be unused in code, simplified typings to enable rendering for API docs.
 interface _AgChartInstanceInterface<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgChartInstance<TDatum, TContext, AgChartOptions<TDatum, TContext>> {
+    extends AgChartInstance<AgChartOptions<TDatum, TContext>> {
     update(options: AgChartOptions<TDatum, TContext>): Promise<void>;
     updateDelta(deltaOptions: AgChartOptions<TDatum, TContext>): Promise<void>;
     getOptions(): AgChartOptions<TDatum, TContext>;
