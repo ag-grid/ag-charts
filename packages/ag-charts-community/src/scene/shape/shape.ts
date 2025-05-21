@@ -12,7 +12,7 @@ import { LinearGradient } from '../gradient/linearGradient';
 import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
 import { Image } from '../image/image';
-import { Node, type RenderContext, SceneChangeDetection } from '../node';
+import { Node, SceneChangeDetection } from '../node';
 import { Pattern } from '../pattern/pattern';
 import { isGradientFill, isImageFill, isPatternFill } from '../util/fill';
 import { align } from '../util/pixel';
@@ -204,10 +204,6 @@ export abstract class Shape<D = any> extends Node<D> {
     override markDirty(property?: string): void {
         super.markDirty(property);
         this.cachedDefaultGradientFillBBox = undefined;
-    }
-
-    override preRender(renderCtx: RenderContext, thisComplexity?: number) {
-        return super.preRender(renderCtx, thisComplexity);
     }
 
     protected fillStroke(ctx: CanvasContext, path?: Path2D) {
