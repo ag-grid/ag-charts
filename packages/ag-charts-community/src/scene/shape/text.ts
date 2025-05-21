@@ -99,7 +99,7 @@ export class Text<D = any> extends Shape<D> {
             height: exactHeight,
         } = CachedTextMeasurerPool.measureLines(
             lines,
-            useGlyphIndependentMeasurements ? { font, lineHeight, textAlign: 'left', textBaseline: 'top' } : opts
+            useGlyphIndependentMeasurements ? { font, lineHeight, textAlign: 'start', textBaseline: 'top' } : opts
         );
         const height = lineHeight == null ? exactHeight : lineHeight * lines.length;
 

@@ -549,7 +549,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const quadrantTextOpts: { textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }[] = [
             { textAlign: 'center', textBaseline: 'bottom' },
             { textAlign: 'left', textBaseline: 'middle' },
-            { textAlign: 'center', textBaseline: 'hanging' },
+            { textAlign: 'center', textBaseline: 'top' },
             { textAlign: 'right', textBaseline: 'middle' },
         ];
 
