@@ -37,19 +37,6 @@ fi
 FILE_VERSION=""${VERSION//./}""
 ARCHIVE="charts-release_`date +%Y%m%d`_v$FILE_VERSION.zip"
 
-# $3 is optional skipWarning argument
-if [ "$2" != "skipWarning" ]; then
-    while true; do
-        echo    "*********************************** WARNING ************************************************"
-        read -p "This script will DELETE the existing archive of $VERSION (if it exists) and will REPLACE it. Do you wish to continue [y/n]? " yn
-        case $yn in
-            [Yy]* ) break;;
-            [Nn]* ) exit;;
-            * ) echo "Please answer [y]es or [n]o.";;
-        esac
-    done
-fi
-
 # delete dir if it exists - can ignore dir not found error
 echo "ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST \"cd $CHARTS_ROOT_DIR/archive/ && [[ -d $VERSION ]] && rm -r $VERSION\""
 ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "cd $CHARTS_ROOT_DIR/archive/ && [[ -d $VERSION ]] && rm -r $VERSION"
