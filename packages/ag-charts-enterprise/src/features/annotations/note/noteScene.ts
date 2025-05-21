@@ -80,7 +80,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
             },
             avoidOrphans: false,
             textAlign: datum.textAlign,
-            textBaseline: 'hanging',
+            textBaseline: 'top',
             textWrap: 'always',
             maxWidth: 200,
         });

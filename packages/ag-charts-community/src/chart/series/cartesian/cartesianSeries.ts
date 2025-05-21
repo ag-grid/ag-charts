@@ -710,7 +710,7 @@ export abstract class CartesianSeries<
             const { x: datumX = NaN, y: datumY = NaN } = datum.point ?? datum.midPoint ?? {};
             if (isNaN(datumX) || isNaN(datumY) || datum.missing === true) continue;
 
-            const visible = [xAxis?.inRange(datumX), yAxis?.inRange(datumY)];
+            const visible = [xAxis?.inRange(datumX, 1), yAxis?.inRange(datumY, 1)];
             if (majorDirection !== ChartAxisDirection.X) {
                 visible.reverse();
             }
