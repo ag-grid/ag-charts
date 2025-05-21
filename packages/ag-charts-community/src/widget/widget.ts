@@ -1,6 +1,7 @@
 import {
     type BaseAttributeTypeMap,
     type BaseStyleTypeMap,
+    type BoundingBox,
     type ElementID,
     getAttribute,
     getWindow,
@@ -9,7 +10,6 @@ import {
     setElementStyles,
 } from 'ag-charts-core';
 
-import type { BBoxValues } from '../util/bboxinterface';
 import { getElementBBox, setElementBBox } from '../util/dom';
 import { type WidgetEventMap, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
 import { WidgetListenerHTML } from './widgetListenerHTML';
@@ -35,11 +35,11 @@ abstract class WidgetBounds {
         this.elem = elem;
     }
 
-    setBounds(bounds: Partial<BBoxValues>): void {
+    setBounds(bounds: Partial<BoundingBox>): void {
         setElementBBox(this.elemContainer ?? this.elem, bounds);
     }
 
-    getBounds(): BBoxValues {
+    getBounds(): BoundingBox {
         return getElementBBox(this.elemContainer ?? this.elem);
     }
 

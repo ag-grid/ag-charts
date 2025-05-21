@@ -1,6 +1,7 @@
+import type { BoundingBox } from 'ag-charts-core';
+
 import type { LocaleManager } from '../../locale/localeManager';
 import { BBox } from '../../scene/bbox';
-import type { BBoxValues } from '../../util/bboxinterface';
 import { Listeners } from '../../util/listeners';
 import { BaseProperties } from '../../util/properties';
 import type { RovingDirection } from '../../widget/rovingDirection';
@@ -18,7 +19,7 @@ export interface ToolbarEventMap<ButtonOptions extends ToolbarButtonOptions = To
     'button-pressed': {
         event: MouseWidgetEvent<'click'>;
         button: ButtonOptions & { index: number };
-        buttonBounds: BBoxValues;
+        buttonBounds: BoundingBox;
     };
     'button-focused': {
         button: { index: number };

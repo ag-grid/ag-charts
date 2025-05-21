@@ -560,7 +560,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private runningUpdateType: ChartUpdateType = ChartUpdateType.NONE;
 
     private updateShortcutCount = 0;
-    private readonly seriesToUpdate: Set<ISeries<any, any, any>> = new Set();
+    private seriesToUpdate: ISeries<any, any, any>[] = [];
     private readonly updateMutex = new Mutex();
     private updateRequestors: Record<string, ChartUpdateType> = {};
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
@@ -593,9 +593,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.series.forEach((series) => series.markNodeDataDirty());
         }
 
-        for (const series of seriesToUpdate) {
-            this.seriesToUpdate.add(series);
-        }
+        this.seriesToUpdate = seriesToUpdate;
 
         if (skipAnimations) {
             this.ctx.animationManager.skipCurrentBatch();
@@ -621,8 +619,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     private readonly _performUpdateSplits: Record<string, number> = {};
     private async performUpdate(count: number) {
-        const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx } = this;
-        const seriesToUpdate = [...this.seriesToUpdate];
+        const { performUpdateType, seriesToUpdate, extraDebugStats, _performUpdateSplits: splits, ctx } = this;
 
         // AG-10112 Callbacks (i.e. formatters / stylers / renderers) must always be considered "outdated" at the start
         // of a draw call, because it is impossible for us to determine whether the return values have changed. The
@@ -632,7 +629,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         // Clear state immediately so that side effects can be detected prior to SCENE_RENDER.
         this.performUpdateType = ChartUpdateType.NONE;
-        this.seriesToUpdate.clear();
+        this.seriesToUpdate = [];
         this.runningUpdateType = performUpdateType;
 
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {

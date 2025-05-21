@@ -23,14 +23,14 @@ export interface ProcessDataEvent {
     readonly series: { shouldFlipXY?: boolean };
 }
 
-export type UpdateOpts = {
+export interface UpdateOpts {
     forceNodeDataRefresh?: boolean;
     skipAnimations?: boolean;
     newAnimationBatch?: boolean;
-    seriesToUpdate?: Iterable<ISeries<any, any, any>>;
+    seriesToUpdate?: ISeries<any, any, any>[];
     backOffMs?: number;
     apiUpdate?: boolean;
-};
+}
 
 interface EventMap {
     'update-complete': UpdateCompleteEvent;
@@ -45,10 +45,6 @@ export class UpdateService {
     constructor(private readonly updateCallback: UpdateCallback) {}
 
     public addListener<K extends keyof EventMap>(eventName: K, listener: EventListener<EventMap[K]>) {
-        return this.events.on(eventName, listener);
-    }
-
-    public removeListener<K extends keyof EventMap>(eventName: K, listener: EventListener<EventMap[K]>) {
         return this.events.on(eventName, listener);
     }
 

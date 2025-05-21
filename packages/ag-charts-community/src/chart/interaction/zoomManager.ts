@@ -1,4 +1,5 @@
 import {
+    type BoundingBox,
     Logger,
     type OptionsDefs,
     type RequireOptional,
@@ -23,7 +24,6 @@ import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
-import type { BBoxValues } from '../../util/bboxinterface';
 import { deepClone } from '../../util/json';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
@@ -367,7 +367,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         this.updateAxisZoom(callerId, primaryAxis.id, newZoom);
     }
 
-    public panToBBox(callerId: string, seriesRect: BBox, target: BBoxValues): boolean {
+    public panToBBox(callerId: string, seriesRect: BBox, target: BoundingBox): boolean {
         if (!this.isZoomEnabled() && !this.isNavigatorEnabled()) return false;
 
         const zoom = this.getZoom();
