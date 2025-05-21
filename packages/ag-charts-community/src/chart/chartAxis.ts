@@ -67,7 +67,7 @@ export interface ChartAxis {
     getBBox(): BBox;
     getLayoutState(): AxisLayout;
     getModuleMap(): ModuleMap<any, any, any>;
-    inRange(x: number, width?: number, tolerance?: number): boolean;
+    inRange(x: number, tolerance?: number): boolean;
     isReversed(): boolean;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
     setCrossLinesVisible(visible: boolean): void;
