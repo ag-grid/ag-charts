@@ -34,6 +34,7 @@ type ConfigGenerator = ({
     bindings,
     typedBindings,
     otherScriptFiles,
+    styleFileNames,
     transformEntryFile,
     isDev,
 }: {
@@ -43,6 +44,7 @@ type ConfigGenerator = ({
     bindings: any;
     typedBindings: any;
     otherScriptFiles: FileContents;
+    styleFileNames: string[];
     transformEntryFile?: TransformEntryFile;
     isDev: boolean;
 }) => Promise<FrameworkFiles>;
@@ -160,13 +162,13 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    reactFunctional: async ({ bindings, indexHtml, otherScriptFiles, isDev, transformEntryFile }) => {
+    reactFunctional: async ({ bindings, indexHtml, otherScriptFiles, styleFileNames, isDev, transformEntryFile }) => {
         const internalFramework = 'reactFunctional';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
-        let indexJsx = await vanillaToReactFunctional(deepCloneObject(bindings), []);
+        let indexJsx = await vanillaToReactFunctional(deepCloneObject(bindings), [], styleFileNames);
 
         if (transformEntryFile) {
             indexJsx = transformEntryFile({ entryFile: indexJsx });
@@ -192,13 +194,20 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    reactFunctionalTs: async ({ typedBindings, indexHtml, otherScriptFiles, transformEntryFile, isDev }) => {
+    reactFunctionalTs: async ({
+        typedBindings,
+        indexHtml,
+        otherScriptFiles,
+        styleFileNames,
+        transformEntryFile,
+        isDev,
+    }) => {
         const internalFramework: InternalFramework = 'reactFunctionalTs';
         const entryFileName = getEntryFileName(internalFramework)!;
         const mainFileName = getMainFileName(internalFramework)!;
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
-        let indexTsx = await vanillaToReactFunctionalTs(deepCloneObject(typedBindings), []);
+        let indexTsx = await vanillaToReactFunctionalTs(deepCloneObject(typedBindings), [], styleFileNames);
 
         if (transformEntryFile) {
             indexTsx = transformEntryFile({ entryFile: indexTsx });

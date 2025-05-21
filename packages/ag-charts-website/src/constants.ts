@@ -139,3 +139,5 @@ function getChartsUrl() {
 export const CHARTS_SITE_URL = getChartsUrl();
 
 export const TRIAL_LICENCE_FORM_URL = import.meta.env?.PUBLIC_TRIAL_LICENCE_FORM_URL;
+
+export const EXAMPLE_STYLE_FILE_NAME = 'ag-example-styles.css';
