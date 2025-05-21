@@ -7,7 +7,7 @@ import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
 import type { GradientParams } from '../../../scene/gradient/gradient';
 import { Group, TranslatableGroup } from '../../../scene/group';
-import { Node, PointerEvents } from '../../../scene/node';
+import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
@@ -174,16 +174,16 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.phantomGroup.opacity = 0.2;
     }
 
-    override attachSeries(seriesContentNode: Node, seriesNode: Node, annotationNode: Node | undefined): void {
+    override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {
         super.attachSeries(seriesContentNode, seriesNode, annotationNode);
 
         seriesContentNode?.appendChild(this.backgroundGroup);
     }
 
     override detachSeries(
-        seriesContentNode: Node | undefined,
-        seriesNode: Node,
-        annotationNode: Node | undefined
+        seriesContentNode: Group | undefined,
+        seriesNode: Group,
+        annotationNode: Group | undefined
     ): void {
         super.detachSeries(seriesContentNode, seriesNode, annotationNode);
 

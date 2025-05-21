@@ -1,4 +1,5 @@
 import { Debug } from '../util/debug';
+import { Group } from './group';
 import { Node } from './node';
 
 type ValidId = string | number;
@@ -8,7 +9,7 @@ type NodeConstructorOrFactory<TNode extends Node, TDatum> = NodeConstructor<TNod
 
 export class Selection<TChild extends Node = Node, TDatum = any> {
     static select<TChild extends Node = Node, TDatum = any>(
-        parent: Node,
+        parent: Group,
         classOrFactory: NodeConstructorOrFactory<TChild, TDatum>,
         garbageCollection: boolean = true
     ) {
@@ -21,8 +22,10 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
             if (predicate(node)) {
                 results.push(node);
             }
-            for (const child of node.children()) {
-                traverse(child);
+            if (node instanceof Group) {
+                for (const child of node.children()) {
+                    traverse(child);
+                }
             }
         };
         traverse(parent);
@@ -47,7 +50,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     private readonly debug = Debug.create(true, 'scene', 'scene:selections');
 
     constructor(
-        private readonly parentNode: Node,
+        private readonly parentNode: Group,
         classOrFactory: NodeConstructorOrFactory<TChild, TDatum>,
         private readonly autoCleanup: boolean = true
     ) {

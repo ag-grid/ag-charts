@@ -30,7 +30,7 @@ export class Scene extends EventEmitter<EventMap> {
     readonly layersManager: LayersManager;
     readonly imageLoader = new ImageLoader();
 
-    private root: Node | null = null;
+    private root: Group | null = null;
     private pendingSize: [number, number, number] | null = null;
     private isDirty: boolean = false;
 
@@ -77,7 +77,7 @@ export class Scene extends EventEmitter<EventMap> {
         return this;
     }
 
-    setRoot(node: Node | null) {
+    setRoot(node: Group | null) {
         if (this.root === node) {
             return this;
         }

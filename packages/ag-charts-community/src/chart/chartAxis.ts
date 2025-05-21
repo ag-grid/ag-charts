@@ -13,7 +13,7 @@ import type { ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
 import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
-import type { Node } from '../scene/node';
+import type { Group } from '../scene/group';
 import type { TransformableText } from '../scene/shape/text';
 import type { Padding } from '../util/padding';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
@@ -43,12 +43,12 @@ interface AxisLayoutConstraints {
 }
 
 export interface AxisGroups {
-    axisNode: Node;
-    gridNode: Node;
-    crossLineRangeNode: Node;
-    crossLineLineNode: Node;
-    crossLineLabelNode: Node;
-    labelNode: Node;
+    axisNode: Group;
+    gridNode: Group;
+    crossLineRangeNode: Group;
+    crossLineLineNode: Group;
+    crossLineLabelNode: Group;
+    labelNode: Group;
 }
 
 export interface ChartAxis {

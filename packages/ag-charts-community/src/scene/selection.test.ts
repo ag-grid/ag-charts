@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { Node } from './node';
+import { Group } from './group';
 import { Selection } from './selection';
 
-class TestNode<D = any> extends Node<D> {}
+class TestNode<D = any> extends Group<D> {}
 
 const expectSelectionToMatchData = (selection: Selection, data: Array<any>) => {
     expect(selection.nodes()).toHaveLength(data.length);

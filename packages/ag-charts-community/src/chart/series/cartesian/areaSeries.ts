@@ -8,7 +8,6 @@ import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
-import type { Node } from '../../../scene/node';
 import { PointerEvents } from '../../../scene/node';
 import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
@@ -127,16 +126,16 @@ export class AreaSeries extends CartesianSeries<
         );
     }
 
-    override attachSeries(seriesContentNode: Node, seriesNode: Node, annotationNode: Node | undefined): void {
+    override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {
         super.attachSeries(seriesContentNode, seriesNode, annotationNode);
 
         seriesContentNode.appendChild(this.backgroundGroup);
     }
 
     override detachSeries(
-        seriesContentNode: Node | undefined,
-        seriesNode: Node,
-        annotationNode: Node | undefined
+        seriesContentNode: Group | undefined,
+        seriesNode: Group,
+        annotationNode: Group | undefined
     ): void {
         super.detachSeries(seriesContentNode, seriesNode, annotationNode);
 

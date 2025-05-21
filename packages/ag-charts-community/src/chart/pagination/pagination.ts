@@ -1,8 +1,7 @@
 import { clamp, createId } from 'ag-charts-core';
 import type { AgChartLegendOrientation, AgMarkerShape, FontStyle, FontWeight } from 'ag-charts-types';
 
-import { TranslatableGroup } from '../../scene/group';
-import type { Node } from '../../scene/node';
+import { Group, TranslatableGroup } from '../../scene/group';
 import { Text } from '../../scene/shape/text';
 import { type RotatableType, Transformable } from '../../scene/transformable';
 import { BaseProperties } from '../../util/properties';
@@ -308,7 +307,7 @@ export class Pagination extends BaseProperties {
         this.chartUpdateCallback(ChartUpdateType.SCENE_RENDER);
     }
 
-    attachPagination(node: Node) {
+    attachPagination(node: Group) {
         node.append(this.group);
     }
 
