@@ -123,7 +123,6 @@ export default [
             'no-console': 2,
             'no-unused-vars': 0,
             'no-case-declarations': 0,
-            'aglint/require-explicit-generic': 2,
             '@typescript-eslint/no-explicit-any': 0,
             '@typescript-eslint/consistent-type-imports': 0,
             '@typescript-eslint/no-redundant-type-constituents': 1,
