@@ -30,7 +30,7 @@ export interface AgBaseCartesianAxisOptions<
     TContext,
     LabelType = AgCartesianAxisLabelOptions,
     CrosshairLabelType = AgCrosshairLabel,
-> extends AgBaseAxisOptions<TContext, LabelType> {
+> extends AgBaseAxisOptions<LabelType, TContext> {
     /** An array of keys determining which series are charted on this axis. */
     keys?: string[];
     /** The position on the chart where the axis should be rendered. */

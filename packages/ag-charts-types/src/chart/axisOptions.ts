@@ -49,7 +49,7 @@ export interface AgAxisCaptionOptions {
     formatter?: Formatter<AgAxisCaptionFormatterParams>;
 }
 
-export interface AgBaseAxisOptions<TContext = TContextDefault, LabelType = any> {
+export interface AgBaseAxisOptions<LabelType = any, TContext = TContextDefault> {
     /** Axis type identifier. */
     type: string;
     /** Context object to use in callbacks */

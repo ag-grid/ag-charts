@@ -10,7 +10,7 @@ import type { Degree, Ratio, TContextDefault } from './types';
 export type AgPolarAxisShape = 'polygon' | 'circle';
 
 export interface AgAngleCategoryAxisOptions<TContext = TContextDefault>
-    extends AgBaseAxisOptions<TContext, AgAngleAxisLabelOptions> {
+    extends AgBaseAxisOptions<AgAngleAxisLabelOptions, TContext> {
     type: 'angle-category';
     /** Shape of axis. Default: `polygon` */
     shape?: AgPolarAxisShape;
@@ -37,7 +37,7 @@ export interface AgAngleAxesCrossLineThemeOptions {
 }
 
 export interface AgAngleNumberAxisOptions<TContext = TContextDefault>
-    extends Omit<AgBaseAxisOptions<TContext, AgAngleAxisFormattableLabelOptions>, 'interval'>,
+    extends Omit<AgBaseAxisOptions<AgAngleAxisFormattableLabelOptions, TContext>, 'interval'>,
         AgContinuousAxisOptions {
     type: 'angle-number';
     /** Angle in degrees to start ticks positioning from. */
