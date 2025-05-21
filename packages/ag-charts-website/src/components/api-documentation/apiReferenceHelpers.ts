@@ -467,6 +467,37 @@ export function extractSearchData(
     return [];
 }
 
+type RequiredRefs =
+    | { typeNamesNotFound: string[] }
+    | {
+          axesRef: ApiReferenceNode;
+          seriesRef: ApiReferenceNode;
+          annotationRef: ApiReferenceNode;
+          miniChartSeriesRef: ApiReferenceNode;
+      };
+
+function findRequiredRefs(reference: ApiReferenceType): RequiredRefs {
+    const typeNamesNotFound: string[] = [];
+    const tryGet = (typeName: string) => {
+        const result: ApiReferenceNode | undefined = reference.get(typeName);
+        if (result == null) {
+            typeNamesNotFound.push(typeName);
+        }
+        return result;
+    };
+
+    const axesRef = tryGet('AgChartAxisOptions')!;
+    const seriesRef = tryGet('AgChartSeriesOptions')!;
+    const annotationRef = tryGet('AgAnnotation')!;
+    const miniChartSeriesRef = tryGet('AgMiniChartSeriesOptions')!;
+
+    if (axesRef && seriesRef && annotationRef && miniChartSeriesRef) {
+        return { axesRef, seriesRef, annotationRef, miniChartSeriesRef };
+    } else {
+        return { typeNamesNotFound };
+    }
+}
+
 export function getOptionsStaticPaths(reference: ApiReferenceType) {
     const getSubTypes = (ref: ApiReferenceNode): string[] =>
         ref.kind === 'typeAlias' &&
@@ -497,10 +528,11 @@ export function getOptionsStaticPaths(reference: ApiReferenceType) {
         };
     };
 
-    const axesRef = reference.get('AgChartAxisOptions')!;
-    const seriesRef = reference.get('AgChartSeriesOptions')!;
-    const annotationRef = reference.get('AgAnnotation')!;
-    const miniChartSeriesRef = reference.get('AgMiniChartSeriesOptions')!;
+    const requiredRefs = findRequiredRefs(reference);
+    if ('typeNamesNotFound' in requiredRefs) {
+        throw new Error('Cannot find types: ' + requiredRefs.typeNamesNotFound.join(', '));
+    }
+    const { axesRef, seriesRef, annotationRef, miniChartSeriesRef } = requiredRefs;
 
     return [
         ...getSubTypes(axesRef).map(createPageMapper('axes')),
