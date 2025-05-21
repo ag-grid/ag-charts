@@ -33,7 +33,7 @@ const commonOptions: AgCartesianChartOptions = {
     axes: [
         {
             type: 'time',
-            unit: 'day',
+            position: 'bottom',
         },
         {
             type: 'number',

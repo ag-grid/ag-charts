@@ -137,7 +137,7 @@ export interface AgGroupedCategoryAxisOptions<TContext = TContextDefault>
     tick?: AgGroupedCategoryAxisTickOptions;
 }
 
-export interface AgUnitTimeAxisOptions<TContext = TContextDefault>
+export interface AgTimeAxisOptions<TContext = TContextDefault>
     extends Omit<AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions, AgCrosshairLabel, TContext>, 'interval'>,
         // eslint-disable-next-line sonarjs/use-type-alias
         Omit<AgContinuousAxisOptions<Date | number, TimeInterval | TimeIntervalUnit | number>, 'nice'> {
@@ -186,14 +186,10 @@ export interface AgLogAxisOptions<TContext = TContextDefault>
 export interface AgContinuousTimeAxisOptions<TContext = TContextDefault>
     extends Omit<AgBaseCartesianAxisOptions<AgCartesianTimeAxisLabelOptions, AgCrosshairLabel, TContext>, 'interval'>,
         AgContinuousAxisOptions<Date | number, TimeInterval | TimeIntervalUnit | number> {
-    type: 'time';
+    type: 'continuous-time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel;
 }
-
-export interface AgTimeAxisOptions<TContext = TContextDefault>
-    extends AgContinuousTimeAxisOptions<TContext>,
-        AgUnitTimeAxisOptions<TContext> {}
 
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';
 
@@ -237,16 +233,16 @@ export interface AgCartesianAxesTheme {
     /** This extends the common axis configuration with options specific to category axes. */
     category?: AgCategoryAxisThemeOptions;
     /** This extends the common axis configuration with options specific to time axes. */
-    time?: AgTimeAxisThemeOptions;
+    'continuous-time'?: AgContinuousTimeAxisThemeOptions;
     /** This extends the common axis configuration with options specific to ordinal-time axes. */
     'ordinal-time'?: AgOrdinalTimeAxisThemeOptions;
     /** This extends the common axis configuration with options specific to grouped-category axes. */
     'grouped-category'?: AgGroupedCategoryAxisThemeOptions;
     /** This extends the common axis configuration with options specific to unit-time axes. */
-    'unit-time'?: AgUnitTimeAxisThemeOptions;
+    time?: AgTimeAxisThemeOptions;
 }
 
-export type AgContinuousCartesianAxesTheme = Pick<AgCartesianAxesTheme, 'number' | 'log' | 'time'>;
+export type AgContinuousCartesianAxesTheme = Pick<AgCartesianAxesTheme, 'number' | 'log' | 'continuous-time'>;
 
 type ThemeOmittedAxisOptions = 'context' | 'type' | 'crossLines';
 
@@ -275,14 +271,14 @@ export interface AgGroupedCategoryAxisThemeOptions
         AgCartesianAxisThemeOptions<AgGroupedCategoryAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
 
-export interface AgTimeAxisThemeOptions
+export interface AgContinuousTimeAxisThemeOptions
     extends Omit<AgContinuousTimeAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgContinuousTimeAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
 
-export interface AgUnitTimeAxisThemeOptions
-    extends Omit<AgUnitTimeAxisOptions<never>, ThemeOmittedAxisOptions>,
-        AgCartesianAxisThemeOptions<AgUnitTimeAxisOptions<never>>,
+export interface AgTimeAxisThemeOptions
+    extends Omit<AgTimeAxisOptions<never>, ThemeOmittedAxisOptions>,
+        AgCartesianAxisThemeOptions<AgTimeAxisOptions<never>>,
         AgCartesianAxesCrossLineThemeOptions {}
 
 export interface AgCartesianCrossLineOptions extends AgBaseCrossLineOptions<AgCartesianCrossLineLabelOptions> {}

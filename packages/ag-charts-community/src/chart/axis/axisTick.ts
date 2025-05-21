@@ -1,12 +1,12 @@
 import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
+import type { ContinuousTimeScale } from '../../scale/continuousTimeScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { TimeScale } from '../../scale/timeScale';
-import type { UnitTimeScale } from '../../scale/unitTimeScale';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
 
-export type TickInterval<S> = S extends TimeScale | OrdinalTimeScale | UnitTimeScale
+export type TickInterval<S> = S extends ContinuousTimeScale | OrdinalTimeScale | TimeScale
     ? number | TimeInterval | TimeIntervalUnit
     : number;
 

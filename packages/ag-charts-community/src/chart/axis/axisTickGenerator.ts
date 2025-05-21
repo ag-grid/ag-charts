@@ -2,11 +2,11 @@ import { countFractionDigits, dropFirstWhile, dropLastWhile } from 'ag-charts-co
 import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
+import { ContinuousTimeScale } from '../../scale/continuousTimeScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale, ScaleFormatParams, ScaleTickParams } from '../../scale/scale';
 import { TimeScale } from '../../scale/timeScale';
-import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { Matrix } from '../../scene/matrix';
 import type { TextSizeProperties } from '../../scene/shape/text';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
@@ -145,9 +145,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         maxSpacing?: number
     ) {
         const { scale } = this.axis;
-        const defaultTickCount = UnitTimeScale.is(scale)
-            ? UnitTimeScale.defaultTickCount
-            : ContinuousScale.defaultTickCount;
+        const defaultTickCount = TimeScale.is(scale) ? TimeScale.defaultTickCount : ContinuousScale.defaultTickCount;
         return estimateTickCount(
             findRangeExtent(range),
             findRangeExtent(visibleRange),
@@ -530,7 +528,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         if (parentInterval == null) return;
 
         const { scale } = this.axis;
-        if (!TimeScale.is(scale) && !DiscreteTimeScale.is(scale)) return;
+        if (!ContinuousTimeScale.is(scale) && !DiscreteTimeScale.is(scale)) return;
 
         if (reverse) {
             visibleRange = [1 - visibleRange[1], 1 - visibleRange[0]];
@@ -549,17 +547,17 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         const milliseconds = intervalMilliseconds(timeInterval);
         const interpolate =
-            UnitTimeScale.is(scale) && scale.interval != null && intervalMilliseconds(scale.interval) < milliseconds;
+            TimeScale.is(scale) && scale.interval != null && intervalMilliseconds(scale.interval) < milliseconds;
 
         let ticks: Date[];
         let primaryTicksIndices: Set<number> | undefined = new Set<number>();
-        if (TimeScale.is(scale) || UnitTimeScale.is(scale)) {
+        if (ContinuousTimeScale.is(scale) || TimeScale.is(scale)) {
             ticks = [];
             const intervalTickParams = {
                 ...tickParams,
                 interval: timeInterval,
             };
-            const timeScaleTicks = !UnitTimeScale.is(scale) || interpolate;
+            const timeScaleTicks = !TimeScale.is(scale) || interpolate;
             for (let i = 0; i < primaryTicks.length - 1; i += 1) {
                 const p0 = primaryTicks[i];
                 const p1 = primaryTicks[i + 1];
@@ -683,7 +681,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     }): TickData {
         const { axis } = this;
         const { label, primaryLabel, scale, interval } = axis;
-        const idGenerator = createIdsGenerator();
 
         const domainParams: ScaleTickParams<any> = {
             nice: niceMode === NiceMode.TickAndDomain,
@@ -727,7 +724,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 tickDomain = interval.values!;
                 rawTicks = interval.values!;
                 rawTickCount = rawTicks.length;
-                interpolate = UnitTimeScale.is(scale);
+                interpolate = TimeScale.is(scale);
                 if (ContinuousScale.is(scale)) {
                     const [d0, d1] = findMinMax(niceDomain.map(Number));
                     rawTicks = rawTicks
@@ -756,19 +753,19 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 if (
                     niceDomain.length > 0 &&
                     tickParams.interval == null &&
-                    (UnitTimeScale.is(scale) ||
-                        (primaryLabel != null && (TimeScale.is(scale) || OrdinalTimeScale.is(scale))))
+                    (TimeScale.is(scale) ||
+                        (primaryLabel != null && (ContinuousTimeScale.is(scale) || OrdinalTimeScale.is(scale))))
                 ) {
                     const dates = niceDomain as (Date | number)[];
                     const start = Math.min(dates[0].valueOf(), dates[dates.length - 1].valueOf());
                     const end = Math.max(dates[0].valueOf(), dates[dates.length - 1].valueOf());
                     timeInterval = getTickTimeInterval(start, end, tickCount, minTickCount, maxTickCount, {
                         weekStart: primaryLabel == null ? sunday : undefined,
-                        primaryOnly: UnitTimeScale.is(scale),
+                        primaryOnly: TimeScale.is(scale),
                     });
                 }
 
-                const minTimeInterval = UnitTimeScale.is(scale) ? scale.interval : undefined;
+                const minTimeInterval = TimeScale.is(scale) ? scale.interval : undefined;
                 if (
                     minTimeInterval != null &&
                     timeInterval != null &&
@@ -785,7 +782,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     ({ ticks: rawTicks, tickCount: rawTickCount, primaryTicksIndices, interpolate } = intervalTicks);
                 } else {
                     const intervalTickParams =
-                        UnitTimeScale.is(scale) && timeInterval != null
+                        TimeScale.is(scale) && timeInterval != null
                             ? { ...tickParams, interval: tickParams.interval ?? timeInterval }
                             : tickParams;
                     const tickGeneration = scale.ticks(intervalTickParams, niceDomain, visibleRange);
@@ -824,6 +821,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
+        const continuous = ContinuousTimeScale.is(scale) || DiscreteTimeScale.is(scale);
+        const idGenerator = createIdsGenerator();
         for (let i = 0; i < rawTicks.length; i++) {
             const tick = rawTicks[i];
             const translationY = scale.convert(tick, { interpolate }) + halfBandwidth;
@@ -839,10 +838,18 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 ? axis.formatTick(tick, i, niceDomain, fractionDigits, timeInterval, tickLabelFormatter)
                 : '';
 
+            let tickId: string;
+            const continuousValue = continuous ? tick?.valueOf() : undefined;
+            if (Number.isFinite(continuousValue)) {
+                tickId = idGenerator(`v:${continuousValue}`);
+            } else {
+                tickId = idGenerator(`l:${tickLabel}`);
+            }
+
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
             ticks.push({
                 tick,
-                tickId: idGenerator(tickLabel),
+                tickId,
                 tickLabel,
                 translationY: Math.floor(translationY),
                 primary,

@@ -15,10 +15,17 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | T
         return new Date(value);
     }
 
-    override convert(d: Date, options?: { interpolate?: boolean }): number {
+    override convert(value: Date, options?: { clamp?: boolean; interpolate?: boolean }): number {
+        if (!(value instanceof Date)) value = new Date(value as any);
         const { domain, bands } = this;
 
         if (domain.length <= 0) return NaN;
+
+        if (options?.clamp === true) {
+            const { range } = this;
+            if (value < bands[0]) return range[0];
+            if (value > bands[bands.length - 1]) return range[1];
+        }
 
         const r0 = this.ordinalRange(0);
         const r1 = this.ordinalRange(bands.length - 1);
@@ -26,13 +33,13 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | T
         const interpolate = options?.interpolate ?? false;
         const reversed = domain[0].valueOf() > domain[domain.length - 1].valueOf();
         if (!interpolate) {
-            const r = super.convert(d, options);
+            const r = super.convert(value, options);
             return reversed ? r1 - (r - r0) : r;
         }
 
         if (bands.length === 0) return r0;
 
-        const v = d.valueOf();
+        const v = value.valueOf();
         let domainIndex: number;
         if (reversed) {
             domainIndex = (findMinIndex(0, domain.length - 1, (i) => domain[i].valueOf() <= v) ?? domain.length) - 1;

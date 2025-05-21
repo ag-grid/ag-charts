@@ -66,7 +66,10 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 axisTypes: ['time', 'number'],
                 seriesTypes: ['line'],
             }),
-            warnings: [['AG Charts - invalid value of type [object] for [LineSeries-1 / xValue] ignored:', '[null]']],
+            warnings: [
+                ['AG Charts - invalid value of type [object] for [LineSeries-1 / xKey] ignored:', '[null]'],
+                ['AG Charts - invalid value of type [object] for [LineSeries-1 / xValue] ignored:', '[null]'],
+            ],
         },
         LINE_NUMBER_AXES_0_X_DOMAIN: {
             options: examples.LINE_NUMBER_AXES_0_X_DOMAIN,

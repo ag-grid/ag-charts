@@ -31,30 +31,6 @@
         "outputFileName": "ag-charts-community"
       }
     },
-    "docs-debug-interfaces": {
-      "executor": "ag-charts-generate-code-reference-files:generate",
-      "dependsOn": ["ag-charts-generate-code-reference-files:build"],
-      "inputs": ["{projectRoot}/src/options/**/*.ts", { "dependentTasksOutputFiles": "**/*", "transitive": false }],
-      "outputs": ["{options.output}"],
-      "cache": true,
-      "options": {
-        "mode": "debug-interfaces",
-        "inputs": ["{projectRoot}/src/options"],
-        "output": "dist/packages/ag-charts-community/debug-interfaces.AUTO.json"
-      }
-    },
-    "docs-resolved-interfaces": {
-      "executor": "ag-charts-generate-code-reference-files:generate",
-      "dependsOn": ["ag-charts-generate-code-reference-files:build"],
-      "inputs": ["{projectRoot}/src/options/**/*.ts", { "dependentTasksOutputFiles": "**/*", "transitive": false }],
-      "outputs": ["{options.output}"],
-      "cache": true,
-      "options": {
-        "mode": "docs-interfaces",
-        "inputs": ["{projectRoot}/src/options"],
-        "output": "dist/packages/ag-charts-community/resolved-interfaces.AUTO.json"
-      }
-    },
     "lint:eslint": {},
     "lint:circular": {},
     "lint:depcruise": {},

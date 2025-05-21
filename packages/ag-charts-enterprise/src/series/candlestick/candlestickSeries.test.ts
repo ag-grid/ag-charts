@@ -60,7 +60,6 @@ describe('CandlestickSeries', () => {
                 {
                     position: 'bottom',
                     type: 'time',
-                    nice: false,
                 },
             ],
         };
@@ -99,7 +98,6 @@ describe('CandlestickSeries', () => {
                 {
                     position: 'bottom',
                     type: 'time',
-                    nice: false,
                     reverse: true,
                 },
             ],

@@ -358,14 +358,16 @@ describe('AreaSeries', () => {
         (EXAMPLE.axes![0] as AgTimeAxisOptions).label!.format = '%b %Y';
 
         const mutateData = (count: number) => {
-            return ({ date, ...d }: any) => {
-                return { date: new Date(date.getTime() + count * (24 * 3600_000)), ...d };
+            return ({ date: inputDate, ...d }: any) => {
+                const date = new Date(inputDate);
+                date.setFullYear(date.getFullYear() + count);
+                return { date, ...d };
             };
         };
 
         const updatedData = [...EXAMPLE.data!];
-        updatedData.splice(0, 0, ...EXAMPLE.data!.map(mutateData(-365)));
-        updatedData.push(...EXAMPLE.data!.map(mutateData(+365)));
+        updatedData.splice(0, 0, ...EXAMPLE.data!.map(mutateData(-1)));
+        updatedData.push(...EXAMPLE.data!.map(mutateData(+1)));
 
         describe('add', () => {
             for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {

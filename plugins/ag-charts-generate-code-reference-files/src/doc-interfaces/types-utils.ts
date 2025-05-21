@@ -141,11 +141,13 @@ export class TypeMapper {
             } else if (h.type === 'Omit' || h.type === 'Pick' || h.type === 'Required') {
                 const n = this.resolveTypeRef(h);
                 node.members.push(...n.members);
-            } else if (h.type === 'Readonly') {
+            } else if (h.type === 'Readonly' && h.typeArguments) {
                 const n = this.resolveType({ kind: 'typeAlias', type: h.typeArguments[0] });
                 node.members.push(...n.members);
             } else if (h.kind === 'typeLiteral') {
-                node.members.push(...h.members);
+                if (h.members) {
+                    node.members.push(...h.members);
+                }
             } else {
                 console.warn(`Unhandled type "${h.type}" on ${node.name}`, h);
                 throw Error(`Unhandled type "${h.type}" on ${node.name}`);
@@ -237,7 +239,9 @@ export class TypeMapper {
     }
 }
 
-export function formatNode(node: ts.Node) {
+export function formatNode(node: ts.Node | undefined) {
+    if (node == null) return undefined;
+
     if (ts.isUnionTypeNode(node)) {
         return {
             kind: 'union',
@@ -322,7 +326,7 @@ export function formatNode(node: ts.Node) {
             name: formatNode(node.name),
             members: node.members.map((n) => {
                 let memberDocs = getJsDoc(n);
-                const matchDefault = memberDocs?.at(-1).match(/^\s*Default:\s*`([^`]+)`\s*$/);
+                const matchDefault = memberDocs?.at(-1)?.match(/^\s*Default:\s*`([^`]+)`\s*$/);
                 let defaultValue: string | undefined;
                 if (matchDefault) {
                     defaultValue = matchDefault[1];
@@ -380,7 +384,7 @@ export function formatNode(node: ts.Node) {
 
     if (ts.isTypeReferenceNode(node)) {
         const nodeType = formatNode(node.typeName);
-        if (nodeType === 'Array') {
+        if (nodeType === 'Array' && node.typeArguments) {
             return {
                 kind: 'array',
                 type:
@@ -466,7 +470,8 @@ function getJsDoc(node: ts.Node & { jsDoc?: { getFullText(): string }[] }) {
     );
 }
 
-export function printNode(node: ts.Node) {
+export function printNode(node: ts.Node | undefined) {
+    if (node == null) return null;
     try {
         return tsPrinter.printNode(ts.EmitHint.Unspecified, node, node.getSourceFile()).replace(/\n\s*/g, ' ');
     } catch (e) {
@@ -475,5 +480,6 @@ export function printNode(node: ts.Node) {
 }
 
 function trimArray(array?: string[]): string[] {
-    return array?.join('\n').trim().split('\n');
+    if (array == null) return [];
+    return array.join('\n').trim().split('\n');
 }
