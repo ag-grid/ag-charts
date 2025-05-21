@@ -534,9 +534,9 @@ describe('Legend', () => {
     "pageY": 570,
   },
   "itemId": "y",
-  "text": "y",
   "preventDefault": [Function],
   "seriesId": "LineSeries-1",
+  "text": "y",
   "type": "click",
 }
 `);
@@ -565,9 +565,9 @@ describe('Legend', () => {
     "pageY": 570,
   },
   "itemId": "y",
-  "text": "y",
   "preventDefault": [Function],
   "seriesId": "LineSeries-1",
+  "text": "y",
   "type": "dblclick",
 }
 `);
