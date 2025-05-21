@@ -198,8 +198,9 @@ export type AgCartesianAxisOptions<TContext = TContextDefault> =
     | AgLogAxisOptions<TContext>
     | AgCategoryAxisOptions<TContext>
     | AgOrdinalTimeAxisOptions<TContext>
-    | AgGroupedCategoryAxisOptions<TContext>
-    | AgTimeAxisOptions<TContext>;
+    | AgContinuousTimeAxisOptions<TContext>
+    | AgTimeAxisOptions<TContext>
+    | AgGroupedCategoryAxisOptions<TContext>;
 
 export type AgCartesianAxisType<TContext = TContextDefault> = AgCartesianAxisOptions<TContext>['type'];
 
