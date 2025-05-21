@@ -1,4 +1,5 @@
 import type { InternalFramework, Library } from '@ag-grid-types';
+import { ActionsCellRenderer } from '@ag-website-shared/components/docs-examples/components/cell-renderers/ActionsCellRenderer';
 import { INTERNAL_FRAMEWORKS } from '@constants';
 import { type FunctionComponent, useCallback, useRef } from 'react';
 import { useMemo, useState } from 'react';
@@ -133,6 +134,13 @@ export const DocsExamples: FunctionComponent<Props> = ({ library, properties = [
         {
             field: 'exampleName',
             initialHide: true,
+        },
+        {
+            headerName: 'Actions',
+            initialHide: true,
+            cellRenderer: ActionsCellRenderer,
+            minWidth: 220,
+            filter: false,
         },
         ...ALL_PROPERTIES.filter((property) => properties.includes(property.field)),
 
