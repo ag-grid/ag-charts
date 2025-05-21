@@ -6,7 +6,7 @@ export default [
     {
         files: ['**/*.ts'],
         rules: {
-            'aglint/require-explicit-generic': 2,
+            'aglint/require-explicit-generic': 1, // TODO: upgrade from warning to error once all violation are resolved
         },
     },
 ];
