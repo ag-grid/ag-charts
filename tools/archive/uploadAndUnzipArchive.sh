@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ "$#" -lt 1 ]
+if [ "$#" -lt 2 ]
   then
-    echo "You must supply a release version"
+    echo "You must supply a release version and host"
     echo "For example: ./scripts/release/uploadAndUnzipArchive.sh 9.0.0"
     exit 1
 fi
@@ -17,6 +17,7 @@ function checkFileExists {
 }
 
 VERSION=$1
+CURRENT_HOST=$2
 
 export SSH_LOCATION=$SSH_FILE
 
@@ -50,22 +51,22 @@ if [ "$2" != "skipWarning" ]; then
 fi
 
 # delete dir if it exists - can ignore dir not found error
-echo "ssh -i $SSH_LOCATION -p $SSH_PORT $HOST \"cd $CHARTS_ROOT_DIR/archive/ && [[ -d $VERSION ]] && rm -r $VERSION\""
-ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "cd $CHARTS_ROOT_DIR/archive/ && [[ -d $VERSION ]] && rm -r $VERSION"
+echo "ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST \"cd $CHARTS_ROOT_DIR/archive/ && [[ -d $VERSION ]] && rm -r $VERSION\""
+ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "cd $CHARTS_ROOT_DIR/archive/ && [[ -d $VERSION ]] && rm -r $VERSION"
 
 # upload file
-echo "ssh -i $SSH_LOCATION -p $SSH_PORT $HOST \"mkdir -p $CHARTS_ROOT_DIR/archive/$VERSION\""
-ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "mkdir -p $CHARTS_ROOT_DIR/archive/$VERSION"
-echo "scp -i $SSH_LOCATION -P $SSH_PORT $ARCHIVE $HOST:$CHARTS_ROOT_DIR/archive/$VERSION/"
-scp -i $SSH_LOCATION -P $SSH_PORT $ARCHIVE $HOST:$CHARTS_ROOT_DIR/archive/$VERSION/
+echo "ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST \"mkdir -p $CHARTS_ROOT_DIR/archive/$VERSION\""
+ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "mkdir -p $CHARTS_ROOT_DIR/archive/$VERSION"
+echo "scp -i $SSH_LOCATION -P $SSH_PORT $ARCHIVE $CURRENT_HOST:$CHARTS_ROOT_DIR/archive/$VERSION/"
+scp -i $SSH_LOCATION -P $SSH_PORT $ARCHIVE $CURRENT_HOST:$CHARTS_ROOT_DIR/archive/$VERSION/
 
 # unzip archive
-echo "ssh -i $SSH_LOCATION -p $SSH_PORT $HOST \"cd $CHARTS_ROOT_DIR/archive/$VERSION && tar -m -xf $ARCHIVE\""
-ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "cd $CHARTS_ROOT_DIR/archive/$VERSION && unzip $ARCHIVE"
+echo "ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST \"cd $CHARTS_ROOT_DIR/archive/$VERSION && tar -m -xf $ARCHIVE\""
+ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "cd $CHARTS_ROOT_DIR/archive/$VERSION && unzip $ARCHIVE"
 
 #update folder permissions (default is 777 - change to 755)
-echo "ssh -i $SSH_LOCATION -p $SSH_PORT $HOST \"chmod -R 755 $CHARTS_ROOT_DIR/archive/$VERSION\""
-ssh -i $SSH_LOCATION -p $SSH_PORT $HOST "chmod -R 755 $CHARTS_ROOT_DIR/archive/$VERSION"
+echo "ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST \"chmod -R 755 $CHARTS_ROOT_DIR/archive/$VERSION\""
+ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "chmod -R 755 $CHARTS_ROOT_DIR/archive/$VERSION"
 
 
 
