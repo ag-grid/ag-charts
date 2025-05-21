@@ -534,9 +534,7 @@ describe('Legend', () => {
     "pageY": 570,
   },
   "itemId": "y",
-  "label": {
-    "text": "y",
-  },
+  "text": "y",
   "preventDefault": [Function],
   "seriesId": "LineSeries-1",
   "type": "click",
@@ -567,9 +565,7 @@ describe('Legend', () => {
     "pageY": 570,
   },
   "itemId": "y",
-  "label": {
-    "text": "y",
-  },
+  "text": "y",
   "preventDefault": [Function],
   "seriesId": "LineSeries-1",
   "type": "dblclick",
