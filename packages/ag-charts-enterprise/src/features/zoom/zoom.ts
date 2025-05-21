@@ -133,7 +133,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public buttons = new ZoomToolbar(
         this.ctx,
         this.getModuleProperties.bind(this),
-        this.getResetZoom.bind(this),
+        this.canResetZoom.bind(this),
         this.updateZoom.bind(this),
         this.updateAxisZoom.bind(this),
         this.resetZoom.bind(this),
@@ -739,6 +739,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private getResetZoom() {
         return definedZoomState(this.ctx.zoomManager.getRestoredZoom());
+    }
+
+    private canResetZoom(zoom?: Readonly<DefinedZoomState>): boolean {
+        zoom ??= this.getZoom();
+        return !isZoomEqual(zoom, this.getResetZoom());
     }
 
     private getModuleProperties(overrides?: Partial<ZoomProperties>): ZoomProperties {
