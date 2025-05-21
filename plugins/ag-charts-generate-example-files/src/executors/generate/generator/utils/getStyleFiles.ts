@@ -9,6 +9,11 @@ const EXAMPLE_STYLES_FILE_PATH =
     './external/ag-website-shared/src/components/example-runner/styles/example-controls.css';
 const EXAMPLE_STYLE_FILE_NAME = 'ag-example-styles.css';
 
+export const filterStyleFiles = (fileList: string[]) => {
+    const styleFiles = fileList.filter((fileName) => fileName.endsWith('.css'));
+    return styleFiles;
+};
+
 export const getStyleFiles = async ({
     internalFramework,
     folderPath,
@@ -23,7 +28,7 @@ export const getStyleFiles = async ({
     const exampleStyleContents = {
         [EXAMPLE_STYLE_FILE_NAME]: exampleStyle,
     };
-    const styleFiles = sourceFileList.filter((fileName) => fileName.endsWith('.css'));
+    const styleFiles = filterStyleFiles(sourceFileList);
 
     const styleFileContents = await getFileList({
         folderPath,

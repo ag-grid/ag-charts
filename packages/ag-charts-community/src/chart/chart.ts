@@ -40,8 +40,8 @@ import { BaseProperties, Property } from '../util/properties';
 import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { Widget } from '../widget/widget';
+import type { ContinuousTimeAxis } from './axis/continuousTimeAxis';
 import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
-import type { TimeAxis } from './axis/timeAxis';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
@@ -1443,10 +1443,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 }
             } else if (
                 horizontalAxis.type === 'time' ||
-                horizontalAxis.type === 'unit-time' ||
+                horizontalAxis.type === 'continuous-time' ||
                 horizontalAxis.type === 'ordinal-time'
             ) {
-                (horizontalAxis as TimeAxis).parentLevel.enabled = false;
+                (horizontalAxis as ContinuousTimeAxis).parentLevel.enabled = false;
             }
 
             const step = intervalOptions?.step;
@@ -1578,13 +1578,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         skip = ['axes[].type', ...skip];
 
-        // @todo(AG-14472) - Remove the .map
-        const axes: AgCartesianAxisOptions[] | AgPolarAxisOptions[] = options.axes.map((axis): any => {
-            if (axis.type === 'time' && (axis as any).unit != null) {
-                return { ...axis, type: 'unit-time' };
-            }
-            return axis;
-        });
+        const axes: AgCartesianAxisOptions[] | AgPolarAxisOptions[] = options.axes;
         const forceRecreate = seriesStatus === 'replaced';
         const matchingTypes =
             !forceRecreate && chart.axes.length === axes.length && chart.axes.every((a, i) => a.type === axes[i].type);

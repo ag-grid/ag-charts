@@ -208,17 +208,18 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         if (!this.navigatorModule || this.zoomModule) {
             let yAutoScale: boolean | undefined = memento?.autoScaledAxes?.includes('y');
             if (memento?.rangeY) {
-                zoom.y = this.rangeToRatio(memento.rangeY, ChartAxisDirection.Y) ?? { min: 0, max: 1 };
                 yAutoScale ??= false;
+                zoom.y = this.rangeToRatio(memento.rangeY, ChartAxisDirection.Y) ?? { min: 0, max: 1 };
             } else if (memento?.ratioY) {
+                yAutoScale ??= false;
                 zoom.y = {
                     min: memento.ratioY.start ?? 0,
                     max: memento.ratioY.end ?? 1,
                 };
-                yAutoScale ??= false;
             } else {
-                zoom.y = { min: 0, max: 1 };
                 yAutoScale ??= true;
+                const autoZoomY = yAutoScale ? this.getAutoScaleYZoom(zoom.x) : undefined;
+                zoom.y = autoZoomY ?? { min: 0, max: 1 };
             }
 
             zoom.autoScaleYAxis = yAutoScale;
@@ -527,23 +528,30 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         return memento;
     }
 
-    private autoScaleYZoom(callerId: string, applyChanges = true) {
+    private getAutoScaleYZoom(zoomX: ZoomState): ZoomState | undefined {
         if (!this.isZoomEnabled()) return;
 
         const { independentAxes, autoScaleYAxis } = this;
 
-        const zoom = this.getZoom();
-        if (zoom?.x == null || !autoScaleYAxis.enabled || autoScaleYAxis.manuallyAdjusted) return;
+        if (!autoScaleYAxis.enabled || autoScaleYAxis.manuallyAdjusted) return;
 
         const { padding } = autoScaleYAxis;
-        let zoomY: ZoomState | undefined;
-        if (zoom.x?.min === 0 && zoom.x?.max === 1) {
-            zoomY = { min: 0, max: 1 };
+        if (zoomX?.min === 0 && zoomX?.max === 1) {
+            return { min: 0, max: 1 };
         } else if (independentAxes) {
-            zoomY = this.primaryAxisZoom(ChartAxisDirection.Y, zoom.x, { padding });
+            return this.primaryAxisZoom(ChartAxisDirection.Y, zoomX, { padding });
         } else {
-            zoomY = this.combinedAxisZoom(ChartAxisDirection.Y, zoom.x, { padding });
+            return this.combinedAxisZoom(ChartAxisDirection.Y, zoomX, { padding });
         }
+    }
+
+    private autoScaleYZoom(callerId: string, applyChanges = true) {
+        const { independentAxes } = this;
+
+        const zoom = this.getZoom();
+        if (zoom?.x == null) return;
+
+        const zoomY = this.getAutoScaleYZoom(zoom.x);
         if (zoomY == null) return;
 
         if (independentAxes) {

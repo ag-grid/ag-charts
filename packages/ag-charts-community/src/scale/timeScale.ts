@@ -1,224 +1,181 @@
-import { isPlainObject } from 'ag-charts-core';
+import { Logger, findMaxIndex, findMinIndex, isPlainObject } from 'ag-charts-core';
 import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
-import { TickIntervals, defaultEpoch, getTickTimeInterval, isDenseInterval } from '../util/ticks';
-import { intervalRange, intervalStep } from '../util/time';
-import { buildFormatter } from '../util/timeFormat';
-import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
-import { ContinuousScale } from './continuousScale';
-import type { ScaleFormatParams, ScaleTickParams, ScaleTickResult } from './scale';
+import { intervalFloor, intervalMilliseconds, intervalRange, intervalRangeCount } from '../util/time';
+import { normalizeContinuousDomains } from './continuousScale';
+import { DiscreteTimeScale } from './discreteTimeScale';
+import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams, ScaleTickResult } from './scale';
 
-const sunday = new Date(1970, 0, 4);
+const MAX_BANDS = 50e6; // Max array length is ~4bn
 
-// eslint-disable-next-line sonarjs/use-type-alias
-export class TimeScale extends ContinuousScale<Date, TimeInterval | TimeIntervalUnit | number> {
+export class TimeScale extends DiscreteTimeScale {
+    static readonly defaultTickCount = 12;
+
     static override is(value: unknown): value is TimeScale {
         return value instanceof TimeScale;
     }
 
-    readonly type = 'time';
+    override readonly type = 'time';
 
-    public constructor() {
-        super([], [0, 1]);
+    private _domain: Date[] = [];
+    override set domain(domain: Date[]) {
+        if (domain === this._domain) return;
+
+        this._domain = domain;
+        this._bands = undefined;
+    }
+    override get domain(): Date[] {
+        return this._domain;
     }
 
-    toDomain(d: number): Date {
-        return new Date(d);
+    /* eslint-disable sonarjs/use-type-alias */
+    private _interval: TimeInterval | TimeIntervalUnit | undefined;
+    get interval(): TimeInterval | TimeIntervalUnit | undefined {
+        return this._interval;
+    }
+    set interval(interval: TimeInterval | TimeIntervalUnit | undefined) {
+        if (this._interval === interval) return;
+
+        this._interval = interval;
+        this._bands = undefined;
+    }
+    /* eslint-enable */
+
+    private _bands: Date[] | undefined = undefined;
+    get bands(): readonly Date[] {
+        this._bands ??= this.calculateBands(this._domain, [0, 1]);
+        return this._bands;
     }
 
-    override convert(value: Date, options?: { clamp: boolean }): number {
+    override normalizeDomains(...domains: Date[][]): NormalizedDomain<Date> {
+        return normalizeContinuousDomains(...domains);
+    }
+
+    override convert(value: Date, options?: { clamp?: boolean; interpolate?: boolean }): number {
         if (!(value instanceof Date)) value = new Date(value as any);
+
+        const { domain, interval } = this;
+        if (domain.length < 2) return NaN;
+        if (options?.clamp !== true && interval != null) {
+            const t = value.valueOf();
+            const [start, stop] = this.calculateBandRange(domain, interval);
+            const d0 = Math.min(start.valueOf(), stop.valueOf());
+            const d1 = Math.max(start.valueOf(), stop.valueOf());
+            if (t < d0 || t >= d1 + intervalMilliseconds(interval)) return NaN;
+        }
+
         return super.convert(value, options);
     }
 
-    override invert(value: number): Date {
-        return new Date(super.invert(value));
+    private calculateBandRange(domain: Date[], interval: TimeInterval | TimeIntervalUnit): [Date, Date] {
+        const start = intervalFloor(interval, domain[0]);
+        const stop = intervalFloor(interval, domain[1]);
+        return [start, stop];
     }
 
-    override niceDomain(ticks: ScaleTickParams<TimeInterval | number>, domain: Date[] = this.domain): Date[] {
+    private calculateBands(domain: Date[], visibleRange: [number, number], extend: boolean = false): Date[] {
+        if (
+            domain === this.domain &&
+            visibleRange[0] === 0 &&
+            visibleRange[1] === 1 &&
+            !extend &&
+            this._bands != null
+        ) {
+            return this._bands;
+        }
+
         if (domain.length < 2) return [];
 
-        let [d0, d1] = domain;
-        const maxAttempts = 4;
-        const availableRange = this.getPixelRange();
-        for (let i = 0; i < maxAttempts; i++) {
-            const [n0, n1] = updateNiceDomainIteration(d0, d1, ticks, availableRange);
-            if (dateToNumber(d0) === dateToNumber(n0) && dateToNumber(d1) === dateToNumber(n1)) {
-                break;
-            }
-            d0 = n0;
-            d1 = n1;
+        const { interval } = this;
+        if (interval == null) return [];
+
+        const rangeParams = { visibleRange, extend };
+
+        const [start, stop] = this.calculateBandRange(domain, interval);
+        if (intervalRangeCount(interval, start, stop, rangeParams) > MAX_BANDS) {
+            Logger.warnOnce(`the configured unit results in too many bands, ignoring. Supply a larger unit`);
+            return [];
         }
-        return [d0, d1];
+
+        return intervalRange(interval, start, stop, rangeParams);
     }
 
-    /**
-     * Returns uniformly-spaced dates that represent the scale's domain.
-     */
     override ticks(
-        params: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
+        { interval }: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1],
         extend = false
     ): ScaleTickResult<Date> | undefined {
-        const { nice, interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount } = params;
         if (domain.length < 2) return;
 
-        const timestamps = domain.map(dateToNumber);
-        const start = timestamps[0];
-        const stop = timestamps[timestamps.length - 1];
+        const bands = this.calculateBands(domain, visibleRange, extend);
+        const milliseconds = this.interval ? intervalMilliseconds(this.interval) : Infinity;
 
-        if (interval != null) {
-            const availableRange = this.getPixelRange();
-            return {
-                ticks:
-                    getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange, extend }) ??
-                    getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend }),
-                count: undefined,
-            };
-        } else if (nice && tickCount === 2) {
-            return { ticks: domain, count: undefined };
-        } else if (nice && tickCount === 1) {
-            return { ticks: domain.slice(0, 1), count: undefined };
+        if (interval == null) return { ticks: bands, count: undefined };
+
+        const d0 = Math.min(domain[0].valueOf(), domain[1].valueOf());
+        const d1 = Math.max(domain[0].valueOf(), domain[1].valueOf());
+
+        let intervalTicks: Date[];
+        let intervalStartIndex: number;
+        let intervalEndIndex: number;
+        if (isPlainObject(interval) || typeof interval === 'string') {
+            intervalTicks = intervalRange(interval, domain[0], domain[1], { extend: true, visibleRange });
+            intervalStartIndex = 0;
+            intervalEndIndex = intervalTicks.length - 1;
+        } else {
+            intervalTicks = bands; // Could be large array - avoid copying
+            intervalStartIndex = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d0) ?? 0;
+            intervalEndIndex =
+                findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1) ?? bands.length - 1;
         }
+
+        const ticks: Date[] = [];
+        let lastIndex: number | undefined;
+        for (let i = intervalStartIndex; i <= intervalEndIndex; i++) {
+            const intervalTickValue = intervalTicks[i].valueOf();
+            const bandIndex = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= intervalTickValue);
+            const tick = bandIndex != null && bandIndex != lastIndex ? bands[bandIndex] : undefined;
+            lastIndex = bandIndex;
+
+            if (tick != null && intervalTickValue - tick.getTime() <= milliseconds) ticks.push(tick);
+        }
+
+        let bandStart: number;
+        let bandEnd: number;
+        if (this.interval) {
+            const bandRange = this.calculateBandRange([new Date(d0), new Date(d1)], this.interval);
+            bandStart = bandRange[0].valueOf();
+            bandEnd = bandRange[1].valueOf();
+        } else {
+            bandStart = d0;
+            bandEnd = d1;
+        }
+        let firstTickIndex = findMinIndex(0, ticks.length - 1, (i) => ticks[i].valueOf() >= bandStart) ?? 0;
+        let lastTickIndex = findMaxIndex(0, ticks.length - 1, (i) => ticks[i].valueOf() <= bandEnd) ?? ticks.length - 1;
+
+        if (extend) {
+            firstTickIndex = Math.max(firstTickIndex - 1, 0);
+            lastTickIndex = Math.min(lastTickIndex + 1, ticks.length - 1);
+        }
+
         return {
-            ticks: getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend }),
-            count: undefined,
+            ticks: ticks.slice(firstTickIndex, lastTickIndex + 1),
+            count: ticks.length,
         };
     }
 
-    private _tickFormatter({ domain, ticks, specifier }: ScaleFormatParams<Date>, formatOffset?: number) {
-        return specifier != null ? buildFormatter(specifier) : defaultTimeTickFormat(ticks, domain, formatOffset);
-    }
-
-    /**
-     * Returns a time format function suitable for displaying tick values.
-     *
-     * @param ticks Optional array of tick values for custom formatting.
-     * @param domain Optional array representing the [min, max] values of the time axis.
-     * @param specifier Optional format specifier string for custom date formatting (e.g., `%Y`, `%m`, `%d`).
-     * @param formatOffset Optional number for applying an offset to the format (e.g., timezone shifts).
-     * @returns A function that formats a `Date` object into a string based on the provided specifier or default format.
-     */
-    override tickFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
-        return this._tickFormatter(params);
+    override findIndex(value: Date): number | undefined {
+        const { bands } = this;
+        const target = value.valueOf();
+        return findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= target);
     }
 
     override datumFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
-        return this._tickFormatter(params, 1);
-    }
-}
-
-function getDefaultDateTicks({
-    start,
-    stop,
-    tickCount,
-    minTickCount,
-    maxTickCount,
-    visibleRange,
-    extend,
-}: {
-    start: number;
-    stop: number;
-    tickCount: number;
-    minTickCount: number;
-    maxTickCount: number;
-    visibleRange: [number, number];
-    extend: boolean;
-}) {
-    const t = getTickTimeInterval(start, stop, tickCount, minTickCount, maxTickCount, { weekStart: sunday });
-    return t ? intervalRange(t, new Date(start), new Date(stop), { visibleRange, extend }) : []; // inclusive stop
-}
-
-export function getDateTicksForInterval({
-    start,
-    stop,
-    interval,
-    availableRange,
-    visibleRange,
-    extend,
-}: {
-    start: number;
-    stop: number;
-    interval: number | TimeInterval | TimeIntervalUnit;
-    availableRange: number;
-    visibleRange: [number, number] | undefined;
-    extend: boolean;
-}): Date[] | undefined {
-    if (!interval) {
-        return [];
-    }
-
-    if (isPlainObject(interval) || typeof interval === 'string') {
-        const ticks = intervalRange(interval, new Date(start), new Date(stop), { visibleRange, extend });
-        if (isDenseInterval(ticks.length, availableRange)) {
-            return;
-        }
-
-        return ticks;
-    }
-
-    const absInterval = Math.abs(interval);
-
-    if (isDenseInterval(Math.abs(stop - start) / absInterval, availableRange)) return;
-
-    const tickInterval = TickIntervals.findLast((t) => absInterval % t.duration === 0);
-
-    if (tickInterval) {
-        const { timeInterval, step, duration } = tickInterval;
-        const alignedInterval: TimeInterval = {
-            ...timeInterval,
-            step: step * intervalStep(timeInterval) * Math.round(absInterval / duration),
-            epoch: defaultEpoch(timeInterval, { weekStart: sunday }),
+        const formatter = this.tickFormatter(params, 1);
+        return (date: Date) => {
+            const index = this.findIndex(date);
+            return index != null ? formatter(this.bands[index]) : formatter(date);
         };
-        return intervalRange(alignedInterval, new Date(start), new Date(stop), { visibleRange, extend });
     }
-
-    let date = new Date(Math.min(start, stop));
-    const stopDate = new Date(Math.max(start, stop));
-    const ticks = [];
-    while (date <= stopDate) {
-        ticks.push(date);
-        date = new Date(date);
-        date.setMilliseconds(date.getMilliseconds() + absInterval);
-    }
-
-    return ticks;
-}
-
-function updateNiceDomainIteration(
-    d0: Date,
-    d1: Date,
-    ticks: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
-    availableRange: number
-): [Date, Date] {
-    const { interval } = ticks;
-    const start = Math.min(dateToNumber(d0), dateToNumber(d1));
-    const stop = Math.max(dateToNumber(d0), dateToNumber(d1));
-
-    let i: TimeInterval | TimeIntervalUnit | undefined;
-
-    if (isPlainObject(interval) || typeof interval === 'string') {
-        i = interval;
-    } else {
-        let tickCount: number | undefined;
-        if (typeof interval === 'number') {
-            tickCount = (stop - start) / Math.max(interval, 1);
-            if (isDenseInterval(tickCount, availableRange)) {
-                tickCount = undefined;
-            }
-        }
-        tickCount ??= ticks.tickCount ?? ContinuousScale.defaultTickCount;
-        i = getTickTimeInterval(start, stop, tickCount, ticks.minTickCount, ticks.maxTickCount, { weekStart: sunday });
-    }
-
-    if (i == null) return [d0, d1];
-
-    const domain = intervalRange(i, new Date(start), new Date(stop), { extend: true });
-
-    if (domain == null || domain.length < 2) return [d0, d1];
-
-    const r0 = domain[0];
-    const r1 = domain[domain.length - 1];
-    return d0 <= d1 ? [r0, r1] : [r1, r0];
 }

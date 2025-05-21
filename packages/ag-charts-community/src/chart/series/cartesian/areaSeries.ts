@@ -16,8 +16,8 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/extent';
 import { mergeDefaults } from '../../../util/object';
 import { isContinuous } from '../../../util/value';
+import { ContinuousTimeAxis } from '../../axis/continuousTimeAxis';
 import { LogAxis } from '../../axis/logAxis';
-import { TimeAxis } from '../../axis/timeAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DatumPropertyDefinition } from '../../data/dataModel';
@@ -274,7 +274,7 @@ export class AreaSeries extends CartesianSeries<
 
         const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yValueCumulative'], 'xValue', true);
 
-        if (yAxis instanceof LogAxis || yAxis instanceof TimeAxis) {
+        if (yAxis instanceof LogAxis || yAxis instanceof ContinuousTimeAxis) {
             return fixNumericExtent(yExtent);
         } else {
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])

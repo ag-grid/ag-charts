@@ -158,3 +158,8 @@ export const getHasLocale = ({ entryFile }: { entryFile: string }) => entryFile?
 export const getHasExampleConsoleLog = ({ contents }: { contents: string }) => {
     return contents?.includes('console.log');
 };
+
+export const getHasExampleControls = ({ contents }: { contents: string }) => {
+    const controlsRegex = /class\s*=\s*["'][^"']*\bexample-controls\b[^"']*["']/gm;
+    return controlsRegex.test(contents);
+};

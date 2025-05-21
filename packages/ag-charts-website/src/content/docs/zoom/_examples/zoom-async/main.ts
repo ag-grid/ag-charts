@@ -36,7 +36,6 @@ const options: AgCartesianChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            nice: false,
             min: new Date('2019-01-01 00:00:00'),
             max: new Date('2024-12-30 23:59:59'),
             interval: {

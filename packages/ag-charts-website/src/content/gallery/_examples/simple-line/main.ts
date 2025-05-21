@@ -43,11 +43,6 @@ const options: AgChartOptions = {
         {
             position: 'bottom',
             type: 'time',
-            unit: {
-                unit: 'day',
-                step: 7,
-                epoch: new Date(1970, 0, 5), // Monday
-            },
             title: {
                 text: 'Date',
             },
