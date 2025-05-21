@@ -471,8 +471,6 @@ commonChartOptionsDefs.foreground = undocumented({
 });
 
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.context = undocumented(() => true);
-// @ts-expect-error undocumented option
 commonChartOptionsDefs.overrideDevicePixelRatio = undocumented(number);
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.sync.domainMode = undocumented(union('direction', 'position', 'key'));
@@ -499,11 +497,10 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     ...commonSeriesThemeableOptionsDefs,
     id: string,
     visible: boolean,
+    context: () => true,
     data: array,
 };
 
-// @ts-expect-error undocumented option
-commonSeriesOptionsDefs.context = undocumented(() => true);
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.seriesGrouping = undocumented(defined);
 // @ts-expect-error undocumented option
