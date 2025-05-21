@@ -42,7 +42,6 @@ const options: AgChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            nice: false,
             interval: {
                 values: [new Date(1958, 0, 1), new Date(2007, 0, 1), new Date(2011, 0, 1), new Date(2023, 0, 1)],
             },

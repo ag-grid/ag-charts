@@ -20,7 +20,7 @@ import {
 const TIME_AXIS_EXAMPLES = Object.entries(EXAMPLES)
     .filter(([, { options }]) => {
         if (isAgCartesianChartOptions(options)) {
-            return options.axes?.some((axis) => axis.type === 'time') ?? false;
+            return options.axes?.some((axis) => axis.type.endsWith('time')) ?? false;
         }
 
         return false;

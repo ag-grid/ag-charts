@@ -414,44 +414,44 @@ type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
     assertions: (chart: ChartOrProxy) => Promise<void> | void;
     extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
-    compare?: (AgCartesianAxisType | 'unit-time')[];
+    compare?: (AgCartesianAxisType | 'time')[];
 };
 const EXAMPLES: Record<string, TestCase> = {
     ...mixinDerivedCases({
         BASIC_TIME_AXIS_EXAMPLE: {
             options: BASIC_TIME_AXIS_EXAMPLE,
-            compare: ['unit-time'],
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['bar'] }),
+            compare: ['time'],
+            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['bar'] }),
         },
         TIME_AXIS_TIME_STAMP_DATA: {
             options: TIME_AXIS_TIME_STAMP_DATA,
-            compare: ['unit-time'],
+            compare: ['time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: ['time', 'number'],
                 seriesTypes: ['bar'],
             }),
         },
         TIME_AXIS_YEARLY_DATA: {
             options: TIME_AXIS_YEARLY_DATA,
-            compare: ['unit-time'],
+            compare: ['time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: ['time', 'number'],
                 seriesTypes: ['line'],
             }),
         },
         TIME_AXIS_MONTHLY_DATA: {
             options: TIME_AXIS_MONTHLY_DATA,
-            compare: ['unit-time'],
+            compare: ['time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: ['time', 'number'],
                 seriesTypes: ['bar', 'bar'],
             }),
         },
         TIME_AXIS_IRREGULAR_TIME_INTERVAL_DATA: {
             options: TIME_AXIS_IRREGULAR_TIME_INTERVAL_DATA,
-            compare: ['unit-time'],
+            compare: ['time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: ['time', 'number'],
                 seriesTypes: ['bar', 'bar'],
             }),
         },

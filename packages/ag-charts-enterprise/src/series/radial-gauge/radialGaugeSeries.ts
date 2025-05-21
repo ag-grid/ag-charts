@@ -1336,6 +1336,10 @@ export class RadialGaugeSeries
         this.resetAllAnimation();
     }
 
+    override dataCount(): number {
+        return NaN; // Not used
+    }
+
     override getSeriesDomain() {
         return [NaN, NaN];
     }

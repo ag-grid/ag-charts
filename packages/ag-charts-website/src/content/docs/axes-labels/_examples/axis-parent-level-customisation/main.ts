@@ -23,7 +23,6 @@ const options: AgChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            unit: 'day',
             label: {
                 format: {
                     day: '%e',

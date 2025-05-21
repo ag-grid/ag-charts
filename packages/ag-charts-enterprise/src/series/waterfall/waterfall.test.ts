@@ -170,6 +170,27 @@ describe('WaterfallSeries', () => {
                 {
                     position: 'bottom',
                     type: 'time',
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a waterfall chart with a continuous-time x-axis`, async () => {
+        const options: AgChartOptions = {
+            ...WATERFALL_COLUMN_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'continuous-time',
                     nice: false,
                 },
             ],
@@ -193,6 +214,28 @@ describe('WaterfallSeries', () => {
                     position: 'bottom',
                     type: 'time',
                     reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a waterfall chart with a reversed continuous-time x-axis`, async () => {
+        const options: AgChartOptions = {
+            ...WATERFALL_COLUMN_OPTIONS,
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'continuous-time',
+                    reverse: true,
                     nice: false,
                 },
             ],
@@ -215,6 +258,27 @@ describe('WaterfallSeries', () => {
                 {
                     position: 'left',
                     type: 'time',
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a horizontal waterfall chart with a continuous-time y-axis`, async () => {
+        const options: AgChartOptions = {
+            ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal'),
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'bottom',
+                    type: 'number',
+                },
+                {
+                    position: 'left',
+                    type: 'continuous-time',
                     nice: false,
                 },
             ],
@@ -237,6 +301,28 @@ describe('WaterfallSeries', () => {
                 {
                     position: 'left',
                     type: 'time',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it(`should render a horizontal waterfall chart with a reversed continuous-time y-axis`, async () => {
+        const options: AgChartOptions = {
+            ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal'),
+            data: CONTINUOUS_DATA,
+            axes: [
+                {
+                    position: 'bottom',
+                    type: 'number',
+                },
+                {
+                    position: 'left',
+                    type: 'continuous-time',
                     reverse: true,
                     nice: false,
                 },

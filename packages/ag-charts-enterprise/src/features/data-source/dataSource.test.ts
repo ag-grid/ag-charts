@@ -41,7 +41,6 @@ describe('DataSource', () => {
             {
                 type: 'time',
                 position: 'bottom',
-                nice: false,
                 min: new Date('2024-01-01 00:00:00'),
                 max: new Date('2024-01-07 00:00:00'),
                 crosshair: { enabled: false },

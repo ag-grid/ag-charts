@@ -6,7 +6,7 @@ import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import type { BBox } from '../scene/bbox';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
-import { CategoryAxis } from './axis/categoryAxis';
+import { NumberAxis } from './axis/numberAxis';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import type { ChartAxis } from './chartAxis';
@@ -353,7 +353,7 @@ export class CartesianChart extends Chart {
     }
 
     private sizeAxis(axis: ChartAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {
-        const isCategory = axis instanceof CategoryAxis;
+        const isNumberAxis = axis instanceof NumberAxis; // Number, log axis
         const isLeftRight = position === 'left' || position === 'right';
 
         const { width, height } = seriesRect;
@@ -377,10 +377,10 @@ export class CartesianChart extends Chart {
         }
 
         if (isLeftRight) {
-            if (isCategory) {
-                [min, max] = [1 - max, 1 - min];
-            } else {
+            if (isNumberAxis) {
                 [start, end] = [end, start];
+            } else {
+                [min, max] = [1 - max, 1 - min];
             }
         }
 

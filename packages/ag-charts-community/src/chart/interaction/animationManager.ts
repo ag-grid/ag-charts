@@ -255,7 +255,13 @@ export class AnimationManager {
 
     private cancelAnimation() {
         if (this.requestId === null) return;
+
         cancelAnimationFrame(this.requestId);
+        this.events.emit('animation-stop', {
+            type: 'animation-stop',
+            deltaMs: this.batch.consumedTimeMs,
+        });
+
         this.requestId = null;
         this.startBatch();
     }
