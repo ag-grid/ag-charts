@@ -2,6 +2,7 @@ import type { BoxBounds } from 'ag-charts-core';
 
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
+import { objectsEqual } from '../../util/object';
 import { StateTracker } from '../../util/stateTracker';
 import type { SeriesTooltip } from '../series/seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from '../series/seriesTypes';
@@ -83,7 +84,7 @@ export class TooltipManager {
         const canvasRect = this.domManager.getBoundingClientRect();
         const boundingRect = this.tooltip.bounds === 'extended' ? this.domManager.getOverlayClientRect() : canvasRect;
 
-        if (this.appliedState?.content === state?.content) {
+        if (objectsEqual(this.appliedState?.content, state?.content)) {
             const renderInstantly = this.tooltip.isVisible();
             this.tooltip.show(boundingRect, canvasRect, state?.meta, null, undefined, renderInstantly);
         } else {

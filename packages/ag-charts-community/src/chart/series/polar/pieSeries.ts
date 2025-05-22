@@ -538,7 +538,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const quadrantTextOpts: { textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }[] = [
             { textAlign: 'center', textBaseline: 'bottom' },
             { textAlign: 'left', textBaseline: 'middle' },
-            { textAlign: 'center', textBaseline: 'hanging' },
+            { textAlign: 'center', textBaseline: 'top' },
             { textAlign: 'right', textBaseline: 'middle' },
         ];
 
@@ -740,7 +740,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             const dy = this.getTitleTranslationY();
             title.node.y = isFinite(dy) ? dy : 0;
 
-            const titleBox = title.node.getBBox();
+            const titleBox = title.node.getBBox(false);
             title.node.visible = title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox);
         }
 
@@ -1038,11 +1038,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
             const textAlign = label.collisionTextAlign ?? label.textAlign;
             const textBaseline = label.textBaseline;
-            return Text.computeBBox(label.text, x, y, {
-                font: this.properties.calloutLabel,
-                textAlign,
-                textBaseline,
-            });
+            return Text.computeBBox(
+                label.text,
+                x,
+                y,
+                { font: this.properties.calloutLabel, textAlign, textBaseline },
+                false
+            );
         };
 
         const avoidNeighbourYCollision = (
@@ -1162,7 +1164,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             tempTextNode.y = y;
             tempTextNode.setFont(this.properties.calloutLabel);
             tempTextNode.setAlign(align);
-            const box = tempTextNode.getBBox();
+            const box = tempTextNode.getBBox(false);
 
             let displayText = label.text;
             let visible = true;
@@ -1212,7 +1214,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                     textBaseline: 'bottom',
                     textAlign: 'center',
                 });
-                titleBox = text.getBBox();
+                titleBox = text.getBBox(false);
                 textBoxes.push(titleBox);
             }
         }
@@ -1234,7 +1236,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 textAlign: label.collisionTextAlign ?? label.textAlign,
                 textBaseline: label.textBaseline,
             });
-            const box = text.getBBox();
+            const box = text.getBBox(false);
             label.box = box;
 
             // Hide labels that where pushed too far by the collision avoidance algorithm
@@ -1314,7 +1316,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 text.textAlign = 'center';
                 text.textBaseline = 'middle';
 
-                const bbox = text.getBBox();
+                const bbox = text.getBBox(false);
                 const corners = [
                     [bbox.x, bbox.y],
                     [bbox.x + bbox.width, bbox.y],

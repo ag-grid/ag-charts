@@ -226,7 +226,7 @@ describe('ConeFunnelSeries', () => {
 
         it(`should handle nodeClick event`, async () => {
             const onNodeClick = jest.fn();
-            chart = await createChart({ hasTooltip: true, onNodeClick });
+            chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
             await checkNodeClick(chart, onNodeClick);
         });
 
@@ -237,7 +237,7 @@ describe('ConeFunnelSeries', () => {
 
         it(`should handle nodeClick event when tooltip is disabled`, async () => {
             const onNodeClick = jest.fn();
-            chart = await createChart({ hasTooltip: false, onNodeClick });
+            chart = await createChart({ hasTooltip: false, onNodeClick, nodeClickRange: 'nearest' });
             await checkNodeClick(chart, onNodeClick);
         });
 
@@ -255,15 +255,7 @@ describe('ConeFunnelSeries', () => {
             valueKey: 'value',
         };
 
-        const cartesianTestParams = {
-            getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
-            getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
-            // Returns a highlighted node
-            getHighlightNode: (_, series) => series.highlightNode.children().next().value,
-        } as Parameters<typeof testPointerEvents>[0];
-
         testPointerEvents({
-            ...cartesianTestParams,
             seriesOptions: {
                 type: 'cone-funnel',
                 stageKey: datasets.stageKey,
@@ -276,7 +268,11 @@ describe('ConeFunnelSeries', () => {
                 },
             },
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
-            getNodePoint: (item) => [item.midPoint.x, item.midPoint.y],
+            getNodePoint: (item) => {
+                const { x, y } = item;
+                // Ensure y is in series area
+                return [x, y > 2 ? y - 1 : y + 1];
+            },
             getDatumValues: (item) => {
                 const { datum } = item;
                 return [datum[datasets.stageKey], datum[datasets.valueKey]];
