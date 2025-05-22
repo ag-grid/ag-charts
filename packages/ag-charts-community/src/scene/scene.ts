@@ -3,6 +3,7 @@ import { EventEmitter, Logger, createId, downloadUrl } from 'ag-charts-core';
 import { Debug } from '../util/debug';
 import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
+import { Group } from './group';
 import { ImageLoader } from './image/imageLoader';
 import { LayersManager } from './layersManager';
 import { Node, type RenderContext } from './node';
@@ -175,7 +176,12 @@ export class Scene extends EventEmitter<EventMap> {
             return;
         }
 
-        if (root?.dirty === false && !this.isDirty) {
+        let rootDirty: boolean | undefined;
+        if (root instanceof Group) {
+            rootDirty = root.dirty;
+        }
+
+        if (root != null && rootDirty === false && !this.isDirty) {
             if (this.debug.check()) {
                 this.debug('Scene.render() - no-op', {
                     tree: buildTree(root, 'console'),
@@ -211,7 +217,7 @@ export class Scene extends EventEmitter<EventMap> {
         // Groups are considered dirty when the layer is resized,
         // but this doesn't actually get propagated to the scene graph,
         // so the root isn't marked as dirty on the resize case
-        if (root?.dirty !== false || resized) {
+        if (rootDirty !== false || resized) {
             // start with a blank canvas, clear previous drawing
             canvasCleared = true;
             canvas.clear();
