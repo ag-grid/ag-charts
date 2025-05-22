@@ -466,7 +466,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             chartWidget.addListener('click', this.onCancel.bind(this)),
 
             // Services
-            ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
+            ctx.eventsHub.on('annotations:restore', this.onRestoreAnnotations.bind(this)),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.updateService.addListener('pre-scene-render', this.onPreRender.bind(this)),
             ctx.zoomManager.addListener('zoom-change', () => this.onResize()),

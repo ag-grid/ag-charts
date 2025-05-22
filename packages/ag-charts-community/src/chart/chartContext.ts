@@ -102,7 +102,7 @@ export class ChartContext implements ModuleContext {
 
         this.chartService = chart;
         this.syncManager = syncManager;
-        this.domManager = new DOMManager(this.chartService, container, styleContainer, domMode);
+        this.domManager = new DOMManager(this.eventsHub, this.chartService, container, styleContainer, domMode);
         this.widgets = new WidgetSet(this.domManager);
 
         // Sets canvas element if scene exists, otherwise use return value with scene constructor
@@ -122,10 +122,10 @@ export class ChartContext implements ModuleContext {
 
         this.axisManager = new AxisManager(root);
         this.legendManager = new LegendManager(this.eventsHub);
-        this.annotationManager = new AnnotationManager(chart.annotationRoot, fireEvent);
+        this.annotationManager = new AnnotationManager(this.eventsHub, chart.annotationRoot, fireEvent);
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.interactionManager = new InteractionManager();
-        this.contextMenuRegistry = new ContextMenuRegistry();
+        this.contextMenuRegistry = new ContextMenuRegistry(this.eventsHub);
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(this.localeManager, this.domManager);
         this.fontManager = new FontManager(this.domManager, this.updateService);
@@ -133,7 +133,7 @@ export class ChartContext implements ModuleContext {
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.animationManager);
         this.tooltipManager = new TooltipManager(this.localeManager, this.domManager, chart.tooltip);
-        this.zoomManager = new ZoomManager(fireEvent, this.layoutManager);
+        this.zoomManager = new ZoomManager(this.eventsHub, fireEvent, this.layoutManager);
 
         for (const module of moduleRegistry.byType<ContextModule>('context')) {
             if (!module.chartTypes.includes(chartType)) continue;

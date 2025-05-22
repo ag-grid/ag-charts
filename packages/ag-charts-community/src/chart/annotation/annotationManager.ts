@@ -2,35 +2,26 @@ import { isArray } from 'ag-charts-core';
 import type { AgAnnotation, AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
+import type { EventsHub } from '../../module/eventsHub';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
-import { BaseManager } from '../../util/baseManager';
 import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 
-interface AnnotationsRestoreEvent {
-    type: 'restore-annotations';
-    annotations: AnnotationsMemento;
-}
-
 type AnnotationsMemento = AgAnnotation[];
 
-export class AnnotationManager
-    extends BaseManager<AnnotationsRestoreEvent['type'], AnnotationsRestoreEvent>
-    implements MementoOriginator<AnnotationsMemento>
-{
+export class AnnotationManager implements MementoOriginator<AnnotationsMemento> {
     public mementoOriginatorKey = 'annotations' as const;
 
     private annotations: AnnotationsMemento = [];
     private styles?: AgAnnotationsThemeableOptions;
 
     constructor(
+        private readonly eventsHub: EventsHub,
         private readonly annotationRoot: Group,
         private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
-    ) {
-        super();
-    }
+    ) {}
 
     public createMemento() {
         return this.annotations;
@@ -48,10 +39,7 @@ export class AnnotationManager
             return mergeDefaults(annotation, annotationTheme);
         });
 
-        this.listeners.dispatch('restore-annotations', {
-            type: 'restore-annotations',
-            annotations: this.annotations,
-        });
+        this.eventsHub.emit('annotations:restore', { annotations: this.annotations });
     }
 
     public updateData(annotations?: AnnotationsMemento) {
