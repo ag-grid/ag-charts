@@ -1,7 +1,7 @@
 import { Logger, throttle } from 'ag-charts-core';
 
+import type { EventsHub } from '../../module/eventsHub';
 import { Debug } from '../../util/debug';
-import { Listeners } from '../../util/listeners';
 import { ActionOnSet } from '../../util/proxy';
 import type { AnimationManager } from '../interaction/animationManager';
 
@@ -11,15 +11,15 @@ interface DataSourceCallbackParams {
 }
 type DataSourceCallback = (params: DataSourceCallbackParams) => Promise<unknown>;
 
-type EventType = 'data-source-change' | 'data-load' | 'data-error';
-type EventHandler<D extends object> = (() => void) | ((event: DataLoadEvent<D>) => void);
+// type EventType = 'data-source-change' | 'data-load' | 'data-error';
+// type EventHandler<D extends object> = (() => void) | ((event: DataLoadEvent<D>) => void);
 
 export interface DataLoadEvent<D extends object> {
     type: 'data-load';
     data: D[];
 }
 
-export class DataService<D extends object> extends Listeners<EventType, EventHandler<D>> {
+export class DataService<D extends object> {
     public dispatchOnlyLatest = true;
 
     @ActionOnSet<DataService<D>>({
@@ -47,9 +47,10 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
     private throttledFetch = this.createThrottledFetch(this.requestThrottle);
     private throttledDispatch = this.createThrottledDispatch(this.dispatchThrottle);
 
-    constructor(private readonly animationManager: AnimationManager) {
-        super();
-    }
+    constructor(
+        private readonly eventsHub: EventsHub,
+        private readonly animationManager: AnimationManager
+    ) {}
 
     public updateCallback(dataSourceCallback: DataSourceCallback) {
         if (typeof dataSourceCallback !== 'function') return;
@@ -61,7 +62,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
         // Disable animations when using lazy loading due to conflicts
         this.animationManager.skip();
 
-        this.dispatch('data-source-change');
+        this.eventsHub.emit('data:source-change', null);
     }
 
     public clearCallback() {
@@ -96,7 +97,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
         return throttle(
             (id: number, data: D[]) => {
                 this.debug(`DataService - dispatching 'data-load' | ${id}`);
-                this.dispatch('data-load', { type: 'data-load', data });
+                this.eventsHub.emit('data:load', { data });
             },
             dispatchThrottle,
             {
@@ -146,7 +147,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
         if (Array.isArray(response)) {
             this.throttledDispatch(id, response);
         } else {
-            this.dispatch('data-error');
+            this.eventsHub.emit('data:error', null);
         }
     }
 }

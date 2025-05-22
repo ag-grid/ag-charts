@@ -133,7 +133,7 @@ export class ChartContext implements ModuleContext {
         this.fontManager = new FontManager(this.domManager, this.updateService);
         this.historyManager = new HistoryManager(this.eventsHub);
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
-        this.dataService = new DataService<any>(this.animationManager);
+        this.dataService = new DataService<any>(this.eventsHub, this.animationManager);
         this.tooltipManager = new TooltipManager(this.localeManager, this.domManager, chart.tooltip);
         this.zoomManager = new ZoomManager(this.eventsHub, fireEvent, this.layoutManager);
 

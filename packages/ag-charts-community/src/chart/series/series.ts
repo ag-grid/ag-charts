@@ -1,9 +1,14 @@
-import type {
-    RequiredInternalAgGradientColor,
-    RequiredInternalAgImageFill,
-    RequiredInternalAgPatternColor,
+import {
+    type AnyFn,
+    CleanupRegistry,
+    EventEmitter,
+    Logger,
+    type RequireOptional,
+    type RequiredInternalAgGradientColor,
+    type RequiredInternalAgImageFill,
+    type RequiredInternalAgPatternColor,
+    createId,
 } from 'ag-charts-core';
-import { type AnyFn, CleanupRegistry, Logger, type RequireOptional, createId } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgInitialStateLegendOptions,
@@ -28,7 +33,6 @@ import type { Path } from '../../scene/shape/path';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { callWithContext } from '../../util/callbackCache';
 import { jsonDiff } from '../../util/json';
-import { Listeners } from '../../util/listeners';
 import { LRUCache } from '../../util/lruCache';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
 import { mergeDefaults } from '../../util/object';
@@ -40,16 +44,21 @@ import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
+import type { DataModel, ProcessedData } from '../data/dataModel';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
-import type { SeriesEventType } from './seriesEvents';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type { INodeEvent, ISeries, NodeDataDependencies, SeriesNodeDatum, SeriesNodeEventTypes } from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
 import { type ShapeFillBBox, applyShapeStyle, getShapeStyle } from './shapeUtil';
+
+export interface SeriesDataEvent {
+    readonly dataModel: DataModel<any, any, any>;
+    readonly processedData: ProcessedData<any>;
+}
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
 export enum SeriesNodePickMode {
@@ -379,7 +388,7 @@ export abstract class Series<
         return false;
     }
 
-    private readonly seriesListeners = new Listeners<SeriesEventType, (event: any) => void>();
+    readonly events = new EventEmitter<{ 'data-update': SeriesDataEvent; 'data-processed': SeriesDataEvent }>();
 
     override addEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
     override addEventListener(type: 'seriesNodeClick', listener: (e: SeriesNodeEvent<any>) => void): void;
@@ -403,14 +412,6 @@ export abstract class Series<
     override hasEventListener(type: string): boolean;
     override hasEventListener(type: string): boolean {
         return super.hasEventListener(type);
-    }
-
-    public addListener<T extends SeriesEventType, E>(type: T, listener: (event: E) => void) {
-        return this.seriesListeners.addListener(type, listener);
-    }
-
-    protected dispatch<T extends SeriesEventType, E>(type: T, event: E): void {
-        this.seriesListeners.dispatch(type, event);
     }
 
     addChartEventListeners(): void {

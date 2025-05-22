@@ -1,12 +1,9 @@
-import { Listeners } from '../../util/listeners';
+import { EventEmitter } from 'ag-charts-core';
 
 interface SpringAnimationUpdateEvent {
-    readonly type: 'update';
     readonly x: number;
     readonly y: number;
 }
-
-type UpdateEventHandler = (e: SpringAnimationUpdateEvent) => void;
 
 const M = 0.1;
 const K = 200;
@@ -14,7 +11,9 @@ const C = 12;
 
 const DELTA = 0.5;
 
-export class SpringAnimation extends Listeners<'update', UpdateEventHandler> {
+export class SpringAnimation {
+    private readonly events = new EventEmitter<{ update: SpringAnimationUpdateEvent }>();
+
     private x1 = NaN;
     private y1 = NaN;
     public x = NaN;
@@ -104,6 +103,6 @@ export class SpringAnimation extends Listeners<'update', UpdateEventHandler> {
     }
 
     private emitUpdate() {
-        this.dispatch('update', { type: 'update', x: this.x, y: this.y });
+        this.events.emit('update', { x: this.x, y: this.y });
     }
 }

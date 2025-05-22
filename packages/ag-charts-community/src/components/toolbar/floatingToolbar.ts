@@ -154,7 +154,7 @@ export abstract class FloatingToolbar<
         this.popoverBounds = popoverBounds.clone();
         const buttonBounds = this.getButtonBounds();
 
-        this.events.dispatch('toolbar-moved', { popoverBounds, buttonBounds });
+        this.events.emit('toolbar-moved', { popoverBounds, buttonBounds });
     }
 
     protected override getButtonWidgetBounds(buttonWidget: ButtonWidget) {

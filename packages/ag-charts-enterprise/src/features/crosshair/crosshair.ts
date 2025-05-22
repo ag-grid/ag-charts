@@ -80,10 +80,10 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             ctx.widgets.seriesWidget.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
             ctx.widgets.seriesWidget.addListener('drag-move', (event) => this.onMouseHoverLike(event)),
             ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseOut()),
-            ctx.widgets.seriesDragInterpreter.addListener('click', (event) => this.onClick(event)),
+            ctx.widgets.seriesDragInterpreter.events.on('click', (event) => this.onClick(event)),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
-            ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),
-            ctx.zoomManager.addListener('zoom-change', () => this.onMouseOut()),
+            ctx.eventsHub.on('zoom:pan-start', () => this.onMouseOut()),
+            ctx.eventsHub.on('zoom:change', () => this.onMouseOut()),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
             ctx.layoutManager.addListener('layout:complete', (event) => this.layout(event)),
             () => Object.values(this.labels).forEach((label) => label.destroy())

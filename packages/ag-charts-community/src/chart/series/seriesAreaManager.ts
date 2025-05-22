@@ -202,20 +202,20 @@ export class SeriesAreaManager extends BaseManager {
             seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
             seriesWidget.addListener('keydown', (event) => this.onKeyDown(event)),
             seriesWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
-            seriesDragInterpreter.addListener('drag-move', (event) => this.onDragMove(event)),
-            seriesDragInterpreter.addListener('click', (event) => this.onClick(event, seriesWidget)),
-            seriesDragInterpreter.addListener('dblclick', (event) => this.onClick(event, seriesWidget)),
+            seriesDragInterpreter.events.on('drag-move', (event) => this.onDragMove(event)),
+            seriesDragInterpreter.events.on('click', (event) => this.onClick(event, seriesWidget)),
+            seriesDragInterpreter.events.on('dblclick', (event) => this.onClick(event, seriesWidget)),
             containerWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
             containerWidget.addListener('click', (event, current) => this.onClick(event, current)),
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
             chart.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
-            chart.ctx.domManager.addListener('resize', () => this.clearAll()),
+            chart.ctx.eventsHub.on('dom:resize', () => this.clearAll()),
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
             chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
             chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
-            chart.ctx.zoomManager.addListener('zoom-change', () => this.clearAll()),
-            chart.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearAll())
+            chart.ctx.eventsHub.on('zoom:change', () => this.clearAll()),
+            chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll())
         );
     }
 

@@ -1,8 +1,7 @@
-import type { BoxBounds } from 'ag-charts-core';
+import { type BoxBounds, EventEmitter } from 'ag-charts-core';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import { BBox } from '../../scene/bbox';
-import { Listeners } from '../../util/listeners';
 import { BaseProperties } from '../../util/properties';
 import type { RovingDirection } from '../../widget/rovingDirection';
 import { ToolbarWidget } from '../../widget/toolbarWidget';
@@ -34,7 +33,7 @@ export abstract class BaseToolbar<
     public horizontalSpacing = 10;
     public verticalSpacing = 10;
 
-    protected readonly events = new Listeners<keyof EventMap & string, any>();
+    protected readonly events = new EventEmitter<EventMap>();
     protected hasPrefix = false;
 
     private readonly buttonWidgets: Array<ButtonWidget> = [];
@@ -50,7 +49,7 @@ export abstract class BaseToolbar<
     }
 
     public addToolbarListener<K extends keyof EventMap & string>(eventType: K, handler: (event: EventMap[K]) => void) {
-        return this.events.addListener(eventType, handler);
+        return this.events.on(eventType, handler);
     }
 
     public clearButtons() {
@@ -147,10 +146,10 @@ export abstract class BaseToolbar<
         buttonWidget.addListener('click', (event) => {
             const buttonOptions = { index, ...(button instanceof BaseProperties ? button.toJson() : button) };
             const buttonBounds = this.getButtonWidgetBounds(buttonWidget);
-            this.events.dispatch('button-pressed', { event, button: buttonOptions, buttonBounds });
+            this.events.emit('button-pressed', { event, button: buttonOptions, buttonBounds });
         });
         buttonWidget.addListener('focus', () => {
-            this.events.dispatch('button-focused', { button: { index } });
+            this.events.emit('button-focused', { button: { index } });
         });
 
         if (button.section) {

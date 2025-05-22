@@ -1,17 +1,19 @@
 import { AG_CHARTS_LOCALE_EN_US } from 'ag-charts-locale';
 import type { Formatter, MessageFormatterParams } from 'ag-charts-types';
 
-import { Listeners } from '../util/listeners';
+import type { EventsHub } from '../module/eventsHub';
 import { defaultMessageFormatter } from './defaultMessageFormatter';
 
-export class LocaleManager extends Listeners<'locale-changed', () => void> {
+export class LocaleManager {
     private localeText: Record<string, string> | undefined = undefined;
     private getLocaleText: Formatter<MessageFormatterParams> | undefined = undefined;
+
+    constructor(private readonly eventsHub: EventsHub) {}
 
     setLocaleText(localeText: Record<string, string> | undefined) {
         if (this.localeText !== localeText) {
             this.localeText = localeText;
-            this.dispatch('locale-changed');
+            this.eventsHub.emit('locale:change', null);
         }
     }
 
@@ -19,7 +21,7 @@ export class LocaleManager extends Listeners<'locale-changed', () => void> {
         this.getLocaleText = getLocaleText;
         if (this.getLocaleText !== getLocaleText) {
             this.getLocaleText = getLocaleText;
-            this.dispatch('locale-changed');
+            this.eventsHub.emit('locale:change', null);
         }
     }
 

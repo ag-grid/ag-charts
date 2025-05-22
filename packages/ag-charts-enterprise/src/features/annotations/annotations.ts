@@ -452,15 +452,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.cleanup.register(
             // Interactions
-            seriesDragInterpreter.addListener('click', this.hoverTouchPreHandler.bind(this)),
-            seriesDragInterpreter.addListener('drag-start', this.hoverTouchPreHandler.bind(this)),
-            seriesDragInterpreter.addListener('drag-move', this.dragMoveTouchPreHandler.bind(this)),
-            seriesDragInterpreter.addListener('mousemove', this.onHover.bind(this)),
-            seriesDragInterpreter.addListener('click', this.onClick.bind(this)),
-            seriesDragInterpreter.addListener('dblclick', this.onDoubleClick.bind(this)),
-            seriesDragInterpreter.addListener('drag-start', this.onDragStart.bind(this)),
-            seriesDragInterpreter.addListener('drag-move', this.onDrag.bind(this)),
-            seriesDragInterpreter.addListener('drag-end', this.onDragEnd.bind(this)),
+            seriesDragInterpreter.events.on('click', this.hoverTouchPreHandler.bind(this)),
+            seriesDragInterpreter.events.on('drag-start', this.hoverTouchPreHandler.bind(this)),
+            seriesDragInterpreter.events.on('drag-move', this.dragMoveTouchPreHandler.bind(this)),
+            seriesDragInterpreter.events.on('mousemove', this.onHover.bind(this)),
+            seriesDragInterpreter.events.on('click', this.onClick.bind(this)),
+            seriesDragInterpreter.events.on('dblclick', this.onDoubleClick.bind(this)),
+            seriesDragInterpreter.events.on('drag-start', this.onDragStart.bind(this)),
+            seriesDragInterpreter.events.on('drag-move', this.onDrag.bind(this)),
+            seriesDragInterpreter.events.on('drag-end', this.onDragEnd.bind(this)),
             seriesWidget.addListener('keydown', this.onKeyDown.bind(this)),
             seriesWidget.addListener('keyup', this.onKeyUp.bind(this)),
             chartWidget.addListener('click', this.onCancel.bind(this)),
@@ -469,72 +469,72 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx.eventsHub.on('annotations:restore', this.onRestoreAnnotations.bind(this)),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.updateService.addListener('pre-scene-render', this.onPreRender.bind(this)),
-            ctx.zoomManager.addListener('zoom-change', () => this.onResize()),
-            ctx.domManager.addListener('resize', () => this.onResize()),
+            ctx.eventsHub.on('zoom:change', () => this.onResize()),
+            ctx.eventsHub.on('dom:resize', () => this.onResize()),
 
             // Toolbar
-            toolbar.addListener('cancel-create-annotation', () => {
+            toolbar.events.on('cancel-create-annotation', () => {
                 this.cancel();
                 this.reset();
                 this.update();
             }),
-            toolbar.addListener('pressed-create-annotation', ({ annotation }) => {
+            toolbar.events.on('pressed-create-annotation', ({ annotation }) => {
                 this.cancel();
                 this.pushAnnotationState(InteractionState.Annotations);
                 this.state.transition(annotation);
                 this.update();
             }),
-            toolbar.addListener('pressed-clear', () => {
+            toolbar.events.on('pressed-clear', () => {
                 this.clear();
                 this.recordActionAfterNextUpdate('Clear all');
             }),
-            toolbar.addListener('pressed-show-menu', () => {
+            toolbar.events.on('pressed-show-menu', () => {
                 this.cancel();
                 this.reset();
             }),
-            toolbar.addListener('pressed-unrelated', () => {
+            toolbar.events.on('pressed-unrelated', () => {
                 this.reset();
             }),
 
             // Annotation Options Toolbar
-            optionsToolbar.addListener('pressed-delete', () => {
+            optionsToolbar.events.on('pressed-delete', () => {
                 this.cancel();
                 this.delete();
                 this.reset();
             }),
-            optionsToolbar.addListener('pressed-settings', ({ sourceEvent }) => {
+            optionsToolbar.events.on('pressed-settings', ({ sourceEvent }) => {
                 this.state.transition('toolbarPressSettings', sourceEvent);
             }),
-            optionsToolbar.addListener('pressed-lock', () => {
+            optionsToolbar.events.on('pressed-lock', () => {
                 this.update();
             }),
-            optionsToolbar.addListener('hid-overlays', () => {
+            optionsToolbar.events.on('hid-overlays', () => {
                 this.settingsDialog.hide();
             }),
-            optionsToolbar.addListener('saved-color', ({ type, colorPickerType, color }) => {
+            optionsToolbar.events.on('saved-color', ({ type, colorPickerType, color }) => {
                 this.recordActionAfterNextUpdate(`Change ${type} ${colorPickerType} to ${color}`, [
                     'annotations',
                     'defaults',
                 ]);
             }),
-            optionsToolbar.addListener(
+            optionsToolbar.events.on(
                 'updated-color',
                 ({ type, colorPickerType, colorOpacity, color, opacity, isMultiColor }) => {
                     this.setColorAndDefault(type, colorPickerType, colorOpacity, color, opacity, isMultiColor);
                 }
             ),
-            optionsToolbar.addListener('updated-font-size', ({ type, fontSize }) => {
+            optionsToolbar.events.on('updated-font-size', ({ type, fontSize }) => {
                 this.setFontSizeAndDefault(type, fontSize);
             }),
-            optionsToolbar.addListener('updated-line-style', ({ type, lineStyleType }) => {
+            optionsToolbar.events.on('updated-line-style', ({ type, lineStyleType }) => {
                 this.setLineStyleTypeAndDefault(type, lineStyleType);
             }),
-            optionsToolbar.addListener('updated-line-width', ({ type, strokeWidth }) => {
+            optionsToolbar.events.on('updated-line-width', ({ type, strokeWidth }) => {
                 this.setLineStyleWidthAndDefault(type, strokeWidth);
             }),
 
             // Settings Dialog
-            settingsDialog.addListener('hidden', () => {
+            settingsDialog.events.on('hidden', () => {
                 this.optionsToolbar.clearActiveButton();
             })
         );
