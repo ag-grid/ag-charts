@@ -40,6 +40,8 @@ function readMemberName(member: MemberNode): string | undefined {
     if (typeof member.type === 'object' && member.type.kind === 'array') {
         if (typeof member.type.type === 'string') {
             return member.type.type;
+        } else if (member.type.type.kind === 'typeRef') {
+            return member.type.type.type;
         }
     }
     return undefined;
