@@ -78,11 +78,11 @@ echo "${base} (${base_name}) vs ${head} (${branch})"
 tmp_dir=$(mktemp -d)
 data_file="$tmp_dir/data.ts"
 
-git checkout ${base}
+git checkout ${base} && git restore --source $head -- ${tools_dir}
 benchmark
 node ${tools_dir}/collate-reports.js --name "${base_name}-${base}" --data-file "$data_file"
 
-git checkout ${head}
+git stash -u && git checkout ${head}
 benchmark
 node ${tools_dir}/collate-reports.js --name "${branch}-${head}" --data-file "$data_file"
 
