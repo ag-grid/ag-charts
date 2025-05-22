@@ -83,12 +83,10 @@ export function getTextBaseline(
     parallel: boolean,
     labelRotation: number,
     sideFlag: ChartAxisLabelFlipFlag,
-    parallelFlipFlag: ChartAxisLabelFlipFlag,
-    backwardsCompatibleTopBaseline: boolean
+    parallelFlipFlag: ChartAxisLabelFlipFlag
 ): CanvasTextBaseline {
     if (parallel && !labelRotation) {
-        const topBaseline = backwardsCompatibleTopBaseline ? 'hanging' : 'top';
-        return sideFlag * parallelFlipFlag === -1 ? topBaseline : 'bottom';
+        return sideFlag * parallelFlipFlag === -1 ? 'top' : 'bottom';
     }
     return 'middle';
 }
@@ -144,14 +142,8 @@ export function timeIntervalMaxLabelSize(
     const specifier =
         labelSpecifier(label.format, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
 
-    const formatParams: ScaleFormatParams<Date> = {
-        domain,
-        ticks,
-        fractionDigits: 0,
-        specifier,
-    };
+    const formatParams: ScaleFormatParams<Date> = { domain, ticks, specifier, fractionDigits: 0 };
     const labelFormatter = scale.tickFormatter(formatParams as ScaleFormatParams<any>);
-
     const hierarchy = timeInterval ? intervalHierarchy(timeInterval) : undefined;
     const primarySpecifier = labelSpecifier(primaryLabel?.format, hierarchy);
     const primaryLabelFormatter = primarySpecifier

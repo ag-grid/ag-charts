@@ -1,7 +1,6 @@
 import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
-import { extendBbox } from '../map-util/bboxUtil';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
@@ -31,6 +30,7 @@ const {
     Marker,
     applyShapeStyle,
     getShapeStyle,
+    LonLatBBox,
 } = _ModuleSupport;
 
 interface MapMarkerNodeDataContext
@@ -240,7 +240,7 @@ export class MapMarkerSeries
                 if (latValues != null && lonValues != null) {
                     const lon = lonValues[datumIndex];
                     const lat = latValues[datumIndex];
-                    current = extendBbox(current, lon, lat, lon, lat);
+                    current = LonLatBBox.extend(current, lon, lat, lon, lat);
                 }
                 return current;
             }, undefined);

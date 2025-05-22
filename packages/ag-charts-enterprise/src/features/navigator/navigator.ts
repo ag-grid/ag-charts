@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger, clamp } from 'ag-charts-core';
+import { type BoxBounds, Logger, clamp } from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
@@ -8,6 +8,14 @@ import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
 
 const { BaseModuleInstance, ObserveChanges, Property } = _ModuleSupport;
+
+interface BBoxProvider {
+    id: string;
+    visible?: boolean;
+    toCanvasBBox(): BoxBounds;
+    fromCanvasPoint(x: number, y: number): { x: number; y: number };
+    getBBox(): _ModuleSupport.BBox;
+}
 
 export class Navigator extends BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     // @TempValidate
@@ -26,12 +34,12 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
     public mask = new RangeMask();
     public minHandle = new RangeHandle();
     public maxHandle = new RangeHandle();
-    private readonly maskVisibleRange = {
+    private readonly maskVisibleRange: BBoxProvider = {
         id: 'navigator-mask-visible-range',
         getBBox: (): _ModuleSupport.BBox => this.mask.computeVisibleRangeBBox(),
         toCanvasBBox: (): _ModuleSupport.BBox => this.mask.computeVisibleRangeBBox(),
         fromCanvasPoint: (x: number, y: number) => ({ x, y }),
-    } satisfies _ModuleSupport.BBoxProvider & { getBBox(): _ModuleSupport.BBox };
+    };
 
     @Property
     public height: number = 30;

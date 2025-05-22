@@ -75,15 +75,14 @@ function logStarBox() {
 echo "Running benchmarks on ${branch} against ${base_name}"
 echo "${base} (${base_name}) vs ${head} (${branch})"
 
-git checkout ${base}
+data_file="${root}/reports/benchmark-data.ts"
+git checkout ${base} && git restore --source $head -- ${tools_dir}
 benchmark
-node ${tools_dir}/collate-reports.js "${base_name}-${base}"
-git stash
+node ${tools_dir}/collate-reports.js --name "${base_name}-${base}" --data-file "$data_file"
 
-git checkout ${head}
-git stash pop
+git stash -u && git checkout ${head}
 benchmark
-node ${tools_dir}/collate-reports.js "${branch}-${head}"
+node ${tools_dir}/collate-reports.js --name "${branch}-${head}" --data-file "$data_file"
 
 output=${root}/reports/benchmark.log
 if [[ ${format} == "json" ]] ; then
@@ -94,6 +93,12 @@ if [[ ${base} == "origin/${base_name}" && ${format} != "json" ]] ; then
 elif [[ -f ${output} ]] ; then
     rm ${output}
 fi
-node ${tools_dir}/compare-versions.js --report-only --base ${base_name}-${base} --compare ${branch}-${head} --format ${format} >>${output}
+node ${tools_dir}/compare-versions.js \
+    --report-only \
+    --base ${base_name}-${base} \
+    --compare ${branch}-${head} \
+    --format ${format} \
+    --data-file "$data_file" \
+    >>${output}
 cat ${output}
 echo "Benchmark results saved to ${output}"

@@ -65,7 +65,7 @@ describe('LegendEvent', () => {
                 type: null,
                 seriesId: null,
                 itemId: null,
-                label: null,
+                text: null,
                 event: null,
                 preventDefault: null,
             });
@@ -80,7 +80,7 @@ describe('LegendEvent', () => {
                 type: null,
                 seriesId: null,
                 itemId: null,
-                label: null,
+                text: null,
                 event: null,
                 preventDefault: null,
             });
@@ -219,9 +219,9 @@ describe('LegendEvent', () => {
             await clickAction(313, 573)(chart);
             await clickAction(394, 573)(chart);
             await clickAction(493, 573)(chart);
-            expect(legendItemClick.mock.calls[0][0].label).toEqual({ text: 'Gold' });
-            expect(legendItemClick.mock.calls[1][0].label).toEqual({ text: 'Silver' });
-            expect(legendItemClick.mock.calls[2][0].label).toEqual({ text: 'Copper' });
+            expect(legendItemClick.mock.calls[0][0].text).toEqual('Gold');
+            expect(legendItemClick.mock.calls[1][0].text).toEqual('Silver');
+            expect(legendItemClick.mock.calls[2][0].text).toEqual('Copper');
             expect(legendItemClick).toBeCalledTimes(3);
         });
 
@@ -240,9 +240,9 @@ describe('LegendEvent', () => {
             await clickAction(325, 573)(chart);
             await clickAction(398, 573)(chart);
             await clickAction(496, 573)(chart);
-            expect(legendItemClick.mock.calls[0][0].label).toEqual({ text: 'Labour' });
-            expect(legendItemClick.mock.calls[1][0].label).toEqual({ text: 'LibDem' });
-            expect(legendItemClick.mock.calls[2][0].label).toEqual({ text: 'Greens' });
+            expect(legendItemClick.mock.calls[0][0].text).toEqual('Labour');
+            expect(legendItemClick.mock.calls[1][0].text).toEqual('LibDem');
+            expect(legendItemClick.mock.calls[2][0].text).toEqual('Greens');
             expect(legendItemClick).toBeCalledTimes(3);
         });
 
@@ -282,12 +282,12 @@ describe('LegendEvent', () => {
             await clickAction(402, 572)(chart);
             await clickAction(525, 572)(chart);
 
-            expect(legendItemClick.mock.calls[0][0].label).toEqual({ text: '2020 - Labour' });
-            expect(legendItemClick.mock.calls[1][0].label).toEqual({ text: '2020 - LibDem' });
-            expect(legendItemClick.mock.calls[2][0].label).toEqual({ text: '2020 - Greens' });
-            expect(legendItemClick.mock.calls[3][0].label).toEqual({ text: '2024 - Labour' });
-            expect(legendItemClick.mock.calls[4][0].label).toEqual({ text: '2024 - LibDem' });
-            expect(legendItemClick.mock.calls[5][0].label).toEqual({ text: '2024 - Greens' });
+            expect(legendItemClick.mock.calls[0][0].text).toEqual('2020 - Labour');
+            expect(legendItemClick.mock.calls[1][0].text).toEqual('2020 - LibDem');
+            expect(legendItemClick.mock.calls[2][0].text).toEqual('2020 - Greens');
+            expect(legendItemClick.mock.calls[3][0].text).toEqual('2024 - Labour');
+            expect(legendItemClick.mock.calls[4][0].text).toEqual('2024 - LibDem');
+            expect(legendItemClick.mock.calls[5][0].text).toEqual('2024 - Greens');
             expect(legendItemClick).toBeCalledTimes(6);
         });
     });

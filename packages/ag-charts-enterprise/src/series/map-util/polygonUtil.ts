@@ -1,7 +1,8 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-import { extendBbox } from './bboxUtil';
 import { lineSegmentDistanceToPointSquared } from './lineStringUtil';
+
+const { LonLatBBox } = _ModuleSupport;
 
 export function polygonBbox(
     polygon: _ModuleSupport.Position[],
@@ -9,7 +10,7 @@ export function polygonBbox(
 ): _ModuleSupport.LonLatBBox | undefined {
     polygon.forEach((coordinates) => {
         const [lon, lat] = coordinates;
-        into = extendBbox(into, lon, lat, lon, lat);
+        into = LonLatBBox.extend(into, lon, lat, lon, lat);
     });
 
     return into;

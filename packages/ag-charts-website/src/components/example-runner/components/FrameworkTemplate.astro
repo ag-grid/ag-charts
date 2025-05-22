@@ -11,6 +11,7 @@ import AngularTemplate from '../framework-templates/AngularTemplate.astro';
 import PostInitMessageScript from '@components/example-runner/components/PostInitMessageScript.astro';
 import { toTitle } from '@utils/toTitle';
 import { E2E_STYLE_START, E2E_STYLE_END } from '@components/example-runner/constants';
+import { EXAMPLE_STYLE_FILE_NAME } from '@constants';
 
 interface Props {
     internalFramework: InternalFramework;
@@ -128,7 +129,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             entryFileName={entryFileName!}
             layout={layout}
             scriptFiles={scriptFiles}
-            styleFiles={styleFiles}
+            styleFiles={[EXAMPLE_STYLE_FILE_NAME]}
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             ignoreSystemJs={ignoreSystemJs}

@@ -18,10 +18,7 @@ const {
     normalizeAngle360,
 } = _ModuleSupport;
 
-export class AxisTicks {
-    static readonly DefaultTickCount = 5;
-    static readonly DefaultMinSpacing = 10;
-
+export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
     readonly id = createId(this);
 
     protected readonly axisGroup = new TranslatableGroup({ name: `${this.id}-AxisTicks`, zIndex: ZIndexMap.AXIS });

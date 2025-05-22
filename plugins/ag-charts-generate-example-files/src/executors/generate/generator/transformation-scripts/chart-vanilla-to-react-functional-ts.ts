@@ -32,7 +32,7 @@ function needsWrappingInFragment(bindings: any) {
     );
 }
 
-function getImports(componentFilenames: string[], bindings: any): string[] {
+function getImports(componentFilenames: string[], bindings: any, styleFileNames: string[]): string[] {
     const type = components[chartApi(bindings)];
     const reactImports = ['useState'];
     if (bindings.usesChartApi) reactImports.push('useRef');
@@ -66,6 +66,8 @@ function getImports(componentFilenames: string[], bindings: any): string[] {
     if (componentFilenames) {
         imports.push(...componentFilenames.map(getImport));
     }
+
+    styleFileNames?.forEach((styleSheet) => imports.push(`import './${styleSheet}';`));
 
     return imports;
 }
@@ -122,9 +124,13 @@ function getComponentMetadata(bindings: any, id: string, property: any) {
     };
 }
 
-export async function vanillaToReactFunctionalTs(bindings: any, componentFilenames: string[]): Promise<string> {
+export async function vanillaToReactFunctionalTs(
+    bindings: any,
+    componentFilenames: string[],
+    styleFileNames: string[]
+): Promise<string> {
     const { properties } = bindings;
-    const imports = getImports(componentFilenames, bindings);
+    const imports = getImports(componentFilenames, bindings, styleFileNames);
     const placeholders = Object.keys(bindings.placeholders);
 
     let indexFile: string;

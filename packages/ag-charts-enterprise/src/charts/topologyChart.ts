@@ -70,8 +70,7 @@ export class TopologyChart extends Chart {
             const bbox = series.topologyBounds;
             if (bbox == null) return combined;
             if (combined == null) return bbox;
-            combined.merge(bbox);
-            return combined;
+            return combined.merge(bbox);
         }, undefined);
 
         let scale: _ModuleSupport.MercatorScale | undefined;
