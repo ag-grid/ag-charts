@@ -5,7 +5,9 @@ import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { HighlightNodeDatum } from '../chart/interaction/highlightManager';
 import type { AxisZoomState, ZoomState } from '../chart/interaction/zoomManager';
+import type { AxisLayout } from '../chart/layout/layoutManager';
 import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';
+import { BBox } from '../scene/bbox';
 import type { KeyboardWidgetEvent, MouseWidgetEvent } from '../widget/widgetEvents';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
@@ -23,6 +25,7 @@ export interface EventsHubMap {
     'dom:hidden': null;
     'dom:resize': null;
     'highlight:change': HighlightChangeEvent;
+    'layout:complete': LayoutCompleteEvent;
     'legend:change': LegendChangeEvent;
     'legend:item-click': LegendItemClickEvent;
     'legend:item-double-click': LegendItemDoubleClickEvent;
@@ -56,6 +59,13 @@ export interface HighlightChangeEvent {
     readonly callerId: string;
     readonly currentHighlight?: HighlightNodeDatum;
     readonly previousHighlight?: HighlightNodeDatum;
+}
+
+export interface LayoutCompleteEvent {
+    readonly chart: Readonly<{ width: number; height: number }>;
+    readonly series: Readonly<{ rect: BBox; paddedRect: BBox; visible: boolean }>;
+    readonly clipSeries: boolean;
+    readonly axes?: Readonly<AxisLayout>[];
 }
 
 export interface LegendChangeEvent {

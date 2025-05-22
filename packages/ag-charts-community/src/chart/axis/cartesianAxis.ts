@@ -130,7 +130,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         let previousSize: readonly [number, number] | undefined = undefined;
         this.cleanup.register(
-            moduleCtx.layoutManager.addListener('layout:complete', (e) => {
+            moduleCtx.eventsHub.on('layout:complete', (e) => {
                 // Fire resize animation action if chart canvas size changes.
                 const size = [e.chart.width, e.chart.height] as const;
                 if (previousSize != null && !arraysEqual(size, previousSize)) {

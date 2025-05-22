@@ -28,7 +28,7 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
         this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.ToolbarBottom, this.onLayoutStart.bind(this)),
-            ctx.zoomManager.addListener('zoom-change', this.onZoomChanged.bind(this)),
+            ctx.eventsHub.on('zoom:change', this.onZoomChanged.bind(this)),
             this.teardown.bind(this)
         );
     }

@@ -29,7 +29,6 @@ import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
 import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
-import type { LayoutManager } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';
 
 export interface ZoomState {
@@ -55,14 +54,6 @@ export type ZoomMemento = {
     ratioY?: AgZoomRatio;
     autoScaledAxes?: AgAutoScaledAxes;
 };
-
-export interface ZoomChangeEvent extends AxisZoomState {
-    readonly type: 'zoom-change';
-    readonly x?: Readonly<ZoomState>;
-    readonly y?: Readonly<ZoomState>;
-    readonly callerId: string;
-    readonly axes: Record<string, Readonly<ZoomState> | undefined>;
-}
 
 export type ChartAxisLike = {
     id: string;
@@ -121,13 +112,12 @@ export class ZoomManager extends BaseManager {
 
     constructor(
         private readonly eventsHub: EventsHub,
-        private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void,
-        layoutManager: LayoutManager
+        private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
     ) {
         super();
 
         this.cleanup.register(
-            layoutManager.addListener('layout:complete', () => {
+            eventsHub.on('layout:complete', () => {
                 const { pendingMemento } = this;
                 const shouldPerformInitialLayout = !this.didLayoutAxes;
                 this.didLayoutAxes = true;

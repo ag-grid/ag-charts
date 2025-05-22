@@ -3,7 +3,7 @@ import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types
 
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
-import type { HighlightChangeEvent } from '../../module/eventsHub';
+import type { HighlightChangeEvent, LayoutCompleteEvent } from '../../module/eventsHub';
 import { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
 import type { Point } from '../../scene/point';
@@ -30,7 +30,6 @@ import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
 import { TooltipManager } from '../interaction/tooltipManager';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
-import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import {
     DEFAULT_TOOLTIP_CLASS,
@@ -211,7 +210,7 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
             chart.ctx.eventsHub.on('dom:resize', () => this.clearAll()),
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
-            chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
             chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
             chart.ctx.eventsHub.on('zoom:change', () => this.clearAll()),

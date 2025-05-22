@@ -182,6 +182,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const selectionRect = new ZoomRect();
         this.selector = new ZoomSelector(selectionRect, this.getZoom.bind(this), this.isZoomValid.bind(this));
         this.contextMenu = new ZoomContextMenu(
+            ctx.eventsHub,
             ctx.contextMenuRegistry,
             ctx.zoomManager,
             this.getModuleProperties.bind(this),
@@ -217,7 +218,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.widgets.seriesWidget.addListener('touchend', (event) => this.onTouchEnd(event)),
             ctx.widgets.seriesWidget.addListener('touchcancel', (event) => this.onTouchEnd(event)),
             ctx.updateService.addListener('process-data', (event) => this.onProcessData(event)),
-            ctx.layoutManager.addListener('layout:complete', (event) => this.onLayoutComplete(event)),
+            ctx.eventsHub.on('layout:complete', (event) => this.onLayoutComplete(event)),
             ctx.eventsHub.on('zoom:change', (event) => this.onZoomChange(event)),
             ctx.eventsHub.on('zoom:pan-start', (event) => this.onZoomPanStart(event)),
             this.panner.addListener('update', (event) => this.onPanUpdate(event)),

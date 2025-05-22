@@ -192,7 +192,7 @@ export class Tooltip extends BaseProperties {
     constructor() {
         super();
 
-        this.cleanup.register(this.springAnimation.addListener('update', this.updateTooltipPosition.bind(this)));
+        this.cleanup.register(this.springAnimation.events.on('update', this.updateTooltipPosition.bind(this)));
     }
 
     private localeManager: LocaleManager | undefined = undefined;

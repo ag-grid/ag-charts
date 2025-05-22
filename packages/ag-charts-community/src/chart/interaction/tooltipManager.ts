@@ -2,6 +2,7 @@ import { type BoxBounds, CleanupRegistry } from 'ag-charts-core';
 
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
+import type { EventsHub } from '../../module/eventsHub';
 import { objectsEqual } from '../../util/object';
 import { StateTracker } from '../../util/stateTracker';
 import type { SeriesTooltip } from '../series/seriesTooltip';
@@ -33,13 +34,14 @@ export class TooltipManager {
     private readonly cleanup = new CleanupRegistry();
 
     public constructor(
+        eventsHub: EventsHub,
         localeManager: LocaleManager,
         private readonly domManager: DOMManager,
         private readonly tooltip: Tooltip
     ) {
         this.cleanup.register(
             tooltip.setup(localeManager, domManager),
-            domManager.addListener('hidden', () => this.tooltip.hide())
+            eventsHub.on('dom:hidden', () => this.tooltip.hide())
         );
     }
 

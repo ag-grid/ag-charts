@@ -1,5 +1,6 @@
 import { CleanupRegistry } from 'ag-charts-core';
 
+import type { EventsHub } from '../../module/eventsHub';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
@@ -16,17 +17,18 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
 
     constructor(
         private readonly chart: ChartLike,
+        private readonly eventsHub: EventsHub,
         private readonly dataService: DataService<D>,
         private readonly updateService: UpdateService,
         private readonly zoomManager: ZoomManager,
         private readonly animationManager: AnimationManager
     ) {
         this.cleanup.register(
-            this.dataService.addListener('data-source-change', () => this.onDataSourceChange()),
-            this.dataService.addListener('data-load', () => this.onDataLoad()),
-            this.dataService.addListener('data-error', () => this.onDataError()),
+            this.eventsHub.on('data:source-change', () => this.onDataSourceChange()),
+            this.eventsHub.on('data:load', () => this.onDataLoad()),
+            this.eventsHub.on('data:error', () => this.onDataError()),
             this.updateService.addListener('update-complete', (e) => this.onUpdateComplete(e)),
-            this.zoomManager.addListener('zoom-change', () => this.onZoomChange())
+            this.eventsHub.on('zoom:change', () => this.onZoomChange())
         );
     }
 

@@ -94,9 +94,9 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     private disableZoomSync?: () => void;
     private enabledZoomSync() {
-        const { syncManager, zoomManager } = this.moduleContext;
+        const { eventsHub, syncManager } = this.moduleContext;
         this.disableZoomSync?.(); // Cleanup any existing listeners.
-        this.disableZoomSync = zoomManager.addListener('zoom-change', () => {
+        this.disableZoomSync = eventsHub.on('zoom:change', () => {
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
                 if (chart.modulesManager.getModule<ChartSync>('sync')?.zoom) {
                     chart.ctx.zoomManager.updateZoom('sync', this.mergeZoom(chart));
