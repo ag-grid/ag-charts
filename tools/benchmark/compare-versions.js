@@ -12,6 +12,7 @@ function currentBranchName() {
         .trim();
 }
 
+const summaryExampleDataFile = 'packages/ag-charts-website/src/content/docs/benchmarks/_examples/summary/data.ts';
 const argv = yargs(hideBin(process.argv))
     .option('base', {
         alias: 'b',
@@ -30,6 +31,12 @@ const argv = yargs(hideBin(process.argv))
         default: false,
         description: 'Only report the results, do not exit with a failure code.',
     })
+    .option('data-file', {
+        alias: 'f',
+        type: 'string',
+        default: summaryExampleDataFile,
+        description: 'data.ts file to read stats from.',
+    })
     .option('format', {
         type: 'choice',
         choices: ['table', 'json'],
@@ -40,9 +47,8 @@ const argv = yargs(hideBin(process.argv))
     .help()
     .parse();
 
-const summaryExampleDataFile = 'packages/ag-charts-website/src/content/docs/benchmarks/_examples/summary/data.ts';
 function loadDataFile() {
-    let dataFile = fs.readFileSync(summaryExampleDataFile).toString();
+    let dataFile = fs.readFileSync(argv['data-file']).toString();
     dataFile = dataFile.replace('export function', 'function');
 
     return eval(`${dataFile}; getData()`);
