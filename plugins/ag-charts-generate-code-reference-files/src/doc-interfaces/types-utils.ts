@@ -471,7 +471,7 @@ function getJsDoc(node: ts.Node & { jsDoc?: { getFullText(): string }[] }) {
 }
 
 export function printNode(node: ts.Node | undefined) {
-    if (node == null) return null;
+    if (node == null) throw new Error(`unexpected ${node} node`);
     try {
         return tsPrinter.printNode(ts.EmitHint.Unspecified, node, node.getSourceFile()).replace(/\n\s*/g, ' ');
     } catch (e) {
