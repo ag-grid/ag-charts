@@ -15,7 +15,10 @@ runs:
         - name: Check for snapshot updates
           id: snapshot_check
           if: inputs.branch != ''
+          shell: bash
           run: |
+              set -eux
+
               branch=${{ inputs.branch }}
 
               if (git ls-remote --exit-code --heads origin ${branch} >/dev/null) ; then
