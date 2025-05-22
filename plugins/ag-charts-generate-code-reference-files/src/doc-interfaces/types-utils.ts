@@ -445,7 +445,7 @@ export function formatNode(node: ts.Node | undefined) {
 function getJsDoc(node: ts.Node & { jsDoc?: { getFullText(): string }[] }) {
     // TODO: AG-14962 remove null-check
     return trimArray(
-        node.jsDoc?.flatMap((doc) =>
+        node?.jsDoc?.flatMap((doc) =>
             doc
                 .getFullText()
                 .split('\n')
@@ -468,7 +468,7 @@ function getJsDoc(node: ts.Node & { jsDoc?: { getFullText(): string }[] }) {
                     },
                     [''] as string[]
                 )
-        )
+        ) ?? []
     );
 }
 
