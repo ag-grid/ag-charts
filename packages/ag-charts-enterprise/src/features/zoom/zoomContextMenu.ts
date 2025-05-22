@@ -16,6 +16,7 @@ import {
 
 export class ZoomContextMenu {
     constructor(
+        private readonly eventsHub: _ModuleSupport.EventsHub,
         private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
         private readonly getModuleProperties: () => ZoomProperties,
@@ -52,7 +53,7 @@ export class ZoomContextMenu {
         const shouldEnablePanToHere = () => {
             return !isZoomEqual(definedZoomState(this.zoomManager.getZoom()), unitZoomState());
         };
-        const removeListener = contextMenuRegistry.addListener('context-setup', (event) => {
+        const removeListener = this.eventsHub.on('context-menu:setup', (event) => {
             contextMenuRegistry.builtins.items['zoom-to-cursor'].enabled = shouldEnableZoomToHere(event);
             contextMenuRegistry.builtins.items['pan-to-cursor'].enabled = shouldEnablePanToHere();
             contextMenuRegistry.builtins.items['reset-zoom'].enabled = this.canResetZoom();

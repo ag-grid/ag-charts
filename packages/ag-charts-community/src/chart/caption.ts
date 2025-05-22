@@ -77,7 +77,7 @@ export class Caption extends BaseProperties implements CaptionLike {
     private proxyText?: BoundedTextWidget;
 
     registerInteraction(moduleCtx: ModuleContext, where: 'beforebegin' | 'afterend') {
-        return moduleCtx.layoutManager.addListener('layout:complete', () => this.updateA11yText(moduleCtx, where));
+        return moduleCtx.eventsHub.on('layout:complete', () => this.updateA11yText(moduleCtx, where));
     }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {

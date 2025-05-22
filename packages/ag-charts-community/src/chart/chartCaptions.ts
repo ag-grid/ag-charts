@@ -1,11 +1,11 @@
 import type { TextAlign } from 'ag-charts-types';
 
 import type { LayoutContext } from '../module/baseModule';
+import type { LayoutCompleteEvent } from '../module/eventsHub';
 import type { BBox } from '../scene/bbox';
 import { Property } from '../util/properties';
 import { TextUtils } from '../util/textMeasurer';
 import { Caption } from './caption';
-import { type LayoutCompleteEvent } from './layout/layoutManager';
 
 export class ChartCaptions {
     @Property

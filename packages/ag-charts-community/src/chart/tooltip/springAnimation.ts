@@ -12,7 +12,7 @@ const C = 12;
 const DELTA = 0.5;
 
 export class SpringAnimation {
-    private readonly events = new EventEmitter<{ update: SpringAnimationUpdateEvent }>();
+    readonly events = new EventEmitter<{ update: SpringAnimationUpdateEvent }>();
 
     private x1 = NaN;
     private y1 = NaN;

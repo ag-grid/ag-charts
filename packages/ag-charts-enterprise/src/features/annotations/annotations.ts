@@ -467,7 +467,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             // Services
             ctx.eventsHub.on('annotations:restore', this.onRestoreAnnotations.bind(this)),
-            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.updateService.addListener('pre-scene-render', this.onPreRender.bind(this)),
             ctx.eventsHub.on('zoom:change', () => this.onResize()),
             ctx.eventsHub.on('dom:resize', () => this.onResize()),

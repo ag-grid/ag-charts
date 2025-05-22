@@ -1,7 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { getDocument } from 'ag-charts-core';
+import { EventEmitter, getDocument } from 'ag-charts-core';
 
+import { EventsHub } from '../module/eventsHub';
 import { DOMManager } from './domManager';
 
 describe('DOMManager', () => {
@@ -10,13 +11,15 @@ describe('DOMManager', () => {
         getDocument().head.innerHTML = '';
     });
 
+    const eventsHub: EventsHub = new EventEmitter();
+
     describe('for normal container cases', () => {
         it('should initialize the expected DOM', () => {
             const doc = getDocument();
             const container = doc.createElement('div');
             doc.body.append(container);
 
-            const dm = new DOMManager({ styleNonce: '416d1177' }, container);
+            const dm = new DOMManager(eventsHub, { styleNonce: '416d1177' }, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchInlineSnapshot(`
@@ -27,8 +30,8 @@ describe('DOMManager', () => {
     role="presentation"
     style="width: 300px; height: 300px;"
   >
-    
-    
+
+
     <div
       class="ag-charts-tab-guard"
     />
@@ -37,50 +40,50 @@ describe('DOMManager', () => {
       role="presentation"
       style="visibility: hidden;"
     >
-      
-        
+
+
       <div
         class="ag-charts-canvas-container"
         role="presentation"
       >
-        
-            
+
+
         <div
           aria-hidden="true"
           class="ag-charts-canvas"
           role="presentation"
         />
-        
-            
+
+
         <div
           class="ag-charts-canvas-proxy"
           role="figure"
         >
-          
-                
+
+
           <div
             class="ag-charts-series-area"
             role="presentation"
           />
-          
-            
+
+
         </div>
-        
-            
+
+
         <div
           class="ag-charts-canvas-overlay ag-charts-tooltip-container"
           role="presentation"
         />
-        
-        
+
+
       </div>
-      
-    
+
+
     </div>
     <div
       class="ag-charts-tab-guard"
     />
-    
+
 
   </div>
 </div>
@@ -118,7 +121,7 @@ describe('DOMManager', () => {
             const container = doc.createElement('div');
             // doc.body.append(container);
 
-            const dm = new DOMManager({ styleNonce: '416d1171' }, container);
+            const dm = new DOMManager(eventsHub, { styleNonce: '416d1171' }, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchInlineSnapshot(`
@@ -129,8 +132,8 @@ describe('DOMManager', () => {
     role="presentation"
     style="width: 300px; height: 300px;"
   >
-    
-    
+
+
     <div
       class="ag-charts-tab-guard"
     />
@@ -139,50 +142,50 @@ describe('DOMManager', () => {
       role="presentation"
       style="visibility: hidden;"
     >
-      
-        
+
+
       <div
         class="ag-charts-canvas-container"
         role="presentation"
       >
-        
-            
+
+
         <div
           aria-hidden="true"
           class="ag-charts-canvas"
           role="presentation"
         />
-        
-            
+
+
         <div
           class="ag-charts-canvas-proxy"
           role="figure"
         >
-          
-                
+
+
           <div
             class="ag-charts-series-area"
             role="presentation"
           />
-          
-            
+
+
         </div>
-        
-            
+
+
         <div
           class="ag-charts-canvas-overlay ag-charts-tooltip-container"
           role="presentation"
         />
-        
-        
+
+
       </div>
-      
-    
+
+
     </div>
     <div
       class="ag-charts-tab-guard"
     />
-    
+
 
     <style
       data-ag-charts="ag-charts-community"
@@ -220,7 +223,7 @@ describe('DOMManager', () => {
             const shadow = component.attachShadow({ mode: 'open' });
             shadow.appendChild(container);
 
-            const dm = new DOMManager({ styleNonce: '416d1177' }, container);
+            const dm = new DOMManager(eventsHub, { styleNonce: '416d1177' }, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchInlineSnapshot(`
@@ -231,8 +234,8 @@ describe('DOMManager', () => {
     role="presentation"
     style="width: 300px; height: 300px;"
   >
-    
-    
+
+
     <div
       class="ag-charts-tab-guard"
     />
@@ -241,50 +244,50 @@ describe('DOMManager', () => {
       role="presentation"
       style="visibility: hidden;"
     >
-      
-        
+
+
       <div
         class="ag-charts-canvas-container"
         role="presentation"
       >
-        
-            
+
+
         <div
           aria-hidden="true"
           class="ag-charts-canvas"
           role="presentation"
         />
-        
-            
+
+
         <div
           class="ag-charts-canvas-proxy"
           role="figure"
         >
-          
-                
+
+
           <div
             class="ag-charts-series-area"
             role="presentation"
           />
-          
-            
+
+
         </div>
-        
-            
+
+
         <div
           class="ag-charts-canvas-overlay ag-charts-tooltip-container"
           role="presentation"
         />
-        
-        
+
+
       </div>
-      
-    
+
+
     </div>
     <div
       class="ag-charts-tab-guard"
     />
-    
+
 
     <style
       data-ag-charts="ag-charts-community"

@@ -296,7 +296,7 @@ export class Legend extends BaseProperties {
         this.cleanup.register(
             ctx.eventsHub.on('legend:change', this.onLegendDataChange.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
-            ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
+            ctx.eventsHub.on('locale:change', () => this.onLocaleChanged()),
             () => delete items['toggle-series-visibility'].action,
             () => delete items['toggle-other-series'].action,
             () => this.group.remove()

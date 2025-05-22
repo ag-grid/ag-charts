@@ -45,7 +45,7 @@ export class ChartContext implements ModuleContext {
     readonly callbackCache = new CallbackCache();
     readonly highlightManager = new HighlightManager(this.eventsHub);
     readonly formatManager = new FormatManager();
-    readonly layoutManager = new LayoutManager();
+    readonly layoutManager = new LayoutManager(this.eventsHub);
     readonly localeManager = new LocaleManager(this.eventsHub);
     readonly seriesStateManager = new SeriesStateManager();
     readonly stateManager = new StateManager();
@@ -129,13 +129,13 @@ export class ChartContext implements ModuleContext {
         this.interactionManager = new InteractionManager();
         this.contextMenuRegistry = new ContextMenuRegistry(this.eventsHub);
         this.updateService = new UpdateService(updateCallback);
-        this.proxyInteractionService = new ProxyInteractionService(this.localeManager, this.domManager);
+        this.proxyInteractionService = new ProxyInteractionService(this.eventsHub, this.localeManager, this.domManager);
         this.fontManager = new FontManager(this.domManager, this.updateService);
         this.historyManager = new HistoryManager(this.eventsHub);
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.eventsHub, this.animationManager);
-        this.tooltipManager = new TooltipManager(this.localeManager, this.domManager, chart.tooltip);
-        this.zoomManager = new ZoomManager(this.eventsHub, fireEvent, this.layoutManager);
+        this.tooltipManager = new TooltipManager(this.eventsHub, this.localeManager, this.domManager, chart.tooltip);
+        this.zoomManager = new ZoomManager(this.eventsHub, fireEvent);
 
         for (const module of moduleRegistry.byType<ContextModule>('context')) {
             if (!module.chartTypes.includes(chartType)) continue;
