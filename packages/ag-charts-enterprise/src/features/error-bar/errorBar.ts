@@ -71,7 +71,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.cleanup.register(
             series.addListener('data-processed', (e: SeriesDataProcessedEvent) => this.onDataProcessed(e)),
             series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
-            ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
+            ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
             () => annotationGroup.removeChild(this.groupNode),
             () => annotationSelections.delete(this.selection)
         );

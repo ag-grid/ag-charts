@@ -206,7 +206,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         this.cleanup.register(
             ctx.scene.attachNode(selectionRect),
-            ctx.chartEventManager.addListener('series-keynav-zoom', (event) => this.onNavZoom(event)),
+            ctx.eventsHub.on('series:keynav-zoom', (event) => this.onNavZoom(event)),
             ctx.widgets.seriesDragInterpreter.addListener('dblclick', (event) => this.onDoubleClick(event)),
             ctx.widgets.seriesDragInterpreter.addListener('drag-move', (event) => this.onDragMove(event)),
             ctx.widgets.seriesDragInterpreter.addListener('drag-start', (event) => this.onDragStart(event)),
@@ -419,7 +419,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         tooltipManager.removeTooltip(TOOLTIP_ID);
     }
 
-    private onNavZoom(event: _ModuleSupport.SeriesKeyNavZoomChartEvent) {
+    private onNavZoom(event: _ModuleSupport.SeriesKeyNavZoomEvent) {
         const { enabled, enableScrolling, scroller } = this;
         const isDefaultState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Default);
 

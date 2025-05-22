@@ -1,3 +1,6 @@
+import { EventEmitter } from 'ag-charts-core';
+
+import type { EventsHubMap } from '../../module/eventsHub';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
 import type { ChartAxisDirection } from '../chartAxisDirection';
@@ -33,6 +36,7 @@ export type SyncChartLike = {
     seriesAreaBoundingBox: BBox;
     tooltip: { enabled: boolean };
     ctx: {
+        eventsHub: EventEmitter<EventsHubMap>;
         highlightManager: HighlightManager;
         tooltipManager: TooltipManager;
         updateService: UpdateService;

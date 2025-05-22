@@ -1,4 +1,4 @@
-import { CleanupRegistry, type StrictHTMLElement } from 'ag-charts-core';
+import { CleanupRegistry, EventEmitter, type StrictHTMLElement } from 'ag-charts-core';
 
 import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import { HistoryManager } from '../api/state/historyManager';
@@ -8,6 +8,7 @@ import { ProxyInteractionService } from '../dom/proxyInteractionService';
 import { LocaleManager } from '../locale/localeManager';
 import type { ModuleInstance } from '../module/baseModule';
 import type { ContextModule } from '../module/coreModules';
+import type { EventsHubMap } from '../module/eventsHub';
 import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Group } from '../scene/group';
@@ -23,7 +24,6 @@ import { DataService } from './data/dataService';
 import type { ChartType } from './factory/chartTypes';
 import { FontManager } from './fonts/fontManager';
 import { AnimationManager } from './interaction/animationManager';
-import { ChartEventManager } from './interaction/chartEventManager';
 import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { HighlightManager } from './interaction/highlightManager';
 import { InteractionManager } from './interaction/interactionManager';
@@ -39,9 +39,10 @@ import type { Tooltip } from './tooltip/tooltip';
 import { type UpdateCallback, UpdateService } from './updateService';
 
 export class ChartContext implements ModuleContext {
+    readonly eventsHub = new EventEmitter<EventsHubMap>();
+
     readonly callbackCache = new CallbackCache();
-    readonly chartEventManager = new ChartEventManager();
-    readonly highlightManager = new HighlightManager();
+    readonly highlightManager = new HighlightManager(this.eventsHub);
     readonly layoutManager = new LayoutManager();
     readonly localeManager = new LocaleManager();
     readonly seriesStateManager = new SeriesStateManager();
@@ -128,7 +129,7 @@ export class ChartContext implements ModuleContext {
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(this.localeManager, this.domManager);
         this.fontManager = new FontManager(this.domManager, this.updateService);
-        this.historyManager = new HistoryManager(this.chartEventManager);
+        this.historyManager = new HistoryManager(this.eventsHub);
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.animationManager);
         this.tooltipManager = new TooltipManager(this.localeManager, this.domManager, chart.tooltip);
@@ -146,13 +147,10 @@ export class ChartContext implements ModuleContext {
     destroy() {
         // chart.ts handles the destruction of the scene.
         this.animationManager.destroy();
-        this.highlightManager.destroy();
         this.axisManager.destroy();
         this.callbackCache.invalidateCache();
-        this.chartEventManager.destroy();
         this.domManager.destroy();
         this.fontManager.destroy();
-        this.highlightManager.destroy();
         this.proxyInteractionService.destroy();
         this.syncManager.destroy();
         this.tooltipManager.destroy();

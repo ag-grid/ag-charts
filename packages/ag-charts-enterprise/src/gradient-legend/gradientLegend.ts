@@ -89,7 +89,7 @@ export class GradientLegend {
         this.legendGroup.append([this.gradientRect, this.arrow, this.ticksGroup]);
 
         this.cleanup.register(
-            ctx.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()),
+            ctx.eventsHub.on('highlight:change', () => this.onChartHoverChange()),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.onStartLayout(e)),
             () => this.legendGroup.remove()
         );
