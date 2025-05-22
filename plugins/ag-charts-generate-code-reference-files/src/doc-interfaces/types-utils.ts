@@ -487,7 +487,6 @@ export function printNode(node: ts.Node | undefined) {
     }
 }
 
-function trimArray(array?: string[]): string[] {
-    if (array == null) return [];
+function trimArray(array: string[]): string[] {
     return array.join('\n').trim().split('\n');
 }
