@@ -51,7 +51,10 @@ runs:
           if: steps.snapshot_check.outputs.updated == 'true' && github.ref == 'refs/heads/latest'
           env:
               GITHUB_TOKEN: ${{ inputs.github_token }}
+          shell: bash
           run: |
+              set -eux
+
               pr_count=$(
               gh pr list \
                   --base ${{ github.ref }} \
