@@ -363,6 +363,8 @@ jobs:
               uses: ./.github/actions/snapshot-notify
               with:
                   branch: ${{ needs.init.outputs.snapshot_branch }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
 
             - name: Merge JUnit Report XMLs
               run: |
