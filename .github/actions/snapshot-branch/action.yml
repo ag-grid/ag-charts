@@ -54,7 +54,7 @@ runs:
               git commit -m "Update E2E snapshots."
 
               while ! (git push origin HEAD:${{inputs.branch}}) ; do
-                  git pull origin ${{inputs.branch}} --rebase
+                  git pull origin ${{inputs.branch}} --rebase --autostash
               done
 
         - name: Fail PR checks if updates needed

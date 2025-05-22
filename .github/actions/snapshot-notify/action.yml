@@ -56,30 +56,30 @@ runs:
               set -eux
 
               pr_count=$(
-              gh pr list \
-                  --base ${{ github.ref }} \
-                  --head ${{ inputs.branch }} \
-                  --json title \
-                  --jq 'length'
+                gh pr list \
+                    --base ${{ github.ref }} \
+                    --head ${{ inputs.branch }} \
+                    --json title \
+                    --jq 'length'
               )
 
-              if ((prs > 0)); then
+              if ((pr_count > 0)); then
                   echo "Existing PRs for snapshots, skipping PR creation."
                   echo "skip=true" >> "$GITHUB_OUTPUT"
                   exit
               fi
 
               gh pr create \
-              --base ${{ github.ref }} \
-              --head ${{ inputs.branch }} \
-              --title "Snapshot updates at $(date +%Y/%m/%d-%H:%M)" \
-              --body "Automatically generated for review."
+                --base ${{ github.ref }} \
+                --head ${{ inputs.branch }} \
+                --title "Snapshot updates at $(date +%Y/%m/%d-%H:%M)" \
+                --body "Automatically generated for review."
 
               url=$(
-              gh pr view \
-              --base ${{ github.ref }} \
-              --head ${{ inputs.branch }} \
-              --json url | jq -r .url
+                gh pr view \
+                    --base ${{ github.ref }} \
+                    --head ${{ inputs.branch }} \
+                    --json url | jq -r .url
               )
 
               echo "url=${url}" >> $GITHUB_OUTPUT
