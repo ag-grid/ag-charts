@@ -6,7 +6,6 @@ import type { ChartService } from '../chart/chartService';
 import type { DataService } from '../chart/data/dataService';
 import type { FormatManager } from '../chart/formatter/formatManager';
 import type { AnimationManager } from '../chart/interaction/animationManager';
-import type { ChartEventManager } from '../chart/interaction/chartEventManager';
 import type { ContextMenuRegistry } from '../chart/interaction/contextMenuRegistry';
 import type { HighlightManager } from '../chart/interaction/highlightManager';
 import type { InteractionManager } from '../chart/interaction/interactionManager';
@@ -24,10 +23,12 @@ import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { LocaleManager } from '../locale/localeManager';
 import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
+import type { EventsHub } from './eventsHub';
 
 export interface ModuleContext {
     readonly scene: Scene;
 
+    readonly eventsHub: EventsHub;
     readonly callbackCache: CallbackCache;
 
     readonly chartService: ChartService;
@@ -40,7 +41,6 @@ export interface ModuleContext {
 
     readonly animationManager: AnimationManager;
     readonly annotationManager: AnnotationManager;
-    readonly chartEventManager: ChartEventManager;
     readonly contextMenuRegistry: ContextMenuRegistry;
     readonly formatManager: FormatManager;
     readonly domManager: DOMManager;

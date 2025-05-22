@@ -1,9 +1,9 @@
-import { type AnyFn, CleanupRegistry, Logger, type RequireOptional, createId } from 'ag-charts-core';
 import type {
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, Logger, type RequireOptional, createId } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgInitialStateLegendOptions,
@@ -16,6 +16,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { AxisFormattableLabel } from '../../module/axisContext';
+import type { LegendItemClickEvent, LegendItemDoubleClickEvent } from '../../module/eventsHub';
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
@@ -39,7 +40,6 @@ import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
-import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../interaction/chartEventManager';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
@@ -714,7 +714,7 @@ export abstract class Series<
         this.toggleSeriesItem(visible, legendType, itemId, legendItemName);
     }
 
-    onLegendItemClick(event: LegendItemClickChartEvent) {
+    onLegendItemClick(event: LegendItemClickEvent) {
         const { enabled, itemId, series, legendType } = event;
         const legendItemName =
             'legendItemName' in this.properties ? (this.properties.legendItemName as string) : undefined;
@@ -726,7 +726,7 @@ export abstract class Series<
         }
     }
 
-    onLegendItemDoubleClick(event: LegendItemDoubleClickChartEvent) {
+    onLegendItemDoubleClick(event: LegendItemDoubleClickEvent) {
         const { enabled, itemId, series, numVisibleItems, legendType } = event;
         const legendItemName =
             'legendItemName' in this.properties ? (this.properties.legendItemName as string) : undefined;

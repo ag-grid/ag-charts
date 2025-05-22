@@ -3,6 +3,7 @@ import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types
 
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
+import type { HighlightChangeEvent } from '../../module/eventsHub';
 import { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
 import type { Point } from '../../scene/point';
@@ -25,7 +26,6 @@ import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { ChartType } from '../factory/chartTypes';
-import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
 import { TooltipManager } from '../interaction/tooltipManager';
@@ -210,7 +210,7 @@ export class SeriesAreaManager extends BaseManager {
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
             chart.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
             chart.ctx.domManager.addListener('resize', () => this.clearAll()),
-            chart.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
+            chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
             chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
             chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
@@ -488,13 +488,13 @@ export class SeriesAreaManager extends BaseManager {
 
         switch (action?.name) {
             case 'redo':
-                return this.chart.ctx.chartEventManager.seriesEvent('series-redo');
+                return this.chart.ctx.eventsHub.emit('series:redo', null);
             case 'undo':
-                return this.chart.ctx.chartEventManager.seriesEvent('series-undo');
+                return this.chart.ctx.eventsHub.emit('series:undo', null);
             case 'zoomin':
-                return this.chart.ctx.chartEventManager.seriesKeyNavZoom(1, widgetEvent);
+                return this.chart.ctx.eventsHub.emit('series:keynav-zoom', { delta: 1, widgetEvent });
             case 'zoomout':
-                return this.chart.ctx.chartEventManager.seriesKeyNavZoom(-1, widgetEvent);
+                return this.chart.ctx.eventsHub.emit('series:keynav-zoom', { delta: -1, widgetEvent });
             case 'arrowup':
                 return this.onArrow(-1, 0, widgetEvent);
             case 'arrowdown':
@@ -517,7 +517,7 @@ export class SeriesAreaManager extends BaseManager {
         this.focus.datumIndex += datumIndexDelta;
         this.handleFocus(seriesIndexDelta, datumIndexDelta);
         event.sourceEvent.preventDefault();
-        this.chart.ctx.chartEventManager.seriesEvent('series-focus-change');
+        this.chart.ctx.eventsHub.emit('series:focus-change', null);
     }
 
     private onSubmit(event: KeyboardWidgetEvent<'keydown'>): void {

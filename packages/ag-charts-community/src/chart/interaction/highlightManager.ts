@@ -1,4 +1,4 @@
-import { BaseManager } from '../../util/baseManager';
+import type { EventsHub } from '../../module/eventsHub';
 import { StateTracker } from '../../util/stateTracker';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
 
@@ -13,40 +13,29 @@ export interface HighlightNodeDatum extends SeriesNodeDatum<unknown> {
     readonly domain?: [number, number];
 }
 
-export interface HighlightChangeEvent {
-    readonly type: 'highlight-change';
-    readonly previousHighlight?: HighlightNodeDatum;
-    readonly currentHighlight?: HighlightNodeDatum;
-    readonly callerId: string;
-}
-
 /**
  * Manages the actively highlighted series/datum for a chart. Tracks the requested highlights from
  * distinct dependents and handles conflicting highlight requests.
  */
-export class HighlightManager extends BaseManager<'highlight-change', HighlightChangeEvent> {
+export class HighlightManager {
     private readonly highlightStates = new StateTracker<HighlightNodeDatum>();
-    private activeHighlight?: HighlightNodeDatum;
 
-    public updateHighlight(callerId: string, highlightedDatum?: HighlightNodeDatum) {
-        const { activeHighlight: previousHighlight } = this;
+    constructor(private readonly eventsHub: EventsHub) {}
+
+    public updateHighlight(callerId: string, highlightedDatum?: HighlightNodeDatum): void {
+        const previousHighlight = this.getActiveHighlight();
         this.highlightStates.set(callerId, highlightedDatum);
-        this.activeHighlight = this.highlightStates.stateValue();
-        if (!this.isEqual(this.activeHighlight, previousHighlight)) {
-            this.listeners.dispatch('highlight-change', {
-                type: 'highlight-change',
-                currentHighlight: this.activeHighlight,
-                previousHighlight,
-                callerId,
-            });
+        const currentHighlight = this.getActiveHighlight();
+        if (!this.isEqual(currentHighlight, previousHighlight)) {
+            this.eventsHub.emit('highlight:change', { callerId, currentHighlight, previousHighlight });
         }
     }
 
     public getActiveHighlight(): HighlightNodeDatum | undefined {
-        return this.activeHighlight;
+        return this.highlightStates.stateValue();
     }
 
-    private isEqual(a?: SeriesNodeDatum<unknown>, b?: SeriesNodeDatum<unknown>) {
+    private isEqual(a?: SeriesNodeDatum<unknown>, b?: SeriesNodeDatum<unknown>): boolean {
         return (
             a === b ||
             (a != null && b != null && a?.series === b?.series && a?.itemId === b?.itemId && a?.datum === b?.datum)

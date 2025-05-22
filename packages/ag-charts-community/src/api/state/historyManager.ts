@@ -1,6 +1,6 @@
 import { CleanupRegistry } from 'ag-charts-core';
 
-import type { ChartEventManager } from '../../chart/interaction/chartEventManager';
+import type { EventsHub } from '../../module/eventsHub';
 import { Debug } from '../../util/debug';
 import { VERSION } from '../../version';
 import type { MementoOriginator } from './memento';
@@ -22,10 +22,10 @@ export class HistoryManager {
     private readonly debug = Debug.create(true, 'history');
     private readonly cleanup = new CleanupRegistry();
 
-    constructor(chartEventManager: ChartEventManager) {
+    constructor(eventsHub: EventsHub) {
         this.cleanup.register(
-            chartEventManager.addListener('series-undo', this.undo.bind(this)),
-            chartEventManager.addListener('series-redo', this.redo.bind(this))
+            eventsHub.on('series:undo', this.undo.bind(this)),
+            eventsHub.on('series:redo', this.redo.bind(this))
         );
     }
 
