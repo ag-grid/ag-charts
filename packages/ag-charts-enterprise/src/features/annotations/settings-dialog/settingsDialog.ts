@@ -1,4 +1,5 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
+import { EventEmitter } from 'ag-charts-core';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
@@ -20,7 +21,7 @@ import type {
 } from '../annotationsSuperTypes';
 import { isChannelType, isFibonacciType } from '../utils/types';
 
-const { Listeners, focusCursorAtEnd } = _ModuleSupport;
+const { focusCursorAtEnd } = _ModuleSupport;
 
 export interface LinearSettingsDialogOptions extends DialogOptions {
     initialSelectedTab: 'line' | 'text';
@@ -61,19 +62,15 @@ type LinearDialogPropertiesType = Exclude<
 >;
 
 interface EventMap {
-    hidden: void;
+    hidden: null;
 }
 
 export class AnnotationSettingsDialog extends Dialog {
-    private readonly events = new Listeners<keyof EventMap, any>();
+    readonly events = new EventEmitter<EventMap>();
 
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super(ctx, 'settings');
-        this.hideFns.push(() => this.events.dispatch('hidden'));
-    }
-
-    public addListener<K extends keyof EventMap>(eventType: K, handler: (event: EventMap[K]) => void) {
-        return this.events.addListener(eventType, handler);
+        this.hideFns.push(() => this.events.emit('hidden', null));
     }
 
     public show(datum: LinearDialogPropertiesType, options: LinearSettingsDialogOptions) {

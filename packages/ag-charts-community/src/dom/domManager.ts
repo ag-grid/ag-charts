@@ -335,7 +335,7 @@ export class DOMManager extends BaseManager {
             this.eventsHub.emit('dom:resize', null);
         });
 
-        this.eventsHub.emit('dom:container-changed', null);
+        this.eventsHub.emit('dom:container-change', null);
     }
 
     setThemeClass(themeClassName: string) {

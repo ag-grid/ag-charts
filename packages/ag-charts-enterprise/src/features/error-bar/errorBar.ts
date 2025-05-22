@@ -38,8 +38,7 @@ type AnyScale = _ModuleSupport.Scale<any, any, any>;
 type HighlightNodeDatum = NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>;
 type PickNodeDatumResult = _ModuleSupport.PickNodeDatumResult;
 type Point = _ModuleSupport.Point;
-type SeriesDataProcessedEvent = _ModuleSupport.SeriesDataProcessedEvent;
-type SeriesDataUpdateEvent = _ModuleSupport.SeriesDataUpdateEvent;
+type SeriesDataEvent = _ModuleSupport.SeriesDataEvent;
 type PropertyDefinitionOpts = Parameters<_ModuleSupport.SeriesOptionInstance['getPropertyDefinitions']>[0];
 
 export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.SeriesOptionInstance {
@@ -69,8 +68,8 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         series.addEventListener('seriesVisibilityChange', (e: AgSeriesVisibilityChange) => this.onToggleSeriesItem(e));
         this.cleanup.register(
-            series.addListener('data-processed', (e: SeriesDataProcessedEvent) => this.onDataProcessed(e)),
-            series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
+            series.events.on('data-processed', (e) => this.onDataProcessed(e)),
+            series.events.on('data-update', (e) => this.onDataUpdate(e)),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
             () => annotationGroup.removeChild(this.groupNode),
             () => annotationSelections.delete(this.selection)
@@ -169,7 +168,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
     }
 
-    private onDataProcessed(event: SeriesDataProcessedEvent) {
+    private onDataProcessed(event: SeriesDataEvent) {
         this.dataModel = event.dataModel;
         this.processedData = event.processedData;
     }
@@ -195,7 +194,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         return [];
     }
 
-    private onDataUpdate(event: SeriesDataUpdateEvent) {
+    private onDataUpdate(event: SeriesDataEvent) {
         this.dataModel = event.dataModel;
         this.processedData = event.processedData;
         if (isDefined(event.dataModel) && isDefined(event.processedData)) {

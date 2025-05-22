@@ -16,13 +16,17 @@ export interface EventsHubMap {
     'axis:hover': AxisHoverEvent;
     'context-menu:setup': ContextMenuEvent;
     'context-menu:complete': ContextMenuEvent;
-    'dom:container-changed': null;
+    'data:load': { data: object };
+    'data:error': null;
+    'data:source-change': null;
+    'dom:container-change': null;
     'dom:hidden': null;
     'dom:resize': null;
     'highlight:change': HighlightChangeEvent;
     'legend:change': LegendChangeEvent;
     'legend:item-click': LegendItemClickEvent;
     'legend:item-double-click': LegendItemDoubleClickEvent;
+    'locale:change': null;
     'series:focus-change': null;
     'series:keynav-zoom': SeriesKeyNavZoomEvent;
     'series:redo': null;

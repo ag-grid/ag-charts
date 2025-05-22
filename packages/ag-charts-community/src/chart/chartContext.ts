@@ -44,7 +44,7 @@ export class ChartContext implements ModuleContext {
     readonly callbackCache = new CallbackCache();
     readonly highlightManager = new HighlightManager(this.eventsHub);
     readonly layoutManager = new LayoutManager();
-    readonly localeManager = new LocaleManager();
+    readonly localeManager = new LocaleManager(this.eventsHub);
     readonly seriesStateManager = new SeriesStateManager();
     readonly stateManager = new StateManager();
     readonly seriesLabelLayoutManager = new SeriesLabelLayoutManager();
@@ -131,7 +131,7 @@ export class ChartContext implements ModuleContext {
         this.fontManager = new FontManager(this.domManager, this.updateService);
         this.historyManager = new HistoryManager(this.eventsHub);
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
-        this.dataService = new DataService<any>(this.animationManager);
+        this.dataService = new DataService<any>(this.eventsHub, this.animationManager);
         this.tooltipManager = new TooltipManager(this.localeManager, this.domManager, chart.tooltip);
         this.zoomManager = new ZoomManager(this.eventsHub, fireEvent, this.layoutManager);
 
