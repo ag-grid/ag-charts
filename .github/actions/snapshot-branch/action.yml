@@ -45,7 +45,7 @@ runs:
               git checkout -b ${{inputs.branch}}
 
               git stash pop
-              git add packages/ag-charts-{community,enterprise}/{benchmarks,src}/
+              git add ${{ inputs.path }}
               # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
               git config user.name "github-actions[bot]"
               git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
