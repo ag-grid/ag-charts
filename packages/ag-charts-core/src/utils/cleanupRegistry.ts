@@ -1,6 +1,6 @@
 import type { AnyFn } from '../interfaces/globalTypes';
 
-type RegisteredCallback = AnyFn | undefined | null;
+type RegisteredCallback = AnyFn | false | null | undefined;
 
 export class CleanupRegistry {
     protected readonly callbacks = new Set<AnyFn>();
@@ -20,7 +20,7 @@ export class CleanupRegistry {
 
     public register(...callbacks: RegisteredCallback[]) {
         for (const cb of callbacks) {
-            if (cb == null) continue;
+            if (!cb) continue;
             this.callbacks.add(cb);
         }
     }

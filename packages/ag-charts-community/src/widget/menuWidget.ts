@@ -102,7 +102,6 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
     }
 
     public open(event: WidgetEvent, opts?: { overrideFocusVisible?: boolean }): void {
-        const { overrideFocusVisible = undefined } = opts ?? {};
         if (this.openScope != null) return; // already open
 
         this.openScope = {
@@ -112,23 +111,17 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
             close: () => this.selfClose(CloseMode.CLOSE),
             removers: new CleanupRegistry(),
         };
-        const buttons: HTMLElement[] = this.children.map((value) => value.getElement());
-        setAttribute(this.openScope.lastFocus, 'aria-expanded', true);
+        const scope = this.openScope;
+        const buttons = this.children.map((value) => value.getElement());
+        setAttribute(scope.lastFocus, 'aria-expanded', true);
 
-        this.openScope.removers.register(
-            addMouseCloseListener(this.elem, this.openScope.abort),
-            addTouchCloseListener(this.elem, this.openScope.abort)
+        scope.removers.register(
+            addMouseCloseListener(this.elem, scope.abort),
+            addTouchCloseListener(this.elem, scope.abort),
+            ...this.children.map((child) => addEscapeEventListener(child.getElement(), scope.close, closeKeys)),
+            opts?.overrideFocusVisible &&
+                addOverrideFocusVisibleEventListener(this.elem, buttons, opts.overrideFocusVisible)
         );
-        for (const child of this.children) {
-            this.openScope.removers.register(
-                addEscapeEventListener(child.getElement(), this.openScope.close, closeKeys)
-            );
-        }
-        if (overrideFocusVisible !== undefined) {
-            this.openScope.removers.register(
-                addOverrideFocusVisibleEventListener(this.elem, buttons, overrideFocusVisible)
-            );
-        }
 
         this.internalListener?.dispatch('open-widget', this, { type: 'open-widget' });
         this.children[0]?.focus({ preventScroll: true });
