@@ -2,7 +2,7 @@ import { EventEmitter } from 'ag-charts-core';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { HighlightNodeDatum } from '../chart/interaction/highlightManager';
-import type { ChartLegendType } from '../chart/legend/legendDatum';
+import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';
 import type { KeyboardWidgetEvent } from '../widget/widgetEvents';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
@@ -11,6 +11,7 @@ export type EventsHub = EventEmitter<EventsHubMap>;
 export interface EventsHubMap {
     'axis:hover': AxisHoverEvent;
     'highlight:change': HighlightChangeEvent;
+    'legend:change': LegendChangeEvent;
     'legend:item-click': LegendItemClickEvent;
     'legend:item-double-click': LegendItemDoubleClickEvent;
     'series:focus-change': null;
@@ -27,6 +28,10 @@ export interface AxisHoverEvent {
 export interface SeriesKeyNavZoomEvent {
     readonly delta: -1 | 0 | 1;
     readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
+}
+
+export interface LegendChangeEvent {
+    legendData?: CategoryLegendDatum[];
 }
 
 export interface LegendItemClickEvent {
