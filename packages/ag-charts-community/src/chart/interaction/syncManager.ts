@@ -2,7 +2,6 @@ import { EventEmitter } from 'ag-charts-core';
 
 import type { EventsHubMap } from '../../module/eventsHub';
 import type { BBox } from '../../scene/bbox';
-import { BaseManager } from '../../util/baseManager';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ISeries } from '../series/seriesTypes';
 import type { TooltipContent } from '../tooltip/tooltip';
@@ -66,13 +65,11 @@ export type SyncGroupState = {
     domainsByPosition?: { [key: string]: SyncDerivedDomain };
 };
 
-export class SyncManager extends BaseManager {
+export class SyncManager {
     private static readonly chartsGroups = new Map<GroupId, SyncGroupState>();
     private static readonly DEFAULT_GROUP = Symbol('sync-group-default');
 
-    constructor(protected chart: SyncChartLike) {
-        super();
-    }
+    constructor(protected chart: SyncChartLike) {}
 
     subscribe(groupId: GroupId = SyncManager.DEFAULT_GROUP) {
         let syncGroup = this.get(groupId);
