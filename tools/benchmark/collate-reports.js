@@ -59,7 +59,7 @@ function readReports() {
 function updateSummaryExample(results) {
     console.info(`Reading ${argv['data-file']}...`);
 
-    let data = {};
+    let data = [];
     if (fs.existsSync(argv['data-file'])) {
         let dataFile = fs.readFileSync(argv['data-file']).toString();
         dataFile = dataFile.replace('export function', 'function');
