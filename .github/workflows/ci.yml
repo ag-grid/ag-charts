@@ -56,7 +56,7 @@ jobs:
             e2e_matrix: ${{ steps.matrix.outputs.e2e_matrix }}
             e2e_count: ${{ steps.matrix.outputs.e2e_count }}
             build_type: ${{ steps.setup.outputs.type }}
-            snapshot_branch: ${{ steps.branch.outputs.branch }}
+            snapshot_branch: ${{ steps.snapshot-prepare.outputs.branch }}
         steps:
             - name: Checkout
               id: checkout
@@ -110,16 +110,9 @@ jobs:
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${e2e_matrix}"
 
-            - name: Calculate snapshot branch name + cleanup previous runs
-              id: branch
-              run: |
-                  branch=gha/snapshots-${{github.head_ref || github.run_id}}
-
-                  if (git ls-remote --exit-code --heads origin ${branch} >/dev/null) ; then
-                      git push -d origin ${branch}
-                  fi
-
-                  echo "branch=${branch}" >> $GITHUB_OUTPUT
+            - name: Prepare Snapshot Branch
+              uses: ./.github/actions/snapshot-prepare
+              id: snapshot-prepare
 
             - name: Perist build outputs
               if: always()
