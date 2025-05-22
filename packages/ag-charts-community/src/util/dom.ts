@@ -1,7 +1,7 @@
-import { type BoundingBox, getDocument, getWindow } from 'ag-charts-core';
+import { type BoxBounds, getDocument, getWindow } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
-export function setElementBBox(element: HTMLElement | undefined, bbox: Partial<BoundingBox>) {
+export function setElementBBox(element: HTMLElement | undefined, bbox: Partial<BoxBounds>) {
     if (!element) return;
     const { x, y, width, height } = normalizeBounds(bbox);
     setPixelValue(element.style, 'width', width);
@@ -10,7 +10,7 @@ export function setElementBBox(element: HTMLElement | undefined, bbox: Partial<B
     setPixelValue(element.style, 'top', y);
 }
 
-export function getElementBBox(element: HTMLElement): BoundingBox {
+export function getElementBBox(element: HTMLElement): BoxBounds {
     const width = parseFloat(element.style.width) || element.offsetWidth;
     const height = parseFloat(element.style.height) || element.offsetHeight;
     const x = parseFloat(element.style.left) || element.offsetLeft;
@@ -50,7 +50,7 @@ export function getIconClassNames(icon: AgIconName) {
     return `ag-charts-icon ag-charts-icon-${icon}`;
 }
 
-function normalizeBounds(bbox: Partial<BoundingBox>): Partial<BoundingBox> {
+function normalizeBounds(bbox: Partial<BoxBounds>): Partial<BoxBounds> {
     let { x, y, width, height } = bbox;
     if ((width == null || width > 0) && (height == null || height > 0)) {
         return bbox;

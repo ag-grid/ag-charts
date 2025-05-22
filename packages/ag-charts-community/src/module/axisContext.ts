@@ -1,4 +1,4 @@
-import type { BoundingBox } from 'ag-charts-core';
+import type { BoxBounds } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
@@ -12,7 +12,7 @@ export interface AxisContext {
     direction: ChartAxisDirection;
     position?: AgCartesianAxisPosition;
     scale: Scale<any, any, any>;
-    getCanvasBounds(): BoundingBox | undefined;
+    getCanvasBounds(): BoxBounds | undefined;
     seriesKeyProperties(): Set<string>;
     seriesIds(): string[];
     scaleInvert(position: number): any;

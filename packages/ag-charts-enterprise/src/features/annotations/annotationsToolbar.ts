@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { BoundingBox } from 'ag-charts-core';
+import type { BoxBounds } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 import { type AnnotationType } from './annotationTypes';
@@ -218,7 +218,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
 
     private onToolbarButtonPressShowMenu(
         event: _ModuleSupport.MouseWidgetEvent<'click'>,
-        buttonBounds: BoundingBox,
+        buttonBounds: BoxBounds,
         menu: AnnotationsToolbarButtonValue,
         ariaLabel: string,
         items: Array<_ModuleSupport.MenuItem<AnnotationType>>

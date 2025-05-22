@@ -1,4 +1,4 @@
-import { type BoundingBox, type StrictHTMLElement, createElement, createElementId } from 'ag-charts-core';
+import { type BoxBounds, type StrictHTMLElement, createElement, createElementId } from 'ag-charts-core';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { ModuleContext } from '../../module/moduleContext';
@@ -146,7 +146,7 @@ export class LegendDOMProxy {
 
                 const { x, y, height, width } = Transformable.toCanvas(l);
                 const margin = (maxHeight - height) / 2; // CRT-543 Give the legend items the same heights for a better look.
-                const bbox: BoundingBox = { x: x - groupBBox.x, y: y - margin - groupBBox.y, height: maxHeight, width };
+                const bbox: BoxBounds = { x: x - groupBBox.x, y: y - margin - groupBBox.y, height: maxHeight, width };
 
                 const enabled = interactive && visible;
                 l.proxyButton.setCursor('pointer');

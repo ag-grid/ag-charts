@@ -1,4 +1,4 @@
-import { type BoundingBox, clamp } from 'ag-charts-core';
+import { type BoxBounds, clamp } from 'ag-charts-core';
 
 import { Vec4 } from './vector4';
 
@@ -50,9 +50,9 @@ function panAxesUnnormalized(
 // The calculations of the new desired viewport (i.e. ZoomState) is done in pixel coords (unnormalised).
 // The desired (x, y) for the new viewport is found, the pixel coords are converted into normalized values
 export function calcPanToBBoxRatios(
-    viewportBBox: BoundingBox,
+    viewportBBox: BoxBounds,
     ratios: Partial<XYRatios>,
-    targetBBox: BoundingBox
+    targetBBox: BoxBounds
 ): XYRatios {
     const { x: ratioX = { min: 0, max: 1 }, y: ratioY = { min: 0, max: 1 } } = ratios;
 

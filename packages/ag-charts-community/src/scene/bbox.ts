@@ -1,4 +1,4 @@
-import { type BoundingBox, boxContains, boxesEqual, clamp } from 'ag-charts-core';
+import { type BoxBounds, boxContains, boxesEqual, clamp } from 'ag-charts-core';
 
 import { type Interpolating, interpolate } from '../util/interpolating';
 import type { DistantObject, NearestResult } from '../util/nearest';
@@ -21,7 +21,7 @@ type Padding = {
 
 type ShrinkOrGrowPosition = 'top' | 'left' | 'bottom' | 'right' | 'vertical' | 'horizontal';
 
-export class BBox implements BoundingBox, DistantObject, Interpolating<BBox> {
+export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
     static readonly zero = Object.freeze(new BBox(0, 0, 0, 0)) as BBox;
     static readonly NaN = Object.freeze(new BBox(NaN, NaN, NaN, NaN)) as BBox;
 
@@ -29,7 +29,7 @@ export class BBox implements BoundingBox, DistantObject, Interpolating<BBox> {
         return new BBox(x, y, width, height);
     }
 
-    static merge(boxes: Iterable<BoundingBox>) {
+    static merge(boxes: Iterable<BoxBounds>) {
         let left = Infinity;
         let top = Infinity;
         let right = -Infinity;

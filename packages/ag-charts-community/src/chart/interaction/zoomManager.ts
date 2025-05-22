@@ -1,5 +1,5 @@
 import {
-    type BoundingBox,
+    type BoxBounds,
     Logger,
     type OptionsDefs,
     type RequireOptional,
@@ -367,7 +367,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         this.updateAxisZoom(callerId, primaryAxis.id, newZoom);
     }
 
-    public panToBBox(callerId: string, seriesRect: BBox, target: BoundingBox): boolean {
+    public panToBBox(callerId: string, seriesRect: BBox, target: BoxBounds): boolean {
         if (!this.isZoomEnabled() && !this.isNavigatorEnabled()) return false;
 
         const zoom = this.getZoom();

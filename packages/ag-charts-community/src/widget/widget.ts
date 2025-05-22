@@ -1,7 +1,7 @@
 import {
     type BaseAttributeTypeMap,
     type BaseStyleTypeMap,
-    type BoundingBox,
+    type BoxBounds,
     type ElementID,
     getAttribute,
     getWindow,
@@ -35,11 +35,11 @@ abstract class WidgetBounds {
         this.elem = elem;
     }
 
-    setBounds(bounds: Partial<BoundingBox>): void {
+    setBounds(bounds: Partial<BoxBounds>): void {
         setElementBBox(this.elemContainer ?? this.elem, bounds);
     }
 
-    getBounds(): BoundingBox {
+    getBounds(): BoxBounds {
         return getElementBBox(this.elemContainer ?? this.elem);
     }
 

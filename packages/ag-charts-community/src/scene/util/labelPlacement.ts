@@ -1,4 +1,4 @@
-import { type BoundingBox, boxCollides, boxContains } from 'ag-charts-core';
+import { type BoxBounds, boxCollides, boxContains } from 'ag-charts-core';
 
 import type { Point, SizedPoint } from '../point';
 
@@ -95,7 +95,7 @@ const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> 
  * @param padding
  * @returns Placed labels for all series.
  */
-export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds: BoundingBox, padding = 5) {
+export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds: BoxBounds, padding = 5) {
     const result: Map<string, PlacedLabel[]> = new Map();
     const previousResults: PlacedLabel[] = [];
 

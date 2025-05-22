@@ -1,5 +1,5 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import type { BoundingBox } from 'ag-charts-core';
+import type { BoxBounds } from 'ag-charts-core';
 
 import { ColorPicker } from '../../components/color-picker/colorPicker';
 import {
@@ -365,7 +365,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         }
     }
 
-    private onToolbarMoved(event: { buttonBounds: BoundingBox[]; popoverBounds: BoundingBox }) {
+    private onToolbarMoved(event: { buttonBounds: BoxBounds[]; popoverBounds: BoxBounds }) {
         const { buttonBounds, popoverBounds } = event;
 
         const colorPickerAnchor = { x: popoverBounds.x, y: popoverBounds.y + popoverBounds.height + 4 };

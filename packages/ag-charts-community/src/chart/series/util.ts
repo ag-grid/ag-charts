@@ -1,4 +1,4 @@
-import { type BoundingBox, findMaxIndex, findMinIndex } from 'ag-charts-core';
+import { type BoxBounds, findMaxIndex, findMinIndex } from 'ag-charts-core';
 
 import { Transformable } from '../../scene/transformable';
 import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from './seriesTypes';
@@ -73,7 +73,7 @@ export function visibleRangeIndices(
 export function getDatumRefPoint(
     series: ISeries<any, any, any>,
     datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
-    movedBounds: BoundingBox | undefined
+    movedBounds: BoxBounds | undefined
 ): { canvasX: number; canvasY: number } | undefined {
     if (movedBounds) {
         const { x, y, width, height } = movedBounds;

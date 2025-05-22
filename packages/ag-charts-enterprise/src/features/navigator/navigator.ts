@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type BoundingBox, Logger, clamp } from 'ag-charts-core';
+import { type BoxBounds, Logger, clamp } from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
@@ -12,7 +12,7 @@ const { BaseModuleInstance, ObserveChanges, Property } = _ModuleSupport;
 interface BBoxProvider {
     id: string;
     visible?: boolean;
-    toCanvasBBox(): BoundingBox;
+    toCanvasBBox(): BoxBounds;
     fromCanvasPoint(x: number, y: number): { x: number; y: number };
     getBBox(): _ModuleSupport.BBox;
 }
