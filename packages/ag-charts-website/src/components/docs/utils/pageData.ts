@@ -15,6 +15,7 @@ type DocExamplePage = DocExamplePages[number]['params'] & {
     isIntegratedCharts?: boolean;
     isLocale?: boolean;
     hasExampleConsoleLog?: boolean;
+    hasExampleControls?: boolean;
     sourceFileList?: string[];
 };
 type DocFrameworkExamples = Record<InternalFramework, DocExamplePage>;
@@ -82,6 +83,7 @@ function flattenDocsExampleContents(data: Record<string, DocFrameworkExamples>) 
         const isIntegratedCharts = allPropertiesAreTruthy(frameworkEntries, 'isIntegratedCharts');
         const isLocale = allPropertiesAreTruthy(frameworkEntries, 'isLocale');
         const hasExampleConsoleLog = allPropertiesAreTruthy(frameworkEntries, 'hasExampleConsoleLog');
+        const hasExampleControls = allPropertiesAreTruthy(frameworkEntries, 'hasExampleControls');
 
         return {
             id: `${pageName}-${exampleName}`,
@@ -92,6 +94,7 @@ function flattenDocsExampleContents(data: Record<string, DocFrameworkExamples>) 
             isIntegratedCharts,
             isLocale,
             hasExampleConsoleLog,
+            hasExampleControls,
             frameworkExamples,
         };
     });
@@ -122,6 +125,7 @@ export async function getDocsExampleContents({ pages }: { pages: DocsPage[] }) {
             isIntegratedCharts: contents?.isIntegratedCharts,
             isLocale: contents?.isLocale,
             hasExampleConsoleLog: contents?.hasExampleConsoleLog,
+            hasExampleControls: contents?.hasExampleControls,
             sourceFileList: contents?.sourceFileList,
             ...example.params,
         };

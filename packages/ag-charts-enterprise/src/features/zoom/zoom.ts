@@ -129,11 +129,16 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.ctx.zoomManager.setAutoScaleYAxis(newValue.enabled, newValue.padding);
     });
 
+    private readonly canResetZoom = (zoom?: Readonly<DefinedZoomState>): boolean => {
+        zoom ??= this.getZoom();
+        return !isZoomEqual(zoom, this.getResetZoom());
+    };
+
     @Property
     public buttons = new ZoomToolbar(
         this.ctx,
         this.getModuleProperties.bind(this),
-        this.getResetZoom.bind(this),
+        this.canResetZoom,
         this.updateZoom.bind(this),
         this.updateAxisZoom.bind(this),
         this.resetZoom.bind(this),
@@ -180,6 +185,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.contextMenuRegistry,
             ctx.zoomManager,
             this.getModuleProperties.bind(this),
+            this.canResetZoom,
             () => this.paddedRect,
             this.updateZoom.bind(this),
             this.isZoomValid.bind(this)

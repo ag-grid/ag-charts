@@ -9,6 +9,7 @@ import type { GeneratedContents, InternalFramework } from './types';
 import {
     getEntryFileName,
     getHasExampleConsoleLog,
+    getHasExampleControls,
     getHasLocale,
     getIsEnterprise,
     getProvidedExampleFiles,
@@ -22,7 +23,7 @@ import { getExampleConfig } from './utils/getExampleConfig';
 import { getHtmlFiles } from './utils/getHtmlFiles';
 import { getOtherScriptFiles } from './utils/getOtherScriptFiles';
 import { getPackageJson } from './utils/getPackageJson';
-import { getStyleFiles } from './utils/getStyleFiles';
+import { filterStyleFiles, getStyleFiles } from './utils/getStyleFiles';
 
 type FileListParams = {
     internalFramework: InternalFramework;
@@ -162,6 +163,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         internalFramework,
     });
     const hasExampleConsoleLog = getHasExampleConsoleLog({ contents: entryFile });
+    const hasExampleControls = getHasExampleControls({ contents: indexHtml });
     const mainEntryFilename = getEntryFileName(internalFramework);
     const providedExampleEntries = await Promise.all(
         providedExampleFileNames.map(async (fileName) => {
@@ -202,6 +204,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         internalFramework,
     });
 
+    const styleFileNames = filterStyleFiles(sourceFileList);
     const { files, boilerPlateFiles, scriptFiles, entryFileName, mainFileName } = await getFrameworkFiles({
         entryFile,
         indexHtml,
@@ -209,6 +212,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         bindings,
         typedBindings,
         otherScriptFiles,
+        styleFileNames,
         transformEntryFile,
         isDev,
     });
@@ -233,6 +237,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         isEnterprise,
         hasLocale,
         hasExampleConsoleLog,
+        hasExampleControls,
         exampleConfig,
         scriptFiles,
         styleFiles: Object.keys(styleFiles),
