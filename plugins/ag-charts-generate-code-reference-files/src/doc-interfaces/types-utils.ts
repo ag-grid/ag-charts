@@ -443,6 +443,7 @@ export function formatNode(node: ts.Node | undefined) {
 }
 
 function getJsDoc(node: ts.Node & { jsDoc?: { getFullText(): string }[] }) {
+    // TODO: AG-14962 remove null-check
     return trimArray(
         node.jsDoc?.flatMap((doc) =>
             doc
@@ -471,8 +472,8 @@ function getJsDoc(node: ts.Node & { jsDoc?: { getFullText(): string }[] }) {
     );
 }
 
-export function printNode(node: ts.Node | undefined) {
-    if (node == null) return null;
+export function printNode(node: ts.Node | undefined): string | null {
+    if (node == null /* TODO: AG-14962 remove null-check */) return null;
     try {
         return tsPrinter.printNode(ts.EmitHint.Unspecified, node, node.getSourceFile()).replace(/\n\s*/g, ' ');
     } catch (e) {
