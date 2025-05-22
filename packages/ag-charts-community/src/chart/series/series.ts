@@ -1,4 +1,4 @@
-import { type AnyFn, Logger, type RequireOptional, createId } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, Logger, type RequireOptional, createId } from 'ag-charts-core';
 import type {
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
@@ -171,7 +171,7 @@ export abstract class Series<
     extends Observable
     implements ISeries<TDatumIndex, TDatum, TProps, TLabel>
 {
-    protected destroyFns: (() => void)[] = [];
+    protected cleanup = new CleanupRegistry();
     abstract readonly properties: TProps;
 
     pickModes: SeriesNodePickMode[];
@@ -421,8 +421,7 @@ export abstract class Series<
     }
 
     destroy(): void {
-        this.destroyFns.forEach((f) => f());
-        this.destroyFns = [];
+        this.cleanup.flush();
         this.resetDatumCallbackCache();
         this.ctx.seriesStateManager.deregisterSeries(this);
     }

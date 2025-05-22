@@ -5,7 +5,6 @@ import type { ModuleContext } from '../../module/moduleContext';
 import type { Node } from '../../scene/node';
 import type { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
-import { DestroyFns } from '../../util/destroy';
 import type { ButtonWidget } from '../../widget/buttonWidget';
 import type { GroupWidget } from '../../widget/groupWidget';
 import type { ListWidget } from '../../widget/listWidget';
@@ -51,7 +50,6 @@ export class LegendDOMProxy {
     private readonly itemList: ListWidget;
     private readonly itemDescription: HTMLParagraphElement & StrictHTMLElement;
     private readonly paginationGroup: GroupWidget;
-    private readonly destroyFns: DestroyFns = new DestroyFns();
     private prevButton?: ButtonWidget;
     private nextButton?: ButtonWidget;
 
@@ -74,10 +72,6 @@ export class LegendDOMProxy {
         this.itemDescription.id = createElementId();
         this.itemDescription.textContent = this.getItemAriaDescription(ctx.localeManager);
         this.itemList.getElement().append(this.itemDescription);
-    }
-
-    public destroy() {
-        this.destroyFns.destroy();
     }
 
     private initLegendList(params: LegendDOMProxyUpdateParams) {

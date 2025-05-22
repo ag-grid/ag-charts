@@ -82,7 +82,7 @@ export abstract class RadiusAxis<
 
         this.headingLabelGroup.appendChild(this.title.caption.node);
 
-        this.destroyFns.push(this.title.caption.registerInteraction(this.moduleCtx, 'afterend'));
+        this.cleanup.register(this.title.caption.registerInteraction(this.moduleCtx, 'afterend'));
     }
 
     private getAxisTransform() {

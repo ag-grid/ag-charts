@@ -20,7 +20,7 @@ export class Animation extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         ctx.animationManager.skip(false);
 
-        this.destroyFns.push(() => {
+        this.cleanup.register(() => {
             ctx.animationManager.skip(true);
         });
     }

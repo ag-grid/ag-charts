@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { setAttribute } from 'ag-charts-core';
+import { attachListener, setAttribute } from 'ag-charts-core';
 import type { FontOptions, TextAlign } from 'ag-charts-types';
 
 import type { AnnotationTextPosition } from '../annotations/text/util';
@@ -34,12 +34,11 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.element = ctx.domManager.addChild(canvasOverlay, moduleId);
         this.element.classList.add('ag-charts-text-input');
 
-        this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, moduleId));
+        this.cleanup.register(() => ctx.domManager.removeChild(canvasOverlay, moduleId));
     }
 
     public setKeyDownHandler(handler: (e: KeyboardEvent) => unknown) {
-        this.element.addEventListener('keydown', handler);
-        this.destroyFns.push(() => this.element.removeEventListener('keydown', handler));
+        this.cleanup.register(attachListener(this.element, 'keydown', handler));
     }
 
     public show(opts: {

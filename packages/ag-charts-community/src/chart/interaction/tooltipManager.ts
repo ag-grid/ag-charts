@@ -1,4 +1,4 @@
-import type { BoxBounds } from 'ag-charts-core';
+import { type BoxBounds, CleanupRegistry } from 'ag-charts-core';
 
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
@@ -30,21 +30,21 @@ export class TooltipManager {
     private readonly suppressState = new StateTracker(false);
     private appliedState: TooltipState | null = null;
 
-    private readonly destroyFns: Array<() => void> = [];
+    private readonly cleanup = new CleanupRegistry();
 
     public constructor(
         localeManager: LocaleManager,
         private readonly domManager: DOMManager,
         private readonly tooltip: Tooltip
     ) {
-        this.destroyFns.push(
+        this.cleanup.register(
             tooltip.setup(localeManager, domManager),
             domManager.addListener('hidden', () => this.tooltip.hide())
         );
     }
 
     public destroy() {
-        this.destroyFns.forEach((fn) => fn());
+        this.cleanup.flush();
     }
 
     public updateTooltip(

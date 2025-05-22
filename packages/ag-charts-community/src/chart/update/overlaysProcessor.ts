@@ -1,4 +1,4 @@
-import { setAttribute } from 'ag-charts-core';
+import { CleanupRegistry, setAttribute } from 'ag-charts-core';
 
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
@@ -14,7 +14,7 @@ import type { ChartLike, UpdateProcessor } from './processor';
 const visibleIgnoredSeries = new Set(['map-shape-background', 'map-line-background']);
 
 export class OverlaysProcessor<D extends object> implements UpdateProcessor {
-    private readonly destroyFns: (() => void)[] = [];
+    private readonly cleanup = new CleanupRegistry();
     private readonly overlayElem: HTMLElement;
 
     constructor(
@@ -31,11 +31,11 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.overlayElem.ariaAtomic = 'false';
         this.overlayElem.ariaLive = 'polite';
         this.overlayElem.classList.toggle(DEFAULT_OVERLAY_CLASS);
-        this.destroyFns.push(this.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)));
+        this.cleanup.register(this.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)));
     }
 
     public destroy() {
-        this.destroyFns.forEach((cb) => cb());
+        this.cleanup.flush();
         this.domManager.removeChild('canvas-overlay', 'overlay');
     }
 

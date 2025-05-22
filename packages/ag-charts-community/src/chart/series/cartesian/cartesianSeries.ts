@@ -354,7 +354,7 @@ export abstract class CartesianSeries<
     }
 
     override addChartEventListeners(): void {
-        this.destroyFns.push(
+        this.cleanup.register(
             this.ctx.chartEventManager.addListener('legend-item-click', (event) => this.onLegendItemClick(event)),
             this.ctx.chartEventManager.addListener('legend-item-double-click', (event) =>
                 this.onLegendItemDoubleClick(event)

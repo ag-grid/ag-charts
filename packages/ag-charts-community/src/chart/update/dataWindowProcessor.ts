@@ -1,3 +1,5 @@
+import { CleanupRegistry } from 'ag-charts-core';
+
 import { ChartUpdateType } from '../chartUpdateType';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
@@ -10,7 +12,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     private dirtyDataSource = false;
     private readonly lastAxisZooms = new Map<string, ZoomState>();
 
-    private readonly destroyFns: (() => void)[] = [];
+    private readonly cleanup = new CleanupRegistry();
 
     constructor(
         private readonly chart: ChartLike,
@@ -19,7 +21,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         private readonly zoomManager: ZoomManager,
         private readonly animationManager: AnimationManager
     ) {
-        this.destroyFns.push(
+        this.cleanup.register(
             this.dataService.addListener('data-source-change', () => this.onDataSourceChange()),
             this.dataService.addListener('data-load', () => this.onDataLoad()),
             this.dataService.addListener('data-error', () => this.onDataError()),
@@ -29,7 +31,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     }
 
     public destroy() {
-        this.destroyFns.forEach((cb) => cb());
+        this.cleanup.flush();
     }
 
     private onDataLoad() {

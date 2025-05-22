@@ -254,7 +254,7 @@ export class StatusBar
 
         this.labelGroup.visible = false;
 
-        this.destroyFns.push(
+        this.cleanup.register(
             ctx.scene.attachNode(this.layer),
             ctx.layoutManager.registerElement(LayoutElement.Overlay, (e) => this.startPerformLayout(e)),
             ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
