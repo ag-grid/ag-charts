@@ -1,5 +1,5 @@
 import { HIDDEN_API_INTERFACE_MEMBERS } from './constants';
-import type { ApiReferenceNode, ApiReferenceType, InterfaceNode } from './types';
+import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode } from './types';
 
 /**
  * Patch doc interfaces for the front end
@@ -36,6 +36,15 @@ function getTypeUnion(typeRef: ApiReferenceNode | undefined): string[] {
     return result;
 }
 
+function readMemberName(member: MemberNode): string | undefined {
+    if (typeof member.type === 'object' && member.type.kind === 'array') {
+        if (typeof member.type.type === 'string') {
+            return member.type.type;
+        }
+    }
+    return undefined;
+}
+
 function patchAgChartOptionsReference(reference: ApiReferenceType) {
     const interfaceRef = reference.get('AgChartOptions');
     if (interfaceRef == null) {
@@ -44,6 +53,7 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
 
     const axisOptions: string[] = [];
     const seriesOptions: string[] = [];
+    const unsupportedMembers: MemberNode[] = [];
 
     let altInterface: InterfaceNode | null = null;
 
@@ -57,27 +67,29 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
         altInterface ??= typeRef;
 
         for (const member of typeRef.members) {
-            if (
-                typeof member.type !== 'object' ||
-                member.type.kind !== 'array' ||
-                typeof member.type.type !== 'string'
-            ) {
-                continue;
-            }
+            const specialOptions: string[] | undefined = {
+                axes: axisOptions,
+                series: seriesOptions,
+            }[member.name];
 
-            if (member.name === 'axes') {
-                const axisOption = reference.get(member.type.type);
-                const axisOptionUnion = getTypeUnion(axisOption);
-                axisOptions.push(...axisOptionUnion);
-            } else if (member.name === 'series') {
-                const series = getTypeUnion(reference.get(member.type.type));
-                seriesOptions.push(...series);
+            if (specialOptions) {
+                const memberTypeName: string | undefined = readMemberName(member);
+                if (memberTypeName == null) {
+                    unsupportedMembers.push(member);
+                } else {
+                    const union = getTypeUnion(reference.get(memberTypeName));
+                    specialOptions.push(...union);
+                }
             }
         }
     }
 
     if (altInterface === null) {
         throw new Error('Failed to initialise altInterface');
+    }
+    if (unsupportedMembers.length > 0) {
+        console.error('Detected unsupported members', unsupportedMembers);
+        throw new Error('Failed to patch options due to unsupported members');
     }
 
     reference.set('AgChartAxisOptions', {
