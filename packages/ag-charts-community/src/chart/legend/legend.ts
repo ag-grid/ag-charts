@@ -1,9 +1,9 @@
-import { type AnyFn, CleanupRegistry, Logger, clamp, createId } from 'ag-charts-core';
 import type {
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, Logger, clamp, createId } from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -20,6 +20,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { LayoutContext } from '../../module/baseModule';
+import type { LegendChangeEvent } from '../../module/eventsHub';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
@@ -28,8 +29,7 @@ import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
 import { isImageFill, isPatternFill } from '../../scene/util/fill';
 import { objectsEqual } from '../../util/object';
-import { BaseProperties } from '../../util/properties';
-import { Property } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import { CachedTextMeasurer, CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
@@ -49,7 +49,6 @@ import { ZIndexMap } from '../zIndexMap';
 import { LegendDOMProxy } from './legendDOMProxy';
 import type { CategoryLegendDatum } from './legendDatum';
 import { makeLegendItemEvent } from './legendEvent';
-import type { LegendChangeEvent } from './legendManager';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { LegendSymbolOptions } from './legendSymbol';
 
@@ -295,7 +294,7 @@ export class Legend extends BaseProperties {
         items['toggle-series-visibility'].action = (params) => this.contextToggleVisibility(params);
         items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
         this.cleanup.register(
-            ctx.legendManager.addListener('legend-change', this.onLegendDataChange.bind(this)),
+            ctx.eventsHub.on('legend:change', this.onLegendDataChange.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
             ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
             () => delete items['toggle-series-visibility'].action,
