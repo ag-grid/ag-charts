@@ -35,7 +35,7 @@ const argv = yargs(hideBin(process.argv))
         alias: 'f',
         type: 'string',
         default: summaryExampleDataFile,
-        description: 'data.ts file to update.',
+        description: 'data.ts file to read stats from.',
     })
     .option('format', {
         type: 'choice',
