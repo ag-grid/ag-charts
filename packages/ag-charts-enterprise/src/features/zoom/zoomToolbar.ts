@@ -82,7 +82,7 @@ export class ZoomToolbar extends BaseProperties {
     constructor(
         private readonly ctx: _ModuleSupport.ModuleContext,
         private readonly getModuleProperties: () => ZoomProperties,
-        private readonly getResetZoom: () => DefinedZoomState,
+        private readonly canResetZoom: (zoom: Readonly<DefinedZoomState>) => boolean,
         private readonly updateZoom: (zoom: DefinedZoomState) => void,
         private readonly updateAxisZoom: (
             axisId: string,
@@ -181,7 +181,7 @@ export class ZoomToolbar extends BaseProperties {
     }
 
     private toggleButtons() {
-        const zoom = definedZoomState(this.ctx.zoomManager.getZoom());
+        const zoom: Readonly<DefinedZoomState> = definedZoomState(this.ctx.zoomManager.getZoom());
 
         // Only change the buttons if zoom has changed to prevent churn
         if (this.previousZoom && isZoomEqual(this.previousZoom, zoom)) return;
@@ -212,7 +212,7 @@ export class ZoomToolbar extends BaseProperties {
                     );
                     break;
                 case 'reset':
-                    enabled = !isZoomEqual(zoom, this.getResetZoom());
+                    enabled = this.canResetZoom(zoom);
                     break;
             }
 

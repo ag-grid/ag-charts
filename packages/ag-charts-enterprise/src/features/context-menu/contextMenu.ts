@@ -236,7 +236,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 const event: Event = widgetEvent.sourceEvent;
                 if (this.pickedLegendItem) {
                     const { seriesId, itemId, label } = this.pickedLegendItem;
-                    callback({ type: 'contextmenu', seriesId, itemId, label, event });
+                    callback({ type: 'contextmenu', seriesId, itemId, text: label.text, event });
                     this.hide();
                 } else {
                     Logger.error('legend item not found');
