@@ -83,12 +83,10 @@ export function getTextBaseline(
     parallel: boolean,
     labelRotation: number,
     sideFlag: ChartAxisLabelFlipFlag,
-    parallelFlipFlag: ChartAxisLabelFlipFlag,
-    backwardsCompatibleTopBaseline: boolean
+    parallelFlipFlag: ChartAxisLabelFlipFlag
 ): CanvasTextBaseline {
     if (parallel && !labelRotation) {
-        const topBaseline = backwardsCompatibleTopBaseline ? 'hanging' : 'top';
-        return sideFlag * parallelFlipFlag === -1 ? topBaseline : 'bottom';
+        return sideFlag * parallelFlipFlag === -1 ? 'top' : 'bottom';
     }
     return 'middle';
 }

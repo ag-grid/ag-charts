@@ -208,13 +208,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
 
         let textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
-        const textBaseline = getTextBaseline(
-            parallel,
-            configuredRotation,
-            sideFlag,
-            parallelFlipFlag,
-            primaryLabel == null
-        );
+        const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
         const font = { fontFamily, fontSize, fontStyle, fontWeight };
         const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
 
