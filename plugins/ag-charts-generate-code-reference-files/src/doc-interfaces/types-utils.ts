@@ -443,40 +443,32 @@ export function formatNode(node: ts.Node | undefined) {
 }
 
 function getJsDoc(node: ts.Node & { jsDoc?: { getFullText(): string }[] }) {
-    if (node.jsDoc == null) {
-        console.error(`unexpected 'jsDoc: ${node.jsDoc}' for node:`, node);
-        throw new Error('jsDoc not found');
-    }
-    const lines: string[] = node.jsDoc.flatMap((doc) =>
-        doc
-            .getFullText()
-            .split('\n')
-            .map((line) =>
-                line
-                    .replace(/\*\/\s*$/, '')
-                    .replace(/^\s*(\/\*{1,2}|\*)/, '')
-                    .trim()
-            )
-            .reduce(
-                (result, next) => {
-                    // Re-join lines split due to line-length constraints; paragraphs should
-                    // end on a double newline or use `\` at the end of the line. (standard markdown)
-                    if (!result.at(-1)?.endsWith('\\') && /^[a-zA-Z0-9]+/.test(next)) {
-                        result[result.length - 1] += ' ' + next;
-                    } else {
-                        result.push(next);
-                    }
-                    return result;
-                },
-                [''] as string[]
-            )
+    return trimArray(
+        node.jsDoc?.flatMap((doc) =>
+            doc
+                .getFullText()
+                .split('\n')
+                .map((line) =>
+                    line
+                        .replace(/\*\/\s*$/, '')
+                        .replace(/^\s*(\/\*{1,2}|\*)/, '')
+                        .trim()
+                )
+                .reduce(
+                    (result, next) => {
+                        // Re-join lines split due to line-length constraints; paragraphs should
+                        // end on a double newline or use `\` at the end of the line. (standard markdown)
+                        if (!result.at(-1)?.endsWith('\\') && /^[a-zA-Z0-9]+/.test(next)) {
+                            result[result.length - 1] += ' ' + next;
+                        } else {
+                            result.push(next);
+                        }
+                        return result;
+                    },
+                    [''] as string[]
+                )
+        )
     );
-    if (lines.length === 0) {
-        const fullText = node.jsDoc.flatMap((doc) => doc.getFullText());
-        console.error(`unexpected 'lines.length === 0' for full text:`, fullText);
-        throw new Error('unexpected empty jsDoc');
-    }
-    return trimArray(lines);
 }
 
 export function printNode(node: ts.Node | undefined) {
