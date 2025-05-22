@@ -60,7 +60,7 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
     }
 
     if (altInterface === null) {
-        return;
+        throw new Error('Failed to find AgChartOptions reference type');
     }
 
     reference.set('AgChartAxisOptions', {
