@@ -11,15 +11,29 @@ export function patchDocInterfaces(resolvedEntries: ApiReferenceNode[]) {
 }
 
 function getTypeUnion(typeRef: ApiReferenceNode | undefined): string[] {
+    const result: string[] = [];
     if (typeRef?.kind === 'typeAlias') {
         if (typeof typeRef.type === 'string') {
             return [typeRef.type];
         }
         if (typeof typeRef.type === 'object' && typeRef.type.kind === 'union') {
-            return typeRef.type.type.filter((type): type is string => typeof type === 'string');
+            const unsupportedSubtypes: typeof typeRef.type.type = [];
+            for (const subType of typeRef.type.type) {
+                if (typeof subType === 'string') {
+                    result.push(subType);
+                } else if (subType.kind === 'typeRef') {
+                    result.push(subType.type);
+                } else {
+                    unsupportedSubtypes.push(subType);
+                }
+            }
+            if (unsupportedSubtypes.length > 0) {
+                console.error(`unsupported 'typeRef.type.type' values detected`, unsupportedSubtypes);
+                throw new Error(`failed to get types of ${typeRef.name}`);
+            }
         }
     }
-    return [];
+    return result;
 }
 
 function patchAgChartOptionsReference(reference: ApiReferenceType) {
