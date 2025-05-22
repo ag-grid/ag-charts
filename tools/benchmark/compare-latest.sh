@@ -75,9 +75,7 @@ function logStarBox() {
 echo "Running benchmarks on ${branch} against ${base_name}"
 echo "${base} (${base_name}) vs ${head} (${branch})"
 
-tmp_dir=$(mktemp -d)
-data_file="$tmp_dir/data.ts"
-
+data_file="${root}/reports/benchmark-data.ts"
 git checkout ${base} && git restore --source $head -- ${tools_dir}
 benchmark
 node ${tools_dir}/collate-reports.js --name "${base_name}-${base}" --data-file "$data_file"
