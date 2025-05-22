@@ -24,6 +24,9 @@ function getTypeUnion(typeRef: ApiReferenceNode | undefined): string[] {
 
 function patchAgChartOptionsReference(reference: ApiReferenceType) {
     const interfaceRef = reference.get('AgChartOptions');
+    if (interfaceRef == null) {
+        throw new Error('Failed to find AgChartOptions reference type');
+    }
 
     const axisOptions: string[] = [];
     const seriesOptions: string[] = [];
@@ -60,7 +63,7 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
     }
 
     if (altInterface === null) {
-        throw new Error('Failed to find AgChartOptions reference type');
+        throw new Error('Failed to initialise altInterface');
     }
 
     reference.set('AgChartAxisOptions', {
