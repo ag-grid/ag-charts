@@ -27,7 +27,7 @@ export interface UpdateOpts {
     forceNodeDataRefresh?: boolean;
     skipAnimations?: boolean;
     newAnimationBatch?: boolean;
-    seriesToUpdate?: ISeries<any, any, any>[];
+    seriesToUpdate?: Iterable<ISeries<any, any, any>>;
     backOffMs?: number;
     apiUpdate?: boolean;
 }

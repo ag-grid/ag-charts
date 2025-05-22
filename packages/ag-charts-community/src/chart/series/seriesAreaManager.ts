@@ -42,7 +42,7 @@ import {
 import type { UpdateOpts } from '../updateService';
 import { type Series, type SeriesNodePickIntent } from './series';
 import type { SeriesProperties } from './seriesProperties';
-import type { SeriesNodeDatum } from './seriesTypes';
+import type { ISeries, SeriesNodeDatum } from './seriesTypes';
 
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
@@ -524,7 +524,7 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.isState(InteractionState.Focusable)) return;
         const { series, datum } = this.focus;
         const sourceEvent = event.sourceEvent;
-        if (series != null && datum != null) {
+        if (series !== undefined && datum !== undefined) {
             series.fireNodeClickEvent(sourceEvent, datum);
         } else {
             this.chart.fireEvent<AgChartClickEvent>({
@@ -654,27 +654,30 @@ export class SeriesAreaManager extends BaseManager {
         refresh: boolean
     ) {
         const { focus, hoverRect, seriesRect } = this;
-        if (focus.series == null || hoverRect == null) return;
+        if (focus.series === undefined || hoverRect === undefined) return;
 
         const pick = focus?.series?.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
         if (!pick) return;
 
         const { datum } = pick;
-        focus.datum = datum;
-        focus.datumIndex = pick.datumIndex;
-        if (pick.otherIndex != null) {
+        if (pick.otherIndex !== undefined) {
             focus.seriesIndex = pick.otherIndex;
         }
+        focus.datumIndex = pick.datumIndex;
+        focus.datum = datum;
 
         if (this.focusIndicator?.isFocusVisible()) {
             this.chart.ctx.animationManager.reset();
+        }
 
+        if (this.focusIndicator?.isFocusVisible()) {
             const focusBBox: Readonly<BBox> = getPickedFocusBBox(pick);
             const { x, y } = focusBBox.computeCenter();
-
             if (!hoverRect.containsPoint(x, y)) {
                 const panSuccess = this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
-                if (panSuccess) return; // Wait for an update to ensure that we show the tooltip/highlight correctly.
+                if (panSuccess) {
+                    return; // Wait for update to ensure that we show the tooltip/highlight correctly.
+                }
             }
             // AG-14102 Check if focusBBox is still completely outside the viewport (e.g. panning is disabled), and
             // move/clip it if needed.
@@ -712,7 +715,7 @@ export class SeriesAreaManager extends BaseManager {
         const keyboardEvent = makeKeyboardPointerEvent(focus.series, hoverRect, pick);
 
         // Update highlight/tooltip for keyboard users:
-        if (keyboardEvent != null && this.hoverDevice === 'keyboard') {
+        if (keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {
             // Stop pending async mouse events from updating the highlight/tooltip. At this point, the most recent event
             // came from the keyboard so that's what we should honour.
             this.tooltip.lastHover = undefined;
@@ -886,25 +889,31 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private changeHighlightDatum(event: HighlightChangeEvent) {
-        const lastSeries = event.previousHighlight?.series;
-        const newSeries = event.currentHighlight?.series;
+        const seriesToUpdate: Set<ISeries<any, any, any>> = new Set();
+        const { series: newSeries = undefined, datum: newDatum } = event.currentHighlight ?? {};
+        const { series: lastSeries = undefined, datum: lastDatum } = event.previousHighlight ?? {};
 
-        // Adjust the cursor if a specific datum is highlighted, rather than just a series.
-        if (lastSeries?.properties.cursor && event.previousHighlight?.datum) {
+        if (lastSeries) {
+            seriesToUpdate.add(lastSeries);
+        }
+
+        if (newSeries) {
+            seriesToUpdate.add(newSeries);
+        }
+
+        // Adjust cursor if a specific datum is highlighted, rather than just a series.
+        if (lastSeries?.properties.cursor && lastDatum) {
             this.chart.ctx.domManager.updateCursor(lastSeries.id);
         }
-        if (
-            newSeries?.properties.cursor &&
-            newSeries.properties.cursor !== 'default' &&
-            event.currentHighlight?.datum
-        ) {
+        if (newSeries?.properties.cursor && newSeries?.properties.cursor !== 'default' && newDatum) {
             this.chart.ctx.domManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 
-        if (newSeries == null || lastSeries == null) {
+        const updateAll = newSeries == null || lastSeries == null;
+        if (updateAll) {
             this.update(ChartUpdateType.SERIES_UPDATE);
         } else {
-            this.update(ChartUpdateType.SERIES_UPDATE, { seriesToUpdate: [lastSeries, newSeries].filter(Boolean) });
+            this.update(ChartUpdateType.SERIES_UPDATE, { seriesToUpdate });
         }
     }
 
