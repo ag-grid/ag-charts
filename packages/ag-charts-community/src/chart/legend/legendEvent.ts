@@ -21,7 +21,7 @@ export function makeLegendItemEvent<T extends 'dblclick'>(
 
 export function makeLegendItemEvent(
     type: 'click' | 'dblclick',
-    { itemId, seriesId, label }: CategoryLegendDatum,
+    { itemId, seriesId, label: { text } }: CategoryLegendDatum,
     event: Event
 ): LegendEventState<AgChartLegendClickEvent | AgChartLegendDoubleClickEvent> {
     const result: LegendEventState<AgChartLegendClickEvent | AgChartLegendDoubleClickEvent> = {
@@ -30,7 +30,7 @@ export function makeLegendItemEvent(
             type,
             itemId,
             seriesId,
-            label,
+            text,
             event,
             preventDefault: () => (result.defaultPrevented = true),
         },
