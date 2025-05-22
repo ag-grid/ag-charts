@@ -3,6 +3,7 @@ import { inputGlob, parseFile } from 'ag-shared/plugin-utils';
 import * as ts from 'typescript';
 
 type NodeType = any;
+// TODO: AG-14962 tighten HeritageType using a union.
 type HeritageType =
     | { kind?: string; type: any; typeParams: any[]; typeArguments?: any[]; members?: TypingMapItem[] }
     | string;
@@ -141,11 +142,11 @@ export class TypeMapper {
             } else if (h.type === 'Omit' || h.type === 'Pick' || h.type === 'Required') {
                 const n = this.resolveTypeRef(h);
                 node.members.push(...n.members);
-            } else if (h.type === 'Readonly' && h.typeArguments) {
+            } else if (h.type === 'Readonly' && h.typeArguments /* TODO: AG-14962 remove null-check */) {
                 const n = this.resolveType({ kind: 'typeAlias', type: h.typeArguments[0] });
                 node.members.push(...n.members);
             } else if (h.kind === 'typeLiteral') {
-                if (h.members) {
+                if (h.members /* TODO: AG-14962 remove null-check */) {
                     node.members.push(...h.members);
                 }
             } else {
@@ -384,7 +385,7 @@ export function formatNode(node: ts.Node | undefined) {
 
     if (ts.isTypeReferenceNode(node)) {
         const nodeType = formatNode(node.typeName);
-        if (nodeType === 'Array' && node.typeArguments) {
+        if (nodeType === 'Array' && node.typeArguments /* TODO: AG-14962 remove null-check */) {
             return {
                 kind: 'array',
                 type:
