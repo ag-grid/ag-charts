@@ -4,6 +4,7 @@ import type { AnnotationManager } from '../chart/annotation/annotationManager';
 import type { AxisManager } from '../chart/axis/axisManager';
 import type { ChartService } from '../chart/chartService';
 import type { DataService } from '../chart/data/dataService';
+import type { FormatManager } from '../chart/formatter/formatManager';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
 import type { ContextMenuRegistry } from '../chart/interaction/contextMenuRegistry';
@@ -41,6 +42,7 @@ export interface ModuleContext {
     readonly annotationManager: AnnotationManager;
     readonly chartEventManager: ChartEventManager;
     readonly contextMenuRegistry: ContextMenuRegistry;
+    readonly formatManager: FormatManager;
     readonly domManager: DOMManager;
     readonly highlightManager: HighlightManager;
     readonly historyManager: HistoryManager;

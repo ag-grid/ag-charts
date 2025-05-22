@@ -1200,6 +1200,6 @@ export class Legend extends BaseProperties {
 
     private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         const { callbackCache, chartService } = this.ctx;
-        return callbackCache.call(this, chartService, fn, ...params);
+        return callbackCache.call([this, chartService], fn, ...params);
     }
 }

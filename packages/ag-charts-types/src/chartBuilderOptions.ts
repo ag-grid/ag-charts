@@ -1,6 +1,8 @@
 /* eslint-disable sonarjs/class-name */
 import type { AgInitialStateOptions } from './api/initialStateOptions';
+import type { AgBaseCartesianChartOptions } from './chart/cartesianOptions';
 import type { AgBaseChartOptions } from './chart/chartOptions';
+import type { AgBasePolarChartOptions } from './chart/polarOptions';
 import type {
     AgBaseChartThemeOptions,
     AgBaseGaugePresetThemeOptions,
@@ -13,10 +15,8 @@ import type { AgGaugePresets } from './presets/gauge/gaugeOptions';
 import type { AgLinearGaugePreset } from './presets/gauge/linearGaugeOptions';
 import type { AgRadialGaugePreset } from './presets/gauge/radialGaugeOptions';
 import type { AgSparklineBaseThemeableOptions, AgSparklinePresets } from './presets/sparkline/sparklineOptions';
-import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from './series/flow-proportion/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
-import type { AgBasePolarChartOptions } from './series/polar/polarOptions';
 import type { AgBaseStandaloneChartOptions } from './series/standalone/standaloneOptions';
 import type { AgBaseTopologyChartOptions } from './series/topology/topologyOptions';
 

@@ -1,4 +1,4 @@
-import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { DateFormatterStyle, FormatterParams, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
@@ -6,7 +6,10 @@ import { extent } from '../../util/extent';
 import { objectsEqual } from '../../util/object';
 import { Property } from '../../util/properties';
 import { BaseProperties } from '../../util/properties';
-import { intervalFloor, intervalMilliseconds } from '../../util/time';
+import { intervalEpoch, intervalFloor, intervalMilliseconds, intervalStep, intervalUnit } from '../../util/time';
+import { domainSpansMultipleYears, lowestGranularityUnitForTicks } from '../../util/timeFormatDefaults';
+import type { FormatDatumParams } from '../chartAxis';
+import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
 import { CategoryAxis } from './categoryAxis';
@@ -112,6 +115,44 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
 
     override normaliseDataDomain(domain: Date[]) {
         return normaliseTimeDataDomain(domain, this.min, this.max);
+    }
+
+    override tickFormatParams(
+        domain: (number | Date)[],
+        ticks: (number | Date)[],
+        _fractionDigits?: number,
+        timeInterval?: TimeInterval | TimeIntervalUnit
+    ): AxisTickFormatParams {
+        timeInterval ??= lowestGranularityUnitForTicks(ticks);
+        const includeYear = domainSpansMultipleYears(domain);
+        const unit = intervalUnit(timeInterval);
+        return { type: 'date', unit, includeYear };
+    }
+
+    override datumFormatParams(
+        value: any,
+        params: FormatDatumParams,
+        _fractionDigits: number | undefined,
+        timeInterval: TimeInterval | TimeIntervalUnit | undefined,
+        style: DateFormatterStyle
+    ): FormatterParams<any, any> {
+        timeInterval ??= this.unit ?? this.defaultUnit() ?? 'millisecond';
+        const { datum, key, source, property } = params;
+        const unit = intervalUnit(timeInterval);
+        const step = intervalStep(timeInterval);
+        const epoch = intervalEpoch(timeInterval);
+        return {
+            type: 'date',
+            value,
+            datum,
+            key,
+            source,
+            property,
+            unit,
+            step,
+            epoch,
+            style,
+        };
     }
 }
 

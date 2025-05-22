@@ -5,6 +5,7 @@ import type {
     AgCartesianAxisPosition,
     FontOptions,
     Formatter,
+    FormatterParams,
     Styler,
 } from 'ag-charts-types';
 
@@ -51,6 +52,22 @@ export interface AxisGroups {
     labelNode: Node;
 }
 
+export type FormatDatumParams = Omit<FormatterParams<any, any>, 'type' | 'value'>;
+
+export type ContextFormatter<Params> = (
+    fn: (params: Params) => string | undefined,
+    params: Params
+) => string | undefined;
+
+export interface ChartAxisFormattableLabel<Params extends object> {
+    formatValue(
+        formatInContext: ContextFormatter<Params>,
+        type: 'number' | 'date' | 'category',
+        value: any,
+        params: Params
+    ): string | undefined;
+}
+
 export interface ChartAxis {
     attachAxis(opts: AxisGroups): void;
     calculateLayout(
@@ -63,7 +80,26 @@ export interface ChartAxis {
     createModuleContext(): ModuleContextWithParent<AxisContext>;
     destroy(): void;
     detachAxis(opts: AxisGroups): void;
-    formatDatum(datum: any): string;
+    formatDatum(value: any, source: 'axis' | 'crosshair'): string;
+    formatDatum(value: any, source: 'tooltip' | 'series-label', datum: any, key: string): string;
+    formatDatum<Params extends object>(
+        value: any,
+        source: 'axis' | 'crosshair',
+        datum: undefined,
+        key: undefined,
+        label: ChartAxisFormattableLabel<Params>,
+        params: Params,
+        formatInContext: ContextFormatter<Params>
+    ): string;
+    formatDatum<Params extends object>(
+        value: any,
+        source: 'tooltip' | 'series-label',
+        datum: any,
+        key: string,
+        label: ChartAxisFormattableLabel<Params>,
+        params: Params,
+        formatInContext: ContextFormatter<Params>
+    ): string;
     getBBox(): BBox;
     getLayoutState(): AxisLayout;
     getModuleMap(): ModuleMap<any, any, any>;

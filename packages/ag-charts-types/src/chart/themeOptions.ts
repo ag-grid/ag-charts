@@ -6,11 +6,6 @@ import type { AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions
 import type { AgBoxPlotSeriesThemeableOptions } from '../series/cartesian/boxPlotOptions';
 import type { AgBubbleSeriesThemeableOptions } from '../series/cartesian/bubbleOptions';
 import type { AgCandlestickSeriesThemeableOptions } from '../series/cartesian/candlestickOptions';
-import type {
-    AgBaseCartesianThemeOptions,
-    AgCartesianAxesTheme,
-    AgContinuousCartesianAxesTheme,
-} from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
 import type { AgColorType, AgColorTypeStrict } from '../series/cartesian/commonOptions';
 import type { AgConeFunnelSeriesThemeableOptions } from '../series/cartesian/coneFunnelOptions';
@@ -32,7 +27,6 @@ import type { AgTreemapSeriesThemeableOptions } from '../series/hierarchy/treema
 import type { AgDonutSeriesThemeableOptions } from '../series/polar/donutOptions';
 import type { AgNightingaleSeriesThemeableOptions } from '../series/polar/nightingaleOptions';
 import type { AgPieSeriesThemeableOptions } from '../series/polar/pieOptions';
-import type { AgBasePolarThemeOptions, AgPolarAxesTheme, AgPolarSeriesOptions } from '../series/polar/polarOptions';
 import type { AgRadarAreaSeriesThemeableOptions } from '../series/polar/radarAreaOptions';
 import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
@@ -46,8 +40,14 @@ import type { AgMapShapeBackgroundThemeableOptions } from '../series/topology/ma
 import type { AgMapShapeSeriesThemeableOptions } from '../series/topology/mapShapeOptions';
 import type { AgBaseTopologyThemeOptions } from '../series/topology/topologyOptions';
 import type { AgAnnotationsThemeableOptions } from './annotationsOptions';
+import type {
+    AgBaseCartesianThemeOptions,
+    AgCartesianAxesTheme,
+    AgContinuousCartesianAxesTheme,
+} from './cartesianOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
 import type { AgChartToolbarThemeableOptions } from './chartToolbarOptions';
+import type { AgBasePolarThemeOptions, AgPolarAxesTheme, AgPolarSeriesOptions } from './polarOptions';
 import type { AgChartThemeParams } from './themeParamsOptions';
 import type { CssColor } from './types';
 
