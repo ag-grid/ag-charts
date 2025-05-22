@@ -5,6 +5,9 @@ import type { HighlightNodeDatum } from '../chart/interaction/highlightManager';
 import type { ChartLegendType } from '../chart/legend/legendDatum';
 import type { KeyboardWidgetEvent } from '../widget/widgetEvents';
 
+export type EventsHub = EventEmitter<EventsHubMap>;
+
+// Event name convention is 'module:event-name'
 export interface EventsHubMap {
     'axis:hover': AxisHoverEvent;
     'highlight:change': HighlightChangeEvent;
@@ -15,8 +18,6 @@ export interface EventsHubMap {
     'series:redo': null;
     'series:undo': null;
 }
-
-export type EventsHub = EventEmitter<EventsHubMap>;
 
 export interface AxisHoverEvent {
     readonly axisId: string;
@@ -30,23 +31,23 @@ export interface SeriesKeyNavZoomEvent {
 
 export interface LegendItemClickEvent {
     readonly legendType: ChartLegendType;
+    readonly enabled: boolean;
     readonly series: any;
     readonly itemId: any;
-    readonly enabled: boolean;
     readonly legendItemName?: string;
 }
 
 export interface LegendItemDoubleClickEvent {
     readonly legendType: ChartLegendType;
+    readonly enabled: boolean;
     readonly series: any;
     readonly itemId: any;
-    readonly enabled: boolean;
     readonly legendItemName?: string;
     readonly numVisibleItems: number;
 }
 
 export interface HighlightChangeEvent {
-    readonly previousHighlight?: HighlightNodeDatum;
-    readonly currentHighlight?: HighlightNodeDatum;
     readonly callerId: string;
+    readonly currentHighlight?: HighlightNodeDatum;
+    readonly previousHighlight?: HighlightNodeDatum;
 }

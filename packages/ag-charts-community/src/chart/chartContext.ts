@@ -152,7 +152,6 @@ export class ChartContext implements ModuleContext {
         this.domManager.destroy();
         this.fontManager.destroy();
         this.proxyInteractionService.destroy();
-        this.syncManager.destroy();
         this.tooltipManager.destroy();
         this.zoomManager.destroy();
         this.widgets.destroy();
