@@ -76,7 +76,7 @@ benchmark() {
                 --runInBand \
                 --testPathPattern '.*/benchmarks/.*'
         ) ; then
-            node "$(dirname $0)/collate-reports.js" "$(echo "$version" | sed 's/^origin\///')"
+            node "$(dirname $0)/collate-reports.js" --name "$(echo "$version" | sed 's/^origin\///')"
         else
             failed=true
             echo "Benchmarks failed, continuing..."
