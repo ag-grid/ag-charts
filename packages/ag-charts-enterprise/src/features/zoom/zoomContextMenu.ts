@@ -19,6 +19,7 @@ export class ZoomContextMenu {
         private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
         private readonly getModuleProperties: () => ZoomProperties,
+        private readonly canResetZoom: () => boolean,
         private readonly getRect: () => _ModuleSupport.BBox | undefined,
         private readonly updateZoom: (zoom: DefinedZoomState) => void,
         private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
@@ -54,6 +55,7 @@ export class ZoomContextMenu {
         const removeListener = contextMenuRegistry.addListener('context-setup', (event) => {
             contextMenuRegistry.builtins.items['zoom-to-cursor'].enabled = shouldEnableZoomToHere(event);
             contextMenuRegistry.builtins.items['pan-to-cursor'].enabled = shouldEnablePanToHere();
+            contextMenuRegistry.builtins.items['reset-zoom'].enabled = this.canResetZoom();
         });
 
         return () => {

@@ -67,7 +67,7 @@ HTMLCollection [
         />
       </div>
       <div
-        aria-disabled="false"
+        aria-disabled="true"
         class="ag-charts-context-menu__item"
         role="menuitem"
         tabindex="-1"
@@ -156,7 +156,7 @@ HTMLCollection [
         />
       </div>
       <div
-        aria-disabled="false"
+        aria-disabled="true"
         class="ag-charts-context-menu__item"
         role="menuitem"
         tabindex="-1"
