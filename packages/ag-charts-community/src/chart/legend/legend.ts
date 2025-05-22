@@ -930,7 +930,13 @@ export class Legend extends BaseProperties {
             }
 
             proxyButton.setChecked(newEnabled);
-            this.ctx.chartEventManager.legendItemClick(legendType, series, itemId, newEnabled, datum.legendItemName);
+            this.ctx.eventsHub.emit('legend:item-click', {
+                legendType,
+                series,
+                itemId,
+                enabled: newEnabled,
+                legendItemName: datum.legendItemName,
+            });
         }
 
         if (newEnabled) {
@@ -1000,14 +1006,14 @@ export class Legend extends BaseProperties {
 
             const clickedItem = legendData.find((d) => d.itemId === itemId && d.seriesId === seriesId);
 
-            this.ctx.chartEventManager.legendItemDoubleClick(
+            this.ctx.eventsHub.emit('legend:item-double-click', {
                 legendType,
                 series,
                 itemId,
-                clickedItem?.enabled ?? false,
                 numVisibleItems,
-                clickedItem?.legendItemName
-            );
+                enabled: clickedItem?.enabled ?? false,
+                legendItemName: clickedItem?.legendItemName,
+            });
         }
 
         this.ctx.legendManager.update();

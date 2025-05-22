@@ -107,10 +107,9 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     private disableNodeInteractionSync?: () => void;
     private enabledNodeInteractionSync() {
-        const { highlightManager } = this.moduleContext;
         this.disableNodeInteractionSync?.(); // Cleanup any existing listeners.
-        this.disableNodeInteractionSync = highlightManager.addListener(
-            'highlight-change',
+        this.disableNodeInteractionSync = this.moduleContext.eventsHub.on(
+            'highlight:change',
             this.onHighlightChange.bind(this)
         );
     }
