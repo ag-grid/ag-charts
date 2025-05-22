@@ -1,6 +1,7 @@
+import type { BoxBounds } from 'ag-charts-core';
+
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import type { BBoxValues } from '../../util/bboxinterface';
 import { StateTracker } from '../../util/stateTracker';
 import type { SeriesTooltip } from '../series/seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from '../series/seriesTypes';
@@ -96,7 +97,7 @@ export class TooltipManager {
         event: TooltipPointerEvent,
         series: ISeries<any, any, any>,
         datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
-        movedBounds: BBoxValues | undefined
+        movedBounds: BoxBounds | undefined
     ): TooltipMeta {
         const { canvasX, canvasY } = event;
         const tooltip = series.properties.tooltip as SeriesTooltip<any>;

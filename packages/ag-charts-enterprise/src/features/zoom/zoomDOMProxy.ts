@@ -1,6 +1,7 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import { boxEmpty } from 'ag-charts-core';
 
-const { BBoxValues, ChartAxisDirection } = _ModuleSupport;
+const { ChartAxisDirection } = _ModuleSupport;
 
 type AxesHandlers = {
     onDragStart: (id: string, direction: _ModuleSupport.ChartAxisDirection) => void;
@@ -50,7 +51,7 @@ export class ZoomDOMProxy {
         for (const axis of this.axes) {
             const axisCtx = axesCtx.find((ac) => ac.axisId === axis.axisId)!;
             const bbox = axisCtx.getCanvasBounds();
-            axis.div.setHidden(BBoxValues.isEmpty(bbox));
+            axis.div.setHidden(boxEmpty(bbox));
             if (bbox !== undefined) {
                 axis.div.setBounds(bbox);
             }

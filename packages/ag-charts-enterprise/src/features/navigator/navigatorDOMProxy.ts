@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { clamp } from 'ag-charts-core';
+import { type BoxBounds, clamp } from 'ag-charts-core';
 
 const { SliderWidget } = _ModuleSupport;
 
@@ -96,11 +96,11 @@ export class NavigatorDOMProxy {
         return this.ctx.zoomManager.updateZoom('navigator', { x: { min, max } });
     }
 
-    updateBounds(bounds: _ModuleSupport.BBoxValues): void {
+    updateBounds(bounds: BoxBounds): void {
         this.toolbar.setBounds(bounds);
     }
 
-    updateSliderBounds(sliderIndex: number, bounds: _ModuleSupport.BBoxValues): void {
+    updateSliderBounds(sliderIndex: number, bounds: BoxBounds): void {
         this.sliders[sliderIndex].setBounds(bounds);
     }
 

@@ -144,14 +144,8 @@ export function timeIntervalMaxLabelSize(
     const specifier =
         labelSpecifier(label.format, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
 
-    const formatParams: ScaleFormatParams<Date> = {
-        domain,
-        ticks,
-        fractionDigits: 0,
-        specifier,
-    };
+    const formatParams: ScaleFormatParams<Date> = { domain, ticks, specifier, fractionDigits: 0 };
     const labelFormatter = scale.tickFormatter(formatParams as ScaleFormatParams<any>);
-
     const hierarchy = timeInterval ? intervalHierarchy(timeInterval) : undefined;
     const primarySpecifier = labelSpecifier(primaryLabel?.format, hierarchy);
     const primaryLabelFormatter = primarySpecifier

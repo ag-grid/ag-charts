@@ -1,6 +1,5 @@
-import { type AnyFn } from 'ag-charts-core';
+import { type AnyFn, boxContains } from 'ag-charts-core';
 
-import { BBoxValues } from '../util/bboxinterface';
 import { partialAssign } from '../util/object';
 import { type MouseDragCallbacks, type MouseDragger, startMouseDrag } from './mouseDragger';
 import { type TouchDragCallbacks, type TouchDragger, startOneFingerTouch } from './touchDragger';
@@ -172,7 +171,7 @@ export class WidgetListenerInternal {
     private endDrag(target: Targetable, { sourceEvent, clientX, clientY }: DragWidgetEvent<'drag-end'>) {
         const elem = target.getElement();
         const rect = elem.getBoundingClientRect();
-        if (!BBoxValues.containsPoint(rect, clientX, clientY)) {
+        if (!boxContains(rect, clientX, clientY)) {
             elem.dispatchEvent(new MouseEvent('mouseleave', sourceEvent));
             sourceEvent.target?.dispatchEvent(new MouseEvent('mouseenter', sourceEvent));
         }

@@ -1,38 +1,16 @@
-import { getDocument, getWindow } from 'ag-charts-core';
+import { type BoxBounds, getDocument, getWindow } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
-import { BBoxValues } from './bboxinterface';
-
-export function setElementBBox(element: HTMLElement | undefined, bbox: Partial<BBoxValues>) {
+export function setElementBBox(element: HTMLElement | undefined, bbox: Partial<BoxBounds>) {
     if (!element) return;
-    bbox = BBoxValues.normalize(bbox);
-
-    if (bbox.width == null) {
-        element.style.removeProperty('width');
-    } else {
-        element.style.width = `${bbox.width}px`;
-    }
-
-    if (bbox.height == null) {
-        element.style.removeProperty('height');
-    } else {
-        element.style.height = `${bbox.height}px`;
-    }
-
-    if (bbox.x == null) {
-        element.style.removeProperty('left');
-    } else {
-        element.style.left = `${bbox.x}px`;
-    }
-
-    if (bbox.y == null) {
-        element.style.removeProperty('top');
-    } else {
-        element.style.top = `${bbox.y}px`;
-    }
+    const { x, y, width, height } = normalizeBounds(bbox);
+    setPixelValue(element.style, 'width', width);
+    setPixelValue(element.style, 'height', height);
+    setPixelValue(element.style, 'left', x);
+    setPixelValue(element.style, 'top', y);
 }
 
-export function getElementBBox(element: HTMLElement): BBoxValues {
+export function getElementBBox(element: HTMLElement): BoxBounds {
     const width = parseFloat(element.style.width) || element.offsetWidth;
     const height = parseFloat(element.style.height) || element.offsetHeight;
     const x = parseFloat(element.style.left) || element.offsetLeft;
@@ -70,4 +48,28 @@ export function isInputPending() {
 
 export function getIconClassNames(icon: AgIconName) {
     return `ag-charts-icon ag-charts-icon-${icon}`;
+}
+
+function normalizeBounds(bbox: Partial<BoxBounds>): Partial<BoxBounds> {
+    let { x, y, width, height } = bbox;
+    if ((width == null || width > 0) && (height == null || height > 0)) {
+        return bbox;
+    }
+    if (x != null && width != null && width < 0) {
+        width = -width;
+        x = x - width;
+    }
+    if (y != null && height != null && height < 0) {
+        height = -height;
+        y = y - height;
+    }
+    return { x, y, width, height };
+}
+
+function setPixelValue(style: CSSStyleDeclaration, key: string, value: number | undefined) {
+    if (value == null) {
+        style.removeProperty(key);
+    } else {
+        style.setProperty(key, `${value}px`);
+    }
 }

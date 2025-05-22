@@ -889,9 +889,9 @@ export abstract class Series<
 
             // AG-12745 Calculate the marker size to ensure that the focus indicator is correct.
             const bb = markerNode.getBBox();
-            if (point !== undefined && bb.isFinite()) {
+            if (point != null && bb.isFinite()) {
                 const center = bb.computeCenter();
-                const [dx, dy] = (['x', 'y'] satisfies (keyof Point)[]).map(
+                const [dx, dy] = (['x', 'y'] as const).map(
                     (key) => (activeStyle.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
                 );
                 point.focusSize = Math.max(bb.width + dx, bb.height + dy);
