@@ -60,7 +60,7 @@ function updateSummaryExample(results) {
     console.info(`Reading ${argv['data-file']}...`);
 
     let data = {};
-    if (fs.fstatSync(argv['data-file'])) {
+    if (fs.existsSync(argv['data-file'])) {
         let dataFile = fs.readFileSync(argv['data-file']).toString();
         dataFile = dataFile.replace('export function', 'function');
 
