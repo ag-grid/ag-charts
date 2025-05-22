@@ -34,6 +34,8 @@ export class Group<D = any> extends Node<D> {
         return compareZIndex(a.zIndex, b.zIndex) || a.serialNumber - b.serialNumber;
     }
 
+    public dirty = false;
+    private dirtyZIndex: boolean = false;
     private clipRect?: BBox;
 
     @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
@@ -103,32 +105,41 @@ export class Group<D = any> extends Node<D> {
         return sharedOffscreenCanvas;
     }
 
+    override markDirty(property?: string): void {
+        this.dirty = true;
+        super.markDirty(property);
+    }
+
+    override markDirtyChildrenOrder(): void {
+        super.markDirtyChildrenOrder();
+        this.dirtyZIndex = true;
+        this.markDirty();
+    }
+
     private _lastWidth = NaN;
     private _lastHeight = NaN;
     private _lastDevicePixelRatio = NaN;
     private isDirty(renderCtx: RenderContext) {
         const { width, height, devicePixelRatio } = renderCtx;
-        const { dirty, dirtyZIndex, layer } = this;
+        const { dirty, layer } = this;
         const layerResized = layer != null && (this._lastWidth !== width || this._lastHeight !== height);
         const pixelRatioChanged = this._lastDevicePixelRatio !== devicePixelRatio;
         this._lastWidth = width;
         this._lastHeight = height;
         this._lastDevicePixelRatio = devicePixelRatio;
-        if (dirty || dirtyZIndex || layerResized || pixelRatioChanged) return true;
-
-        for (const child of this.children()) {
-            if (child.dirty) return true;
-        }
-
-        return false;
+        return dirty || layerResized || pixelRatioChanged;
     }
 
     override preRender(renderCtx: RenderContext): ChildNodeCounts {
-        const counts = super.preRender(renderCtx, 0);
-
-        // Correct counts for this group.
-        counts.groups += 1;
-        counts.nonGroups -= 1;
+        let counts: ChildNodeCounts;
+        if (this.dirty) {
+            counts = super.preRender(renderCtx, 0);
+            // Correct counts for this group.
+            counts.groups += 1;
+            counts.nonGroups -= 1;
+        } else {
+            counts = this.childNodeCounts;
+        }
 
         if (
             this.renderToOffscreenCanvas &&
@@ -149,6 +160,9 @@ export class Group<D = any> extends Node<D> {
         const { layer, renderToOffscreenCanvas } = this;
         const childRenderCtx: RenderContext = { ...renderCtx };
 
+        const dirty = this.isDirty(renderCtx);
+        this.dirty = false;
+
         if (!renderToOffscreenCanvas) {
             this.renderInContext(childRenderCtx);
             super.render(childRenderCtx); // Calls markClean().
@@ -158,7 +172,7 @@ export class Group<D = any> extends Node<D> {
         const { ctx, stats, devicePixelRatio: pixelRatio } = renderCtx;
 
         let { image } = this;
-        if (this.isDirty(renderCtx)) {
+        if (dirty) {
             image?.bitmap.close();
             image = undefined;
 
@@ -189,18 +203,13 @@ export class Group<D = any> extends Node<D> {
                 renderOffscreen(canvas, pixelRatio, 0, 0, pixelRatio, -x * pixelRatio, -y * pixelRatio);
 
                 image = { bitmap: canvas.transferToImageBitmap(), x, y, width, height };
-            } else if (this.dirtyZIndex) {
-                // Required to make this.isDirty return false on the next render
-                this.sortChildren(Group.compareChildren);
             }
 
             this.image = image;
 
             if (stats) stats.layersRendered++;
-        } else {
-            this.skipRender(childRenderCtx);
-
-            if (stats) stats.layersSkipped++;
+        } else if (stats) {
+            stats.layersSkipped++;
         }
 
         const { globalAlpha } = ctx;
@@ -219,19 +228,6 @@ export class Group<D = any> extends Node<D> {
         super.render(childRenderCtx); // Calls markClean().
     }
 
-    private skipRender(childRenderCtx: RenderContext) {
-        const { stats } = childRenderCtx;
-
-        for (const child of this.children()) {
-            // Skip invisible children, but make sure their dirty flag is reset.
-            child.markClean();
-            if (stats) {
-                stats.nodesSkipped += this.childNodeCounts.groups + this.childNodeCounts.nonGroups;
-                stats.opsSkipped += this.childNodeCounts.complexity;
-            }
-        }
-    }
-
     protected applyClip(ctx: CanvasContext, clipRect: BBox) {
         const { x, y, width, height } = clipRect;
 
@@ -245,6 +241,7 @@ export class Group<D = any> extends Node<D> {
 
         if (this.dirtyZIndex) {
             this.sortChildren(Group.compareChildren);
+            this.dirtyZIndex = false;
         }
 
         ctx.save();
@@ -264,7 +261,6 @@ export class Group<D = any> extends Node<D> {
         for (const child of this.children()) {
             // Skip invisible children, but make sure their dirty flag is reset.
             if (!child.visible) {
-                child.markClean();
                 if (stats) {
                     stats.nodesSkipped += child.childNodeCounts.nonGroups + child.childNodeCounts.groups;
                     stats.opsSkipped += child.childNodeCounts.complexity;

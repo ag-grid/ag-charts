@@ -1,3 +1,5 @@
+import { type BoxBounds, boxCollides, boxContains } from 'ag-charts-core';
+
 import type { Point, SizedPoint } from '../point';
 
 export type LabelPlacement =
@@ -33,14 +35,8 @@ export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Reado
     readonly datum: PLD;
 }
 
-interface LabelBounds extends Readonly<Point> {
-    readonly width: number;
-    readonly height: number;
-}
-
 function circleRectOverlap(
-    c: SizedPoint,
-    unitCenter: Point | undefined,
+    { point: c, anchor: unitCenter }: PointLabelDatum,
     x: number,
     y: number,
     w: number,
@@ -78,16 +74,6 @@ function circleRectOverlap(
     return d <= c.size * 0.5;
 }
 
-function rectRectOverlap(r1: LabelBounds, x2: number, y2: number, w2: number, h2: number): boolean {
-    const xOverlap = r1.x + r1.width > x2 && r1.x < x2 + w2;
-    const yOverlap = r1.y + r1.height > y2 && r1.y < y2 + h2;
-    return xOverlap && yOverlap;
-}
-
-function rectContainsRect(r1: LabelBounds, r2x: number, r2y: number, r2w: number, r2h: number) {
-    return r2x + r2w < r1.x + r1.width && r2x > r1.x && r2y > r1.y && r2y + r2h < r1.y + r1.height;
-}
-
 export function isPointLabelDatum(x: any): x is PointLabelDatum {
     return x != null && typeof x.point === 'object' && typeof x.label === 'object';
 }
@@ -109,7 +95,7 @@ const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> 
  * @param padding
  * @returns Placed labels for all series.
  */
-export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds?: LabelBounds, padding = 5) {
+export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds: BoxBounds, padding = 5) {
     const result: Map<string, PlacedLabel[]> = new Map();
     const previousResults: PlacedLabel[] = [];
 
@@ -135,15 +121,13 @@ export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds?: Label
             const x = point.x - width * 0.5 + dx - ((anchor?.x ?? 0.5) - 0.5) * point.size;
             const y = point.y - height * 0.5 + dy - ((anchor?.y ?? 0.5) - 0.5) * point.size;
 
-            const withinBounds = !bounds || rectContainsRect(bounds, x, y, width, height);
+            const withinBounds = boxContains(bounds, x, y, width, height);
             if (!withinBounds) continue;
 
-            const overlapPoints = dataValues.some((dataDatum) =>
-                circleRectOverlap(dataDatum.point, dataDatum.anchor, x, y, width, height)
-            );
+            const overlapPoints = dataValues.some((dataDatum) => circleRectOverlap(dataDatum, x, y, width, height));
             if (overlapPoints) continue;
 
-            const overlapLabels = previousResults.some((pr) => rectRectOverlap(pr, x, y, width, height));
+            const overlapLabels = previousResults.some((pr) => boxCollides(pr, x, y, width, height));
             if (overlapLabels) continue;
 
             const resultDatum = { index, text, x, y, width, height, datum: d };
@@ -155,28 +139,4 @@ export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds?: Label
     }
 
     return result;
-}
-
-export function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding: number = 0): boolean {
-    const result: PlacedLabel<PlacedLabelDatum>[] = [];
-
-    for (let index = 0; index < data.length; index++) {
-        const datum = data[index];
-        const {
-            point: { x, y },
-            label: { text },
-        } = datum;
-        let { width, height } = datum.label;
-
-        width += padding;
-        height += padding;
-
-        if (result.some((l) => rectRectOverlap(l, x, y, width, height))) {
-            return true;
-        }
-
-        result.push({ index, text, x, y, width, height, datum });
-    }
-
-    return false;
 }

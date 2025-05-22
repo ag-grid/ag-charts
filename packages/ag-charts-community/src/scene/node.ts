@@ -5,7 +5,7 @@ import { BBox } from './bbox';
 import { SceneChangeDetection, SceneObjectChangeDetection } from './changeDetectable';
 import type { ImageLoader } from './image/imageLoader';
 import type { LayersManager } from './layersManager';
-import type { ZIndex } from './zIndex';
+import { type ZIndex } from './zIndex';
 
 export { SceneChangeDetection };
 
@@ -115,9 +115,6 @@ export abstract class Node<D = any> {
     protected scene: IScene | undefined = undefined;
     private readonly _debugDirtyProperties?: Map<string, string[]>;
 
-    protected _dirty: boolean = true;
-    protected dirtyZIndex: boolean = false;
-
     private parentNode?: Node;
     private childNodes?: Set<Node>;
 
@@ -175,10 +172,6 @@ export abstract class Node<D = any> {
         return this.scene?.imageLoader;
     }
 
-    get dirty() {
-        return this._dirty;
-    }
-
     closestDatum() {
         for (const { datum } of this.traverseUp(true)) {
             if (datum != null) {
@@ -207,7 +200,6 @@ export abstract class Node<D = any> {
     render(renderCtx: RenderContext): void {
         const { stats } = renderCtx;
 
-        this._dirty = false;
         this.debugDirtyProperties();
 
         if (renderCtx.debugNodeSearch) {
@@ -233,7 +225,6 @@ export abstract class Node<D = any> {
     }
 
     protected sortChildren(compareFn?: (a: Node, b: Node) => number) {
-        this.dirtyZIndex = false;
         if (!this.childNodes) return;
 
         // Sort children, and re-add in new order (Set preserves insertion order).
@@ -300,8 +291,7 @@ export abstract class Node<D = any> {
             node.setScene(this.scene);
         }
 
-        this.invalidateCachedBBox();
-        this.dirtyZIndex = true;
+        this.markDirtyChildrenOrder();
         this.markDirty();
     }
 
@@ -320,8 +310,7 @@ export abstract class Node<D = any> {
         delete node.parentNode;
         node.setScene();
 
-        this.invalidateCachedBBox();
-        this.dirtyZIndex = true;
+        this.markDirtyChildrenOrder();
         this.markDirty();
     }
 
@@ -335,7 +324,7 @@ export abstract class Node<D = any> {
             child.setScene();
         }
         this.childNodes?.clear();
-        this.invalidateCachedBBox();
+        this.markDirty();
     }
 
     destroy(): void {
@@ -400,13 +389,6 @@ export abstract class Node<D = any> {
         return into;
     }
 
-    private invalidateCachedBBox() {
-        if (this.cachedBBox != null) {
-            this.cachedBBox = undefined;
-            this.parentNode?.invalidateCachedBBox();
-        }
-    }
-
     getBBox(): BBox {
         if (this.cachedBBox == null) {
             this.cachedBBox = Object.freeze(this.computeBBox()) as BBox;
@@ -423,32 +405,17 @@ export abstract class Node<D = any> {
         this.markDirty(property);
     }
 
-    markDirty(property?: string) {
-        const { _dirty } = this;
+    markDirtyChildrenOrder() {
+        this.cachedBBox = undefined;
+    }
 
+    markDirty(property?: string) {
         if (property != null && this._debugDirtyProperties) {
             this.markDebugProperties(property);
         }
 
-        const noParentCachedBBox = this.cachedBBox == null;
-        if (noParentCachedBBox && _dirty) return;
-
-        this.invalidateCachedBBox();
-        this._dirty = true;
-        if (this.parentNode) {
-            this.parentNode.markDirty();
-        }
-    }
-
-    markClean() {
-        if (!this._dirty) return;
-
-        this._dirty = false;
-        this.debugDirtyProperties();
-
-        for (const child of this.children()) {
-            child.markClean();
-        }
+        this.cachedBBox = undefined;
+        this.parentNode?.markDirty();
     }
 
     private markDebugProperties(property: string) {
@@ -489,11 +456,7 @@ export abstract class Node<D = any> {
     }
 
     protected onZIndexChange() {
-        const { parentNode } = this;
-
-        if (parentNode) {
-            parentNode.dirtyZIndex = true;
-        }
+        this.parentNode?.markDirtyChildrenOrder();
     }
 
     toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

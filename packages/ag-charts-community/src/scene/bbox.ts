@@ -1,7 +1,5 @@
-import { clamp } from 'ag-charts-core';
+import { type BoxBounds, boxContains, boxesEqual, clamp } from 'ag-charts-core';
 
-import type { BBoxContainsTester } from '../util/bboxinterface';
-import { BBoxValues } from '../util/bboxinterface';
 import { type Interpolating, interpolate } from '../util/interpolating';
 import type { DistantObject, NearestResult } from '../util/nearest';
 import { nearestSquared } from '../util/nearest';
@@ -23,7 +21,7 @@ type Padding = {
 
 type ShrinkOrGrowPosition = 'top' | 'left' | 'bottom' | 'right' | 'vertical' | 'horizontal';
 
-export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Interpolating<BBox> {
+export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
     static readonly zero = Object.freeze(new BBox(0, 0, 0, 0)) as BBox;
     static readonly NaN = Object.freeze(new BBox(NaN, NaN, NaN, NaN)) as BBox;
 
@@ -31,7 +29,7 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         return new BBox(x, y, width, height);
     }
 
-    static merge(boxes: Iterable<BBoxValues>) {
+    static merge(boxes: Iterable<BoxBounds>) {
         let left = Infinity;
         let top = Infinity;
         let right = -Infinity;
@@ -86,11 +84,11 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
     }
 
     equals(other: BBox) {
-        return BBoxValues.equals(this, other);
+        return boxesEqual(this, other);
     }
 
     containsPoint(x: number, y: number): boolean {
-        return BBoxValues.containsPoint(this, x, y);
+        return boxContains(this, x, y);
     }
 
     intersection(other: BBox) {

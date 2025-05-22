@@ -190,7 +190,7 @@ export function buildTree(node: Node, mode: 'json' | 'console'): BuildTree {
     return {
         node: mode === 'json' ? nodeProps(node) : node,
         name: node.name ?? node.id,
-        dirty: node.dirty,
+        dirty: node instanceof Group ? node.dirty : undefined,
         ...Array.from(node.children(), (c) => buildTree(c, mode)).reduce<Record<string, object>>(
             (result, childTree) => {
                 let { name: treeNodeName } = childTree;
@@ -235,7 +235,8 @@ export function buildDirtyTree(node: Node): {
     dirtyTree: { name?: string; node?: any; dirty?: boolean };
     paths: string[];
 } {
-    if (!node.dirty) {
+    const nodeDirty = node instanceof Group ? node.dirty : undefined;
+    if (!nodeDirty) {
         return { dirtyTree: {}, paths: [] };
     }
 
@@ -249,7 +250,7 @@ export function buildDirtyTree(node: Node): {
         dirtyTree: {
             name,
             node,
-            dirty: node.dirty,
+            dirty: nodeDirty,
             ...childrenDirtyTree
                 .map((c) => c.dirtyTree)
                 .filter((t) => t.dirty != null)

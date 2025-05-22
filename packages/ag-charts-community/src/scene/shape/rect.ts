@@ -1,4 +1,5 @@
-import { BBoxValues } from '../../util/bboxinterface';
+import { boxesEqual } from 'ag-charts-core';
+
 import type { DistantObject } from '../../util/nearest';
 import { BBox } from '../bbox';
 import { SceneChangeDetection, SceneObjectChangeDetection } from '../changeDetectable';
@@ -271,7 +272,7 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         this.bottomLeftCornerRadius = cornerRadius;
     }
 
-    @SceneObjectChangeDetection({ equals: BBoxValues.equals })
+    @SceneObjectChangeDetection({ equals: boxesEqual })
     clipBBox?: BBox = undefined;
 
     /**

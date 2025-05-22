@@ -1,8 +1,9 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-import { extendBbox } from './bboxUtil';
 import { lineStringLength } from './lineStringUtil';
 import { polygonBbox } from './polygonUtil';
+
+const { LonLatBBox } = _ModuleSupport;
 
 export function geometryBbox(
     geometry: _ModuleSupport.Geometry,
@@ -10,7 +11,7 @@ export function geometryBbox(
 ): _ModuleSupport.LonLatBBox | undefined {
     if (geometry.bbox != null) {
         const [lon0, lat0, lon1, lat1] = geometry.bbox;
-        into = extendBbox(into, lon0, lat0, lon1, lat1);
+        into = LonLatBBox.extend(into, lon0, lat0, lon1, lat1);
         return into;
     }
 
@@ -43,12 +44,12 @@ export function geometryBbox(
         case 'MultiPoint':
             geometry.coordinates.forEach((p) => {
                 const [lon, lat] = p;
-                into = extendBbox(into, lon, lat, lon, lat);
+                into = LonLatBBox.extend(into, lon, lat, lon, lat);
             });
             break;
         case 'Point': {
             const [lon, lat] = geometry.coordinates;
-            into = extendBbox(into, lon, lat, lon, lat);
+            into = LonLatBBox.extend(into, lon, lat, lon, lat);
             break;
         }
     }
