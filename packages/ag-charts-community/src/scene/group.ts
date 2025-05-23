@@ -1,4 +1,4 @@
-import { clamp } from 'ag-charts-core';
+import { Logger, clamp } from 'ag-charts-core';
 
 import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
@@ -187,11 +187,14 @@ export class Group<D = any> extends Node<D> {
 
                 offscreenCanvas.clear();
                 offscreenCtx.save();
-                offscreenCtx.setTransform(...(transform as any[]));
-                offscreenCtx.globalAlpha = 1;
-                this.renderInContext(childRenderCtx);
-                offscreenCtx.restore();
-                offscreenCtx.verifyDepthZero?.(); // Check for save/restore depth of zero!
+                try {
+                    offscreenCtx.setTransform(...(transform as any[]));
+                    offscreenCtx.globalAlpha = 1;
+                    this.renderInContext(childRenderCtx);
+                } finally {
+                    offscreenCtx.restore();
+                    offscreenCtx.verifyDepthZero?.(); // Check for save/restore depth of zero!
+                }
             };
 
             if (layer) {
@@ -216,9 +219,12 @@ export class Group<D = any> extends Node<D> {
         ctx.globalAlpha = globalAlpha * this.opacity;
         if (layer) {
             ctx.save();
-            ctx.resetTransform();
-            layer.drawImage(ctx as any);
-            ctx.restore();
+            try {
+                ctx.resetTransform();
+                layer.drawImage(ctx as any);
+            } finally {
+                ctx.restore();
+            }
         } else if (image) {
             const { bitmap, x, y, width, height } = image;
             ctx.drawImage(bitmap, 0, 0, width * pixelRatio, height * pixelRatio, x, y, width, height);
@@ -246,35 +252,42 @@ export class Group<D = any> extends Node<D> {
 
         ctx.save();
 
-        ctx.globalAlpha *= this.opacity;
+        try {
+            ctx.globalAlpha *= this.opacity;
 
-        if (this.clipRect != null) {
-            // clipRect is in the group's coordinate space
-            this.applyClip(ctx, this.clipRect);
+            if (this.clipRect != null) {
+                // clipRect is in the group's coordinate space
+                this.applyClip(ctx, this.clipRect);
 
-            // clipBBox is in the canvas coordinate space,
-            // when we hit a layer we apply the new clipping
-            // at which point there are no transforms in play
-            childRenderCtx.clipBBox = Transformable.toCanvas(this, this.clipRect);
-        }
-
-        for (const child of this.children()) {
-            // Skip invisible children, but make sure their dirty flag is reset.
-            if (!child.visible) {
-                if (stats) {
-                    stats.nodesSkipped += child.childNodeCounts.nonGroups + child.childNodeCounts.groups;
-                    stats.opsSkipped += child.childNodeCounts.complexity;
-                }
-                continue;
+                // clipBBox is in the canvas coordinate space,
+                // when we hit a layer we apply the new clipping
+                // at which point there are no transforms in play
+                childRenderCtx.clipBBox = Transformable.toCanvas(this, this.clipRect);
             }
 
-            // Render marks this node (and children) as clean - no need to explicitly markClean().
-            ctx.save();
-            child.render(childRenderCtx);
+            for (const child of this.children()) {
+                // Skip invisible children, but make sure their dirty flag is reset.
+                if (!child.visible) {
+                    if (stats) {
+                        stats.nodesSkipped += child.childNodeCounts.nonGroups + child.childNodeCounts.groups;
+                        stats.opsSkipped += child.childNodeCounts.complexity;
+                    }
+                    continue;
+                }
+
+                // Render marks this node (and children) as clean - no need to explicitly markClean().
+                ctx.save();
+                try {
+                    child.render(childRenderCtx);
+                } catch (e) {
+                    Logger.warnOnce('Error during rendering', e);
+                } finally {
+                    ctx.restore();
+                }
+            }
+        } finally {
             ctx.restore();
         }
-
-        ctx.restore();
     }
 
     /**
