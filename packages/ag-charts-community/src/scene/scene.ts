@@ -240,9 +240,17 @@ export class Scene extends EventEmitter<EventMap> {
             }
 
             if (root.visible) {
-                ctx.save();
-                root.render(renderCtx);
-                ctx.restore();
+                try {
+                    ctx.save();
+                    root.render(renderCtx);
+                    ctx.restore();
+                } catch (e) {
+                    // AG-14976 - make sure to reset canvas state on error.
+                    // This is not bullet proof, but does at least give a chance for an application to recover.
+                    this.canvas.reset();
+
+                    throw e;
+                }
             }
         }
 
