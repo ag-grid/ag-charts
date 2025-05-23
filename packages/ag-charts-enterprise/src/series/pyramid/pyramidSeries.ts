@@ -126,7 +126,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     override addChartEventListeners(): void {
-        this.destroyFns.push(
+        this.cleanup.register(
             this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event))
         );
     }

@@ -1,3 +1,5 @@
+import { CleanupRegistry } from 'ag-charts-core';
+
 import { Listeners } from '../../util/listeners';
 import type { Widget } from '../../widget/widget';
 import type {
@@ -71,7 +73,7 @@ type EventMap = Omit<WidgetEventMap, 'click' | 'dblclick'> & {
  * dispatches either a set of 'drag-*' events or a single 'click' event but not both.
  */
 export class DragInterpreter {
-    private readonly destroyFns: (() => void)[] = [];
+    private readonly cleanup = new CleanupRegistry();
     private readonly listeners = new Listeners<Type, (e: unknown) => void>();
 
     private dragStartEvent?: DragWidgetEvent<'drag-start'>;
@@ -80,7 +82,7 @@ export class DragInterpreter {
     private readonly touch = { distanceTravelledX: 0, distanceTravelledY: 0, clientX: 0, clientY: 0 };
 
     constructor(widget: Widget) {
-        this.destroyFns.push(
+        this.cleanup.register(
             widget.addListener('touchstart', this.onTouchStart.bind(this)),
             widget.addListener('touchmove', this.onTouchMove.bind(this)),
             widget.addListener('touchend', this.onTouchEnd.bind(this)),
@@ -93,8 +95,7 @@ export class DragInterpreter {
     }
 
     destroy(): void {
-        this.destroyFns.forEach((fn) => fn());
-        this.listeners.destroy();
+        this.cleanup.flush();
     }
 
     addListener<T extends Type>(type: T, handler: (e: EventMap[T]) => void): () => void;

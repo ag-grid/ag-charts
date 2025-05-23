@@ -39,7 +39,7 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
 
         this.visible = true;
 
-        this.destroyFns.push(
+        this.cleanup.register(
             ctx.scene.attachNode(this.node),
             ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e))
         );

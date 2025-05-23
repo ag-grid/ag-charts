@@ -1,4 +1,4 @@
-import { type BaseStyleTypeMap, type ElementID, createElement, setElementStyle } from 'ag-charts-core';
+import { type BaseStyleTypeMap, CleanupRegistry, type ElementID, createElement, setElementStyle } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
 import type { LocaleManager } from '../locale/localeManager';
@@ -118,7 +118,7 @@ function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params'])
 }
 
 export class ProxyInteractionService {
-    private readonly destroyFns: Array<() => void> = [];
+    private readonly cleanup = new CleanupRegistry();
 
     constructor(
         private readonly localeManager: LocaleManager,
@@ -126,13 +126,13 @@ export class ProxyInteractionService {
     ) {}
 
     destroy() {
-        this.destroyFns.forEach((fn) => fn());
+        this.cleanup.flush();
     }
 
     private addLocalisation(fn: () => void) {
         fn();
         // FIXME(olegat) The result of `addListener` must be freed when the HTMLElement goes out of scope.
-        this.destroyFns.push(this.localeManager.addListener('locale-changed', fn));
+        this.cleanup.register(this.localeManager.addListener('locale-changed', fn));
     }
 
     createProxyContainer<T extends ProxyContainerType>(

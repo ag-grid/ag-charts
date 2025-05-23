@@ -1,5 +1,6 @@
 import {
     type StrictHTMLElement,
+    attachListener,
     createElement,
     createId,
     entries,
@@ -144,7 +145,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         this.setContainer(initialContainer);
 
-        this.destroyFns.push(stopPageScrolling(this.element));
+        this.cleanup.register(stopPageScrolling(this.element));
 
         if (this.mode === 'normal') {
             const guardedElement = this.rootElements['canvas-center'].element;
@@ -403,7 +404,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
         options?: boolean | AddEventListenerOptions
     ) {
-        this.getEventElement(this.element, type).addEventListener(type, listener, options);
+        const element = this.getEventElement(this.element, type);
+        return attachListener(element, type, listener, options);
     }
 
     removeEventListener<K extends keyof HTMLElementEventMap>(

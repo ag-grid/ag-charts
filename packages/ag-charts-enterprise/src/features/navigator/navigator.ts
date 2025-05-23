@@ -65,13 +65,11 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
     public constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.destroyFns.push(
+        this.cleanup.register(
             ctx.scene.attachNode(this.rangeSelector),
-            this.ctx.localeManager.addListener('locale-changed', () => this.updateZoom()),
-            this.ctx.layoutManager.registerElement(_ModuleSupport.LayoutElement.Navigator, (e) =>
-                this.onLayoutStart(e)
-            ),
-            this.ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
+            ctx.localeManager.addListener('locale-changed', () => this.updateZoom()),
+            ctx.layoutManager.registerElement(_ModuleSupport.LayoutElement.Navigator, (e) => this.onLayoutStart(e)),
+            ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
         );
 

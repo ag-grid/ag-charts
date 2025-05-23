@@ -1,8 +1,10 @@
+import { CleanupRegistry } from 'ag-charts-core';
+
 import { Listeners } from './listeners';
 
 export abstract class BaseManager<EventType extends string = never, Event extends { type: any } = never> {
     protected readonly listeners = new Listeners<EventType, (event: Event) => void>();
-    protected readonly destroyFns: (() => void)[] = [];
+    protected readonly cleanup = new CleanupRegistry();
     protected destroyed = false;
 
     public addListener<T extends EventType>(type: T, handler: (event: Event & { type: T }) => void) {
@@ -11,7 +13,7 @@ export abstract class BaseManager<EventType extends string = never, Event extend
 
     public destroy() {
         this.listeners.destroy();
-        this.destroyFns.forEach((fn) => fn());
+        this.cleanup.flush();
         this.destroyed = true;
     }
 }

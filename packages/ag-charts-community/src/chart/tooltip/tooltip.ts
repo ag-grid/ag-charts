@@ -1,4 +1,4 @@
-import { clamp, getWindow } from 'ag-charts-core';
+import { CleanupRegistry, clamp, getWindow } from 'ag-charts-core';
 import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionRange, TextWrap } from 'ag-charts-types';
 
 import type { DOMManager } from '../../dom/domManager';
@@ -162,7 +162,7 @@ export class Tooltip extends BaseProperties {
     @Property
     bounds: 'extended' | 'canvas' = 'extended';
 
-    private readonly destroyFns: Array<() => void> = [];
+    private readonly cleanup = new CleanupRegistry();
     private readonly springAnimation = new SpringAnimation();
 
     private enableInteraction: boolean = false;
@@ -192,7 +192,7 @@ export class Tooltip extends BaseProperties {
     constructor() {
         super();
 
-        this.destroyFns.push(this.springAnimation.addListener('update', this.updateTooltipPosition.bind(this)));
+        this.cleanup.register(this.springAnimation.addListener('update', this.updateTooltipPosition.bind(this)));
     }
 
     private localeManager: LocaleManager | undefined = undefined;
@@ -213,7 +213,7 @@ export class Tooltip extends BaseProperties {
 
         return () => {
             domManager.removeChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
-            this.destroyFns.forEach((f) => f());
+            this.cleanup.flush();
 
             if (this.element) {
                 this.sizeMonitor.unobserve(this.element);

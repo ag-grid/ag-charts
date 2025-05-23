@@ -18,6 +18,7 @@ export * from './utils/async';
 export * from './utils/attributeUtil';
 export * from './utils/boxBounds';
 export * from './utils/binarySearch';
+export * from './utils/cleanupRegistry';
 export * from './utils/diff';
 export * from './utils/functions';
 export * from './utils/geoJson';

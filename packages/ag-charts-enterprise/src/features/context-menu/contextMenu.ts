@@ -58,7 +58,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 this.hide();
             }
         });
-        this.destroyFns.push(
+        this.cleanup.register(
             () => this.element.parentNode?.removeChild(this.element),
             () => this.menuWidget.destroy(),
             ctx.domManager.addListener('hidden', () => this.hide()),
@@ -74,7 +74,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             });
             observer.observe(this.element, { childList: true });
             this.mutationObserver = observer;
-            this.destroyFns.push(() => observer.disconnect());
+            this.cleanup.register(() => observer.disconnect());
         }
 
         this.ctx.contextMenuRegistry.builtins.items['download'].action = () => {
@@ -88,7 +88,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             });
         };
 
-        this.destroyFns.push(this.registry.addListener('context-complete', (e) => this.onContext(e)));
+        this.cleanup.register(this.registry.addListener('context-complete', (e) => this.onContext(e)));
     }
 
     private expandItemsOptions(showing: AgContextMenuItemShowOn): ContextMenuItem[] {

@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { BoxBounds } from 'ag-charts-core';
+import { type BoxBounds, CleanupRegistry } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 import { type AnnotationType } from './annotationTypes';
@@ -62,7 +62,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     private readonly toolbar: SharedToolbarWithSection<AnnotationsToolbarButtonOptions>;
     private readonly annotationMenu = new Menu(this.ctx, 'annotations');
 
-    private readonly destroyFns: (() => void)[] = [];
+    private readonly cleanup = new CleanupRegistry();
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -72,7 +72,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         const onKeyDown = this.onKeyDown.bind(this);
         this.toolbar.addListener('keydown', onKeyDown);
 
-        this.destroyFns.push(
+        this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onToolbarButtonPress.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.ToolbarLeft, this.onLayoutStart.bind(this)),
             () => {
@@ -83,9 +83,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     }
 
     public destroy() {
-        for (const destroyFn of this.destroyFns) {
-            destroyFn();
-        }
+        this.cleanup.flush();
     }
 
     public addListener<K extends keyof EventMap>(eventType: K, handler: (event: EventMap[K]) => void) {

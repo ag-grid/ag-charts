@@ -1,7 +1,7 @@
-import { getDocument, getWindow, setAttribute } from 'ag-charts-core';
+import { CleanupRegistry, attachListener, getDocument, getWindow, setAttribute } from 'ag-charts-core';
 
 export class GuardedElement {
-    private readonly destroyFns: (() => void)[] = [];
+    private readonly cleanup = new CleanupRegistry();
     private guardTabIndex: number = 0;
     private hasFocus = false;
 
@@ -10,8 +10,8 @@ export class GuardedElement {
         private readonly topTabGuard: HTMLElement,
         private readonly bottomTabGuard: HTMLElement
     ) {
-        this.initTabGuard(this.topTabGuard, (el) => this.onTab(el, false));
-        this.initTabGuard(this.bottomTabGuard, (el) => this.onTab(el, true));
+        this.initTabGuard(this.topTabGuard, false);
+        this.initTabGuard(this.bottomTabGuard, true);
         this.element.addEventListener('focus', () => this.onFocus(), { capture: true });
         this.element.addEventListener('blur', (ev) => this.onBlur(ev), { capture: true });
     }
@@ -26,14 +26,11 @@ export class GuardedElement {
     }
 
     destroy() {
-        for (const fn of this.destroyFns) fn();
-        this.destroyFns.length = 0;
+        this.cleanup.flush();
     }
 
-    private initTabGuard(guard: HTMLElement, handler: (el: HTMLElement) => void) {
-        const handlerBinding = () => handler(guard);
-        guard.addEventListener('focus', handlerBinding);
-        this.destroyFns.push(() => guard.removeEventListener('focus', handlerBinding));
+    private initTabGuard(guard: HTMLElement, reverse: boolean) {
+        this.cleanup.register(attachListener(guard, 'focus', () => this.onTab(guard, reverse)));
     }
 
     private setGuardIndices(index: number | undefined) {

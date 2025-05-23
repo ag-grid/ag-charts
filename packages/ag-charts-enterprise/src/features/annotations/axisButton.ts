@@ -35,7 +35,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
             if (!isSeriesAreaChild && htmlTarget !== this.button.getElement()) this.hide();
         });
 
-        this.destroyFns.push(
+        this.cleanup.register(
             ctx.widgets.seriesWidget.addListener('drag-move', (e) => this.onMouseDrag(e)),
             ctx.widgets.seriesWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
             ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseLeave()),

@@ -1,4 +1,4 @@
-import { getWindow } from 'ag-charts-core';
+import { CleanupRegistry, attachListener, getWindow } from 'ag-charts-core';
 
 export type MouseDragCallbacks = {
     mousedown: (event: MouseEvent) => void;
@@ -8,6 +8,7 @@ export type MouseDragCallbacks = {
 
 export class MouseDragger {
     private readonly window = getWindow();
+    private readonly cleanup = new CleanupRegistry();
 
     constructor(
         private readonly glob: { globalMouseDragCallbacks?: MouseDragCallbacks },
@@ -16,27 +17,22 @@ export class MouseDragger {
         downEvent: MouseEvent
     ) {
         const { window, mousegeneral, mousemove, mouseup } = this;
-        window.addEventListener('mousedown', mousegeneral, { capture: true });
-        window.addEventListener('mouseenter', mousegeneral, { capture: true });
-        window.addEventListener('mouseleave', mousegeneral, { capture: true });
-        window.addEventListener('mouseout', mousegeneral, { capture: true });
-        window.addEventListener('mouseover', mousegeneral, { capture: true });
-        window.addEventListener('mousemove', mousemove, { capture: true });
-        window.addEventListener('mouseup', mouseup, { capture: true });
+        this.cleanup.register(
+            attachListener(window, 'mousedown', mousegeneral, { capture: true }),
+            attachListener(window, 'mouseenter', mousegeneral, { capture: true }),
+            attachListener(window, 'mouseleave', mousegeneral, { capture: true }),
+            attachListener(window, 'mouseout', mousegeneral, { capture: true }),
+            attachListener(window, 'mouseover', mousegeneral, { capture: true }),
+            attachListener(window, 'mousemove', mousemove, { capture: true }),
+            attachListener(window, 'mouseup', mouseup, { capture: true })
+        );
         self.mouseDragger = this;
         glob.globalMouseDragCallbacks = myCallbacks;
         glob.globalMouseDragCallbacks.mousedown(downEvent);
     }
 
     destroy(): void {
-        const { window, mousegeneral, mousemove, mouseup } = this;
-        window.removeEventListener('mousedown', mousegeneral, { capture: true });
-        window.removeEventListener('mouseenter', mousegeneral, { capture: true });
-        window.removeEventListener('mouseleave', mousegeneral, { capture: true });
-        window.removeEventListener('mouseout', mousegeneral, { capture: true });
-        window.removeEventListener('mouseover', mousegeneral, { capture: true });
-        window.removeEventListener('mousemove', mousemove, { capture: true });
-        window.removeEventListener('mouseup', mouseup, { capture: true });
+        this.cleanup.flush();
         this.glob.globalMouseDragCallbacks = undefined;
         this.self.mouseDragger = undefined;
     }

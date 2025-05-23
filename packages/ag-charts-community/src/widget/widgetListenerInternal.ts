@@ -1,4 +1,4 @@
-import { type AnyFn, boxContains } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, attachListener, boxContains } from 'ag-charts-core';
 
 import { partialAssign } from '../util/object';
 import { type MouseDragCallbacks, type MouseDragger, startMouseDrag } from './mouseDragger';
@@ -128,14 +128,15 @@ export class WidgetListenerInternal {
 
     private registerDragTrigger<T extends Targetable>(target: T) {
         if (this.dragTriggerRemover == null) {
-            const mouseTrigger = (event: MouseEvent) => this.triggerMouseDrag(target, event);
-            const touchTrigger = (event: TouchEvent) => this.triggerTouchDrag(target, event);
-            target.getElement().addEventListener('mousedown', mouseTrigger);
-            target.getElement().addEventListener('touchstart', touchTrigger, { passive: false });
-            this.dragTriggerRemover = () => {
-                target.getElement().removeEventListener('mousedown', mouseTrigger);
-                target.getElement().removeEventListener('touchstart', touchTrigger);
-            };
+            const element = target.getElement();
+            const cleanup = new CleanupRegistry();
+            cleanup.register(
+                attachListener(element, 'mousedown', (event) => this.triggerMouseDrag(target, event)),
+                attachListener(element, 'touchstart', (event) => this.triggerTouchDrag(target, event), {
+                    passive: false,
+                })
+            );
+            this.dragTriggerRemover = () => cleanup.flush();
         }
     }
 

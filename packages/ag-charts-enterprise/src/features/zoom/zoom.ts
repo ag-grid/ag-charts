@@ -204,7 +204,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             },
         });
 
-        this.destroyFns.push(
+        this.cleanup.register(
             ctx.scene.attachNode(selectionRect),
             ctx.chartEventManager.addListener('series-keynav-zoom', (event) => this.onNavZoom(event)),
             ctx.widgets.seriesDragInterpreter.addListener('dblclick', (event) => this.onDoubleClick(event)),
