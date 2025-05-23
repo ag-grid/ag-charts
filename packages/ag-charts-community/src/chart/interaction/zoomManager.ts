@@ -132,7 +132,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     ) {
         super();
 
-        this.destroyFns.push(
+        this.cleanup.register(
             layoutManager.addListener('layout:complete', () => {
                 const { pendingMemento } = this;
                 const shouldPerformInitialLayout = !this.didLayoutAxes;

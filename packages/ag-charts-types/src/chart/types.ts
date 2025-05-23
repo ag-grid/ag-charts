@@ -94,3 +94,7 @@ export type VerticalAlign = 'top' | 'middle' | 'bottom';
 export type Direction = 'vertical' | 'horizontal';
 
 export type GeoJSON = any;
+
+export type TDatumDefault = any;
+
+export type TContextDefault = unknown;

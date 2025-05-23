@@ -158,7 +158,7 @@ export const WIDGET_HTML_EVENTS: readonly (keyof WidgetEventMap & keyof HTMLElem
     'touchmove',
     'touchend',
     'touchcancel',
-] satisfies (keyof WidgetEventMap & keyof HTMLElementEventMap)[];
+];
 
 export type WidgetSourceEventMap = { [K in keyof WidgetEventMap]: WidgetEventMap[K]['sourceEvent'] } & {
     click: MouseEvent; // exclude synthetic click sourceEvent types
@@ -178,7 +178,6 @@ function allocTouchEvent<T extends TouchWidgetEventType>(type: T, sourceEvent: T
 export type WidgetEventMap_HTML = Pick<WidgetEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
 export type WidgetEventMap_Internal = Omit<WidgetEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
 export type WidgetSourceEventMap_HTML = Pick<WidgetSourceEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
-export type WidgetSourceEventMap_Internal = Omit<WidgetSourceEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
 
 type Allocator<K extends keyof WidgetEventMap_HTML> = (
     sourceEvent: WidgetSourceEventMap_HTML[K],

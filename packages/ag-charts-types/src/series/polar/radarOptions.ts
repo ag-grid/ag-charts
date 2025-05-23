@@ -1,12 +1,13 @@
 import type { DatumCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
+import type { TContextDefault, TDatumDefault } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgRadialSeriesOptionsKeys, AgRadialSeriesOptionsNames } from './radialOptions';
 
-export interface AgRadarSeriesThemeableOptions<TDatum = any>
+export interface AgRadarSeriesThemeableOptions<TDatum = TDatumDefault>
     extends StrokeOptions,
         LineDashOptions,
         AgBaseSeriesThemeableOptions<TDatum> {
@@ -20,8 +21,8 @@ export interface AgRadarSeriesThemeableOptions<TDatum = any>
     connectMissingData?: boolean;
 }
 
-export interface AgBaseRadarSeriesOptions<TDatum = any>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgBaseRadarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgRadialSeriesOptionsKeys,
         AgRadialSeriesOptionsNames,
         AgRadarSeriesThemeableOptions<TDatum> {

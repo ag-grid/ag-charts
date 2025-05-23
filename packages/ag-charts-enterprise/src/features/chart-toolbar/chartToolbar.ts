@@ -32,7 +32,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
         this.toolbar = ((ctx as any).sharedToolbar as SharedToolbar).getSharedToolbar('chartToolbar');
 
-        this.destroyFns.push(
+        this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPressed.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.ToolbarLeft, this.onLayoutStart.bind(this)),
             () => this.toolbar.destroy()

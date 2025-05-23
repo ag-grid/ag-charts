@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { clamp, createElement } from 'ag-charts-core';
+import { attachListener, clamp, createElement, getWindow } from 'ag-charts-core';
 
 import colorPickerTemplate from './colorPickerTemplate.html';
 
@@ -117,13 +117,10 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
                 v = 1 - Math.min(Math.max((clientY - rect.top) / rect.height, 0), 1);
                 update();
             };
-            const pointerUp = () => {
-                window.removeEventListener('pointermove', pointerMove);
-            };
             pointerMove(e);
 
-            window.addEventListener('pointermove', pointerMove);
-            window.addEventListener('pointerup', pointerUp, { once: true });
+            const pointerUp = attachListener(getWindow(), 'pointermove', pointerMove);
+            getWindow().addEventListener('pointerup', pointerUp, { once: true });
         };
 
         colorPicker.addEventListener('mousedown', stopPropagation);

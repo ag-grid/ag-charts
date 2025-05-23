@@ -1,4 +1,4 @@
-import { type AnyFn, Logger, clamp, createId } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, Logger, clamp, createId } from 'ag-charts-core';
 import type {
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
@@ -277,7 +277,7 @@ export class Legend extends BaseProperties {
     @Property
     spacing = 20;
 
-    private readonly destroyFns: Function[] = [];
+    private readonly cleanup = new CleanupRegistry();
 
     private readonly domProxy: LegendDOMProxy;
     private pendingHighlightDatum?: HighlightNodeDatum;
@@ -294,13 +294,12 @@ export class Legend extends BaseProperties {
         const { items } = ctx.contextMenuRegistry.builtins;
         items['toggle-series-visibility'].action = (params) => this.contextToggleVisibility(params);
         items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
-        this.destroyFns.push(ctx.legendManager.addListener('legend-change', this.onLegendDataChange.bind(this)));
-
-        this.destroyFns.push(
-            () => delete items['toggle-series-visibility'].action,
-            () => delete items['toggle-other-series'].action,
+        this.cleanup.register(
+            ctx.legendManager.addListener('legend-change', this.onLegendDataChange.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
             ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
+            () => delete items['toggle-series-visibility'].action,
+            () => delete items['toggle-other-series'].action,
             () => this.group.remove()
         );
 
@@ -317,10 +316,8 @@ export class Legend extends BaseProperties {
     public destroy() {
         this.ctx.domManager.removeChild('canvas-overlay', `${this.id}-toolbar`);
         this.ctx.domManager.removeChild('canvas-overlay', `${this.id}-pagination`);
-        this.destroyFns.forEach((f) => f());
-
+        this.cleanup.flush();
         this.itemSelection.clear();
-        this.domProxy.destroy();
     }
 
     private getOrientation(): AgChartLegendOrientation {

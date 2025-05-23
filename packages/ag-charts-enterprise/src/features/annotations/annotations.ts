@@ -450,7 +450,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const { ctx, optionsToolbar, settingsDialog, toolbar } = this;
         const { seriesWidget, seriesDragInterpreter, chartWidget } = ctx.widgets;
 
-        this.destroyFns.push(
+        this.cleanup.register(
             // Interactions
             seriesDragInterpreter.addListener('click', this.hoverTouchPreHandler.bind(this)),
             seriesDragInterpreter.addListener('drag-start', this.hoverTouchPreHandler.bind(this)),
@@ -543,7 +543,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private setupDOM() {
         const { ctx, toolbar } = this;
 
-        this.destroyFns.push(
+        this.cleanup.register(
             // DOM
             ctx.annotationManager.attachNode(this.container),
             () => ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS),

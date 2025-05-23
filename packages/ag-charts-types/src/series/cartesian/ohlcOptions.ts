@@ -1,5 +1,6 @@
 import type { Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AxisOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 import type {
@@ -29,7 +30,7 @@ export interface AgOhlcSeriesStyles {
     item?: AgOhlcSeriesItem;
 }
 
-export interface AgOhlcSeriesThemeableOptions<TDatum = any>
+export interface AgOhlcSeriesThemeableOptions<TDatum = TDatumDefault>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
         AgOhlcSeriesStyles {
     /** Series-specific tooltip configuration. */
@@ -38,9 +39,9 @@ export interface AgOhlcSeriesThemeableOptions<TDatum = any>
     itemStyler?: Styler<AgOhlcSeriesItemStylerParams<TDatum>, AgOhlcSeriesItemOptions>;
 }
 
-export interface AgOhlcSeriesOptions<TDatum = any>
+export interface AgOhlcSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgOhlcSeriesThemeableOptions<TDatum>,
-        AgBaseSeriesOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum, TContext>,
         AgOhlcSeriesBaseOptions,
         Omit<AxisOptions, 'yKey'> {
     /** Configuration for the OHLC Series. */

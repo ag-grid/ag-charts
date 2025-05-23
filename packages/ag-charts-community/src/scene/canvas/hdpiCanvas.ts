@@ -92,6 +92,10 @@ export class HdpiCanvas {
         Object.freeze(this);
     }
 
+    reset() {
+        this.context.resetTransform();
+    }
+
     private onEnabledChange() {
         if (this.element) {
             this.element.style.display = this.enabled ? '' : 'none';

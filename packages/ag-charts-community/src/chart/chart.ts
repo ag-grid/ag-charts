@@ -1,5 +1,6 @@
 import {
     AsyncAwaitQueue,
+    CleanupRegistry,
     Logger,
     type ModuleInstance,
     createId,
@@ -254,7 +255,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     public destroyed = false;
 
-    private readonly _destroyFns: (() => void)[] = [];
+    private readonly cleanup = new CleanupRegistry();
 
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
@@ -328,7 +329,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             updateMutex: this.updateMutex,
         }));
 
-        this._destroyFns.push(
+        this.cleanup.register(
             ctx.domManager.addListener('resize', () => this.parentResize(ctx.domManager.containerSize))
         );
 
@@ -358,7 +359,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         ctx.domManager.setDataBoolean('animating', false);
 
         this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
-        this._destroyFns.push(
+        this.cleanup.register(
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(this.padding.toJson());
                 this.chartCaptions.positionCaptions(e);
@@ -497,7 +498,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this.performUpdateType = ChartUpdateType.NONE;
 
-        this._destroyFns.forEach((fn) => fn());
+        this.cleanup.flush();
         this.processors.forEach((p) => p.destroy());
         this.overlays.destroy();
         this.modulesManager.destroy();

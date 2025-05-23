@@ -16,43 +16,49 @@ import type {
     AgRadiusCategoryAxisOptions,
     AgRadiusNumberAxisOptions,
 } from './radiusAxisOptions';
+import type { TContextDefault, TDatumDefault } from './types';
 
-export type AgPolarSeriesOptions =
-    | AgDonutSeriesOptions
-    | AgPieSeriesOptions
-    | AgRadarLineSeriesOptions
-    | AgRadarAreaSeriesOptions
-    | AgRadialBarSeriesOptions
-    | AgRadialColumnSeriesOptions
-    | AgNightingaleSeriesOptions;
+export type AgPolarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault> =
+    | AgDonutSeriesOptions<TDatum, TContext>
+    | AgPieSeriesOptions<TDatum, TContext>
+    | AgRadarLineSeriesOptions<TDatum, TContext>
+    | AgRadarAreaSeriesOptions<TDatum, TContext>
+    | AgRadialBarSeriesOptions<TDatum, TContext>
+    | AgRadialColumnSeriesOptions<TDatum, TContext>
+    | AgNightingaleSeriesOptions<TDatum, TContext>;
 
-export type AgPolarAxisOptions =
-    | AgAngleCategoryAxisOptions
-    | AgAngleNumberAxisOptions
-    | AgRadiusCategoryAxisOptions
-    | AgRadiusNumberAxisOptions;
+export type AgPolarAxisOptions<TContext = TContextDefault> =
+    | AgAngleCategoryAxisOptions<TContext>
+    | AgAngleNumberAxisOptions<TContext>
+    | AgRadiusCategoryAxisOptions<TContext>
+    | AgRadiusNumberAxisOptions<TContext>;
 
-export type AgPolarAxisType = AgPolarAxisOptions['type'];
+export type AgPolarAxisType<TContext = TContextDefault> = AgPolarAxisOptions<TContext>['type'];
 
-export interface AgBasePolarChartOptions {
+export interface AgBasePolarChartOptions<TDatum = TDatumDefault, TContext = TContextDefault> {
     /** Series configurations. */
-    series?: AgPolarSeriesOptions[];
+    series?: AgPolarSeriesOptions<TDatum, TContext>[];
 
     /** Axis configurations. */
-    axes?: AgPolarAxisOptions[];
+    axes?: AgPolarAxisOptions<TContext>[];
 }
 
+type ThemeOmittedAxisOptions = 'context' | 'type' | 'crossLines';
+
 export interface AgAngleCategoryAxisThemeOptions
-    extends Omit<AgAngleCategoryAxisOptions, 'type' | 'crossLines'>,
+    extends Omit<AgAngleCategoryAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgAngleAxesCrossLineThemeOptions {}
+
 export interface AgAngleNumberAxisThemeOptions
-    extends Omit<AgAngleNumberAxisOptions, 'type' | 'crossLines'>,
+    extends Omit<AgAngleNumberAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgAngleAxesCrossLineThemeOptions {}
+
 export interface AgRadiusCategoryAxisThemeOptions
-    extends Omit<AgRadiusCategoryAxisOptions, 'type' | 'crossLines'>,
+    extends Omit<AgRadiusCategoryAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgRadiusAxesCrossLineThemeOptions {}
+
 export interface AgRadiusNumberAxisThemeOptions
-    extends Omit<AgRadiusNumberAxisOptions, 'type' | 'crossLines'>,
+    extends Omit<AgRadiusNumberAxisOptions<never>, ThemeOmittedAxisOptions>,
         AgRadiusAxesCrossLineThemeOptions {}
 
 export interface AgPolarAxesTheme {
@@ -62,7 +68,7 @@ export interface AgPolarAxesTheme {
     'radius-number'?: AgRadiusNumberAxisThemeOptions;
 }
 
-export interface AgBasePolarThemeOptions extends AgBaseThemeableChartOptions {
+export interface AgBasePolarThemeOptions<TDatum = TDatumDefault> extends AgBaseThemeableChartOptions<TDatum> {
     /** Axis configurations. */
     axes?: AgPolarAxesTheme;
 }

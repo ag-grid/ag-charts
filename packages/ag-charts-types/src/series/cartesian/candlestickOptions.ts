@@ -1,5 +1,6 @@
 import type { Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgBarSeriesStyle } from './barOptions';
 import type { AxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
@@ -37,7 +38,7 @@ export interface AgCandlestickSeriesStyles {
     item?: AgCandlestickSeriesItem;
 }
 
-export interface AgCandlestickSeriesThemeableOptions<TDatum = any>
+export interface AgCandlestickSeriesThemeableOptions<TDatum = TDatumDefault>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
         AgCandlestickSeriesStyles {
     /** Series-specific tooltip configuration. */
@@ -46,9 +47,9 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum = any>
     itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<TDatum>, AgCandlestickSeriesItemOptions>;
 }
 
-export interface AgCandlestickSeriesOptions<TDatum = any>
+export interface AgCandlestickSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgCandlestickSeriesThemeableOptions<TDatum>,
-        AgBaseSeriesOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum, TContext>,
         AgOhlcSeriesBaseOptions,
         Omit<AxisOptions, 'yKey'> {
     /** Configuration for the Candlestick Series. */

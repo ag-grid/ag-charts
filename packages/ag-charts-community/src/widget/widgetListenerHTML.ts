@@ -52,11 +52,13 @@ export class WidgetListenerHTML {
     }
 
     destroy<T extends Targetable>(target: T): void {
-        for (const [key, sourceHandler] of entries(this.sourceListeners ?? {})) {
-            target.getElement().removeEventListener(key, sourceHandler as any);
-        }
         this.widgetListeners = undefined;
-        this.sourceListeners = undefined;
+        if (this.sourceListeners) {
+            for (const [key, sourceHandler] of entries(this.sourceListeners)) {
+                target.getElement().removeEventListener(key, sourceHandler as any);
+            }
+            this.sourceListeners = undefined;
+        }
     }
 
     dispatch<T extends Targetable, K extends EventType>(type: K, target: T, event: EventMap[K]): void {

@@ -52,7 +52,7 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
 
         this.container.append(this.sharedToolbar.getElement());
 
-        this.destroyFns.push(() => {
+        this.cleanup.register(() => {
             if (!this.sharedToolbar) return;
             this.container.removeChild(this.sharedToolbar.getElement());
             this.sharedToolbar.destroy();

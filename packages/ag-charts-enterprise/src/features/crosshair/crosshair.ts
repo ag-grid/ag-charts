@@ -75,7 +75,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             }
         });
 
-        this.destroyFns.push(
+        this.cleanup.register(
             ctx.scene.attachNode(this.crosshairGroup),
             ctx.widgets.seriesWidget.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
             ctx.widgets.seriesWidget.addListener('drag-move', (event) => this.onMouseHoverLike(event)),

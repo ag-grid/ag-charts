@@ -2,7 +2,7 @@ import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Degree, Opacity, PixelSize, Ratio } from '../../chart/types';
+import type { CssColor, Degree, Opacity, PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
 import type {
     AgColorType,
     FillOptions,
@@ -56,7 +56,7 @@ export interface AgPieSeriesCalloutOptions {
     strokeWidth?: PixelSize;
 }
 
-export interface AgPieSeriesThemeableOptions<TDatum = any>
+export interface AgPieSeriesThemeableOptions<TDatum = TDatumDefault>
     extends AgBaseSeriesThemeableOptions<TDatum>,
         LineDashOptions {
     /** Configuration for the series title. */
@@ -101,11 +101,11 @@ export interface AgPieSeriesThemeableOptions<TDatum = any>
     itemStyler?: Styler<AgPieSeriesItemStylerParams<TDatum>, AgPieSeriesStyle>;
 }
 
-export interface AgPieSeriesOptions<TDatum = any>
+export interface AgPieSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends Omit<AgPieSeriesThemeableOptions<TDatum>, 'innerLabels'>,
         AgPieSeriesOptionsKeys,
         AgPieSeriesOptionsNames,
-        AgBaseSeriesOptions<TDatum> {
+        AgBaseSeriesOptions<TDatum, TContext> {
     /** Configuration for Pie Series. */
     type: 'pie';
 }

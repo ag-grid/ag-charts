@@ -1,5 +1,5 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import type { BoxBounds } from 'ag-charts-core';
+import { type BoxBounds, CleanupRegistry } from 'ag-charts-core';
 
 import { ColorPicker } from '../../components/color-picker/colorPicker';
 import {
@@ -124,7 +124,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     @Property
     public buttons = new PropertiesArray(AnnotationOptionsButtonProperties);
 
-    private readonly destroyFns: (() => void)[] = [];
+    private readonly cleanup = new CleanupRegistry();
 
     private readonly events = new Listeners<keyof EventMap, any>();
     private visibleButtons: Array<AnnotationOptionsButtonProperties> = [];
@@ -141,7 +141,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     ) {
         super();
 
-        this.destroyFns.push(
+        this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             this.toolbar.addToolbarListener('toolbar-moved', this.onToolbarMoved.bind(this)),
             ctx.widgets.seriesWidget.addListener('drag-start', this.onDragStart.bind(this)),
@@ -159,9 +159,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     }
 
     public destroy() {
-        for (const destroyFn of this.destroyFns) {
-            destroyFn();
-        }
+        this.cleanup.flush();
     }
 
     public addListener<K extends keyof EventMap>(eventType: K, handler: (event: EventMap[K]) => void) {

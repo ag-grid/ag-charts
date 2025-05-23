@@ -1,4 +1,4 @@
-import { type AnyFn, createId } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, createId } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -266,7 +266,7 @@ export abstract class Axis<
 
     private datumFormatter: ((datum: unknown) => string) | undefined = undefined;
 
-    protected readonly destroyFns: Array<() => void> = [];
+    protected readonly cleanup = new CleanupRegistry();
 
     constructor(
         protected readonly moduleCtx: ModuleContext,
@@ -294,7 +294,7 @@ export abstract class Axis<
 
     destroy() {
         this.moduleMap.destroy();
-        this.destroyFns.forEach((f) => f());
+        this.cleanup.flush();
     }
 
     protected updateScale() {

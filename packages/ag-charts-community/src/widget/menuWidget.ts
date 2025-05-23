@@ -1,6 +1,5 @@
-import { createElementId, getDocument, setAttribute } from 'ag-charts-core';
+import { CleanupRegistry, createElementId, getDocument, setAttribute } from 'ag-charts-core';
 
-import { DestroyFns } from '../util/destroy';
 import {
     addEscapeEventListener,
     addMouseCloseListener,
@@ -14,13 +13,13 @@ import type { RovingDirection } from './rovingDirection';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
 import type { KeyboardWidgetEvent, WidgetEvent } from './widgetEvents';
 
-type OpenScope = {
+interface OpenScope {
     lastFocus: HTMLElement | undefined;
     openSubMenu: MenuWidget | undefined;
-    removers: DestroyFns;
+    removers: CleanupRegistry;
     abort: () => void;
     close: () => void;
-};
+}
 
 enum CloseMode {
     CLOSE = '0',
@@ -103,7 +102,6 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
     }
 
     public open(event: WidgetEvent, opts?: { overrideFocusVisible?: boolean }): void {
-        const { overrideFocusVisible = undefined } = opts ?? {};
         if (this.openScope != null) return; // already open
 
         this.openScope = {
@@ -111,19 +109,19 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
             openSubMenu: undefined,
             abort: () => this.selfClose(CloseMode.ABORT),
             close: () => this.selfClose(CloseMode.CLOSE),
-            removers: new DestroyFns(),
+            removers: new CleanupRegistry(),
         };
-        const buttons: HTMLElement[] = this.children.map((value) => value.getElement());
-        setAttribute(this.openScope.lastFocus, 'aria-expanded', true);
+        const scope = this.openScope;
+        const buttons = this.children.map((value) => value.getElement());
+        setAttribute(scope.lastFocus, 'aria-expanded', true);
 
-        addMouseCloseListener(this.openScope.removers, this.elem, this.openScope.abort);
-        addTouchCloseListener(this.openScope.removers, this.elem, this.openScope.abort);
-        for (const child of this.children) {
-            addEscapeEventListener(this.openScope.removers, child.getElement(), this.openScope.close, closeKeys);
-        }
-        if (overrideFocusVisible !== undefined) {
-            addOverrideFocusVisibleEventListener(this.openScope.removers, this.elem, buttons, overrideFocusVisible);
-        }
+        scope.removers.register(
+            addMouseCloseListener(this.elem, scope.abort),
+            addTouchCloseListener(this.elem, scope.abort),
+            ...this.children.map((child) => addEscapeEventListener(child.getElement(), scope.close, closeKeys)),
+            opts?.overrideFocusVisible &&
+                addOverrideFocusVisibleEventListener(this.elem, buttons, opts.overrideFocusVisible)
+        );
 
         this.internalListener?.dispatch('open-widget', this, { type: 'open-widget' });
         this.children[0]?.focus({ preventScroll: true });
@@ -139,7 +137,7 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
         if (mode === CloseMode.CLOSE) {
             lastFocus?.focus({ preventScroll: true });
         }
-        removers.destroy();
+        removers.flush();
 
         this.internalListener?.dispatch('close-widget', this, { type: 'close-widget' });
     }

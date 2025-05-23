@@ -1,4 +1,4 @@
-import { EventEmitter, Logger, createId, downloadUrl } from 'ag-charts-core';
+import { CleanupRegistry, EventEmitter, Logger, createId, downloadUrl } from 'ag-charts-core';
 
 import { Debug } from '../util/debug';
 import type { BBox } from './bbox';
@@ -34,7 +34,7 @@ export class Scene extends EventEmitter<EventMap> {
     private pendingSize: [number, number, number] | null = null;
     private isDirty: boolean = false;
 
-    private readonly destroyFns: (() => void)[] = [];
+    private readonly cleanup = new CleanupRegistry();
 
     constructor(canvasOptions: CanvasOptions) {
         super();
@@ -43,7 +43,7 @@ export class Scene extends EventEmitter<EventMap> {
         this.canvas = new HdpiCanvas(canvasOptions);
         this.layersManager = new LayersManager(this.canvas);
 
-        this.destroyFns.push(
+        this.cleanup.register(
             this.imageLoader.on('image-loaded', () => {
                 this.emit('scene-changed', {});
             }),
@@ -246,9 +246,17 @@ export class Scene extends EventEmitter<EventMap> {
             }
 
             if (root.visible) {
-                ctx.save();
-                root.render(renderCtx);
-                ctx.restore();
+                try {
+                    ctx.save();
+                    root.render(renderCtx);
+                    ctx.restore();
+                } catch (e) {
+                    // AG-14976 - make sure to reset canvas state on error.
+                    // This is not bullet proof, but does at least give a chance for an application to recover.
+                    this.canvas.reset();
+
+                    throw e;
+                }
             }
         }
 
@@ -293,7 +301,7 @@ export class Scene extends EventEmitter<EventMap> {
 
         this.canvas.destroy();
         this.imageLoader.destroy();
-        this.destroyFns.forEach((fn) => fn());
+        this.cleanup.flush();
         Object.assign(this, { canvas: undefined });
     }
 }

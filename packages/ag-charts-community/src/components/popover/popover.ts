@@ -52,7 +52,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         }
         this.element.setAttribute('role', 'presentation');
 
-        this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, this.moduleId));
+        this.cleanup.register(() => ctx.domManager.removeChild(canvasOverlay, this.moduleId));
     }
 
     public attachTo(popover: Popover) {

@@ -3,6 +3,7 @@ import {
     type BaseStyleTypeMap,
     type BoxBounds,
     type ElementID,
+    attachListener,
     getAttribute,
     getWindow,
     setAttribute,
@@ -28,12 +29,9 @@ interface IWidget<TElement extends HTMLElement> {
 
 export type BeforeWidget<T extends IWidget<HTMLElement>> = T & { domIndex: number };
 
-abstract class WidgetBounds {
-    protected readonly elem: HTMLElement;
+abstract class WidgetBounds<TElement extends HTMLElement> {
     protected elemContainer?: HTMLDivElement;
-    constructor(elem: HTMLElement) {
-        this.elem = elem;
-    }
+    constructor(protected readonly elem: TElement) {}
 
     setBounds(bounds: Partial<BoxBounds>): void {
         setElementBBox(this.elemContainer ?? this.elem, bounds);
@@ -43,7 +41,7 @@ abstract class WidgetBounds {
         return getElementBBox(this.elemContainer ?? this.elem);
     }
 
-    protected static setElementContainer(widget: WidgetBounds, elemContainer: HTMLDivElement) {
+    protected static setElementContainer(widget: WidgetBounds<HTMLElement>, elemContainer: HTMLDivElement) {
         const currentBounds = widget.getBounds();
         setElementBBox(elemContainer, currentBounds);
         setElementStyles(widget.elem, { width: '100%', height: '100%' });
@@ -57,7 +55,7 @@ export abstract class Widget<
         TElement extends HTMLElement = HTMLElement,
         TChildWidget extends IWidget<HTMLElement> = IWidget<HTMLElement>,
     >
-    extends WidgetBounds
+    extends WidgetBounds<TElement>
     implements IWidget<TElement>
 {
     public index: number = NaN;
@@ -69,10 +67,6 @@ export abstract class Widget<
     protected readonly children: TChildWidget[] = [];
     protected htmlListener?: WidgetListenerHTML;
     protected internalListener?: WidgetListenerInternal;
-
-    constructor(protected override readonly elem: TElement) {
-        super(elem);
-    }
 
     protected abstract destructor(): void;
 
@@ -317,7 +311,6 @@ export abstract class Widget<
             }
             listener();
         };
-        getWindow().addEventListener('pagehide', pagehideHandler);
-        return () => getWindow().removeEventListener('pagehide', pagehideHandler);
+        return attachListener(getWindow(), 'pagehide', pagehideHandler);
     }
 }
