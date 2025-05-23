@@ -77,8 +77,7 @@ runs:
 
               url=$(
                 gh pr view \
-                    --base ${{ github.ref }} \
-                    --head ${{ inputs.branch }} \
+                    ${{ inputs.branch }} \
                     --json url | jq -r .url
               )
 
