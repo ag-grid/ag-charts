@@ -1,11 +1,11 @@
 import { boxCollides, countFractionDigits, dropFirstWhile, dropLastWhile } from 'ag-charts-core';
-import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { DateFormatterStyle, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import { ContinuousTimeScale } from '../../scale/continuousTimeScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import type { Scale, ScaleFormatParams, ScaleTickParams } from '../../scale/scale';
+import type { Scale, ScaleTickParams } from '../../scale/scale';
 import { TimeScale } from '../../scale/timeScale';
 import { Matrix } from '../../scene/matrix';
 import type { TextSizeProperties } from '../../scene/shape/text';
@@ -35,12 +35,13 @@ import {
     getLabelSpacing,
     getTextAlign,
     getTextBaseline,
-    labelSpecifier,
     timeIntervalMaxLabelSize,
 } from '../label';
 import type { AxisInterval } from './axisInterval';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
+
+export type AnyTimeInterval = TimeInterval | TimeIntervalUnit;
 
 export interface TickData<D = any> {
     tickDomain: D[];
@@ -48,7 +49,7 @@ export interface TickData<D = any> {
     rawTickCount: number | undefined;
     fractionDigits: number;
     ticks: TickDatum[];
-    timeInterval: TimeInterval | TimeIntervalUnit | undefined;
+    timeInterval: AnyTimeInterval | undefined;
     niceDomain?: D[];
 }
 
@@ -108,14 +109,14 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
     readonly primaryLabel?: ChartAxis['label'];
     readonly interval: AxisInterval<S>;
     readonly inRange: ChartAxis['inRange'];
-    formatTick(
-        value: any,
-        index: number,
+    tickFormatter(
         domain: D[],
-        fractionDigits?: number,
-        timeInterval?: TimeInterval | TimeIntervalUnit,
-        formatter?: (datum: any) => string
-    ): string;
+        ticks: D[],
+        primary: boolean,
+        fractionDigits: number | undefined,
+        timeInterval: TimeInterval | TimeIntervalUnit | undefined,
+        timeStyle: DateFormatterStyle
+    ): (value: any, index: number) => string | undefined;
 }
 
 const sunday = new Date(1970, 0, 4);
@@ -712,6 +713,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         let primaryTicksIndices: Set<number> | undefined;
         let interpolate = false;
 
+        const generatePrimaryTicks = primaryLabel?.enabled === true && tickParams.interval == null;
+
         const scaleDomain = scale.domain;
         scale.domain = niceDomain; // Reset at end of function
 
@@ -748,9 +751,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             default: {
                 if (
                     niceDomain.length > 0 &&
-                    tickParams.interval == null &&
-                    (TimeScale.is(scale) ||
-                        (primaryLabel != null && (ContinuousTimeScale.is(scale) || OrdinalTimeScale.is(scale))))
+                    generatePrimaryTicks &&
+                    (TimeScale.is(scale) || ContinuousTimeScale.is(scale) || OrdinalTimeScale.is(scale))
                 ) {
                     const dates = niceDomain as (Date | number)[];
                     const start = Math.min(dates[0].valueOf(), dates[dates.length - 1].valueOf());
@@ -793,27 +795,14 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             0
         );
 
-        const specifier =
-            labelSpecifier(label.format, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
-
-        const formatParams: ScaleFormatParams<D> = {
-            domain: tickDomain,
-            ticks: rawTicks,
-            fractionDigits,
-            specifier,
-        };
-        const labelFormatter = scale.tickFormatter(formatParams);
-
-        const primarySpecifier = labelSpecifier(
-            primaryLabel?.format,
-            timeInterval ? intervalHierarchy(timeInterval) : undefined
-        );
-        const primaryLabelFormatter = primarySpecifier
-            ? scale.tickFormatter({
-                  ...formatParams,
-                  specifier: primarySpecifier,
-              })
-            : labelFormatter;
+        const timeStyle: DateFormatterStyle = generatePrimaryTicks ? 'component' : 'long';
+        const axisTickFormatter = label.enabled
+            ? this.axis.tickFormatter(niceDomain, rawTicks, false, fractionDigits, timeInterval, timeStyle)
+            : undefined;
+        const parentInterval = timeInterval != null ? intervalHierarchy(timeInterval) : undefined;
+        const axisPrimaryTickFormatter = generatePrimaryTicks
+            ? this.axis.tickFormatter(niceDomain, rawTicks, true, fractionDigits, parentInterval, timeStyle)
+            : undefined;
 
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
@@ -828,11 +817,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             // instead hide ticks based on their translation.
             if (range.length > 0 && !axis.inRange(translationY, 0.001)) continue;
 
-            const tickLabelFormatter =
-                primary && primaryLabel?.enabled === true ? primaryLabelFormatter : labelFormatter;
-            const tickLabel = label.enabled
-                ? axis.formatTick(tick, i, niceDomain, fractionDigits, timeInterval, tickLabelFormatter)
-                : '';
+            const tickLabel = primary ? axisPrimaryTickFormatter?.(tick, i) : axisTickFormatter?.(tick, i);
 
             let tickId: string;
             const continuousValue = continuous ? tick?.valueOf() : undefined;

@@ -352,19 +352,41 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const format = this.getItemBaseStyle(false);
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format, false));
 
+        const data: _ModuleSupport.TooltipContentDataRow[] = [
+            {
+                label: minName,
+                fallbackLabel: minKey,
+                value: yAxis.formatDatum(minValue, 'tooltip', datum, minKey),
+            },
+            {
+                label: q1Name,
+                fallbackLabel: q1Key,
+                value: yAxis.formatDatum(q1Value, 'tooltip', datum, q1Key),
+            },
+            {
+                label: medianName,
+                fallbackLabel: medianKey,
+                value: yAxis.formatDatum(medianValue, 'tooltip', datum, medianKey),
+            },
+            {
+                label: q3Name,
+                fallbackLabel: q3Key,
+                value: yAxis.formatDatum(q3Value, 'tooltip', datum, q3Key),
+            },
+            {
+                label: maxName,
+                fallbackLabel: maxKey,
+                value: yAxis.formatDatum(maxValue, 'tooltip', datum, maxKey),
+            },
+        ];
+
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue),
+                heading: xAxis.formatDatum(xValue, 'tooltip', datum, xKey),
                 title: legendItemName ?? yName,
                 symbol: this.legendItemSymbol(),
-                data: [
-                    { label: minName, fallbackLabel: minKey, value: yAxis.formatDatum(minValue) },
-                    { label: q1Name, fallbackLabel: q1Key, value: yAxis.formatDatum(q1Value) },
-                    { label: medianName, fallbackLabel: medianKey, value: yAxis.formatDatum(medianValue) },
-                    { label: q3Name, fallbackLabel: q3Key, value: yAxis.formatDatum(q3Value) },
-                    { label: maxName, fallbackLabel: maxKey, value: yAxis.formatDatum(maxValue) },
-                ],
+                data: data,
             },
             {
                 seriesId,

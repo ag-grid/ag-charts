@@ -38,5 +38,5 @@ export function getLabelText(seriesId: string, ctx: Ctx, datum: GaugeLabelDatum,
 }
 
 export function formatWithContext<P>(ctx: Ctx, formatter: Formatter<P>, params: P): string | undefined {
-    return _ModuleSupport.callWithContext(ctx.chartService, undefined, formatter, [params]);
+    return _ModuleSupport.callWithContext(ctx.chartService, formatter, [params]);
 }
