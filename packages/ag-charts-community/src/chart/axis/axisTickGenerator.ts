@@ -41,13 +41,15 @@ import type { AxisInterval } from './axisInterval';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
 
+export type AnyTimeInterval = TimeInterval | TimeIntervalUnit;
+
 export interface TickData<D = any> {
     tickDomain: D[];
     rawTicks: D[];
     rawTickCount: number | undefined;
     fractionDigits: number;
     ticks: TickDatum[];
-    timeInterval: TimeInterval | TimeIntervalUnit | undefined;
+    timeInterval: AnyTimeInterval | undefined;
     niceDomain?: D[];
 }
 

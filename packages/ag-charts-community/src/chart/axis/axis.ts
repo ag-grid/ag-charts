@@ -52,6 +52,7 @@ import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import { AxisTick, type TickInterval } from './axisTick';
+import type { AnyTimeInterval } from './axisTickGenerator';
 import { AxisTitle } from './axisTitle';
 import { NiceMode } from './axisUtil';
 import { deriveTimeSpecifier } from './timeFormatUtil';
@@ -569,7 +570,7 @@ export abstract class Axis<
         ticks: D[];
         rawTickCount: number | undefined;
         fractionDigits: number;
-        timeInterval: TimeInterval | TimeIntervalUnit | undefined;
+        timeInterval: AnyTimeInterval | undefined;
         bbox?: BBox;
     };
 
