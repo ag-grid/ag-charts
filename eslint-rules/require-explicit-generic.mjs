@@ -56,7 +56,7 @@ export default {
                 if (
                     name &&
                     genericTypeNames.has(name) &&
-                    (!node.typeParameters || node.typeParameters.params.length === 0)
+                    (!node.typeArguments || node.typeArguments.params.length === 0)
                 ) {
                     context.report({
                         node,
