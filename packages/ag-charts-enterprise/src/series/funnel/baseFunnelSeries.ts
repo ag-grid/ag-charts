@@ -544,7 +544,12 @@ export abstract class BaseFunnelSeries<
 
     protected updateLabelNodes(opts: { labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text> }) {
         opts.labelSelection.each((textNode, datum) => {
-            updateLabelNode(textNode, this.properties.label, datum);
+            updateLabelNode(
+                textNode,
+                // @ts-expect-error - Fix me
+                this.properties.label,
+                datum
+            );
         });
     }
 
@@ -568,7 +573,12 @@ export abstract class BaseFunnelSeries<
             tooltip,
             {
                 symbol: this.legendItemSymbol(datumIndex),
-                data: [{ label: xAxis.formatDatum(xValue), value: yAxis.formatDatum(yValue) }],
+                data: [
+                    {
+                        label: xAxis.formatDatum(xValue, 'tooltip', datum, stageKey),
+                        value: yAxis.formatDatum(yValue, 'tooltip', datum, valueKey),
+                    },
+                ],
             },
             { seriesId, datum, title: stageKey, stageKey, valueKey, ...this.tooltipStyle(datum, datumIndex) }
         );

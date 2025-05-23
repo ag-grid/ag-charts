@@ -29,6 +29,10 @@ export function intervalStep(interval: TimeInterval | TimeIntervalUnit): number 
     return typeof interval === 'string' ? 1 : interval.step ?? 1;
 }
 
+export function intervalEpoch(interval: TimeInterval | TimeIntervalUnit): Date | undefined {
+    return typeof interval === 'string' ? undefined : interval.epoch;
+}
+
 export function intervalHierarchy(interval: TimeInterval | TimeIntervalUnit): TimeIntervalUnit | undefined {
     return unitEncoding[intervalUnit(interval)].hierarchy;
 }

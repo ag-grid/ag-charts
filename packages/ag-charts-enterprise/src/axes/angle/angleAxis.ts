@@ -365,6 +365,9 @@ export abstract class AngleAxis<
         const seriesLeft = seriesRect.x - this.translation.x;
         const seriesRight = seriesRect.x + seriesRect.width - this.translation.x;
 
+        const { fractionDigits } = this.layout.label;
+        const axisTickFormatter = this.tickFormatter(this.scale.domain, this.tickData, false, fractionDigits);
+
         const labelData: AngleAxisLabelDatum[] = ticks.map((datum, index) => {
             const { value } = datum;
             const distance = radius + label.spacing + tick.size;
@@ -383,7 +386,7 @@ export abstract class AngleAxis<
 
             const rotation = this.getLabelRotation(angle);
 
-            let text = this.formatTick(value, index, scale.domain);
+            let text = axisTickFormatter(value, index);
 
             tempText.text = text;
             tempText.x = x;

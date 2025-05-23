@@ -1,10 +1,11 @@
 import type { RequireOptional } from 'ag-charts-core';
-import type {
-    AgErrorBoundSeriesTooltipRendererParams,
-    AgSeriesMarkerStyle,
-    FillOptions,
-    LineDashOptions,
-    StrokeOptions,
+import {
+    type AgBubbleSeriesLabelFormatterParams,
+    type AgErrorBoundSeriesTooltipRendererParams,
+    type AgSeriesMarkerStyle,
+    type FillOptions,
+    type LineDashOptions,
+    type StrokeOptions,
 } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -16,6 +17,7 @@ import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { PlacedLabel } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/extent';
+import { formatValue } from '../../../util/format.util';
 import { mergeDefaults } from '../../../util/object';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -242,18 +244,15 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 }
             }
 
-            const labelText = this.getLabelText(label, {
-                value: labelDataValues != null ? labelDataValues[datumIndex] : yDatum,
+            const labelValue = labelDataValues != null ? labelDataValues[datumIndex] : yDatum;
+            const labelText = this.getLabelText2<AgBubbleSeriesLabelFormatterParams>(
+                labelValue,
                 datum,
-                xKey,
-                yKey,
-                sizeKey,
-                labelKey,
-                xName,
-                yName,
-                sizeName,
-                labelName,
-            });
+                labelKey ?? yKey,
+                labelKey != null ? 'label' : 'y',
+                label,
+                { value: labelValue, datum, xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName }
+            );
 
             const size = textMeasurer.measureText(String(labelText));
             const markerSize = sizeValue != null ? sizeScale.convert(sizeValue) : marker.size;
@@ -377,7 +376,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { id: seriesId, dataModel, processedData, axes, properties, ctx } = this;
+        const { formatManager } = ctx;
         const { xKey, xName, yKey, yName, sizeKey, sizeName, labelKey, labelName, title, tooltip, marker } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -392,26 +392,29 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         if (xValue == null || nodeDatum == null) return;
 
         const data: TooltipContentDataRow[] = [
-            { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue) },
-            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) },
+            { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue, 'tooltip', datum, xKey) },
+            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey) },
         ];
 
         if (sizeKey != null) {
-            const sizeValue = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
-            data.push({ label: sizeName, fallbackLabel: sizeKey, value: String(sizeValue) });
+            const value = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
+            const content = formatManager.format({
+                type: 'number',
+                value,
+                datum,
+                key: sizeKey,
+                source: 'tooltip',
+                property: 'size',
+                fractionDigits: undefined,
+            });
+            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? formatValue(value) });
         }
 
         const style = marker.getStyle();
         const activeStyle = this.getMarkerStyle(
             marker,
             datum,
-            {
-                xKey,
-                yKey,
-                sizeKey,
-                labelKey,
-                highlighted: true,
-            },
+            { xKey, yKey, sizeKey, labelKey, highlighted: true },
             false,
             undefined,
             style

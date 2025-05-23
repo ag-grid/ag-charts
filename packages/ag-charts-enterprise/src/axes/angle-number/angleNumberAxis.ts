@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
 import { isNumberEqual } from 'ag-charts-core';
 
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
@@ -129,5 +129,30 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
                 datum.box = undefined;
             }
         });
+    }
+
+    override tickFormatParams(
+        _domain: number[],
+        _ticks: number[],
+        fractionDigits?: number
+    ): _ModuleSupport.AxisTickFormatParams {
+        return { type: 'number', fractionDigits };
+    }
+
+    override datumFormatParams(
+        value: any,
+        params: _ModuleSupport.FormatDatumParams,
+        fractionDigits?: number
+    ): FormatterParams<any, any> {
+        const { datum, key, source, property } = params;
+        return {
+            type: 'number',
+            value,
+            datum,
+            key,
+            source,
+            property,
+            fractionDigits,
+        };
     }
 }

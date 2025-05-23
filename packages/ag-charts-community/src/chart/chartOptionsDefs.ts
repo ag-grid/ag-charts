@@ -53,6 +53,7 @@ export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions> = {
     ...commonChartOptions,
     axes: defined,
     data: array,
+    formatter: defined, // TODO
 };
 
 export const polarChartOptionsDefs: OptionsDefs<AgPolarChartOptions> = {

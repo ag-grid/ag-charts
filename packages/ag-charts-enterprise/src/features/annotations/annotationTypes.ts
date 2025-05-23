@@ -116,7 +116,7 @@ export interface AnnotationAxisContext
         | 'scale'
         | 'scaleInvert'
         | 'scaleInvertNearest'
-        | 'scaleValueFormatter'
+        | 'formatScaleValue'
         | 'attachLabel'
         | 'inRange'
         | 'getRangeOverflow'
