@@ -1,12 +1,12 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { LabelPlacement, PixelSize } from '../../chart/types';
+import type { LabelPlacement, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
 
-export interface AgBubbleSeriesTooltipRendererParams<TDatum = any>
+export interface AgBubbleSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgBubbleSeriesOptionsKeys,
         AgBubbleSeriesOptionsNames,
@@ -30,7 +30,7 @@ export type BubbleSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgBubbleSeriesOptionsKeys &
     Required<AgBubbleSeriesStyle>;
 
-export interface AgBubbleSeriesThemeableOptions<TDatum = any>
+export interface AgBubbleSeriesThemeableOptions<TDatum = TDatumDefault>
     extends AgBubbleSeriesStyle,
         AgBaseCartesianThemeableOptions<TDatum> {
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
@@ -71,8 +71,8 @@ export interface AgBubbleSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgBubbleSeriesOptions<TDatum = any>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgBubbleSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgBubbleSeriesThemeableOptions<TDatum>,
         AgBubbleSeriesOptionsKeys,
         AgBubbleSeriesOptionsNames {

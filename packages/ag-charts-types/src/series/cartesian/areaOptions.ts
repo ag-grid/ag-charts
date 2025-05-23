@@ -1,6 +1,7 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions } from '../markerOptions';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
@@ -9,12 +10,12 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 
 export type AgAreaSeriesLabelFormatterParams = AgAreaSeriesOptionsKeys & AgAreaSeriesOptionsNames;
 
-export interface AgAreaSeriesTooltipRendererParams<TDatum = any>
+export interface AgAreaSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends AgCartesianSeriesTooltipRendererParams<TDatum>,
         FillOptions,
         StrokeOptions {}
 
-export interface AgAreaSeriesThemeableOptions<TDatum = any>
+export interface AgAreaSeriesThemeableOptions<TDatum = TDatumDefault>
     extends StrokeOptions,
         FillOptions,
         LineDashOptions,
@@ -62,8 +63,8 @@ export interface AgAreaSeriesOptionsNames {
     yName?: string;
 }
 
-export interface AgAreaSeriesOptions<TDatum = any>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgAreaSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgAreaSeriesOptionsKeys,
         AgAreaSeriesOptionsNames,
         AgAreaSeriesThemeableOptions<TDatum> {

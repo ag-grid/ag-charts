@@ -1,6 +1,6 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { PixelSize, Ratio } from '../../chart/types';
+import type { PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -61,7 +61,7 @@ export interface AgBoxPlotSeriesStyle extends FillOptions, StrokeOptions, LineDa
     whisker?: AgBoxPlotWhiskerOptions;
 }
 
-export interface AgBoxPlotSeriesThemeableOptions<TDatum = any>
+export interface AgBoxPlotSeriesThemeableOptions<TDatum = TDatumDefault>
     extends AgBaseCartesianThemeableOptions<TDatum>,
         AgBoxPlotSeriesStyle {
     /**
@@ -75,9 +75,9 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = any>
     itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum>, AgBoxPlotSeriesStyle>;
 }
 
-export interface AgBoxPlotSeriesOptions<TDatum = any>
+export interface AgBoxPlotSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBoxPlotSeriesThemeableOptions<TDatum>,
-        AgBaseSeriesOptions<TDatum>,
+        AgBaseSeriesOptions<TDatum, TContext>,
         BoxPlotOptionsKeys,
         BoxPlotOptionsNames {
     /** Configuration for the Box Plot Series. */

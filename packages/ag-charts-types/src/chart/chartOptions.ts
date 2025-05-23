@@ -18,6 +18,8 @@ import type {
     FontStyle,
     FontWeight,
     PixelSize,
+    TContextDefault,
+    TDatumDefault,
     TextAlign,
     TextWrap,
 } from './types';
@@ -179,7 +181,7 @@ export interface AgTouchOptions {
     dragAction?: 'none' | 'drag' | 'hover';
 }
 
-export interface AgBaseThemeableChartOptions<TDatum = any> {
+export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault> {
     /** The width of the chart in pixels. */
     width?: PixelSize;
     /** The height of the chart in pixels. */
@@ -224,7 +226,7 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     /** Configuration for asynchronously loaded data. */
     dataSource?: AgDataSourceOptions<TDatum>;
     /** Configuration for the context menu. */
-    contextMenu?: AgContextMenuOptions;
+    contextMenu?: AgContextMenuOptions<TDatum>;
     /** Configuration for localisation. */
     locale?: AgLocaleOptions;
     /** Configuration for the ranges buttons. */
@@ -259,7 +261,7 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
 
     // Cartesian-specific options - special care required.
     /** Configuration for the Navigator. */
-    navigator?: AgNavigatorOptions;
+    navigator?: AgNavigatorOptions<TDatum>;
     /** Configuration for synchronizing multiple charts. */
     sync?: AgChartSyncOptions;
     /** Configuration for the zoom options. */
@@ -267,9 +269,10 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
 }
 
 /** Configuration common to all charts.  */
-export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOptions<TDatum> {
+export interface AgBaseChartOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseThemeableChartOptions<TDatum> {
     /** Context object to use in callbacks */
-    context?: unknown;
+    context?: TContext;
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
     data?: TDatum[];
     /** The element to place the rendered chart into. */

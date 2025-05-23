@@ -1,6 +1,6 @@
 import type { AgAnnotation } from './annotationsOptions';
 import type { Listener } from './callbackOptions';
-import type { Ratio } from './types';
+import type { Ratio, TDatumDefault } from './types';
 import type { AgAutoScaledAxes } from './zoomOptions';
 
 interface AgChartEvent<T extends string> {
@@ -81,7 +81,7 @@ export type AgChartClickEvent = AgChartEvent<'click'>;
 export type AgChartDoubleClickEvent = AgChartEvent<'doubleClick'>;
 export type AgChartContextMenuEvent = AgChartEvent<'contextMenuEvent'>;
 export type AgSeriesAreaContextMenuActionEvent = AgChartEvent<'seriesContextMenuAction'>;
-export type AgNodeContextMenuActionEvent<TDatum = any> = AgNodeClickEvent<'nodeContextMenuAction', TDatum>;
+export type AgNodeContextMenuActionEvent<TDatum = TDatumDefault> = AgNodeClickEvent<'nodeContextMenuAction', TDatum>;
 
 export interface AgBaseChartListeners<TDatum> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is clicked.

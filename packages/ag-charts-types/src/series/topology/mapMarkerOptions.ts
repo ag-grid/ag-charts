@@ -1,7 +1,15 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { AgMarkerShape, CssColor, GeoJSON, LabelPlacement, PixelSize } from '../../chart/types';
+import type {
+    AgMarkerShape,
+    CssColor,
+    GeoJSON,
+    LabelPlacement,
+    PixelSize,
+    TContextDefault,
+    TDatumDefault,
+} from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -15,7 +23,7 @@ export type AgMapMarkerSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & 
 
 export type AgMapMarkerSeriesLabelFormatterParams = AgMapMarkerSeriesOptionsKeys & AgMapMarkerSeriesOptionsNames;
 
-export type AgMapMarkerSeriesItemStylerParams<TDatum = any> = DatumCallbackParams<TDatum> &
+export type AgMapMarkerSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
     AgMapMarkerSeriesOptionsKeys &
     Required<AgMapMarkerSeriesStyle>;
 
@@ -66,7 +74,7 @@ export interface AgMapMarkerSeriesLabel<TDatum>
     placement?: LabelPlacement;
 }
 
-export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
+export interface AgMapMarkerSeriesThemeableOptions<TDatum = TDatumDefault>
     extends AgMapMarkerSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** Determines the largest size a marker can be in pixels. */
@@ -80,13 +88,13 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Map marker based on the input parameters. */
-    itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams, AgMapMarkerSeriesStyle>;
+    itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<TDatum>, AgMapMarkerSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapMarkerSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgMapMarkerSeriesOptions<TDatum = any>
-    extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
+export interface AgMapMarkerSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
         AgMapMarkerSeriesOptionsKeys,
         AgMapMarkerSeriesOptionsNames,
         AgMapMarkerSeriesThemeableOptions<TDatum> {
