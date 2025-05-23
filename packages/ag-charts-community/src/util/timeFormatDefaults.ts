@@ -1,8 +1,17 @@
 import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import { findMinMax } from './number';
-import { durationMonth, intervalFloor, intervalMilliseconds, intervalUnit } from './time';
-import { durationDay, durationHour, durationMinute, durationSecond, durationWeek, durationYear } from './time';
+import {
+    durationDay,
+    durationHour,
+    durationMinute,
+    durationSecond,
+    durationWeek,
+    durationYear,
+    intervalFloor,
+    intervalMilliseconds,
+    intervalUnit,
+} from './time';
 import { buildFormatter } from './timeFormat';
 
 enum DefaultTimeFormats {
@@ -107,7 +116,8 @@ export function lowestGranularityUnitForTicks(
             targetInterval = 'minute';
         } else if (minInterval < durationDay) {
             targetInterval = 'hour';
-        } else if (minInterval < durationMonth) {
+            // Note durationMonth is the average month duration
+        } else if (minInterval < 28 * durationDay) {
             targetInterval = 'day';
         } else if (minInterval < durationYear) {
             targetInterval = 'month';
