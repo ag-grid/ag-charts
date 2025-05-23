@@ -51,11 +51,31 @@ export class CollidableLine extends _ModuleSupport.Line {
     }
 
     override render(renderCtx: _ModuleSupport.RenderContext): void {
-        this.applyClipMask(renderCtx.ctx);
+        const { clipMask } = this;
+        const { ctx } = renderCtx;
+
+        if (clipMask.size === 0) {
+            super.render(renderCtx);
+            return;
+        }
+
+        ctx.save();
         try {
+            for (const mask of this.clipMask.values()) {
+                const { x, y, radius } = mask;
+
+                // Draw a blank rect clockwise across the whole canvas, then negate it with an ellipse drawn counter-clockwise.
+                // This clips any subsequent paths within the ellipse.
+                ctx.beginPath();
+                ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.ellipse(x, y, radius, radius, 0, Math.PI * 2, 0, true);
+
+                ctx.clip();
+            }
+
             super.render(renderCtx);
         } finally {
-            this.closeClipMask(renderCtx.ctx);
+            ctx.restore();
         }
     }
 
@@ -70,37 +90,5 @@ export class CollidableLine extends _ModuleSupport.Line {
         } else {
             this.clipMask.delete(id);
         }
-    }
-
-    /**
-     * Apply a clipping mask to the shape, this must be called before the shape calls `ctx.beginPath()`.
-     */
-    protected applyClipMask(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
-        const { clipMask } = this;
-
-        if (clipMask.size === 0) {
-            return;
-        }
-
-        this.clipMask.forEach((mask) => {
-            const { x, y, radius } = mask;
-
-            ctx.save();
-
-            // Draw a blank rect clockwise across the whole canvas, then negate it with an ellipse drawn counter-clockwise.
-            // This clips any subsequent paths within the ellipse.
-            ctx.beginPath();
-            ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
-            ctx.ellipse(x, y, radius, radius, 0, Math.PI * 2, 0, true);
-
-            ctx.clip();
-        });
-    }
-
-    protected closeClipMask(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
-        if (this.clipMask.size === 0) {
-            return;
-        }
-        ctx.restore();
     }
 }

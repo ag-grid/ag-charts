@@ -1,4 +1,4 @@
-import { Logger, clamp } from 'ag-charts-core';
+import { clamp } from 'ag-charts-core';
 
 import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
@@ -18,8 +18,6 @@ interface OffscreenImageBitmap {
 }
 
 let sharedOffscreenCanvas: HdpiOffscreenCanvas | undefined;
-
-const MAX_ERROR_COUNT = 5;
 
 export class Group<D = any> extends Node<D> {
     static readonly className: string = 'Group';
@@ -267,7 +265,6 @@ export class Group<D = any> extends Node<D> {
                 childRenderCtx.clipBBox = Transformable.toCanvas(this, this.clipRect);
             }
 
-            let errorCount = 0;
             for (const child of this.children()) {
                 // Skip invisible children, but make sure their dirty flag is reset.
                 if (!child.visible) {
@@ -279,23 +276,7 @@ export class Group<D = any> extends Node<D> {
                 }
 
                 // Render marks this node (and children) as clean - no need to explicitly markClean().
-                ctx.save();
-                try {
-                    child.render(childRenderCtx);
-                } catch (e: any) {
-                    errorCount += e.errorCount ?? 1;
-
-                    // If there are multiple failures, fail faster since raising errors is expensive and
-                    // could therefore manifest as a performance issue rather than a bug.
-                    if (errorCount >= MAX_ERROR_COUNT) {
-                        e.errorCount = errorCount;
-                        throw e;
-                    }
-
-                    Logger.warnOnce('Error during rendering', e);
-                } finally {
-                    ctx.restore();
-                }
+                child.isolatedRender(childRenderCtx);
             }
         } finally {
             ctx.restore();
