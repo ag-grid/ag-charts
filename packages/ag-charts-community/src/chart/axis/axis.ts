@@ -14,7 +14,7 @@ import type {
     TimeIntervalUnit,
 } from 'ag-charts-types';
 
-import type { AxisContext } from '../../module/axisContext';
+import type { AxisContext, AxisFormattableLabel } from '../../module/axisContext';
 import type { AxisOptionModule } from '../../module/axisOptionModule';
 import type { ModuleInstance } from '../../module/baseModule';
 import type { ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
@@ -39,7 +39,7 @@ import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import { intervalUnit } from '../../util/time';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
-import type { AxisGroups, ChartAxis, ChartAxisFormattableLabel, FormatDatumParams } from '../chartAxis';
+import type { AxisGroups, ChartAxis, FormatDatumParams } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
@@ -665,7 +665,7 @@ export abstract class Axis<
         source: 'axis' | 'crosshair',
         datum: undefined,
         key: undefined,
-        label: ChartAxisFormattableLabel<Params>,
+        label: AxisFormattableLabel<Params>,
         labelParams: Params
     ): string;
     formatDatum<Params extends object>(
@@ -673,7 +673,7 @@ export abstract class Axis<
         source: 'tooltip' | 'series-label',
         datum: any,
         key: string,
-        label: ChartAxisFormattableLabel<Params>,
+        label: AxisFormattableLabel<Params>,
         labelParams: Params
     ): string;
     formatDatum(
@@ -681,7 +681,7 @@ export abstract class Axis<
         source: AnyFormatterSource,
         datum?: any,
         key?: string,
-        label?: ChartAxisFormattableLabel<any>,
+        label?: AxisFormattableLabel<any>,
         params?: any,
         formatInContext: (
             fn: (params: any) => string | undefined,

@@ -14,6 +14,7 @@ import type {
     ISeriesMarker,
 } from 'ag-charts-types';
 
+import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
@@ -34,7 +35,7 @@ import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
-import type { ChartAxis, ChartAxisFormattableLabel } from '../chartAxis';
+import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
@@ -801,7 +802,7 @@ export abstract class Series<
         datum: any,
         key: string,
         property: 'y' | 'color' | 'label',
-        label: ChartAxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
+        label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
         baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>
     ): string {
         const params: AgChartLabelFormatterParams<any> & RequireOptional<TParams> = {

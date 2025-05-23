@@ -9,7 +9,7 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import type { AxisContext } from '../module/axisContext';
+import type { AxisContext, AxisFormattableLabel, ContextFormatter } from '../module/axisContext';
 import type { ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
 import type { Scale } from '../scale/scale';
@@ -54,20 +54,6 @@ export interface AxisGroups {
 
 export type FormatDatumParams = Omit<FormatterParams<any, any>, 'type' | 'value'>;
 
-export type ContextFormatter<Params> = (
-    fn: (params: Params) => string | undefined,
-    params: Params
-) => string | undefined;
-
-export interface ChartAxisFormattableLabel<Params extends object> {
-    formatValue(
-        formatInContext: ContextFormatter<Params>,
-        type: 'number' | 'date' | 'category',
-        value: any,
-        params: Params
-    ): string | undefined;
-}
-
 export interface ChartAxis {
     attachAxis(opts: AxisGroups): void;
     calculateLayout(
@@ -87,7 +73,7 @@ export interface ChartAxis {
         source: 'axis' | 'crosshair',
         datum: undefined,
         key: undefined,
-        label: ChartAxisFormattableLabel<Params>,
+        label: AxisFormattableLabel<Params>,
         params: Params,
         formatInContext: ContextFormatter<Params>
     ): string;
@@ -96,7 +82,7 @@ export interface ChartAxis {
         source: 'tooltip' | 'series-label',
         datum: any,
         key: string,
-        label: ChartAxisFormattableLabel<Params>,
+        label: AxisFormattableLabel<Params>,
         params: Params,
         formatInContext: ContextFormatter<Params>
     ): string;

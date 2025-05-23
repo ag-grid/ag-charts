@@ -9,6 +9,7 @@ import type {
     TimeIntervalUnit,
 } from 'ag-charts-types';
 
+import type { ContextFormatter } from '../module/axisContext';
 import type { Scale, ScaleFormatParams } from '../scale/scale';
 import { BBox } from '../scene/bbox';
 import type { Matrix } from '../scene/matrix';
@@ -17,7 +18,7 @@ import { normalizeAngle360FromDegrees } from '../util/angle';
 import { BaseProperties, Property } from '../util/properties';
 import { type TextMeasurer } from '../util/textMeasurer';
 import { intervalHierarchy, intervalRange, intervalUnit } from '../util/time';
-import type { ChartAxisLabel, ChartAxisLabelFlipFlag, ContextFormatter } from './chartAxis';
+import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from './chartAxis';
 import { FormatManager } from './formatter/formatManager';
 
 interface FormatterCache {

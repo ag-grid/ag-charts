@@ -1,10 +1,23 @@
 import type { BoxBounds } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
-import type { ChartAxisFormattableLabel } from '../chart/chartAxis';
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { Scale } from '../scale/scale';
 import type { Node } from '../scene/node';
+
+export type ContextFormatter<Params> = (
+    fn: (params: Params) => string | undefined,
+    params: Params
+) => string | undefined;
+
+export interface AxisFormattableLabel<Params extends object> {
+    formatValue(
+        formatInContext: ContextFormatter<Params>,
+        type: 'number' | 'date' | 'category',
+        value: any,
+        params: Params
+    ): string | undefined;
+}
 
 export interface AxisContext {
     context?: unknown;
@@ -18,7 +31,7 @@ export interface AxisContext {
     seriesIds(): string[];
     scaleInvert(position: number): any;
     scaleInvertNearest(position: number): any;
-    formatScaleValue(value: unknown, source: 'crosshair', label?: ChartAxisFormattableLabel<never>): string;
+    formatScaleValue(value: unknown, source: 'crosshair', label?: AxisFormattableLabel<never>): string;
     attachLabel(node: Node): void;
     inRange(value: number, tolerance?: number): boolean;
     getRangeOverflow(value: number): number;
