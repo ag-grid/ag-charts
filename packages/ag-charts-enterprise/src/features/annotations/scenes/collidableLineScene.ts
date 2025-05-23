@@ -53,9 +53,9 @@ export class CollidableLine extends _ModuleSupport.Line {
     override render(renderCtx: _ModuleSupport.RenderContext): void {
         this.applyClipMask(renderCtx.ctx);
         try {
-        super.render(renderCtx);
+            super.render(renderCtx);
         } finally {
-        this.closeClipMask(renderCtx.ctx);
+            this.closeClipMask(renderCtx.ctx);
         }
     }
 
@@ -65,10 +65,10 @@ export class CollidableLine extends _ModuleSupport.Line {
             this.markDirty('CollidableLine');
         }
 
-        if (!mask) {
-            this.clipMask.delete(id);
-        } else {
+        if (mask) {
             this.clipMask.set(id, mask);
+        } else {
+            this.clipMask.delete(id);
         }
     }
 
