@@ -333,6 +333,7 @@ jobs:
               run: yarn nx run-many -t test:package -p ${{ matrix.framework }}-package-tests --configuration=update
 
             - name: Snapshot Branch
+              if: matrix.framework != 'none'
               uses: ./.github/actions/snapshot-branch
               with:
                   path: tests/*-package-tests/e2e/*-snapshots/
