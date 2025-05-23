@@ -38,7 +38,7 @@ export type SeriesOptionsTypes =
 
 export type SeriesType = SeriesOptionsTypes['type'];
 
-export function optionsType(input: { series?: { type?: SeriesType }[] }): NonNullable<SeriesType> {
+function optionsType(input: { series?: { type?: SeriesType }[] }): NonNullable<SeriesType> {
     const { series } = input;
     return series?.[0]?.type ?? 'line';
 }
@@ -81,11 +81,4 @@ export function isAgGaugeChartOptions(input: any): input is AgGaugeChartOptions 
 export function isAgPolarChartOptionsWithSeriesBasedLegend(input: AgChartOptions): input is AgPolarChartOptions {
     const specifiedType = optionsType(input);
     return isAgPolarChartOptions(input) && specifiedType !== 'pie' && specifiedType !== 'donut';
-}
-
-export function isSeriesOptionType(input?: string): input is NonNullable<SeriesType> {
-    if (input == null) {
-        return false;
-    }
-    return chartTypes.has(input);
 }

@@ -387,7 +387,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         for (let index = 0; index < seriesCount; index++) {
             const keyPath = `series[${index}]`;
             const seriesOptions = options.series![index];
-            const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type ?? 'line');
+            const seriesDef = ModuleRegistry.getSeriesModule(seriesOptions.type);
 
             if (seriesDef == null) {
                 validSeriesTypes ??= joinFormatted(
@@ -398,7 +398,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     stringFormat
                 );
                 Logger.warn(
-                    `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.`
+                    seriesOptions.type == null
+                        ? `Option \`${keyPath}.type\` is required and has not been provided; expecting ${validSeriesTypes}, ignoring.`
+                        : `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.`
                 );
                 continue;
             } else if (chartType && seriesDef.chartType !== chartType) {
