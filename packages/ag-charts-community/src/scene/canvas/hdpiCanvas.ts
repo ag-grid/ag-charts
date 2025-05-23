@@ -93,7 +93,8 @@ export class HdpiCanvas {
     }
 
     reset() {
-        this.context.resetTransform();
+        this.context.reset();
+        this.context.verifyDepthZero?.();
     }
 
     private onEnabledChange() {
