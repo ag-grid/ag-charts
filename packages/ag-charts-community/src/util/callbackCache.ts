@@ -15,15 +15,18 @@ function maybeSetContext<I>(caller: Caller, params: I[]): boolean {
     return false;
 }
 export function callWithContext<F extends AnyFn>(
-    caller1: Caller,
-    caller2: Caller | undefined,
+    callers: Caller | Caller[],
     fn: F,
     params: Parameters<F>
 ): ReturnType<F> {
-    if (!maybeSetContext(caller1, params)) {
-        if (caller2) {
-            maybeSetContext(caller2, params);
+    if (Array.isArray(callers)) {
+        for (const caller of callers) {
+            if (maybeSetContext(caller, params)) {
+                break;
+            }
         }
+    } else {
+        maybeSetContext(callers, params);
     }
     return fn(...params);
 }
@@ -31,12 +34,7 @@ export function callWithContext<F extends AnyFn>(
 export class CallbackCache {
     private cache: WeakMap<Function, Map<string, any>> = new WeakMap();
 
-    call<F extends AnyFn>(
-        caller1: Caller,
-        caller2: Caller,
-        fn: F,
-        ...params: Parameters<F>
-    ): ReturnType<F> | undefined {
+    call<F extends AnyFn>(callers: Caller | Caller[], fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         let serialisedParams: string;
         let paramCache = this.cache.get(fn);
 
@@ -46,7 +44,7 @@ export class CallbackCache {
             // Unable to serialise params!
             // No caching possible.
 
-            return this.invoke(caller1, caller2, fn, params, paramCache);
+            return this.invoke(callers, fn, params, paramCache);
         }
 
         if (paramCache == null) {
@@ -55,22 +53,21 @@ export class CallbackCache {
         }
 
         if (!paramCache.has(serialisedParams)) {
-            return this.invoke(caller1, caller2, fn, params, paramCache, serialisedParams);
+            return this.invoke(callers, fn, params, paramCache, serialisedParams);
         }
 
         return paramCache.get(serialisedParams);
     }
 
     private invoke<F extends AnyFn>(
-        caller1: Caller,
-        caller2: Caller,
+        callers: Caller | Caller[],
         fn: F,
         params: Parameters<F>,
         paramCache?: Map<string, any>,
         serialisedParams?: string
     ) {
         try {
-            const result = callWithContext(caller1, caller2, fn, params);
+            const result = callWithContext(callers, fn, params);
             if (paramCache && serialisedParams != null) {
                 paramCache.set(serialisedParams, result);
             }

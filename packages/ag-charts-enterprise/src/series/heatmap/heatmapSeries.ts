@@ -1,5 +1,5 @@
 import type { AgHeatmapSeriesStyle, FontStyle, FontWeight, TextAlign, VerticalAlign } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgHeatmapSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 import { type InternalAgColorType, Logger } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -18,6 +18,7 @@ const {
     Rect,
     PointerEvents,
     applyShapeStyle,
+    formatValue,
 } = _ModuleSupport;
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
@@ -234,16 +235,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             const labelText =
                 colorValue == null
                     ? undefined
-                    : this.getLabelText(label, {
-                          value: colorValue,
+                    : this.getLabelText2<AgHeatmapSeriesLabelFormatterParams>(
+                          colorValue,
                           datum,
-                          colorKey,
-                          colorName,
-                          xKey,
-                          yKey,
-                          xName,
-                          yName,
-                      });
+                          colorKey!,
+                          'color',
+                          label,
+                          { value: colorValue, datum, colorKey, colorName, xKey, yKey, xName, yName }
+                      );
 
             const labels = formatLabels(
                 labelText,
@@ -448,7 +447,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties, colorScale } = this;
+        const { id: seriesId, dataModel, processedData, axes, properties, colorScale, ctx } = this;
+        const { formatManager } = ctx;
         const { xKey, xName, yKey, yName, colorKey, colorName, colorRange, title, legendItemName, tooltip } =
             properties;
         const xAxis = axes[ChartAxisDirection.X];
@@ -473,12 +473,21 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             fill = colorRange[0];
         } else {
             fill = colorScale.convert(colorValue);
-            data.push({ label: colorName, fallbackLabel: colorKey!, value: String(colorValue) });
+            const content = formatManager.format({
+                type: 'number',
+                value: colorValue,
+                datum,
+                key: colorKey!,
+                source: 'tooltip',
+                property: 'color',
+                fractionDigits: undefined,
+            });
+            data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? formatValue(colorValue) });
         }
 
         data.push(
-            { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue) },
-            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) }
+            { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue, 'tooltip', datum, xKey) },
+            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey) }
         );
 
         const format = this.getItemBaseStyle(false);

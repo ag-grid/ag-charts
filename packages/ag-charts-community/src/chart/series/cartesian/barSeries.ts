@@ -1,6 +1,10 @@
 import type { RequireOptional } from 'ag-charts-core';
 import { isFiniteNumber } from 'ag-charts-core';
-import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
+import type {
+    AgBarSeriesLabelFormatterParams,
+    AgBarSeriesStyle,
+    AgErrorBoundSeriesTooltipRendererParams,
+} from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -453,6 +457,8 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
             const xValue = xValues[datumIndex];
             if (xValue == null) return;
 
+            const datum = rawData[datumIndex];
+
             const yRawValue = yRawValues[datumIndex];
             const yFilterValue = yFilterValues != null ? Number(yFilterValues[datumIndex]) : undefined;
             const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
@@ -462,21 +468,20 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
 
             const labelText =
                 yRawValue != null
-                    ? this.getLabelText(this.properties.label, {
-                          datum: rawData[datumIndex],
-                          value: yFilterValue ?? yRawValue,
-                          xKey,
+                    ? this.getLabelText2<AgBarSeriesLabelFormatterParams>(
+                          yFilterValue ?? yRawValue,
+                          datum,
                           yKey,
-                          xName,
-                          yName,
-                          legendItemName,
-                      })
+                          'y',
+                          label,
+                          { datum, value: yFilterValue ?? yRawValue, xKey, yKey, xName, yName, legendItemName }
+                      )
                     : undefined;
 
             const inset = yFilterValue != null && yFilterValue > yRawValue;
 
             const nodeData = nodeDatum({
-                datum: rawData[datumIndex],
+                datum,
                 datumIndex,
                 valueIndex,
                 xValue,
@@ -728,7 +733,12 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, BarNodeDatum> }) {
         opts.labelSelection.each((textNode, datum) => {
-            updateLabelNode(textNode, this.properties.label, datum.label);
+            updateLabelNode(
+                textNode,
+                // @ts-expect-error - Fix me
+                this.properties.label,
+                datum.label
+            );
         });
     }
 
@@ -754,9 +764,9 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue),
+                heading: xAxis.formatDatum(xValue, 'tooltip', datum, xKey),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) }],
+                data: [{ label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey) }],
             },
             {
                 seriesId,

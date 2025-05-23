@@ -1,4 +1,5 @@
-import type { AgAnnotationsOptions } from '../../chart/annotationsOptions';
+import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
+import type { AgAnnotationsOptions } from './annotationsOptions';
 import type {
     AgAxisBaseTickOptions,
     AgAxisCaptionOptions,
@@ -12,18 +13,22 @@ import type {
     AgTimeAxisFormattableLabelOptions,
     TimeInterval,
     TimeIntervalUnit,
-} from '../../chart/axisOptions';
-import type { Styler } from '../../chart/callbackOptions';
-import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
+} from './axisOptions';
+import type { Styler } from './callbackOptions';
+import type { AgBaseThemeableChartOptions } from './chartOptions';
 import type {
     AgBaseCrossLineLabelOptions,
     AgBaseCrossLineOptions,
     AgCrossLineLabelPosition,
     AgCrossLineThemeOptions,
-} from '../../chart/crossLineOptions';
-import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from '../../chart/crosshairOptions';
-import type { Degree, PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
-import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
+} from './crossLineOptions';
+import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from './crosshairOptions';
+import type { FormatterConfiguration } from './formatterOptions';
+import type { Degree, PixelSize, Ratio, TContextDefault, TDatumDefault } from './types';
+
+export type AgCartesianFormatterPropertyType = 'x' | 'y' | 'size' | 'color' | 'label';
+
+export type AgCartesianFormatter<TDatum = any> = FormatterConfiguration<TDatum, AgCartesianFormatterPropertyType>;
 
 /** Configuration for axes in cartesian charts. */
 export interface AgBaseCartesianAxisOptions<
@@ -86,6 +91,8 @@ export interface AgBaseCartesianChartOptions<TDatum = TDatumDefault, TContext = 
     series?: AgCartesianSeriesOptions<TDatum, TContext>[];
     /** Annotations configurations. */
     annotations?: AgAnnotationsOptions;
+    /** Global formatter configuration. */
+    formatter?: AgCartesianFormatter;
 }
 
 export type AgGroupedCategoryDepthLabelOptions = Pick<
