@@ -11,7 +11,14 @@ export function attachListener<T extends Document | HTMLElement | Window, K exte
     eventName: K & string,
     handler: (this: T, event: EventMapFor<T>[K]) => void,
     options?: boolean | AddEventListenerOptions
+): () => void;
+
+export function attachListener(
+    element: Document | HTMLElement | Window,
+    eventName: string,
+    handler: (event: Event) => void,
+    options?: boolean | AddEventListenerOptions
 ): () => void {
-    element.addEventListener(eventName, handler as EventListener, options);
-    return () => element.removeEventListener(eventName, handler as EventListener, options);
+    element.addEventListener(eventName, handler, options);
+    return () => element.removeEventListener(eventName, handler, options);
 }
