@@ -14,6 +14,7 @@ import type {
     ISeriesMarker,
 } from 'ag-charts-types';
 
+import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
@@ -787,16 +788,67 @@ export abstract class Series<
 
     protected getLabelText<TParams>(
         label: AgChartLabelOptions<any, TParams>,
-        params: TParams & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>,
-        defaultFormatter: (value: any) => string = formatValue
+        params: TParams & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>
     ) {
+        let value: string | undefined;
         if (label.formatter) {
+            value = this.cachedCallWithContext(label.formatter, { seriesId: this.id, ...params });
+        }
+        return value ?? formatValue(params.value);
+    }
+
+    protected getLabelText2<TParams extends object>(
+        value: any,
+        datum: any,
+        key: string,
+        property: 'y' | 'color' | 'label',
+        label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
+        baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>
+    ): string {
+        const params: AgChartLabelFormatterParams<any> & RequireOptional<TParams> = {
+            seriesId: this.id,
+            ...baseParams,
+        };
+        const source = 'series-label';
+
+        const formatInContext = this.callWithContext.bind(this);
+
+        if (property === 'y') {
+            const yAxis = this.axes[this.resolveKeyDirection(ChartAxisDirection.Y)];
             return (
-                this.cachedCallWithContext(label.formatter, { seriesId: this.id, ...params }) ??
-                this.callWithContext(defaultFormatter, params.value)
+                yAxis?.formatDatum<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>(
+                    value,
+                    source,
+                    datum,
+                    key,
+                    label,
+                    params,
+                    formatInContext
+                ) ?? String(value)
             );
         }
-        return this.callWithContext(defaultFormatter, params.value);
+
+        const { formatManager } = this.ctx;
+        switch (property) {
+            case 'color': {
+                const type = 'number';
+                const fractionDigits = undefined;
+                return (
+                    label.formatValue(formatInContext, type, value, params) ??
+                    formatManager.format({ type, value, datum, key, source, property, fractionDigits }) ??
+                    String(value)
+                );
+            }
+
+            case 'label': {
+                const type = 'category';
+                return (
+                    label.formatValue(formatInContext, type, value, params) ??
+                    formatManager.format({ type, value, datum, key, source, property }) ??
+                    String(value)
+                );
+            }
+        }
     }
 
     public getMarkerStyle<TParams>(
@@ -939,11 +991,11 @@ export abstract class Series<
     }
 
     private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
-        return this.ctx.callbackCache.call(this.properties, this.ctx.chartService, fn, ...params);
+        return this.ctx.callbackCache.call([this.properties, this.ctx.chartService], fn, ...params);
     }
 
     public callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> {
-        return callWithContext(this.properties, this.ctx.chartService, fn, params);
+        return callWithContext([this.properties, this.ctx.chartService], fn, params);
     }
 
     protected formatTooltipWithContext<P extends AgSeriesTooltipRendererParams<any>, Tooltip extends SeriesTooltip<P>>(
@@ -951,7 +1003,7 @@ export abstract class Series<
         content: TooltipStructuredContent,
         params: RequireOptional<P>
     ) {
-        return tooltip.formatTooltip(this.properties, this.ctx.chartService, content, params);
+        return tooltip.formatTooltip([this.properties, this.ctx.chartService], content, params);
     }
 
     abstract getCategoryValue(datumIndex: TDatumIndex): any;

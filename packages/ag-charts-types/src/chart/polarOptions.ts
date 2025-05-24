@@ -1,22 +1,22 @@
-import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
+import type { AgDonutSeriesOptions } from '../series/polar/donutOptions';
+import type { AgNightingaleSeriesOptions } from '../series/polar/nightingaleOptions';
+import type { AgPieSeriesOptions } from '../series/polar/pieOptions';
+import type { AgRadarAreaSeriesOptions } from '../series/polar/radarAreaOptions';
+import type { AgRadarLineSeriesOptions } from '../series/polar/radarLineOptions';
+import type { AgRadialBarSeriesOptions } from '../series/polar/radialBarOptions';
+import type { AgRadialColumnSeriesOptions } from '../series/polar/radialColumnOptions';
+import type { AgBaseThemeableChartOptions } from './chartOptions';
 import type {
     AgAngleAxesCrossLineThemeOptions,
     AgAngleCategoryAxisOptions,
     AgAngleNumberAxisOptions,
-} from '../../chart/polarAxisOptions';
+} from './polarAxisOptions';
 import type {
     AgRadiusAxesCrossLineThemeOptions,
     AgRadiusCategoryAxisOptions,
     AgRadiusNumberAxisOptions,
-} from '../../chart/radiusAxisOptions';
-import type { TContextDefault, TDatumDefault } from '../../chart/types';
-import type { AgDonutSeriesOptions } from './donutOptions';
-import type { AgNightingaleSeriesOptions } from './nightingaleOptions';
-import type { AgPieSeriesOptions } from './pieOptions';
-import type { AgRadarAreaSeriesOptions } from './radarAreaOptions';
-import type { AgRadarLineSeriesOptions } from './radarLineOptions';
-import type { AgRadialBarSeriesOptions } from './radialBarOptions';
-import type { AgRadialColumnSeriesOptions } from './radialColumnOptions';
+} from './radiusAxisOptions';
+import type { TContextDefault, TDatumDefault } from './types';
 
 export type AgPolarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault> =
     | AgDonutSeriesOptions<TDatum, TContext>
