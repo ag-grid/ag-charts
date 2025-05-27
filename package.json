@@ -1,6 +1,6 @@
 {
   "name": "ag-charts",
-  "version": "11.3.1-beta.20250527",
+  "version": "11.3.1-beta.20250527.1359",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
