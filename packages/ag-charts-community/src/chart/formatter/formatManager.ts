@@ -3,7 +3,6 @@ import {
     type DateFormatterStyle,
     type FormatterConfiguration,
     type FormatterParams,
-    type FormatterPropertyType,
     type TimeIntervalUnit,
 } from 'ag-charts-types';
 
@@ -15,7 +14,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
     private readonly formats = new Map<string, (value: any, _params?: any) => string | undefined>();
     private readonly componentDateFormatters = new Map<TimeIntervalUnit, (value: any) => string | undefined>();
     private readonly longDateFormatters = new Map<TimeIntervalUnit, (value: any) => string | undefined>();
-    formatter: FormatterConfiguration<any, any> | undefined = undefined;
+    formatter: FormatterConfiguration<any> | undefined = undefined;
 
     static getFormatter(
         type: 'number' | 'date' | 'category',
@@ -57,7 +56,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         }
     }
 
-    setFormatter(formatter: FormatterConfiguration<any, any> | undefined) {
+    setFormatter(formatter: FormatterConfiguration<any> | undefined) {
         if (this.formatter !== formatter) {
             this.formatter = formatter;
             this.formats.clear();
@@ -67,9 +66,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         }
     }
 
-    format<PropertyType extends FormatterPropertyType = FormatterPropertyType>(
-        params: FormatterParams<any, PropertyType>
-    ): string | undefined {
+    format(params: FormatterParams<any>): string | undefined {
         if (params.value == null) return;
 
         const { formatter } = this;

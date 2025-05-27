@@ -10,6 +10,7 @@ import type {
     AgSeriesMarkerStyle,
     AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
+    FormatterPropertyType,
     ISeriesMarker,
 } from 'ag-charts-types';
 
@@ -95,17 +96,6 @@ export type INodeEventConstructor<
 
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
-
-type SeriesFormatterProperty =
-    | 'x'
-    | 'y'
-    | 'radius'
-    | 'angle'
-    | 'color'
-    | 'label'
-    | 'secondaryLabel'
-    | 'sectorLabel'
-    | 'calloutLabel';
 
 export class SeriesNodeEvent<TDatum extends SeriesNodeDatum<unknown>, TEvent extends string = SeriesNodeEventTypes>
     implements INodeEvent<TEvent>
@@ -799,7 +789,7 @@ export abstract class Series<
         value: any,
         datum: any,
         key: string,
-        property: SeriesFormatterProperty,
+        property: FormatterPropertyType,
         label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
         baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>
     ): string {
@@ -859,6 +849,7 @@ export abstract class Series<
             }
 
             case 'color':
+            case 'size':
                 return formatNumber();
 
             case 'label':

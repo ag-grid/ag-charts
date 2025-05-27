@@ -23,12 +23,7 @@ import type {
     AgCrossLineThemeOptions,
 } from './crossLineOptions';
 import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from './crosshairOptions';
-import type { FormatterConfiguration } from './formatterOptions';
 import type { Degree, PixelSize, Ratio, TContextDefault, TDatumDefault } from './types';
-
-export type AgCartesianFormatterPropertyType = 'x' | 'y' | 'size' | 'color' | 'label';
-
-export type AgCartesianFormatter<TDatum> = FormatterConfiguration<TDatum, AgCartesianFormatterPropertyType>;
 
 /** Configuration for axes in cartesian charts. */
 export interface AgBaseCartesianAxisOptions<
@@ -91,8 +86,6 @@ export interface AgBaseCartesianChartOptions<TDatum = TDatumDefault, TContext = 
     series?: AgCartesianSeriesOptions<TDatum, TContext>[];
     /** Annotations configurations. */
     annotations?: AgAnnotationsOptions;
-    /** Global formatter configuration. */
-    formatter?: AgCartesianFormatter<TDatum>;
 }
 
 export type AgGroupedCategoryDepthLabelOptions = Pick<
