@@ -327,7 +327,7 @@ export class LineSeries extends CartesianSeries<
 
             if (yDatum != null) {
                 const labelText = label.enabled
-                    ? this.getLabelText2<AgLineSeriesLabelFormatterParams>(yDatum, datum, yKey, 'y', label, {
+                    ? this.getLabelText<AgLineSeriesLabelFormatterParams>(yDatum, datum, yKey, 'y', label, {
                           value: yDatum,
                           datum,
                           xKey,
@@ -599,9 +599,7 @@ export class LineSeries extends CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!dataModel || !processedData || !xAxis || !yAxis) {
-            return;
-        }
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];

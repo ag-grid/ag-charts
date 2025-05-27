@@ -183,7 +183,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
             let labelNodeDatum: RadarNodeDatum['label'];
             if (label.enabled) {
-                const labelText = this.getLabelText(label, {
+                const labelText = this.getLabelText(radiusDatum, datum, radiusKey, 'radius', label, {
                     value: radiusDatum,
                     datum,
                     angleKey,

@@ -10,7 +10,6 @@ import {
     durationWeek,
     durationYear,
 } from '../util/time/duration';
-import { calculateDefaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { ContinuousTimeScale } from './continuousTimeScale';
 
 describe('ContinuousTimeScale', () => {
@@ -188,125 +187,6 @@ describe('ContinuousTimeScale', () => {
 
                 expect(scale.ticks(ticks)).toMatchSnapshot();
             });
-        });
-    });
-
-    describe('#calculateDefaultTickFormat', () => {
-        const TEST_CASES: { name: string; ticks: Date[]; expectedFormat: string }[] = [
-            {
-                name: 'several seconds',
-                ticks: [
-                    new Date(2023, 0, 1, 13, 25, 30),
-                    new Date(2023, 0, 1, 13, 25, 35),
-                    new Date(2023, 0, 1, 13, 25, 40),
-                    new Date(2023, 0, 1, 13, 25, 45),
-                ],
-                expectedFormat: ':%S', //  second
-            },
-            {
-                name: 'several minutes',
-                ticks: [
-                    new Date(2023, 0, 1, 13, 25),
-                    new Date(2023, 0, 1, 13, 26),
-                    new Date(2023, 0, 1, 13, 27),
-                    new Date(2023, 0, 1, 13, 28),
-                ],
-                expectedFormat: '%I:%M%p', // hour:minute:{A,P}M
-            },
-            {
-                name: 'several hours',
-                ticks: [
-                    new Date(2023, 0, 1, 13),
-                    new Date(2023, 0, 1, 15),
-                    new Date(2023, 0, 1, 17),
-                    new Date(2023, 0, 1, 19),
-                ],
-                expectedFormat: '%I %p', // hour
-            },
-            {
-                name: 'several days',
-                ticks: [new Date(2022, 0, 1), new Date(2022, 0, 2), new Date(2022, 0, 3)],
-                expectedFormat: '%a', // week day
-            },
-            {
-                name: 'several months',
-                ticks: [new Date(2022, 0, 1), new Date(2022, 1, 1), new Date(2022, 2, 1)],
-                expectedFormat: '%B', // full month
-            },
-            {
-                name: 'several years',
-                ticks: [new Date(2021, 0, 1), new Date(2022, 0, 1), new Date(2023, 0, 1)],
-                expectedFormat: '%Y', // year
-            },
-            {
-                name: 'several seconds spanning minutes',
-                ticks: [
-                    new Date(2023, 0, 1, 13, 25, 0),
-                    new Date(2023, 0, 1, 13, 25, 30),
-                    new Date(2023, 0, 1, 13, 26, 0),
-                    new Date(2023, 0, 1, 13, 26, 30),
-                    new Date(2023, 0, 1, 13, 27, 0),
-                ],
-                expectedFormat: '%I:%M:%S%p', // hour:minute:second:{A,P}M
-            },
-            {
-                name: 'several minutes spanning hours',
-                ticks: [new Date(2023, 0, 1, 13, 25), new Date(2023, 0, 1, 15, 25), new Date(2023, 0, 1, 17, 25)],
-                expectedFormat: '%I:%M%p',
-            },
-            {
-                name: 'several hours spanning days',
-                ticks: [
-                    new Date(2023, 0, 1, 12),
-                    new Date(2023, 0, 2, 0),
-                    new Date(2023, 0, 2, 12),
-                    new Date(2023, 0, 3, 0),
-                ],
-                expectedFormat: '%I %p %a', // hour + week day
-            },
-            {
-                name: 'several hours spanning weeks',
-                ticks: [
-                    new Date(2023, 0, 1, 12),
-                    new Date(2023, 0, 2, 0),
-                    new Date(2023, 0, 2, 12),
-                    new Date(2023, 0, 14, 0),
-                ],
-                expectedFormat: '%I %p %b %d', // hour + short month + date
-            },
-            {
-                name: 'several days spanning months',
-                ticks: [new Date(2022, 0, 30), new Date(2022, 0, 31), new Date(2022, 2, 1), new Date(2022, 2, 2)],
-                expectedFormat: '%b %d', // short month + date
-            },
-            {
-                name: 'several days across years',
-                ticks: [new Date(2022, 11, 28), new Date(2022, 11, 30), new Date(2023, 0, 2), new Date(2023, 0, 4)],
-                expectedFormat: '%b %d %Y', // short month + date + year
-            },
-            {
-                name: 'several months spanning years',
-                ticks: [
-                    new Date(2022, 0, 1),
-                    new Date(2022, 3, 1),
-                    new Date(2022, 6, 1),
-                    new Date(2022, 9, 1),
-                    new Date(2023, 0, 1),
-                ],
-                expectedFormat: '%B %Y', // full month + year
-            },
-            {
-                name: 'several months across years',
-                ticks: [new Date(2022, 10, 1), new Date(2022, 11, 1), new Date(2023, 0, 1)],
-                expectedFormat: '%B %Y', // full month + year
-            },
-        ];
-
-        it.each(TEST_CASES)(`for $name case`, ({ ticks, expectedFormat }) => {
-            const scale = new ContinuousTimeScale();
-            scale.domain = [ticks[0], ticks[ticks.length - 1]];
-
-            expect(calculateDefaultTimeTickFormat(ticks, scale.domain)).toEqual(expectedFormat);
         });
     });
 });

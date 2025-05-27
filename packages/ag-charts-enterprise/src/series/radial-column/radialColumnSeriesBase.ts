@@ -265,7 +265,7 @@ export abstract class RadialColumnSeriesBase<
             x: number,
             y: number
         ): RadialColumnLabelNodeDatum | undefined => {
-            const labelText = this.getLabelText(label, {
+            const labelText = this.getLabelText(radiusDatum, datum, radiusKey, 'radius', label, {
                 value: radiusDatum,
                 datum,
                 angleKey,

@@ -244,7 +244,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     readonly footnote!: Caption;
 
     @Property
-    formatter: FormatterConfiguration<any, any> | undefined = undefined;
+    formatter: FormatterConfiguration<any> | undefined = undefined;
 
     @Property
     suppressFieldDotNotation: boolean = false;

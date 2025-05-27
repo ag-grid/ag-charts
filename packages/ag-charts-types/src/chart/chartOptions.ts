@@ -5,6 +5,7 @@ import type { Renderer } from './callbackOptions';
 import type { AgContextMenuOptions } from './contextMenuOptions';
 import type { AgDataSourceOptions } from './dataSourceOptions';
 import type { AgBaseChartListeners } from './eventOptions';
+import type { FormatterConfiguration } from './formatterOptions';
 import type { AgGradientLegendOptions } from './gradientLegendOptions';
 import type { AgChartLegendOptions } from './legendOptions';
 import type { AgLocaleOptions } from './localeOptions';
@@ -266,6 +267,8 @@ export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault> {
     sync?: AgChartSyncOptions;
     /** Configuration for the zoom options. */
     zoom?: AgZoomOptions;
+    /** Global formatter configuration. */
+    formatter?: FormatterConfiguration<TDatum>;
 }
 
 /** Configuration common to all charts.  */

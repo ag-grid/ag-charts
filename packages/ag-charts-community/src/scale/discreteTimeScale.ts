@@ -1,10 +1,7 @@
 import { findMaxIndex, findMinIndex } from 'ag-charts-core';
 import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
-import { buildFormatter } from '../util/timeFormat';
-import { defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
-import type { ScaleFormatParams } from './scale';
 
 export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | TimeIntervalUnit | number> {
     static override is(value: unknown): value is DiscreteTimeScale {
@@ -74,18 +71,5 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | T
         }
 
         return bands[reversed ? bands.length - 1 - index : index];
-    }
-
-    /**
-     * Returns a time format function suitable for displaying tick values.
-     * @param specifier If the specifier string is provided, this method is equivalent to
-     * the {@link TimeLocaleObject.format} method.
-     * If no specifier is provided, this method returns the default time format function.
-     */
-    override tickFormatter(
-        { domain, ticks, specifier }: ScaleFormatParams<Date>,
-        formatOffset?: number
-    ): (date: Date) => string {
-        return specifier != null ? buildFormatter(specifier) : defaultTimeTickFormat(ticks, domain, formatOffset);
     }
 }

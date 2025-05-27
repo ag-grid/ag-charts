@@ -389,14 +389,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             pointData.push(pathPoint);
 
             const itemId = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
-            const labelText = this.getLabelText2<AgWaterfallSeriesLabelFormatterParams>(
+            const labelText = this.getLabelText<AgWaterfallSeriesLabelFormatterParams>(value, datum, yKey, 'y', label, {
+                itemId,
                 value,
                 datum,
+                xKey,
                 yKey,
-                'y',
-                label,
-                { itemId, value, datum, xKey, yKey, xName, yName }
-            );
+                xName,
+                yName,
+            });
 
             const nodeDatum: WaterfallNodeDatum = {
                 index: datumIndex,

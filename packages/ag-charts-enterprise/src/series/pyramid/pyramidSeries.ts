@@ -226,9 +226,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             if (stageLabelData == null) return;
 
-            const text = this.getLabelText(this.properties.stageLabel, {
+            const text = this.getLabelText(xValue, datum, stageKey, 'x', this.properties.stageLabel, {
                 datum,
-                value: xValue,
+                value: yValue,
                 stageKey,
                 valueKey,
             });
@@ -353,7 +353,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 bottom = reverse ? bounds.width - x1 : x1;
             }
 
-            const text = this.getLabelText(label, {
+            const text = this.getLabelText(yValue, datum, valueKey, 'y', label, {
                 datum,
                 value: yValue,
                 stageKey,
@@ -612,8 +612,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         if (xValue == null) return;
 
-        const value = this.getLabelText(this.properties.stageLabel, {
-            datum: processedData.dataSources.get(this.id)?.[datumIndex],
+        const label = this.getLabelText(xValue, datum, stageKey, 'x', this.properties.stageLabel, {
+            datum,
+            value: xValue,
+            stageKey,
+            valueKey,
+        });
+        const value = this.getLabelText(yValue, datum, valueKey, 'y', this.properties.stageLabel, {
+            datum,
             value: yValue,
             stageKey,
             valueKey,
@@ -626,12 +632,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             tooltip,
             {
                 symbol: this.legendItemSymbol(datumIndex),
-                data: [
-                    {
-                        label: String(xValue),
-                        value: value,
-                    },
-                ],
+                data: [{ label, value }],
             },
             {
                 seriesId,

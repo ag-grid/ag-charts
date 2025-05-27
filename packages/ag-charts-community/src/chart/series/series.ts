@@ -6,11 +6,11 @@ import type {
 } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
-    AgChartLabelOptions,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
+    FormatterPropertyType,
     ISeriesMarker,
 } from 'ag-charts-types';
 
@@ -25,7 +25,6 @@ import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { callWithContext } from '../../util/callbackCache';
-import { formatValue } from '../../util/format.util';
 import { jsonDiff } from '../../util/json';
 import { Listeners } from '../../util/listeners';
 import { LRUCache } from '../../util/lruCache';
@@ -786,68 +785,78 @@ export abstract class Series<
         return { ...this.ctx, series: this };
     }
 
-    protected getLabelText<TParams>(
-        label: AgChartLabelOptions<any, TParams>,
-        params: TParams & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>
-    ) {
-        let value: string | undefined;
-        if (label.formatter) {
-            value = this.cachedCallWithContext(label.formatter, { seriesId: this.id, ...params });
-        }
-        return value ?? formatValue(params.value);
-    }
-
-    protected getLabelText2<TParams extends object>(
+    protected getLabelText<TParams extends object>(
         value: any,
         datum: any,
         key: string,
-        property: 'y' | 'color' | 'label',
+        property: FormatterPropertyType,
         label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
         baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>
     ): string {
+        if (value == null) return '';
+
+        const { axes, canHaveAxes, ctx } = this;
+        const { formatManager } = ctx;
+        const source = 'series-label';
         const params: AgChartLabelFormatterParams<any> & RequireOptional<TParams> = {
             seriesId: this.id,
             ...baseParams,
         };
-        const source = 'series-label';
 
         const formatInContext = this.callWithContext.bind(this);
 
-        if (property === 'y') {
-            const yAxis = this.axes[this.resolveKeyDirection(ChartAxisDirection.Y)];
+        const formatNumber = () => {
+            const type = 'number';
+            const fractionDigits = undefined;
             return (
-                yAxis?.formatDatum<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>(
-                    value,
-                    source,
-                    datum,
-                    key,
-                    label,
-                    params,
-                    formatInContext
-                ) ?? String(value)
+                label.formatValue(formatInContext, type, value, params) ??
+                formatManager.format({ type, value, datum, key, source, property, fractionDigits }) ??
+                String(value)
             );
-        }
+        };
 
-        const { formatManager } = this.ctx;
+        const formatCategory = () => {
+            const type = 'category';
+            return (
+                label.formatValue(formatInContext, type, value, params) ??
+                formatManager.format({ type, value, datum, key, source, property }) ??
+                String(value)
+            );
+        };
+
         switch (property) {
-            case 'color': {
-                const type = 'number';
-                const fractionDigits = undefined;
-                return (
-                    label.formatValue(formatInContext, type, value, params) ??
-                    formatManager.format({ type, value, datum, key, source, property, fractionDigits }) ??
-                    String(value)
-                );
+            case 'x':
+            case 'y':
+            case 'radius':
+            case 'angle': {
+                if (canHaveAxes) {
+                    const axis = axes[this.resolveKeyDirection(property as ChartAxisDirection)];
+                    return (
+                        axis?.formatDatum<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>(
+                            value,
+                            source,
+                            datum,
+                            key,
+                            label,
+                            params,
+                            formatInContext
+                        ) ?? String(value)
+                    );
+                } else if (property === 'y') {
+                    return formatNumber();
+                }
+                return formatCategory();
             }
 
-            case 'label': {
-                const type = 'category';
-                return (
-                    label.formatValue(formatInContext, type, value, params) ??
-                    formatManager.format({ type, value, datum, key, source, property }) ??
-                    String(value)
-                );
-            }
+            case 'color':
+            case 'size':
+                return formatNumber();
+
+            case 'label':
+            case 'secondaryLabel':
+            case 'calloutLabel':
+            case 'sectorLabel':
+                return formatCategory();
         }
     }
 

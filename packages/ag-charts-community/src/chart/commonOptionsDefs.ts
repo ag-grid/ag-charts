@@ -439,6 +439,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             visible: union('always', 'zoomed', 'hover'),
         },
     },
+    formatter: or(callback, object),
 };
 
 // @ts-expect-error undocumented option

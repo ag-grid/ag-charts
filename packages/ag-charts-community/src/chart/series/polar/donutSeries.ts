@@ -518,7 +518,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         if (calloutLabelKey && span >= toRadians(calloutLabel.minAngle)) {
             result.calloutLabel = {
                 ...this.getTextAlignment(midAngle),
-                text: this.getLabelText(calloutLabel, {
+                text: this.getLabelText(calloutLabelValue, datum, calloutLabelKey, 'calloutLabel', calloutLabel, {
                     ...labelFormatterParams,
                     value: calloutLabelValue,
                 }),
@@ -531,7 +531,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         if (sectorLabelKey) {
             result.sectorLabel = {
-                text: this.getLabelText(sectorLabel, {
+                text: this.getLabelText(sectorLabelValue, datum, sectorLabelKey, 'sectorLabel', sectorLabel, {
                     ...labelFormatterParams,
                     value: sectorLabelValue,
                 }),

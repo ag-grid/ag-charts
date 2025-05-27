@@ -398,7 +398,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             itemId,
             datum,
             datumIndex,
-            text: this.getLabelText2<AgRangeAreaSeriesLabelFormatterParams>(
+            text: this.getLabelText<AgRangeAreaSeriesLabelFormatterParams>(
                 value,
                 datum,
                 itemId === 'high' ? yHighKey : yLowKey,

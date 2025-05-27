@@ -262,7 +262,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             x: number,
             y: number
         ): RadialBarLabelNodeDatum | undefined => {
-            const labelText = this.getLabelText(label, {
+            const labelText = this.getLabelText(angleDatum, datum, angleKey, 'angle', label, {
                 value: angleDatum,
                 datum,
                 angleKey,

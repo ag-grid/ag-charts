@@ -7,12 +7,15 @@ import { objectsEqual } from '../../util/object';
 import { Property } from '../../util/properties';
 import { BaseProperties } from '../../util/properties';
 import { intervalEpoch, intervalFloor, intervalMilliseconds, intervalStep, intervalUnit } from '../../util/time';
+import { buildDateFormatter } from '../../util/timeFormat';
 import { domainSpansMultipleYears, lowestGranularityUnitForTicks } from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
+import { labelSpecifier } from '../label';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
 import { CategoryAxis } from './categoryAxis';
+import { deriveTimeSpecifier } from './timeFormatUtil';
 
 const autoUnits: TimeIntervalUnit[] = ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'];
 
@@ -117,6 +120,21 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
         return normaliseTimeDataDomain(domain, this.min, this.max);
     }
 
+    protected override createDatumFormatter(
+        _domain: any[],
+        _ticks: any[]
+    ): ((value: any) => string | undefined) | undefined {
+        const timeInterval = this.scale.interval;
+        const { format } = this.label;
+        if (format == null) return;
+        const specifier = labelSpecifier(
+            timeInterval != null ? deriveTimeSpecifier(format, intervalUnit(timeInterval)) : format,
+            timeInterval
+        );
+        if (specifier == null) return;
+        return buildDateFormatter(specifier);
+    }
+
     override tickFormatParams(
         domain: (number | Date)[],
         ticks: (number | Date)[],
@@ -135,12 +153,17 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
         _fractionDigits: number | undefined,
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         style: DateFormatterStyle
-    ): FormatterParams<any, any> {
-        timeInterval ??= this.unit ?? this.defaultUnit() ?? 'millisecond';
+    ): FormatterParams<any> {
+        const interval = this.unit ?? this.defaultUnit() ?? 'millisecond';
+
+        value = intervalFloor(interval, value); // Align to scale
+        timeInterval ??= interval;
+
         const { datum, key, source, property } = params;
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
         const epoch = intervalEpoch(timeInterval);
+
         return {
             type: 'date',
             value,

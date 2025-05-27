@@ -106,6 +106,7 @@ export class ChordSeries extends FlowProportionSeries<
             fromKey,
             toKey,
             sizeKey,
+            labelKey,
             label: { spacing: labelSpacing, maxWidth: labelMaxWidth, fontSize },
             node: { width: nodeWidth, spacing: nodeSpacing },
         } = this.properties;
@@ -148,7 +149,7 @@ export class ChordSeries extends FlowProportionSeries<
                 node.size = size;
                 totalSize += node.size;
 
-                const label = this.getLabelText(this.properties.label, {
+                const label = this.getLabelText(node.label, node.datum, labelKey!, 'label', this.properties.label, {
                     datum: node.datum,
                     value: node.label,
                     fromKey,

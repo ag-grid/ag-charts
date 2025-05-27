@@ -1,4 +1,4 @@
-import { type AgAxisLabelFormatterParams, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import { type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 import type { RequiredInternalAgGradientColor } from 'ag-charts-core';
 
 const {
@@ -64,9 +64,6 @@ export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'
             },
             label: {
                 enabled: false,
-                formatter(params: AgAxisLabelFormatterParams) {
-                    return Math.abs(params.value).toFixed(params.fractionDigits ?? 0);
-                },
             },
         },
         [CARTESIAN_AXIS_TYPE.CATEGORY]: {

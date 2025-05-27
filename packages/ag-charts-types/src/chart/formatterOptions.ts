@@ -1,5 +1,17 @@
 import type { TimeIntervalUnit } from './axisOptions';
 
+export type FormatterPropertyType =
+    | 'x'
+    | 'y'
+    | 'angle'
+    | 'radius'
+    | 'size'
+    | 'color'
+    | 'label'
+    | 'secondaryLabel'
+    | 'calloutLabel'
+    | 'sectorLabel';
+
 export type SeriesFormatterSource = 'tooltip' | 'series-label';
 export type ChartFormatterSource = 'axis' | 'crosshair';
 export type AnyFormatterSource = SeriesFormatterSource | ChartFormatterSource;
@@ -20,22 +32,22 @@ export interface ChartFormatterParams<Property, Value> {
     property: Property;
 }
 
-interface BaseFormatterParams<TDatum, Property, Value> {
+interface BaseFormatterParams<TDatum, Value> {
     value: Value;
     datum: TDatum | undefined;
     key: string | undefined;
     source: AnyFormatterSource;
-    property: Property;
+    property: FormatterPropertyType;
 }
 
-export interface NumberFormatterParams<TDatum, Property> extends BaseFormatterParams<TDatum, Property, number> {
+export interface NumberFormatterParams<TDatum> extends BaseFormatterParams<TDatum, number> {
     type: 'number';
     fractionDigits: number | undefined;
 }
 
 export type DateFormatterStyle = 'long' | 'component';
 
-export interface DateFormatterParams<TDatum, Property> extends BaseFormatterParams<TDatum, Property, Date | number> {
+export interface DateFormatterParams<TDatum> extends BaseFormatterParams<TDatum, Date | number> {
     type: 'date';
     unit: TimeIntervalUnit;
     step: number;
@@ -43,19 +55,18 @@ export interface DateFormatterParams<TDatum, Property> extends BaseFormatterPara
     style: DateFormatterStyle;
 }
 
-export interface CategoryFormatterParams<TDatum, Property>
-    extends BaseFormatterParams<TDatum, Property, string | number | Date> {
+export interface CategoryFormatterParams<TDatum> extends BaseFormatterParams<TDatum, string | number | Date> {
     type: 'category';
 }
 
-export type FormatterParams<TDatum, Property> =
-    | NumberFormatterParams<TDatum, Property>
-    | DateFormatterParams<TDatum, Property>
-    | CategoryFormatterParams<TDatum, Property>;
+export type FormatterParams<TDatum> =
+    | NumberFormatterParams<TDatum>
+    | DateFormatterParams<TDatum>
+    | CategoryFormatterParams<TDatum>;
 
-type FunctionFormatter<TDatum, Property> = (params: FormatterParams<TDatum, Property>) => string | undefined;
+type FunctionFormatter<TDatum> = (params: FormatterParams<TDatum>) => string | undefined;
 type TimeIntervalFormatter = Record<TimeIntervalUnit, string>;
 
-export type FormatterConfiguration<TDatum, Property extends string = any> =
-    | FunctionFormatter<TDatum, Property>
-    | Partial<Record<Property, FunctionFormatter<TDatum, Property> | TimeIntervalFormatter | string>>;
+export type FormatterConfiguration<TDatum> =
+    | FunctionFormatter<TDatum>
+    | Partial<Record<FormatterPropertyType, FunctionFormatter<TDatum> | TimeIntervalFormatter | string>>;

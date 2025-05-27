@@ -235,7 +235,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             const labelText =
                 colorValue == null
                     ? undefined
-                    : this.getLabelText2<AgHeatmapSeriesLabelFormatterParams>(
+                    : this.getLabelText<AgHeatmapSeriesLabelFormatterParams>(
                           colorValue,
                           datum,
                           colorKey!,
