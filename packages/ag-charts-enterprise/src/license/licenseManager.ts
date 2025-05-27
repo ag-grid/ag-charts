@@ -216,7 +216,7 @@ export class LicenseManager {
 
     private isLocalhost(): boolean {
         const hostname = this.getHostname();
-        return /^(?:127\.0\.0\.1|localhost)$/.exec(hostname) !== null;
+        return /^(?:127\.0\.0\.1|localhost)$/.exec(hostname) !== null || hostname === 'host.docker.internal';
     }
 
     private static formatDate(date: any): string {
