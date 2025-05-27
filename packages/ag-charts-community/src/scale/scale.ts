@@ -8,13 +8,6 @@ export interface ScaleTickParams<I> {
     maxTickCount: number;
 }
 
-export interface ScaleFormatParams<D> {
-    domain: D[];
-    ticks: D[];
-    fractionDigits: number;
-    specifier: string | undefined;
-}
-
 export interface NormalizedDomain<D> {
     domain: D[];
     animatable: boolean;
@@ -39,8 +32,6 @@ export interface Scale<D, R, I = number> {
     invert(value: R, exact?: boolean): D | undefined;
     ticks(ticks: ScaleTickParams<I>, domain?: D[], visibleRange?: [number, number]): ScaleTickResult<D> | undefined;
     niceDomain(ticks: ScaleTickParams<I>, domain?: D[]): D[];
-    tickFormatter(params: ScaleFormatParams<D>): ((x: any) => string) | undefined;
-    datumFormatter(params: ScaleFormatParams<D>): ((x: any) => string) | undefined;
     readonly bandwidth: number | undefined;
     readonly step: number | undefined;
     readonly inset: number | undefined;

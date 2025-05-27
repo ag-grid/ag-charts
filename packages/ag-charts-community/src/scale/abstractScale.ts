@@ -1,4 +1,4 @@
-import type { NormalizedDomain, Scale, ScaleFormatParams, ScaleTickParams, ScaleType } from './scale';
+import type { NormalizedDomain, Scale, ScaleTickParams, ScaleType } from './scale';
 
 export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> {
     abstract type: ScaleType;
@@ -17,12 +17,6 @@ export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> 
     }
     niceDomain(_ticks: ScaleTickParams<I>, domain: D[] = this.domain): D[] {
         return domain;
-    }
-    tickFormatter(_params: ScaleFormatParams<D>): ((x: any) => string) | undefined {
-        return undefined;
-    }
-    datumFormatter(_params: ScaleFormatParams<D>): ((x: any) => string) | undefined {
-        return undefined;
     }
     get bandwidth(): number | undefined {
         return undefined;
