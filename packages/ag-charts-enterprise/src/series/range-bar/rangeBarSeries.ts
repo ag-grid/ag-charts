@@ -443,7 +443,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText2<AgRangeBarSeriesLabelFormatterParams>(yLowValue, datum, yLowKey, 'y', label, {
+            text: this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yLowValue, datum, yLowKey, 'y', label, {
                 itemId: 'low',
                 value: yLowValue,
                 ...labelParams,
@@ -458,7 +458,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',
             textBaseline: barAlongX ? 'middle' : 'top',
-            text: this.getLabelText2<AgRangeBarSeriesLabelFormatterParams>(yHighValue, datum, yHighKey, 'y', label, {
+            text: this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yHighValue, datum, yHighKey, 'y', label, {
                 itemId: 'high',
                 value: yHighValue,
                 ...labelParams,

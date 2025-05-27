@@ -92,13 +92,6 @@ export type AxisTickFormatParams = {
     includeYear?: boolean;
 };
 
-const additionalFractionDigits: Record<AnyFormatterSource, number> = {
-    axis: 0,
-    crosshair: 1,
-    tooltip: 1,
-    'series-label': 0,
-};
-
 /**
  * A general purpose linear axis with no notion of orientation.
  * The axis is always rendered vertically, with horizontal labels positioned to the left
@@ -642,11 +635,11 @@ export abstract class Axis<
     }
 
     // For formatting arbitrary values between the ticks.
-    formatDatum(value: any, source: 'axis' | 'crosshair'): string;
+    formatDatum(value: any, source: 'crosshair'): string;
     formatDatum(value: any, source: 'tooltip' | 'series-label', datum: any, key: string): string;
     formatDatum<Params extends object>(
         value: any,
-        source: 'axis' | 'crosshair',
+        source: 'crosshair',
         datum: undefined,
         key: undefined,
         label: AxisFormattableLabel<Params>,
@@ -662,7 +655,7 @@ export abstract class Axis<
     ): string;
     formatDatum(
         input: any,
-        source: AnyFormatterSource,
+        source: Exclude<AnyFormatterSource, 'axis'>,
         datum?: any,
         key?: string,
         label?: AxisFormattableLabel<any>,
@@ -674,9 +667,17 @@ export abstract class Axis<
     ): string {
         if (input == null) return '';
 
-        let inputFractionDigits = this.layout.label.fractionDigits;
-        if (inputFractionDigits !== 0) {
-            inputFractionDigits += additionalFractionDigits[source];
+        let inputFractionDigits: number;
+        switch (source) {
+            case 'crosshair':
+                inputFractionDigits = this.layout.label.fractionDigits + 1;
+                break;
+            case 'series-label':
+                inputFractionDigits = 2;
+                break;
+            case 'tooltip':
+                inputFractionDigits = 3;
+                break;
         }
 
         const { moduleCtx, direction, scale } = this;

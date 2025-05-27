@@ -411,7 +411,7 @@ export class AreaSeries extends CartesianSeries<
 
             // label data
             if (validPoint && label) {
-                const labelText = this.getLabelText2<AgAreaSeriesLabelFormatterParams>(
+                const labelText = this.getLabelText<AgAreaSeriesLabelFormatterParams>(
                     yDatum,
                     seriesDatum,
                     yKey,

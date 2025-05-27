@@ -92,7 +92,7 @@ export interface AgBaseCartesianChartOptions<TDatum = TDatumDefault, TContext = 
     /** Annotations configurations. */
     annotations?: AgAnnotationsOptions;
     /** Global formatter configuration. */
-    formatter?: AgCartesianFormatter;
+    formatter?: AgCartesianFormatter<TDatum>;
 }
 
 export type AgGroupedCategoryDepthLabelOptions = Pick<

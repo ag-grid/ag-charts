@@ -66,11 +66,11 @@ export interface ChartAxis {
     createModuleContext(): ModuleContextWithParent<AxisContext>;
     destroy(): void;
     detachAxis(opts: AxisGroups): void;
-    formatDatum(value: any, source: 'axis' | 'crosshair'): string;
+    formatDatum(value: any, source: 'crosshair'): string;
     formatDatum(value: any, source: 'tooltip' | 'series-label', datum: any, key: string): string;
     formatDatum<Params extends object>(
         value: any,
-        source: 'axis' | 'crosshair',
+        source: 'crosshair',
         datum: undefined,
         key: undefined,
         label: AxisFormattableLabel<Params>,

@@ -305,8 +305,10 @@ export class MapMarkerSeries
             label,
             shape,
         } = this.properties;
+        if (labelKey == null) return;
+
         const { placement } = label;
-        const labelText = this.getLabelText(label, {
+        const labelText = this.getLabelText(labelValue, datum, labelKey, 'label', label, {
             value: labelValue,
             datum,
             idKey,

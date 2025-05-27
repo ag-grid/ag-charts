@@ -327,7 +327,7 @@ export class LineSeries extends CartesianSeries<
 
             if (yDatum != null) {
                 const labelText = label.enabled
-                    ? this.getLabelText2<AgLineSeriesLabelFormatterParams>(yDatum, datum, yKey, 'y', label, {
+                    ? this.getLabelText<AgLineSeriesLabelFormatterParams>(yDatum, datum, yKey, 'y', label, {
                           value: yDatum,
                           datum,
                           xKey,

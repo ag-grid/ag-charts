@@ -179,7 +179,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                     : undefined;
 
             const labelValue = labelDataValues != null ? labelDataValues?.[datumIndex] : yDatum;
-            const labelText = this.getLabelText2<AgScatterSeriesLabelFormatterParams>(
+            const labelText = this.getLabelText<AgScatterSeriesLabelFormatterParams>(
                 labelValue,
                 datum,
                 labelKey ?? yKey,

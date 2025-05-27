@@ -150,7 +150,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
             y,
             textAlign,
             textBaseline,
-            text: this.getLabelText2<AgConeFunnelSeriesLabelFormatterParams>(yDatum, datum, valueKey, 'y', label, {
+            text: this.getLabelText<AgConeFunnelSeriesLabelFormatterParams>(yDatum, datum, valueKey, 'y', label, {
                 itemId: valueKey,
                 value: yDatum,
                 datum,

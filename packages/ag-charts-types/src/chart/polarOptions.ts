@@ -6,6 +6,7 @@ import type { AgRadarLineSeriesOptions } from '../series/polar/radarLineOptions'
 import type { AgRadialBarSeriesOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesOptions } from '../series/polar/radialColumnOptions';
 import type { AgBaseThemeableChartOptions } from './chartOptions';
+import type { FormatterConfiguration } from './formatterOptions';
 import type {
     AgAngleAxesCrossLineThemeOptions,
     AgAngleCategoryAxisOptions,
@@ -17,6 +18,10 @@ import type {
     AgRadiusNumberAxisOptions,
 } from './radiusAxisOptions';
 import type { TContextDefault, TDatumDefault } from './types';
+
+export type AgPolarFormatterPropertyType = 'angle' | 'radius' | 'label' | 'calloutLabel' | 'sectorLabel';
+
+export type AgPolarFormatter<TDatum = any> = FormatterConfiguration<TDatum, AgPolarFormatterPropertyType>;
 
 export type AgPolarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault> =
     | AgDonutSeriesOptions<TDatum, TContext>
@@ -41,6 +46,9 @@ export interface AgBasePolarChartOptions<TDatum = TDatumDefault, TContext = TCon
 
     /** Axis configurations. */
     axes?: AgPolarAxisOptions<TContext>[];
+
+    /** Global formatter configuration. */
+    formatter?: AgPolarFormatter<TDatum>;
 }
 
 type ThemeOmittedAxisOptions = 'context' | 'type' | 'crossLines';
