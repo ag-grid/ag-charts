@@ -1,16 +1,30 @@
 import type {
+    AgAxisBoundSeries,
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
     AgBaseAxisLabelStyleOptions,
+    DateFormatterStyle,
     FontStyle,
     FontWeight,
     Formatter,
     Styler,
+    TimeInterval,
+    TimeIntervalUnit,
 } from 'ag-charts-types';
 
+import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
+import { intervalStep, intervalUnit } from '../../util/time';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
+import { FormatManager } from '../formatter/formatManager';
+
+interface FormatterCache {
+    type: string;
+    format: string | Record<string, string>;
+    unit: TimeIntervalUnit | undefined;
+    formatter: (value: any, fractionDigits?: number) => string | undefined;
+}
 
 export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     @Property
@@ -110,4 +124,58 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
 
     @Property
     format?: string | Record<string, string>;
+
+    private _formatters: Record<DateFormatterStyle | 'fixed-year-long', FormatterCache | undefined> = {
+        component: undefined,
+        long: undefined,
+        'fixed-year-long': undefined,
+    };
+    formatValue(
+        callWithContext: (
+            formatter: (params: AgAxisLabelFormatterParams) => string | undefined,
+            params: AgAxisLabelFormatterParams
+        ) => string | undefined,
+        type: 'number' | 'date' | 'category',
+        value: any,
+        index: number,
+        domain: any[],
+        boundSeries: AgAxisBoundSeries[],
+        fractionDigits?: number,
+        timeInterval?: TimeInterval | TimeIntervalUnit,
+        style: DateFormatterStyle | 'fixed-year-long' = 'long'
+    ) {
+        const { formatter, format } = this;
+
+        const unit = timeInterval ? intervalUnit(timeInterval) : undefined;
+
+        let result: string | undefined;
+        if (formatter != null) {
+            const step = timeInterval ? intervalStep(timeInterval) : undefined;
+            result = callWithContext(formatter, { value, index, domain, fractionDigits, unit, step, boundSeries });
+        }
+
+        if (format != null) {
+            let valueFormatter = this._formatters[style];
+
+            if (
+                valueFormatter == null ||
+                valueFormatter.type !== type ||
+                valueFormatter.unit !== unit ||
+                !objectsEqual(valueFormatter.format, format)
+            ) {
+                valueFormatter = {
+                    type,
+                    format,
+                    unit,
+                    formatter: FormatManager.getFormatter(type, format, unit, style),
+                };
+
+                this._formatters[style] = valueFormatter;
+            }
+
+            result ??= valueFormatter.formatter(value, fractionDigits);
+        }
+
+        return result != null ? String(result) : undefined;
+    }
 }

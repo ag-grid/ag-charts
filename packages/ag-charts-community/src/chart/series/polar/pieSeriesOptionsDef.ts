@@ -56,6 +56,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         minAngle: positiveNumber,
         avoidCollisions: boolean,
         formatter: callback,
+        format: string,
         ...fontOptionsDef,
     },
     sectorLabel: {
@@ -63,6 +64,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         positionOffset: number,
         positionRatio: ratio,
         formatter: callback,
+        format: string,
         ...fontOptionsDef,
     },
     calloutLine: {

@@ -106,13 +106,23 @@ function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverri
     return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
 }
 
-const timeLabelFormat: Record<TimeIntervalUnit, string> = {
-    millisecond: '%H:%M:%S.L',
+const longTimeLabelFormat: Record<TimeIntervalUnit, string> = {
+    millisecond: '%H:%M:%S.%L',
     second: '%H:%M:%S',
     minute: '%H:%M',
     hour: '%H:%M',
-    day: '%e %B',
+    day: '%e',
     month: '%B',
+    year: '%Y',
+};
+
+const compactTimeLabelFormat: Record<TimeIntervalUnit, string> = {
+    millisecond: '%H:%M:%S.%L',
+    second: '%H:%M:%S',
+    minute: '%H:%M',
+    hour: '%H:%M',
+    day: '%d',
+    month: '%b',
     year: '%Y',
 };
 
@@ -199,7 +209,11 @@ export class ChartTheme {
         };
     }
 
-    private static getAxisDefaults(overrideDefaults: object, { title, time }: { title: boolean; time: boolean }) {
+    private static getAxisDefaults(
+        overrideDefaults: object,
+        { title, time }: { title: boolean; time: 'off' | 'compact' | 'long' }
+    ) {
+        const timeLabelFormat = time === 'compact' ? compactTimeLabelFormat : longTimeLabelFormat;
         return mergeDefaults(
             overrideDefaults,
             title && {
@@ -213,7 +227,7 @@ export class ChartTheme {
                     color: { $ref: 'textColor' },
                 },
             },
-            time && {
+            time !== 'off' && {
                 label: {
                     format: {
                         millisecond: {
@@ -470,7 +484,7 @@ export class ChartTheme {
                 line: { enabled: false },
                 crosshair: { enabled: true },
             },
-            { title: true, time: false }
+            { title: true, time: 'off' }
         ),
         [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults(
             {
@@ -479,7 +493,7 @@ export class ChartTheme {
                 line: { enabled: false },
                 crosshair: { enabled: true },
             },
-            { title: true, time: false }
+            { title: true, time: 'off' }
         ),
         [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults(
             {
@@ -489,7 +503,7 @@ export class ChartTheme {
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: false },
             },
-            { title: true, time: false }
+            { title: true, time: 'off' }
         ),
         [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults(
             {
@@ -500,7 +514,7 @@ export class ChartTheme {
                 groupPaddingInner: 0.2,
                 crosshair: { enabled: false },
             },
-            { title: true, time: false }
+            { title: true, time: 'off' }
         ),
         [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults(
             {
@@ -511,7 +525,7 @@ export class ChartTheme {
                 crosshair: { enabled: true },
                 parentLevel: { enabled: true },
             },
-            { title: true, time: true }
+            { title: true, time: 'long' }
         ),
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults(
             {
@@ -521,7 +535,7 @@ export class ChartTheme {
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: true },
             },
-            { title: true, time: true }
+            { title: true, time: 'compact' }
         ),
         [CARTESIAN_AXIS_TYPE.CONTINUOUS_TIME]: ChartTheme.getAxisDefaults(
             {
@@ -529,7 +543,7 @@ export class ChartTheme {
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: true },
             },
-            { title: true, time: true }
+            { title: true, time: 'long' }
         ),
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults(
             {
@@ -543,21 +557,21 @@ export class ChartTheme {
                     ],
                 },
             },
-            { title: false, time: false }
+            { title: false, time: 'off' }
         ),
         [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults(
             {
                 label: { spacing: 5 },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
             },
-            { title: false, time: false }
+            { title: false, time: 'off' }
         ),
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults(
             {
                 positionAngle: 0,
                 line: { enabled: false },
             },
-            { title: true, time: false }
+            { title: true, time: 'off' }
         ),
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults(
             {
@@ -571,7 +585,7 @@ export class ChartTheme {
                     ],
                 },
             },
-            { title: true, time: false }
+            { title: true, time: 'off' }
         ),
     };
 

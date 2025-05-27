@@ -13,6 +13,8 @@ import type { FontSize, OverflowStrategy, PixelSize, TextWrap } from './types';
 export interface AgChartLabelOptions<TDatum, TParams> extends Toggleable, FontOptions {
     /** A custom formatting function used to convert data values into text for display by labels. */
     formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & TParams>;
+    /** Format string used when rendering labels. */
+    format?: string;
 }
 
 export interface AgChartLabelFormatterParams<TDatum> extends AgChartCallbackParams<TDatum> {

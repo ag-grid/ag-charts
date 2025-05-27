@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
 import { isNumberEqual } from 'ag-charts-core';
 
 import { loopSymmetrically } from '../../utils/polar';
@@ -114,5 +114,14 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
                 datum.box = undefined;
             }
         });
+    }
+
+    override tickFormatParams(): _ModuleSupport.AxisTickFormatParams {
+        return { type: 'category' };
+    }
+
+    override datumFormatParams(value: any, params: _ModuleSupport.FormatDatumParams): FormatterParams<any, any> {
+        const { datum, key, source, property } = params;
+        return { type: 'category', value, datum, key, source, property };
     }
 }

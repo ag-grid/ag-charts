@@ -7,15 +7,19 @@ import { addSeriesNodePoints, benchmark, setupBenchmark } from './benchmark';
 describe('large-dataset benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('large-dataset');
 
-    benchmark('initial load', ctx, { expectedRelativeMB: 760, expectedCanvasCount: 9 }, async () => {
-        await ctx.create();
-    });
+    benchmark(
+        'initial load',
+        ctx,
+        { expectedRelativeMB: 760, expectedCanvasCount: 9 },
+        async () => await ctx.create(),
+        15_000
+    );
 
     describe('after load', () => {
         beforeEach(async () => {
             await ctx.create();
             await addSeriesNodePoints(ctx, 0, 4);
-        }, 10_000);
+        }, 1_000);
 
         benchmark(
             '1x legend toggle',

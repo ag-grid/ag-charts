@@ -22,6 +22,7 @@ import { ChartUpdateType } from './chartUpdateType';
 import { DataService } from './data/dataService';
 import type { ChartType } from './factory/chartTypes';
 import { FontManager } from './fonts/fontManager';
+import { FormatManager } from './formatter/formatManager';
 import { AnimationManager } from './interaction/animationManager';
 import { ChartEventManager } from './interaction/chartEventManager';
 import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
@@ -42,6 +43,7 @@ export class ChartContext implements ModuleContext {
     readonly callbackCache = new CallbackCache();
     readonly chartEventManager = new ChartEventManager();
     readonly highlightManager = new HighlightManager();
+    readonly formatManager = new FormatManager();
     readonly layoutManager = new LayoutManager();
     readonly localeManager = new LocaleManager();
     readonly seriesStateManager = new SeriesStateManager();
