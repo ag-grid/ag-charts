@@ -353,12 +353,8 @@ export abstract class Axis<
         return 0;
     }
 
-    protected defaultLabelFormatter(datum: unknown, fractionDigits: number): string {
+    protected defaultFormatter(datum: unknown, fractionDigits: number): string {
         return formatValue(datum, fractionDigits);
-    }
-
-    protected defaultDatumFormatter(datum: unknown, fractionDigits: number): string {
-        return formatValue(datum, fractionDigits + 1);
     }
 
     protected createDatumFormatter(_domain: D[], _ticks: D[]): ((value: any) => string | undefined) | undefined {
@@ -629,7 +625,7 @@ export abstract class Axis<
 
             return (
                 formatManager.format(this.datumFormatParams(value, params, fractionDigits, unit, timeStyle)) ??
-                this.defaultLabelFormatter(value, fractionDigits ?? 0)
+                this.defaultFormatter(value, fractionDigits ?? 0)
             );
         };
     }
@@ -708,7 +704,7 @@ export abstract class Axis<
                 'long'
             ) ??
             formatManager.format(formatParams) ??
-            this.defaultLabelFormatter(value, fractionDigits ?? 0)
+            this.defaultFormatter(value, fractionDigits ?? 0)
         );
     }
 

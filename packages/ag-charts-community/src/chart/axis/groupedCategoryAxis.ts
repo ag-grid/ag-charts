@@ -488,11 +488,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         });
     }
 
-    protected override defaultLabelFormatter(datum: unknown): string {
-        return Array.isArray(datum) ? datum.filter(Boolean).join(' - ') : String(datum);
-    }
-
-    protected override defaultDatumFormatter(datum: unknown): string {
+    protected override defaultFormatter(datum: unknown): string {
         return Array.isArray(datum) ? datum.filter(Boolean).join(' - ') : String(datum);
     }
 }

@@ -21,7 +21,7 @@ import type { TContextDefault, TDatumDefault } from './types';
 
 export type AgPolarFormatterPropertyType = 'angle' | 'radius' | 'label' | 'calloutLabel' | 'sectorLabel';
 
-export type AgPolarFormatter<TDatum = any> = FormatterConfiguration<TDatum, AgPolarFormatterPropertyType>;
+export type AgPolarFormatter<TDatum> = FormatterConfiguration<TDatum, AgPolarFormatterPropertyType>;
 
 export type AgPolarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault> =
     | AgDonutSeriesOptions<TDatum, TContext>
@@ -48,7 +48,7 @@ export interface AgBasePolarChartOptions<TDatum = TDatumDefault, TContext = TCon
     axes?: AgPolarAxisOptions<TContext>[];
 
     /** Global formatter configuration. */
-    formatter?: AgPolarFormatter<TDatum>;
+    formatter?: AgPolarFormatter<any>;
 }
 
 type ThemeOmittedAxisOptions = 'context' | 'type' | 'crossLines';

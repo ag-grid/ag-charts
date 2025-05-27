@@ -5,7 +5,7 @@ import type { AgPyramidSeriesOptions } from './pyramidOptions';
 
 export type AgStandaloneFormatterPropertyType = 'y';
 
-export type AgStandaloneFormatter<TDatum = any> = FormatterConfiguration<TDatum, AgStandaloneFormatterPropertyType>;
+export type AgStandaloneFormatter<TDatum> = FormatterConfiguration<TDatum, AgStandaloneFormatterPropertyType>;
 
 export type AgStandaloneSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault> = AgPyramidSeriesOptions<
     TDatum,

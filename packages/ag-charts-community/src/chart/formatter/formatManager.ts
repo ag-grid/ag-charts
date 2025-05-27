@@ -3,6 +3,7 @@ import {
     type DateFormatterStyle,
     type FormatterConfiguration,
     type FormatterParams,
+    type FormatterPropertyType,
     type TimeIntervalUnit,
 } from 'ag-charts-types';
 
@@ -66,7 +67,9 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         }
     }
 
-    format<PropertyType extends string = string>(params: FormatterParams<any, PropertyType>): string | undefined {
+    format<PropertyType extends FormatterPropertyType = FormatterPropertyType>(
+        params: FormatterParams<any, PropertyType>
+    ): string | undefined {
         if (params.value == null) return;
 
         const { formatter } = this;

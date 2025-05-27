@@ -803,6 +803,8 @@ export abstract class Series<
         label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
         baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>
     ): string {
+        if (value == null) return '';
+
         const { axes, canHaveAxes, ctx } = this;
         const { formatManager } = ctx;
         const source = 'series-label';
