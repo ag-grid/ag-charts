@@ -53,7 +53,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
 
     private readonly bandHighlightGroup = new TranslatableGroup({
         name: 'bandHighlight',
-        zIndex: ZIndexMap.AXIS_GRID,
+        zIndex: ZIndexMap.AXIS_BAND_HIGHLIGHT,
     });
     private readonly rangeNode: _ModuleSupport.Range<any> = this.bandHighlightGroup.appendChild(new Range());
 
