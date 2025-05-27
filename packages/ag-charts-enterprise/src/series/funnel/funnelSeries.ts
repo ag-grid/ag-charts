@@ -111,7 +111,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
             y: rect.y + rect.height / 2,
             textAlign: 'center',
             textBaseline: 'middle',
-            text: this.getLabelText2<AgFunnelSeriesLabelFormatterParams>(yDatum, datum, valueKey, 'y', label, {
+            text: this.getLabelText<AgFunnelSeriesLabelFormatterParams>(yDatum, datum, valueKey, 'y', label, {
                 itemId: stageKey,
                 value: yDatum,
                 datum,

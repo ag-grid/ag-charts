@@ -3,11 +3,12 @@ import {
     type DateFormatterStyle,
     type FormatterConfiguration,
     type FormatterParams,
+    type FormatterPropertyType,
     type TimeIntervalUnit,
 } from 'ag-charts-types';
 
 import { Listeners } from '../../util/listeners';
-import { buildFormatter } from '../../util/timeFormat';
+import { buildDateFormatter } from '../../util/timeFormat';
 import { deriveTimeSpecifier } from '../axis/timeFormatUtil';
 
 export class FormatManager extends Listeners<'format-changed', () => void> {
@@ -42,7 +43,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
                     fullFormat = deriveTimeSpecifier(specifier, unit, false);
                     break;
             }
-            return buildFormatter(fullFormat) as (value: any) => string;
+            return buildDateFormatter(fullFormat) as (value: any) => string;
         }
 
         switch (type) {
@@ -50,7 +51,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
                 const options = parseNumberFormat(specifier);
                 return createNumberFormatter(options);
             case 'date':
-                return buildFormatter(specifier) as (value: any) => string;
+                return buildDateFormatter(specifier) as (value: any) => string;
             case 'category':
                 return (value) => specifier.replace('%s', String(value));
         }
@@ -66,7 +67,9 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         }
     }
 
-    format<PropertyType extends string = string>(params: FormatterParams<any, PropertyType>): string | undefined {
+    format<PropertyType extends FormatterPropertyType = FormatterPropertyType>(
+        params: FormatterParams<any, PropertyType>
+    ): string | undefined {
         if (params.value == null) return;
 
         const { formatter } = this;

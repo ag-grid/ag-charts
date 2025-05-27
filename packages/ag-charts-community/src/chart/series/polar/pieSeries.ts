@@ -507,7 +507,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         if (calloutLabelKey && span >= toRadians(calloutLabel.minAngle)) {
             result.calloutLabel = {
                 ...this.getTextAlignment(midAngle),
-                text: this.getLabelText(calloutLabel, {
+                text: this.getLabelText(calloutLabelValue, datum, calloutLabelKey, 'calloutLabel', calloutLabel, {
                     ...labelFormatterParams,
                     value: calloutLabelValue,
                 }),
@@ -520,7 +520,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         if (sectorLabelKey) {
             result.sectorLabel = {
-                text: this.getLabelText(sectorLabel, {
+                text: this.getLabelText(sectorLabelValue, datum, sectorLabelKey, 'sectorLabel', sectorLabel, {
                     ...labelFormatterParams,
                     value: sectorLabelValue,
                 }),

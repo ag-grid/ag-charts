@@ -218,8 +218,9 @@ export class MapShapeSeries
         if (labelValue == null || geometry == null) return;
 
         const { idKey, idName, colorKey, colorName, labelKey, labelName, padding, label } = this.properties;
+        if (labelKey == null) return;
 
-        const labelText = this.getLabelText(label, {
+        const labelText = this.getLabelText(labelValue, datum, labelKey, 'label', label, {
             value: labelValue,
             datum,
             idKey,

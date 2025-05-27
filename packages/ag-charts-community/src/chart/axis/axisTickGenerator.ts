@@ -237,18 +237,16 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         };
 
         const getTimeLabelData = (tickData: TickData, iterationRotation: number) => {
-            const { niceDomain, ticks, rawTicks, timeInterval } = tickData;
+            const { niceDomain, ticks, timeInterval } = tickData;
             if (timeInterval == null) return [];
 
             updateLabelMatrix(iterationRotation);
 
             const spacing = ticksSpacing(ticks);
             const { width, height } = timeIntervalMaxLabelSize(
-                scale as any,
                 label,
                 primaryLabel,
                 niceDomain ?? domain,
-                rawTicks,
                 timeInterval,
                 textMeasurer
             );

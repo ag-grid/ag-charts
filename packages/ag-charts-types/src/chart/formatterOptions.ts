@@ -1,5 +1,17 @@
 import type { TimeIntervalUnit } from './axisOptions';
 
+export type FormatterPropertyType =
+    | 'x'
+    | 'y'
+    | 'angle'
+    | 'radius'
+    | 'size'
+    | 'color'
+    | 'label'
+    | 'secondaryLabel'
+    | 'calloutLabel'
+    | 'sectorLabel';
+
 export type SeriesFormatterSource = 'tooltip' | 'series-label';
 export type ChartFormatterSource = 'axis' | 'crosshair';
 export type AnyFormatterSource = SeriesFormatterSource | ChartFormatterSource;
@@ -56,6 +68,11 @@ export type FormatterParams<TDatum, Property> =
 type FunctionFormatter<TDatum, Property> = (params: FormatterParams<TDatum, Property>) => string | undefined;
 type TimeIntervalFormatter = Record<TimeIntervalUnit, string>;
 
-export type FormatterConfiguration<TDatum, Property extends string = any> =
-    | FunctionFormatter<TDatum, Property>
-    | Partial<Record<Property, FunctionFormatter<TDatum, Property> | TimeIntervalFormatter | string>>;
+export type FormatterConfiguration<TDatum, _Property extends FormatterPropertyType> =
+    | FunctionFormatter<TDatum, FormatterPropertyType>
+    | Partial<
+          Record<
+              FormatterPropertyType,
+              FunctionFormatter<TDatum, FormatterPropertyType> | TimeIntervalFormatter | string
+          >
+      >;

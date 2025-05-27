@@ -61,6 +61,7 @@ export const polarChartOptionsDefs: OptionsDefs<AgPolarChartOptions> = {
     ...commonChartOptions,
     axes: defined,
     data: array,
+    formatter: defined, // TODO
 };
 
 export const topologyChartOptionsDefs: OptionsDefs<AgTopologyChartOptions> = {
@@ -74,6 +75,7 @@ export const standaloneChartOptionsDefs: OptionsDefs<AgStandaloneChartOptions> =
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,
+    formatter: defined, // TODO
 };
 
 export const hierarchyChartOptionsDefs: OptionsDefs<AgHierarchyChartOptions> = {

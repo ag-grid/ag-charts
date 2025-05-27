@@ -21,8 +21,7 @@ import type { ModuleContext, ModuleContextWithParent } from '../../module/module
 import { ModuleMap } from '../../module/moduleMap';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import type { Scale, ScaleFormatParams } from '../../scale/scale';
-import { TimeScale } from '../../scale/timeScale';
+import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
@@ -37,13 +36,11 @@ import type { Padding } from '../../util/padding';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
-import { intervalUnit } from '../../util/time';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { AxisGroups, ChartAxis, FormatDatumParams } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
-import { labelSpecifier } from '../label';
 import type { AxisLayout } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';
 import { ZIndexMap } from '../zIndexMap';
@@ -55,7 +52,6 @@ import { AxisTick, type TickInterval } from './axisTick';
 import type { AnyTimeInterval } from './axisTickGenerator';
 import { AxisTitle } from './axisTitle';
 import { NiceMode } from './axisUtil';
-import { deriveTimeSpecifier } from './timeFormatUtil';
 
 export interface LabelNodeDatum {
     tickId: string;
@@ -87,20 +83,13 @@ export enum AxisGroupZIndexMap {
     TickLabels,
 }
 
-export type CrosslineFormatterParams<D> = Omit<ScaleFormatParams<D>, 'specifier'> | undefined;
+export type CrosslineFormatterParams<D> = { domain: D[]; ticks: D[]; fractionDigits: number } | undefined;
 
 export type AxisTickFormatParams = {
     type: 'number' | 'date' | 'category';
     fractionDigits?: number;
     unit?: TimeIntervalUnit;
     includeYear?: boolean;
-};
-
-const additionalFractionDigits: Record<AnyFormatterSource, number> = {
-    axis: 0,
-    crosshair: 1,
-    tooltip: 1,
-    'series-label': 0,
 };
 
 /**
@@ -265,8 +254,6 @@ export abstract class Axis<
 
     protected axisContext: AxisContext | undefined = undefined;
 
-    private datumFormatter: ((datum: unknown) => string) | undefined = undefined;
-
     protected readonly cleanup = new CleanupRegistry();
 
     constructor(
@@ -366,12 +353,12 @@ export abstract class Axis<
         return 0;
     }
 
-    protected defaultDatumFormatter(datum: unknown, fractionDigits: number): string {
-        return formatValue(datum, fractionDigits + 1);
+    protected defaultFormatter(datum: unknown, fractionDigits: number): string {
+        return formatValue(datum, fractionDigits);
     }
 
-    protected defaultLabelFormatter(datum: unknown, fractionDigits: number): string {
-        return formatValue(datum, fractionDigits);
+    protected createDatumFormatter(_domain: D[], _ticks: D[]): ((value: any) => string | undefined) | undefined {
+        return;
     }
 
     protected onGridLengthChange(value: number, prevValue: number) {
@@ -479,7 +466,7 @@ export abstract class Axis<
         primaryTickCount?: AxisPrimaryTickCount;
         bbox?: BBox;
     } {
-        const { scale, label, visibleRange, nice } = this;
+        const { visibleRange, nice } = this;
 
         this.chartPadding = chartPadding;
         this.updateScale();
@@ -515,9 +502,7 @@ export abstract class Axis<
         }
         const {
             niceDomain,
-            ticks,
             rawTickCount = 0,
-            tickDomain,
             fractionDigits,
             bbox,
         } = this.calculateTickLayout(tickLayoutDomain ?? domain, niceMode, visibleRange, initialPrimaryTickCount);
@@ -528,23 +513,11 @@ export abstract class Axis<
                 ? { zoomed: rawTickCount, unzoomed: unzoomedTickCount }
                 : undefined;
 
-        const timeInterval = TimeScale.is(scale) ? scale.interval : undefined;
-
         this.scale.domain = niceDomain;
 
         this._cachedUnzoomedInputDomain = domain;
         this._cachedUnzoomedRangeExtent = rangeExtent;
         this._cachedUnzoomedTickCount = unzoomedTickCount;
-
-        const specifier = labelSpecifier(
-            timeInterval != null && label.format != null
-                ? deriveTimeSpecifier(label.format, intervalUnit(timeInterval))
-                : label.format,
-            timeInterval
-        );
-        this.datumFormatter =
-            scale.datumFormatter({ domain: tickDomain, specifier, ticks, fractionDigits }) ??
-            ((value: unknown) => this.defaultDatumFormatter(value, fractionDigits));
 
         this.layout.label = {
             fractionDigits: fractionDigits,
@@ -652,17 +625,17 @@ export abstract class Axis<
 
             return (
                 formatManager.format(this.datumFormatParams(value, params, fractionDigits, unit, timeStyle)) ??
-                this.defaultLabelFormatter(value, fractionDigits ?? 0)
+                this.defaultFormatter(value, fractionDigits ?? 0)
             );
         };
     }
 
     // For formatting arbitrary values between the ticks.
-    formatDatum(value: any, source: 'axis' | 'crosshair'): string;
+    formatDatum(value: any, source: 'crosshair'): string;
     formatDatum(value: any, source: 'tooltip' | 'series-label', datum: any, key: string): string;
     formatDatum<Params extends object>(
         value: any,
-        source: 'axis' | 'crosshair',
+        source: 'crosshair',
         datum: undefined,
         key: undefined,
         label: AxisFormattableLabel<Params>,
@@ -677,8 +650,8 @@ export abstract class Axis<
         labelParams: Params
     ): string;
     formatDatum(
-        value: any,
-        source: AnyFormatterSource,
+        input: any,
+        source: Exclude<AnyFormatterSource, 'axis'>,
         datum?: any,
         key?: string,
         label?: AxisFormattableLabel<any>,
@@ -688,11 +661,19 @@ export abstract class Axis<
             params: any
         ) => string | undefined = this.callWithContext.bind(this)
     ): string {
-        if (value == null) return '';
+        if (input == null) return '';
 
-        let fractionDigits = this.layout.label.fractionDigits;
-        if (fractionDigits !== 0) {
-            fractionDigits += additionalFractionDigits[source];
+        let inputFractionDigits: number;
+        switch (source) {
+            case 'crosshair':
+                inputFractionDigits = this.layout.label.fractionDigits + 1;
+                break;
+            case 'series-label':
+                inputFractionDigits = 2;
+                break;
+            case 'tooltip':
+                inputFractionDigits = 3;
+                break;
         }
 
         const { moduleCtx, direction, scale } = this;
@@ -700,18 +681,20 @@ export abstract class Axis<
         const { domain } = scale;
         const boundSeries = this.getFormatterBoundSeries();
         const formatParams = this.datumFormatParams(
-            value,
+            input,
             { source, datum, key, property: direction },
-            fractionDigits,
+            inputFractionDigits,
             undefined,
             'long'
         );
+        const { type, value } = formatParams;
+        const fractionDigits = formatParams.type === 'number' ? formatParams.fractionDigits : undefined;
         const unit = formatParams.type === 'date' ? formatParams.unit : undefined;
         return (
-            label?.formatValue(formatInContext, formatParams.type, value, params) ??
+            label?.formatValue(formatInContext, type, value, params) ??
             this.label.formatValue(
                 formatInContext,
-                formatParams.type,
+                type,
                 value,
                 NaN,
                 domain,
@@ -721,8 +704,7 @@ export abstract class Axis<
                 'long'
             ) ??
             formatManager.format(formatParams) ??
-            this.datumFormatter?.(value) ??
-            this.defaultLabelFormatter(value, fractionDigits)
+            this.defaultFormatter(value, fractionDigits ?? 0)
         );
     }
 

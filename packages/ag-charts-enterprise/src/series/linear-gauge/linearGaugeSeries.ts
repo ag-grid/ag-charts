@@ -52,6 +52,7 @@ const {
     easing,
     getColorStops,
     findRangeExtent,
+    tickFormat,
 } = _ModuleSupport;
 
 interface TargetLabel {
@@ -136,20 +137,15 @@ class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSuppor
 
     tickFormatter(
         domain: number[],
-        _ticks: number[],
+        ticks: number[],
         _primary: boolean,
         _fractionDigits?: number,
         _timeInterval?: TimeInterval | TimeIntervalUnit
     ): (value: number, index: number) => string {
         const { format } = this.label;
-        let scaleFormatter: ((value: number) => string) | undefined;
+        let tickFormatter: ((value: number) => string) | undefined;
         if (format != null) {
-            scaleFormatter = this.scale.tickFormatter({
-                ticks: [],
-                domain,
-                fractionDigits: 0,
-                specifier: format as any as string,
-            });
+            tickFormat(ticks, typeof format === 'string' ? format : undefined);
         }
 
         return (value: number, index: number): string => {
@@ -158,7 +154,7 @@ class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSuppor
             if (formatter) {
                 r ??= formatWithContext(this.ctx, formatter, { value, index, domain, boundSeries: undefined! });
             }
-            r ??= scaleFormatter?.(value);
+            r ??= tickFormatter?.(value);
             return r ?? this.gauge.formatLabel(value);
         };
     }

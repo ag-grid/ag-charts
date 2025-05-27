@@ -28,7 +28,7 @@ import type { Degree, PixelSize, Ratio, TContextDefault, TDatumDefault } from '.
 
 export type AgCartesianFormatterPropertyType = 'x' | 'y' | 'size' | 'color' | 'label';
 
-export type AgCartesianFormatter<TDatum = any> = FormatterConfiguration<TDatum, AgCartesianFormatterPropertyType>;
+export type AgCartesianFormatter<TDatum> = FormatterConfiguration<TDatum, AgCartesianFormatterPropertyType>;
 
 /** Configuration for axes in cartesian charts. */
 export interface AgBaseCartesianAxisOptions<
@@ -92,7 +92,7 @@ export interface AgBaseCartesianChartOptions<TDatum = TDatumDefault, TContext = 
     /** Annotations configurations. */
     annotations?: AgAnnotationsOptions;
     /** Global formatter configuration. */
-    formatter?: AgCartesianFormatter;
+    formatter?: AgCartesianFormatter<TDatum>;
 }
 
 export type AgGroupedCategoryDepthLabelOptions = Pick<

@@ -113,19 +113,19 @@ describe('Tooltip', () => {
             expect(element.map((e) => e.textContent).join('')).toEqual('4 1.48');
 
             await nextValue(10, 1.3249187570726666);
-            expect(element.map((e) => e.textContent).join('')).toEqual('5 1.4');
+            expect(element.map((e) => e.textContent).join('')).toEqual('5 1.401');
 
             await nextValue(11, 1.2651169069335022);
-            expect(element.map((e) => e.textContent).join('')).toEqual('6 1.22');
+            expect(element.map((e) => e.textContent).join('')).toEqual('6 1.219');
 
             await nextValue(12, 1.3627720015958902);
             expect(element.map((e) => e.textContent).join('')).toEqual('7 1.11');
 
             await nextValue(13, 1.490244608234256);
-            expect(element.map((e) => e.textContent).join('')).toEqual('8 1.49');
+            expect(element.map((e) => e.textContent).join('')).toEqual('8 1.487');
 
             await nextValue(14, 1.490244608234256);
-            expect(element.map((e) => e.textContent).join('')).toEqual('9 1.17');
+            expect(element.map((e) => e.textContent).join('')).toEqual('9 1.172');
         });
     });
 
