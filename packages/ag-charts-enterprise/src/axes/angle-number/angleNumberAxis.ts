@@ -143,7 +143,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         value: any,
         params: _ModuleSupport.FormatDatumParams,
         fractionDigits?: number
-    ): FormatterParams<any, any> {
+    ): FormatterParams<any> {
         const { datum, key, source, property } = params;
         return {
             type: 'number',

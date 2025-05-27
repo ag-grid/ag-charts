@@ -582,7 +582,7 @@ export abstract class Axis<
         fractionDigits: number | undefined,
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         timeStyle: 'long' | 'component'
-    ): FormatterParams<any, any>;
+    ): FormatterParams<any>;
 
     // For formatting (nice rounded) tick values.
     tickFormatter(

@@ -88,7 +88,7 @@ export class CategoryAxis<
         _fractionDigits: number | undefined,
         _timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         _style: DateFormatterStyle
-    ): FormatterParams<any, any> {
+    ): FormatterParams<any> {
         const { datum, key, source, property } = params;
         return { type: 'category', value, datum, key, source, property };
     }

@@ -55,7 +55,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
         _fractionDigits: number | undefined,
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         style: DateFormatterStyle
-    ): FormatterParams<any, any> {
+    ): FormatterParams<any> {
         timeInterval ??= lowestGranularityUnitForValue(value);
         const { datum, key, source, property } = params;
         const unit = intervalUnit(timeInterval);

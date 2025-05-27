@@ -153,7 +153,7 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
         _fractionDigits: number | undefined,
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         style: DateFormatterStyle
-    ): FormatterParams<any, any> {
+    ): FormatterParams<any> {
         const interval = this.unit ?? this.defaultUnit() ?? 'millisecond';
 
         value = intervalFloor(interval, value); // Align to scale

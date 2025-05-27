@@ -52,7 +52,7 @@ export interface AxisGroups {
     labelNode: Node;
 }
 
-export type FormatDatumParams = Omit<FormatterParams<any, any>, 'type' | 'value'>;
+export type FormatDatumParams = Omit<FormatterParams<any>, 'type' | 'value'>;
 
 export interface ChartAxis {
     attachAxis(opts: AxisGroups): void;
