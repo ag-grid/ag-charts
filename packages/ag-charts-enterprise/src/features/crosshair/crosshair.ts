@@ -354,7 +354,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return activeHighlightData;
     }
 
-    private getLabelHtml(value: any, label: CrosshairLabel): string {
+    private getLabelHtml(value: any, label: CrosshairLabel) {
         const fractionDigits = this.axisLayout?.label?.fractionDigits ?? 0;
         const defaults: AgCrosshairLabelRendererResult = { text: this.formatValue(value) };
         if (this.label.renderer) {
