@@ -47,7 +47,7 @@ describe('Integrated Charts Examples', () => {
             index++;
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                const startingOptions: AgChartOptions = EXAMPLES[index - 1]?.options ?? {};
+                const startingOptions: AgChartOptions = EXAMPLES[Object.keys(EXAMPLES)[index - 1]]?.options ?? {};
                 prepareTestOptions(startingOptions);
 
                 const options: AgChartOptions = { ...example.options };

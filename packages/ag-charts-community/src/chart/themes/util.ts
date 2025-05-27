@@ -12,7 +12,7 @@ export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]
         type: CARTESIAN_AXIS_TYPE.NUMBER,
         position: {
             $if: [
-                { $eq: [{ $path: ['/direction', undefined] }, 'horizontal'] },
+                { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] },
                 CARTESIAN_POSITION.BOTTOM,
                 CARTESIAN_POSITION.LEFT,
             ],
@@ -22,7 +22,7 @@ export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]
         type: CARTESIAN_AXIS_TYPE.CATEGORY,
         position: {
             $if: [
-                { $eq: [{ $path: ['/direction', undefined] }, 'horizontal'] },
+                { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] },
                 CARTESIAN_POSITION.LEFT,
                 CARTESIAN_POSITION.BOTTOM,
             ],
@@ -65,7 +65,7 @@ export const SAFE_STROKE_FILL_OPERATION: any = {
         {
             $if: [
                 { $isPattern: [{ $palette: 'fill' }] },
-                { $path: ['./stroke', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
+                { $path: ['/stroke', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
                 { $palette: 'fill' },
             ],
         },
@@ -99,7 +99,7 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
             {
                 $if: [
                     { $isPattern: [{ $palette: 'fill' }] },
-                    { $path: ['./fill', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
+                    { $path: ['/fill', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
                     { $palette: 'fill' },
                 ],
             },

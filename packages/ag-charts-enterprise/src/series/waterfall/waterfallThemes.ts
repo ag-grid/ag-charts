@@ -9,7 +9,7 @@ function itemTheme(
         fill: {
             $if: [
                 { $eq: [{ $palette: 'type' }, 'user-indexed'] },
-                { $path: [`./${index}`, { $palette: 'fill' }, { $palette: 'fills' }] },
+                { $path: [`/${index}`, { $palette: 'fill' }, { $palette: 'fills' }] },
                 { $palette: `${key}.fill` },
             ],
         },
@@ -29,9 +29,9 @@ function itemTheme(
                     },
                     {
                         $map: [
-                            { $path: ['./color', undefined, { $value: '$1' }] },
+                            { $path: ['/color', undefined, { $value: '$1' }] },
                             {
-                                $path: ['./colorStops', undefined, { $palette: `${key}.fill` }],
+                                $path: ['/colorStops', undefined, { $palette: `${key}.fill` }],
                             },
                         ],
                     },
