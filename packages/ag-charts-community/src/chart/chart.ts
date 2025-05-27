@@ -1464,6 +1464,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 horizontalAxis.type === 'ordinal-time'
             ) {
                 (horizontalAxis as ContinuousTimeAxis).parentLevel.enabled = false;
+                horizontalAxis.label.format = {
+                    millisecond: '%H:%M:%S.%L',
+                    second: '%H:%M:%S',
+                    minute: '%H:%M',
+                    hour: '%H:%M',
+                    day: '%e',
+                    month: '%B',
+                    year: '%Y',
+                };
             }
 
             const step = intervalOptions?.step;
