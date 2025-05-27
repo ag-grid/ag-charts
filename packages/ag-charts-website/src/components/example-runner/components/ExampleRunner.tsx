@@ -1,9 +1,13 @@
 import type { InternalFramework } from '@ag-grid-types';
+import { ExampleDevToolbar } from '@ag-website-shared/components/dev-tools/ExampleDevToolbar';
+import { $exampleDevToolbar } from '@ag-website-shared/components/dev-tools/stores/devToolsStore';
 import { ExampleLogger } from '@ag-website-shared/components/example-runner/components/ExampleLogger';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { LinkIcon } from '@ag-website-shared/components/link-icon/LinkIcon';
 import { OpenInCTA } from '@ag-website-shared/components/open-in-cta/OpenInCTA';
 import type { ExampleType, FileContents } from '@components/example-generator/types';
+import { getFrameworkFromInternalFramework } from '@utils/framework';
+import { useStoreSsr } from '@utils/hooks/useStoreSsr';
 import classnames from 'classnames';
 import { type FunctionComponent, type ReactElement, useState } from 'react';
 
@@ -59,6 +63,8 @@ export const ExampleRunner: FunctionComponent<Props> = ({
 }) => {
     const [showCode, setShowCode] = useState(initialShowCode);
     const hideFooter = !hideCode && !hideExternalLinks && !footerChildren;
+    const showExampleDevToolbar = useStoreSsr($exampleDevToolbar, false);
+    const framework = getFrameworkFromInternalFramework(internalFramework);
 
     return (
         <div className={styles.exampleOuter}>
@@ -92,6 +98,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                 {hasExampleConsoleLog && <ExampleLogger exampleName={exampleName} bufferSize={consoleBufferSize} />}
                 {hideFooter && (
                     <footer className={styles.footer}>
+                        {showExampleDevToolbar && <ExampleDevToolbar framework={framework} exampleName={exampleName} />}
                         {!hideCode && (
                             <button
                                 className={classnames(styles.previewCodeToggle, 'button-secondary')}
