@@ -5,6 +5,7 @@ import {
     type ModuleInstance,
     createId,
     entries,
+    getWindow,
     groupBy,
     isFiniteNumber,
     pause,
@@ -1170,7 +1171,16 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         });
     };
 
-    async waitForUpdate(timeoutMs = 10_000, failOnTimeout = false): Promise<void> {
+    async waitForUpdate(timeoutMs?: number, failOnTimeout?: boolean): Promise<void> {
+        const agChartsDebugTimeout = getWindow<number>('agChartsDebugTimeout');
+        if (agChartsDebugTimeout == null) {
+            timeoutMs ??= 10_0000;
+            failOnTimeout ??= false;
+        } else {
+            timeoutMs = agChartsDebugTimeout;
+            failOnTimeout ??= true;
+        }
+
         const start = performance.now();
 
         while (
