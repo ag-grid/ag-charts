@@ -8,7 +8,7 @@ import { RadiusNumberAxisModule } from './axes/radius-number/main';
 import { AnimationModule } from './features/animation/main';
 import { AnnotationsModule } from './features/annotations/annotationsModule';
 import { BackgroundModule } from './features/background/main';
-import { BandHighlightModule } from './features/bandHighlight/main';
+import { BandHighlightModule } from './features/band-highlight/main';
 import { ChartToolbarModule } from './features/chart-toolbar/main';
 import { ContextMenuModule } from './features/context-menu/main';
 import { CrosshairModule } from './features/crosshair/main';

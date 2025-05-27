@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import { type InternalAgColorType, createId } from 'ag-charts-core';
 
 const {
@@ -55,7 +55,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
         name: 'bandHighlight',
         zIndex: ZIndexMap.AXIS_GRID,
     });
-    private rangeNode: _ModuleSupport.Range<any> = this.bandHighlightGroup.appendChild(new Range());
+    private readonly rangeNode: _ModuleSupport.Range<any> = this.bandHighlightGroup.appendChild(new Range());
 
     private activeAxisHighlight?: _ModuleSupport.AxisHighlightChangeEvent['currentHighlight'] = undefined;
     constructor(private readonly ctx: _ModuleSupport.ModuleContextWithParent<_ModuleSupport.AxisContext>) {
