@@ -11,7 +11,7 @@ export type Operation =
     | FontOperation
     | ColorOperation;
 
-type Leaf<T extends ExcludeLeaves> = Operation | T;
+type Leaf<T extends ExcludeLeaves | object> = Operation | T;
 type AnyLeaf = Leaf<ExcludeLeaves>;
 
 type ExcludeLeaves = string | symbol | number | undefined | AgGradientColor | AgPatternColor | AgImageFill;
