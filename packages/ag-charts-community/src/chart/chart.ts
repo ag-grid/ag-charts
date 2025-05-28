@@ -330,9 +330,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             updateMutex: this.updateMutex,
         }));
 
-        this.cleanup.register(
-            ctx.eventsHub.on('dom:resize', () => this.parentResize(ctx.domManager.containerSize))
-        );
+        this.cleanup.register(ctx.eventsHub.on('dom:resize', () => this.parentResize(ctx.domManager.containerSize)));
 
         this.overlays = new ChartOverlays();
         this.overlays.loading.renderer ??= () =>
