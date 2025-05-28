@@ -7,7 +7,7 @@ import type { AgBarSeriesOptions } from '../../series/cartesian/barOptions';
 import type { AgLineSeriesOptions } from '../../series/cartesian/lineOptions';
 import type { AgSparklineAxisOptions } from './sparklineAxisOptions';
 
-export interface AgSparklineCrosshairOptions extends Omit<AgCrosshairOptions, 'label'> {}
+export interface AgSparklineCrosshairOptions extends Omit<AgCrosshairOptions<never>, 'label'> {}
 
 export interface AgSparklineTooltipRendererParams<TDatum> {
     /** Context passed into the Sparkline options, if provided. */

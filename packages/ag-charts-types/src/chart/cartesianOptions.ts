@@ -222,8 +222,8 @@ export interface AgBaseCartesianThemeOptions<TDatum = TDatumDefault> extends AgB
     axes?: AgCartesianAxesTheme;
 }
 
-export interface AgCartesianAxesCrossLineThemeOptions {
-    crossLines?: AgCrossLineThemeOptions;
+export interface AgCartesianAxesCrossLineThemeOptions<LabelType = AgBaseCrossLineLabelOptions> {
+    crossLines?: AgCrossLineThemeOptions<LabelType>;
 }
 
 export interface AgCartesianAxesTheme {
