@@ -1,9 +1,9 @@
-import type { PerKeyMap } from "../interfaces/strictMap";
+import type { PerKeyMap } from '../interfaces/strictMap';
 
 export type EventListener<T> = (event: T) => void;
 
 export class EventEmitter<EventMap extends object> {
-    private readonly events: PerKeyMap< {[K in keyof EventMap]: Set<EventListener<EventMap[K]>>} > = new Map();
+    private readonly events: PerKeyMap<{ [K in keyof EventMap]: Set<EventListener<EventMap[K]>> }> = new Map();
 
     /**
      * Registers an event listener.
