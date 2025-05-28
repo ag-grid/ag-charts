@@ -13,6 +13,7 @@ import {
     number,
     or,
     ratio as ratioValidator,
+    string,
     union,
     validate,
 } from 'ag-charts-core';
@@ -164,8 +165,8 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         const primaryY = this.getPrimaryAxis(ChartAxisDirection.Y);
 
         const zoomMementoDefs: OptionsDefs<ZoomMemento> = {
-            rangeX: { start: and(or(number, date), rangeValidator(primaryX)), end: or(number, date) },
-            rangeY: { start: and(or(number, date), rangeValidator(primaryY)), end: or(number, date) },
+            rangeX: { start: and(or(number, string, date), rangeValidator(primaryX)), end: or(number, string, date) },
+            rangeY: { start: and(or(number, string, date), rangeValidator(primaryY)), end: or(number, string, date) },
             ratioX: { start: and(ratioValidator, lessThan('end')), end: ratioValidator },
             ratioY: { start: and(ratioValidator, lessThan('end')), end: ratioValidator },
             autoScaledAxes: arrayOf(union('y')),
@@ -621,8 +622,9 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         const [d0, d1] = extents;
 
-        let r0 = range.start == null ? d0 : axis.scale.convert?.(range.start);
-        let r1 = range.end == null ? d1 : axis.scale.convert?.(range.end);
+        const { scale } = axis;
+        let r0 = range.start == null ? d0 : scale.convert?.(range.start);
+        let r1 = range.end == null ? d1 : scale.convert?.(range.end) + (scale.bandwidth ?? 0);
 
         if (!isFiniteNumber(r0) || !isFiniteNumber(r1)) return;
 
@@ -630,14 +632,14 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         if (r0 < dMin || r0 > dMax) {
             Logger.warnOnce(
-                `Invalid range start [${range.start}], expecting a value between [${axis.scale.invert?.(d0)}] and [${axis.scale.invert?.(d1)}], ignoring.`
+                `Invalid range start [${range.start}], expecting a value between [${scale.invert?.(d0)}] and [${scale.invert?.(d1)}], ignoring.`
             );
             return;
         }
 
         if (r1 < dMin || r1 > dMax) {
             Logger.warnOnce(
-                `Invalid range end [${range.end}], expecting a value between [${axis.scale.invert?.(d0)}] and [${axis.scale.invert?.(d1)}], ignoring.`
+                `Invalid range end [${range.end}], expecting a value between [${scale.invert?.(d0)}] and [${scale.invert?.(d1)}], ignoring.`
             );
             return;
         }
@@ -667,9 +669,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     private getDomainPixelExtents(axis: ChartAxisLike) {
-        const { domain } = axis.scale;
-        const d0 = axis.scale.convert?.(domain.at(0));
-        const d1 = axis.scale.convert?.(domain.at(-1));
+        const [d0, d1] = axis.scale.range;
 
         if (!isFiniteNumber(d0) || !isFiniteNumber(d1)) return;
 
