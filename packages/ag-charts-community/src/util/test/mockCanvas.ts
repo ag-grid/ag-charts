@@ -8,7 +8,7 @@ import { mockCanvas } from 'ag-charts-test';
 
 export const CANVAS_WIDTH = 800;
 export const CANVAS_HEIGHT = 600;
-export const CANVAS_TO_BUFFER_DEFAULTS: PngConfig = { compressionLevel: 6, filters: new Canvas(0, 0).PNG_NO_FILTERS };
+export const CANVAS_TO_BUFFER_DEFAULTS: PngConfig = { compressionLevel: 6, filters: Canvas.PNG_NO_FILTERS };
 
 export function extractImageData({
     nodeCanvas,
