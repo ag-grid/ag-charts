@@ -585,12 +585,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected updateLabelNodes(opts: { labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text> }) {
         opts.labelSelection.each((textNode, datum) => {
-            updateLabelNode(
-                textNode,
-                // @ts-expect-error - Fix me
-                this.properties.label,
-                datum
-            );
+            updateLabelNode(textNode, this.properties.label, datum);
         });
     }
 

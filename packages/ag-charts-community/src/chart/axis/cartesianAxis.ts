@@ -428,14 +428,32 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             }
         }
 
-        if (primaryLabel?.enabled && primaryLabel.format != null && position === 'bottom') {
-            const { fontSize, format } = primaryLabel;
-            const formats = isPlainObject(format) ? Object.values(format) : [format];
-            const maxLines = formats.reduce((m, f) => Math.max(m, countLines(f)), 0);
-            const labelOffset = this.getTickSize(primaryTick ?? tick) + primaryLabel.spacing + seriesAreaPadding;
+        if (primaryLabel?.enabled && position === 'bottom') {
             const inexactMeasurementPadding = 2;
-            const height = maxLines * TextUtils.getLineHeight(fontSize) + inexactMeasurementPadding;
-            boxes.push(new BBox(0, labelOffset, 1, height));
+
+            // Force base min-height
+            boxes.push(
+                new BBox(
+                    0,
+                    TextUtils.getLineHeight(label.fontSize) + inexactMeasurementPadding,
+                    1,
+                    this.getTickSize(tick) + label.spacing + seriesAreaPadding
+                )
+            );
+
+            if (primaryLabel.format != null) {
+                const { format } = primaryLabel;
+                const formats = isPlainObject(format) ? Object.values(format) : [format];
+                const maxLines = formats.reduce((m, f) => Math.max(m, countLines(f)), 0);
+                boxes.push(
+                    new BBox(
+                        0,
+                        this.getTickSize(primaryTick ?? tick) + primaryLabel.spacing + seriesAreaPadding,
+                        1,
+                        maxLines * TextUtils.getLineHeight(primaryLabel.fontSize) + inexactMeasurementPadding
+                    )
+                );
+            }
         }
 
         let spacing = 0;
