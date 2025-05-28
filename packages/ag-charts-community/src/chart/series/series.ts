@@ -10,6 +10,7 @@ import type {
     AgSeriesMarkerStyle,
     AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
+    FormatterParams,
     FormatterPropertyType,
     ISeriesMarker,
 } from 'ag-charts-types';
@@ -805,23 +806,17 @@ export abstract class Series<
 
         const formatInContext = this.callWithContext.bind(this);
 
-        const formatNumber = () => {
-            const type = 'number';
-            const fractionDigits = undefined;
-            return (
-                label.formatValue(formatInContext, type, value, params) ??
-                formatManager.format({ type, value, datum, key, source, property, fractionDigits }) ??
-                String(value)
-            );
-        };
+        const format = (formatParams: FormatterParams<any>) => {
+            let result: string | undefined;
 
-        const formatCategory = () => {
-            const type = 'category';
-            return (
-                label.formatValue(formatInContext, type, value, params) ??
-                formatManager.format({ type, value, datum, key, source, property }) ??
-                String(value)
-            );
+            if (label.formatter) {
+                result = formatInContext(label.formatter, params);
+            }
+
+            result ??= formatManager.format(formatParams, label.format);
+            result ??= value;
+
+            return String(result);
         };
 
         switch (property) {
@@ -843,20 +838,20 @@ export abstract class Series<
                         ) ?? String(value)
                     );
                 } else if (property === 'y') {
-                    return formatNumber();
+                    return format({ type: 'number', value, datum, key, source, property, fractionDigits: undefined });
                 }
-                return formatCategory();
+                return format({ type: 'category', value, datum, key, source, property });
             }
 
             case 'color':
             case 'size':
-                return formatNumber();
+                return format({ type: 'number', value, datum, key, source, property, fractionDigits: undefined });
 
             case 'label':
             case 'secondaryLabel':
             case 'calloutLabel':
             case 'sectorLabel':
-                return formatCategory();
+                return format({ type: 'category', value, datum, key, source, property });
         }
     }
 

@@ -612,11 +612,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeAreaLabelDatum>;
     }) {
         opts.labelSelection.each((textNode, datum) => {
-            updateLabelNode(
-                textNode, // @ts-expect-error - Fix me
-                this.properties.label,
-                datum
-            );
+            updateLabelNode(textNode, this.properties.label, datum);
         });
     }
 

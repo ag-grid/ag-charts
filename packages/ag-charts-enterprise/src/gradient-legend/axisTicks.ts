@@ -100,16 +100,25 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
         _primary: boolean,
         fractionDigits?: number
     ): (value: any, index: number) => string | undefined {
-        return (value, index) =>
-            this.label.formatValue(
-                (fn, params) => formatWithContext(this.ctx, fn, params),
-                'number',
-                value,
-                index,
-                domain,
-                [],
-                fractionDigits
-            ) ?? formatValue(value, fractionDigits);
+        const { formatter, format } = this.label;
+
+        const valueFormatter = format != null ? _ModuleSupport.FormatManager.getFormatter('number', format) : undefined;
+
+        return (value, index) => {
+            let result: string | undefined;
+            if (formatter != null) {
+                result ??= formatWithContext(this.ctx, formatter, {
+                    value,
+                    index,
+                    domain,
+                    boundSeries: [],
+                    fractionDigits,
+                });
+            }
+            result ??= valueFormatter?.(value, fractionDigits);
+            result ??= formatValue(value, fractionDigits);
+            return result;
+        };
     }
 
     inRange(x: number, tolerance = 0.001): boolean {
