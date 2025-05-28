@@ -15,6 +15,50 @@ export function memo<T, R>(params: T, fnGenerator: (params: T) => () => R): () =
     return memorizedFns.get(fnGenerator)?.get(serialisedParams) as () => R;
 }
 
+class MemoizeNode {
+    weak = new WeakMap<any, MemoizeNode>();
+    strong = new Map<any, MemoizeNode>();
+    set: boolean = false;
+    value: any = undefined;
+}
+
+export function simpleMemorize2<F extends AnyFn>(
+    fn: F,
+    cacheCallback?: (type: 'hit' | 'miss', fn: F, keys: any[]) => void
+) {
+    let root = new MemoizeNode();
+
+    const memoised = (...p: Parameters<F>) => {
+        let current = root;
+        for (const param of p) {
+            const target = typeof param === 'object' || typeof param === 'symbol' ? current.weak : current.strong;
+            let next = target.get(param);
+            if (next == null) {
+                next = new MemoizeNode();
+                target.set(param, next);
+            }
+            current = next;
+        }
+
+        if (current.set) {
+            cacheCallback?.('hit', fn, p);
+            return current.value;
+        } else {
+            const out = fn(...p);
+            current.set = true;
+            current.value = out;
+            cacheCallback?.('miss', fn, p);
+            return out;
+        }
+    };
+
+    memoised.reset = () => {
+        root = new MemoizeNode();
+    };
+
+    return memoised as F & { reset: () => void };
+}
+
 export function simpleMemorize<F extends AnyFn>(
     fn: F,
     cacheCallback?: (type: 'hit' | 'miss', fn: F, keys: any[]) => void

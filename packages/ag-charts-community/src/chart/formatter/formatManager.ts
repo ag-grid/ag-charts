@@ -7,41 +7,62 @@ import {
 } from 'ag-charts-types';
 
 import { Listeners } from '../../util/listeners';
+import { simpleMemorize2 } from '../../util/memo';
 import { buildDateFormatter } from '../../util/timeFormat';
-import { deriveTimeSpecifier } from '../axis/timeFormatUtil';
+import { defaultTimeFormats, deriveTimeSpecifier } from '../axis/timeFormatUtil';
+
+type Specifier = Record<TimeIntervalUnit, string> | string;
 
 export class FormatManager extends Listeners<'format-changed', () => void> {
-    private readonly formats = new Map<string, (value: any, _params?: any) => string | undefined>();
-    private readonly componentDateFormatters = new Map<TimeIntervalUnit, (value: any) => string | undefined>();
-    private readonly longDateFormatters = new Map<TimeIntervalUnit, (value: any) => string | undefined>();
+    private readonly formats = new Map<string, ((value: any, _params?: any) => string) | undefined>();
+    private readonly dateFormatter = simpleMemorize2(
+        (
+            propertyFormatter: Specifier | undefined,
+            specifier: Specifier | undefined,
+            unit: TimeIntervalUnit,
+            style: DateFormatterStyle,
+            includeYear: boolean
+        ) => {
+            const mergedFormatter = FormatManager.mergeSpecifiers(propertyFormatter, specifier) ?? defaultTimeFormats;
+            return FormatManager.getFormatter('date', mergedFormatter, unit, style, { includeYear });
+        }
+    );
     formatter: FormatterConfiguration<any> | undefined = undefined;
+
+    static mergeSpecifiers(a: Specifier, ...specifiers: Array<Specifier | undefined>): Specifier;
+    static mergeSpecifiers(...specifiers: Array<Specifier | undefined>): Specifier | undefined;
+    static mergeSpecifiers(...specifiers: Array<Specifier | undefined>): Specifier | undefined {
+        let out: Specifier | undefined;
+        for (const specifier of specifiers) {
+            if (typeof specifier === 'string') {
+                out = specifier;
+            } else if (isPlainObject(specifier)) {
+                out = isPlainObject(out) ? { ...out, ...specifier } : specifier;
+            }
+        }
+        return out;
+    }
 
     static getFormatter(
         type: 'number' | 'date' | 'category',
-        specifier: string | Record<TimeIntervalUnit, string>,
+        specifier: string | Partial<Record<TimeIntervalUnit, string>>,
         unit?: TimeIntervalUnit,
-        style: DateFormatterStyle | 'fixed-year-long' = 'long'
-    ): (value: any, fractionDigits?: number) => string | undefined {
+        style: DateFormatterStyle = 'long',
+        { includeYear = true } = {}
+    ): ((value: any, fractionDigits?: number) => string) | undefined {
         if (isPlainObject(specifier)) {
             if (type !== 'date') {
                 Logger.warn('Date formatter configuration is not supported for non-date types.');
-                return () => undefined;
+                return;
             }
 
             unit ??= 'millisecond';
 
-            let fullFormat: string;
-            switch (style) {
-                case 'component':
-                    fullFormat = specifier[unit];
-                    break;
-                case 'long':
-                    fullFormat = deriveTimeSpecifier(specifier, unit, true);
-                    break;
-                case 'fixed-year-long':
-                    fullFormat = deriveTimeSpecifier(specifier, unit, false);
-                    break;
-            }
+            const fullFormat =
+                style === 'component'
+                    ? specifier?.[unit] ?? defaultTimeFormats[unit]
+                    : deriveTimeSpecifier(specifier, unit, includeYear);
+
             return buildDateFormatter(fullFormat) as (value: any) => string;
         }
 
@@ -60,50 +81,45 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         if (this.formatter !== formatter) {
             this.formatter = formatter;
             this.formats.clear();
-            this.componentDateFormatters.clear();
-            this.longDateFormatters.clear();
+            this.dateFormatter.reset();
             this.dispatch('format-changed');
         }
     }
 
-    format(params: FormatterParams<any>): string | undefined {
+    get hasGlobalFormatter(): boolean {
+        return this.formatter != null;
+    }
+
+    format(
+        params: FormatterParams<any>,
+        specifier?: Record<string, string> | string,
+        { includeYear = true } = {}
+    ): string | undefined {
         if (params.value == null) return;
 
         const { formatter } = this;
         if (typeof formatter === 'function') {
             return formatter(params);
-        } else if (formatter == null) {
-            return;
         }
 
-        const { property } = params;
-        const propertyFormatter = formatter[property];
+        const propertyFormatter = formatter?.[params.property];
 
         if (typeof propertyFormatter === 'function') {
             return propertyFormatter(params);
-        } else if (isPlainObject(propertyFormatter)) {
-            if (params.type !== 'date') {
-                Logger.warn('Date formatter configuration is not supported for non-date types.');
-                return;
-            }
-
+        } else if (params.type === 'date') {
             const { unit, style } = params;
-            const dateFormatters = style === 'long' ? this.longDateFormatters : this.componentDateFormatters;
-            let dateFormatter = dateFormatters.get(unit);
-            if (dateFormatter == null) {
-                dateFormatter = FormatManager.getFormatter('date', propertyFormatter, unit, style);
-                dateFormatters.set(unit, dateFormatter);
-            }
-            return dateFormatter(params.value);
-        } else if (typeof propertyFormatter !== 'string') {
-            return;
+            const dateFormatter = this.dateFormatter(propertyFormatter, specifier, unit, style, includeYear);
+            return dateFormatter?.(params.value);
         }
 
-        let valueFormatter = this.formats.get(property);
+        const valueSpecifier = specifier ?? propertyFormatter;
+        if (typeof valueSpecifier !== 'string') return;
+
+        let valueFormatter = this.formats.get(valueSpecifier);
         if (valueFormatter == null) {
-            valueFormatter = FormatManager.getFormatter(params.type, propertyFormatter);
-            this.formats.set(propertyFormatter, valueFormatter);
+            valueFormatter = FormatManager.getFormatter(params.type, valueSpecifier);
+            this.formats.set(valueSpecifier, valueFormatter);
         }
-        return valueFormatter(params.value, params.type === 'number' ? params.fractionDigits : undefined);
+        return valueFormatter?.(params.value, params.type === 'number' ? params.fractionDigits : undefined);
     }
 }
