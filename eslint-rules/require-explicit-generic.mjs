@@ -50,20 +50,29 @@ export default {
             });
         }
 
+        // Helper to check and report if type ref is missing generics
+        function checkTypeReference(node, typeName, typeArguments) {
+            if (
+                typeName &&
+                genericTypeNames.has(typeName.name || typeName.right?.name) &&
+                (!typeArguments || typeArguments.length === 0)
+            ) {
+                context.report({
+                    node,
+                    messageId: 'requireGeneric',
+                    data: { name: typeName.name || typeName.right?.name },
+                });
+            }
+        }
+
         return {
-            TSTypeReference(node) {
-                const name = node.typeName?.name;
-                if (
-                    name &&
-                    genericTypeNames.has(name) &&
-                    (!node.typeArguments || node.typeArguments.params.length === 0)
-                ) {
-                    context.report({
-                        node,
-                        messageId: 'requireGeneric',
-                        data: { name },
-                    });
+            TSInterfaceDeclaration(node) {
+                for (const baseNode of node.extends) {
+                    checkTypeReference(baseNode, baseNode.expression, baseNode.typeArguments);
                 }
+            },
+            TSTypeReference(node) {
+                checkTypeReference(node, node.typeName, node.typeArguments?.params);
             },
         };
     },
