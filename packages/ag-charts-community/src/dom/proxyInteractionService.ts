@@ -1,8 +1,8 @@
 import { type BaseStyleTypeMap, CleanupRegistry, type ElementID, createElement, setElementStyle } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
+import type { EventsHub } from '../core/eventsHub';
 import type { LocaleManager } from '../locale/localeManager';
-import type { EventsHub } from '../module/eventsHub';
 import { BoundedTextWidget } from '../widget/boundedTextWidget';
 import { ButtonWidget } from '../widget/buttonWidget';
 import { GroupWidget } from '../widget/groupWidget';

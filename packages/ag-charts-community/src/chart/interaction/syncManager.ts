@@ -1,6 +1,6 @@
 import { EventEmitter } from 'ag-charts-core';
 
-import type { EventsHubMap } from '../../module/eventsHub';
+import type { EventsHubMap } from '../../core/eventsHub';
 import type { BBox } from '../../scene/bbox';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ISeries } from '../series/seriesTypes';

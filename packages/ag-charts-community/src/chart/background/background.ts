@@ -1,5 +1,5 @@
+import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ModuleInstance } from '../../module/baseModule';
-import type { LayoutCompleteEvent } from '../../module/eventsHub';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { Group } from '../../scene/group';

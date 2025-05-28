@@ -1,7 +1,7 @@
 import type { Writeable } from 'ag-charts-core';
 import type { AgContextMenuItemLiteral, AgContextMenuItemShowOn } from 'ag-charts-types';
 
-import type { ContextMenuEvent, EventsHub } from '../../module/eventsHub';
+import type { ContextMenuEvent, EventsHub } from '../../core/eventsHub';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { ContextMenuCallback, ContextShowOnMap } from './contextMenuTypes';
 import { ContextMenuBuiltins } from './contextMenuTypes';

@@ -1,13 +1,17 @@
-import { EventEmitter } from 'ag-charts-core';
-import type { AgAnnotation, AgContextMenuItemShowOn } from 'ag-charts-types';
+import { EventEmitter } from 'packages/ag-charts-core/src/main';
+import type {
+    AgAnnotation,
+    AgContextMenuItemShowOn,
+    TimeInterval,
+    TimeIntervalUnit,
+} from 'packages/ag-charts-types/src/main';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
-import type { HighlightNodeDatum } from '../chart/interaction/highlightManager';
-import type { AxisZoomState, ZoomState } from '../chart/interaction/zoomManager';
-import type { AxisLayout } from '../chart/layout/layoutManager';
 import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';
-import { BBox } from '../scene/bbox';
+import type { SeriesNodeDatum } from '../chart/series/seriesTypes';
+import type { Scale } from '../scale/scale';
+import type { BBox } from '../scene/bbox';
 import type { KeyboardWidgetEvent, MouseWidgetEvent } from '../widget/widgetEvents';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
@@ -103,4 +107,42 @@ export interface ZoomChangeEvent extends AxisZoomState {
 
 export interface ZoomPanStartEvent {
     readonly callerId: string;
+}
+
+export interface HighlightNodeDatum extends SeriesNodeDatum<unknown> {
+    readonly xKey?: string;
+    readonly yKey?: string;
+    readonly angleKey?: string;
+    readonly radiusKey?: string;
+    readonly colorValue?: number;
+    readonly cumulativeValue?: number;
+    readonly aggregatedValue?: number;
+    readonly domain?: [number, number];
+}
+
+export interface ZoomState {
+    min: number;
+    max: number;
+}
+
+export interface AxisZoomState {
+    x?: ZoomState;
+    y?: ZoomState;
+    autoScaleYAxis?: boolean;
+}
+
+export interface AxisLayout {
+    id: string;
+    rect: BBox;
+    gridPadding: number;
+    seriesAreaPadding: number;
+    tickSize: number;
+    label: {
+        fractionDigits: number;
+        spacing: number;
+        format?: string | Record<string, string>;
+    };
+    direction: ChartAxisDirection;
+    domain: any[];
+    scale: Scale<any, any, number | TimeInterval | TimeIntervalUnit>;
 }

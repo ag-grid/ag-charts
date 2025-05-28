@@ -55,7 +55,7 @@ export * from './module/axisModule';
 export * from './module/axisOptionModule';
 export * from './module/baseModule';
 export * from './module/coreModules';
-export * from './module/eventsHub';
+export * from './core/eventsHub';
 export * from './module/optionsModule';
 export * from './module/optionsModuleTypes';
 export * from './module/module';

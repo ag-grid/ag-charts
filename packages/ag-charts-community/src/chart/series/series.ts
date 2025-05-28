@@ -20,8 +20,8 @@ import type {
     ISeriesMarker,
 } from 'ag-charts-types';
 
+import type { LegendItemClickEvent, LegendItemDoubleClickEvent } from '../../core/eventsHub';
 import type { AxisFormattableLabel } from '../../module/axisContext';
-import type { LegendItemClickEvent, LegendItemDoubleClickEvent } from '../../module/eventsHub';
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';

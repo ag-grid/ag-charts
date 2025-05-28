@@ -10,7 +10,7 @@ import {
 } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
-import type { EventsHub } from '../module/eventsHub';
+import type { EventsHub } from '../core/eventsHub';
 import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
 import { BaseManager } from '../util/baseManager';

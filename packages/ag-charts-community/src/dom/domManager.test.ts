@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { EventEmitter, getDocument } from 'ag-charts-core';
 
-import { EventsHub } from '../module/eventsHub';
+import { EventsHub } from '../core/eventsHub';
 import { DOMManager } from './domManager';
 
 describe('DOMManager', () => {

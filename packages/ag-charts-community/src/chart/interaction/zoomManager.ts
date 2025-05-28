@@ -19,7 +19,7 @@ import {
 } from 'ag-charts-core';
 import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
-import type { EventsHub } from '../../module/eventsHub';
+import type { AxisZoomState, EventsHub, ZoomState } from '../../core/eventsHub';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale } from '../../scale/scale';
@@ -31,17 +31,6 @@ import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
 import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
 import type { ISeries } from '../series/seriesTypes';
-
-export interface ZoomState {
-    min: number;
-    max: number;
-}
-
-export interface AxisZoomState {
-    x?: ZoomState;
-    y?: ZoomState;
-    autoScaleYAxis?: boolean;
-}
 
 export interface DefinedZoomState {
     x: ZoomState;

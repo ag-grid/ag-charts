@@ -3,12 +3,12 @@ import { CleanupRegistry, EventEmitter, type StrictHTMLElement } from 'ag-charts
 import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import { HistoryManager } from '../api/state/historyManager';
 import { StateManager } from '../api/state/stateManager';
+import type { EventsHubMap } from '../core/eventsHub';
 import { DOMManager } from '../dom/domManager';
 import { ProxyInteractionService } from '../dom/proxyInteractionService';
 import { LocaleManager } from '../locale/localeManager';
 import type { ModuleInstance } from '../module/baseModule';
 import type { ContextModule } from '../module/coreModules';
-import type { EventsHubMap } from '../module/eventsHub';
 import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Group } from '../scene/group';

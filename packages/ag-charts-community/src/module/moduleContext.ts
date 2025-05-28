@@ -18,12 +18,12 @@ import type { SeriesLabelLayoutManager } from '../chart/layout/seriesLabelLayout
 import type { LegendManager } from '../chart/legend/legendManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
+import type { EventsHub } from '../core/eventsHub';
 import type { DOMManager } from '../dom/domManager';
 import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { LocaleManager } from '../locale/localeManager';
 import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
-import type { EventsHub } from './eventsHub';
 
 export interface ModuleContext {
     readonly scene: Scene;

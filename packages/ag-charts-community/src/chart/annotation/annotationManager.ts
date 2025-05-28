@@ -2,7 +2,7 @@ import { isArray } from 'ag-charts-core';
 import type { AgAnnotation, AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
-import type { EventsHub } from '../../module/eventsHub';
+import type { EventsHub } from '../../core/eventsHub';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { deepClone } from '../../util/json';

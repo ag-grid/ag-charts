@@ -1,7 +1,7 @@
 import { AG_CHARTS_LOCALE_EN_US } from 'ag-charts-locale';
 import type { Formatter, MessageFormatterParams } from 'ag-charts-types';
 
-import type { EventsHub } from '../module/eventsHub';
+import type { EventsHub } from '../core/eventsHub';
 import { defaultMessageFormatter } from './defaultMessageFormatter';
 
 export class LocaleManager {

@@ -1,8 +1,8 @@
 import { CleanupRegistry, setAttribute } from 'ag-charts-core';
 
+import type { EventsHub, LayoutCompleteEvent } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import type { EventsHub, LayoutCompleteEvent } from '../../module/eventsHub';
 import type { BBox } from '../../scene/bbox';
 import { isUnsupportedBrowser } from '../../util/browser';
 import type { DataService } from '../data/dataService';
