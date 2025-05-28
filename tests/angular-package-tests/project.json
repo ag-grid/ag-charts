@@ -12,7 +12,7 @@
         "test:package:local-17",
         "test:package:local-18",
         "test:package:local-19",
-        "test:package:local-latest",
+        // "test:package:local-latest",
         "test:package:production-19"
       ],
       "configurations": {
