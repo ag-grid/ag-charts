@@ -174,7 +174,7 @@ export class LicenseManager {
     public isDisplayWatermark(): boolean {
         return (
             this.isForceWatermark() ||
-            (!this.isLocalhost() && !this.isWebsiteUrl() && !missingOrEmpty(this.watermarkMessage))
+            (!this.isLocalhost() && !this.isE2ETest() && !this.isWebsiteUrl() && !missingOrEmpty(this.watermarkMessage))
         );
     }
 
@@ -216,7 +216,12 @@ export class LicenseManager {
 
     private isLocalhost(): boolean {
         const hostname = this.getHostname();
-        return /^(?:127\.0\.0\.1|localhost)$/.exec(hostname) !== null || hostname === 'host.docker.internal';
+        return /^(?:127\.0\.0\.1|localhost)$/.exec(hostname) !== null;
+    }
+
+    private isE2ETest(): boolean {
+        const hostname = this.getHostname();
+        return /^(?:172\.17\.0\.1|host\.docker\.internal)$/.exec(hostname) !== null;
     }
 
     private static formatDate(date: any): string {
