@@ -5,7 +5,7 @@ import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlaceme
 import type { TypedEvent } from '../../util/observable';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
-import type { TooltipContent } from '../tooltip/tooltip';
+import type { TooltipContent } from '../tooltip/tooltipContent';
 
 // Breaks circular dependency between ISeries and ChartAxis.
 interface ChartAxisLike {

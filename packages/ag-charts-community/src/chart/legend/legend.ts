@@ -19,8 +19,8 @@ import type {
     Formatter,
 } from 'ag-charts-types';
 
+import type { HighlightNodeDatum, LegendChangeEvent } from '../../core/eventsHub';
 import type { LayoutContext } from '../../module/baseModule';
-import type { LegendChangeEvent } from '../../module/eventsHub';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
@@ -38,7 +38,6 @@ import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
-import type { HighlightNodeDatum } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import { LayoutElement } from '../layout/layoutManager';
 import { Marker } from '../marker/marker';

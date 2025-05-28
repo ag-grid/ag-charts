@@ -1,17 +1,6 @@
-import type { EventsHub } from '../../module/eventsHub';
+import type { EventsHub, HighlightNodeDatum } from '../../core/eventsHub';
 import { StateTracker } from '../../util/stateTracker';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
-
-export interface HighlightNodeDatum extends SeriesNodeDatum<unknown> {
-    readonly xKey?: string;
-    readonly yKey?: string;
-    readonly angleKey?: string;
-    readonly radiusKey?: string;
-    readonly colorValue?: number;
-    readonly cumulativeValue?: number;
-    readonly aggregatedValue?: number;
-    readonly domain?: [number, number];
-}
 
 /**
  * Manages the actively highlighted series/datum for a chart. Tracks the requested highlights from

@@ -14,6 +14,7 @@ import type {
     TimeIntervalUnit,
 } from 'ag-charts-types';
 
+import type { AxisLayout } from '../../core/eventsHub';
 import type { AxisContext, AxisFormattableLabel } from '../../module/axisContext';
 import type { AxisOptionModule } from '../../module/axisOptionModule';
 import type { ModuleInstance } from '../../module/baseModule';
@@ -41,7 +42,6 @@ import type { AxisGroups, ChartAxis, FormatDatumParams } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
-import type { AxisLayout } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';
 import { ZIndexMap } from '../zIndexMap';
 import { AxisGridLine } from './axisGridLine';

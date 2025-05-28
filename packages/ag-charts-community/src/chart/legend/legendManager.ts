@@ -2,7 +2,7 @@ import { Logger, isArray } from 'ag-charts-core';
 import type { AgInitialStateLegendOptions } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
-import type { EventsHub } from '../../module/eventsHub';
+import type { EventsHub } from '../../core/eventsHub';
 import type { CategoryLegendDatum } from './legendDatum';
 
 type LegendDataMap = Map<string, CategoryLegendDatum[]>;

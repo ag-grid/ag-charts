@@ -1,27 +1,8 @@
 import { type EventListener } from 'ag-charts-core';
-import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
+import type { AxisLayout, EventsHub } from '../../core/eventsHub';
 import type { LayoutContext as ILayoutContext } from '../../module/baseModule';
-import type { EventsHub } from '../../module/eventsHub';
-import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
-import type { ChartAxisDirection } from '../chartAxisDirection';
-
-export interface AxisLayout {
-    id: string;
-    rect: BBox;
-    gridPadding: number;
-    seriesAreaPadding: number;
-    tickSize: number;
-    label: {
-        fractionDigits: number;
-        spacing: number;
-        format?: string | Record<string, string>;
-    };
-    direction: ChartAxisDirection;
-    domain: any[];
-    scale: Scale<any, any, number | TimeInterval | TimeIntervalUnit>;
-}
 
 export interface LayoutState {
     axes?: AxisLayout[];

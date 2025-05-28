@@ -1,6 +1,6 @@
 import { Logger, throttle } from 'ag-charts-core';
 
-import type { EventsHub } from '../../module/eventsHub';
+import type { EventsHub } from '../../core/eventsHub';
 import { Debug } from '../../util/debug';
 import { ActionOnSet } from '../../util/proxy';
 import type { AnimationManager } from '../interaction/animationManager';

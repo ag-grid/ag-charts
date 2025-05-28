@@ -1,7 +1,7 @@
 import type { TextAlign } from 'ag-charts-types';
 
+import type { LayoutCompleteEvent } from '../core/eventsHub';
 import type { LayoutContext } from '../module/baseModule';
-import type { LayoutCompleteEvent } from '../module/eventsHub';
 import type { BBox } from '../scene/bbox';
 import { Property } from '../util/properties';
 import { TextUtils } from '../util/textMeasurer';
