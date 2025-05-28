@@ -1,10 +1,5 @@
-import { EventEmitter } from 'packages/ag-charts-core/src/main';
-import type {
-    AgAnnotation,
-    AgContextMenuItemShowOn,
-    TimeInterval,
-    TimeIntervalUnit,
-} from 'packages/ag-charts-types/src/main';
+import { EventEmitter } from 'ag-charts-core';
+import type { AgAnnotation, AgContextMenuItemShowOn, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
