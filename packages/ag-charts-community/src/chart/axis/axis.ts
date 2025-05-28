@@ -646,9 +646,13 @@ export abstract class Axis<
                 property: this.direction,
             };
 
+            const datumFormatParams = this.datumFormatParams(value, params, fractionDigits, unit, timeStyle);
+            // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
+            datumFormatParams.value = value;
+
             return (
                 formatManager.format(
-                    this.datumFormatParams(value, params, fractionDigits, unit, timeStyle),
+                    datumFormatParams,
                     FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
                     { includeYear }
                 ) ?? this.defaultFormatter(value, fractionDigits ?? 0)
