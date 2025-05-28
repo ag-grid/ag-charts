@@ -622,8 +622,11 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         const [d0, d1] = extents;
 
-        let r0 = range.start == null ? d0 : axis.scale.convert?.(range.start);
-        let r1 = range.end == null ? d1 : axis.scale.convert?.(range.end);
+        const { scale } = axis;
+        const width = (scale.bandwidth === 0 ? scale.step : scale.bandwidth) ?? 0;
+
+        let r0 = range.start == null ? d0 : scale.convert?.(range.start);
+        let r1 = range.end == null ? d1 : scale.convert?.(range.end) + width;
 
         if (!isFiniteNumber(r0) || !isFiniteNumber(r1)) return;
 
@@ -631,14 +634,14 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         if (r0 < dMin || r0 > dMax) {
             Logger.warnOnce(
-                `Invalid range start [${range.start}], expecting a value between [${axis.scale.invert?.(d0)}] and [${axis.scale.invert?.(d1)}], ignoring.`
+                `Invalid range start [${range.start}], expecting a value between [${scale.invert?.(d0)}] and [${scale.invert?.(d1)}], ignoring.`
             );
             return;
         }
 
         if (r1 < dMin || r1 > dMax) {
             Logger.warnOnce(
-                `Invalid range end [${range.end}], expecting a value between [${axis.scale.invert?.(d0)}] and [${axis.scale.invert?.(d1)}], ignoring.`
+                `Invalid range end [${range.end}], expecting a value between [${scale.invert?.(d0)}] and [${scale.invert?.(d1)}], ignoring.`
             );
             return;
         }
@@ -668,9 +671,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     private getDomainPixelExtents(axis: ChartAxisLike) {
-        const { domain } = axis.scale;
-        const d0 = axis.scale.convert?.(domain.at(0));
-        const d1 = axis.scale.convert?.(domain.at(-1));
+        const [d0, d1] = axis.scale.range;
 
         if (!isFiniteNumber(d0) || !isFiniteNumber(d1)) return;
 
