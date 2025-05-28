@@ -1,8 +1,9 @@
-import { CleanupRegistry, type StrictHTMLElement } from 'ag-charts-core';
+import { CleanupRegistry, EventEmitter, type StrictHTMLElement } from 'ag-charts-core';
 
 import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import { HistoryManager } from '../api/state/historyManager';
 import { StateManager } from '../api/state/stateManager';
+import type { EventsHubMap } from '../core/eventsHub';
 import { DOMManager } from '../dom/domManager';
 import { ProxyInteractionService } from '../dom/proxyInteractionService';
 import { LocaleManager } from '../locale/localeManager';
@@ -24,7 +25,6 @@ import type { ChartType } from './factory/chartTypes';
 import { FontManager } from './fonts/fontManager';
 import { FormatManager } from './formatter/formatManager';
 import { AnimationManager } from './interaction/animationManager';
-import { ChartEventManager } from './interaction/chartEventManager';
 import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { HighlightManager } from './interaction/highlightManager';
 import { InteractionManager } from './interaction/interactionManager';
@@ -40,12 +40,13 @@ import type { Tooltip } from './tooltip/tooltip';
 import { type UpdateCallback, UpdateService } from './updateService';
 
 export class ChartContext implements ModuleContext {
+    readonly eventsHub = new EventEmitter<EventsHubMap>();
+
     readonly callbackCache = new CallbackCache();
-    readonly chartEventManager = new ChartEventManager();
-    readonly highlightManager = new HighlightManager();
+    readonly highlightManager = new HighlightManager(this.eventsHub);
+    readonly layoutManager = new LayoutManager(this.eventsHub);
+    readonly localeManager = new LocaleManager(this.eventsHub);
     readonly formatManager = new FormatManager();
-    readonly layoutManager = new LayoutManager();
-    readonly localeManager = new LocaleManager();
     readonly seriesStateManager = new SeriesStateManager();
     readonly stateManager = new StateManager();
     readonly seriesLabelLayoutManager = new SeriesLabelLayoutManager();
@@ -103,7 +104,7 @@ export class ChartContext implements ModuleContext {
 
         this.chartService = chart;
         this.syncManager = syncManager;
-        this.domManager = new DOMManager(this.chartService, container, styleContainer, domMode);
+        this.domManager = new DOMManager(this.eventsHub, this.chartService, container, styleContainer, domMode);
         this.widgets = new WidgetSet(this.domManager);
 
         // Sets canvas element if scene exists, otherwise use return value with scene constructor
@@ -122,19 +123,19 @@ export class ChartContext implements ModuleContext {
         );
 
         this.axisManager = new AxisManager(root);
-        this.legendManager = new LegendManager();
-        this.annotationManager = new AnnotationManager(chart.annotationRoot, fireEvent);
+        this.legendManager = new LegendManager(this.eventsHub);
+        this.annotationManager = new AnnotationManager(this.eventsHub, chart.annotationRoot, fireEvent);
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.interactionManager = new InteractionManager();
-        this.contextMenuRegistry = new ContextMenuRegistry();
+        this.contextMenuRegistry = new ContextMenuRegistry(this.eventsHub);
         this.updateService = new UpdateService(updateCallback);
-        this.proxyInteractionService = new ProxyInteractionService(this.localeManager, this.domManager);
+        this.proxyInteractionService = new ProxyInteractionService(this.eventsHub, this.localeManager, this.domManager);
         this.fontManager = new FontManager(this.domManager, this.updateService);
-        this.historyManager = new HistoryManager(this.chartEventManager);
+        this.historyManager = new HistoryManager(this.eventsHub);
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
-        this.dataService = new DataService<any>(this.animationManager);
-        this.tooltipManager = new TooltipManager(this.localeManager, this.domManager, chart.tooltip);
-        this.zoomManager = new ZoomManager(fireEvent, this.layoutManager);
+        this.dataService = new DataService<any>(this.eventsHub, this.animationManager);
+        this.tooltipManager = new TooltipManager(this.eventsHub, this.localeManager, this.domManager, chart.tooltip);
+        this.zoomManager = new ZoomManager(this.eventsHub, fireEvent);
 
         for (const module of moduleRegistry.byType<ContextModule>('context')) {
             if (!module.chartTypes.includes(chartType)) continue;
@@ -148,15 +149,11 @@ export class ChartContext implements ModuleContext {
     destroy() {
         // chart.ts handles the destruction of the scene.
         this.animationManager.destroy();
-        this.highlightManager.destroy();
         this.axisManager.destroy();
         this.callbackCache.invalidateCache();
-        this.chartEventManager.destroy();
         this.domManager.destroy();
         this.fontManager.destroy();
-        this.highlightManager.destroy();
         this.proxyInteractionService.destroy();
-        this.syncManager.destroy();
         this.tooltipManager.destroy();
         this.zoomManager.destroy();
         this.widgets.destroy();

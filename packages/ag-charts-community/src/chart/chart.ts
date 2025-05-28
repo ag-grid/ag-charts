@@ -330,21 +330,26 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             updateMutex: this.updateMutex,
         }));
 
-        this.cleanup.register(
-            ctx.domManager.addListener('resize', () => this.parentResize(ctx.domManager.containerSize))
-        );
+        this.cleanup.register(ctx.eventsHub.on('dom:resize', () => this.parentResize(ctx.domManager.containerSize)));
 
         this.overlays = new ChartOverlays();
         this.overlays.loading.renderer ??= () =>
             getLoadingSpinner(this.overlays.loading.getText(ctx.localeManager), ctx.animationManager.defaultDuration);
 
         this.processors = [
-            new DataWindowProcessor(this, ctx.dataService, ctx.updateService, ctx.zoomManager, ctx.animationManager),
+            new DataWindowProcessor(
+                this,
+                ctx.eventsHub,
+                ctx.dataService,
+                ctx.updateService,
+                ctx.zoomManager,
+                ctx.animationManager
+            ),
             new OverlaysProcessor(
                 this,
                 this.overlays,
+                ctx.eventsHub,
                 ctx.dataService,
-                ctx.layoutManager,
                 ctx.localeManager,
                 ctx.animationManager,
                 ctx.domManager
@@ -365,9 +370,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 e.layoutBox.shrink(this.padding.toJson());
                 this.chartCaptions.positionCaptions(e);
             }),
-            ctx.layoutManager.addListener('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
+            ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
 
-            ctx.dataService.addListener('data-load', (event) => {
+            ctx.eventsHub.on('data:load', (event) => {
                 this.data = event.data;
             }),
 
@@ -382,7 +387,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             }),
             ctx.animationManager.addListener('animation-start', () => ctx.domManager.setDataBoolean('animating', true)),
             ctx.animationManager.addListener('animation-stop', () => ctx.domManager.setDataBoolean('animating', false)),
-            ctx.zoomManager.addListener('zoom-change', () => {
+            ctx.eventsHub.on('zoom:change', () => {
                 this.series.forEach((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });

@@ -78,7 +78,7 @@ export abstract class DataModelSeries<
 
         this.dataModel = dataModel;
         this.processedData = processedData;
-        this.dispatch('data-processed', { dataModel, processedData });
+        this.events.emit('data-processed', { dataModel, processedData });
         return { dataModel, processedData };
     }
 

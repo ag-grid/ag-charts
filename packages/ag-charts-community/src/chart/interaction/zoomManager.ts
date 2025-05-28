@@ -18,7 +18,7 @@ import {
 } from 'ag-charts-core';
 import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
-import type { MementoOriginator } from '../../api/state/memento';
+import type { AxisZoomState, EventsHub, ZoomState } from '../../core/eventsHub';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale } from '../../scale/scale';
@@ -29,19 +29,7 @@ import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
 import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
-import type { LayoutManager } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';
-
-export interface ZoomState {
-    min: number;
-    max: number;
-}
-
-export interface AxisZoomState {
-    x?: ZoomState;
-    y?: ZoomState;
-    autoScaleYAxis?: boolean;
-}
 
 export interface DefinedZoomState {
     x: ZoomState;
@@ -56,19 +44,6 @@ export type ZoomMemento = {
     autoScaledAxes?: AgAutoScaledAxes;
 };
 
-export interface ZoomChangeEvent extends AxisZoomState {
-    readonly type: 'zoom-change';
-    readonly x?: Readonly<ZoomState>;
-    readonly y?: Readonly<ZoomState>;
-    readonly callerId: string;
-    readonly axes: Record<string, Readonly<ZoomState> | undefined>;
-}
-
-export interface ZoomPanStartEvent {
-    readonly type: 'zoom-pan-start';
-    readonly callerId: string;
-}
-
 export type ChartAxisLike = {
     id: string;
     direction: ChartAxisDirection;
@@ -79,8 +54,6 @@ export type ChartAxisLike = {
     min?: number;
     max?: number;
 };
-
-type ZoomEvents = ZoomChangeEvent | ZoomPanStartEvent;
 
 const expectedMementoKeys: Array<keyof ZoomMemento> = ['rangeX', 'rangeY', 'ratioX', 'ratioY', 'autoScaledAxes'];
 
@@ -101,7 +74,7 @@ const rangeValidator = (axis?: ChartAxisLike) =>
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
  */
-export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> implements MementoOriginator<ZoomMemento> {
+export class ZoomManager extends BaseManager {
     public mementoOriginatorKey = 'zoom' as const;
 
     private readonly axisZoomManagers = new Map<string, AxisZoomManager>();
@@ -127,13 +100,13 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         | undefined = undefined;
 
     constructor(
-        private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void,
-        layoutManager: LayoutManager
+        private readonly eventsHub: EventsHub,
+        private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
     ) {
         super();
 
         this.cleanup.register(
-            layoutManager.addListener('layout:complete', () => {
+            eventsHub.on('layout:complete', () => {
                 const { pendingMemento } = this;
                 const shouldPerformInitialLayout = !this.didLayoutAxes;
                 this.didLayoutAxes = true;
@@ -396,7 +369,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
     // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.
     public fireZoomPanStartEvent(callerId: string) {
-        this.listeners.dispatch('zoom-pan-start', { type: 'zoom-pan-start', callerId });
+        this.eventsHub.emit('zoom:pan-start', { callerId });
     }
 
     public extendToEnd(callerId: string, direction: ChartAxisDirection, extent: number) {
@@ -585,7 +558,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             axes[axisId] = axis.getZoom();
         }
 
-        this.listeners.dispatch('zoom-change', { type: 'zoom-change', ...this.getZoom(), axes, callerId });
+        this.eventsHub.emit('zoom:change', { ...this.getZoom(), axes, callerId });
         this.fireChartEvent<AgZoomEvent>({ type: 'zoom', ...this.getMementoRanges() });
     }
 

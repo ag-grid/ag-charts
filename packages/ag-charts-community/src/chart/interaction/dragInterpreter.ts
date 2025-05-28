@@ -1,6 +1,5 @@
-import { CleanupRegistry } from 'ag-charts-core';
+import { CleanupRegistry, EventEmitter } from 'ag-charts-core';
 
-import { Listeners } from '../../util/listeners';
 import type { Widget } from '../../widget/widget';
 import type {
     DragWidgetEvent,
@@ -54,7 +53,6 @@ function checkDoubleTapDistance(t1: { clientX: number; clientY: number }, t2: { 
     return distanceSquared < thresholdSquared;
 }
 
-type Type = 'mousemove' | 'click' | 'dblclick' | 'drag-start' | 'drag-move' | 'drag-end';
 type EventMap = Omit<WidgetEventMap, 'click' | 'dblclick'> & {
     click: DragInterpreterClickEvent;
     dblclick: DragInterpreterDblClickEvent;
@@ -74,7 +72,7 @@ type EventMap = Omit<WidgetEventMap, 'click' | 'dblclick'> & {
  */
 export class DragInterpreter {
     private readonly cleanup = new CleanupRegistry();
-    private readonly listeners = new Listeners<Type, (e: unknown) => void>();
+    readonly events = new EventEmitter<EventMap>();
 
     private dragStartEvent?: DragWidgetEvent<'drag-start'>;
     private isDragging = false;
@@ -96,15 +94,6 @@ export class DragInterpreter {
 
     destroy(): void {
         this.cleanup.flush();
-    }
-
-    addListener<T extends Type>(type: T, handler: (e: EventMap[T]) => void): () => void;
-    addListener<T extends Type>(type: T, handler: (e: unknown) => void): () => void {
-        return this.listeners.addListener(type, handler);
-    }
-
-    private dispatch(event: EventMap[Type]) {
-        this.listeners.dispatch(event.type, event);
     }
 
     private onTouchStart(e: TouchWidgetEvent<'touchstart'>) {
@@ -133,11 +122,11 @@ export class DragInterpreter {
     }
 
     private onMouseMove(event: MouseWidgetEvent<'mousemove'>) {
-        this.dispatch(event);
+        this.events.emit('mousemove', event);
     }
 
     private onDblClick(event: MouseWidgetEvent<'dblclick'>) {
-        this.dispatch(event);
+        this.events.emit('dblclick', event);
     }
 
     private onDragStart(event: DragWidgetEvent<'drag-start'>) {
@@ -147,28 +136,28 @@ export class DragInterpreter {
     private onDragMove(event: DragWidgetEvent<'drag-move'>) {
         if (this.dragStartEvent != null) {
             if (checkDragDistance(event.originDeltaX, event.originDeltaY)) {
-                this.dispatch(this.dragStartEvent);
-                this.dispatch({ ...this.dragStartEvent, type: 'drag-move' });
+                this.events.emit('drag-start', this.dragStartEvent);
+                this.events.emit('drag-move', { ...this.dragStartEvent, type: 'drag-move' });
                 this.dragStartEvent = undefined;
                 this.isDragging = true;
             }
         }
 
         if (this.isDragging) {
-            this.dispatch(event);
+            this.events.emit('drag-move', event);
         }
     }
 
     private onDragEnd(event: DragWidgetEvent<'drag-end'>) {
         if (this.isDragging) {
-            this.dispatch(event);
+            this.events.emit('drag-end', event);
             this.isDragging = false;
             return;
         }
 
         if (event.device === 'mouse') {
             const click = makeSynthetic('click', event);
-            this.dispatch(click);
+            this.events.emit('click', click);
         }
         // ignore 'drag-end' events from 'touchstart' or 'touchcancel'
         else if (event.sourceEvent.type === 'touchend') {
@@ -177,7 +166,7 @@ export class DragInterpreter {
             }
 
             const click = makeSynthetic('click', event);
-            this.dispatch(click);
+            this.events.emit('click', click);
 
             // Handle double-click logic
             const now = Date.now();
@@ -187,7 +176,7 @@ export class DragInterpreter {
                 checkDoubleTapDistance(this.lastClick, event)
             ) {
                 const dblClick = makeSynthetic('dblclick', event);
-                this.dispatch(dblClick);
+                this.events.emit('dblclick', dblClick);
                 this.lastClick = undefined;
             } else {
                 this.lastClick = { time: now, clientX: event.clientX, clientY: event.clientY };
