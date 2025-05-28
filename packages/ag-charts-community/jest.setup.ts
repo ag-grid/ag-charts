@@ -1,10 +1,13 @@
 import { expect } from '@jest/globals';
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
-import { DOMMatrix, Image, Path2D } from 'skia-canvas';
+import { Canvas, DOMMatrix, Image, Path2D } from 'skia-canvas';
 import { URL } from 'url';
 import { TextDecoder, TextEncoder } from 'util';
 
 import { toMatchImage } from './src/chart/test/utils';
+
+// @ts-expect-error types don't exactly align
+global.Canvas ??= Canvas;
 
 // @ts-expect-error types don't exactly align
 global.OffscreenCanvas ??= Canvas;
@@ -40,7 +43,7 @@ global.HTMLElement.prototype.togglePopover = function (visible) {
 
 declare module 'expect' {
     interface Matchers<R> {
-        toMatchImage(expected: Buffer, options?: { writeDiff: boolean }): R;
+        toMatchImage(expected: ImageData, options?: { writeDiff: boolean }): R;
         toMatchImageSnapshot(options?: MatchImageSnapshotOptions): R;
     }
 }

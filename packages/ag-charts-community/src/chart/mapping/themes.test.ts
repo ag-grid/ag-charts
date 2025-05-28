@@ -15,6 +15,7 @@ import {
     deproxy,
     expectWarningsCalls,
     prepareTestOptions,
+    setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
@@ -22,6 +23,7 @@ import { themes } from './themes';
 
 describe('themes module', () => {
     setupMockConsole();
+    setupMockCanvas();
 
     const getPalette = (themeName: AgChartThemeName): AgChartThemePalette | undefined => {
         const ctr = themes[themeName];

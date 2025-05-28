@@ -67,14 +67,14 @@ export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT }
     return mockCtx.ctx;
 }
 
-export function toMatchImage(this: any, actual: Buffer, expected: Buffer, { writeDiff = true } = {}) {
+export function toMatchImage(this: any, actual: ImageData, expected: ImageData, { writeDiff = true } = {}) {
     // Grab values from enclosing Jest scope.
     const { testPath, currentTestName } = this;
 
     const width = CANVAS_WIDTH;
     const height = CANVAS_HEIGHT;
     const diff = new PNG({ width, height });
-    const result = pixelmatch(actual, expected, diff.data, width, height, { threshold: 0.01 });
+    const result = pixelmatch(actual.data, expected.data, diff.data, width, height, { threshold: 0.01 });
 
     const diffOutputFilename = `${testPath.substring(
         0,

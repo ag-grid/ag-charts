@@ -56,7 +56,7 @@ describe('AgChartV2', () => {
     const snapshot = async () => {
         await waitForChartStability(chart);
 
-        return ctx.nodeCanvas?.toBufferSync('png', { quality: 1 });
+        return ctx.nodeCanvas?.getContext('2d').getImageData(0, 0, ctx.nodeCanvas.width, ctx.nodeCanvas.height);
     };
 
     const compareImageDataUrl = async () => {
@@ -70,7 +70,7 @@ describe('AgChartV2', () => {
         expect(imagePNGData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
 
         const imageRaw = ctx.getActiveCanvasInstances()[canvasCount];
-        expect(imageRaw.toBufferSync('png', { quality: 1 })).toMatchImage(reference);
+        expect(imageRaw.getContext('2d').getImageData(0, 0, imageRaw.width, imageRaw.height)).toMatchImage(reference);
     };
 
     describe('#create', () => {
