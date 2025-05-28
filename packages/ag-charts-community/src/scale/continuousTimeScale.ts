@@ -3,10 +3,9 @@ import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import { TickIntervals, defaultEpoch, getTickTimeInterval, isDenseInterval } from '../util/ticks';
 import { intervalRange, intervalStep } from '../util/time';
-import { buildFormatter } from '../util/timeFormat';
-import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
+import { dateToNumber } from '../util/timeFormatDefaults';
 import { ContinuousScale } from './continuousScale';
-import type { ScaleFormatParams, ScaleTickParams, ScaleTickResult } from './scale';
+import type { ScaleTickParams, ScaleTickResult } from './scale';
 
 const sunday = new Date(1970, 0, 4);
 
@@ -85,27 +84,6 @@ export class ContinuousTimeScale extends ContinuousScale<Date, TimeInterval | Ti
             ticks: getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend }),
             count: undefined,
         };
-    }
-
-    private _tickFormatter({ domain, ticks, specifier }: ScaleFormatParams<Date>, formatOffset?: number) {
-        return specifier != null ? buildFormatter(specifier) : defaultTimeTickFormat(ticks, domain, formatOffset);
-    }
-
-    /**
-     * Returns a time format function suitable for displaying tick values.
-     *
-     * @param ticks Optional array of tick values for custom formatting.
-     * @param domain Optional array representing the [min, max] values of the time axis.
-     * @param specifier Optional format specifier string for custom date formatting (e.g., `%Y`, `%m`, `%d`).
-     * @param formatOffset Optional number for applying an offset to the format (e.g., timezone shifts).
-     * @returns A function that formats a `Date` object into a string based on the provided specifier or default format.
-     */
-    override tickFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
-        return this._tickFormatter(params);
-    }
-
-    override datumFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
-        return this._tickFormatter(params, 1);
     }
 }
 

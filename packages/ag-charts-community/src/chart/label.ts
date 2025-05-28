@@ -9,7 +9,7 @@ import type {
     TimeIntervalUnit,
 } from 'ag-charts-types';
 
-import type { Scale, ScaleFormatParams } from '../scale/scale';
+import type { ContextFormatter } from '../module/axisContext';
 import { BBox } from '../scene/bbox';
 import type { Matrix } from '../scene/matrix';
 import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
@@ -17,7 +17,15 @@ import { normalizeAngle360FromDegrees } from '../util/angle';
 import { BaseProperties, Property } from '../util/properties';
 import { type TextMeasurer } from '../util/textMeasurer';
 import { intervalHierarchy, intervalRange, intervalUnit } from '../util/time';
+import { buildDateFormatter } from '../util/timeFormat';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from './chartAxis';
+import { FormatManager } from './formatter/formatManager';
+
+interface FormatterCache {
+    type: string;
+    format: string;
+    formatter: (value: any, fractionDigits?: number) => string | undefined;
+}
 
 export class Label<TParams = never, TDatum = any>
     extends BaseProperties
@@ -43,6 +51,40 @@ export class Label<TParams = never, TDatum = any>
 
     @Property
     formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
+
+    @Property
+    format?: string;
+
+    private _cachedFormatter: FormatterCache | undefined = undefined;
+    formatValue(
+        formatWithContext: ContextFormatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>,
+        type: 'number' | 'date' | 'category',
+        value: any,
+        params: AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>
+    ) {
+        const { formatter, format } = this;
+
+        let result: string | undefined;
+        if (formatter != null) {
+            result ??= formatWithContext(formatter, params);
+        }
+
+        if (format != null) {
+            let cachedFormatter = this._cachedFormatter;
+            if (cachedFormatter == null || cachedFormatter.type !== type || cachedFormatter.format !== format) {
+                cachedFormatter = {
+                    type,
+                    format,
+                    formatter: FormatManager.getFormatter(type, format),
+                };
+                this._cachedFormatter = cachedFormatter;
+            }
+
+            result ??= cachedFormatter.formatter(value);
+        }
+
+        return result != null ? String(result) : undefined;
+    }
 }
 
 export function calculateLabelRotation(
@@ -131,27 +173,20 @@ export function labelSpecifier(
 }
 
 export function timeIntervalMaxLabelSize(
-    scale: Scale<Date, number>,
     label: ChartAxisLabel,
     primaryLabel: ChartAxisLabel | undefined,
     domain: Date[],
-    ticks: Date[],
     timeInterval: TimeInterval | TimeIntervalUnit,
     textMeasurer: TextMeasurer
 ) {
     const specifier =
         labelSpecifier(label.format, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
+    if (specifier == null) return { width: 0, height: 0 };
 
-    const formatParams: ScaleFormatParams<Date> = { domain, ticks, specifier, fractionDigits: 0 };
-    const labelFormatter = scale.tickFormatter(formatParams as ScaleFormatParams<any>);
+    const labelFormatter = buildDateFormatter(specifier);
     const hierarchy = timeInterval ? intervalHierarchy(timeInterval) : undefined;
     const primarySpecifier = labelSpecifier(primaryLabel?.format, hierarchy);
-    const primaryLabelFormatter = primarySpecifier
-        ? scale.tickFormatter({
-              ...formatParams,
-              specifier: primarySpecifier,
-          } as ScaleFormatParams<any>)
-        : labelFormatter;
+    const primaryLabelFormatter = primarySpecifier ? buildDateFormatter(primarySpecifier) : labelFormatter;
 
     const d0 = new Date(domain[0] as any);
     const d1 = new Date(domain[domain.length - 1] as any);

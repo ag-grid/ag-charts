@@ -262,7 +262,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             x: number,
             y: number
         ): RadialBarLabelNodeDatum | undefined => {
-            const labelText = this.getLabelText(label, {
+            const labelText = this.getLabelText(angleDatum, datum, angleKey, 'angle', label, {
                 value: angleDatum,
                 datum,
                 angleKey,
@@ -541,9 +541,15 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: radiusAxis.formatDatum(radiusValue),
+                heading: radiusAxis.formatDatum(radiusValue, 'tooltip', datum, radiusKey),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: angleName, fallbackLabel: angleKey, value: angleAxis.formatDatum(angleValue) }],
+                data: [
+                    {
+                        label: angleName,
+                        fallbackLabel: angleKey,
+                        value: angleAxis.formatDatum(angleValue, 'tooltip', datum, angleKey),
+                    },
+                ],
             },
             {
                 seriesId,

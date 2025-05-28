@@ -59,7 +59,12 @@ export const CATEGORY_AXIS_UNIFORM_BASIC_EXAMPLE: AgCartesianChartOptions = {
 export const TIME_AXIS_BASIC_EXAMPLE: AgCartesianChartOptions = {
     data: data.DATA_YOUTUBE_VIDEOS_STATS_BY_DATE,
     axes: [
-        { type: 'time', position: 'bottom', interval: { step: { unit: 'day', step: 7 } } },
+        {
+            type: 'time',
+            position: 'bottom',
+            label: { format: '%b %d' },
+            interval: { step: { unit: 'day', step: 7 } },
+        },
         { type: 'number', position: 'left' },
     ],
     series: [
@@ -81,6 +86,7 @@ export const TIME_AXIS_MIN_MAX_DATE_EXAMPLE: AgCartesianChartOptions = {
             position: 'bottom',
             min: new Date(2022, 1, 15, 0, 0, 0),
             max: new Date(2022, 2, 15, 0, 0, 0),
+            label: { format: '%b %d' },
             interval: { step: { unit: 'day', step: 3 } },
         },
         { type: 'number', position: 'left' },
@@ -95,6 +101,7 @@ export const TIME_AXIS_MIN_MAX_NUMBER_EXAMPLE: AgCartesianChartOptions = {
             position: 'bottom',
             min: new Date(2022, 1, 15, 0, 0, 0).getTime(),
             max: new Date(2022, 2, 15, 0, 0, 0).getTime(),
+            label: { format: '%b %d' },
             interval: { step: { unit: 'day', step: 3 } },
         },
         { type: 'number', position: 'left' },

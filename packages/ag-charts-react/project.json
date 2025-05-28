@@ -29,6 +29,7 @@
       }
     },
     "build:package": {
+      "dependsOn": ["^build:types", "^build:package"],
       "options": {
         "main": "{projectRoot}/src/index.ts",
         "external": ["ag-charts-community", "react", "react-dom", "react/jsx-runtime"]

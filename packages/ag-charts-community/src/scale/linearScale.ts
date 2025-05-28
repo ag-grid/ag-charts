@@ -1,7 +1,6 @@
-import { formatValue } from '../util/format.util';
-import { createTicks, isDenseInterval, niceTicksDomain, range, tickFormat, tickStep } from '../util/ticks';
+import { createTicks, isDenseInterval, niceTicksDomain, range, tickStep } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
-import type { ScaleFormatParams, ScaleTickParams } from './scale';
+import type { ScaleTickParams } from './scale';
 
 /**
  * Maps continuous domain to a continuous range.
@@ -73,17 +72,5 @@ export class LinearScale extends ContinuousScale<number> {
         }
 
         return [start, stop];
-    }
-
-    override tickFormatter({ ticks: specifiedTicks, fractionDigits, specifier }: ScaleFormatParams<number>) {
-        return specifier != null
-            ? tickFormat(specifiedTicks, specifier)
-            : (x: number) => formatValue(x, fractionDigits);
-    }
-
-    override datumFormatter({ ticks: specifiedTicks, fractionDigits, specifier }: ScaleFormatParams<number>) {
-        return specifier != null
-            ? tickFormat(specifiedTicks, specifier)
-            : (x: number) => formatValue(x, fractionDigits + 1);
     }
 }

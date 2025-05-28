@@ -50,6 +50,20 @@ export const PUBLISHED_UMD_URLS = {
     'ag-charts-locale': `${NPM_CDN}/ag-charts-locale@${agChartsVersion}/dist/umd/ag-charts-locale.js`,
 };
 
+export const URL_CONFIG: Record<'local' | 'staging' | 'production', { hosts: string[]; baseUrl?: string }> = {
+    local: {
+        hosts: ['localhost:4600'],
+        baseUrl: '/charts',
+    },
+    staging: {
+        hosts: ['charts-staging.ag-grid.com'],
+    },
+    production: {
+        hosts: ['www.ag-grid.com'],
+        baseUrl: '/charts',
+    },
+};
+
 /**
  * Site base URL
  *

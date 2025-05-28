@@ -39,6 +39,24 @@
         "update": {}
       }
     },
+    "test:e2e": {
+      "executor": "nx:noop",
+      "inputs": [],
+      "outputs": [],
+      "dependsOn": ["^test:e2e"],
+      "configurations": {
+        "update": {}
+      }
+    },
+    "test:package": {
+      "executor": "nx:noop",
+      "inputs": [],
+      "outputs": [],
+      "dependsOn": ["^test:package"],
+      "configurations": {
+        "update": {}
+      }
+    },
     "pack": {
       "executor": "nx:noop",
       "inputs": [],
@@ -248,7 +266,10 @@
     "ag-charts-generate-code-reference-files",
     "ag-charts-generate-chart-thumbnail",
     "ag-charts-generate-example-files",
-    "ag-charts-test"
+    "ag-charts-test",
+    "angular-package-tests",
+    "react-package-tests",
+    "vue-package-tests"
   ],
   "tags": []
 }

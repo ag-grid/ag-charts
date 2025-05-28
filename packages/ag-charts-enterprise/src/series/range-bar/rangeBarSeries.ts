@@ -1,4 +1,8 @@
-import { type AgRangeBarSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgRangeBarSeriesLabelFormatterParams,
+    type AgRangeBarSeriesStyle,
+    _ModuleSupport,
+} from 'ag-charts-community';
 
 import { SPAN, X_MAX, X_MIN, Y_MAX, Y_MIN } from '../../utils/aggregation';
 import { type RangeBarSeriesDataAggregationFilter, aggregateRangeBarData } from './rangeBarAggregation';
@@ -439,7 +443,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText(label, { itemId: 'low', value: yLowValue, ...labelParams }),
+            text: this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yLowValue, datum, yLowKey, 'y', label, {
+                itemId: 'low',
+                value: yLowValue,
+                ...labelParams,
+            }),
             itemId: 'low',
             datum,
             series,
@@ -450,7 +458,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',
             textBaseline: barAlongX ? 'middle' : 'top',
-            text: this.getLabelText(label, { itemId: 'high', value: yHighValue, ...labelParams }),
+            text: this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yHighValue, datum, yHighKey, 'y', label, {
+                itemId: 'high',
+                value: yHighValue,
+                ...labelParams,
+            }),
             itemId: 'high',
             datum,
             series,
@@ -573,7 +585,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected updateLabelNodes(opts: { labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text> }) {
         opts.labelSelection.each((textNode, datum) => {
-            updateLabelNode(textNode, this.properties.label, datum);
+            updateLabelNode(
+                textNode,
+                // @ts-expect-error - Fix me
+                this.properties.label,
+                datum
+            );
         });
     }
 
@@ -597,11 +614,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const format = this.getItemBaseStyle(false);
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format, false));
 
-        const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
+        const value = `${yAxis.formatDatum(yLowValue, 'tooltip', datum, yLowKey)} - ${yAxis.formatDatum(yHighValue, 'tooltip', datum, yHighKey)}`;
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue),
+                heading: xAxis.formatDatum(xValue, 'tooltip', datum, xKey),
                 symbol: this.legendItemSymbol(),
                 data: [{ label: yName, fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`, value }],
             },

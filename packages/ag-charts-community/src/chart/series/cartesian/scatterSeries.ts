@@ -1,9 +1,10 @@
 import type { RequireOptional } from 'ag-charts-core';
-import type {
-    AgErrorBoundSeriesTooltipRendererParams,
-    FillOptions,
-    LineDashOptions,
-    StrokeOptions,
+import {
+    type AgErrorBoundSeriesTooltipRendererParams,
+    type AgScatterSeriesLabelFormatterParams,
+    type FillOptions,
+    type LineDashOptions,
+    type StrokeOptions,
 } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -177,16 +178,15 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                     ? xFilterDataValues[datumIndex] === xDatum && yFilterDataValues[datumIndex] === yDatum
                     : undefined;
 
-            const labelText = this.getLabelText(label, {
-                value: labelDataValues != null ? labelDataValues?.[datumIndex] : yDatum,
+            const labelValue = labelDataValues != null ? labelDataValues?.[datumIndex] : yDatum;
+            const labelText = this.getLabelText<AgScatterSeriesLabelFormatterParams>(
+                labelValue,
                 datum,
-                xKey,
-                yKey,
-                labelKey,
-                xName,
-                yName,
-                labelName,
-            });
+                labelKey ?? yKey,
+                labelKey != null ? 'label' : 'y',
+                label,
+                { value: labelValue, datum, xKey, yKey, labelKey, xName, yName, labelName }
+            );
 
             const size = textMeasurer.measureText(labelText);
 
@@ -334,8 +334,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 symbol: this.legendItemSymbol(),
                 title,
                 data: [
-                    { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue) },
-                    { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) },
+                    { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue, 'tooltip', datum, xKey) },
+                    { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey) },
                 ],
             },
             {

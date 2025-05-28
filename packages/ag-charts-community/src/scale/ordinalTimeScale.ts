@@ -4,7 +4,7 @@ import { datesSortOrder, sortAndUniqueDates } from '../util/date';
 import { dateToNumber } from '../util/timeFormatDefaults';
 import { getDateTicksForInterval } from './continuousTimeScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
-import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams, ScaleTickResult } from './scale';
+import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from './scale';
 
 export class OrdinalTimeScale extends DiscreteTimeScale {
     readonly type = 'ordinal-time';
@@ -173,10 +173,6 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         }
 
         return this.findIntervalInRange(target, low, high);
-    }
-
-    override datumFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
-        return this.tickFormatter(params);
     }
 
     findIndex(value: Date): number | undefined {

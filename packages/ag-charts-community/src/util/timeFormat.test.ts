@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { buildFormatter } from './timeFormat';
+import { buildDateFormatter } from './timeFormat';
 
 describe('Date/Time Formatting', () => {
     const DEFAULT_DATE = new Date(Date.UTC(2019, 8, 3, 14, 50, 17, 300));
@@ -50,9 +50,9 @@ describe('Date/Time Formatting', () => {
         expect(DEFAULT_DATE.getTimezoneOffset()).toEqual(-60);
     });
 
-    describe('buildFormatter', () => {
+    describe('buildDateFormatter', () => {
         it.each(cases)('%s', (_, format, expected, date = DEFAULT_DATE) => {
-            const formatter = buildFormatter(format);
+            const formatter = buildDateFormatter(format);
             expect(formatter(date)).toStrictEqual(expected);
         });
     });

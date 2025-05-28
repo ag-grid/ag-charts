@@ -1,10 +1,13 @@
 import { isFiniteNumber } from 'ag-charts-core';
+import type { DateFormatterStyle, FormatterParams, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { CategoryScale } from '../../scale/categoryScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { TimeScale } from '../../scale/timeScale';
 import { Property } from '../../util/properties';
+import type { FormatDatumParams } from '../chartAxis';
+import type { AxisTickFormatParams } from './axis';
 import { CartesianAxis } from './cartesianAxis';
 
 export class CategoryAxis<
@@ -67,5 +70,26 @@ export class CategoryAxis<
             },
             { inner: Infinity, outer: -Infinity }
         );
+    }
+
+    override tickFormatParams(
+        _domain: any[],
+        _ticks: any[],
+        _fractionDigits?: number,
+        _timeInterval?: TimeInterval | TimeIntervalUnit
+    ): AxisTickFormatParams {
+        return { type: 'category' };
+    }
+
+    override datumFormatParams(
+        value: any,
+        params: FormatDatumParams,
+
+        _fractionDigits: number | undefined,
+        _timeInterval: TimeInterval | TimeIntervalUnit | undefined,
+        _style: DateFormatterStyle
+    ): FormatterParams<any> {
+        const { datum, key, source, property } = params;
+        return { type: 'category', value, datum, key, source, property };
     }
 }

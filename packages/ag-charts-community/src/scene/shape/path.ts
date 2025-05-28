@@ -134,20 +134,22 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
         if (this.clip && !isNaN(this._clipX) && !isNaN(this._clipY)) {
             ctx.save();
 
-            // AG-10477 avoid clipping thick lines that touch the top, bottom and left edges of the clip rect
-            const margin = this.strokeWidth / 2;
-            this._clipPath ??= new ExtendedPath2D();
-            this._clipPath.clear();
-            this._clipPath.rect(-margin, -margin, this._clipX + margin, this._clipY + margin + margin);
+            try {
+                // AG-10477 avoid clipping thick lines that touch the top, bottom and left edges of the clip rect
+                const margin = this.strokeWidth / 2;
+                this._clipPath ??= new ExtendedPath2D();
+                this._clipPath.clear();
+                this._clipPath.rect(-margin, -margin, this._clipX + margin, this._clipY + margin + margin);
 
-            // Bound the shape rendered to the clipping path.
-            ctx.clip(this._clipPath?.getPath2D());
+                // Bound the shape rendered to the clipping path.
+                ctx.clip(this._clipPath?.getPath2D());
 
-            if (this._clipX > 0 && this._clipY > 0) {
-                this.drawPath(ctx);
+                if (this._clipX > 0 && this._clipY > 0) {
+                    this.drawPath(ctx);
+                }
+            } finally {
+                ctx.restore();
             }
-
-            ctx.restore();
         } else {
             this._clipPath = undefined;
 

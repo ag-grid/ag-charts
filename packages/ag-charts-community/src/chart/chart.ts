@@ -1,9 +1,11 @@
 import {
     AsyncAwaitQueue,
+    CleanupRegistry,
     Logger,
     type ModuleInstance,
     createId,
     entries,
+    getWindow,
     groupBy,
     isFiniteNumber,
     pause,
@@ -16,6 +18,7 @@ import type {
     AgColorType,
     AgInitialStateLegendOptions,
     AgPolarAxisOptions,
+    FormatterConfiguration,
 } from 'ag-charts-types';
 
 import type { AxisOptionModule } from '../module/axisOptionModule';
@@ -208,6 +211,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     toSVG() {
         return this.ctx.scene.toSVG();
     }
+    private readonly chartCaptions = new ChartCaptions();
 
     @Property
     readonly padding = new Padding(20);
@@ -228,9 +232,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     mode: ChartMode = 'standalone';
 
     @Property
-    styleNonce?: string;
-
-    private readonly chartCaptions = new ChartCaptions();
+    styleNonce: string | undefined = undefined;
 
     @ProxyProperty('chartCaptions.title')
     readonly title!: Caption;
@@ -241,7 +243,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     @ProxyProperty('chartCaptions.footnote')
     readonly footnote!: Caption;
 
-    context?: unknown;
+    @Property
+    formatter: FormatterConfiguration<any> | undefined = undefined;
 
     @Property
     suppressFieldDotNotation: boolean = false;
@@ -249,9 +252,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     @Property
     loadGoogleFonts: boolean = false;
 
+    context?: unknown;
+
     public destroyed = false;
 
-    private readonly _destroyFns: (() => void)[] = [];
+    private readonly cleanup = new CleanupRegistry();
 
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
@@ -325,7 +330,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             updateMutex: this.updateMutex,
         }));
 
-        this._destroyFns.push(ctx.eventsHub.on('dom:resize', () => this.parentResize(ctx.domManager.containerSize)));
+        this.cleanup.register(
+            ctx.eventsHub.on('dom:resize', () => this.parentResize(ctx.domManager.containerSize))
+        );
 
         this.overlays = new ChartOverlays();
         this.overlays.loading.renderer ??= () =>
@@ -360,7 +367,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         ctx.domManager.setDataBoolean('animating', false);
 
         this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
-        this._destroyFns.push(
+        this.cleanup.register(
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(this.padding.toJson());
                 this.chartCaptions.positionCaptions(e);
@@ -499,7 +506,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this.performUpdateType = ChartUpdateType.NONE;
 
-        this._destroyFns.forEach((fn) => fn());
+        this.cleanup.flush();
         this.processors.forEach((p) => p.destroy());
         this.overlays.destroy();
         this.modulesManager.destroy();
@@ -1171,7 +1178,16 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         });
     };
 
-    async waitForUpdate(timeoutMs = 10_000, failOnTimeout = false): Promise<void> {
+    async waitForUpdate(timeoutMs?: number, failOnTimeout?: boolean): Promise<void> {
+        const agChartsDebugTimeout = getWindow<number>('agChartsDebugTimeout');
+        if (agChartsDebugTimeout == null) {
+            timeoutMs ??= 10_0000;
+            failOnTimeout ??= false;
+        } else {
+            timeoutMs = agChartsDebugTimeout;
+            failOnTimeout ??= true;
+        }
+
         const start = performance.now();
 
         while (
@@ -1244,6 +1260,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'nodes',
             'initialState',
             'styleContainer',
+            'formatter',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
@@ -1307,6 +1324,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         this.applyInitialState(newOpts);
+        this.ctx.formatManager.setFormatter((newOpts as any).formatter);
 
         debug('Chart.applyOptions() - update type', ChartUpdateType[updateType], {
             seriesStatus,
@@ -1367,7 +1385,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const optionsHaveLegend = Object.values(legendKeys).some(
             (legendKey) => (deltaOptions as any)[legendKey] != null
         );
-        const otherRefreshUpdate = deltaOptions.title != null && deltaOptions.subtitle != null;
+        const otherRefreshUpdate =
+            (deltaOptions.title != null && deltaOptions.subtitle != null) || (deltaOptions as any).formatter != null;
         return seriesDataUpdate || optionsHaveLegend || otherRefreshUpdate;
     }
 
@@ -1452,6 +1471,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 horizontalAxis.type === 'ordinal-time'
             ) {
                 (horizontalAxis as ContinuousTimeAxis).parentLevel.enabled = false;
+                horizontalAxis.label.format = {
+                    millisecond: '%H:%M:%S.%L',
+                    second: '%H:%M:%S',
+                    minute: '%H:%M',
+                    hour: '%H:%M',
+                    day: '%e',
+                    month: '%B',
+                    year: '%Y',
+                };
             }
 
             const step = intervalOptions?.step;

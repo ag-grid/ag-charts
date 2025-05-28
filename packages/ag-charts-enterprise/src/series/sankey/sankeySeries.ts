@@ -77,6 +77,7 @@ export class SankeySeries extends FlowProportionSeries<
             fromKey,
             toKey,
             sizeKey,
+            labelKey,
             label: { spacing: labelSpacing },
             node: { spacing: nodeSpacing, width: nodeWidth, alignment },
         } = this.properties;
@@ -166,7 +167,7 @@ export class SankeySeries extends FlowProportionSeries<
             node.x = column.x;
             node.size = size;
 
-            const label = this.getLabelText(this.properties.label, {
+            const label = this.getLabelText(node.label, node.datum, labelKey!, 'label', this.properties.label, {
                 datum: node.datum,
                 value: node.label,
                 fromKey,

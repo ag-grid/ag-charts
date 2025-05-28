@@ -2,7 +2,7 @@ import type { AgFormattableLabelOptions } from '../../chart/axisOptions';
 import type { DatumCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Opacity, PixelSize } from '../../chart/types';
+import type { CssColor, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -27,13 +27,13 @@ export interface AgConeFunnelSeriesStyle extends FillOptions, StrokeOptions, Lin
 
 export interface AgConeFunnelSeriesLabelFormatterParams extends AgConeFunnelSeriesOptionsKeys {}
 
-export interface AgConeFunnelSeriesTooltipRendererParams<TDatum = any>
+export interface AgConeFunnelSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends AgConeFunnelSeriesOptionsKeys,
         AgConeFunnelSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum>,
         AgConeFunnelSeriesStyle {}
 
-export interface AgConeFunnelSeriesThemeableOptions<TDatum = any>
+export interface AgConeFunnelSeriesThemeableOptions<TDatum = TDatumDefault>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
         LineDashOptions {
     /** The colours to cycle through for the fills of the drop-offs. */
@@ -53,7 +53,7 @@ export interface AgConeFunnelSeriesThemeableOptions<TDatum = any>
     /** Configuration for the stage labels. */
     stageLabel?: AgConeFunnelSeriesStageLabelOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgConeFunnelSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgConeFunnelSeriesTooltipRendererParams<TDatum>>;
 }
 
 export interface AgConeFunnelSeriesOptionsKeys {
@@ -65,8 +65,8 @@ export interface AgConeFunnelSeriesOptionsKeys {
 
 export interface AgConeFunnelSeriesOptionsNames {}
 
-export interface AgConeFunnelSeriesOptions<TDatum = any>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgConeFunnelSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgConeFunnelSeriesOptionsKeys,
         AgConeFunnelSeriesOptionsNames,
         AgConeFunnelSeriesThemeableOptions<TDatum> {

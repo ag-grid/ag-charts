@@ -52,6 +52,7 @@ const {
     easing,
     getColorStops,
     findRangeExtent,
+    tickFormat,
 } = _ModuleSupport;
 
 interface TargetLabel {
@@ -134,28 +135,28 @@ class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSuppor
         return this.gauge.properties.scale.interval;
     }
 
-    formatTick(
-        value: any,
-        index: number,
+    tickFormatter(
         domain: number[],
+        ticks: number[],
+        _primary: boolean,
         _fractionDigits?: number,
-        _timeInterval?: TimeInterval | TimeIntervalUnit,
-        defaultFormatter?: (datum: unknown) => string
-    ): string {
-        const { label } = this;
-        return (
-            this.formatWithContext(value, index, domain) ??
-            (label.format != null ? defaultFormatter?.(value) : undefined) ??
-            this.gauge.formatLabel(value)
-        );
-    }
-
-    private formatWithContext(value: any, index: number, domain: number[]): string | undefined {
-        let r: string | undefined = undefined;
-        if (this.label.formatter) {
-            r = formatWithContext(this.ctx, this.label.formatter, { value, index, domain, boundSeries: undefined! });
+        _timeInterval?: TimeInterval | TimeIntervalUnit
+    ): (value: number, index: number) => string {
+        const { format } = this.label;
+        let tickFormatter: ((value: number) => string) | undefined;
+        if (format != null) {
+            tickFormat(ticks, typeof format === 'string' ? format : undefined);
         }
-        return r;
+
+        return (value: number, index: number): string => {
+            const { formatter } = this.label;
+            let r: string | undefined = undefined;
+            if (formatter) {
+                r ??= formatWithContext(this.ctx, formatter, { value, index, domain, boundSeries: undefined! });
+            }
+            r ??= tickFormatter?.(value);
+            return r ?? this.gauge.formatLabel(value);
+        };
     }
 
     inRange(): boolean {

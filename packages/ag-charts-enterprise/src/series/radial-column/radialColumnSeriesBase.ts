@@ -265,7 +265,7 @@ export abstract class RadialColumnSeriesBase<
             x: number,
             y: number
         ): RadialColumnLabelNodeDatum | undefined => {
-            const labelText = this.getLabelText(label, {
+            const labelText = this.getLabelText(radiusDatum, datum, radiusKey, 'radius', label, {
                 value: radiusDatum,
                 datum,
                 angleKey,
@@ -534,9 +534,15 @@ export abstract class RadialColumnSeriesBase<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: angleAxis.formatDatum(angleValue),
+                heading: angleAxis.formatDatum(angleValue, 'tooltip', datum, angleKey),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: radiusName, fallbackLabel: radiusKey, value: radiusAxis.formatDatum(radiusValue) }],
+                data: [
+                    {
+                        label: radiusName,
+                        fallbackLabel: radiusKey,
+                        value: radiusAxis.formatDatum(radiusValue, 'tooltip', datum, radiusKey),
+                    },
+                ],
             },
             {
                 seriesId,

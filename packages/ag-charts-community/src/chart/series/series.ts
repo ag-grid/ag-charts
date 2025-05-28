@@ -11,14 +11,15 @@ import {
 } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
-    AgChartLabelOptions,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
+    FormatterPropertyType,
     ISeriesMarker,
 } from 'ag-charts-types';
 
+import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { LegendItemClickEvent, LegendItemDoubleClickEvent } from '../../module/eventsHub';
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
@@ -30,7 +31,6 @@ import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { callWithContext } from '../../util/callbackCache';
-import { formatValue } from '../../util/format.util';
 import { jsonDiff } from '../../util/json';
 import { LRUCache } from '../../util/lruCache';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
@@ -786,18 +786,79 @@ export abstract class Series<
         return { ...this.ctx, series: this };
     }
 
-    protected getLabelText<TParams>(
-        label: AgChartLabelOptions<any, TParams>,
-        params: TParams & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>,
-        defaultFormatter: (value: any) => string = formatValue
-    ) {
-        if (label.formatter) {
+    protected getLabelText<TParams extends object>(
+        value: any,
+        datum: any,
+        key: string,
+        property: FormatterPropertyType,
+        label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
+        baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>
+    ): string {
+        if (value == null) return '';
+
+        const { axes, canHaveAxes, ctx } = this;
+        const { formatManager } = ctx;
+        const source = 'series-label';
+        const params: AgChartLabelFormatterParams<any> & RequireOptional<TParams> = {
+            seriesId: this.id,
+            ...baseParams,
+        };
+
+        const formatInContext = this.callWithContext.bind(this);
+
+        const formatNumber = () => {
+            const type = 'number';
+            const fractionDigits = undefined;
             return (
-                this.cachedCallWithContext(label.formatter, { seriesId: this.id, ...params }) ??
-                this.callWithContext(defaultFormatter, params.value)
+                label.formatValue(formatInContext, type, value, params) ??
+                formatManager.format({ type, value, datum, key, source, property, fractionDigits }) ??
+                String(value)
             );
+        };
+
+        const formatCategory = () => {
+            const type = 'category';
+            return (
+                label.formatValue(formatInContext, type, value, params) ??
+                formatManager.format({ type, value, datum, key, source, property }) ??
+                String(value)
+            );
+        };
+
+        switch (property) {
+            case 'x':
+            case 'y':
+            case 'radius':
+            case 'angle': {
+                if (canHaveAxes) {
+                    const axis = axes[this.resolveKeyDirection(property as ChartAxisDirection)];
+                    return (
+                        axis?.formatDatum<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>(
+                            value,
+                            source,
+                            datum,
+                            key,
+                            label,
+                            params,
+                            formatInContext
+                        ) ?? String(value)
+                    );
+                } else if (property === 'y') {
+                    return formatNumber();
+                }
+                return formatCategory();
+            }
+
+            case 'color':
+            case 'size':
+                return formatNumber();
+
+            case 'label':
+            case 'secondaryLabel':
+            case 'calloutLabel':
+            case 'sectorLabel':
+                return formatCategory();
         }
-        return this.callWithContext(defaultFormatter, params.value);
     }
 
     public getMarkerStyle<TParams>(
@@ -940,11 +1001,11 @@ export abstract class Series<
     }
 
     private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
-        return this.ctx.callbackCache.call(this.properties, this.ctx.chartService, fn, ...params);
+        return this.ctx.callbackCache.call([this.properties, this.ctx.chartService], fn, ...params);
     }
 
     public callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> {
-        return callWithContext(this.properties, this.ctx.chartService, fn, params);
+        return callWithContext([this.properties, this.ctx.chartService], fn, params);
     }
 
     protected formatTooltipWithContext<P extends AgSeriesTooltipRendererParams<any>, Tooltip extends SeriesTooltip<P>>(
@@ -952,7 +1013,7 @@ export abstract class Series<
         content: TooltipStructuredContent,
         params: RequireOptional<P>
     ) {
-        return tooltip.formatTooltip(this.properties, this.ctx.chartService, content, params);
+        return tooltip.formatTooltip([this.properties, this.ctx.chartService], content, params);
     }
 
     abstract getCategoryValue(datumIndex: TDatumIndex): any;

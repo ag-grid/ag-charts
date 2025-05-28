@@ -1,6 +1,6 @@
 import { afterEach, describe, expect } from '@jest/globals';
 
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import {
@@ -24,7 +24,7 @@ describe('AxisGridLine', () => {
     });
 
     const ctx = setupMockCanvas();
-    const opts: AgChartOptions = prepareTestOptions({});
+    const opts: AgCartesianChartOptions = prepareTestOptions({});
 
     const compare = async () => {
         await waitForChartStability(chart);

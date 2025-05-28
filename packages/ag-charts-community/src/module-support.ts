@@ -2,6 +2,7 @@ import * as fromToMotion from './motion/fromToMotion';
 import * as resetMotion from './motion/resetMotion';
 
 export { Chart } from './chart/chart';
+export { FormatManager } from './chart/formatter/formatManager';
 export type { TransferableResources } from './chart/chart';
 export { NumberAxis } from './chart/axis/numberAxis';
 export {
@@ -46,6 +47,7 @@ export * from './util/timeFormatDefaults';
 export * from './util/textMeasurer';
 export * from './util/textWrapper';
 export * from './util/timeFormat';
+export * from './util/time';
 export * from './util/properties';
 export * from './util/vector';
 export * from './util/vector4';
@@ -147,7 +149,7 @@ export { FONT_SIZE_RATIO } from './chart/themes/constants';
 export { type DefaultColors } from './chart/themes/defaultColors';
 export { ChartUpdateType } from './chart/chartUpdateType';
 export { type MementoOriginator } from './api/state/memento';
-export { isDenseInterval, range } from './util/ticks';
+export { isDenseInterval, range, tickFormat } from './util/ticks';
 export { Color } from './util/color';
 export { Debug } from './util/debug';
 export { isContinuous } from './util/value';

@@ -36,7 +36,7 @@ export abstract class Gradient {
     ): CanvasGradient | string | undefined {
         const bbox = this.bbox ?? shapeBbox;
 
-        if (isNaN(bbox.x) || isNaN(bbox.y)) {
+        if (!bbox.isFinite()) {
             return;
         }
 

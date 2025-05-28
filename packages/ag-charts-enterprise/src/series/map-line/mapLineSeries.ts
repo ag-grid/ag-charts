@@ -206,8 +206,9 @@ export class MapLineSeries extends TopologySeries<
         if (lineString == null) return;
 
         const { idKey, idName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } = this.properties;
+        if (labelKey == null) return;
 
-        const labelText = this.getLabelText(label, {
+        const labelText = this.getLabelText(labelValue, datum, labelKey, 'label', label, {
             value: labelValue,
             datum,
             idKey,

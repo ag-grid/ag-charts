@@ -1,12 +1,12 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, PixelSize } from '../../chart/types';
+import type { CssColor, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
-export interface AgSankeySeriesOptions<TDatum = any>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgSankeySeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames,
         AgSankeySeriesThemeableOptions<TDatum> {
@@ -29,7 +29,7 @@ export interface AgSankeySeriesNodeItemStylerParams<TDatum>
     size: number;
 }
 
-export interface AgSankeySeriesThemeableOptions<TDatum = any> extends AgBaseSeriesThemeableOptions<TDatum> {
+export interface AgSankeySeriesThemeableOptions<TDatum = TDatumDefault> extends AgBaseSeriesThemeableOptions<TDatum> {
     /** Options for the label for each node. */
     label?: AgSankeySeriesLabelOptions<TDatum>;
     /** The colours to cycle through for the fills of the nodes and links. */
@@ -96,4 +96,6 @@ export interface AgSankeySeriesTooltipRendererParams<TDatum>
         AgSankeySeriesOptionsNames,
         SizeParams {}
 
-export interface AgSankeySeriesLabelFormatterParams<_TDatum = any> extends AgSankeySeriesOptionsKeys, SizeParams {}
+export interface AgSankeySeriesLabelFormatterParams<_TDatum = TDatumDefault>
+    extends AgSankeySeriesOptionsKeys,
+        SizeParams {}

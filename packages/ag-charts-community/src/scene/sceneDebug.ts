@@ -90,16 +90,21 @@ export function debugStats(
 
     const x = 2 + seriesRect.x;
     ctx.save();
-    ctx.fillStyle = 'white';
-    ctx.fillRect(x, 0, width, height);
+    try {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(x, 0, width, height);
 
-    ctx.fillStyle = 'black';
-    let y = 0;
-    for (const [stat, size] of statsSize.entries()) {
-        y += size.height;
-        ctx.fillText(stat, x, y);
+        ctx.fillStyle = 'black';
+        let y = 0;
+        for (const [stat, size] of statsSize.entries()) {
+            y += size.height;
+            ctx.fillText(stat, x, y);
+        }
+    } catch (e) {
+        Logger.warnOnce('Error during debug stats rendering', e);
+    } finally {
+        ctx.restore();
     }
-    ctx.restore();
 }
 
 export function prepareSceneNodeHighlight(ctx: RenderContext) {
@@ -119,30 +124,34 @@ export function prepareSceneNodeHighlight(ctx: RenderContext) {
 export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNodes: Record<string, Node>) {
     ctx.save();
 
-    for (const [name, node] of Object.entries(debugNodes)) {
-        const bbox = Transformable.toCanvas(node);
+    try {
+        for (const [name, node] of Object.entries(debugNodes)) {
+            const bbox = Transformable.toCanvas(node);
 
-        if (!bbox) {
-            Logger.log(`Scene.render() - no bbox for debugged node [${name}].`);
-            continue;
+            if (!bbox) {
+                Logger.log(`Scene.render() - no bbox for debugged node [${name}].`);
+                continue;
+            }
+
+            ctx.globalAlpha = 0.8;
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
+
+            ctx.fillStyle = 'red';
+            ctx.strokeStyle = 'white';
+            ctx.font = '16px sans-serif';
+            ctx.textBaseline = 'top';
+            ctx.textAlign = 'left';
+            ctx.lineWidth = 2;
+            ctx.strokeText(name, bbox.x, bbox.y, bbox.width);
+            ctx.fillText(name, bbox.x, bbox.y, bbox.width);
         }
-
-        ctx.globalAlpha = 0.8;
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
-
-        ctx.fillStyle = 'red';
-        ctx.strokeStyle = 'white';
-        ctx.font = '16px sans-serif';
-        ctx.textBaseline = 'top';
-        ctx.textAlign = 'left';
-        ctx.lineWidth = 2;
-        ctx.strokeText(name, bbox.x, bbox.y, bbox.width);
-        ctx.fillText(name, bbox.x, bbox.y, bbox.width);
+    } catch (e) {
+        Logger.warnOnce('Error during debug rendering', e);
+    } finally {
+        ctx.restore();
     }
-
-    ctx.restore();
 }
 
 export const skippedProperties = new Set<string>();

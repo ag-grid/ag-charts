@@ -1,9 +1,9 @@
-import { createNumberFormatter, isInteger } from 'ag-charts-core';
+import { isInteger } from 'ag-charts-core';
 
 import { findMinMax, findRangeExtent } from '../util/number';
 import { createTicks, isDenseInterval, range } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
-import type { ScaleFormatParams, ScaleTickParams } from './scale';
+import type { ScaleTickParams } from './scale';
 import { filterVisibleTicks } from './scaleUtil';
 
 const logFunctions: Record<number, (base: number, x: number) => number> = {
@@ -146,13 +146,5 @@ export class LogScale extends ContinuousScale<number> {
         }
 
         return filterVisibleTicks(ticks, isPositive, visibleRange);
-    }
-
-    override tickFormatter({ specifier }: ScaleFormatParams<number>): (x: number) => string {
-        return specifier != null ? createNumberFormatter(specifier) : String;
-    }
-
-    override datumFormatter(params: ScaleFormatParams<number>) {
-        return this.tickFormatter(params);
     }
 }

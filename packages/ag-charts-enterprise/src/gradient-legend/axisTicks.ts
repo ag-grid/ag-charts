@@ -2,6 +2,8 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { createId } from 'ag-charts-core';
 import type { AgChartLegendPosition } from 'ag-charts-types';
 
+import { formatWithContext } from '../series/gauge-util/label';
+
 const {
     AxisInterval,
     AxisLabel,
@@ -36,6 +38,8 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
     position: AgChartLegendPosition = 'bottom';
     translationX: number = 0;
     translationY: number = 0;
+
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {}
 
     private get horizontal(): boolean {
         return this.position === 'top' || this.position === 'bottom';
@@ -90,25 +94,22 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
         return boxes.length > 0 ? BBox.merge(boxes).translate(translationX, translationY) : undefined;
     }
 
-    formatTick(value: number, fractionDigits: number): string {
-        const {
-            label: { formatter },
-        } = this;
-
-        let result: string | undefined;
-        if (formatter) {
-            result = formatter({
+    tickFormatter(
+        domain: number[],
+        _ticks: number[],
+        _primary: boolean,
+        fractionDigits?: number
+    ): (value: any, index: number) => string | undefined {
+        return (value, index) =>
+            this.label.formatValue(
+                (fn, params) => formatWithContext(this.ctx, fn, params),
+                'number',
                 value,
-                index: NaN,
-                domain: this.scale.domain,
-                fractionDigits,
-                unit: undefined,
-                step: undefined,
-                boundSeries: [],
-            });
-        }
-        result ??= formatValue(value, fractionDigits);
-        return result;
+                index,
+                domain,
+                [],
+                fractionDigits
+            ) ?? formatValue(value, fractionDigits);
     }
 
     inRange(x: number, tolerance = 0.001): boolean {

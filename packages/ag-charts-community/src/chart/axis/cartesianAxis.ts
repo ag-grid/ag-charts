@@ -24,8 +24,6 @@ import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
-import type { AxisLabel } from './axisLabel';
-import type { AxisTick } from './axisTick';
 import { AxisTickGenerator, type TickGenerationResult } from './axisTickGenerator';
 import {
     type AxisLabelDatum,
@@ -66,14 +64,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     @Property
     position!: AgCartesianAxisPosition;
-
-    protected get primaryLabel(): AxisLabel | undefined {
-        return undefined;
-    }
-
-    protected get primaryTick(): AxisTick | undefined {
-        return undefined;
-    }
 
     protected animationManager: AnimationManager;
 

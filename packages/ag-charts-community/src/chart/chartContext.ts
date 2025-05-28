@@ -23,6 +23,7 @@ import { ChartUpdateType } from './chartUpdateType';
 import { DataService } from './data/dataService';
 import type { ChartType } from './factory/chartTypes';
 import { FontManager } from './fonts/fontManager';
+import { FormatManager } from './formatter/formatManager';
 import { AnimationManager } from './interaction/animationManager';
 import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { HighlightManager } from './interaction/highlightManager';
@@ -45,6 +46,7 @@ export class ChartContext implements ModuleContext {
     readonly highlightManager = new HighlightManager(this.eventsHub);
     readonly layoutManager = new LayoutManager(this.eventsHub);
     readonly localeManager = new LocaleManager(this.eventsHub);
+    readonly formatManager = new FormatManager();
     readonly seriesStateManager = new SeriesStateManager();
     readonly stateManager = new StateManager();
     readonly seriesLabelLayoutManager = new SeriesLabelLayoutManager();

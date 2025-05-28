@@ -2,9 +2,16 @@ import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } f
 import { _ModuleSupport } from 'ag-charts-community';
 import { createId, setAttribute } from 'ag-charts-core';
 
-const { BaseProperties, Property } = _ModuleSupport;
+const { BaseProperties, Property, FormatManager } = _ModuleSupport;
 
 const DEFAULT_LABEL_CLASS = 'ag-charts-crosshair-label';
+type StyleValue = string | number | undefined;
+
+interface FormatterCache {
+    type: string;
+    format: string;
+    formatter: (value: any, fractionDigits?: number) => string | undefined;
+}
 
 export class CrosshairLabelProperties extends _ModuleSupport.ChangeDetectableProperties {
     @Property
@@ -21,6 +28,28 @@ export class CrosshairLabelProperties extends _ModuleSupport.ChangeDetectablePro
 
     @Property
     renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult = undefined;
+
+    private _cachedFormatter: FormatterCache | undefined = undefined;
+    formatValue(_ctx: any, type: 'number' | 'date' | 'category', value: any) {
+        const { format } = this;
+
+        let result: string | undefined;
+        if (format != null) {
+            let cachedFormatter = this._cachedFormatter;
+            if (cachedFormatter == null || cachedFormatter.type !== type || cachedFormatter.format !== format) {
+                cachedFormatter = {
+                    type,
+                    format,
+                    formatter: FormatManager.getFormatter(type, format),
+                };
+                this._cachedFormatter = cachedFormatter;
+            }
+
+            result ??= cachedFormatter.formatter(value);
+        }
+
+        return result != null ? String(result) : undefined;
+    }
 }
 
 export class CrosshairLabel extends BaseProperties {
@@ -69,9 +98,12 @@ export class CrosshairLabel extends BaseProperties {
         this.toggle(true);
     }
 
-    setLabelHtml(html?: string) {
+    setLabelHtml({ html, styles }: { html?: string; styles?: Record<string, StyleValue> }) {
         if (html !== undefined) {
             this.element.innerHTML = html;
+        }
+        if (styles !== undefined) {
+            Object.assign(this.element.style, styles);
         }
     }
 
@@ -93,9 +125,12 @@ export class CrosshairLabel extends BaseProperties {
         this.domManager.removeChild('canvas-overlay', `crosshair-label-${this.id}`);
     }
 
-    toLabelHtml(input: string | AgCrosshairLabelRendererResult, defaults?: AgCrosshairLabelRendererResult): string {
+    toLabelHtml(
+        input: string | AgCrosshairLabelRendererResult,
+        defaults?: AgCrosshairLabelRendererResult
+    ): { html: string; styles: Record<string, StyleValue> } {
         if (typeof input === 'string') {
-            return input;
+            return { html: input, styles: {} };
         }
 
         defaults = defaults ?? {};
@@ -107,9 +142,16 @@ export class CrosshairLabel extends BaseProperties {
             opacity = defaults.opacity ?? 1,
         } = input;
 
-        const style = `opacity: ${opacity}; background-color: ${backgroundColor?.toLowerCase()}; color: ${color}`;
-        return `<div class="ag-charts-crosshair-label-content" style="${style}">
+        const styles: Record<string, StyleValue> = {
+            opacity,
+            'background-color': backgroundColor?.toLowerCase(),
+            color,
+        };
+        return {
+            html: `<div class="ag-charts-crosshair-label-content">
                     <span>${text}</span>
-                </div>`;
+                </div>`,
+            styles,
+        };
     }
 }

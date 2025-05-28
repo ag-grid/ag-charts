@@ -1,7 +1,7 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, GeoJSON, PixelSize } from '../../chart/types';
+import type { CssColor, GeoJSON, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -17,7 +17,7 @@ export type AgMapShapeSeriesStyle = FillOptions & StrokeOptions & LineDashOption
 
 export type AgMapShapeSeriesLabelFormatterParams = AgMapShapeSeriesOptionsKeys & AgMapShapeSeriesOptionsNames;
 
-export type AgMapShapeSeriesItemStylerParams<TDatum = any> = DatumCallbackParams<TDatum> &
+export type AgMapShapeSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
     AgMapShapeSeriesOptionsKeys &
     Required<AgMapShapeSeriesStyle>;
 
@@ -39,7 +39,7 @@ export interface AgMapShapeSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgMapShapeSeriesThemeableOptions<TDatum = any>
+export interface AgMapShapeSeriesThemeableOptions<TDatum = TDatumDefault>
     extends AgMapShapeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
@@ -51,13 +51,13 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = any>
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapShapeSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Map shape based on the input parameters. */
-    itemStyler?: Styler<AgMapShapeSeriesItemStylerParams, AgMapShapeSeriesStyle>;
+    itemStyler?: Styler<AgMapShapeSeriesItemStylerParams<TDatum>, AgMapShapeSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapShapeSeriesHighlightStyle<TDatum>;
 }
 
-export interface AgMapShapeSeriesOptions<TDatum = any>
-    extends Omit<AgBaseSeriesOptions<TDatum>, 'highlightStyle'>,
+export interface AgMapShapeSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
         AgMapShapeSeriesOptionsKeys,
         AgMapShapeSeriesOptionsNames,
         AgMapShapeSeriesThemeableOptions<TDatum> {

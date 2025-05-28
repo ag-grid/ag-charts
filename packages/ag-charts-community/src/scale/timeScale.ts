@@ -4,7 +4,7 @@ import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 import { intervalFloor, intervalMilliseconds, intervalRange, intervalRangeCount } from '../util/time';
 import { normalizeContinuousDomains } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
-import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams, ScaleTickResult } from './scale';
+import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from './scale';
 
 const MAX_BANDS = 50e6; // Max array length is ~4bn
 
@@ -169,13 +169,5 @@ export class TimeScale extends DiscreteTimeScale {
         const { bands } = this;
         const target = value.valueOf();
         return findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= target);
-    }
-
-    override datumFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
-        const formatter = this.tickFormatter(params, 1);
-        return (date: Date) => {
-            const index = this.findIndex(date);
-            return index != null ? formatter(this.bands[index]) : formatter(date);
-        };
     }
 }

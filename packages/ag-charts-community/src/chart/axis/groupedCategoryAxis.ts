@@ -182,6 +182,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const optionsMap = this.getDepthOptionsMap(maxDepth);
         const labelSpacing = sideFlag * optionsMap[0].spacing;
 
+        const tickFormatter = this.tickFormatter(this.scale.domain, this.scale.domain, false);
+
         const setLabelProps = (datum: TreeNode, index: number) => {
             const depth = maxDepth - datum.depth;
 
@@ -189,7 +191,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 return false;
             }
 
-            const text = this.formatTick(datum.label, index - 1, this.scale.domain);
+            const text = tickFormatter(datum.label, index - 1);
             const labelStyles = this.getLabelStyles({ value: text, depth }, depthOptions[depth]?.label);
 
             tempText.setProperties({
@@ -484,5 +486,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
             seen.add(key);
             return true;
         });
+    }
+
+    protected override defaultFormatter(datum: unknown): string {
+        return Array.isArray(datum) ? datum.filter(Boolean).join(' - ') : String(datum);
     }
 }

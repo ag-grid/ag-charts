@@ -4,6 +4,7 @@ import type {
     AgSeriesAreaContextMenuActionEvent,
 } from './eventOptions';
 import type { AgChartLegendContextMenuEvent } from './legendOptions';
+import type { TDatumDefault } from './types';
 
 export type AgContextMenuItemLiteral =
     | 'defaults'
@@ -19,7 +20,7 @@ export type AgContextMenuItemShowOn = 'always' | 'series-area' | 'series-node' |
 
 export type AgContextMenuItemType = 'action' | 'separator';
 
-interface ItemMixin {
+interface ItemMixin<TDatum> {
     /**
      * The type of UI element that this item represents.
      *
@@ -40,10 +41,10 @@ interface ItemMixin {
      * Default: `true` */
     enabled?: boolean;
     /** The submenu items. If undefined or empty, then this item will just be treat like a regular menu item. Otherwise, this menu item will have a submenu popup attached to it. */
-    items?: AgContextMenuItem[];
+    items?: AgContextMenuItem<TDatum>[];
 }
 
-export interface AgContextMenuItemAlways extends ItemMixin {
+export interface AgContextMenuItemAlways<TDatum = TDatumDefault> extends ItemMixin<TDatum> {
     /**
      * Which clicked element this menu item should be shown for. `'always'` menu items are always shown.
      *
@@ -54,7 +55,7 @@ export interface AgContextMenuItemAlways extends ItemMixin {
     action?: (event: AgChartContextMenuEvent) => void;
 }
 
-export interface AgContextMenuItemSeriesArea extends ItemMixin {
+export interface AgContextMenuItemSeriesArea<TDatum = TDatumDefault> extends ItemMixin<TDatum> {
     /**
      *  Which clicked element this menu item should be shown for. `'series-area'` menu items are shown when clicking anywhere within the series area bounds.
      */
@@ -63,16 +64,16 @@ export interface AgContextMenuItemSeriesArea extends ItemMixin {
     action?: (event: AgSeriesAreaContextMenuActionEvent) => void;
 }
 
-export interface AgContextMenuItemSeriesNode extends ItemMixin {
+export interface AgContextMenuItemSeriesNode<TDatum = TDatumDefault> extends ItemMixin<TDatum> {
     /**
      *  Which clicked element this menu item should be shown for. `'series-node'` menu items are shown when clicking when clicking on a datum node.
      */
     showOn: 'series-node';
     /** Function called when clicking on this menu item. */
-    action?: (event: AgNodeContextMenuActionEvent) => void;
+    action?: (event: AgNodeContextMenuActionEvent<TDatum>) => void;
 }
 
-export interface AgContextMenuItemLegendItem extends ItemMixin {
+export interface AgContextMenuItemLegendItem<TDatum = TDatumDefault> extends ItemMixin<TDatum> {
     /**
      *  Which clicked element this menu item should be shown for. `'legend-item'` menu items are shown when clicking on a legend item.
      */
@@ -81,14 +82,14 @@ export interface AgContextMenuItemLegendItem extends ItemMixin {
     action?: (event: AgChartLegendContextMenuEvent) => void;
 }
 
-export type AgContextMenuItem =
+export type AgContextMenuItem<TDatum = TDatumDefault> =
     | AgContextMenuItemLiteral
-    | AgContextMenuItemAlways
-    | AgContextMenuItemSeriesArea
-    | AgContextMenuItemSeriesNode
-    | AgContextMenuItemLegendItem;
+    | AgContextMenuItemAlways<TDatum>
+    | AgContextMenuItemSeriesArea<TDatum>
+    | AgContextMenuItemSeriesNode<TDatum>
+    | AgContextMenuItemLegendItem<TDatum>;
 
-export interface AgContextMenuOptions {
+export interface AgContextMenuOptions<TDatum = TDatumDefault> {
     /**
      * Whether to show the context menu.
      *
@@ -100,5 +101,5 @@ export interface AgContextMenuOptions {
      *
      * Default: `['defaults']`
      */
-    items?: AgContextMenuItem[];
+    items?: AgContextMenuItem<TDatum>[];
 }

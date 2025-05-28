@@ -45,7 +45,10 @@ export function stripOutExampleGeneratorCode(files: FileContents) {
     });
 
     const e2eStyleRegex = getSnippetRegex({ startDelimiter: E2E_STYLE_START, endDelimiter: E2E_STYLE_END });
-    files['index.html'] = files['index.html']?.replace(e2eStyleRegex, '').trim();
+
+    if (files['index.html']) {
+        files['index.html'] = files['index.html']?.replace(e2eStyleRegex, '').trim();
+    }
 }
 
 /**
@@ -71,8 +74,14 @@ export const CodeViewer = ({
     const [activeFile, setActiveFile] = useState(initialSelectedFile);
     const [showFiles, setShowFiles] = useState(true);
 
-    const exampleFiles = Object.keys(files);
-    stripOutExampleGeneratorCode(files);
+    const [exampleFiles, setExampleFiles] = useState<FileContents>({ ...files });
+
+    useEffect(() => {
+        const newFiles = { ...files };
+
+        stripOutExampleGeneratorCode(newFiles);
+        setExampleFiles(newFiles);
+    }, [files]);
 
     useEffect(() => {
         setActiveFile(initialSelectedFile);
@@ -112,7 +121,7 @@ export const CodeViewer = ({
             <div className={styles.inner}>
                 <div className={styles.files}>
                     <ul className="list-style-none">
-                        {exampleFiles.map((path) => (
+                        {Object.keys(exampleFiles).map((path) => (
                             <FileItem
                                 key={path}
                                 path={path}
@@ -128,9 +137,9 @@ export const CodeViewer = ({
                     )}
                 </div>
                 <div className={styles.code}>
-                    {!files && <FileView path={'loading.js'} code={'// Loading...'} />}
-                    {files && activeFile && files[activeFile] && (
-                        <FileView key={activeFile} path={activeFile} code={files[activeFile]} />
+                    {!exampleFiles && <FileView path={'loading.js'} code={'// Loading...'} />}
+                    {exampleFiles && activeFile && exampleFiles[activeFile] && (
+                        <FileView key={activeFile} path={activeFile} code={exampleFiles[activeFile]} />
                     )}
                 </div>
             </div>
