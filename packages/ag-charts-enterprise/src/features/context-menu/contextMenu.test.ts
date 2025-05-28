@@ -6,6 +6,7 @@ import {
     contextMenuAction,
     expectWarningsCalls,
     longTapAction,
+    setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -15,6 +16,7 @@ import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 
 describe('Context Menu', () => {
     setupMockConsole();
+    setupMockCanvas();
 
     let chart: any;
 
