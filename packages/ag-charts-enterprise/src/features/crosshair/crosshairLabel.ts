@@ -5,6 +5,7 @@ import { createId, setAttribute } from 'ag-charts-core';
 const { BaseProperties, Property, FormatManager } = _ModuleSupport;
 
 const DEFAULT_LABEL_CLASS = 'ag-charts-crosshair-label';
+type StyleValue = string | number | undefined;
 
 interface FormatterCache {
     type: string;
@@ -97,9 +98,12 @@ export class CrosshairLabel extends BaseProperties {
         this.toggle(true);
     }
 
-    setLabelHtml(html?: string) {
+    setLabelHtml({ html, styles }: { html?: string; styles?: Record<string, StyleValue> }) {
         if (html !== undefined) {
             this.element.innerHTML = html;
+        }
+        if (styles !== undefined) {
+            Object.assign(this.element.style, styles);
         }
     }
 
@@ -121,9 +125,12 @@ export class CrosshairLabel extends BaseProperties {
         this.domManager.removeChild('canvas-overlay', `crosshair-label-${this.id}`);
     }
 
-    toLabelHtml(input: string | AgCrosshairLabelRendererResult, defaults?: AgCrosshairLabelRendererResult): string {
+    toLabelHtml(
+        input: string | AgCrosshairLabelRendererResult,
+        defaults?: AgCrosshairLabelRendererResult
+    ): { html: string; styles: Record<string, StyleValue> } {
         if (typeof input === 'string') {
-            return input;
+            return { html: input, styles: {} };
         }
 
         defaults = defaults ?? {};
@@ -135,9 +142,16 @@ export class CrosshairLabel extends BaseProperties {
             opacity = defaults.opacity ?? 1,
         } = input;
 
-        const style = `opacity: ${opacity}; background-color: ${backgroundColor?.toLowerCase()}; color: ${color}`;
-        return `<div class="ag-charts-crosshair-label-content" style="${style}">
+        const styles: Record<string, StyleValue> = {
+            opacity,
+            'background-color': backgroundColor?.toLowerCase(),
+            color,
+        };
+        return {
+            html: `<div class="ag-charts-crosshair-label-content">
                     <span>${text}</span>
-                </div>`;
+                </div>`,
+            styles,
+        };
     }
 }
