@@ -3,7 +3,7 @@ import type { DateFormatterStyle, FormatterParams, TimeInterval, TimeIntervalUni
 import type { ModuleContext } from '../../module/moduleContext';
 import { ContinuousTimeScale } from '../../scale/continuousTimeScale';
 import { Property } from '../../util/properties';
-import { intervalEpoch, intervalStep, intervalUnit } from '../../util/time';
+import { intervalEpoch, intervalMilliseconds, intervalStep, intervalUnit } from '../../util/time';
 import {
     domainSpansMultipleYears,
     lowestGranularityUnitForTicks,
@@ -14,7 +14,7 @@ import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
-import { TimeAxisParentLevel, normaliseTimeDataDomain } from './timeAxis';
+import { TimeAxisParentLevel, calculateDefaultUnit, normaliseTimeDataDomain } from './timeAxis';
 
 export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, number | Date> {
     static readonly className = 'ContinuousTimeAxis';
@@ -28,6 +28,8 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
 
     @Property
     max?: Date | number = undefined;
+
+    private minGranularity: TimeIntervalUnit | undefined = undefined;
 
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new ContinuousTimeScale());
@@ -43,6 +45,13 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
 
     override normaliseDataDomain(d: Date[]) {
         return normaliseTimeDataDomain(d, this.min, this.max);
+    }
+
+    protected override updateScale(): void {
+        super.updateScale();
+
+        const { boundSeries, direction, min, max } = this;
+        this.minGranularity = calculateDefaultUnit(boundSeries, direction, min, max)?.unit;
     }
 
     override tickFormatParams(
@@ -64,7 +73,19 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
-        timeInterval ??= lowestGranularityUnitForValue(value);
+        if (timeInterval == null) {
+            const { minGranularity } = this;
+            const datumGranularity = lowestGranularityUnitForValue(value);
+            if (
+                minGranularity != null &&
+                intervalMilliseconds(minGranularity) < intervalMilliseconds(datumGranularity)
+            ) {
+                timeInterval = minGranularity;
+            } else {
+                timeInterval = datumGranularity;
+            }
+        }
+
         const { datum, key, source, property } = params;
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);

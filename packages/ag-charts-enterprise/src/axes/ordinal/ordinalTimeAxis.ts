@@ -12,10 +12,12 @@ const {
     TimeAxisParentLevel,
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
+    calculateDefaultUnit,
     domainSpansMultipleYears,
     intervalUnit,
     intervalStep,
     intervalEpoch,
+    intervalMilliseconds,
 } = _ModuleSupport;
 
 export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.OrdinalTimeScale> {
@@ -24,6 +26,8 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
 
     @Property
     readonly parentLevel = new TimeAxisParentLevel();
+
+    private minGranularity: TimeIntervalUnit | undefined = undefined;
 
     override get primaryLabel(): _ModuleSupport.AxisLabel | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
@@ -35,6 +39,13 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, new OrdinalTimeScale());
+    }
+
+    protected override updateScale(): void {
+        super.updateScale();
+
+        const { boundSeries, direction } = this;
+        this.minGranularity = calculateDefaultUnit(boundSeries, direction, undefined, undefined)?.unit;
     }
 
     override tickFormatParams(
@@ -56,7 +67,19 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
-        timeInterval ??= lowestGranularityUnitForValue(value);
+        if (timeInterval == null) {
+            const { minGranularity } = this;
+            const datumGranularity = lowestGranularityUnitForValue(value);
+            if (
+                minGranularity != null &&
+                intervalMilliseconds(minGranularity) < intervalMilliseconds(datumGranularity)
+            ) {
+                timeInterval = minGranularity;
+            } else {
+                timeInterval = datumGranularity;
+            }
+        }
+
         const { datum, key, source, property } = params;
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
