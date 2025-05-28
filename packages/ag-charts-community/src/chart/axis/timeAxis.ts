@@ -58,7 +58,7 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
         super(moduleCtx, new TimeScale());
     }
 
-    private defaultUnit(): TimeInterval | undefined {
+    private getDefaultUnit(): TimeInterval | undefined {
         const { direction, min, max } = this;
 
         let start = Infinity;
@@ -100,20 +100,17 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
         return { unit, step, epoch };
     }
 
-    private _defaultUnit: TimeInterval | undefined = undefined;
+    private defaultUnit: TimeInterval | undefined = undefined;
+
     protected override updateScale(): void {
         super.updateScale();
 
-        let { unit } = this;
-        if (unit == null) {
-            const defaultUnit = this.defaultUnit();
-            unit = objectsEqual(this._defaultUnit, defaultUnit) ? this._defaultUnit : defaultUnit;
-            this._defaultUnit = defaultUnit;
-        } else {
-            this._defaultUnit = undefined;
+        const defaultUnit = this.getDefaultUnit();
+        if (!objectsEqual(this.defaultUnit, defaultUnit)) {
+            this.defaultUnit = defaultUnit;
         }
 
-        this.scale.interval = unit;
+        this.scale.interval = this.unit ?? this.defaultUnit;
     }
 
     override normaliseDataDomain(domain: Date[]) {
@@ -154,7 +151,7 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
-        const interval = this.unit ?? this.defaultUnit() ?? 'millisecond';
+        const interval = this.unit ?? this.defaultUnit ?? 'millisecond';
 
         value = intervalFloor(interval, value); // Align to scale
         timeInterval ??= interval;
