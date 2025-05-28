@@ -205,7 +205,7 @@ export abstract class Node<D = any> {
                 throw e;
             }
 
-            Logger.warnOnce('Error during rendering', e);
+            Logger.warnOnce('Error during rendering', e, e.stack);
         } finally {
             renderCtx.ctx.restore();
         }

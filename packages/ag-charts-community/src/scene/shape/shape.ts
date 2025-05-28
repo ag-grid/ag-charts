@@ -239,7 +239,7 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected applyFillAndAlpha(ctx: CanvasContext) {
-        const { fill, fillGradient, fillPattern, fillImage, fillOpacity, opacity } = this;
+        const { fill, fillGradient, fillPattern, fillImage, fillOpacity = 1, opacity = 1 } = this;
 
         ctx.globalAlpha *= opacity * fillOpacity;
 
@@ -268,7 +268,7 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected applyStrokeAndAlpha(ctx: CanvasContext) {
-        const { stroke, strokeOpacity, strokeGradient, opacity } = this;
+        const { stroke, strokeOpacity = 1, strokeGradient, opacity = 1 } = this;
 
         ctx.strokeStyle =
             strokeGradient?.createGradient(ctx as any, this.getBBox()) ??

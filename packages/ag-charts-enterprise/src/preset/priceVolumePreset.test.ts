@@ -53,7 +53,7 @@ describe('priceVolumePreset', () => {
     const snapshot = async () => {
         await waitForChartStability(chart);
 
-        return ctx.nodeCanvas?.toBuffer('raw');
+        return ctx.nodeCanvas?.getContext('2d').getImageData(0, 0, ctx.nodeCanvas.width, ctx.nodeCanvas.height);
     };
 
     const compareImageDataUrl = async () => {
@@ -67,7 +67,7 @@ describe('priceVolumePreset', () => {
         expect(imagePNGData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
 
         const imageRaw = ctx.getActiveCanvasInstances()[canvasCount];
-        expect(imageRaw.toBuffer('raw')).toMatchImage(reference);
+        expect(imageRaw.getContext('2d').getImageData(0, 0, imageRaw.width, imageRaw.height)).toMatchImage(reference);
     };
 
     describe('#createFinancialChart', () => {

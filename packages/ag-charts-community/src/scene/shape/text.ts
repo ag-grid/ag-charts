@@ -247,6 +247,10 @@ export class Text<D = any> extends Shape<D> {
     ): void {
         const { lines, x, y } = this;
 
+        if (isNaN(x) || isNaN(y) || isNaN(offsetY) || isNaN(lineHeight)) {
+            return;
+        }
+
         for (const line of lines) {
             renderCallback(line, x, y + offsetY);
             offsetY += lineHeight;
