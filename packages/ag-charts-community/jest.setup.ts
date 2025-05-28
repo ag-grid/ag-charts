@@ -6,16 +6,17 @@ import { TextDecoder, TextEncoder } from 'util';
 
 import { toMatchImage } from './src/chart/test/utils';
 
-global.Blob = Blob;
+// @ts-expect-error types don't exactly align
+global.OffscreenCanvas ??= Canvas;
 
 // @ts-expect-error types don't exactly align
-global.DOMMatrix = DOMMatrix;
+global.DOMMatrix ??= DOMMatrix;
 
 // @ts-expect-error types don't exactly align
 global.Image = Image;
 
 // @ts-expect-error types don't exactly align
-global.Path2D = Path2D;
+global.Path2D ??= Path2D;
 
 // @ts-expect-error types don't exactly align
 global.TextDecoder = TextDecoder;

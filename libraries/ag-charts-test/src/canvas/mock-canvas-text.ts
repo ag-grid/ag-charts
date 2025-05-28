@@ -1,5 +1,3 @@
-import { CanvasRenderingContext2D, type TextMetrics } from 'skia-canvas';
-
 export function mockCanvasText(context: CanvasRenderingContext2D): CanvasRenderingContext2D {
     // Returning a proxy doesn't seem to work here
     context.measureText = (text: string, _maxWidth?: number) => measureText(context, text);
