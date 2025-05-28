@@ -1,7 +1,15 @@
 export type EventListener<T> = (event: T) => void;
 
+interface StrictMap<EventMap extends object> {
+    clear(): void;
+    has(key: keyof EventMap): boolean;
+    delete(key: keyof EventMap): boolean;
+    set<K extends keyof EventMap>(key: K, value: Set<EventListener<EventMap[K]>>): this;
+    get<K extends keyof EventMap>(key: K): Set<EventListener<EventMap[K]>> | undefined;
+}
+
 export class EventEmitter<EventMap extends object> {
-    private readonly events = new Map<keyof EventMap, Set<EventListener<any>>>();
+    private readonly events: StrictMap<EventMap> = new Map();
 
     /**
      * Registers an event listener.
