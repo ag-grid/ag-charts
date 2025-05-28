@@ -1,4 +1,4 @@
-import { Canvas, DOMMatrix, type CanvasRenderingContext2D as NodeCanvasRenderingContext2D } from 'canvas';
+import { Canvas, DOMMatrix, type CanvasRenderingContext2D as NodeCanvasRenderingContext2D } from 'skia-canvas';
 
 interface ColorStop {
     offset: number;
@@ -91,7 +91,7 @@ export class ConicGradient {
 
         const pattern = ctx.createPattern(externalCanvas, 'no-repeat');
         (pattern as any).__skipSetTransformWorkaround = true;
-        pattern.setTransform(new DOMMatrix([1, 0, 0, 1, -tx, -ty]));
+        pattern?.setTransform(new DOMMatrix([1, 0, 0, 1, -tx, -ty]));
 
         return pattern;
     }

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Canvas, CanvasPattern, CanvasRenderingContext2D, type DOMMatrix, Image, createCanvas } from 'canvas';
+import { Canvas, CanvasRenderingContext2D, Image } from 'skia-canvas';
 
-import { ConicGradient } from './conicGradient';
 import { mockCanvasText } from './mock-canvas-text';
 
 // node-canvas does not support createImageBitmap() yet (https://github.com/Automattic/node-canvas/issues/876).
@@ -23,61 +22,61 @@ Object.defineProperty(Canvas.prototype, 'transferToImageBitmap', {
     configurable: true,
 });
 
-Object.defineProperty(CanvasRenderingContext2D.prototype, 'createConicGradient', {
-    value: function createConicGradient(startAngle: number, x: number, y: number) {
-        return new ConicGradient(this, startAngle, x, y);
-    },
-    enumerable: false,
-    writable: true,
-    configurable: true,
-});
+// Object.defineProperty(CanvasRenderingContext2D.prototype, 'createConicGradient', {
+//     value: function createConicGradient(startAngle: number, x: number, y: number) {
+//         return new ConicGradient(this, startAngle, x, y);
+//     },
+//     enumerable: false,
+//     writable: true,
+//     configurable: true,
+// });
 
 // https://github.com/Automattic/node-canvas/issues/1852
-const context2dTransform = CanvasRenderingContext2D.prototype.transform;
-Object.defineProperty(CanvasRenderingContext2D.prototype, 'transform', {
-    value: function transform(a: number, b: number, c: number, d: number, e: number, f: number) {
-        if (a === 0) {
-            context2dTransform.call(this, 1e-6, 0, 0, 1e-6, 0, 0);
-            return;
-        }
+// const context2dTransform = CanvasRenderingContext2D.prototype.transform;
+// Object.defineProperty(CanvasRenderingContext2D.prototype, 'transform', {
+//     value: function transform(a: number, b: number, c: number, d: number, e: number, f: number) {
+//         if (a === 0) {
+//             context2dTransform.call(this, 1e-6, 0, 0, 1e-6, 0, 0);
+//             return;
+//         }
 
-        context2dTransform.call(this, a, b, c, d, e, f);
-    },
-    enumerable: false,
-    writable: true,
-    configurable: true,
-});
+//         context2dTransform.call(this, a, b, c, d, e, f);
+//     },
+//     enumerable: false,
+//     writable: true,
+//     configurable: true,
+// });
 
 // https://github.com/Automattic/node-canvas/issues/1852
-const context2dCreatePattern = CanvasRenderingContext2D.prototype.createPattern;
-Object.defineProperty(CanvasRenderingContext2D.prototype, 'createPattern', {
-    value: function createPattern(image: any, repeat: any) {
-        const pattern = context2dCreatePattern.call(this, image, repeat);
-        if (image instanceof Image) {
-            (pattern as any).__skipSetTransformWorkaround = true;
-        }
-        return pattern;
-    },
-    enumerable: false,
-    writable: true,
-    configurable: true,
-});
+// const context2dCreatePattern = CanvasRenderingContext2D.prototype.createPattern;
+// Object.defineProperty(CanvasRenderingContext2D.prototype, 'createPattern', {
+//     value: function createPattern(image: any, repeat: any) {
+//         const pattern = context2dCreatePattern.call(this, image, repeat);
+//         if (image instanceof Image) {
+//             (pattern as any).__skipSetTransformWorkaround = true;
+//         }
+//         return pattern;
+//     },
+//     enumerable: false,
+//     writable: true,
+//     configurable: true,
+// });
 
-const canvasPatternSetTransform = CanvasPattern.prototype.setTransform;
-Object.defineProperty(CanvasPattern.prototype, 'setTransform', {
-    value: function setTransform(matrix: DOMMatrix) {
-        if (this.__skipSetTransformWorkaround !== true) {
-            // Node canvas has bugs with pattern translations
-            matrix.e = 0;
-            matrix.f = 0;
-        }
+// const canvasPatternSetTransform = CanvasPattern.prototype.setTransform;
+// Object.defineProperty(CanvasPattern.prototype, 'setTransform', {
+//     value: function setTransform(matrix: DOMMatrix) {
+//         if (this.__skipSetTransformWorkaround !== true) {
+//             // Node canvas has bugs with pattern translations
+//             matrix.e = 0;
+//             matrix.f = 0;
+//         }
 
-        canvasPatternSetTransform.call(this, matrix);
-    },
-    enumerable: false,
-    writable: true,
-    configurable: true,
-});
+//         canvasPatternSetTransform.call(this, matrix);
+//     },
+//     enumerable: false,
+//     writable: true,
+//     configurable: true,
+// });
 
 export class MockContext {
     ctx: {
@@ -99,7 +98,7 @@ export class MockContext {
         public realCreateElement: Document['createElement'] = document.createElement,
         public realOffscreenCanvas: typeof global.OffscreenCanvas = global.OffscreenCanvas
     ) {
-        const nodeCanvas = createCanvas(width, height);
+        const nodeCanvas = new Canvas(width, height);
 
         this.ctx = {
             nodeCanvas,
@@ -172,14 +171,14 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
 
     const { width, height, document } = mockCtx;
 
-    const nodeCanvas = createCanvas(width, height);
+    const nodeCanvas = new Canvas(width, height);
     mockCtx.ctx.nodeCanvas = nodeCanvas;
     mockCtx.canvasStack = [nodeCanvas];
 
-    if (typeof window !== 'undefined') {
-        (window as any)['agChartsSceneRenderModel'] = 'composite';
-    } else {
+    if (typeof window === 'undefined') {
         (global as any)['agChartsSceneRenderModel'] = 'composite';
+    } else {
+        (window as any)['agChartsSceneRenderModel'] = 'composite';
     }
 
     const realCreateElement = document.createElement;
@@ -189,13 +188,13 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
         if (element === 'canvas') {
             const mockedElement = realCreateElement.call(document, element, options) as HTMLCanvasElement;
 
-            const nextCanvas = mockCtx.canvasStack.shift() ?? createCanvas(width, height);
+            const nextCanvas = mockCtx.canvasStack.shift() ?? new Canvas(width, height);
             mockCtx.registerCanvasInstance(nextCanvas);
 
             proxyGetContext2D(mockCtx, nextCanvas, mockedElement);
 
-            mockedElement.toDataURL = (mimeType?: 'image/png') => {
-                return nextCanvas.toDataURL(mimeType ?? 'image/png');
+            mockedElement.toDataURL = (mimeType?: 'png') => {
+                return nextCanvas.toDataURLSync(mimeType ?? 'png');
             };
 
             return mockedElement;

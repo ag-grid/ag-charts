@@ -1,7 +1,7 @@
-import { Canvas, type CanvasRenderingContext2D } from 'canvas';
 import { JSDOM } from 'jsdom';
 import path from 'path';
 import sharp from 'sharp';
+import { Canvas, type CanvasRenderingContext2D } from 'skia-canvas';
 
 import { type AgChartThemeName, AgCharts } from 'ag-charts-community';
 import 'ag-charts-enterprise';
@@ -131,11 +131,11 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
                 height * dpi
             );
         } else {
-            output.buffer = mockCtx.ctx.nodeCanvas.toBuffer('image/png');
+            output.buffer = mockCtx.ctx.nodeCanvas.toBufferSync('png');
         }
     }
 
-    const buffer = output.multiple === true ? output.canvas.toBuffer('image/png') : output.buffer;
+    const buffer = output.multiple === true ? output.canvas.toBufferSync('png') : output.buffer;
 
     const sharpBuffer = sharp(buffer);
 

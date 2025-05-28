@@ -1,8 +1,7 @@
 import { expect, jest } from '@jest/globals';
 import { Blob } from 'buffer';
-import { CanvasRenderingContext2D, DOMMatrix, Image } from 'canvas';
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
-import { Path2D, applyPath2DToCanvasRenderingContext } from 'path2d';
+import { DOMMatrix, Image, Path2D } from 'skia-canvas';
 import { URL } from 'url';
 
 import { toMatchImage } from 'ag-charts-community-test';
@@ -34,8 +33,6 @@ global.HTMLElement.prototype.togglePopover = function (visible) {
 
     return visible;
 };
-
-applyPath2DToCanvasRenderingContext(CanvasRenderingContext2D);
 
 declare module 'expect' {
     interface Matchers<R> {

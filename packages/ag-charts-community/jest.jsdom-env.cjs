@@ -1,5 +1,5 @@
 const { TestEnvironment } = require('jest-environment-jsdom');
-const { Canvas, DOMMatrix, Image } = require('canvas');
+const { Canvas, DOMMatrix, Image } = require('skia-canvas');
 const timezoneMock = require('timezone-mock');
 
 /**
