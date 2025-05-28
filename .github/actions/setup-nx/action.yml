@@ -124,6 +124,7 @@ runs:
 
         - name: Restore Nx
           if: inputs.cache_mode == 'ro' && inputs.nx_restore != 'false'
+          id: cache_nx_ro
           uses: actions/cache/restore@v4
           with:
               path: |
@@ -131,6 +132,20 @@ runs:
                   .nx/workspace-data
               key: cache-nx-v20-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
               restore-keys: cache-nx-v20-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
+
+        - name: Restore node_modules check
+          if: inputs.cache_mode == 'ro' && steps.cache_ro.outputs.cache-hit != 'true'
+          shell: bash
+          run: |
+              echo "node_modules/ was not restored from cache - aborting, please check logs above." >&2
+              exit 1
+
+        - name: Restore Nx check
+          if: inputs.cache_mode == 'ro' && inputs.nx_restore != 'false' && steps.cache_nx_ro.outputs.cache-hit != 'true'
+          shell: bash
+          run: |
+              echo ".nx/cache was not restored from cache - aborting, please check logs above." >&2
+              exit 1
 
         - name: Tidy Nx Cache (Post Job)
           uses: ./.github/actions/tidy-nx-cache
