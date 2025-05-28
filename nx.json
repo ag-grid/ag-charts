@@ -209,7 +209,7 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "{projectRoot}",
-        "command": "npx eslint --quiet"
+        "command": "npx eslint"
       },
       "cache": true,
       "inputs": [
