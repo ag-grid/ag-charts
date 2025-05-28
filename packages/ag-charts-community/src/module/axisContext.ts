@@ -2,8 +2,10 @@ import type { BoxBounds } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
+import type { AxisBandDatum } from '../chart/interaction/axisHighlightManager';
 import type { Scale } from '../scale/scale';
 import type { Node } from '../scene/node';
+import type { Point } from '../scene/point';
 
 export type ContextFormatter<Params> = (
     fn: (params: Params) => string | undefined,
@@ -31,4 +33,5 @@ export interface AxisContext {
     attachLabel(node: Node): void;
     inRange(value: number, tolerance?: number): boolean;
     getRangeOverflow(value: number): number;
+    pickBand(point: Point): AxisBandDatum | undefined;
 }

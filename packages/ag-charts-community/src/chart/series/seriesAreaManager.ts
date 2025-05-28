@@ -15,7 +15,9 @@ import { debouncedAnimationFrame } from '../../util/render';
 import { Vec4 } from '../../util/vector4';
 import type { Widget } from '../../widget/widget';
 import type {
+    ClickLikeEvent,
     DragWidgetEvent,
+    HoverLikeEvent,
     KeyboardSyntheticMouseWidgetEvent,
     KeyboardWidgetEvent,
     MouseWidgetEvent,
@@ -59,9 +61,6 @@ export interface SeriesAreaChartDependencies {
     overlays: ChartOverlays;
     mode: ChartMode;
 }
-
-type ClickLikeEvent = MouseWidgetEvent<'click' | 'dblclick'> & { device: 'mouse' | 'touch' };
-type HoverLikeEvent = ClickLikeEvent | MouseWidgetEvent<'mousemove'> | DragWidgetEvent<'drag-move'>;
 
 type PickedNodes = {
     matches: PickedNode[];
