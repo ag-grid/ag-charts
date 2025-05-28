@@ -623,10 +623,8 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         const [d0, d1] = extents;
 
         const { scale } = axis;
-        const width = (scale.bandwidth === 0 ? scale.step : scale.bandwidth) ?? 0;
-
         let r0 = range.start == null ? d0 : scale.convert?.(range.start);
-        let r1 = range.end == null ? d1 : scale.convert?.(range.end) + width;
+        let r1 = range.end == null ? d1 : scale.convert?.(range.end) + (scale.bandwidth ?? 0);
 
         if (!isFiniteNumber(r0) || !isFiniteNumber(r1)) return;
 
