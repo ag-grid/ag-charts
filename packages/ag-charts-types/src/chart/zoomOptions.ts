@@ -10,9 +10,9 @@ export type AgAutoScaledAxes = Array<'y'>;
 
 export interface AgZoomRange {
     /** The start of the axis zoom range. */
-    start?: Date | number;
+    start?: Date | string | number;
     /** The end of the axis zoom range. */
-    end?: Date | number;
+    end?: Date | string | number;
 }
 
 export interface AgZoomRatio {
