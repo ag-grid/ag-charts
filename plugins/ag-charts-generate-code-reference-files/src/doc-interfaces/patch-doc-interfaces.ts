@@ -81,6 +81,21 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
                 } else {
                     const union = getTypeUnion(reference.get(memberTypeName));
                     specialOptions.push(...union);
+
+                    // AG-14629 Remove generic type parameter info. It's causing undesired output for context?: TContext
+                    for (const subType of union) {
+                        const subInterfaceRef = reference.get(subType);
+                        if (subInterfaceRef == null) {
+                            console.error('Cannot find API reference for', subType);
+                            unsupportedMembers.push(member);
+                        } else if (subInterfaceRef.kind !== 'interface') {
+                            console.error(`Unexpected kind: ${subInterfaceRef.kind} for ${subType}`);
+                            unsupportedMembers.push(member);
+                        } else {
+                            subInterfaceRef.genericsMap = undefined;
+                            subInterfaceRef.typeParams = undefined;
+                        }
+                    }
                 }
             }
         }
