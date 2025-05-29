@@ -10,7 +10,6 @@ import type {
     AgPresetOverrides,
     AgThemeOverrides,
     CssColor,
-    TimeIntervalUnit,
     WithThemeParams,
 } from 'ag-charts-types';
 
@@ -106,36 +105,6 @@ function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverri
     return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
 }
 
-const longTimeLabelFormat: Record<TimeIntervalUnit, string> = {
-    millisecond: '%H:%M:%S.%L',
-    second: '%H:%M:%S',
-    minute: '%H:%M',
-    hour: '%H:%M',
-    day: '%e',
-    month: '%B',
-    year: '%Y',
-};
-
-const compactTimeLabelFormat: Record<TimeIntervalUnit, string> = {
-    millisecond: '%H:%M:%S.%L',
-    second: '%H:%M:%S',
-    minute: '%H:%M',
-    hour: '%H:%M',
-    day: '%d',
-    month: '%b',
-    year: '%Y',
-};
-
-const timeDivisionLabelFormat: Record<TimeIntervalUnit, string> = {
-    millisecond: '%H:%M:%S.%L',
-    second: '%H:%M:%S',
-    minute: '%H:%M',
-    hour: '%H:%M',
-    day: '%e',
-    month: '%b',
-    year: '%Y',
-};
-
 const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
     (keyof AgCommonThemeableChartOptions)[]
 >((r, { commonOptions }) => r.concat(commonOptions), []);
@@ -209,11 +178,7 @@ export class ChartTheme {
         };
     }
 
-    private static getAxisDefaults(
-        overrideDefaults: object,
-        { title, time }: { title: boolean; time: 'off' | 'compact' | 'long' }
-    ) {
-        const timeLabelFormat = time === 'compact' ? compactTimeLabelFormat : longTimeLabelFormat;
+    private static getAxisDefaults(overrideDefaults: object, { title, time }: { title: boolean; time: boolean }) {
         return mergeDefaults(
             overrideDefaults,
             title && {
@@ -227,67 +192,7 @@ export class ChartTheme {
                     color: { $ref: 'textColor' },
                 },
             },
-            time !== 'off' && {
-                label: {
-                    format: {
-                        millisecond: {
-                            $if: [
-                                // @todo(AG-14472) - remove ../enabled fallback
-                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
-                                timeDivisionLabelFormat.millisecond,
-                                timeLabelFormat?.millisecond,
-                            ],
-                        },
-                        second: {
-                            $if: [
-                                // @todo(AG-14472) - remove ../enabled fallback
-                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
-                                timeDivisionLabelFormat.second,
-                                timeLabelFormat?.second,
-                            ],
-                        },
-                        minute: {
-                            $if: [
-                                // @todo(AG-14472) - remove ../enabled fallback
-                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
-                                timeDivisionLabelFormat.minute,
-                                timeLabelFormat?.minute,
-                            ],
-                        },
-                        hour: {
-                            $if: [
-                                // @todo(AG-14472) - remove ../enabled fallback
-                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
-                                timeDivisionLabelFormat.hour,
-                                timeLabelFormat?.hour,
-                            ],
-                        },
-                        day: {
-                            $if: [
-                                // @todo(AG-14472) - remove ../enabled fallback
-                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
-                                timeDivisionLabelFormat.day,
-                                timeLabelFormat?.day,
-                            ],
-                        },
-                        month: {
-                            $if: [
-                                // @todo(AG-14472) - remove ../enabled fallback
-                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
-                                timeDivisionLabelFormat.month,
-                                timeLabelFormat?.month,
-                            ],
-                        },
-                        year: {
-                            $if: [
-                                // @todo(AG-14472) - remove ../enabled fallback
-                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
-                                timeDivisionLabelFormat.year,
-                                timeLabelFormat?.year,
-                            ],
-                        },
-                    },
-                },
+            time && {
                 parentLevel: {
                     enabled: false,
                     label: {
@@ -298,17 +203,6 @@ export class ChartTheme {
                         spacing: { $path: '../../label/spacing' },
                         color: { $path: '../../label/color' },
                         avoidCollisions: { $path: '../../label/avoidCollisions' },
-                        format: {
-                            millisecond: {
-                                $path: ['../../../label/format/millisecond', timeDivisionLabelFormat.millisecond],
-                            },
-                            second: { $path: ['../../../label/format/second', timeDivisionLabelFormat.second] },
-                            minute: { $path: ['../../../label/format/minute', timeDivisionLabelFormat.minute] },
-                            hour: { $path: ['../../../label/format/hour', timeDivisionLabelFormat.hour] },
-                            day: { $path: ['../../../label/format/day', timeDivisionLabelFormat.day] },
-                            month: { $path: ['../../../label/format/month', timeDivisionLabelFormat.month] },
-                            year: { $path: ['../../../label/format/year', timeDivisionLabelFormat.year] },
-                        },
                     },
                     tick: {
                         enabled: { $path: '../../tick/enabled' },
@@ -484,7 +378,7 @@ export class ChartTheme {
                 line: { enabled: false },
                 crosshair: { enabled: true },
             },
-            { title: true, time: 'off' }
+            { title: true, time: false }
         ),
         [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults(
             {
@@ -493,7 +387,7 @@ export class ChartTheme {
                 line: { enabled: false },
                 crosshair: { enabled: true },
             },
-            { title: true, time: 'off' }
+            { title: true, time: false }
         ),
         [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults(
             {
@@ -503,7 +397,7 @@ export class ChartTheme {
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: false },
             },
-            { title: true, time: 'off' }
+            { title: true, time: false }
         ),
         [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults(
             {
@@ -514,7 +408,7 @@ export class ChartTheme {
                 groupPaddingInner: 0.2,
                 crosshair: { enabled: false },
             },
-            { title: true, time: 'off' }
+            { title: true, time: false }
         ),
         [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults(
             {
@@ -525,7 +419,7 @@ export class ChartTheme {
                 crosshair: { enabled: true },
                 parentLevel: { enabled: true },
             },
-            { title: true, time: 'long' }
+            { title: true, time: true }
         ),
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults(
             {
@@ -535,7 +429,7 @@ export class ChartTheme {
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: true },
             },
-            { title: true, time: 'compact' }
+            { title: true, time: true }
         ),
         [CARTESIAN_AXIS_TYPE.CONTINUOUS_TIME]: ChartTheme.getAxisDefaults(
             {
@@ -543,7 +437,7 @@ export class ChartTheme {
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: true },
             },
-            { title: true, time: 'long' }
+            { title: true, time: true }
         ),
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults(
             {
@@ -557,21 +451,21 @@ export class ChartTheme {
                     ],
                 },
             },
-            { title: false, time: 'off' }
+            { title: false, time: false }
         ),
         [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults(
             {
                 label: { spacing: 5 },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
             },
-            { title: false, time: 'off' }
+            { title: false, time: false }
         ),
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults(
             {
                 positionAngle: 0,
                 line: { enabled: false },
             },
-            { title: true, time: 'off' }
+            { title: true, time: false }
         ),
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults(
             {
@@ -585,7 +479,7 @@ export class ChartTheme {
                     ],
                 },
             },
-            { title: true, time: 'off' }
+            { title: true, time: false }
         ),
     };
 

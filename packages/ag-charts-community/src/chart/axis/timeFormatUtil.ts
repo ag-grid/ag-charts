@@ -1,5 +1,14 @@
-import { isPlainObject } from 'ag-charts-core';
 import type { TimeIntervalUnit } from 'ag-charts-types';
+
+export const defaultTimeFormats: Record<TimeIntervalUnit, string> = {
+    millisecond: '%H:%M:%S.%L',
+    second: '%H:%M:%S',
+    minute: '%H:%M',
+    hour: '%H:%M',
+    day: '%e',
+    month: '%b',
+    year: '%Y',
+};
 
 const hardCodedTimeFormats: Record<TimeIntervalUnit, string> = {
     millisecond: '%Y %b %e %H:%M:%S.%L',
@@ -30,13 +39,22 @@ const MONTH_FORMAT = /^%[-_0]?[Bbm]$/;
 const YEAR_FORMAT = /^%[-_0]?[Yy]$/;
 
 export function deriveTimeSpecifier(
-    format: string | Record<string, string>,
+    format: string | Partial<Record<string, string>> | undefined,
     unit: TimeIntervalUnit,
     includeYear = true
 ): string {
-    if (!isPlainObject(format)) return format;
+    if (typeof format === 'string') return format;
 
-    const { millisecond, second, minute, hour, day, month, year } = format;
+    format ??= defaultTimeFormats;
+    const {
+        millisecond = defaultTimeFormats.millisecond,
+        second = defaultTimeFormats.second,
+        minute = defaultTimeFormats.minute,
+        hour = defaultTimeFormats.hour,
+        day = defaultTimeFormats.day,
+        month = defaultTimeFormats.month,
+        year = defaultTimeFormats.year,
+    } = format;
     const formatOrder = FORMAT_ORDERS[unit];
     const hardcodedTimeFormat = hardCodedTimeFormats[unit];
 

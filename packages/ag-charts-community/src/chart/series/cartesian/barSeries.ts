@@ -733,12 +733,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, BarNodeDatum> }) {
         opts.labelSelection.each((textNode, datum) => {
-            updateLabelNode(
-                textNode,
-                // @ts-expect-error - Fix me
-                this.properties.label,
-                datum.label
-            );
+            updateLabelNode(textNode, this.properties.label, datum.label);
         });
     }
 

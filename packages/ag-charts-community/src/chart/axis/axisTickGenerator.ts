@@ -749,15 +749,16 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             default: {
                 if (
                     niceDomain.length > 0 &&
-                    generatePrimaryTicks &&
-                    (TimeScale.is(scale) || ContinuousTimeScale.is(scale) || OrdinalTimeScale.is(scale))
+                    tickParams.interval == null &&
+                    (TimeScale.is(scale) ||
+                        (generatePrimaryTicks && (ContinuousTimeScale.is(scale) || OrdinalTimeScale.is(scale))))
                 ) {
                     const dates = niceDomain as (Date | number)[];
                     const start = Math.min(dates[0].valueOf(), dates[dates.length - 1].valueOf());
                     const end = Math.max(dates[0].valueOf(), dates[dates.length - 1].valueOf());
                     timeInterval = getTickTimeInterval(start, end, tickCount, minTickCount, maxTickCount, {
                         weekStart: primaryLabel == null ? sunday : undefined,
-                        primaryOnly: TimeScale.is(scale),
+                        primaryOnly: true,
                     });
                 }
 
@@ -773,7 +774,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 const intervalTicks = timeInterval
                     ? this.getTimeIntervalTicks(visibleRange, tickParams, timeInterval, reverse)
                     : undefined;
-
                 if (intervalTicks) {
                     ({ ticks: rawTicks, tickCount: rawTickCount, primaryTicksIndices, interpolate } = intervalTicks);
                 } else {
@@ -792,6 +792,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             (max, tick) => Math.max(max, typeof tick === 'number' ? countFractionDigits(tick) : 0),
             0
         );
+
+        if (!generatePrimaryTicks) {
+            primaryTicksIndices = undefined;
+        }
 
         const timeStyle: DateFormatterStyle = generatePrimaryTicks ? 'component' : 'long';
         const axisTickFormatter = label.enabled
