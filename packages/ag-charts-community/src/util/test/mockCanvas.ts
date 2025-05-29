@@ -26,7 +26,7 @@ export function extractImageData({
             throw new Error('Invalid image size provided, dimensions must be greater than zero.');
         }
 
-        sourceCanvas = mockCanvas.createCanvas(width, height);
+        sourceCanvas = new mockCanvas.ConfiguredCanvas(width, height);
         sourceCanvas
             ?.getContext('2d')
             .drawImage(

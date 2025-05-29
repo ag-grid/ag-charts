@@ -47,8 +47,7 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
 
     let output: { multiple: true; canvas: Canvas; ctx: CanvasRenderingContext2D } | { multiple: false; buffer: Buffer };
     if (charts.length > 1) {
-        const canvas = mockCanvas.createCanvas(DEFAULT_THUMBNAIL_WIDTH * dpi, DEFAULT_THUMBNAIL_HEIGHT * dpi);
-        canvas.gpu = false;
+        const canvas = new mockCanvas.ConfiguredCanvas(DEFAULT_THUMBNAIL_WIDTH * dpi, DEFAULT_THUMBNAIL_HEIGHT * dpi);
         const ctx = canvas.getContext('2d');
 
         ctx.fillStyle = BACKGROUND_COLORS[theme];

@@ -3,29 +3,22 @@ import { Canvas, CanvasRenderingContext2D, Image } from 'skia-canvas';
 
 import { mockCanvasText } from './mock-canvas-text';
 
-// node-canvas does not support createImageBitmap() yet (https://github.com/Automattic/node-canvas/issues/876).
-// However, the Canvas.drawImage(img,...) method does accept a Canvas-type img parameter. So use as new Canvas
-// as an ImageBitmap.
-Object.defineProperty(Canvas.prototype, 'transferToImageBitmap', {
-    value: function transferToImageBitmap() {
+export class ConfiguredCanvas extends Canvas {
+    constructor(width: number, height: number) {
+        super(width, height);
+        this.gpu = false;
+    }
+
+    transferToImageBitmap() {
         const { width, height } = this;
-        const bitmap = createCanvas(width, height);
+        const bitmap = new ConfiguredCanvas(width, height);
         bitmap.getContext('2d').drawImage(this, 0, 0, width, height);
         Object.defineProperty(bitmap, 'close', {
             // no-op
             value: () => {},
         });
         return bitmap;
-    },
-    enumerable: false,
-    writable: true,
-    configurable: true,
-});
-
-export function createCanvas(width: number, height: number) {
-    const canvas = new Canvas(width, height);
-    canvas.gpu = false;
-    return canvas;
+    }
 }
 
 export class MockContext {
@@ -46,10 +39,9 @@ export class MockContext {
         public width: number,
         public height: number,
         public document: Document,
-        public realCreateElement: Document['createElement'] = document.createElement,
-        public realOffscreenCanvas: typeof global.OffscreenCanvas = Canvas as unknown as typeof global.OffscreenCanvas
+        public realCreateElement: Document['createElement'] = document.createElement
     ) {
-        const nodeCanvas = createCanvas(width, height);
+        const nodeCanvas = new ConfiguredCanvas(width, height);
 
         this.ctx = {
             nodeCanvas,
@@ -129,7 +121,7 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
 
     const { width, height, document } = mockCtx;
 
-    const nodeCanvas = createCanvas(width, height);
+    const nodeCanvas = new ConfiguredCanvas(width, height);
     mockCtx.ctx.nodeCanvas = nodeCanvas;
     mockCtx.canvasStack = [nodeCanvas];
 
@@ -146,7 +138,7 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
         if (element === 'canvas') {
             const mockedElement = realCreateElement.call(document, element, options) as HTMLCanvasElement;
 
-            const nextCanvas = mockCtx.canvasStack.shift() ?? createCanvas(width, height);
+            const nextCanvas = mockCtx.canvasStack.shift() ?? new ConfiguredCanvas(width, height);
             mockCtx.registerCanvasInstance(nextCanvas);
 
             proxyGetContext2D(mockCtx, nextCanvas, mockedElement);
@@ -164,13 +156,11 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
     };
 
     if (typeof window !== 'undefined') {
-        (window as any).OffscreenCanvas = class OffscreenCanvas extends mockCtx.realOffscreenCanvas {
+        (window as any).OffscreenCanvas = class OffscreenCanvas extends ConfiguredCanvas {
             constructor(w: number, h: number) {
                 super(w, h);
-                mockCtx.registerOffscreenCanvasInstance(this);
+                mockCtx.registerOffscreenCanvasInstance(this as any);
                 proxyGetContext2D(mockCtx, this as unknown as Canvas, this);
-
-                (this as any).gpu = false;
             }
         };
     }
@@ -181,7 +171,8 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
 export function teardown(mockContext: MockContext) {
     mockContext.document.createElement = mockContext.realCreateElement!;
     if (typeof window !== 'undefined') {
-        window.OffscreenCanvas = mockContext.realOffscreenCanvas;
+        // @ts-expect-error types don't exactly align
+        window.OffscreenCanvas = ConfiguredCanvas;
     }
     mockContext.destroy();
 }

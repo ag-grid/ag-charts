@@ -1,25 +1,27 @@
 import { expect } from '@jest/globals';
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
-import { Canvas, DOMMatrix, Image, Path2D } from 'skia-canvas';
+import { DOMMatrix, Image, Path2D } from 'skia-canvas';
 import { URL } from 'url';
 import { TextDecoder, TextEncoder } from 'util';
+
+import { mockCanvas } from 'ag-charts-test';
 
 import { toMatchImage } from './src/chart/test/utils';
 
 // @ts-expect-error types don't exactly align
-global.Canvas ??= Canvas;
+global.Canvas = mockCanvas.ConfiguredCanvas;
 
 // @ts-expect-error types don't exactly align
-global.OffscreenCanvas ??= Canvas;
+global.OffscreenCanvas = mockCanvas.ConfiguredCanvas;
 
 // @ts-expect-error types don't exactly align
-global.DOMMatrix ??= DOMMatrix;
+global.DOMMatrix = DOMMatrix;
 
 // @ts-expect-error types don't exactly align
 global.Image = Image;
 
 // @ts-expect-error types don't exactly align
-global.Path2D ??= Path2D;
+global.Path2D = Path2D;
 
 // @ts-expect-error types don't exactly align
 global.TextDecoder = TextDecoder;
