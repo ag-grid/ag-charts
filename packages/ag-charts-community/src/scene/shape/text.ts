@@ -247,7 +247,7 @@ export class Text<D = any> extends Shape<D> {
     ): void {
         const { lines, x, y } = this;
 
-        if (isNaN(x) || isNaN(y) || isNaN(offsetY) || isNaN(lineHeight)) {
+        if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(offsetY) || !Number.isFinite(lineHeight)) {
             return;
         }
 

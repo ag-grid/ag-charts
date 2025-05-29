@@ -39,7 +39,8 @@ export class MockContext {
         public width: number,
         public height: number,
         public document: Document,
-        public realCreateElement: Document['createElement'] = document.createElement
+        public realCreateElement: Document['createElement'] = document.createElement,
+        public realOffscreenCanvas: typeof global.OffscreenCanvas = global.OffscreenCanvas
     ) {
         const nodeCanvas = new ConfiguredCanvas(width, height);
 
@@ -171,8 +172,7 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
 export function teardown(mockContext: MockContext) {
     mockContext.document.createElement = mockContext.realCreateElement!;
     if (typeof window !== 'undefined') {
-        // @ts-expect-error types don't exactly align
-        window.OffscreenCanvas = ConfiguredCanvas;
+        window.OffscreenCanvas = mockContext.realOffscreenCanvas;
     }
     mockContext.destroy();
 }

@@ -12,5 +12,5 @@ export function resetLineSelectionsFn(
     _node: _ModuleSupport.Line,
     { x, y, width, height, opacity }: AnimatableBarDatum
 ) {
-    return { x1: x, y1: y, x2: x + width, y2: y + height, opacity };
+    return { x1: x, y1: y, x2: x + width, y2: y + height, opacity: opacity ?? 1 };
 }
