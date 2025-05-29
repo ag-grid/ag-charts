@@ -1,6 +1,7 @@
 import { type BaseStyleTypeMap, CleanupRegistry, type ElementID, createElement, setElementStyle } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
+import type { EventsHub } from '../core/eventsHub';
 import type { LocaleManager } from '../locale/localeManager';
 import { BoundedTextWidget } from '../widget/boundedTextWidget';
 import { ButtonWidget } from '../widget/buttonWidget';
@@ -121,6 +122,7 @@ export class ProxyInteractionService {
     private readonly cleanup = new CleanupRegistry();
 
     constructor(
+        private readonly eventsHub: EventsHub,
         private readonly localeManager: LocaleManager,
         private readonly domManager: DOMManager
     ) {}
@@ -132,7 +134,7 @@ export class ProxyInteractionService {
     private addLocalisation(fn: () => void) {
         fn();
         // FIXME(olegat) The result of `addListener` must be freed when the HTMLElement goes out of scope.
-        this.cleanup.register(this.localeManager.addListener('locale-changed', fn));
+        this.cleanup.register(this.eventsHub.on('locale:change', fn));
     }
 
     createProxyContainer<T extends ProxyContainerType>(

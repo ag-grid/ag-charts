@@ -6,7 +6,6 @@ import type { ChartService } from '../chart/chartService';
 import type { DataService } from '../chart/data/dataService';
 import type { FormatManager } from '../chart/formatter/formatManager';
 import type { AnimationManager } from '../chart/interaction/animationManager';
-import type { ChartEventManager } from '../chart/interaction/chartEventManager';
 import type { ContextMenuRegistry } from '../chart/interaction/contextMenuRegistry';
 import type { HighlightManager } from '../chart/interaction/highlightManager';
 import type { InteractionManager } from '../chart/interaction/interactionManager';
@@ -19,6 +18,7 @@ import type { SeriesLabelLayoutManager } from '../chart/layout/seriesLabelLayout
 import type { LegendManager } from '../chart/legend/legendManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
+import type { EventsHub } from '../core/eventsHub';
 import type { DOMManager } from '../dom/domManager';
 import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { LocaleManager } from '../locale/localeManager';
@@ -28,6 +28,7 @@ import type { CallbackCache } from '../util/callbackCache';
 export interface ModuleContext {
     readonly scene: Scene;
 
+    readonly eventsHub: EventsHub;
     readonly callbackCache: CallbackCache;
 
     readonly chartService: ChartService;
@@ -40,7 +41,6 @@ export interface ModuleContext {
 
     readonly animationManager: AnimationManager;
     readonly annotationManager: AnnotationManager;
-    readonly chartEventManager: ChartEventManager;
     readonly contextMenuRegistry: ContextMenuRegistry;
     readonly formatManager: FormatManager;
     readonly domManager: DOMManager;

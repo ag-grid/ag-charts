@@ -67,10 +67,10 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
 
         this.cleanup.register(
             ctx.scene.attachNode(this.rangeSelector),
-            ctx.localeManager.addListener('locale-changed', () => this.updateZoom()),
+            ctx.eventsHub.on('locale:change', () => this.updateZoom()),
             ctx.layoutManager.registerElement(_ModuleSupport.LayoutElement.Navigator, (e) => this.onLayoutStart(e)),
-            ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
-            ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
+            ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
+            ctx.eventsHub.on('zoom:change', (event) => this.onZoomChange(event))
         );
 
         this.domProxy = new NavigatorDOMProxy(ctx, this);

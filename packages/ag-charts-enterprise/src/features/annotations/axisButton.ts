@@ -39,10 +39,10 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
             ctx.widgets.seriesWidget.addListener('drag-move', (e) => this.onMouseDrag(e)),
             ctx.widgets.seriesWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
             ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseLeave()),
-            ctx.widgets.seriesDragInterpreter.addListener('click', (e) => this.onClick(e)),
-            ctx.chartEventManager.addListener('series-focus-change', () => this.onKeyPress()),
-            ctx.zoomManager.addListener('zoom-pan-start', () => this.hide()),
-            ctx.zoomManager.addListener('zoom-change', () => this.hide()),
+            ctx.widgets.seriesDragInterpreter.events.on('click', (e) => this.onClick(e)),
+            ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
+            ctx.eventsHub.on('zoom:pan-start', () => this.hide()),
+            ctx.eventsHub.on('zoom:change', () => this.hide()),
             () => this.destroyElements(),
             () => this.button.destroy()
         );

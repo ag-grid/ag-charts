@@ -1,43 +1,13 @@
-import { EventEmitter, type EventListener } from 'ag-charts-core';
-import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import { type EventListener } from 'ag-charts-core';
 
+import type { AxisLayout, EventsHub } from '../../core/eventsHub';
 import type { LayoutContext as ILayoutContext } from '../../module/baseModule';
-import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
-import type { ChartAxisDirection } from '../chartAxisDirection';
-
-export interface AxisLayout {
-    id: string;
-    rect: BBox;
-    gridPadding: number;
-    seriesAreaPadding: number;
-    tickSize: number;
-    label: {
-        fractionDigits: number;
-        spacing: number;
-        format?: string | Record<string, string>;
-    };
-    direction: ChartAxisDirection;
-    domain: any[];
-    scale: Scale<any, any, number | TimeInterval | TimeIntervalUnit>;
-}
-
-export type LayoutCompleteEvent = {
-    readonly type: 'layout:complete';
-    readonly chart: Readonly<{ width: number; height: number }>;
-    readonly series: Readonly<{ rect: BBox; paddedRect: BBox; visible: boolean }>;
-    readonly clipSeries: boolean;
-    readonly axes?: Readonly<AxisLayout>[];
-};
 
 export interface LayoutState {
     axes?: AxisLayout[];
     clipSeries?: boolean;
     series: { rect: BBox; paddedRect: BBox; visible: boolean };
-}
-
-interface EventMap {
-    'layout:complete': LayoutCompleteEvent;
 }
 
 export enum LayoutElement {
@@ -50,12 +20,9 @@ export enum LayoutElement {
 }
 
 export class LayoutManager {
-    private readonly events = new EventEmitter<EventMap>();
     private readonly elements = new Map<LayoutElement, Set<EventListener<LayoutContext>>>();
 
-    addListener<K extends keyof EventMap>(eventName: K, listener: EventListener<EventMap[K]>) {
-        return this.events.on(eventName, listener);
-    }
+    constructor(private readonly eventsHub: EventsHub) {}
 
     registerElement(element: LayoutElement, listener: EventListener<LayoutContext>) {
         if (this.elements.has(element)) {
@@ -76,10 +43,8 @@ export class LayoutManager {
     }
 
     emitLayoutComplete(context: LayoutContext, options: LayoutState) {
-        const eventType = 'layout:complete';
         const { width, height } = context;
-        this.events.emit(eventType, {
-            type: eventType,
+        this.eventsHub.emit('layout:complete', {
             axes: options.axes ?? [],
             chart: { width, height },
             clipSeries: options.clipSeries ?? false,
