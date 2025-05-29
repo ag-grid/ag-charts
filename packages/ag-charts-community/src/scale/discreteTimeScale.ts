@@ -37,20 +37,26 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | T
         if (bands.length === 0) return r0;
 
         const v = value.valueOf();
-        let domainIndex: number;
+        let bandIndex = findMaxIndex(0, bands.length - 1, (i) => bands[i].valueOf() <= v) ?? 0;
+        let dIndex: 1 | -1;
         if (reversed) {
-            domainIndex = (findMinIndex(0, domain.length - 1, (i) => domain[i].valueOf() <= v) ?? domain.length) - 1;
+            bandIndex = Math.min(Math.max(bandIndex, 1), bands.length - 1);
+            dIndex = -1;
         } else {
-            domainIndex = findMaxIndex(0, domain.length - 1, (i) => domain[i].valueOf() <= v) ?? 0;
+            bandIndex = Math.min(Math.max(bandIndex, 0), bands.length - 2);
+            dIndex = 1;
         }
-        domainIndex = Math.min(Math.max(domainIndex, 0), domain.length - 2);
-        const v0 = domain[domainIndex].valueOf();
-        const v1 = domain[domainIndex + 1].valueOf();
 
-        const ratioWithinInterval = (v - v0) / (v1 - v0);
-        const ratio = (domainIndex + ratioWithinInterval) / (domain.length - 1);
+        const v0 = bands[bandIndex].valueOf();
+        const v1 = bands[bandIndex + dIndex].valueOf();
 
-        return ratio * (r1 - r0) + r0;
+        const vr0 = this.ordinalRange(bandIndex);
+        const vr1 = this.ordinalRange(bandIndex + dIndex);
+
+        const ratio = (v - v0) / (v1 - v0);
+        const r = ratio * (vr1 - vr0) + vr0;
+
+        return reversed ? r1 - (r - r0) : r;
     }
 
     override invert(position: number, nearest = false): Date | undefined {
