@@ -496,6 +496,13 @@ describe('Time Axis Examples', () => {
     let chart: any;
     const ctx = setupMockCanvas();
 
+    const compare = async () => {
+        await waitForChartStability(chart);
+
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+    };
+
     afterEach(() => {
         if (chart) {
             chart.destroy();
@@ -534,4 +541,10 @@ describe('Time Axis Examples', () => {
             }
         });
     }
+
+    it('should handle a single value', async () => {
+        const options = { ...BASIC_TIME_AXIS_EXAMPLE, data: BASIC_TIME_AXIS_EXAMPLE.data!.slice(0, 1) };
+        chart = await createChart(options);
+        await compare();
+    });
 });
