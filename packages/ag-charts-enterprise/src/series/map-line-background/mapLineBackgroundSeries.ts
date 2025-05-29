@@ -71,7 +71,6 @@ export class MapLineBackgroundSeries
         super({
             moduleCtx,
             categoryKey: undefined,
-            useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
     }

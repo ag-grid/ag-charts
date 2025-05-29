@@ -44,7 +44,12 @@ import { applyShapeFillBBox, getShapeFill } from '../shapeUtil';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
 import { DonutSeriesProperties } from './donutSeriesProperties';
 import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
-import { type PolarAnimationData, PolarSeries } from './polarSeries';
+import {
+    DEFAULT_POLAR_DIRECTION_KEYS,
+    DEFAULT_POLAR_DIRECTION_NAMES,
+    type PolarAnimationData,
+    PolarSeries,
+} from './polarSeries';
 import { PolarZIndexMap } from './polarZIndexMap';
 
 class DonutSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<
@@ -160,8 +165,17 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         super({
             moduleCtx,
             categoryKey: undefined,
+            propertyKeys: {
+                ...DEFAULT_POLAR_DIRECTION_KEYS,
+                sectorLabel: ['sectorLabelKey'],
+                calloutLabel: ['calloutLabelKey'],
+            },
+            propertyNames: {
+                ...DEFAULT_POLAR_DIRECTION_NAMES,
+                sectorLabel: ['sectorLabelName'],
+                calloutLabel: ['calloutLabelName'],
+            },
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            useLabelLayer: true,
             animationResetFns: { item: resetPieSelectionsFn, label: resetLabelFn },
         });
 

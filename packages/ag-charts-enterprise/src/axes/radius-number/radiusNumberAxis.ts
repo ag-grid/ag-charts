@@ -62,7 +62,7 @@ export class RadiusNumberAxis extends RadiusAxis {
         params: _ModuleSupport.FormatDatumParams,
         fractionDigits?: number
     ): FormatterParams<any> {
-        const { datum, key, source, property } = params;
+        const { datum, key, source, property, boundSeries } = params;
         return {
             type: 'number',
             value,
@@ -70,6 +70,7 @@ export class RadiusNumberAxis extends RadiusAxis {
             key,
             source,
             property,
+            boundSeries,
             fractionDigits,
         };
     }

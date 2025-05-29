@@ -97,8 +97,8 @@ export class LineSeries extends CartesianSeries<
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
-            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
-            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
+            propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            propertyNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             categoryKey: 'xValue',
             hasMarkers: true,
             pickModes: [

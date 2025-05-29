@@ -158,11 +158,11 @@ export abstract class BaseFunnelSeries<
             moduleCtx,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
-            directionKeys: {
+            propertyKeys: {
                 x: ['stageKey'],
                 y: ['valueKey'],
             },
-            directionNames: {
+            propertyNames: {
                 x: [],
                 y: [],
             },

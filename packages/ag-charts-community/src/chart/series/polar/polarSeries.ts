@@ -40,6 +40,16 @@ type PolarSeriesProperties = {
     radiusName?: string;
 };
 
+export const DEFAULT_POLAR_DIRECTION_KEYS = {
+    [ChartAxisDirection.Angle]: ['angleKey' as const],
+    [ChartAxisDirection.Radius]: ['radiusKey' as const],
+};
+
+export const DEFAULT_POLAR_DIRECTION_NAMES = {
+    [ChartAxisDirection.Angle]: ['angleName' as const],
+    [ChartAxisDirection.Radius]: ['radiusName' as const],
+};
+
 export abstract class PolarSeries<
     TDatum extends DataModelSeriesNodeDatum,
     TProps extends SeriesProperties<any> & PolarSeriesProperties,
@@ -99,7 +109,6 @@ export abstract class PolarSeries<
 
     constructor({
         categoryKey,
-        useLabelLayer = false,
         pickModes = [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         canHaveAxes = false,
         animationResetFns,
@@ -107,7 +116,6 @@ export abstract class PolarSeries<
     }: {
         moduleCtx: ModuleContext;
         categoryKey: string | undefined;
-        useLabelLayer?: boolean;
         pickModes?: SeriesNodePickMode[];
         canHaveAxes?: boolean;
         animationResetFns?: {
@@ -118,16 +126,7 @@ export abstract class PolarSeries<
         super({
             ...opts,
             categoryKey,
-            useLabelLayer,
             pickModes,
-            directionKeys: {
-                [ChartAxisDirection.Angle]: ['angleKey'],
-                [ChartAxisDirection.Radius]: ['radiusKey'],
-            },
-            directionNames: {
-                [ChartAxisDirection.Angle]: ['angleName'],
-                [ChartAxisDirection.Radius]: ['radiusName'],
-            },
             canHaveAxes,
         });
 

@@ -70,12 +70,14 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
     }
 
     override datumFormatParams(
-        value: any,
+        value: number | Date,
         params: FormatDatumParams,
         _fractionDigits: number | undefined,
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
+        if (typeof value === 'number') value = new Date(value);
+
         if (timeInterval == null) {
             const { minGranularity } = this;
             const datumGranularity = lowestGranularityUnitForValue(value);
@@ -89,7 +91,7 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
             }
         }
 
-        const { datum, key, source, property } = params;
+        const { datum, key, source, property, boundSeries } = params;
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
         const epoch = intervalEpoch(timeInterval);
@@ -100,6 +102,7 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
             key,
             source,
             property,
+            boundSeries,
             unit,
             step,
             epoch,

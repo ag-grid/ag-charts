@@ -95,11 +95,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             hasMarkers: true,
             pathsPerSeries: ['fill', 'stroke'],
             pickModes: [_ModuleSupport.SeriesNodePickMode.AXIS_ALIGNED],
-            directionKeys: {
+            propertyKeys: {
                 [ChartAxisDirection.X]: ['xKey'],
                 [ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'],
             },
-            directionNames: {
+            propertyNames: {
                 [ChartAxisDirection.X]: ['xName'],
                 [ChartAxisDirection.Y]: ['yLowName', 'yHighName', 'yName'],
             },
