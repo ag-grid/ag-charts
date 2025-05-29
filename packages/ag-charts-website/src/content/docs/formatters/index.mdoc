@@ -9,14 +9,14 @@ Formatters allow customisation of the representation of numbers and dates.
 ```js
 formatter: {
     x: (params) => {
-        const degrees = Math.trunc(Math.abs(params.value));
+        const degrees = Math.trunc(params.value);
         const orientation = degrees > 0 ? 'E' : degrees < 0 ? 'W' : '';
-        return `${degrees}° ${orientation}`;
+        return `${Math.abs(degrees)}° ${orientation}`;
     },
     y: (params) => {
-        const degrees = Math.trunc(Math.abs(params.value));
+        const degrees = Math.trunc(params.value);
         const orientation = degrees > 0 ? 'N' : degrees < 0 ? 'S' : '';
-        return `${degrees}° ${orientation}`;
+        return `${Math.abs(degrees)}° ${orientation}`;
     },
     size: (params) => {
         return params.value.toLocaleString('en-US', { style: 'decimal', maximumFractionDigits: 0 })
