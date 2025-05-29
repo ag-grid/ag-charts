@@ -93,7 +93,7 @@ export class TimeScale extends DiscreteTimeScale {
 
         const [start, stop] = this.calculateBandRange(domain, interval);
         if (intervalRangeCount(interval, start, stop, rangeParams) > MAX_BANDS) {
-            Logger.warnOnce(`the configured unit results in too many bands, ignoring. Supply a larger unit`);
+            Logger.warnOnce(`the configured unit results in too many bands, ignoring. Supply a larger unit.`);
             return [];
         }
 

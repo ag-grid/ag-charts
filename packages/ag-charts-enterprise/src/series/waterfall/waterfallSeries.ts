@@ -605,12 +605,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, WaterfallNodeDatum>;
     }) {
         opts.labelSelection.each((textNode, datum) => {
-            updateLabelNode(
-                textNode,
-                // @ts-expect-error Fixme
-                this.getItemConfig(datum.itemId).label,
-                datum.label
-            );
+            updateLabelNode(textNode, this.getItemConfig(datum.itemId).label, datum.label);
         });
     }
 

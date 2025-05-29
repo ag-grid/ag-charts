@@ -133,6 +133,7 @@ export * from './chart/axis/categoryAxis';
 export * from './chart/axis/groupedCategoryAxis';
 export * from './chart/axis/cartesianAxis';
 export { TimeAxisParentLevel } from './chart/axis/timeAxis';
+export { minimumTimeAxisDatumGranularity } from './chart/axis/continuousTimeAxis';
 export * from './chart/chartAxis';
 export * from './chart/crossline/crossLine';
 export * from './chart/crossline/crossLineLabelPosition';

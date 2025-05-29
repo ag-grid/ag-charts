@@ -36,11 +36,13 @@ import type { Padding } from '../../util/padding';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
+import { intervalStep } from '../../util/time';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { AxisGroups, ChartAxis, FormatDatumParams } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
+import { FormatManager } from '../formatter/formatManager';
 import type { AxisLayout } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';
 import { ZIndexMap } from '../zIndexMap';
@@ -584,6 +586,31 @@ export abstract class Axis<
         timeStyle: 'long' | 'component'
     ): FormatterParams<any>;
 
+    private labelFormatterValue(
+        formatInContext: (fn: (params: any) => string | undefined, params: any) => string | undefined,
+        value: any,
+        index: number,
+        domain: D[],
+        fractionDigits: number | undefined,
+        unit: TimeIntervalUnit | undefined
+    ) {
+        const { formatter } = this.label;
+
+        if (formatter == null) return;
+
+        const step = unit ? intervalStep(unit) : undefined;
+        const boundSeries = this.getFormatterBoundSeries();
+        return formatInContext(formatter, {
+            value,
+            index,
+            domain,
+            fractionDigits,
+            unit,
+            step,
+            boundSeries,
+        });
+    }
+
     // For formatting (nice rounded) tick values.
     tickFormatter(
         domain: D[],
@@ -593,26 +620,22 @@ export abstract class Axis<
         inputTimeInterval?: TimeInterval | TimeIntervalUnit,
         timeStyle: DateFormatterStyle = 'long'
     ): (value: any, index: number) => string {
-        const { moduleCtx } = this;
+        const { moduleCtx, label } = this;
         const { formatManager } = moduleCtx;
-        const label = primary ? this.primaryLabel ?? this.label : this.label;
+        const primaryLabel = primary ? this.primaryLabel : undefined;
 
         const formatParams = this.tickFormatParams(domain, ticks, inputFractionDigits, inputTimeInterval);
-        const boundSeries = this.getFormatterBoundSeries();
 
         return (value: any, index: number): string => {
-            const { type, fractionDigits, unit, includeYear = true } = formatParams;
+            const { fractionDigits, unit, includeYear = true } = formatParams;
 
-            const labelValue = label.formatValue(
+            const labelValue = this.labelFormatterValue(
                 this.callWithContext.bind(this),
-                type,
                 value,
                 index,
                 domain,
-                boundSeries,
                 fractionDigits,
-                unit,
-                !includeYear && timeStyle === 'long' ? 'fixed-year-long' : timeStyle
+                unit
             );
             if (labelValue != null) return String(labelValue);
 
@@ -623,9 +646,16 @@ export abstract class Axis<
                 property: this.direction,
             };
 
+            const datumFormatParams = this.datumFormatParams(value, params, fractionDigits, unit, timeStyle);
+            // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
+            datumFormatParams.value = value;
+
             return (
-                formatManager.format(this.datumFormatParams(value, params, fractionDigits, unit, timeStyle)) ??
-                this.defaultFormatter(value, fractionDigits ?? 0)
+                formatManager.format(
+                    datumFormatParams,
+                    FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
+                    { includeYear }
+                ) ?? this.defaultFormatter(value, fractionDigits ?? 0)
             );
         };
     }
@@ -663,23 +693,26 @@ export abstract class Axis<
     ): string {
         if (input == null) return '';
 
+        const { moduleCtx, direction, scale } = this;
+        const { formatManager } = moduleCtx;
+
         let inputFractionDigits: number;
+        let inheritFromAxisLabel: boolean;
         switch (source) {
             case 'crosshair':
                 inputFractionDigits = this.layout.label.fractionDigits + 1;
+                inheritFromAxisLabel = true;
                 break;
             case 'series-label':
                 inputFractionDigits = 2;
+                inheritFromAxisLabel = !formatManager.hasGlobalFormatter;
                 break;
             case 'tooltip':
                 inputFractionDigits = 3;
+                inheritFromAxisLabel = !formatManager.hasGlobalFormatter;
                 break;
         }
 
-        const { moduleCtx, direction, scale } = this;
-        const { formatManager } = moduleCtx;
-        const { domain } = scale;
-        const boundSeries = this.getFormatterBoundSeries();
         const formatParams = this.datumFormatParams(
             input,
             { source, datum, key, property: direction },
@@ -687,25 +720,29 @@ export abstract class Axis<
             undefined,
             'long'
         );
-        const { type, value } = formatParams;
+        const { value } = formatParams;
         const fractionDigits = formatParams.type === 'number' ? formatParams.fractionDigits : undefined;
         const unit = formatParams.type === 'date' ? formatParams.unit : undefined;
-        return (
-            label?.formatValue(formatInContext, type, value, params) ??
-            this.label.formatValue(
-                formatInContext,
-                type,
-                value,
-                NaN,
-                domain,
-                boundSeries,
-                fractionDigits,
-                unit,
-                'long'
-            ) ??
-            formatManager.format(formatParams) ??
-            this.defaultFormatter(value, fractionDigits ?? 0)
-        );
+
+        let result: string | undefined;
+
+        if (label?.formatter) {
+            result ??= formatInContext(label.formatter, params);
+        }
+
+        if (inheritFromAxisLabel) {
+            result ??= this.labelFormatterValue(formatInContext, value, NaN, scale.domain, fractionDigits, unit);
+            result ??= formatManager.format(
+                formatParams,
+                FormatManager.mergeSpecifiers(this.label.format, label?.format)
+            );
+        } else {
+            result ??= formatManager.format(formatParams, label?.format);
+        }
+
+        result ??= this.defaultFormatter(value, fractionDigits ?? 0);
+
+        return String(result);
     }
 
     getBBox(): BBox {

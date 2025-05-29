@@ -3,18 +3,21 @@ import type { DateFormatterStyle, FormatterParams, TimeInterval, TimeIntervalUni
 import type { ModuleContext } from '../../module/moduleContext';
 import { ContinuousTimeScale } from '../../scale/continuousTimeScale';
 import { Property } from '../../util/properties';
-import { intervalEpoch, intervalStep, intervalUnit } from '../../util/time';
+import { intervalEpoch, intervalMilliseconds, intervalStep, intervalUnit } from '../../util/time';
 import {
     domainSpansMultipleYears,
+    lowestGranularityForInterval,
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
 } from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
+import type { ChartAxisDirection } from '../chartAxisDirection';
+import type { ISeries } from '../series/seriesTypes';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
-import { TimeAxisParentLevel, normaliseTimeDataDomain } from './timeAxis';
+import { TimeAxisParentLevel, calculateDefaultUnit, normaliseTimeDataDomain } from './timeAxis';
 
 export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, number | Date> {
     static readonly className = 'ContinuousTimeAxis';
@@ -28,6 +31,8 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
 
     @Property
     max?: Date | number = undefined;
+
+    private minGranularity: TimeIntervalUnit | undefined = undefined;
 
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new ContinuousTimeScale());
@@ -43,6 +48,13 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
 
     override normaliseDataDomain(d: Date[]) {
         return normaliseTimeDataDomain(d, this.min, this.max);
+    }
+
+    override processData(): void {
+        super.processData();
+
+        const { boundSeries, direction, min, max } = this;
+        this.minGranularity = minimumTimeAxisDatumGranularity(boundSeries, direction, min, max);
     }
 
     override tickFormatParams(
@@ -64,7 +76,19 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
-        timeInterval ??= lowestGranularityUnitForValue(value);
+        if (timeInterval == null) {
+            const { minGranularity } = this;
+            const datumGranularity = lowestGranularityUnitForValue(value);
+            if (
+                minGranularity != null &&
+                intervalMilliseconds(minGranularity) < intervalMilliseconds(datumGranularity)
+            ) {
+                timeInterval = minGranularity;
+            } else {
+                timeInterval = datumGranularity;
+            }
+        }
+
         const { datum, key, source, property } = params;
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
@@ -81,5 +105,22 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
             epoch,
             style,
         };
+    }
+}
+
+export function minimumTimeAxisDatumGranularity(
+    boundSeries: ISeries<unknown, unknown, unknown, unknown>[],
+    direction: ChartAxisDirection,
+    min: Date | number | undefined,
+    max: Date | number | undefined
+) {
+    const minTimeInterval = boundSeries.reduce((t, series) => {
+        return Math.min(series.minTimeInterval() ?? Infinity, t);
+    }, Infinity);
+
+    if (Number.isFinite(minTimeInterval)) {
+        return lowestGranularityForInterval(minTimeInterval);
+    } else {
+        return calculateDefaultUnit(boundSeries, direction, min, max)?.unit;
     }
 }
