@@ -13,6 +13,7 @@ import {
     color,
     date,
     defined,
+    fillOptionsDef,
     fontOptionsDef,
     greaterThan,
     isValidNumberFormat,
@@ -34,6 +35,7 @@ import {
 } from 'ag-charts-core';
 import type {
     AgAxisGridStyle,
+    AgBandHighlightOptions,
     AgBaseAxisLabelOptions,
     AgBaseAxisLabelStyleOptions,
     AgBaseAxisOptions,
@@ -217,6 +219,13 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
         formatter: callback,
         ...fontOptionsDef,
     },
+};
+
+export const cartesianAxisBandHighlightOptions: OptionsDefs<AgBandHighlightOptions> = {
+    enabled: boolean,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
 };
 
 // @ts-expect-error undocumented option

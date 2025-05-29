@@ -71,6 +71,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'line', community: true },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['cartesian'], identifier: 'ordinal-time' },
     { type: 'axis-option', optionsKey: 'crosshair', chartTypes: ['cartesian'] },
+    { type: 'axis-option', optionsKey: 'bandHighlight', chartTypes: ['cartesian'] },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'box-plot' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'candlestick' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'cone-funnel' },
