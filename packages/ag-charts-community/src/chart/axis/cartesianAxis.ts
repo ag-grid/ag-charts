@@ -63,6 +63,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     thickness?: number;
 
     @Property
+    maxThickness: number = 0.3;
+
+    @Property
     position!: AgCartesianAxisPosition;
 
     protected animationManager: AnimationManager;
