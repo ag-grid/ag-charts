@@ -76,21 +76,21 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
         const {
             widgets: { seriesWidget, seriesDragInterpreter },
             animationManager,
+            eventsHub,
         } = ctx;
-
-        const { eventsHub } = ctx;
 
         this.cleanup.register(
             ctx.scene.attachNode(this.bandHighlightGroup),
-            eventsHub.on('layout:complete', (event) => this.layout(event)),
             seriesWidget.addListener('mousemove', (event) => this.onHoverLikeEvent(event)),
             seriesWidget.addListener('drag-move', (event) => this.onHoverLikeEvent(event)),
             seriesWidget.addListener('mouseleave', () => this.clearAllHighlight()),
             seriesDragInterpreter.events.on('click', (event) => this.onClick(event)),
+            animationManager.addListener('animation-start', () => this.clearAllHighlight()),
+
+            eventsHub.on('layout:complete', (event) => this.layout(event)),
             eventsHub.on('series:focus-change', () => this.onKeyPress()),
             eventsHub.on('zoom:pan-start', () => this.clearAllHighlight()),
             eventsHub.on('zoom:change', () => this.clearAllHighlight()),
-            animationManager.addListener('animation-start', () => this.clearAllHighlight()),
             eventsHub.on('dom:resize', () => this.clearAllHighlight()),
             eventsHub.on('axis:change', () => this.axisChange())
         );
@@ -204,8 +204,11 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
         this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
     }
 
-    private updateBandPosition(band: [number, number] | undefined) {
+    private updateBandPosition() {
         const { rangeNode, bounds } = this;
+
+        const { band } = this.activeAxisHighlight ?? {};
+
         if (band == undefined) {
             this.hideBand();
             return;
@@ -227,7 +230,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
     }
 
     private showBand() {
-        this.updateBandPosition(this.activeAxisHighlight?.band);
+        this.updateBandPosition();
 
         this.bandHighlightGroup.visible = true;
     }
