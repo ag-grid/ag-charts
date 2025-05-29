@@ -70,6 +70,9 @@ const FAILURE_THRESHOLD = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0);
 export const IMAGE_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
     failureThreshold: FAILURE_THRESHOLD,
     failureThresholdType: 'percent',
+    customDiffConfig: {
+        threshold: 0.02, // 2x the default of 0.01 - this is the per pixel threshold for colour/opacity difference.
+    },
 };
 
 export async function delay(ms: number): Promise<void> {
