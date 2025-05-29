@@ -12,6 +12,7 @@ import {
     domainSpansMultipleYears,
     lowestGranularityForInterval,
     lowestGranularityUnitForTicks,
+    lowestGranularityUnitForValue,
 } from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
 import type { ChartAxisDirection } from '../chartAxisDirection';
@@ -48,6 +49,7 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
     max?: Date | number = undefined;
 
     @Property
+    // eslint-disable-next-line sonarjs/use-type-alias
     unit: TimeInterval | TimeIntervalUnit | undefined = undefined;
 
     override get primaryLabel(): AxisLabel | undefined {
@@ -62,13 +64,21 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
         super(moduleCtx, new TimeScale());
     }
 
-    private defaultUnit: TimeInterval | undefined = undefined;
+    private defaultUnit: TimeInterval | TimeIntervalUnit | undefined = undefined;
 
     override processData(): void {
         super.processData();
 
-        const { boundSeries, direction, min, max } = this;
-        const defaultUnit = calculateDefaultUnit(boundSeries, direction, min, max);
+        let defaultUnit: TimeInterval | TimeIntervalUnit | undefined;
+
+        const { domain } = this.dataDomain;
+        if (domain.length === 2 && domain[0].valueOf() === domain[1].valueOf()) {
+            defaultUnit = lowestGranularityUnitForValue(domain[0]);
+        } else {
+            const { boundSeries, direction, min, max } = this;
+            defaultUnit = calculateDefaultUnit(boundSeries, direction, min, max);
+        }
+
         if (!objectsEqual(this.defaultUnit, defaultUnit)) {
             this.defaultUnit = defaultUnit;
         }
