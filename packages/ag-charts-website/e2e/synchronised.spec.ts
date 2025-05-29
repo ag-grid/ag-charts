@@ -1035,10 +1035,10 @@ test.describe('synchronised', () => {
                 await expect(crosshairLocator.nth(2)).toBeVisible();
                 await expect(crosshairLocator.nth(3)).toBeVisible();
                 expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
-                    '2022',
-                    '2022',
-                    '2022',
-                    '2022',
+                    'Jan 2022',
+                    'Jan 2022',
+                    'Jan 2022',
+                    'Jan 2022',
                 ]);
 
                 await page.keyboard.press('ArrowRight');
@@ -1060,10 +1060,10 @@ test.describe('synchronised', () => {
                 await expect(crosshairLocator.nth(2)).toBeVisible();
                 await expect(crosshairLocator.nth(3)).toBeVisible();
                 expect((await crosshairLocator.allTextContents()).map((t) => t.trim())).toMatchObject([
-                    '2023',
-                    '2023',
-                    '2023',
-                    '2023',
+                    'Jan 2023',
+                    'Jan 2023',
+                    'Jan 2023',
+                    'Jan 2023',
                 ]);
 
                 await expect(page).toHaveScreenshot('financial-charts-crosshair-replicated.png');
