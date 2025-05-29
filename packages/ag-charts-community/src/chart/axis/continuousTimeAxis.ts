@@ -6,10 +6,14 @@ import { Property } from '../../util/properties';
 import { intervalEpoch, intervalMilliseconds, intervalStep, intervalUnit } from '../../util/time';
 import {
     domainSpansMultipleYears,
+    highestGranularityForInterval,
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
 } from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
+import type { ChartAxisDirection } from '../chartAxisDirection';
+import { CartesianSeries } from '../series/cartesian/cartesianSeries';
+import type { ISeries } from '../series/seriesTypes';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
@@ -47,11 +51,11 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
         return normaliseTimeDataDomain(d, this.min, this.max);
     }
 
-    protected override updateScale(): void {
-        super.updateScale();
+    override processData(): void {
+        super.processData();
 
         const { boundSeries, direction, min, max } = this;
-        this.minGranularity = calculateDefaultUnit(boundSeries, direction, min, max)?.unit;
+        this.minGranularity = minimumTimeAxisDatumGranularity(boundSeries, direction, min, max);
     }
 
     override tickFormatParams(
@@ -102,5 +106,23 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
             epoch,
             style,
         };
+    }
+}
+
+export function minimumTimeAxisDatumGranularity(
+    boundSeries: ISeries<unknown, unknown, unknown, unknown>[],
+    direction: ChartAxisDirection,
+    min: Date | number | undefined,
+    max: Date | number | undefined
+) {
+    const minTimeInterval = boundSeries.reduce((t, series) => {
+        if (!(series instanceof CartesianSeries)) return t;
+        return Math.min(series.minTimeInterval() ?? Infinity, t);
+    }, Infinity);
+
+    if (minTimeInterval == null) {
+        return calculateDefaultUnit(boundSeries, direction, min, max)?.unit;
+    } else {
+        return highestGranularityForInterval(minTimeInterval);
     }
 }

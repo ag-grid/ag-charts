@@ -12,7 +12,7 @@ const {
     TimeAxisParentLevel,
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
-    calculateDefaultUnit,
+    minimumTimeAxisDatumGranularity,
     domainSpansMultipleYears,
     intervalUnit,
     intervalStep,
@@ -45,7 +45,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
         super.updateScale();
 
         const { boundSeries, direction } = this;
-        this.minGranularity = calculateDefaultUnit(boundSeries, direction, undefined, undefined)?.unit;
+        this.minGranularity = minimumTimeAxisDatumGranularity(boundSeries, direction, undefined, undefined);
     }
 
     override tickFormatParams(

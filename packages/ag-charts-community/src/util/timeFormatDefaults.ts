@@ -1,4 +1,4 @@
-import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { TimeIntervalUnit } from 'ag-charts-types';
 
 import { findMinMax } from './number';
 import {
@@ -9,51 +9,45 @@ import {
     durationYear,
     intervalFloor,
     intervalMilliseconds,
-    intervalUnit,
 } from './time';
 
 export function dateToNumber(value: any) {
     return value instanceof Date ? value.getTime() : value;
 }
 
-export function lowestGranularityUnitForTicks(
-    ticks: (Date | number)[],
-    timeInterval?: TimeInterval | TimeIntervalUnit
-): TimeIntervalUnit {
-    let targetInterval: TimeIntervalUnit;
+const intervalUnits: TimeIntervalUnit[] = ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'];
+export function highestGranularityForInterval(interval: number) {
+    return intervalUnits.findLast((u) => intervalMilliseconds(u) <= interval) ?? 'millisecond';
+}
+
+export function lowestGranularityUnitForTicks(ticks: (Date | number)[]): TimeIntervalUnit {
     if (ticks.length === 0) {
-        targetInterval = 'millisecond';
+        return 'millisecond';
     } else if (ticks.length === 1) {
-        targetInterval = lowestGranularityUnitForValue(ticks[0]);
+        return lowestGranularityUnitForValue(ticks[0]);
+    }
+
+    let minInterval: number = Infinity;
+    for (let i = 1; i < ticks.length; i++) {
+        minInterval = Math.min(minInterval, Math.abs(ticks[i].valueOf() - ticks[i - 1].valueOf()));
+    }
+
+    if (minInterval < durationSecond) {
+        return 'millisecond';
+    } else if (minInterval < durationMinute) {
+        return 'second';
+    } else if (minInterval < durationHour) {
+        return 'minute';
+    } else if (minInterval < durationDay) {
+        return 'hour';
+        // Note durationMonth is the average month duration
+    } else if (minInterval < 28 * durationDay) {
+        return 'day';
+    } else if (minInterval < durationYear) {
+        return 'month';
     } else {
-        let minInterval: number = Infinity;
-        for (let i = 1; i < ticks.length; i++) {
-            minInterval = Math.min(minInterval, Math.abs(ticks[i].valueOf() - ticks[i - 1].valueOf()));
-        }
-
-        if (minInterval < durationSecond) {
-            targetInterval = 'millisecond';
-        } else if (minInterval < durationMinute) {
-            targetInterval = 'second';
-        } else if (minInterval < durationHour) {
-            targetInterval = 'minute';
-        } else if (minInterval < durationDay) {
-            targetInterval = 'hour';
-            // Note durationMonth is the average month duration
-        } else if (minInterval < 28 * durationDay) {
-            targetInterval = 'day';
-        } else if (minInterval < durationYear) {
-            targetInterval = 'month';
-        } else {
-            targetInterval = 'year';
-        }
+        return 'year';
     }
-
-    if (timeInterval != null && intervalMilliseconds(targetInterval) < intervalMilliseconds(timeInterval)) {
-        return intervalUnit(timeInterval);
-    }
-
-    return targetInterval;
 }
 
 export function lowestGranularityUnitForValue(value: Date | number): TimeIntervalUnit {

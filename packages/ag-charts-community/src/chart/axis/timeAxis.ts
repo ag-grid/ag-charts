@@ -8,7 +8,11 @@ import { Property } from '../../util/properties';
 import { BaseProperties } from '../../util/properties';
 import { intervalEpoch, intervalFloor, intervalMilliseconds, intervalStep, intervalUnit } from '../../util/time';
 import { buildDateFormatter } from '../../util/timeFormat';
-import { domainSpansMultipleYears, lowestGranularityUnitForTicks } from '../../util/timeFormatDefaults';
+import {
+    domainSpansMultipleYears,
+    highestGranularityForInterval,
+    lowestGranularityUnitForTicks,
+} from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import { labelSpecifier } from '../label';
@@ -18,8 +22,6 @@ import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
 import { CategoryAxis } from './categoryAxis';
 import { deriveTimeSpecifier } from './timeFormatUtil';
-
-const autoUnits: TimeIntervalUnit[] = ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'];
 
 export class TimeAxisParentLevel extends BaseProperties {
     @Property
@@ -62,14 +64,18 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
 
     private defaultUnit: TimeInterval | undefined = undefined;
 
-    protected override updateScale(): void {
-        super.updateScale();
+    override processData(): void {
+        super.processData();
 
         const { boundSeries, direction, min, max } = this;
         const defaultUnit = calculateDefaultUnit(boundSeries, direction, min, max);
         if (!objectsEqual(this.defaultUnit, defaultUnit)) {
             this.defaultUnit = defaultUnit;
         }
+    }
+
+    protected override updateScale(): void {
+        super.updateScale();
 
         this.scale.interval = this.unit ?? this.defaultUnit;
     }
@@ -204,7 +210,7 @@ export function calculateDefaultUnit(
 
     interval ??= Math.abs(end - start);
 
-    const unit = autoUnits.findLast((u) => intervalMilliseconds(u) <= interval) ?? 'millisecond';
+    const unit = highestGranularityForInterval(interval);
     const step = Math.max(Math.round(interval / intervalMilliseconds(unit)), 1);
     const epoch = start != null && step !== 1 ? intervalFloor(unit, start) : undefined;
 

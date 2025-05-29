@@ -916,6 +916,41 @@ export abstract class CartesianSeries<
         });
     }
 
+    // @todo(AG-13777) - Remove this function.
+    // We need data model updates to know if a data set is sorted & unique - and at the same time
+    // it should generate the equivalent of `SMALLEST_KEY_INTERVAL`. We'll use that value here
+    minTimeInterval() {
+        // eslint-disable-next-line sonarjs/use-type-alias
+        let xValues: Array<Date | number | undefined> | undefined;
+        try {
+            xValues = this.keysOrValues<Date | number | undefined>('xValue');
+        } catch {
+            // No xValue key - ignore
+        }
+
+        if (xValues == null || xValues.length > 1e3) return;
+
+        let minInterval = Infinity;
+        let x0 = xValues[0];
+        let sortOrder: 1 | -1 | undefined;
+        for (let i = 1; i < xValues.length; i++) {
+            const x1 = xValues[i];
+
+            if (x1 != null && x0 != null) {
+                const interval = x1.valueOf() - x0.valueOf();
+                const sign = Math.sign(interval) as 1 | 0 | -1;
+                if (sign === 0) continue;
+                if (sortOrder !== undefined && sign !== sortOrder) return; // Unsorted
+                minInterval = Math.min(minInterval, Math.abs(interval));
+                sortOrder = sign;
+            }
+
+            x0 = x1;
+        }
+
+        if (Number.isFinite(minInterval)) return minInterval;
+    }
+
     protected updateHighlightSelectionItem(opts: {
         items?: TDatum[];
         highlightSelection: Selection<TNode, TDatum>;
