@@ -38,7 +38,7 @@ export interface AgAngleAxesCrossLineThemeOptions {
 
 export interface AgAngleNumberAxisOptions<TContext = TContextDefault>
     extends Omit<AgBaseAxisOptions<AgAngleAxisFormattableLabelOptions, TContext>, 'interval'>,
-        AgContinuousAxisOptions {
+        AgContinuousAxisOptions<number, number> {
     type: 'angle-number';
     /** Angle in degrees to start ticks positioning from. */
     startAngle?: Degree;
@@ -65,5 +65,5 @@ interface OrientableLabel {
 export interface AgAngleAxisFormattableLabelOptions extends AgFormattableLabelOptions, OrientableLabel {}
 export interface AgAngleAxisLabelOptions extends AgBaseAxisLabelOptions, OrientableLabel {}
 
-export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions {}
-export interface AgAngleCrossLineThemeOptions extends AgCrossLineThemeOptions {}
+export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions<AgBaseAxisLabelOptions> {}
+export interface AgAngleCrossLineThemeOptions extends AgCrossLineThemeOptions<AgBaseAxisLabelOptions> {}

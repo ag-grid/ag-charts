@@ -171,13 +171,13 @@ export interface AgOrdinalTimeAxisOptions<TContext = TContextDefault>
 
 export interface AgNumberAxisOptions<TContext = TContextDefault>
     extends Omit<AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions, AgCrosshairLabel, TContext>, 'interval'>,
-        AgContinuousAxisOptions {
+        AgContinuousAxisOptions<number, number> {
     type: 'number';
 }
 
 export interface AgLogAxisOptions<TContext = TContextDefault>
     extends Omit<AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions, AgCrosshairLabel, TContext>, 'interval'>,
-        AgContinuousAxisOptions {
+        AgContinuousAxisOptions<number, number> {
     type: 'log';
     /** The base of the logarithm used. */
     base?: number;
