@@ -2,7 +2,7 @@
   "name": "vue-package-tests",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "tests/vue-package-tests",
-  "projectType": "",
+  "projectType": "application",
   "targets": {
     "test:package": {
       "executor": "nx:noop",
