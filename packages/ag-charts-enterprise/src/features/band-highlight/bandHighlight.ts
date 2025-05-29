@@ -132,8 +132,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
     private onHighlightChange(event: _ModuleSupport.AxisHighlightChangeEvent) {
         if (!this.enabled) return;
 
-        const { bandHighlightGroup, axisCtx } = this;
-        const axisMatch = event.axisId === axisCtx.axisId;
+        const axisMatch = event.axisId === this.axisCtx.axisId;
 
         if (!axisMatch) {
             return;
@@ -144,22 +143,18 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
         if (!this.activeAxisHighlight) {
             this.hideBand();
         } else {
-            this.updatePositions(this.activeAxisHighlight.band);
-
-            bandHighlightGroup.visible = true;
+            this.showBand();
         }
 
         this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
     }
 
-    private updatePositions(band: [number, number] | undefined) {
+    private updateBandPosition(band: [number, number] | undefined) {
         const { rangeNode, bounds } = this;
         if (band == undefined) {
             this.hideBand();
             return;
         }
-
-        rangeNode.visible = true;
 
         if (this.isVertical()) {
             rangeNode.y1 = 0;
@@ -174,6 +169,12 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
             rangeNode.x2 = bounds.width;
             rangeNode.horizontal = false;
         }
+    }
+
+    private showBand() {
+        this.updateBandPosition(this.activeAxisHighlight?.band);
+
+        this.bandHighlightGroup.visible = true;
     }
 
     private hideBand() {
