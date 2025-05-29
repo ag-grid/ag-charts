@@ -57,8 +57,8 @@ type CartesianSeriesOpts<
     pathsZIndexSubOrderOffset: number[];
     hasMarkers: boolean;
     hasHighlightedLabels: boolean;
-    directionKeys: SeriesDirectionKeysMapping<TProps>;
-    directionNames: SeriesDirectionKeysMapping<TProps>;
+    propertyKeys: SeriesDirectionKeysMapping<TProps>;
+    propertyNames: SeriesDirectionKeysMapping<TProps>;
     datumSelectionGarbageCollection: boolean;
     markerSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
@@ -210,28 +210,28 @@ export abstract class CartesianSeries<
         markerSelectionGarbageCollection = true,
         animationAlwaysUpdateSelections = false,
         animationResetFns,
-        directionKeys,
-        directionNames,
+        propertyKeys,
+        propertyNames,
         ...otherOpts
     }: Partial<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>> &
-        Pick<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>, 'directionKeys' | 'directionNames'> &
+        Pick<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>, 'propertyKeys' | 'propertyNames'> &
         DataModelSeriesConstructorOpts<TProps>) {
         super({
-            directionKeys,
-            directionNames,
+            propertyKeys,
+            propertyNames,
             canHaveAxes: true,
             ...otherOpts,
         });
 
-        if (!directionKeys || !directionNames) throw new Error(`Unable to initialise series type ${this.type}`);
+        if (!propertyKeys || !propertyNames) throw new Error(`Unable to initialise series type ${this.type}`);
 
         this.opts = {
             pathsPerSeries,
             hasMarkers,
             hasHighlightedLabels,
             pathsZIndexSubOrderOffset,
-            directionKeys,
-            directionNames,
+            propertyKeys,
+            propertyNames,
             animationResetFns,
             animationAlwaysUpdateSelections,
             datumSelectionGarbageCollection,

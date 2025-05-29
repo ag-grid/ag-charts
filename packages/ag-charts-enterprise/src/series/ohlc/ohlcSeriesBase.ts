@@ -89,11 +89,11 @@ export abstract class OhlcSeriesBase<
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            directionKeys: {
+            propertyKeys: {
                 x: ['xKey'],
                 y: ['lowKey', 'highKey', 'openKey', 'closeKey'],
             },
-            directionNames: {
+            propertyNames: {
                 x: ['xName'],
                 y: ['lowName', 'highName', 'openName', 'closeName'],
             },

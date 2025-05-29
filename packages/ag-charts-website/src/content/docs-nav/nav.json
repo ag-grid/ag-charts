@@ -129,6 +129,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Formatters",
+                            "path": "formatters"
+                        },
+                        {
+                            "type": "item",
                             "title": "Stylers",
                             "path": "stylers"
                         },

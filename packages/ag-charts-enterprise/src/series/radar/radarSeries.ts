@@ -4,6 +4,8 @@ import { type RequireOptional, isFiniteNumber, isNumberEqual } from 'ag-charts-c
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
 const {
+    DEFAULT_POLAR_DIRECTION_KEYS,
+    DEFAULT_POLAR_DIRECTION_NAMES,
     ChartAxisDirection,
     PolarAxis,
     SeriesNodePickMode,
@@ -71,7 +73,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         super({
             moduleCtx,
             categoryKey: 'angleValue',
-            useLabelLayer: true,
+            propertyKeys: DEFAULT_POLAR_DIRECTION_KEYS,
+            propertyNames: DEFAULT_POLAR_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             canHaveAxes: true,
             animationResetFns: {

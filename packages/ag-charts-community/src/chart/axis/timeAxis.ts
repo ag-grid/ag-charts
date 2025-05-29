@@ -112,7 +112,7 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
     }
 
     override datumFormatParams(
-        value: any,
+        value: Date | number,
         params: FormatDatumParams,
         _fractionDigits: number | undefined,
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
@@ -121,9 +121,10 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
         const interval = this.unit ?? this.defaultUnit ?? 'millisecond';
 
         value = intervalFloor(interval, value); // Align to scale
+        if (typeof value === 'number') value = new Date(value);
         timeInterval ??= interval;
 
-        const { datum, key, source, property } = params;
+        const { datum, key, source, property, boundSeries } = params;
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
         const epoch = intervalEpoch(timeInterval);
@@ -135,6 +136,7 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
             key,
             source,
             property,
+            boundSeries,
             unit,
             step,
             epoch,

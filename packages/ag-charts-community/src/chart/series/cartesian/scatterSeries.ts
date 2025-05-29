@@ -15,6 +15,7 @@ import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { PlacedLabel } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/extent';
+import { formatValue } from '../../../util/format.util';
 import { mergeDefaults } from '../../../util/object';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -24,7 +25,7 @@ import { valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
-import { type TooltipContent } from '../../tooltip/tooltip';
+import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData } from './cartesianSeries';
@@ -51,8 +52,14 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
-            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
-            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
+            propertyKeys: {
+                ...DEFAULT_CARTESIAN_DIRECTION_KEYS,
+                label: ['labelKey'],
+            },
+            propertyNames: {
+                ...DEFAULT_CARTESIAN_DIRECTION_NAMES,
+                label: ['labelName'],
+            },
             categoryKey: undefined,
             pickModes: [
                 SeriesNodePickMode.AXIS_ALIGNED,
@@ -305,7 +312,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { id: seriesId, dataModel, processedData, axes, properties, ctx } = this;
+        const { formatManager } = ctx;
         const { xKey, xName, yKey, yName, labelKey, labelName, title, tooltip, marker } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -321,6 +329,25 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const nodeDatum = this.contextNodeData?.nodeData[datumIndex];
         if (xValue == null || nodeDatum == null) return;
 
+        const data: TooltipContentDataRow[] = [
+            { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue, 'tooltip', datum, xKey) },
+            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey) },
+        ];
+
+        if (labelKey != null) {
+            const value = dataModel.resolveColumnById<number>(this, `labelValue`, processedData)[datumIndex];
+            const content = formatManager.format({
+                type: 'category',
+                value,
+                datum,
+                key: labelKey,
+                source: 'tooltip',
+                property: 'label',
+                boundSeries: this.getFormatterContext('label'),
+            });
+            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
+        }
+
         const activeStyle = this.getMarkerStyle(marker, nodeDatum.datum, {
             xKey,
             yKey,
@@ -330,14 +357,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
         return this.formatTooltipWithContext(
             tooltip,
-            {
-                symbol: this.legendItemSymbol(),
-                title,
-                data: [
-                    { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue, 'tooltip', datum, xKey) },
-                    { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey) },
-                ],
-            },
+            { symbol: this.legendItemSymbol(), title, data },
             {
                 seriesId,
                 datum,

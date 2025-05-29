@@ -119,11 +119,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             moduleCtx,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
-            directionKeys: {
+            propertyKeys: {
                 x: ['xKey'],
                 y: ['yLowKey', 'yHighKey'],
             },
-            directionNames: {
+            propertyNames: {
                 x: ['xName'],
                 y: ['yLowName', 'yHighName', 'yName'],
             },
