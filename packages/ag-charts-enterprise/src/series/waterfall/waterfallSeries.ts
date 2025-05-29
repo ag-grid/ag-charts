@@ -82,8 +82,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
-            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
+            propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            propertyNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: ['connector'],

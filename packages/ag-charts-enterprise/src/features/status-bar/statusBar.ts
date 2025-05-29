@@ -257,8 +257,8 @@ export class StatusBar
         this.cleanup.register(
             ctx.scene.attachNode(this.layer),
             ctx.layoutManager.registerElement(LayoutElement.Overlay, (e) => this.startPerformLayout(e)),
-            ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
-            ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())
+            ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
+            ctx.eventsHub.on('highlight:change', () => this.updateHighlight())
         );
     }
 

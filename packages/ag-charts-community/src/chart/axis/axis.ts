@@ -14,6 +14,7 @@ import type {
     TimeIntervalUnit,
 } from 'ag-charts-types';
 
+import type { AxisLayout } from '../../core/eventsHub';
 import type { AxisContext, AxisFormattableLabel } from '../../module/axisContext';
 import type { AxisOptionModule } from '../../module/axisOptionModule';
 import type { ModuleInstance } from '../../module/baseModule';
@@ -43,7 +44,6 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
-import type { AxisLayout } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';
 import { ZIndexMap } from '../zIndexMap';
 import { AxisGridLine } from './axisGridLine';
@@ -625,6 +625,7 @@ export abstract class Axis<
         const primaryLabel = primary ? this.primaryLabel : undefined;
 
         const formatParams = this.tickFormatParams(domain, ticks, inputFractionDigits, inputTimeInterval);
+        const boundSeries = this.getFormatterBoundSeries();
 
         return (value: any, index: number): string => {
             const { fractionDigits, unit, includeYear = true } = formatParams;
@@ -644,6 +645,7 @@ export abstract class Axis<
                 key: undefined,
                 source: 'axis',
                 property: this.direction,
+                boundSeries,
             };
 
             const datumFormatParams = this.datumFormatParams(value, params, fractionDigits, unit, timeStyle);
@@ -695,6 +697,7 @@ export abstract class Axis<
 
         const { moduleCtx, direction, scale } = this;
         const { formatManager } = moduleCtx;
+        const boundSeries = this.getFormatterBoundSeries();
 
         let inputFractionDigits: number;
         let inheritFromAxisLabel: boolean;
@@ -715,7 +718,7 @@ export abstract class Axis<
 
         const formatParams = this.datumFormatParams(
             input,
-            { source, datum, key, property: direction },
+            { source, datum, key, property: direction, boundSeries },
             inputFractionDigits,
             undefined,
             'long'
@@ -766,17 +769,9 @@ export abstract class Axis<
         this.gridGroup.setClipRect(new BBox(x, y, width, height));
     }
 
-    private getFormatterBoundSeries() {
+    private getFormatterBoundSeries(): AgAxisBoundSeries[] {
         const { direction } = this;
-        const boundSeries: AgAxisBoundSeries[] = [];
-        for (const series of this.boundSeries) {
-            const keys = series.getKeys(direction);
-            const names = series.getNames(direction);
-            for (let idx = 0; idx < keys.length; idx++) {
-                boundSeries.push({ key: keys[idx], name: names[idx] });
-            }
-        }
-        return boundSeries;
+        return this.boundSeries.flatMap((series) => series.getFormatterContext(direction));
     }
 
     protected getTitleFormatterParams(domain: D[]) {

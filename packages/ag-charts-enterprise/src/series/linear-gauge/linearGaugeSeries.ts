@@ -233,7 +233,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
         this.axis = new LinearGaugeAxis(this, moduleCtx);

@@ -121,8 +121,8 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
-            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
-            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
+            propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            propertyNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             categoryKey: 'xValue',
             pickModes: [
                 SeriesNodePickMode.AXIS_ALIGNED, // Only used in sparklineMode

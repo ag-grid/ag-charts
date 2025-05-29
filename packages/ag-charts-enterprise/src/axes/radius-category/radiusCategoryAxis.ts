@@ -54,7 +54,7 @@ export class RadiusCategoryAxis extends RadiusAxis {
     }
 
     override datumFormatParams(value: any, params: _ModuleSupport.FormatDatumParams): FormatterParams<any> {
-        const { datum, key, source, property } = params;
-        return { type: 'category', value, datum, key, source, property };
+        const { datum, key, source, property, boundSeries } = params;
+        return { type: 'category', value, datum, key, source, property, boundSeries };
     }
 }

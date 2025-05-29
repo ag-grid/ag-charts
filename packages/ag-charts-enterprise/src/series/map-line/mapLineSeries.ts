@@ -78,7 +78,16 @@ export class MapLineSeries extends TopologySeries<
         super({
             moduleCtx,
             categoryKey: undefined,
-            useLabelLayer: true,
+            propertyKeys: {
+                size: ['colorKey'],
+                color: ['colorKey'],
+                label: ['labelKey'],
+            },
+            propertyNames: {
+                size: ['sizeName'],
+                color: ['colorName'],
+                label: ['labelName'],
+            },
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
             usesPlacedLabels: true,
         });

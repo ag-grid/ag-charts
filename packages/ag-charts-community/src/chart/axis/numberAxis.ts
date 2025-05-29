@@ -44,7 +44,7 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
     }
 
     override datumFormatParams(value: any, params: FormatDatumParams, fractionDigits?: number): FormatterParams<any> {
-        const { datum, key, source, property } = params;
+        const { datum, key, source, property, boundSeries } = params;
         return {
             type: 'number',
             value,
@@ -52,6 +52,7 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
             key,
             source,
             property,
+            boundSeries,
             fractionDigits,
         };
     }

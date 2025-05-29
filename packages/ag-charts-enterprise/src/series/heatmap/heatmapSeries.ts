@@ -88,8 +88,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
-            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
+            propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            propertyNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: [],
@@ -480,6 +480,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 key: colorKey!,
                 source: 'tooltip',
                 property: 'color',
+                boundSeries: this.getFormatterContext('color'),
                 fractionDigits: undefined,
             });
             data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? formatValue(colorValue) });

@@ -7,7 +7,6 @@ import type {
     AgContextMenuItemShowOn,
 } from 'ag-charts-types';
 
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { CategoryLegendDatum } from '../legend/legendDatum';
 import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 
@@ -49,17 +48,6 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
         };
     };
 }
-
-export type ContextMenuEventType = 'context-setup' | 'context-complete';
-
-export type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = {
-    readonly type: ContextMenuEventType;
-    readonly showOn: K;
-    readonly x: number;
-    readonly y: number;
-    readonly context: Readonly<ContextShowOnMap[K]['context']>;
-    readonly widgetEvent: MouseWidgetEvent<'contextmenu'> & { sourceEvent: Partial<Pick<PointerEvent, 'pointerType'>> };
-};
 
 export type ContextMenuCallback<K extends AgContextMenuItemShowOn> = ContextShowOnMap[K]['callback'];
 

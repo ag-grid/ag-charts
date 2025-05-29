@@ -61,12 +61,14 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
     }
 
     override datumFormatParams(
-        value: any,
+        value: Date | number,
         params: _ModuleSupport.FormatDatumParams,
         _fractionDigits: number | undefined,
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
+        if (typeof value === 'number') value = new Date(value);
+
         if (timeInterval == null) {
             const { minGranularity } = this;
             const datumGranularity = lowestGranularityUnitForValue(value);
@@ -80,7 +82,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
             }
         }
 
-        const { datum, key, source, property } = params;
+        const { datum, key, source, property, boundSeries } = params;
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
         const epoch = intervalEpoch(timeInterval);
@@ -91,6 +93,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
             key,
             source,
             property,
+            boundSeries,
             unit,
             step,
             epoch,

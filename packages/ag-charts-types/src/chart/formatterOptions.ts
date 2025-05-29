@@ -16,6 +16,13 @@ export type SeriesFormatterSource = 'tooltip' | 'series-label';
 export type ChartFormatterSource = 'axis' | 'crosshair';
 export type AnyFormatterSource = SeriesFormatterSource | ChartFormatterSource;
 
+interface FormatterBoundSeries {
+    /** Key used by the series for values on the related axis. */
+    key: string;
+    /** Optional name used by the series for values on the related axis. */
+    name?: string;
+}
+
 export interface SeriesFormatterParams<TDatum, Property, Value> {
     value: Value;
     datum: TDatum | undefined;
@@ -38,6 +45,7 @@ interface BaseFormatterParams<TDatum, Value> {
     key: string | undefined;
     source: AnyFormatterSource;
     property: FormatterPropertyType;
+    boundSeries: FormatterBoundSeries[];
 }
 
 export interface NumberFormatterParams<TDatum> extends BaseFormatterParams<TDatum, number> {
@@ -47,7 +55,7 @@ export interface NumberFormatterParams<TDatum> extends BaseFormatterParams<TDatu
 
 export type DateFormatterStyle = 'long' | 'component';
 
-export interface DateFormatterParams<TDatum> extends BaseFormatterParams<TDatum, Date | number> {
+export interface DateFormatterParams<TDatum> extends BaseFormatterParams<TDatum, Date> {
     type: 'date';
     unit: TimeIntervalUnit;
     step: number;

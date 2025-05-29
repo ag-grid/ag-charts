@@ -57,8 +57,8 @@ type CartesianSeriesOpts<
     pathsZIndexSubOrderOffset: number[];
     hasMarkers: boolean;
     hasHighlightedLabels: boolean;
-    directionKeys: SeriesDirectionKeysMapping<TProps>;
-    directionNames: SeriesDirectionKeysMapping<TProps>;
+    propertyKeys: SeriesDirectionKeysMapping<TProps>;
+    propertyNames: SeriesDirectionKeysMapping<TProps>;
     datumSelectionGarbageCollection: boolean;
     markerSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
@@ -210,28 +210,28 @@ export abstract class CartesianSeries<
         markerSelectionGarbageCollection = true,
         animationAlwaysUpdateSelections = false,
         animationResetFns,
-        directionKeys,
-        directionNames,
+        propertyKeys,
+        propertyNames,
         ...otherOpts
     }: Partial<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>> &
-        Pick<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>, 'directionKeys' | 'directionNames'> &
+        Pick<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>, 'propertyKeys' | 'propertyNames'> &
         DataModelSeriesConstructorOpts<TProps>) {
         super({
-            directionKeys,
-            directionNames,
+            propertyKeys,
+            propertyNames,
             canHaveAxes: true,
             ...otherOpts,
         });
 
-        if (!directionKeys || !directionNames) throw new Error(`Unable to initialise series type ${this.type}`);
+        if (!propertyKeys || !propertyNames) throw new Error(`Unable to initialise series type ${this.type}`);
 
         this.opts = {
             pathsPerSeries,
             hasMarkers,
             hasHighlightedLabels,
             pathsZIndexSubOrderOffset,
-            directionKeys,
-            directionNames,
+            propertyKeys,
+            propertyNames,
             animationResetFns,
             animationAlwaysUpdateSelections,
             datumSelectionGarbageCollection,
@@ -355,10 +355,8 @@ export abstract class CartesianSeries<
 
     override addChartEventListeners(): void {
         this.cleanup.register(
-            this.ctx.chartEventManager.addListener('legend-item-click', (event) => this.onLegendItemClick(event)),
-            this.ctx.chartEventManager.addListener('legend-item-double-click', (event) =>
-                this.onLegendItemDoubleClick(event)
-            )
+            this.ctx.eventsHub.on('legend:item-click', (event) => this.onLegendItemClick(event)),
+            this.ctx.eventsHub.on('legend:item-double-click', (event) => this.onLegendItemDoubleClick(event))
         );
     }
 
@@ -411,7 +409,7 @@ export abstract class CartesianSeries<
 
             const { dataModel, processedData } = this;
             if (dataModel !== undefined && processedData !== undefined) {
-                this.dispatch('data-update', { dataModel, processedData });
+                this.events.emit('data-update', { dataModel, processedData });
             }
             this.updateSeriesSelections();
         }

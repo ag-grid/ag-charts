@@ -9,6 +9,7 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
+import type { AxisLayout } from '../core/eventsHub';
 import type { AxisContext, AxisFormattableLabel, ContextFormatter } from '../module/axisContext';
 import type { ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
@@ -24,7 +25,6 @@ import type { AxisTick, TickInterval } from './axis/axisTick';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { CrossLine } from './crossline/crossLine';
-import type { AxisLayout } from './layout/layoutManager';
 import type { ISeries } from './series/seriesTypes';
 
 export type ChartAxisLabelFlipFlag = 1 | -1;

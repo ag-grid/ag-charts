@@ -100,7 +100,14 @@ export class MapShapeSeries
         super({
             moduleCtx,
             categoryKey: undefined,
-            useLabelLayer: true,
+            propertyKeys: {
+                color: ['colorKey'],
+                label: ['labelKey'],
+            },
+            propertyNames: {
+                color: ['colorName'],
+                label: ['labelName'],
+            },
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
 

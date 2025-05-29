@@ -69,8 +69,16 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
-            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
-            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
+            propertyKeys: {
+                ...DEFAULT_CARTESIAN_DIRECTION_KEYS,
+                label: ['labelKey'],
+                size: ['sizeKey'],
+            },
+            propertyNames: {
+                ...DEFAULT_CARTESIAN_DIRECTION_NAMES,
+                label: ['labelName'],
+                size: ['sizeName'],
+            },
             categoryKey: undefined,
             pickModes: [
                 SeriesNodePickMode.AXIS_ALIGNED,
@@ -405,9 +413,24 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 key: sizeKey,
                 source: 'tooltip',
                 property: 'size',
+                boundSeries: this.getFormatterContext('size'),
                 fractionDigits: undefined,
             });
             data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? formatValue(value) });
+        }
+
+        if (labelKey != null) {
+            const value = dataModel.resolveColumnById<number>(this, `labelValue`, processedData)[datumIndex];
+            const content = formatManager.format({
+                type: 'category',
+                value,
+                datum,
+                key: labelKey,
+                source: 'tooltip',
+                property: 'label',
+                boundSeries: this.getFormatterContext('label'),
+            });
+            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
         }
 
         const style = marker.getStyle();

@@ -2,24 +2,18 @@ import { Logger, isArray } from 'ag-charts-core';
 import type { AgInitialStateLegendOptions } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
-import { BaseManager } from '../../util/baseManager';
+import type { EventsHub } from '../../core/eventsHub';
 import type { CategoryLegendDatum } from './legendDatum';
-
-export interface LegendChangeEvent {
-    type: 'legend-change';
-    legendData?: CategoryLegendDatum[];
-}
 
 type LegendDataMap = Map<string, CategoryLegendDatum[]>;
 type LegendDataMemento = AgInitialStateLegendOptions[];
 
-export class LegendManager
-    extends BaseManager<LegendChangeEvent['type'], LegendChangeEvent>
-    implements MementoOriginator<LegendDataMemento>
-{
+export class LegendManager implements MementoOriginator<LegendDataMemento> {
     public mementoOriginatorKey = 'legend' as const;
 
     private readonly legendDataMap: LegendDataMap = new Map();
+
+    constructor(private readonly eventsHub: EventsHub) {}
 
     public createMemento() {
         return this.getData()
@@ -102,8 +96,7 @@ export class LegendManager
     }
 
     public update(data?: CategoryLegendDatum[]) {
-        this.listeners.dispatch('legend-change', {
-            type: 'legend-change',
+        this.eventsHub.emit('legend:change', {
             legendData: data ?? this.getData(),
         });
     }
