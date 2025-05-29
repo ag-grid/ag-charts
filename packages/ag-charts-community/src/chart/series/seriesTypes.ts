@@ -62,6 +62,8 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     visible: boolean;
     connectsToYAxis: boolean;
     tooltipEnabled?: boolean;
+    // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)
+    minTimeInterval(): number | undefined;
 }
 
 /**

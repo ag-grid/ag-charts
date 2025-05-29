@@ -1013,4 +1013,9 @@ export abstract class Series<
     abstract getCategoryValue(datumIndex: TDatumIndex): any;
 
     abstract datumIndexForCategoryValue(categoryValue: any): TDatumIndex | undefined;
+
+    // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)
+    minTimeInterval(): number | undefined {
+        return;
+    }
 }

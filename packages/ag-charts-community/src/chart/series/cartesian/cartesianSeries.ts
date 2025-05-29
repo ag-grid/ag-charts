@@ -919,7 +919,7 @@ export abstract class CartesianSeries<
     // @todo(AG-13777) - Remove this function.
     // We need data model updates to know if a data set is sorted & unique - and at the same time
     // it should generate the equivalent of `SMALLEST_KEY_INTERVAL`. We'll use that value here
-    minTimeInterval() {
+    override minTimeInterval() {
         // eslint-disable-next-line sonarjs/use-type-alias
         let xValues: Array<Date | number | undefined> | undefined;
         try {

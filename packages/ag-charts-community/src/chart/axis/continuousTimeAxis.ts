@@ -12,7 +12,6 @@ import {
 } from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
 import type { ChartAxisDirection } from '../chartAxisDirection';
-import { CartesianSeries } from '../series/cartesian/cartesianSeries';
 import type { ISeries } from '../series/seriesTypes';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
@@ -116,13 +115,12 @@ export function minimumTimeAxisDatumGranularity(
     max: Date | number | undefined
 ) {
     const minTimeInterval = boundSeries.reduce((t, series) => {
-        if (!(series instanceof CartesianSeries)) return t;
         return Math.min(series.minTimeInterval() ?? Infinity, t);
     }, Infinity);
 
-    if (minTimeInterval == null) {
-        return calculateDefaultUnit(boundSeries, direction, min, max)?.unit;
-    } else {
+    if (Number.isFinite(minTimeInterval)) {
         return highestGranularityForInterval(minTimeInterval);
+    } else {
+        return calculateDefaultUnit(boundSeries, direction, min, max)?.unit;
     }
 }
