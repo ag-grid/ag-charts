@@ -1,23 +1,30 @@
 import type { TimeIntervalUnit } from 'ag-charts-types';
 
 import { findMinMax } from './number';
-import {
-    durationDay,
-    durationHour,
-    durationMinute,
-    durationSecond,
-    durationYear,
-    intervalFloor,
-    intervalMilliseconds,
-} from './time';
+import { durationDay, durationHour, durationMinute, durationSecond, durationYear, intervalFloor } from './time';
 
 export function dateToNumber(value: any) {
     return value instanceof Date ? value.getTime() : value;
 }
 
-const intervalUnits: TimeIntervalUnit[] = ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'];
-export function highestGranularityForInterval(interval: number) {
-    return intervalUnits.findLast((u) => intervalMilliseconds(u) <= interval) ?? 'millisecond';
+export function lowestGranularityForInterval(interval: number) {
+    if (interval < durationSecond) {
+        return 'millisecond';
+    } else if (interval < durationMinute) {
+        return 'second';
+    } else if (interval < durationHour) {
+        return 'minute';
+    } else if (interval < durationHour * 23) {
+        // Handle DST change
+        return 'hour';
+    } else if (interval < 28 * durationDay) {
+        // Note durationMonth is the average month duration
+        return 'day';
+    } else if (interval < durationYear) {
+        return 'month';
+    } else {
+        return 'year';
+    }
 }
 
 export function lowestGranularityUnitForTicks(ticks: (Date | number)[]): TimeIntervalUnit {
@@ -32,22 +39,7 @@ export function lowestGranularityUnitForTicks(ticks: (Date | number)[]): TimeInt
         minInterval = Math.min(minInterval, Math.abs(ticks[i].valueOf() - ticks[i - 1].valueOf()));
     }
 
-    if (minInterval < durationSecond) {
-        return 'millisecond';
-    } else if (minInterval < durationMinute) {
-        return 'second';
-    } else if (minInterval < durationHour) {
-        return 'minute';
-    } else if (minInterval < durationDay) {
-        return 'hour';
-        // Note durationMonth is the average month duration
-    } else if (minInterval < 28 * durationDay) {
-        return 'day';
-    } else if (minInterval < durationYear) {
-        return 'month';
-    } else {
-        return 'year';
-    }
+    return lowestGranularityForInterval(minInterval);
 }
 
 export function lowestGranularityUnitForValue(value: Date | number): TimeIntervalUnit {

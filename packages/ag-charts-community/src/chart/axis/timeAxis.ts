@@ -10,7 +10,7 @@ import { intervalEpoch, intervalFloor, intervalMilliseconds, intervalStep, inter
 import { buildDateFormatter } from '../../util/timeFormat';
 import {
     domainSpansMultipleYears,
-    highestGranularityForInterval,
+    lowestGranularityForInterval,
     lowestGranularityUnitForTicks,
 } from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
@@ -210,7 +210,7 @@ export function calculateDefaultUnit(
 
     interval ??= Math.abs(end - start);
 
-    const unit = highestGranularityForInterval(interval);
+    const unit = lowestGranularityForInterval(interval);
     const step = Math.max(Math.round(interval / intervalMilliseconds(unit)), 1);
     const epoch = start != null && step !== 1 ? intervalFloor(unit, start) : undefined;
 

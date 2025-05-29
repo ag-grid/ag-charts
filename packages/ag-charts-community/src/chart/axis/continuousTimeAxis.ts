@@ -6,7 +6,7 @@ import { Property } from '../../util/properties';
 import { intervalEpoch, intervalMilliseconds, intervalStep, intervalUnit } from '../../util/time';
 import {
     domainSpansMultipleYears,
-    highestGranularityForInterval,
+    lowestGranularityForInterval,
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
 } from '../../util/timeFormatDefaults';
@@ -119,7 +119,7 @@ export function minimumTimeAxisDatumGranularity(
     }, Infinity);
 
     if (Number.isFinite(minTimeInterval)) {
-        return highestGranularityForInterval(minTimeInterval);
+        return lowestGranularityForInterval(minTimeInterval);
     } else {
         return calculateDefaultUnit(boundSeries, direction, min, max)?.unit;
     }
