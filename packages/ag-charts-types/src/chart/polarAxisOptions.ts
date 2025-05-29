@@ -4,7 +4,7 @@ import type {
     AgContinuousAxisOptions,
     AgFormattableLabelOptions,
 } from './axisOptions';
-import type { AgBaseCrossLineOptions, AgCrossLineThemeOptions } from './crossLineOptions';
+import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions, AgCrossLineThemeOptions } from './crossLineOptions';
 import type { Degree, Ratio, TContextDefault } from './types';
 
 export type AgPolarAxisShape = 'polygon' | 'circle';
@@ -65,5 +65,5 @@ interface OrientableLabel {
 export interface AgAngleAxisFormattableLabelOptions extends AgFormattableLabelOptions, OrientableLabel {}
 export interface AgAngleAxisLabelOptions extends AgBaseAxisLabelOptions, OrientableLabel {}
 
-export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions<AgBaseAxisLabelOptions> {}
-export interface AgAngleCrossLineThemeOptions extends AgCrossLineThemeOptions<AgBaseAxisLabelOptions> {}
+export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions<AgBaseCrossLineLabelOptions> {}
+export interface AgAngleCrossLineThemeOptions extends AgCrossLineThemeOptions<AgBaseCrossLineLabelOptions> {}
