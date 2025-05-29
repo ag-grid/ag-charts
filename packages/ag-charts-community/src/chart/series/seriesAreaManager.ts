@@ -360,7 +360,7 @@ export class SeriesAreaManager extends BaseManager {
         if (relatedTarget?.className === 'ag-charts-text-input__textarea') {
             return;
         }
-        if (this.chart.ctx.tooltipManager.isEnteringInteractiveTooltip(event.sourceEvent)) {
+        if (this.chart.ctx.tooltipManager.maybeEnterInteractiveTooltip(this.id, event.sourceEvent)) {
             return;
         }
 
@@ -472,7 +472,7 @@ export class SeriesAreaManager extends BaseManager {
     private onBlur(event: FocusEvent) {
         if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = 'pointer';
-        if (!this.chart.ctx.tooltipManager.isEnteringInteractiveTooltip(event)) {
+        if (!this.chart.ctx.tooltipManager.maybeEnterInteractiveTooltip(this.id, event)) {
             this.clearAll();
         }
         this.focusIndicator?.overrideFocusVisible(undefined);

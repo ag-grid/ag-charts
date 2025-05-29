@@ -122,9 +122,7 @@ export class TooltipManager {
         return meta;
     }
 
-    public isEnteringInteractiveTooltip(event: Pick<FocusEvent | MouseEvent, 'relatedTarget'>): boolean {
-        const { tooltip } = this;
-        const relatedTarget = event.relatedTarget as Node | null;
-        return tooltip.interactive && tooltip.enabled && tooltip.isVisible() && tooltip.contains(relatedTarget);
+    public maybeEnterInteractiveTooltip(callerId: string, event: FocusEvent | MouseEvent): boolean {
+        return this.tooltip.maybeEnterInteractiveTooltip(event, () => this.removeTooltip(callerId));
     }
 }

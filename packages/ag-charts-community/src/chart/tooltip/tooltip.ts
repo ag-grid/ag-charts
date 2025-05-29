@@ -171,6 +171,11 @@ export class Tooltip extends BaseProperties {
     private element?: HTMLElement;
     private readonly sizeMonitor = new SizeMonitor();
 
+    private interactiveLeave?: {
+        callback: () => void;
+        listener: (e: MouseEvent | FocusEvent) => void;
+    };
+
     // Reading the element size is expensive, so cache the result
     private _elementSize: { width: number; height: number } | undefined = undefined;
     private _showTimeout: NodeJS.Timeout | undefined = undefined;
@@ -365,6 +370,45 @@ export class Tooltip extends BaseProperties {
         this.toggle(false);
     }
 
+    maybeEnterInteractiveTooltip({ relatedTarget }: FocusEvent | MouseEvent, callback: () => void): boolean {
+        const { interactive, interactiveLeave, enabled, element } = this;
+        if (element == null) return false;
+        if (interactiveLeave) return true;
+
+        const isEntering =
+            interactive && enabled && this.isVisible() && relatedTarget instanceof Node && this.contains(relatedTarget);
+
+        // AG-14990 Add a custom listener to dismiss the tooltip when the user is done interacting with it.
+        if (isEntering) {
+            this.interactiveLeave = {
+                callback,
+                listener: (popoverEvent: FocusEvent | MouseEvent): void => {
+                    const isLeaving =
+                        popoverEvent.relatedTarget instanceof Node && !this.contains(popoverEvent.relatedTarget);
+                    if (isLeaving) {
+                        this.popInteractiveLeaveCallback();
+                    }
+                },
+            };
+            element.addEventListener('focusout', this.interactiveLeave.listener);
+            element.addEventListener('mouseout', this.interactiveLeave.listener);
+        }
+
+        return isEntering;
+    }
+
+    private popInteractiveLeaveCallback() {
+        const { interactiveLeave, element } = this;
+        this.interactiveLeave = undefined; // prevent re-entrancy.
+        if (interactiveLeave) {
+            if (element) {
+                element.removeEventListener('focusout', interactiveLeave.listener);
+                element.removeEventListener('mouseout', interactiveLeave.listener);
+            }
+            interactiveLeave.callback();
+        }
+    }
+
     private toggle(visible: boolean, instantly: boolean = false) {
         const { delay } = this;
 
@@ -395,6 +439,7 @@ export class Tooltip extends BaseProperties {
             this.updateTooltipPosition();
         } else {
             this.springAnimation.reset();
+            this.popInteractiveLeaveCallback();
         }
     }
 

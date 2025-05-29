@@ -47,9 +47,9 @@ export type AgZoomButtonValue = 'reset' | 'zoom-in' | 'zoom-out' | 'pan-left' | 
 
 export interface AgZoomAutoScaling {
     /**
-     * Set to `true` to enable the auto scaling of the y axis when zooming.
+     * Set to `false` to disable the auto scaling of the y-axis when zooming the x-axis.
      *
-     * Default: `false`
+     * Default: `true`
      */
     enabled?: boolean;
     /**

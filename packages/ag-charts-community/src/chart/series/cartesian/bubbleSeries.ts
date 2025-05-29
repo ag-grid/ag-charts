@@ -248,8 +248,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             const labelText = this.getLabelText<AgBubbleSeriesLabelFormatterParams>(
                 labelValue,
                 datum,
-                labelKey ?? yKey,
-                labelKey != null ? 'label' : 'y',
+                labelKey ?? sizeKey,
+                labelKey != null ? 'label' : 'size',
                 label,
                 { value: labelValue, datum, xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName }
             );
