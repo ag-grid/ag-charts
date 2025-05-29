@@ -310,7 +310,7 @@ describe('Axis Examples', () => {
 
     const snapshot = async () => {
         await waitForChartStability(chart);
-        return ctx.nodeCanvas?.getContext('2d').getImageData(0, 0, ctx.nodeCanvas.width, ctx.nodeCanvas.height);
+        return ctx.snapshot();
     };
 
     const compare = async () => {

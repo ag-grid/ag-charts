@@ -10,7 +10,7 @@ Object.defineProperty(Canvas.prototype, 'transferToImageBitmap', {
     value: function transferToImageBitmap() {
         const { width, height } = this;
         const bitmap = createCanvas(width, height);
-        (bitmap as any).getContext('2d').drawImage(this, 0, 0, width, height);
+        bitmap.getContext('2d').drawImage(this, 0, 0, width, height);
         Object.defineProperty(bitmap, 'close', {
             // no-op
             value: () => {},
@@ -22,14 +22,16 @@ Object.defineProperty(Canvas.prototype, 'transferToImageBitmap', {
     configurable: true,
 });
 
-function createCanvas(width: number, height: number) {
-    const canvas = new OffscreenCanvas(width, height);
-    (canvas as any).gpu = false;
+export function createCanvas(width: number, height: number) {
+    const canvas = new Canvas(width, height);
+    canvas.gpu = false;
     return canvas;
 }
+
 export class MockContext {
     ctx: {
         nodeCanvas: Canvas;
+        snapshot: () => ImageData;
         getRenderContext2D: () => globalThis.CanvasRenderingContext2D;
         getActiveCanvasInstances: () => Canvas[];
         getActiveOffscreenCanvasInstances: () => OffscreenCanvas[];
@@ -47,16 +49,23 @@ export class MockContext {
         public realCreateElement: Document['createElement'] = document.createElement,
         public realOffscreenCanvas: typeof global.OffscreenCanvas = Canvas as unknown as typeof global.OffscreenCanvas
     ) {
-        const nodeCanvas = new Canvas(width, height);
+        const nodeCanvas = createCanvas(width, height);
 
         this.ctx = {
             nodeCanvas,
+            snapshot: this.snapshot.bind(this),
             getRenderContext2D: this.getRenderContext2D.bind(this),
             getActiveCanvasInstances: this.getActiveCanvasInstances.bind(this),
             getActiveOffscreenCanvasInstances: this.getActiveOffscreenCanvasInstances.bind(this),
         };
         this.canvasStack = [nodeCanvas];
         this.registerCanvasInstance(nodeCanvas);
+    }
+
+    snapshot() {
+        return this.ctx.nodeCanvas
+            .getContext('2d')
+            .getImageData(0, 0, this.ctx.nodeCanvas.width, this.ctx.nodeCanvas.height);
     }
 
     getRenderContext2D(): globalThis.CanvasRenderingContext2D {
@@ -120,7 +129,7 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
 
     const { width, height, document } = mockCtx;
 
-    const nodeCanvas = new Canvas(width, height);
+    const nodeCanvas = createCanvas(width, height);
     mockCtx.ctx.nodeCanvas = nodeCanvas;
     mockCtx.canvasStack = [nodeCanvas];
 
@@ -137,7 +146,7 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
         if (element === 'canvas') {
             const mockedElement = realCreateElement.call(document, element, options) as HTMLCanvasElement;
 
-            const nextCanvas = mockCtx.canvasStack.shift() ?? new Canvas(width, height);
+            const nextCanvas = mockCtx.canvasStack.shift() ?? createCanvas(width, height);
             mockCtx.registerCanvasInstance(nextCanvas);
 
             proxyGetContext2D(mockCtx, nextCanvas, mockedElement);

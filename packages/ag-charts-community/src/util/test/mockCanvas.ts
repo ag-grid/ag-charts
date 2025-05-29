@@ -26,7 +26,7 @@ export function extractImageData({
             throw new Error('Invalid image size provided, dimensions must be greater than zero.');
         }
 
-        sourceCanvas = new Canvas(width, height);
+        sourceCanvas = mockCanvas.createCanvas(width, height);
         sourceCanvas
             ?.getContext('2d')
             .drawImage(
@@ -47,6 +47,7 @@ export function extractImageData({
 
 export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT } = {}): {
     nodeCanvas: Canvas;
+    snapshot: () => ImageData;
     getRenderContext2D: () => CanvasRenderingContext2D;
     getActiveCanvasInstances: () => Canvas[];
     getActiveOffscreenCanvasInstances: () => OffscreenCanvas[];
