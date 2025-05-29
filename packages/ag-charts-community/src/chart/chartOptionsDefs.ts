@@ -1,6 +1,7 @@
 import {
     type OptionsDefs,
     array,
+    arrayLength,
     arrayOfDefs,
     boolean,
     defined,
@@ -51,14 +52,14 @@ const commonChartOptions = {
 export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
-    axes: defined,
+    axes: arrayLength(2),
     data: array,
 };
 
 export const polarChartOptionsDefs: OptionsDefs<AgPolarChartOptions> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
-    axes: defined,
+    axes: arrayLength(2),
     data: array,
 };
 
