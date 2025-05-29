@@ -11,7 +11,8 @@ export type Operation =
     | FontOperation
     | ColorOperation;
 
-type Leaf<T = ExcludeLeaves> = Operation | T;
+type Leaf<T extends ExcludeLeaves | object> = Operation | T;
+type AnyLeaf = Leaf<ExcludeLeaves>;
 
 type ExcludeLeaves = string | symbol | number | undefined | AgGradientColor | AgPatternColor | AgImageFill;
 
@@ -70,33 +71,33 @@ type PaletteParam =
 type PathOperation =
     | { $ref: ThemeParam }
     | { $palette: PaletteParam }
-    | { $path: Leaf<string> | [Leaf<string>, Leaf] | [Leaf<string>, Leaf, Leaf] };
+    | { $path: Leaf<string> | [Leaf<string>, AnyLeaf] | [Leaf<string>, AnyLeaf, AnyLeaf] };
 
 type LogicOperation =
-    | { $if: [Leaf, Leaf, Leaf] }
-    | { $or: Leaf[] }
-    | { $and: Leaf[] }
-    | { $eq: [Leaf, Leaf] }
-    | { $not: [Leaf] }
-    | { $switch: [Leaf] }
+    | { $if: [AnyLeaf, AnyLeaf, AnyLeaf] }
+    | { $or: AnyLeaf[] }
+    | { $and: AnyLeaf[] }
+    | { $eq: [AnyLeaf, AnyLeaf] }
+    | { $not: [AnyLeaf] }
+    | { $switch: [AnyLeaf] }
     | { $isOperation: string };
 
 type NumericOperation = { $even: [Leaf<number>] } | { $mul: [Leaf<number>, Leaf<number>] } | { $round: [Leaf<number>] };
 
 type TransformOperation =
-    | { $map: [Leaf, Leaf] }
-    | { $find: [Leaf, Leaf] }
+    | { $map: [AnyLeaf, AnyLeaf] }
+    | { $find: [AnyLeaf, AnyLeaf] }
     | { $merge: Leaf<object>[] }
     | { $omit: [Leaf<Array<string>>, Leaf<object>] }
     | { $value: '$1' | '$index' };
 
-type FontOperation = { $rem: [Leaf] | [Leaf, Leaf] };
+type FontOperation = { $rem: [AnyLeaf] | [AnyLeaf, AnyLeaf] };
 
 type ColorOperation =
     | { $mix: [Leaf<string>, Leaf<string>, Leaf<number>] }
     | { $foregroundBackgroundMix: [Leaf<number>] }
     | { $foregroundBackgroundAccentMix: [Leaf<number>, Leaf<number>] }
-    | { $interpolate: [Leaf, Leaf<number>] }
-    | { $isGradient: [Leaf] }
-    | { $isPattern: [Leaf] }
-    | { $isImage: [Leaf] };
+    | { $interpolate: [AnyLeaf, Leaf<number>] }
+    | { $isGradient: [AnyLeaf] }
+    | { $isPattern: [AnyLeaf] }
+    | { $isImage: [AnyLeaf] };

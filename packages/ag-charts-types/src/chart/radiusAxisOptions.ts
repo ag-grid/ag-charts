@@ -14,7 +14,7 @@ interface AgRadiusAxisLabelOptions extends AgBaseAxisLabelOptions {}
 
 export interface AgRadiusNumberAxisOptions<TContext = TContextDefault>
     extends Omit<AgBaseAxisOptions<AgRadiusAxisFormattableLabelOptions, TContext>, 'interval'>,
-        AgContinuousAxisOptions {
+        AgContinuousAxisOptions<number, number> {
     type: 'radius-number';
     /** The rotation angle of axis line and labels in degrees. */
     positionAngle?: Degree;

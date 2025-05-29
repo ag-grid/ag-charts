@@ -348,7 +348,7 @@ export interface AgThemeOverrides<TDatum = TDatumDefault> extends AgChartThemeOv
 
 // Use Typescript function types to verify that all series types are present in the manually
 // maintained AgBaseChartThemeOverrides type.
-type VerifyAgBaseChartThemeOverrides<T = AgBaseChartOptions<never, never>> = {
+type VerifyAgBaseChartThemeOverrides<T> = {
     [K in NonNullable<AgCartesianSeriesOptions<never, never>['type']>]?: T;
 } & {
     [K in NonNullable<AgPolarSeriesOptions<never, never>['type']>]?: T;
@@ -363,5 +363,6 @@ type VerifyAgBaseChartThemeOverrides<T = AgBaseChartOptions<never, never>> = {
 // Verification checks for completeness/correctness.
 const __THEME_OVERRIDES = undefined as any as Required<AgChartThemeOverrides<never>>;
 // @ts-expect-error TS6133 - this is used to validate completeness by the compiler, but is deliberately unused.
-let __VERIFY_THEME_OVERRIDES: Required<VerifyAgBaseChartThemeOverrides> = undefined as any;
+let __VERIFY_THEME_OVERRIDES: Required<VerifyAgBaseChartThemeOverrides<AgBaseChartOptions<never, never>>> =
+    undefined as any;
 __VERIFY_THEME_OVERRIDES = __THEME_OVERRIDES;
