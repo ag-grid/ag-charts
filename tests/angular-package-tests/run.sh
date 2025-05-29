@@ -6,6 +6,14 @@ fw=angular
 fw_package="@angular/cli"
 dev_port=4200
 
+function init_fw {
+    if [[ ${version} == "latest" || ${version} -ge 20 ]] ; then
+        patch_subdir=post-20
+    else
+        patch_subdir=pre-20
+    fi
+}
+
 function install_fw {
     if [[ ${version} == "latest" ]] ; then
         echo ">>> npm i -g @angular/cli@latest"
