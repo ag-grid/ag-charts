@@ -12,6 +12,7 @@ const {
     FillImageDefaults,
     FillPatternDefaults,
     getShapeFill,
+    InteractionState,
 } = _ModuleSupport;
 
 export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
@@ -57,7 +58,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
     });
     private readonly rangeNode: _ModuleSupport.Range<any> = this.bandHighlightGroup.appendChild(new Range());
 
-    private activeAxisHighlight?: _ModuleSupport.AxisHighlightChangeEvent['currentHighlight'] = undefined;
+    private activeAxisHighlight?: _ModuleSupport.AxisBandDatum = undefined;
     constructor(private readonly ctx: _ModuleSupport.ModuleContextWithParent<_ModuleSupport.AxisContext>) {
         super();
 
@@ -72,11 +73,71 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
             }
         });
 
+        const {
+            widgets: { seriesWidget, seriesDragInterpreter },
+            animationManager,
+        } = ctx;
+
+        const { eventsHub } = ctx;
+
         this.cleanup.register(
             ctx.scene.attachNode(this.bandHighlightGroup),
-            ctx.axisHighlightManager.addListener('axis-highlight-change', (event) => this.onHighlightChange(event)),
-            ctx.layoutManager.addListener('layout:complete', (event) => this.layout(event))
+            eventsHub.on('layout:complete', (event) => this.layout(event)),
+            seriesWidget.addListener('mousemove', (event) => this.onHoverLikeEvent(event)),
+            seriesWidget.addListener('drag-move', (event) => this.onHoverLikeEvent(event)),
+            seriesWidget.addListener('mouseleave', () => this.clearAllHighlight()),
+            seriesDragInterpreter.events.on('click', (event) => this.onClick(event)),
+            eventsHub.on('series:focus-change', () => this.onKeyPress()),
+            eventsHub.on('zoom:pan-start', () => this.clearAllHighlight()),
+            eventsHub.on('zoom:change', () => this.clearAllHighlight()),
+            animationManager.addListener('animation-start', () => this.clearAllHighlight()),
+            eventsHub.on('dom:resize', () => this.clearAllHighlight()),
+            eventsHub.on('axis:change', () => this.axisChange())
         );
+    }
+
+    private axisChange() {
+        this.onHighlightChange();
+    }
+
+    private isHover(event: _ModuleSupport.HoverLikeEvent): boolean {
+        return (
+            event.type === 'mousemove' ||
+            event.type === 'click' ||
+            (event.device === 'touch' && this.ctx.chartService.touch.dragAction === 'hover')
+        );
+    }
+
+    private onClick(event: _ModuleSupport.DragInterpreterClickEvent) {
+        if (event.device === 'touch') {
+            this.onHoverLikeEvent(event);
+        }
+    }
+
+    private clearAllHighlight() {
+        if (!this.ctx.interactionManager.isState(InteractionState.Clickable)) return;
+
+        this.onHighlightChange();
+    }
+
+    private onKeyPress() {
+        if (this.ctx.interactionManager.isState(InteractionState.Default)) {
+            this.onHighlightChange();
+        }
+    }
+
+    private onHoverLikeEvent(event: _ModuleSupport.HoverLikeEvent): void {
+        const requiredState = this.isHover(event) ? InteractionState.Clickable : InteractionState.AnnotationsMoveable;
+        if (!this.ctx.interactionManager.isState(requiredState)) return;
+        this.handleHoverHighlight(event);
+    }
+
+    private handleHoverHighlight(event: _ModuleSupport.HoverLikeEvent) {
+        if (!event) return;
+
+        const { currentX: x, currentY: y } = event;
+
+        this.onHighlightChange(this.axisCtx.pickBand({ x, y }));
     }
 
     private layout({ series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
@@ -129,16 +190,10 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
         return this.axisCtx.direction === ChartAxisDirection.X;
     }
 
-    private onHighlightChange(event: _ModuleSupport.AxisHighlightChangeEvent) {
+    private onHighlightChange(axisBandDatum?: _ModuleSupport.AxisBandDatum) {
         if (!this.enabled) return;
 
-        const axisMatch = event.axisId === this.axisCtx.axisId;
-
-        if (!axisMatch) {
-            return;
-        }
-
-        this.activeAxisHighlight = event.currentHighlight;
+        this.activeAxisHighlight = axisBandDatum;
 
         if (!this.activeAxisHighlight) {
             this.hideBand();

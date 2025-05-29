@@ -1,3 +1,4 @@
+import type { EventsHub } from '../../core/eventsHub';
 import type { AxisContext } from '../../module/axisContext';
 import { Group } from '../../scene/group';
 import { Node } from '../../scene/node';
@@ -40,7 +41,10 @@ export class AxisManager {
         zIndex: ZIndexMap.SERIES_LABEL,
     });
 
-    public constructor(private readonly sceneRoot: Group) {
+    public constructor(
+        private readonly eventsHub: EventsHub,
+        private readonly sceneRoot: Group
+    ) {
         this.sceneRoot.appendChild(this.axisGroup);
         this.sceneRoot.appendChild(this.axisGridGroup);
         this.sceneRoot.appendChild(this.axisLabelGroup);
@@ -79,6 +83,8 @@ export class AxisManager {
                 this.axes.set(ctx.direction, [ctx]);
             }
         }
+
+        this.eventsHub.emit('axis:change', null);
     }
 
     getAxisContext(direction: ChartAxisDirection) {

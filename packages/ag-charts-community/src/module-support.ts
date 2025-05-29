@@ -80,7 +80,6 @@ export * from './chart/interaction/contextMenuRegistry';
 export * from './chart/interaction/contextMenuTypes';
 export * from './chart/interaction/dragInterpreter';
 export * from './chart/interaction/highlightManager';
-export * from './chart/interaction/axisHighlightManager';
 export * from './chart/interaction/interactionManager';
 export * from './chart/interaction/tooltipManager';
 export * from './chart/interaction/zoomManager';

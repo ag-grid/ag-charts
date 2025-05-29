@@ -2,7 +2,6 @@ import type { BoxBounds } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
-import type { AxisBandDatum } from '../chart/interaction/axisHighlightManager';
 import type { Scale } from '../scale/scale';
 import type { Node } from '../scene/node';
 import type { Point } from '../scene/point';
@@ -15,6 +14,13 @@ export type ContextFormatter<Params> = (
 export interface AxisFormattableLabel<Params extends object> {
     formatter?: (params: Params) => string | undefined;
     format?: string;
+}
+
+export interface AxisBandDatum {
+    readonly id: string;
+    readonly value: any;
+    readonly band: [number, number];
+    readonly position: number;
 }
 
 export interface AxisContext {
