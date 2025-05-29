@@ -2,7 +2,7 @@
   "name": "react-package-tests",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "tests/react-package-tests",
-  "projectType": "",
+  "projectType": "application",
   "targets": {
     "test:package": {
       "executor": "nx:noop",
