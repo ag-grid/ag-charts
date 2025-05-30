@@ -186,7 +186,7 @@ export abstract class Shape<D = any> extends Node<D> {
     @SceneChangeDetection()
     miterLimit?: number = undefined;
 
-    @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
+    @SceneChangeDetection({ convertor: (v: number) => clamp(0, v ?? Shape.defaultStyles.opacity, 1) })
     opacity: number = Shape.defaultStyles.opacity;
 
     @SceneObjectChangeDetection({ equals: TRIPLE_EQ, checkDirtyOnAssignment: true })

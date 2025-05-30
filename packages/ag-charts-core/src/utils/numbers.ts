@@ -1,8 +1,4 @@
 export function clamp(min: number, value: number, max: number) {
-    if (value == null) {
-        throw new Error('Value is null');
-    }
-
     return Math.min(max, Math.max(min, value));
 }
 
