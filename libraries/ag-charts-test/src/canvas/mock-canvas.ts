@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Canvas, CanvasRenderingContext2D, Image } from 'skia-canvas';
+import { Canvas, CanvasRenderingContext2D, ExportFormat, Image } from 'skia-canvas';
 
 import { mockCanvasText } from './mock-canvas-text';
 
@@ -144,8 +144,8 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
 
             proxyGetContext2D(mockCtx, nextCanvas, mockedElement);
 
-            mockedElement.toDataURL = (mimeType?: 'png') => {
-                return nextCanvas.toDataURLSync(mimeType ?? 'png');
+            mockedElement.toDataURL = (mimeType: 'image/png') => {
+                return nextCanvas.toDataURLSync(mimeType.split('/')[1] as ExportFormat);
             };
 
             return mockedElement;
