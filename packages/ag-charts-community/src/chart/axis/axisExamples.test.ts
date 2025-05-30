@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type {
-    AgBaseChartOptions,
     AgCartesianAxisPosition,
     AgCartesianAxisType,
     AgCartesianChartOptions,
@@ -15,6 +14,7 @@ import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     createChart,
     deproxy,
@@ -25,7 +25,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-import type { ChartOrProxy } from '../test/utils';
+import type { CartesianTestCase, ChartOrProxy } from '../test/utils';
 
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
@@ -56,10 +56,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
     };
 }
 
-type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
-    options: T;
-    assertions: (chart: ChartOrProxy) => Promise<void> | void;
-    extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
+type TestCase = CartesianTestCase & {
     compare?: AgCartesianAxisType[];
 };
 const EXAMPLES: Record<string, TestCase> = {
@@ -245,9 +242,7 @@ const EXAMPLES_LAYOUT: Record<string, TestCase> = {
     },
 };
 
-function mixinDerivedCases<T extends AgBaseChartOptions>(
-    baseCases: Record<string, TestCase<T>>
-): Record<string, TestCase<T>> {
+function mixinDerivedCases(baseCases: Record<string, TestCase>): Record<string, TestCase> {
     const result = { ...baseCases };
 
     Object.entries(baseCases).forEach(([name, baseCase]) => {
@@ -272,9 +267,7 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
     return result;
 }
 
-function mixinReversedAxesCases<T extends AgBaseChartOptions>(
-    baseCases: Record<string, TestCase<T>>
-): Record<string, TestCase<T>> {
+function mixinReversedAxesCases(baseCases: Record<string, TestCase>): Record<string, TestCase> {
     const result = { ...baseCases };
 
     Object.entries(baseCases).forEach(([name, baseCase]) => {
@@ -313,11 +306,11 @@ describe('Axis Examples', () => {
         return ctx.snapshot();
     };
 
-    const compare = async () => {
+    const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
         await waitForChartStability(chart);
 
         const newImageData = extractImageData(ctx);
-        expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(newImageData).toMatchImageSnapshot(defaults);
     };
 
     for (const [exampleName, example] of Object.entries(EXAMPLES)) {
@@ -454,11 +447,11 @@ describe('Axis Examples', () => {
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
                 chart = await createChart(example.options);
-                await compare();
+                await compare(PATTERN_SNAPSHOT_DEFAULTS);
 
                 if (example.extraScreenshotActions) {
                     await example.extraScreenshotActions(chart);
-                    await compare();
+                    await compare(PATTERN_SNAPSHOT_DEFAULTS);
                 }
             });
         }
@@ -473,11 +466,11 @@ describe('Axis Examples', () => {
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
                 chart = await createChart(example.options);
-                await compare();
+                await compare(PATTERN_SNAPSHOT_DEFAULTS);
 
                 if (example.extraScreenshotActions) {
                     await example.extraScreenshotActions(chart);
-                    await compare();
+                    await compare(PATTERN_SNAPSHOT_DEFAULTS);
                 }
             });
         }

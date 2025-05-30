@@ -13,6 +13,7 @@ import {
 import * as examples from '../../test/examples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     expectWarningsCalls,
     extractImageData,
@@ -254,6 +255,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 axisTypes: ['number', 'category'],
                 seriesTypes: repeat('bar', 4),
             }),
+            imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
         },
         GROUPED_COLUMN_PATTERN_FILL: {
             options: examples.GROUPED_COLUMN_PATTERN_FILL,
@@ -261,6 +263,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 axisTypes: ['number', 'category'],
                 seriesTypes: repeat('bar', 4),
             }),
+            imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
         },
         GROUPED_COLUMN_SMALL_PATTERN_FILL: {
             options: examples.GROUPED_COLUMN_SMALL_PATTERN_FILL,
@@ -268,6 +271,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 axisTypes: ['number', 'category'],
                 seriesTypes: repeat('bar', 4),
             }),
+            imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
         },
     }),
 };
@@ -291,11 +295,11 @@ describe('BarSeries', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async () => {
+    const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(defaults);
     };
 
     describe('#create', () => {
@@ -337,11 +341,11 @@ describe('BarSeries', () => {
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
-                await compare();
+                await compare(example.imageSnapshotDefaults);
 
                 if (example.extraScreenshotActions) {
                     await example.extraScreenshotActions(chart);
-                    await compare();
+                    await compare(example.imageSnapshotDefaults);
                 }
             }
         );

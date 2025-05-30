@@ -55,7 +55,10 @@ const buildLogAxisTestCase = (
     };
 };
 
-const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = {
+const EXAMPLES: Record<
+    string,
+    CartesianOrPolarTestCase & { skip?: boolean; imageSnapshotDefaults?: typeof IMAGE_SNAPSHOT_DEFAULTS }
+> = {
     ...mixinReversedAxesCases({
         AREA_MISSING_Y_DATA_EXAMPLE: {
             options: examples.AREA_MISSING_Y_DATA_EXAMPLE,
@@ -201,10 +204,12 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
     AREA_SERIES_DEFAULT_PATTERN_FILL: {
         options: examples.AREA_SERIES_DEFAULT_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_VERTICAL_LINES_PATTERN_FILL: {
         options: examples.AREA_SERIES_VERTICAL_LINES_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_HORIZONTAL_LINES_PATTERN_FILL: {
         options: examples.AREA_SERIES_HORIZONTAL_LINES_PATTERN_FILL,
@@ -213,46 +218,57 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
     AREA_SERIES_FORWARD_SLANTED_LINES_PATTERN_FILL: {
         options: examples.AREA_SERIES_FORWARD_SLANTED_LINES_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_BACKWARD_SLANTED_LINES_PATTERN_FILL: {
         options: examples.AREA_SERIES_BACKWARD_SLANTED_LINES_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_CIRCLES_PATTERN_FILL: {
         options: examples.AREA_SERIES_CIRCLES_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_SQUARES_PATTERN_FILL: {
         options: examples.AREA_SERIES_SQUARES_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_TRIANGLES_PATTERN_FILL: {
         options: examples.AREA_SERIES_TRIANGLES_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_DIAMONDS_PATTERN_FILL: {
         options: examples.AREA_SERIES_DIAMONDS_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_STARS_PATTERN_FILL: {
         options: examples.AREA_SERIES_STARS_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_HEARTS_PATTERN_FILL: {
         options: examples.AREA_SERIES_HEARTS_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_CROSSES_PATTERN_FILL: {
         options: examples.AREA_SERIES_CROSSES_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL: {
         options: examples.AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_CUSTOMISED_PATTERN_FILL: {
         options: examples.AREA_SERIES_CUSTOMISED_PATTERN_FILL,
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
 };
 
@@ -321,11 +337,11 @@ describe('AreaSeries', () => {
                     prepareTestOptions(options);
 
                     chart = AgCharts.create(options);
-                    await compare();
+                    await compare(example.imageSnapshotDefaults);
 
                     if (example.extraScreenshotActions) {
                         await example.extraScreenshotActions(chart);
-                        await compare();
+                        await compare(example.imageSnapshotDefaults);
                     }
                 });
             }

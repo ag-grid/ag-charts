@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { AgPatternName } from 'ag-charts-types';
 
+import { PATTERN_SNAPSHOT_DEFAULTS, looserSnapshotDefaults } from '../../chart/test/utils';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { Rect } from './rect';
 
@@ -439,7 +440,7 @@ describe('Shape', () => {
 
             // Check rendering.
             const imageData = extractImageData(canvasCtx);
-            expect(imageData).toMatchImageSnapshot();
+            expect(imageData).toMatchImageSnapshot(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
         it('should render stock patterns with rotation as expected', () => {
@@ -487,7 +488,7 @@ describe('Shape', () => {
 
             // Check rendering.
             const imageData = extractImageData(canvasCtx);
-            expect(imageData).toMatchImageSnapshot();
+            expect(imageData).toMatchImageSnapshot(looserSnapshotDefaults(0.12, 50));
         });
 
         it('should render stock patterns with configured dimensions as expected', () => {

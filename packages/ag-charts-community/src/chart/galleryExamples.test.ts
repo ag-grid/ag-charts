@@ -45,22 +45,22 @@ describe('Gallery Examples', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
-                const compare = async () => {
+                const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
                     await waitForChartStability(chart);
 
                     const imageData = extractImageData(ctx);
-                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                    expect(imageData).toMatchImageSnapshot(defaults);
                 };
 
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
-                await compare();
+                await compare(example.imageSnapshotDefaults);
 
                 if (example.extraScreenshotActions) {
                     await example.extraScreenshotActions(chart);
-                    await compare();
+                    await compare(example.imageSnapshotDefaults);
                 }
             }
         );

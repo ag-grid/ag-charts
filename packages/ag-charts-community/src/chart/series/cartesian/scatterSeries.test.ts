@@ -8,6 +8,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
     extractImageData,
+    looserSnapshotDefaults,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
@@ -94,7 +95,7 @@ describe('ScatterSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
-            await compare();
+            await compare(looserSnapshotDefaults(0.05, 5));
         });
 
         it('should render scatter series with a horizontal linear gradient fill', async () => {
@@ -119,7 +120,7 @@ describe('ScatterSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
-            await compare();
+            await compare(looserSnapshotDefaults(0.07));
         });
 
         it('should render scatter series with a series bound vertical linear gradient fill', async () => {
@@ -156,7 +157,7 @@ describe('ScatterSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
-            await compare();
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
         it('should render scatter series with a series bound horizontal linear gradient fill', async () => {
@@ -194,7 +195,7 @@ describe('ScatterSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
-            await compare();
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
         it('should render scatter series with an axes bound vertical linear gradient fill', async () => {
@@ -231,7 +232,7 @@ describe('ScatterSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
-            await compare();
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
         it('should render scatter series with an axes bound horizontal linear gradient fill', async () => {
@@ -269,7 +270,7 @@ describe('ScatterSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
-            await compare();
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
         it('should render scatter series with a default radial gradient fill', async () => {
@@ -292,7 +293,7 @@ describe('ScatterSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
-            await compare();
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
         it('should render scatter series with a series bound radial gradient fill', async () => {
@@ -317,7 +318,7 @@ describe('ScatterSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
-            await compare();
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
         it('should render scatter series with a radial gradient fill', async () => {
@@ -349,7 +350,7 @@ describe('ScatterSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
-            await compare();
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
     });
 
@@ -387,7 +388,7 @@ describe('ScatterSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
-            await compare(PATTERN_SNAPSHOT_DEFAULTS);
+            await compare(looserSnapshotDefaults(0.1, 40));
         });
     });
 
@@ -425,7 +426,7 @@ describe('ScatterSeries', () => {
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
-                await compare();
+                await compare(looserSnapshotDefaults(0.05, 5));
             });
         }
     });

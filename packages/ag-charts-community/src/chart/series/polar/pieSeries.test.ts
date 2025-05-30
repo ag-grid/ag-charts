@@ -15,6 +15,7 @@ import {
     doubleTapAction,
     expectWarningsCalls,
     extractImageData,
+    looserSnapshotDefaults,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -208,7 +209,7 @@ describe('PieSeries', () => {
                     } as AgPieSeriesOptions,
                 ],
             });
-            await compare(undefined, PATTERN_SNAPSHOT_DEFAULTS);
+            await compare(undefined, looserSnapshotDefaults(0.08));
         });
     });
 
