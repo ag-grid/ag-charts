@@ -191,6 +191,7 @@ jobs:
         needs: init
         if: needs.init.outputs.test_count > 0
         strategy:
+            fail-fast: false
             matrix: ${{ fromJson(needs.init.outputs.test_matrix )}}
         env:
             NX_PARALLEL: 1
