@@ -1,5 +1,6 @@
 import {
     type StrictHTMLElement,
+    attachListener,
     createElement,
     createId,
     entries,
@@ -9,6 +10,7 @@ import {
 } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
+import type { EventsHub } from '../core/eventsHub';
 import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
 import { BaseManager } from '../util/baseManager';
@@ -65,7 +67,6 @@ function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => 
     return observer;
 }
 
-type Events = { readonly type: 'hidden' } | { readonly type: 'resize' } | { readonly type: 'container-changed' };
 type LiveDOMElement = {
     element: HTMLElement;
     children: Map<string, StrictHTMLElement>;
@@ -93,7 +94,7 @@ function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 
     return div;
 }
 
-export class DOMManager extends BaseManager<Events['type'], Events> {
+export class DOMManager extends BaseManager {
     private static readonly batchedUpdateContainer: DOMManager[] = [];
     private static readonly headStyles = new Set<string>();
 
@@ -117,6 +118,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private minHeight: number = 0;
 
     constructor(
+        private readonly eventsHub: EventsHub,
         private readonly chart: { styleNonce?: string },
         initialContainer?: HTMLElement,
         private readonly styleContainer?: HTMLElement,
@@ -132,7 +134,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         let hidden = false;
         this.observer = setupObserver(this.element, (intersectionRatio) => {
             if (intersectionRatio === 0 && !hidden) {
-                this.listeners.dispatch('hidden', { type: 'hidden' });
+                this.eventsHub.emit('dom:hidden', null);
             }
             hidden = intersectionRatio === 0;
         });
@@ -144,7 +146,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         this.setContainer(initialContainer);
 
-        this.destroyFns.push(stopPageScrolling(this.element));
+        this.cleanup.register(stopPageScrolling(this.element));
 
         if (this.mode === 'normal') {
             const guardedElement = this.rootElements['canvas-center'].element;
@@ -330,10 +332,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.sizeMonitor.observe(pendingContainer, (size) => {
             this.containerSize = size;
             this.updateContainerSize();
-            this.listeners.dispatch('resize', { type: 'resize' });
+            this.eventsHub.emit('dom:resize', null);
         });
 
-        this.listeners.dispatch('container-changed', { type: 'container-changed' });
+        this.eventsHub.emit('dom:container-change', null);
     }
 
     setThemeClass(themeClassName: string) {
@@ -403,7 +405,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
         options?: boolean | AddEventListenerOptions
     ) {
-        this.getEventElement(this.element, type).addEventListener(type, listener, options);
+        const element = this.getEventElement(this.element, type);
+        return attachListener(element, type, listener, options);
     }
 
     removeEventListener<K extends keyof HTMLElementEventMap>(

@@ -57,8 +57,8 @@ type CartesianSeriesOpts<
     pathsZIndexSubOrderOffset: number[];
     hasMarkers: boolean;
     hasHighlightedLabels: boolean;
-    directionKeys: SeriesDirectionKeysMapping<TProps>;
-    directionNames: SeriesDirectionKeysMapping<TProps>;
+    propertyKeys: SeriesDirectionKeysMapping<TProps>;
+    propertyNames: SeriesDirectionKeysMapping<TProps>;
     datumSelectionGarbageCollection: boolean;
     markerSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
@@ -210,28 +210,28 @@ export abstract class CartesianSeries<
         markerSelectionGarbageCollection = true,
         animationAlwaysUpdateSelections = false,
         animationResetFns,
-        directionKeys,
-        directionNames,
+        propertyKeys,
+        propertyNames,
         ...otherOpts
     }: Partial<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>> &
-        Pick<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>, 'directionKeys' | 'directionNames'> &
+        Pick<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>, 'propertyKeys' | 'propertyNames'> &
         DataModelSeriesConstructorOpts<TProps>) {
         super({
-            directionKeys,
-            directionNames,
+            propertyKeys,
+            propertyNames,
             canHaveAxes: true,
             ...otherOpts,
         });
 
-        if (!directionKeys || !directionNames) throw new Error(`Unable to initialise series type ${this.type}`);
+        if (!propertyKeys || !propertyNames) throw new Error(`Unable to initialise series type ${this.type}`);
 
         this.opts = {
             pathsPerSeries,
             hasMarkers,
             hasHighlightedLabels,
             pathsZIndexSubOrderOffset,
-            directionKeys,
-            directionNames,
+            propertyKeys,
+            propertyNames,
             animationResetFns,
             animationAlwaysUpdateSelections,
             datumSelectionGarbageCollection,
@@ -354,11 +354,9 @@ export abstract class CartesianSeries<
     }
 
     override addChartEventListeners(): void {
-        this.destroyFns.push(
-            this.ctx.chartEventManager.addListener('legend-item-click', (event) => this.onLegendItemClick(event)),
-            this.ctx.chartEventManager.addListener('legend-item-double-click', (event) =>
-                this.onLegendItemDoubleClick(event)
-            )
+        this.cleanup.register(
+            this.ctx.eventsHub.on('legend:item-click', (event) => this.onLegendItemClick(event)),
+            this.ctx.eventsHub.on('legend:item-double-click', (event) => this.onLegendItemDoubleClick(event))
         );
     }
 
@@ -411,7 +409,7 @@ export abstract class CartesianSeries<
 
             const { dataModel, processedData } = this;
             if (dataModel !== undefined && processedData !== undefined) {
-                this.dispatch('data-update', { dataModel, processedData });
+                this.events.emit('data-update', { dataModel, processedData });
             }
             this.updateSeriesSelections();
         }
@@ -710,7 +708,7 @@ export abstract class CartesianSeries<
             const { x: datumX = NaN, y: datumY = NaN } = datum.point ?? datum.midPoint ?? {};
             if (isNaN(datumX) || isNaN(datumY) || datum.missing === true) continue;
 
-            const visible = [xAxis?.inRange(datumX), yAxis?.inRange(datumY)];
+            const visible = [xAxis?.inRange(datumX, 1), yAxis?.inRange(datumY, 1)];
             if (majorDirection !== ChartAxisDirection.X) {
                 visible.reverse();
             }
@@ -914,6 +912,41 @@ export abstract class CartesianSeries<
             if (shouldFlipXY) [x0, x1, y0, y1] = [y0, y1, x0, x1];
             return x0 >= crossMin && x1 <= crossMax && y0 >= axisMin && y1 <= axisMax;
         });
+    }
+
+    // @todo(AG-13777) - Remove this function.
+    // We need data model updates to know if a data set is sorted & unique - and at the same time
+    // it should generate the equivalent of `SMALLEST_KEY_INTERVAL`. We'll use that value here
+    override minTimeInterval() {
+        // eslint-disable-next-line sonarjs/use-type-alias
+        let xValues: Array<Date | number | undefined> | undefined;
+        try {
+            xValues = this.keysOrValues<Date | number | undefined>('xValue');
+        } catch {
+            // No xValue key - ignore
+        }
+
+        if (xValues == null || xValues.length > 1e3) return;
+
+        let minInterval = Infinity;
+        let x0 = xValues[0];
+        let sortOrder: 1 | -1 | undefined;
+        for (let i = 1; i < xValues.length; i++) {
+            const x1 = xValues[i];
+
+            if (x1 != null && x0 != null) {
+                const interval = x1.valueOf() - x0.valueOf();
+                const sign = Math.sign(interval) as 1 | 0 | -1;
+                if (sign === 0) continue;
+                if (sortOrder !== undefined && sign !== sortOrder) return; // Unsorted
+                minInterval = Math.min(minInterval, Math.abs(interval));
+                sortOrder = sign;
+            }
+
+            x0 = x1;
+        }
+
+        if (Number.isFinite(minInterval)) return minInterval;
     }
 
     protected updateHighlightSelectionItem(opts: {

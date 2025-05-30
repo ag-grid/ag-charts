@@ -1,4 +1,4 @@
-import { createId, createSvgElement } from 'ag-charts-core';
+import { Logger, createId, createSvgElement } from 'ag-charts-core';
 
 import { objectsEqual } from '../util/object';
 import { BBox } from './bbox';
@@ -52,6 +52,8 @@ export interface IScene {
     layersManager: LayersManager;
     imageLoader: ImageLoader;
 }
+
+const MAX_ERROR_COUNT = 5;
 
 /**
  * Abstract scene graph node.
@@ -186,6 +188,27 @@ export abstract class Node<D = any> {
         this.childNodeCounts.thisComplexity = thisComplexity;
 
         return this.childNodeCounts;
+    }
+
+    /** Guaranteed isolated render - if there is any failure, the Cavans2D context is returned to its prior state. */
+    isolatedRender(renderCtx: RenderContext): void {
+        renderCtx.ctx.save();
+        try {
+            this.render(renderCtx);
+        } catch (e: any) {
+            const errorCount = e.errorCount ?? 1;
+
+            // If there are multiple failures, fail faster since raising errors is expensive and
+            // could therefore manifest as a performance issue rather than a bug.
+            if (errorCount >= MAX_ERROR_COUNT) {
+                e.errorCount = errorCount;
+                throw e;
+            }
+
+            Logger.warnOnce('Error during rendering', e);
+        } finally {
+            renderCtx.ctx.restore();
+        }
     }
 
     render(renderCtx: RenderContext): void {

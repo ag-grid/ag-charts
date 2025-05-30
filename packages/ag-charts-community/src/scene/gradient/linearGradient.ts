@@ -48,6 +48,9 @@ export class LinearGradient extends Gradient {
 
     protected override createCanvasGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | undefined {
         const { x0, y0, x1, y1 } = this.getGradientPoints(bbox);
+        if (isNaN(x0) || isNaN(y0) || isNaN(x1) || isNaN(y1)) {
+            return undefined;
+        }
         return ctx.createLinearGradient(x0, y0, x1, y1);
     }
 

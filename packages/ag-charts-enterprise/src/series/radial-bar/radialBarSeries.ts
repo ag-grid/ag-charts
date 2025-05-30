@@ -8,6 +8,8 @@ import { RadialBarSeriesProperties } from './radialBarSeriesProperties';
 import { prepareRadialBarSeriesAnimationFunctions, resetRadialBarSelectionsFn } from './radialBarUtil';
 
 const {
+    DEFAULT_POLAR_DIRECTION_KEYS,
+    DEFAULT_POLAR_DIRECTION_NAMES,
     ChartAxisDirection,
     PolarAxis,
     diff,
@@ -92,7 +94,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         super({
             moduleCtx,
             categoryKey: 'radiusValue',
-            useLabelLayer: true,
+            propertyKeys: DEFAULT_POLAR_DIRECTION_KEYS,
+            propertyNames: DEFAULT_POLAR_DIRECTION_NAMES,
             canHaveAxes: true,
             animationResetFns: {
                 item: resetRadialBarSelectionsFn,
@@ -262,7 +265,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             x: number,
             y: number
         ): RadialBarLabelNodeDatum | undefined => {
-            const labelText = this.getLabelText(label, {
+            const labelText = this.getLabelText(angleDatum, datum, angleKey, 'angle', label, {
                 value: angleDatum,
                 datum,
                 angleKey,
@@ -541,9 +544,15 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: radiusAxis.formatDatum(radiusValue),
+                heading: radiusAxis.formatDatum(radiusValue, 'tooltip', datum, radiusKey),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: angleName, fallbackLabel: angleKey, value: angleAxis.formatDatum(angleValue) }],
+                data: [
+                    {
+                        label: angleName,
+                        fallbackLabel: angleKey,
+                        value: angleAxis.formatDatum(angleValue, 'tooltip', datum, angleKey),
+                    },
+                ],
             },
             {
                 seriesId,

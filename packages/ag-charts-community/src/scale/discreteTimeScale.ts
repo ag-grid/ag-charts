@@ -1,10 +1,7 @@
-import { findMaxIndex, findMinIndex } from 'ag-charts-core';
+import { findMinIndex } from 'ag-charts-core';
 import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
-import { buildFormatter } from '../util/timeFormat';
-import { defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
-import type { ScaleFormatParams } from './scale';
 
 export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | TimeIntervalUnit | number> {
     static override is(value: unknown): value is DiscreteTimeScale {
@@ -21,14 +18,16 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | T
 
         if (domain.length <= 0) return NaN;
 
+        const r0 = this.ordinalRange(0);
+        const r1 = this.ordinalRange(bands.length - 1);
+
+        if (bands.length === 0) return r0;
+
         if (options?.clamp === true) {
             const { range } = this;
             if (value < bands[0]) return range[0];
             if (value > bands[bands.length - 1]) return range[1];
         }
-
-        const r0 = this.ordinalRange(0);
-        const r1 = this.ordinalRange(bands.length - 1);
 
         const interpolate = options?.interpolate ?? false;
         const reversed = domain[0].valueOf() > domain[domain.length - 1].valueOf();
@@ -37,23 +36,27 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | T
             return reversed ? r1 - (r - r0) : r;
         }
 
-        if (bands.length === 0) return r0;
-
         const v = value.valueOf();
-        let domainIndex: number;
+        let bandIndex = this.findIndex(value) ?? 0;
+        let dIndex: 1 | -1;
         if (reversed) {
-            domainIndex = (findMinIndex(0, domain.length - 1, (i) => domain[i].valueOf() <= v) ?? domain.length) - 1;
+            bandIndex = Math.min(Math.max(bandIndex, 1), bands.length - 1);
+            dIndex = -1;
         } else {
-            domainIndex = findMaxIndex(0, domain.length - 1, (i) => domain[i].valueOf() <= v) ?? 0;
+            bandIndex = Math.min(Math.max(bandIndex, 0), bands.length - 2);
+            dIndex = 1;
         }
-        domainIndex = Math.min(Math.max(domainIndex, 0), domain.length - 2);
-        const v0 = domain[domainIndex].valueOf();
-        const v1 = domain[domainIndex + 1].valueOf();
 
-        const ratioWithinInterval = (v - v0) / (v1 - v0);
-        const ratio = (domainIndex + ratioWithinInterval) / (domain.length - 1);
+        const v0 = bands[bandIndex].valueOf();
+        const v1 = bands[bandIndex + dIndex].valueOf();
 
-        return ratio * (r1 - r0) + r0;
+        const vr0 = this.ordinalRange(bandIndex);
+        const vr1 = this.ordinalRange(bandIndex + dIndex);
+
+        const ratio = (v - v0) / (v1 - v0);
+        const r = ratio * (vr1 - vr0) + vr0;
+
+        return reversed ? r1 - (r - r0) : r;
     }
 
     override invert(position: number, nearest = false): Date | undefined {
@@ -74,18 +77,5 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | T
         }
 
         return bands[reversed ? bands.length - 1 - index : index];
-    }
-
-    /**
-     * Returns a time format function suitable for displaying tick values.
-     * @param specifier If the specifier string is provided, this method is equivalent to
-     * the {@link TimeLocaleObject.format} method.
-     * If no specifier is provided, this method returns the default time format function.
-     */
-    override tickFormatter(
-        { domain, ticks, specifier }: ScaleFormatParams<Date>,
-        formatOffset?: number
-    ): (date: Date) => string {
-        return specifier != null ? buildFormatter(specifier) : defaultTimeTickFormat(ticks, domain, formatOffset);
     }
 }

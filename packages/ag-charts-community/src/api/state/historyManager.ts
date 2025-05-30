@@ -1,6 +1,7 @@
-import type { ChartEventManager } from '../../chart/interaction/chartEventManager';
+import { CleanupRegistry } from 'ag-charts-core';
+
+import type { EventsHub } from '../../core/eventsHub';
 import { Debug } from '../../util/debug';
-import { DestroyFns } from '../../util/destroy';
 import { VERSION } from '../../version';
 import type { MementoOriginator } from './memento';
 
@@ -19,17 +20,17 @@ export class HistoryManager {
     private readonly maxHistoryLength = 100;
 
     private readonly debug = Debug.create(true, 'history');
-    private readonly destroyFns = new DestroyFns();
+    private readonly cleanup = new CleanupRegistry();
 
-    constructor(chartEventManager: ChartEventManager) {
-        this.destroyFns.setFns([
-            chartEventManager.addListener('series-undo', this.undo.bind(this)),
-            chartEventManager.addListener('series-redo', this.redo.bind(this)),
-        ]);
+    constructor(eventsHub: EventsHub) {
+        this.cleanup.register(
+            eventsHub.on('series:undo', this.undo.bind(this)),
+            eventsHub.on('series:redo', this.redo.bind(this))
+        );
     }
 
     destroy() {
-        this.destroyFns.destroy();
+        this.cleanup.flush();
     }
 
     addMementoOriginator(originator: MementoOriginator) {

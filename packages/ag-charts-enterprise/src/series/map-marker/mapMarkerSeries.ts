@@ -1,7 +1,6 @@
 import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
-import { extendBbox } from '../map-util/bboxUtil';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
@@ -31,6 +30,7 @@ const {
     Marker,
     applyShapeStyle,
     getShapeStyle,
+    LonLatBBox,
 } = _ModuleSupport;
 
 interface MapMarkerNodeDataContext
@@ -107,7 +107,16 @@ export class MapMarkerSeries
         super({
             moduleCtx,
             categoryKey: undefined,
-            useLabelLayer: true,
+            propertyKeys: {
+                size: ['colorKey'],
+                color: ['colorKey'],
+                label: ['labelKey'],
+            },
+            propertyNames: {
+                size: ['sizeName'],
+                color: ['colorName'],
+                label: ['labelName'],
+            },
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
             usesPlacedLabels: true,
         });
@@ -240,7 +249,7 @@ export class MapMarkerSeries
                 if (latValues != null && lonValues != null) {
                     const lon = lonValues[datumIndex];
                     const lat = latValues[datumIndex];
-                    current = extendBbox(current, lon, lat, lon, lat);
+                    current = LonLatBBox.extend(current, lon, lat, lon, lat);
                 }
                 return current;
             }, undefined);
@@ -305,8 +314,10 @@ export class MapMarkerSeries
             label,
             shape,
         } = this.properties;
+        if (labelKey == null) return;
+
         const { placement } = label;
-        const labelText = this.getLabelText(label, {
+        const labelText = this.getLabelText(labelValue, datum, labelKey, 'label', label, {
             value: labelValue,
             datum,
             idKey,

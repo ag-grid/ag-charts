@@ -1,5 +1,5 @@
 import { type AgChartLegendPosition, type AgGradientLegendScaleOptions, _ModuleSupport } from 'ag-charts-community';
-import { createId } from 'ag-charts-core';
+import { CleanupRegistry, createId } from 'ag-charts-core';
 
 import { AxisTicks } from './axisTicks';
 
@@ -50,7 +50,7 @@ export class GradientLegend {
     private readonly arrow = new Marker({ shape: 'triangle' });
 
     private readonly ticksGroup = new Group({ name: 'legend-axis-group' });
-    private readonly destroyFns: Function[] = [];
+    private readonly cleanup = new CleanupRegistry();
 
     @Property
     enabled = false;
@@ -81,22 +81,22 @@ export class GradientLegend {
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         this.highlightManager = ctx.highlightManager;
 
-        this.axisTicks = new AxisTicks();
+        this.axisTicks = new AxisTicks(ctx);
         this.axisTicks.attachAxis(this.ticksGroup);
 
         this.scale = new GradientLegendScale(this.axisTicks);
 
         this.legendGroup.append([this.gradientRect, this.arrow, this.ticksGroup]);
 
-        this.destroyFns.push(
-            ctx.highlightManager.addListener('highlight-change', () => this.onChartHoverChange()),
+        this.cleanup.register(
+            ctx.eventsHub.on('highlight:change', () => this.onChartHoverChange()),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.onStartLayout(e)),
             () => this.legendGroup.remove()
         );
     }
 
     destroy() {
-        this.destroyFns.forEach((f) => f());
+        this.cleanup.flush();
     }
 
     attachLegend(scene: _ModuleSupport.Scene) {

@@ -439,6 +439,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             visible: union('always', 'zoomed', 'hover'),
         },
     },
+    formatter: or(callback, object),
 };
 
 // @ts-expect-error undocumented option
@@ -525,6 +526,7 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
     enabled: boolean,
     formatter: callback,
+    format: string,
     ...fontOptionsDef,
 };
 

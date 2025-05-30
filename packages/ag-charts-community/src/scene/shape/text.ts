@@ -82,7 +82,7 @@ export class Text<D = any> extends Shape<D> {
         x: number,
         y: number,
         opts: MeasureOptions,
-        useGlyphIndependentMeasurements: boolean = false
+        useGlyphIndependentMeasurements: boolean = true
     ): BBox {
         const {
             font,
@@ -99,7 +99,7 @@ export class Text<D = any> extends Shape<D> {
             height: exactHeight,
         } = CachedTextMeasurerPool.measureLines(
             lines,
-            useGlyphIndependentMeasurements ? { font, lineHeight, textAlign: 'left', textBaseline: 'top' } : opts
+            useGlyphIndependentMeasurements ? { font, lineHeight, textAlign: 'start', textBaseline: 'top' } : opts
         );
         const height = lineHeight == null ? exactHeight : lineHeight * lines.length;
 
@@ -134,7 +134,7 @@ export class Text<D = any> extends Shape<D> {
         return bbox;
     }
 
-    override getBBox(useGlyphIndependentMeasurements: boolean = false): BBox {
+    override getBBox(useGlyphIndependentMeasurements: boolean = true): BBox {
         if (useGlyphIndependentMeasurements) {
             externUseGlyphIndependentMeasurements = true;
             const bbox = this.computeBBox(true);

@@ -10,7 +10,6 @@ import type {
     AgPresetOverrides,
     AgThemeOverrides,
     CssColor,
-    TimeIntervalUnit,
     WithThemeParams,
 } from 'ag-charts-types';
 
@@ -106,26 +105,6 @@ function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverri
     return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
 }
 
-const timeLabelFormat: Record<TimeIntervalUnit, string> = {
-    millisecond: '%H:%M:%S.L',
-    second: '%H:%M:%S',
-    minute: '%H:%M',
-    hour: '%H:%M',
-    day: '%e %B',
-    month: '%B',
-    year: '%Y',
-};
-
-const timeDivisionLabelFormat: Record<TimeIntervalUnit, string> = {
-    millisecond: '%H:%M:%S.%L',
-    second: '%H:%M:%S',
-    minute: '%H:%M',
-    hour: '%H:%M',
-    day: '%e',
-    month: '%b',
-    year: '%Y',
-};
-
 const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
     (keyof AgCommonThemeableChartOptions)[]
 >((r, { commonOptions }) => r.concat(commonOptions), []);
@@ -214,66 +193,6 @@ export class ChartTheme {
                 },
             },
             time && {
-                label: {
-                    format: {
-                        millisecond: {
-                            $if: [
-                                // @todo(AG-14472) - remove ../enabled fallback
-                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
-                                timeDivisionLabelFormat.millisecond,
-                                timeLabelFormat?.millisecond,
-                            ],
-                        },
-                        second: {
-                            $if: [
-                                // @todo(AG-14472) - remove ../enabled fallback
-                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
-                                timeDivisionLabelFormat.second,
-                                timeLabelFormat?.second,
-                            ],
-                        },
-                        minute: {
-                            $if: [
-                                // @todo(AG-14472) - remove ../enabled fallback
-                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
-                                timeDivisionLabelFormat.minute,
-                                timeLabelFormat?.minute,
-                            ],
-                        },
-                        hour: {
-                            $if: [
-                                // @todo(AG-14472) - remove ../enabled fallback
-                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
-                                timeDivisionLabelFormat.hour,
-                                timeLabelFormat?.hour,
-                            ],
-                        },
-                        day: {
-                            $if: [
-                                // @todo(AG-14472) - remove ../enabled fallback
-                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
-                                timeDivisionLabelFormat.day,
-                                timeLabelFormat?.day,
-                            ],
-                        },
-                        month: {
-                            $if: [
-                                // @todo(AG-14472) - remove ../enabled fallback
-                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
-                                timeDivisionLabelFormat.month,
-                                timeLabelFormat?.month,
-                            ],
-                        },
-                        year: {
-                            $if: [
-                                // @todo(AG-14472) - remove ../enabled fallback
-                                { $path: ['../../parentLevel/enabled', { $path: '../enabled' }] },
-                                timeDivisionLabelFormat.year,
-                                timeLabelFormat?.year,
-                            ],
-                        },
-                    },
-                },
                 parentLevel: {
                     enabled: false,
                     label: {
@@ -284,17 +203,6 @@ export class ChartTheme {
                         spacing: { $path: '../../label/spacing' },
                         color: { $path: '../../label/color' },
                         avoidCollisions: { $path: '../../label/avoidCollisions' },
-                        format: {
-                            millisecond: {
-                                $path: ['../../../label/format/millisecond', timeDivisionLabelFormat.millisecond],
-                            },
-                            second: { $path: ['../../../label/format/second', timeDivisionLabelFormat.second] },
-                            minute: { $path: ['../../../label/format/minute', timeDivisionLabelFormat.minute] },
-                            hour: { $path: ['../../../label/format/hour', timeDivisionLabelFormat.hour] },
-                            day: { $path: ['../../../label/format/day', timeDivisionLabelFormat.day] },
-                            month: { $path: ['../../../label/format/month', timeDivisionLabelFormat.month] },
-                            year: { $path: ['../../../label/format/year', timeDivisionLabelFormat.year] },
-                        },
                     },
                     tick: {
                         enabled: { $path: '../../tick/enabled' },

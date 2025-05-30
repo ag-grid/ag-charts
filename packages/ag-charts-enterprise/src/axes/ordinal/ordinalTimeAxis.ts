@@ -1,6 +1,24 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import {
+    type DateFormatterStyle,
+    type FormatterParams,
+    type TimeInterval,
+    type TimeIntervalUnit,
+    _ModuleSupport,
+} from 'ag-charts-community';
 
-const { OrdinalTimeScale, Property, TimeAxisParentLevel } = _ModuleSupport;
+const {
+    OrdinalTimeScale,
+    Property,
+    TimeAxisParentLevel,
+    lowestGranularityUnitForTicks,
+    lowestGranularityUnitForValue,
+    minimumTimeAxisDatumGranularity,
+    domainSpansMultipleYears,
+    intervalUnit,
+    intervalStep,
+    intervalEpoch,
+    intervalMilliseconds,
+} = _ModuleSupport;
 
 export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.OrdinalTimeScale> {
     static override readonly className = 'OrdinalTimeAxis' as const;
@@ -8,6 +26,8 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
 
     @Property
     readonly parentLevel = new TimeAxisParentLevel();
+
+    private minGranularity: TimeIntervalUnit | undefined = undefined;
 
     override get primaryLabel(): _ModuleSupport.AxisLabel | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
@@ -19,5 +39,65 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, new OrdinalTimeScale());
+    }
+
+    protected override updateScale(): void {
+        super.updateScale();
+
+        const { boundSeries, direction } = this;
+        this.minGranularity = minimumTimeAxisDatumGranularity(boundSeries, direction, undefined, undefined);
+    }
+
+    override tickFormatParams(
+        domain: (number | Date)[],
+        ticks: (number | Date)[],
+        _fractionDigits?: number,
+        timeInterval?: TimeInterval | TimeIntervalUnit
+    ): _ModuleSupport.AxisTickFormatParams {
+        timeInterval ??= lowestGranularityUnitForTicks(ticks);
+        const includeYear = domainSpansMultipleYears(domain);
+        const unit = intervalUnit(timeInterval);
+        return { type: 'date', unit, includeYear };
+    }
+
+    override datumFormatParams(
+        value: Date | number,
+        params: _ModuleSupport.FormatDatumParams,
+        _fractionDigits: number | undefined,
+        timeInterval: TimeInterval | TimeIntervalUnit | undefined,
+        style: DateFormatterStyle
+    ): FormatterParams<any> {
+        if (typeof value === 'number') value = new Date(value);
+
+        if (timeInterval == null) {
+            const { minGranularity } = this;
+            const datumGranularity = lowestGranularityUnitForValue(value);
+            if (
+                minGranularity != null &&
+                intervalMilliseconds(minGranularity) < intervalMilliseconds(datumGranularity)
+            ) {
+                timeInterval = minGranularity;
+            } else {
+                timeInterval = datumGranularity;
+            }
+        }
+
+        const { datum, key, source, property, boundSeries } = params;
+        const unit = intervalUnit(timeInterval);
+        const step = intervalStep(timeInterval);
+        const epoch = intervalEpoch(timeInterval);
+        return {
+            type: 'date',
+            value,
+            datum,
+            key,
+            source,
+            property,
+            boundSeries,
+            unit,
+            step,
+            epoch,
+            style,
+        };
     }
 }

@@ -1,47 +1,51 @@
-import { type AnyFn, Logger, createId, isArray } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, createId } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
+    AnyFormatterSource,
     CssColor,
+    DateFormatterStyle,
     FontFamily,
     FontSize,
     FontStyle,
     FontWeight,
+    FormatterParams,
     TimeInterval,
     TimeIntervalUnit,
 } from 'ag-charts-types';
 
-import type { AxisContext } from '../../module/axisContext';
+import type { AxisLayout } from '../../core/eventsHub';
+import type { AxisBandDatum, AxisContext, AxisFormattableLabel } from '../../module/axisContext';
 import type { AxisOptionModule } from '../../module/axisOptionModule';
 import type { ModuleInstance } from '../../module/baseModule';
 import type { ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
+import { BandScale } from '../../scale/bandScale';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import type { Scale, ScaleFormatParams } from '../../scale/scale';
-import { TimeScale } from '../../scale/timeScale';
+import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
+import type { Point } from '../../scene/point';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable, Translatable } from '../../scene/transformable';
 import { formatValue } from '../../util/format.util';
-import { findMinMax, findRangeExtent } from '../../util/number';
+import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import type { Padding } from '../../util/padding';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
-import { intervalStep, intervalUnit } from '../../util/time';
+import { intervalStep } from '../../util/time';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
-import type { AxisGroups, ChartAxis } from '../chartAxis';
+import type { AxisGroups, ChartAxis, FormatDatumParams } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
-import { labelSpecifier } from '../label';
-import type { AxisLayout } from '../layout/layoutManager';
+import { FormatManager } from '../formatter/formatManager';
 import type { ISeries } from '../series/seriesTypes';
 import { ZIndexMap } from '../zIndexMap';
 import { AxisGridLine } from './axisGridLine';
@@ -49,9 +53,9 @@ import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import { AxisTick, type TickInterval } from './axisTick';
+import type { AnyTimeInterval } from './axisTickGenerator';
 import { AxisTitle } from './axisTitle';
 import { NiceMode } from './axisUtil';
-import { deriveTimeSpecifier } from './timeFormatUtil';
 
 export interface LabelNodeDatum {
     tickId: string;
@@ -83,7 +87,14 @@ export enum AxisGroupZIndexMap {
     TickLabels,
 }
 
-export type CrosslineFormatterParams<D> = Omit<ScaleFormatParams<D>, 'specifier'> | undefined;
+export type CrosslineFormatterParams<D> = { domain: D[]; ticks: D[]; fractionDigits: number } | undefined;
+
+export type AxisTickFormatParams = {
+    type: 'number' | 'date' | 'category';
+    fractionDigits?: number;
+    unit?: TimeIntervalUnit;
+    includeYear?: boolean;
+};
 
 /**
  * A general purpose linear axis with no notion of orientation.
@@ -107,6 +118,24 @@ export abstract class Axis<
 
     readonly id = createId(this);
 
+    private _crossLines: CrossLine[] = [];
+    set crossLines(value: CrossLine[]) {
+        const { CrossLineConstructor } = this.constructor as typeof Axis;
+        this._crossLines.forEach((crossLine) => this.detachCrossLine(crossLine));
+        this._crossLines = value.map((crossLine) => {
+            const instance = new CrossLineConstructor();
+            instance.set(crossLine);
+            return instance;
+        });
+        this._crossLines.forEach((crossLine) => {
+            this.attachCrossLine(crossLine);
+            this.initCrossLine(crossLine);
+        });
+    }
+    get crossLines() {
+        return this._crossLines;
+    }
+
     // user pass-through option: no validation required.
     context?: unknown;
 
@@ -124,6 +153,25 @@ export abstract class Axis<
     readonly interval = new AxisInterval();
 
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
+
+    @Property
+    readonly title = new AxisTitle();
+
+    /**
+     * The length of the grid. The grid is only visible in case of a non-zero value.
+     */
+    @ObserveChanges<Axis>((target, value, oldValue) => target.onGridLengthChange(value, oldValue))
+    gridLength: number = 0;
+
+    /**
+     * The distance between the grid ticks and the axis ticks.
+     */
+    gridPadding = 0;
+
+    /**
+     * Is used to avoid collisions between axis labels and series.
+     */
+    seriesAreaPadding = 0;
 
     get type(): string {
         return (this.constructor as any).type ?? '';
@@ -183,28 +231,18 @@ export abstract class Axis<
         return this.tickLabelGroupSelection.nodes();
     }
 
-    private _crossLines: CrossLine[] = [];
-    set crossLines(value: CrossLine[]) {
-        const { CrossLineConstructor } = this.constructor as typeof Axis;
-        this._crossLines.forEach((crossLine) => this.detachCrossLine(crossLine));
-        this._crossLines = value.map((crossLine) => {
-            const instance = new CrossLineConstructor();
-            instance.set(crossLine);
-            return instance;
-        });
-        this._crossLines.forEach((crossLine) => {
-            this.attachCrossLine(crossLine);
-            this.initCrossLine(crossLine);
-        });
-    }
-    get crossLines() {
-        return this._crossLines;
-    }
-
     readonly line = new AxisLine();
     readonly tick = new AxisTick();
     readonly gridLine = new AxisGridLine();
     readonly label = this.createLabel();
+
+    protected get primaryLabel(): AxisLabel | undefined {
+        return undefined;
+    }
+
+    protected get primaryTick(): AxisTick | undefined {
+        return undefined;
+    }
 
     defaultTickMinSpacing: number = Axis.defaultTickMinSpacing;
 
@@ -220,11 +258,7 @@ export abstract class Axis<
 
     protected axisContext: AxisContext | undefined = undefined;
 
-    private labelFormatter: ((datum: unknown) => string) | undefined = undefined;
-    private datumFormatter: ((datum: unknown) => string) | undefined = undefined;
-    private scaleFormatterParams: CrosslineFormatterParams<D> | undefined = undefined;
-
-    protected readonly destroyFns: Array<() => void> = [];
+    protected readonly cleanup = new CleanupRegistry();
 
     constructor(
         protected readonly moduleCtx: ModuleContext,
@@ -252,7 +286,7 @@ export abstract class Axis<
 
     destroy() {
         this.moduleMap.destroy();
-        this.destroyFns.forEach((f) => f());
+        this.cleanup.flush();
     }
 
     protected updateScale() {
@@ -323,32 +357,13 @@ export abstract class Axis<
         return 0;
     }
 
-    protected defaultDatumFormatter(datum: unknown, fractionDigits: number): string {
-        return formatValue(datum, fractionDigits + 1);
-    }
-
-    protected defaultLabelFormatter(datum: unknown, fractionDigits: number): string {
+    protected defaultFormatter(datum: unknown, fractionDigits: number): string {
         return formatValue(datum, fractionDigits);
     }
 
-    @Property
-    readonly title = new AxisTitle();
-
-    /**
-     * The length of the grid. The grid is only visible in case of a non-zero value.
-     */
-    @ObserveChanges<Axis>((target, value, oldValue) => target.onGridLengthChange(value, oldValue))
-    gridLength: number = 0;
-
-    /**
-     * The distance between the grid ticks and the axis ticks.
-     */
-    gridPadding = 0;
-
-    /**
-     * Is used to avoid collisions between axis labels and series.
-     */
-    seriesAreaPadding = 0;
+    protected createDatumFormatter(_domain: D[], _ticks: D[]): ((value: any) => string | undefined) | undefined {
+        return;
+    }
 
     protected onGridLengthChange(value: number, prevValue: number) {
         // Was visible and now invisible, or was invisible and now visible.
@@ -455,7 +470,7 @@ export abstract class Axis<
         primaryTickCount?: AxisPrimaryTickCount;
         bbox?: BBox;
     } {
-        const { scale, label, visibleRange, nice } = this;
+        const { visibleRange, nice } = this;
 
         this.chartPadding = chartPadding;
         this.updateScale();
@@ -491,9 +506,7 @@ export abstract class Axis<
         }
         const {
             niceDomain,
-            ticks,
             rawTickCount = 0,
-            tickDomain,
             fractionDigits,
             bbox,
         } = this.calculateTickLayout(tickLayoutDomain ?? domain, niceMode, visibleRange, initialPrimaryTickCount);
@@ -504,25 +517,11 @@ export abstract class Axis<
                 ? { zoomed: rawTickCount, unzoomed: unzoomedTickCount }
                 : undefined;
 
-        const timeInterval = TimeScale.is(scale) ? scale.interval : undefined;
-
         this.scale.domain = niceDomain;
 
         this._cachedUnzoomedInputDomain = domain;
         this._cachedUnzoomedRangeExtent = rangeExtent;
         this._cachedUnzoomedTickCount = unzoomedTickCount;
-
-        const specifier = labelSpecifier(
-            timeInterval == null ? label.format : deriveTimeSpecifier(label.format, timeInterval),
-            timeInterval
-        );
-        this.labelFormatter =
-            scale.tickFormatter({ domain: tickDomain, specifier, ticks, fractionDigits }) ??
-            ((value: unknown) => this.defaultLabelFormatter(value, fractionDigits));
-        this.datumFormatter =
-            scale.datumFormatter({ domain: tickDomain, specifier, ticks, fractionDigits }) ??
-            ((value: unknown) => this.defaultDatumFormatter(value, fractionDigits));
-        this.scaleFormatterParams = { domain: tickDomain, ticks, fractionDigits };
 
         this.layout.label = {
             fractionDigits: fractionDigits,
@@ -548,7 +547,7 @@ export abstract class Axis<
         ticks: D[];
         rawTickCount: number | undefined;
         fractionDigits: number;
-        timeInterval: TimeInterval | TimeIntervalUnit | undefined;
+        timeInterval: AnyTimeInterval | undefined;
         bbox?: BBox;
     };
 
@@ -574,78 +573,181 @@ export abstract class Axis<
 
     protected abstract updateLabels(): void;
 
-    // For formatting (nice rounded) tick values.
-    formatTick(
-        value: unknown,
+    abstract tickFormatParams(
+        domain: D[],
+        ticks: D[],
+        fractionDigits: number | undefined,
+        timeInterval: TimeInterval | TimeIntervalUnit | undefined
+    ): AxisTickFormatParams;
+
+    abstract datumFormatParams(
+        value: any,
+        params: FormatDatumParams,
+        fractionDigits: number | undefined,
+        timeInterval: TimeInterval | TimeIntervalUnit | undefined,
+        timeStyle: 'long' | 'component'
+    ): FormatterParams<any>;
+
+    private labelFormatterValue(
+        formatInContext: (fn: (params: any) => string | undefined, params: any) => string | undefined,
+        value: any,
         index: number,
         domain: D[],
-        fractionDigits?: number,
-        timeInterval?: TimeInterval | TimeIntervalUnit,
-        defaultFormatter?: (datum: unknown) => string
-    ): string {
-        const {
-            labelFormatter,
-            label: { formatter },
-        } = this;
+        fractionDigits: number | undefined,
+        unit: TimeIntervalUnit | undefined
+    ) {
+        const { formatter } = this.label;
 
-        let result: string | undefined;
-        if (formatter) {
-            const boundSeries = this.getFormatterBoundSeries();
-            const unit = timeInterval ? intervalUnit(timeInterval) : undefined;
-            const step = timeInterval ? intervalStep(timeInterval) : undefined;
-            result = this.callWithContext(formatter, {
+        if (formatter == null) return;
+
+        const step = unit ? intervalStep(unit) : undefined;
+        const boundSeries = this.getFormatterBoundSeries();
+        return formatInContext(formatter, {
+            value,
+            index,
+            domain,
+            fractionDigits,
+            unit,
+            step,
+            boundSeries,
+        });
+    }
+
+    // For formatting (nice rounded) tick values.
+    tickFormatter(
+        domain: D[],
+        ticks: D[],
+        primary: boolean,
+        inputFractionDigits?: number,
+        inputTimeInterval?: TimeInterval | TimeIntervalUnit,
+        timeStyle: DateFormatterStyle = 'long'
+    ): (value: any, index: number) => string {
+        const { moduleCtx, label } = this;
+        const { formatManager } = moduleCtx;
+        const primaryLabel = primary ? this.primaryLabel : undefined;
+
+        const formatParams = this.tickFormatParams(domain, ticks, inputFractionDigits, inputTimeInterval);
+        const boundSeries = this.getFormatterBoundSeries();
+
+        return (value: any, index: number): string => {
+            const { fractionDigits, unit, includeYear = true } = formatParams;
+
+            const labelValue = this.labelFormatterValue(
+                this.callWithContext.bind(this),
                 value,
                 index,
                 domain,
                 fractionDigits,
-                unit,
-                step,
+                unit
+            );
+            if (labelValue != null) return String(labelValue);
+
+            const params: FormatDatumParams = {
+                datum: undefined,
+                key: undefined,
+                source: 'axis',
+                property: this.direction,
                 boundSeries,
-            });
-        } else if (defaultFormatter) {
-            result = defaultFormatter(value);
-        } else if (labelFormatter) {
-            result = labelFormatter(value);
-        }
-        return String(result ?? value);
+            };
+
+            const datumFormatParams = this.datumFormatParams(value, params, fractionDigits, unit, timeStyle);
+            // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
+            datumFormatParams.value = value;
+
+            return (
+                formatManager.format(
+                    datumFormatParams,
+                    FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
+                    { includeYear }
+                ) ?? this.defaultFormatter(value, fractionDigits ?? 0)
+            );
+        };
     }
 
     // For formatting arbitrary values between the ticks.
-    formatDatum(value: unknown): string {
-        const {
-            label: { formatter },
-            datumFormatter: valueFormatter = this.labelFormatter,
-        } = this;
+    formatDatum(value: any, source: 'crosshair'): string;
+    formatDatum(value: any, source: 'tooltip' | 'series-label', datum: any, key: string): string;
+    formatDatum<Params extends object>(
+        value: any,
+        source: 'crosshair',
+        datum: undefined,
+        key: undefined,
+        label: AxisFormattableLabel<Params>,
+        labelParams: Params
+    ): string;
+    formatDatum<Params extends object>(
+        value: any,
+        source: 'tooltip' | 'series-label',
+        datum: any,
+        key: string,
+        label: AxisFormattableLabel<Params>,
+        labelParams: Params
+    ): string;
+    formatDatum(
+        input: any,
+        source: Exclude<AnyFormatterSource, 'axis'>,
+        datum?: any,
+        key?: string,
+        label?: AxisFormattableLabel<any>,
+        params?: any,
+        formatInContext: (
+            fn: (params: any) => string | undefined,
+            params: any
+        ) => string | undefined = this.callWithContext.bind(this)
+    ): string {
+        if (input == null) return '';
+
+        const { moduleCtx, direction, scale } = this;
+        const { formatManager } = moduleCtx;
+        const boundSeries = this.getFormatterBoundSeries();
+
+        let inputFractionDigits: number;
+        let inheritFromAxisLabel: boolean;
+        switch (source) {
+            case 'crosshair':
+                inputFractionDigits = this.layout.label.fractionDigits + 1;
+                inheritFromAxisLabel = true;
+                break;
+            case 'series-label':
+                inputFractionDigits = 2;
+                inheritFromAxisLabel = !formatManager.hasGlobalFormatter;
+                break;
+            case 'tooltip':
+                inputFractionDigits = 3;
+                inheritFromAxisLabel = !formatManager.hasGlobalFormatter;
+                break;
+        }
+
+        const formatParams = this.datumFormatParams(
+            input,
+            { source, datum, key, property: direction, boundSeries },
+            inputFractionDigits,
+            undefined,
+            'long'
+        );
+        const { value } = formatParams;
+        const fractionDigits = formatParams.type === 'number' ? formatParams.fractionDigits : undefined;
+        const unit = formatParams.type === 'date' ? formatParams.unit : undefined;
 
         let result: string | undefined;
-        if (formatter) {
-            const { domain } = this.scale;
-            const boundSeries = this.getFormatterBoundSeries();
-            result = this.callWithContext(formatter, { value: value, index: NaN, domain, boundSeries });
-        } else if (valueFormatter) {
-            result = this.callWithContext(valueFormatter, value);
-        } else if (isArray(value)) {
-            // Handle grouped categories value.
-            result = value.filter(Boolean).join(' - ');
-        }
-        return String(result ?? value);
-    }
 
-    private getScaleValueFormatter(format?: string): (value: unknown) => string {
-        const { scaleFormatterParams } = this;
-
-        let formatter: ((value: unknown) => string) | undefined;
-        try {
-            if (format != null && scaleFormatterParams != null) {
-                formatter = this.scale.tickFormatter({ ...scaleFormatterParams, specifier: format });
-            }
-        } catch {
-            Logger.warnOnce(`the format string ${format} is invalid, ignoring.`);
+        if (label?.formatter) {
+            result ??= formatInContext(label.formatter, params);
         }
 
-        formatter ??= (value: unknown) => this.formatDatum(value);
+        if (inheritFromAxisLabel) {
+            result ??= this.labelFormatterValue(formatInContext, value, NaN, scale.domain, fractionDigits, unit);
+            result ??= formatManager.format(
+                formatParams,
+                FormatManager.mergeSpecifiers(this.label.format, label?.format)
+            );
+        } else {
+            result ??= formatManager.format(formatParams, label?.format);
+        }
 
-        return formatter;
+        result ??= this.defaultFormatter(value, fractionDigits ?? 0);
+
+        return String(result);
     }
 
     getBBox(): BBox {
@@ -669,17 +771,9 @@ export abstract class Axis<
         this.gridGroup.setClipRect(new BBox(x, y, width, height));
     }
 
-    private getFormatterBoundSeries() {
+    private getFormatterBoundSeries(): AgAxisBoundSeries[] {
         const { direction } = this;
-        const boundSeries: AgAxisBoundSeries[] = [];
-        for (const series of this.boundSeries) {
-            const keys = series.getKeys(direction);
-            const names = series.getNames(direction);
-            for (let idx = 0; idx < keys.length; idx++) {
-                boundSeries.push({ key: keys[idx], name: names[idx] });
-            }
-        }
-        return boundSeries;
+        return this.boundSeries.flatMap((series) => series.getFormatterContext(direction));
     }
 
     protected getTitleFormatterParams(domain: D[]) {
@@ -734,13 +828,45 @@ export abstract class Axis<
                     return keys;
                 }, new Set<string>()),
             seriesIds: () => this.boundSeries.map((series) => series.id),
-            scaleValueFormatter: (specifier?: string) => this.getScaleValueFormatter(specifier),
             scaleInvert: (val) => scale.invert(val, true),
             scaleInvertNearest: (val) => scale.invert(val, true),
+            formatScaleValue: (value, source, label) =>
+                this.formatDatum(value, source, undefined, undefined, label!, undefined!),
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),
+            pickBand: (point) => this.pickBand(point),
         };
+    }
+
+    pickBand(point: Point): AxisBandDatum | undefined {
+        if (!BandScale.is(this.scale)) {
+            return;
+        }
+
+        const { scale, range } = this;
+
+        const value = scale.invert(this.isVertical() ? point.y : point.x, true);
+
+        const bandwidth = scale.bandwidth ?? 0;
+        const step = scale.step ?? 0;
+        const offset = (step - bandwidth) / 2;
+
+        const position = scale.convert(value);
+
+        const start = position - offset;
+        const end = position + bandwidth + offset;
+
+        return {
+            id: this.id,
+            value,
+            band: [clampArray(start, range), clampArray(end, range)],
+            position,
+        };
+    }
+
+    private isVertical() {
+        return this.direction === ChartAxisDirection.Y;
     }
 
     isReversed() {
@@ -749,6 +875,6 @@ export abstract class Axis<
 
     protected callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         const { callbackCache, chartService } = this.moduleCtx;
-        return callbackCache.call(this, chartService, fn, ...params);
+        return callbackCache.call([this, chartService], fn, ...params);
     }
 }

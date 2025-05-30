@@ -1,0 +1,33 @@
+---
+title: 'Formatters'
+---
+
+Formatters allow customisation of the representation of numbers and dates.
+
+{% chartExampleRunner title="Formatter" name="formatter" type="generated" /%}
+
+```js
+formatter: {
+    x: (params) => {
+        const degrees = Math.trunc(params.value);
+        const orientation = degrees > 0 ? 'E' : degrees < 0 ? 'W' : '';
+        return `${Math.abs(degrees)}° ${orientation}`;
+    },
+    y: (params) => {
+        const degrees = Math.trunc(params.value);
+        const orientation = degrees > 0 ? 'N' : degrees < 0 ? 'S' : '';
+        return `${Math.abs(degrees)}° ${orientation}`;
+    },
+    size: (params) => {
+        return params.value.toLocaleString('en-US', { style: 'decimal', maximumFractionDigits: 0 })
+    },
+}
+```
+
+In this configuration:
+
+-   `x` formats the x-axis values as degrees with a longitude direction of East or West.
+-   `y` formats the y-axis values as degrees with a latitude direction of North or South.
+-   `size` formats the size values as a decimal number with no fractional digits.
+
+The available properties are `x`, `y`, `angle`, `radius`, `size`, `color`, `label`, `secondaryLabel`, `calloutLabel`, and `sectorLabel`.

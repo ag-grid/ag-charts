@@ -1,5 +1,5 @@
 import type { Writeable } from 'ag-charts-core';
-import type { FontFamily, FontSize, FontStyle, FontWeight, Ratio } from 'ag-charts-types';
+import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { createCanvasContext } from './canvas.util';
 import { LRUCache } from './lruCache';
@@ -10,7 +10,6 @@ export interface FontOptions {
     fontStyle?: FontStyle;
     fontWeight?: FontWeight;
     fontFamily?: FontFamily;
-    lineHeight?: Ratio;
 }
 
 // Configuration options for measuring text.
@@ -25,8 +24,6 @@ export interface MeasureOptions {
 export interface LineMetrics {
     width: number;
     height: number;
-    offsetTop: number;
-    offsetLeft: number;
     lineHeight: number;
 }
 
@@ -68,8 +65,8 @@ export class CachedTextMeasurerPool {
 
     // Gets a TextMeasurer instance, configuring text alignment and baseline if provided.
     static getMeasurer(options: MeasureOptions) {
-        const font = typeof options.font === 'string' ? options.font : TextUtils.toFontString(options.font);
-        const key = `${font}-${options.textAlign ?? 'start'}-${options.textBaseline ?? 'alphabetic'}`;
+        const font = TextUtils.toFontString(options.font);
+        const key = `${font}-${options.textAlign ?? 'start'}-${options.textBaseline ?? 'top'}`;
         return this.instanceMap.get(key) ?? this.createFontMeasurer(font, options, key);
     }
 
@@ -82,7 +79,7 @@ export class CachedTextMeasurerPool {
         const ctx = createCanvasContext();
         ctx.font = font;
         ctx.textAlign = options.textAlign ?? 'start';
-        ctx.textBaseline = options.textBaseline ?? 'alphabetic';
+        ctx.textBaseline = options.textBaseline ?? 'top';
 
         const measurer = new CachedTextMeasurer(ctx, options);
         this.instanceMap.set(key, measurer);
@@ -106,7 +103,7 @@ export class CachedTextMeasurer implements TextMeasurer {
         if (options.textBaseline) {
             ctx.textBaseline = options.textBaseline;
         }
-        ctx.font = typeof options.font === 'string' ? options.font : TextUtils.toFontString(options.font);
+        ctx.font = TextUtils.toFontString(options.font);
 
         this.textMeasurer = new SimpleTextMeasurer(
             (t) => this.cachedCtxMeasureText(t),
@@ -156,18 +153,15 @@ export class TextUtils {
     static readonly defaultLineHeight = 1.15; // Normally between 1.1 and 1.2
     static readonly lineSplitter = /\r?\n/g;
 
-    static toFontString({ fontSize = 10, fontStyle, fontWeight, fontFamily, lineHeight }: FontOptions) {
+    static toFontString({ fontSize = 10, fontStyle, fontWeight, fontFamily }: FontOptions) {
         let fontString = '';
-        if (fontStyle) {
+        if (fontStyle && fontStyle !== 'normal') {
             fontString += `${fontStyle} `;
         }
-        if (fontWeight) {
+        if (fontWeight && fontWeight !== 'normal' && fontWeight !== 400) {
             fontString += `${fontWeight} `;
         }
         fontString += `${fontSize}px`;
-        if (lineHeight) {
-            fontString += `/${lineHeight}px`;
-        }
         fontString += ` ${fontFamily}`;
         return fontString.trim();
     }
@@ -228,8 +222,6 @@ export class SimpleTextMeasurer implements TextMeasurer {
             width: m.width,
             height: m.actualBoundingBoxAscent + m.actualBoundingBoxDescent,
             lineHeight: m.fontBoundingBoxAscent + m.fontBoundingBoxDescent,
-            offsetTop: m.actualBoundingBoxAscent,
-            offsetLeft: m.actualBoundingBoxLeft,
         };
     }
 

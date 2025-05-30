@@ -1,5 +1,5 @@
 import { HIDDEN_API_INTERFACE_MEMBERS } from './constants';
-import type { ApiReferenceNode, ApiReferenceType, InterfaceNode } from './types';
+import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode } from './types';
 
 /**
  * Patch doc interfaces for the front end
@@ -11,22 +11,51 @@ export function patchDocInterfaces(resolvedEntries: ApiReferenceNode[]) {
 }
 
 function getTypeUnion(typeRef: ApiReferenceNode | undefined): string[] {
+    const result: string[] = [];
     if (typeRef?.kind === 'typeAlias') {
         if (typeof typeRef.type === 'string') {
             return [typeRef.type];
         }
         if (typeof typeRef.type === 'object' && typeRef.type.kind === 'union') {
-            return typeRef.type.type.filter((type): type is string => typeof type === 'string');
+            const unsupportedSubtypes: typeof typeRef.type.type = [];
+            for (const subType of typeRef.type.type) {
+                if (typeof subType === 'string') {
+                    result.push(subType);
+                } else if (subType.kind === 'typeRef') {
+                    result.push(subType.type);
+                } else {
+                    unsupportedSubtypes.push(subType);
+                }
+            }
+            if (unsupportedSubtypes.length > 0) {
+                console.error(`unsupported 'typeRef.type.type' values detected`, unsupportedSubtypes);
+                throw new Error(`failed to get types of ${typeRef.name}`);
+            }
         }
     }
-    return [];
+    return result;
+}
+
+function readMemberName(member: MemberNode): string | undefined {
+    if (typeof member.type === 'object' && member.type.kind === 'array') {
+        if (typeof member.type.type === 'string') {
+            return member.type.type;
+        } else if (member.type.type.kind === 'typeRef') {
+            return member.type.type.type;
+        }
+    }
+    return undefined;
 }
 
 function patchAgChartOptionsReference(reference: ApiReferenceType) {
     const interfaceRef = reference.get('AgChartOptions');
+    if (interfaceRef == null) {
+        throw new Error('Failed to find AgChartOptions reference type');
+    }
 
     const axisOptions: string[] = [];
     const seriesOptions: string[] = [];
+    const unsupportedMembers: MemberNode[] = [];
 
     let altInterface: InterfaceNode | null = null;
 
@@ -40,27 +69,44 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
         altInterface ??= typeRef;
 
         for (const member of typeRef.members) {
-            if (
-                typeof member.type !== 'object' ||
-                member.type.kind !== 'array' ||
-                typeof member.type.type !== 'string'
-            ) {
-                continue;
-            }
+            const specialOptions: string[] | undefined = {
+                axes: axisOptions,
+                series: seriesOptions,
+            }[member.name];
 
-            if (member.name === 'axes') {
-                const axisOption = reference.get(member.type.type);
-                const axisOptionUnion = getTypeUnion(axisOption);
-                axisOptions.push(...axisOptionUnion);
-            } else if (member.name === 'series') {
-                const series = getTypeUnion(reference.get(member.type.type));
-                seriesOptions.push(...series);
+            if (specialOptions) {
+                const memberTypeName: string | undefined = readMemberName(member);
+                if (memberTypeName == null) {
+                    unsupportedMembers.push(member);
+                } else {
+                    const union = getTypeUnion(reference.get(memberTypeName));
+                    specialOptions.push(...union);
+
+                    // AG-14629 Remove generic type parameter info. It's causing undesired output for context?: TContext
+                    for (const subType of union) {
+                        const subInterfaceRef = reference.get(subType);
+                        if (subInterfaceRef == null) {
+                            console.error('Cannot find API reference for', subType);
+                            unsupportedMembers.push(member);
+                        } else if (subInterfaceRef.kind !== 'interface') {
+                            console.error(`Unexpected kind: ${subInterfaceRef.kind} for ${subType}`);
+                            unsupportedMembers.push(member);
+                        } else {
+                            subInterfaceRef.genericsMap = undefined;
+                            subInterfaceRef.typeParams = undefined;
+                        }
+                    }
+                }
             }
         }
     }
 
     if (altInterface === null) {
-        return;
+        throw new Error('Failed to initialise altInterface');
+    }
+    if (unsupportedMembers.length > 0) {
+        console.error('Detected unsupported members', unsupportedMembers);
+        throw new Error('Failed to patch options due to unsupported members');
     }
 
     reference.set('AgChartAxisOptions', {

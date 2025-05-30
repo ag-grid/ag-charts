@@ -1,23 +1,23 @@
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
-import type { GeoJSON } from '../../chart/types';
+import type { GeoJSON, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgMapLineBackgroundOptions } from './mapLineBackgroundOptions';
 import type { AgMapLineSeriesOptions } from './mapLineOptions';
 import type { AgMapMarkerSeriesOptions } from './mapMarkerOptions';
 import type { AgMapShapeBackgroundOptions } from './mapShapeBackgroundOptions';
 import type { AgMapShapeSeriesOptions } from './mapShapeOptions';
 
-export type AgTopologySeriesOptions =
-    | AgMapShapeSeriesOptions
-    | AgMapLineSeriesOptions
-    | AgMapMarkerSeriesOptions
+export type AgTopologySeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault> =
+    | AgMapShapeSeriesOptions<TDatum, TContext>
+    | AgMapLineSeriesOptions<TDatum, TContext>
+    | AgMapMarkerSeriesOptions<TDatum, TContext>
     | AgMapShapeBackgroundOptions
     | AgMapLineBackgroundOptions;
 
-export interface AgBaseTopologyChartOptions {
+export interface AgBaseTopologyChartOptions<TDatum = TDatumDefault, TContext = TContextDefault> {
     /** Series configurations. */
-    series?: AgTopologySeriesOptions[];
+    series?: AgTopologySeriesOptions<TDatum, TContext>[];
     /** Topology to use in all series. */
     topology?: GeoJSON;
 }
 
-export interface AgBaseTopologyThemeOptions extends AgBaseThemeableChartOptions {}
+export interface AgBaseTopologyThemeOptions<TDatum = TDatumDefault> extends AgBaseThemeableChartOptions<TDatum> {}

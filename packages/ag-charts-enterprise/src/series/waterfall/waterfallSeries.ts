@@ -1,5 +1,5 @@
 import type { AgWaterfallSeriesItemType } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgWaterfallSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -82,8 +82,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
-            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
+            propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            propertyNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: ['connector'],
@@ -389,7 +389,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             pointData.push(pathPoint);
 
             const itemId = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
-            const labelText = this.getLabelText(label, { itemId, value, datum, xKey, yKey, xName, yName });
+            const labelText = this.getLabelText<AgWaterfallSeriesLabelFormatterParams>(value, datum, yKey, 'y', label, {
+                itemId,
+                value,
+                datum,
+                xKey,
+                yKey,
+                xName,
+                yName,
+            });
 
             const nodeDatum: WaterfallNodeDatum = {
                 index: datumIndex,
@@ -646,9 +654,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue),
+                heading: xAxis.formatDatum(xValue, 'tooltip', datum, xKey),
                 symbol: this.legendItemSymbol(seriesItemType),
-                data: [{ label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(total) }],
+                data: [{ label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(total, 'tooltip', datum, yKey) }],
             },
             { seriesId, datum, title: yName, itemId: seriesItemType, xKey, xName, yKey, yName, ...format }
         );

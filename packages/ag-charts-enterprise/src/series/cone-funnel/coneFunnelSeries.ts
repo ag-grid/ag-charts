@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgConeFunnelSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 
 import {
     BaseFunnelSeries,
@@ -10,7 +10,7 @@ import {
 import { ConeFunnelProperties } from './coneFunnelProperties';
 import { resetLineSelectionsFn } from './coneFunnelUtil';
 
-const { formatValue, Line } = _ModuleSupport;
+const { Line } = _ModuleSupport;
 
 export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
     static readonly className = 'ConeFunnelSeries';
@@ -150,9 +150,13 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
             y,
             textAlign,
             textBaseline,
-            text: this.getLabelText(label, { itemId: valueKey, value: yDatum, datum, stageKey, valueKey }, (value) =>
-                formatValue(value, 0)
-            ),
+            text: this.getLabelText<AgConeFunnelSeriesLabelFormatterParams>(yDatum, datum, valueKey, 'y', label, {
+                itemId: valueKey,
+                value: yDatum,
+                datum,
+                stageKey,
+                valueKey,
+            }),
             itemId: valueKey,
             datum,
             datumIndex,

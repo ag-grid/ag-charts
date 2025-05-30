@@ -2,6 +2,8 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { createId } from 'ag-charts-core';
 import type { AgChartLegendPosition } from 'ag-charts-types';
 
+import { formatWithContext } from '../series/gauge-util/label';
+
 const {
     AxisInterval,
     AxisLabel,
@@ -18,10 +20,7 @@ const {
     normalizeAngle360,
 } = _ModuleSupport;
 
-export class AxisTicks {
-    static readonly DefaultTickCount = 5;
-    static readonly DefaultMinSpacing = 10;
-
+export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
     readonly id = createId(this);
 
     protected readonly axisGroup = new TranslatableGroup({ name: `${this.id}-AxisTicks`, zIndex: ZIndexMap.AXIS });
@@ -39,6 +38,8 @@ export class AxisTicks {
     position: AgChartLegendPosition = 'bottom';
     translationX: number = 0;
     translationY: number = 0;
+
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {}
 
     private get horizontal(): boolean {
         return this.position === 'top' || this.position === 'bottom';
@@ -93,25 +94,31 @@ export class AxisTicks {
         return boxes.length > 0 ? BBox.merge(boxes).translate(translationX, translationY) : undefined;
     }
 
-    formatTick(value: number, fractionDigits: number): string {
-        const {
-            label: { formatter },
-        } = this;
+    tickFormatter(
+        domain: number[],
+        _ticks: number[],
+        _primary: boolean,
+        fractionDigits?: number
+    ): (value: any, index: number) => string | undefined {
+        const { formatter, format } = this.label;
 
-        let result: string | undefined;
-        if (formatter) {
-            result = formatter({
-                value,
-                index: NaN,
-                domain: this.scale.domain,
-                fractionDigits,
-                unit: undefined,
-                step: undefined,
-                boundSeries: [],
-            });
-        }
-        result ??= formatValue(value, fractionDigits);
-        return result;
+        const valueFormatter = format != null ? _ModuleSupport.FormatManager.getFormatter('number', format) : undefined;
+
+        return (value, index) => {
+            let result: string | undefined;
+            if (formatter != null) {
+                result ??= formatWithContext(this.ctx, formatter, {
+                    value,
+                    index,
+                    domain,
+                    boundSeries: [],
+                    fractionDigits,
+                });
+            }
+            result ??= valueFormatter?.(value, fractionDigits);
+            result ??= formatValue(value, fractionDigits);
+            return result;
+        };
     }
 
     inRange(x: number, tolerance = 0.001): boolean {

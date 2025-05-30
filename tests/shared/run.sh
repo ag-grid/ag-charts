@@ -9,6 +9,7 @@ update=false
 production=false
 it_opts=
 passthrough_opts=
+playwright_version=1.52.0
 
 function sed_inplace {
     if [[ $(uname) == "Darwin" ]] ; then
@@ -68,6 +69,10 @@ shift $((OPTIND - 1))
 version=$1
 project=${2:-/project}
 
+if declare -F init_fw >/dev/null ; then
+    init_fw
+fi
+
 if [[ ${mode} == "container" ]] ; then
     echo ">>> using prepared temporary project folder..."
     cd ${project}
@@ -104,7 +109,7 @@ if [[ ${mode} == "docker" ]] ; then
     docker run ${it_opts} --rm --ipc=host \
         -v $(pwd):/project \
         $port_spec \
-        mcr.microsoft.com/playwright:v1.45.0-jammy \
+        mcr.microsoft.com/playwright:v1.52.0 \
         /bin/bash -il /project/run.sh -c ${passthrough_opts} ${version} /project
     exitCode=$?
 
@@ -126,10 +131,10 @@ install_fw
 
 if ${production} ; then
     echo ">>> npm i ag-charts-${fw} (production)"
-    npm i ag-charts-${fw} @playwright/test@1.45.0
+    npm i ag-charts-${fw} @playwright/test@${playwright_version}
 else
     echo ">>> npm i ../ag-charts*.tgz"
-    npm i ../ag-charts-types.tgz ../ag-charts-locale.tgz ../ag-charts-community.tgz ../ag-charts-core.tgz ../ag-charts-enterprise.tgz ../ag-charts-${fw}.tgz @playwright/test@1.45.0
+    npm i ../ag-charts-types.tgz ../ag-charts-locale.tgz ../ag-charts-community.tgz ../ag-charts-core.tgz ../ag-charts-enterprise.tgz ../ag-charts-${fw}.tgz @playwright/test@${playwright_version}
 fi
 git add .
 git commit -m "Initial commit"

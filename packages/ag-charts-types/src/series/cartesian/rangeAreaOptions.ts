@@ -1,15 +1,15 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { PixelSize } from '../../chart/types';
+import type { PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgRangeAreaSeriesTooltipRendererParams
-    extends Omit<AgCartesianSeriesTooltipRendererParams, 'xKey' | 'xName' | 'yKey' | 'yName'>,
+export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = TDatumDefault>
+    extends Omit<AgCartesianSeriesTooltipRendererParams<TDatum>, 'xKey' | 'xName' | 'yKey' | 'yName'>,
         AgRangeAreaSeriesOptionsKeys,
         AgRangeAreaSeriesOptionsNames,
         Omit<AgSeriesMarkerStyle, 'shape'> {
@@ -28,7 +28,7 @@ export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';
 
 export type AgRangeAreaSeriesLabelFormatterParams = AgRangeAreaSeriesOptionsKeys & AgRangeAreaSeriesOptionsNames;
 
-export interface AgRangeAreaSeriesThemeableOptions<TDatum = any>
+export interface AgRangeAreaSeriesThemeableOptions<TDatum = TDatumDefault>
     extends StrokeOptions,
         FillOptions,
         LineDashOptions,
@@ -44,7 +44,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = any>
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>;
+    tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams<TDatum>>;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
 }
@@ -69,8 +69,8 @@ export interface AgRangeAreaSeriesOptionsNames {
     yName?: string;
 }
 
-export interface AgRangeAreaSeriesOptions<TDatum = any>
-    extends AgBaseSeriesOptions<TDatum>,
+export interface AgRangeAreaSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseSeriesOptions<TDatum, TContext>,
         AgRangeAreaSeriesOptionsKeys,
         AgRangeAreaSeriesOptionsNames,
         AgRangeAreaSeriesThemeableOptions<TDatum> {

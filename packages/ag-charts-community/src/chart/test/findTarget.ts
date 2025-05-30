@@ -1,3 +1,4 @@
+import { boxContains } from 'ag-charts-core';
 import { Caster, ClassTypePair } from 'ag-charts-test';
 
 import { BBox } from '../../scene/bbox';
@@ -6,7 +7,6 @@ import { Node } from '../../scene/node';
 import { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
-import { BBoxValues } from '../../util/bboxinterface';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../../util/test/mockCanvas';
 import { ListWidget } from '../../widget/listWidget';
 import { NativeWidget } from '../../widget/nativeWidget';
@@ -195,7 +195,7 @@ function findZoomTarget(zoomModule: unknown, clientX: number, clientY: number): 
 
         for (const axis of domProxy.axes) {
             const bbox = axis.div.getBounds();
-            if (isClickable(axis.div) && BBoxValues.containsPoint(bbox, clientX, clientY)) {
+            if (isClickable(axis.div) && boxContains(bbox, clientX, clientY)) {
                 const offsetX = clientX - bbox.x;
                 const offsetY = clientY - bbox.y;
                 const target = axis.div.getElement();

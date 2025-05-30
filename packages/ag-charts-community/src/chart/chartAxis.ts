@@ -5,10 +5,12 @@ import type {
     AgCartesianAxisPosition,
     FontOptions,
     Formatter,
+    FormatterParams,
     Styler,
 } from 'ag-charts-types';
 
-import type { AxisContext } from '../module/axisContext';
+import type { AxisLayout } from '../core/eventsHub';
+import type { AxisContext, AxisFormattableLabel, ContextFormatter } from '../module/axisContext';
 import type { ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
 import type { Scale } from '../scale/scale';
@@ -23,7 +25,6 @@ import type { AxisTick, TickInterval } from './axis/axisTick';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { CrossLine } from './crossline/crossLine';
-import type { AxisLayout } from './layout/layoutManager';
 import type { ISeries } from './series/seriesTypes';
 
 export type ChartAxisLabelFlipFlag = 1 | -1;
@@ -51,6 +52,8 @@ export interface AxisGroups {
     labelNode: Group;
 }
 
+export type FormatDatumParams = Omit<FormatterParams<any>, 'type' | 'value'>;
+
 export interface ChartAxis {
     attachAxis(opts: AxisGroups): void;
     calculateLayout(
@@ -63,11 +66,30 @@ export interface ChartAxis {
     createModuleContext(): ModuleContextWithParent<AxisContext>;
     destroy(): void;
     detachAxis(opts: AxisGroups): void;
-    formatDatum(datum: any): string;
+    formatDatum(value: any, source: 'crosshair'): string;
+    formatDatum(value: any, source: 'tooltip' | 'series-label', datum: any, key: string): string;
+    formatDatum<Params extends object>(
+        value: any,
+        source: 'crosshair',
+        datum: undefined,
+        key: undefined,
+        label: AxisFormattableLabel<Params>,
+        params: Params,
+        formatInContext: ContextFormatter<Params>
+    ): string;
+    formatDatum<Params extends object>(
+        value: any,
+        source: 'tooltip' | 'series-label',
+        datum: any,
+        key: string,
+        label: AxisFormattableLabel<Params>,
+        params: Params,
+        formatInContext: ContextFormatter<Params>
+    ): string;
     getBBox(): BBox;
     getLayoutState(): AxisLayout;
     getModuleMap(): ModuleMap<any, any, any>;
-    inRange(x: number, width?: number, tolerance?: number): boolean;
+    inRange(x: number, tolerance?: number): boolean;
     isReversed(): boolean;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
     setCrossLinesVisible(visible: boolean): void;

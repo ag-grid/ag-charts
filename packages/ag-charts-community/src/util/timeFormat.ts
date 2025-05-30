@@ -124,7 +124,7 @@ function pad(value: number, size: number, padChar: string) {
     return `${padChar.repeat(size - output.length)}${output}`;
 }
 
-export function buildFormatter(formatString: string): FormattingFn {
+export function buildDateFormatter(formatString: string): FormattingFn {
     const formatParts: (LiteralString | [FormattingFn, PaddingString])[] = [];
 
     while (formatString.length > 0) {
@@ -148,7 +148,7 @@ export function buildFormatter(formatString: string): FormattingFn {
         if (typeof maybeFormatter === 'function') {
             formatParts.push([maybeFormatter, maybePad]);
         } else if (typeof maybeFormatter === 'string') {
-            const formatter = buildFormatter(maybeFormatter);
+            const formatter = buildDateFormatter(maybeFormatter);
             formatParts.push([formatter, maybePad]);
         } else {
             formatParts.push(`${maybePad ?? ''}${maybeFormatterSpecifier}`);

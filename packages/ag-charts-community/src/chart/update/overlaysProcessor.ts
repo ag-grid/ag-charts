@@ -1,12 +1,12 @@
-import { setAttribute } from 'ag-charts-core';
+import { CleanupRegistry, setAttribute } from 'ag-charts-core';
 
+import type { EventsHub, LayoutCompleteEvent } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
 import { isUnsupportedBrowser } from '../../util/browser';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
-import type { LayoutCompleteEvent, LayoutManager } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_OVERLAY_CLASS, DEFAULT_OVERLAY_DARK_CLASS, type Overlay } from '../overlay/overlay';
 import type { ChartLike, UpdateProcessor } from './processor';
@@ -14,14 +14,14 @@ import type { ChartLike, UpdateProcessor } from './processor';
 const visibleIgnoredSeries = new Set(['map-shape-background', 'map-line-background']);
 
 export class OverlaysProcessor<D extends object> implements UpdateProcessor {
-    private readonly destroyFns: (() => void)[] = [];
+    private readonly cleanup = new CleanupRegistry();
     private readonly overlayElem: HTMLElement;
 
     constructor(
         private readonly chartLike: ChartLike,
         private readonly overlays: ChartOverlays,
+        private readonly eventsHub: EventsHub,
         private readonly dataService: DataService<D>,
-        private readonly layoutManager: LayoutManager,
         private readonly localeManager: LocaleManager,
         private readonly animationManager: AnimationManager,
         private readonly domManager: DOMManager
@@ -31,11 +31,11 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.overlayElem.ariaAtomic = 'false';
         this.overlayElem.ariaLive = 'polite';
         this.overlayElem.classList.toggle(DEFAULT_OVERLAY_CLASS);
-        this.destroyFns.push(this.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)));
+        this.cleanup.register(this.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)));
     }
 
     public destroy() {
-        this.destroyFns.forEach((cb) => cb());
+        this.cleanup.flush();
         this.domManager.removeChild('canvas-overlay', 'overlay');
     }
 

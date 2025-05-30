@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 
@@ -47,5 +47,14 @@ export class RadiusCategoryAxis extends RadiusAxis {
             const tickRange = (maxRadius - minRadius) / scale.domain.length;
             return maxRadius - tickDatum.translationY + minRadius - tickRange / 2;
         }
+    }
+
+    override tickFormatParams(): _ModuleSupport.AxisTickFormatParams {
+        return { type: 'category' };
+    }
+
+    override datumFormatParams(value: any, params: _ModuleSupport.FormatDatumParams): FormatterParams<any> {
+        const { datum, key, source, property, boundSeries } = params;
+        return { type: 'category', value, datum, key, source, property, boundSeries };
     }
 }

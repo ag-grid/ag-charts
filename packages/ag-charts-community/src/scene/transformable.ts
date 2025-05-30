@@ -131,16 +131,18 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             const matrix = this[TRANSFORM_MATRIX];
 
             let performRestore = false;
-            if (!matrix.identity) {
-                ctx.save();
-                performRestore = true;
-                matrix.toContext(ctx);
-            }
+            try {
+                if (!matrix.identity) {
+                    ctx.save();
+                    performRestore = true;
+                    matrix.toContext(ctx);
+                }
 
-            super.render(renderCtx);
-
-            if (performRestore) {
-                ctx.restore();
+                super.render(renderCtx);
+            } finally {
+                if (performRestore) {
+                    ctx.restore();
+                }
             }
         }
 

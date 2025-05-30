@@ -1,6 +1,9 @@
+import { type BoxBounds, CleanupRegistry } from 'ag-charts-core';
+
+import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import type { BBoxValues } from '../../util/bboxinterface';
+import { objectsEqual } from '../../util/object';
 import { StateTracker } from '../../util/stateTracker';
 import type { SeriesTooltip } from '../series/seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from '../series/seriesTypes';
@@ -28,21 +31,22 @@ export class TooltipManager {
     private readonly suppressState = new StateTracker(false);
     private appliedState: TooltipState | null = null;
 
-    private readonly destroyFns: Array<() => void> = [];
+    private readonly cleanup = new CleanupRegistry();
 
     public constructor(
+        eventsHub: EventsHub,
         localeManager: LocaleManager,
         private readonly domManager: DOMManager,
         private readonly tooltip: Tooltip
     ) {
-        this.destroyFns.push(
+        this.cleanup.register(
             tooltip.setup(localeManager, domManager),
-            domManager.addListener('hidden', () => this.tooltip.hide())
+            eventsHub.on('dom:hidden', () => this.tooltip.hide())
         );
     }
 
     public destroy() {
-        this.destroyFns.forEach((fn) => fn());
+        this.cleanup.flush();
     }
 
     public updateTooltip(
@@ -82,7 +86,7 @@ export class TooltipManager {
         const canvasRect = this.domManager.getBoundingClientRect();
         const boundingRect = this.tooltip.bounds === 'extended' ? this.domManager.getOverlayClientRect() : canvasRect;
 
-        if (this.appliedState?.content === state?.content) {
+        if (objectsEqual(this.appliedState?.content, state?.content)) {
             const renderInstantly = this.tooltip.isVisible();
             this.tooltip.show(boundingRect, canvasRect, state?.meta, null, undefined, renderInstantly);
         } else {
@@ -96,7 +100,7 @@ export class TooltipManager {
         event: TooltipPointerEvent,
         series: ISeries<any, any, any>,
         datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
-        movedBounds: BBoxValues | undefined
+        movedBounds: BoxBounds | undefined
     ): TooltipMeta {
         const { canvasX, canvasY } = event;
         const tooltip = series.properties.tooltip as SeriesTooltip<any>;
@@ -120,9 +124,7 @@ export class TooltipManager {
         return meta;
     }
 
-    public isEnteringInteractiveTooltip(event: Pick<FocusEvent | MouseEvent, 'relatedTarget'>): boolean {
-        const { tooltip } = this;
-        const relatedTarget = event.relatedTarget as Node | null;
-        return tooltip.interactive && tooltip.enabled && tooltip.isVisible() && tooltip.contains(relatedTarget);
+    public maybeEnterInteractiveTooltip(callerId: string, event: FocusEvent | MouseEvent): boolean {
+        return this.tooltip.maybeEnterInteractiveTooltip(event, () => this.removeTooltip(callerId));
     }
 }

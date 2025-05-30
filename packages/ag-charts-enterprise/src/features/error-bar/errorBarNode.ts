@@ -1,7 +1,7 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { nearestSquaredInContainer, partialAssign, mergeDefaults, BBox } = _ModuleSupport;
+const { nearestSquared, nearestSquaredInContainer, partialAssign, mergeDefaults, BBox } = _ModuleSupport;
 type NearestResult<T> = _ModuleSupport.NearestResult<T>;
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
@@ -213,7 +213,7 @@ export class ErrorBarNode extends _ModuleSupport.Group {
             return { nearest: undefined, distanceSquared: Infinity };
         }
 
-        const { distanceSquared } = BBox.nearestBox(x, y, bboxes.components);
+        const { distanceSquared } = nearestSquared(x, y, bboxes.components);
         return { nearest: this, distanceSquared };
     }
 }

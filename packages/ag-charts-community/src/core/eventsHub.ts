@@ -1,0 +1,144 @@
+import { EventEmitter } from 'ag-charts-core';
+import type { AgAnnotation, AgContextMenuItemShowOn, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+
+import type { ChartAxisDirection } from '../chart/chartAxisDirection';
+import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
+import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';
+import type { SeriesNodeDatum } from '../chart/series/seriesTypes';
+import type { Scale } from '../scale/scale';
+import type { BBox } from '../scene/bbox';
+import type { KeyboardWidgetEvent, MouseWidgetEvent } from '../widget/widgetEvents';
+
+export type EventsHub = EventEmitter<EventsHubMap>;
+
+// Event name convention is 'module:event-name'
+export interface EventsHubMap {
+    'annotations:restore': AnnotationsRestoreEvent;
+    'axis:hover': AxisHoverEvent;
+    'axis:change': null;
+    'context-menu:setup': ContextMenuEvent;
+    'context-menu:complete': ContextMenuEvent;
+    'data:load': { data: object };
+    'data:error': null;
+    'data:source-change': null;
+    'dom:container-change': null;
+    'dom:hidden': null;
+    'dom:resize': null;
+    'highlight:change': HighlightChangeEvent;
+    'layout:complete': LayoutCompleteEvent;
+    'legend:change': LegendChangeEvent;
+    'legend:item-click': LegendItemClickEvent;
+    'legend:item-double-click': LegendItemDoubleClickEvent;
+    'locale:change': null;
+    'series:focus-change': null;
+    'series:keynav-zoom': SeriesKeyNavZoomEvent;
+    'series:redo': null;
+    'series:undo': null;
+    'zoom:change': ZoomChangeEvent;
+    'zoom:pan-start': ZoomPanStartEvent;
+}
+
+interface AnnotationsRestoreEvent {
+    annotations: AgAnnotation[];
+}
+
+export interface AxisHoverEvent {
+    readonly axisId: string;
+    readonly direction: ChartAxisDirection;
+}
+
+export type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = {
+    readonly showOn: K;
+    readonly x: number;
+    readonly y: number;
+    readonly context: Readonly<ContextShowOnMap[K]['context']>;
+    readonly widgetEvent: MouseWidgetEvent<'contextmenu'> & { sourceEvent: Partial<Pick<PointerEvent, 'pointerType'>> };
+};
+
+export interface HighlightChangeEvent {
+    readonly callerId: string;
+    readonly currentHighlight?: HighlightNodeDatum;
+    readonly previousHighlight?: HighlightNodeDatum;
+}
+
+export interface LayoutCompleteEvent {
+    readonly chart: Readonly<{ width: number; height: number }>;
+    readonly series: Readonly<{ rect: BBox; paddedRect: BBox; visible: boolean }>;
+    readonly clipSeries: boolean;
+    readonly axes?: Readonly<AxisLayout>[];
+}
+
+export interface LegendChangeEvent {
+    legendData?: CategoryLegendDatum[];
+}
+
+export interface LegendItemClickEvent {
+    readonly legendType: ChartLegendType;
+    readonly enabled: boolean;
+    readonly series: any;
+    readonly itemId: any;
+    readonly legendItemName?: string;
+}
+
+export interface LegendItemDoubleClickEvent {
+    readonly legendType: ChartLegendType;
+    readonly enabled: boolean;
+    readonly series: any;
+    readonly itemId: any;
+    readonly legendItemName?: string;
+    readonly numVisibleItems: number;
+}
+
+export interface SeriesKeyNavZoomEvent {
+    readonly delta: -1 | 0 | 1;
+    readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
+}
+
+export interface ZoomChangeEvent extends AxisZoomState {
+    readonly callerId: string;
+    readonly axes: Record<string, Readonly<ZoomState> | undefined>;
+    readonly x?: Readonly<ZoomState>;
+    readonly y?: Readonly<ZoomState>;
+}
+
+export interface ZoomPanStartEvent {
+    readonly callerId: string;
+}
+
+export interface HighlightNodeDatum extends SeriesNodeDatum<unknown> {
+    readonly xKey?: string;
+    readonly yKey?: string;
+    readonly angleKey?: string;
+    readonly radiusKey?: string;
+    readonly colorValue?: number;
+    readonly cumulativeValue?: number;
+    readonly aggregatedValue?: number;
+    readonly domain?: [number, number];
+}
+
+export interface ZoomState {
+    min: number;
+    max: number;
+}
+
+export interface AxisZoomState {
+    x?: ZoomState;
+    y?: ZoomState;
+    autoScaleYAxis?: boolean;
+}
+
+export interface AxisLayout {
+    id: string;
+    rect: BBox;
+    gridPadding: number;
+    seriesAreaPadding: number;
+    tickSize: number;
+    label: {
+        fractionDigits: number;
+        spacing: number;
+        format?: string | Record<string, string>;
+    };
+    direction: ChartAxisDirection;
+    domain: any[];
+    scale: Scale<any, any, number | TimeInterval | TimeIntervalUnit>;
+}

@@ -16,11 +16,11 @@ export abstract class TopologySeries<
     TContext extends TopologySeriesNodeDataContext<TDatum, TLabel> = TopologySeriesNodeDataContext<TDatum, TLabel>,
 > extends _ModuleSupport.DataModelSeries<TDatum, TProps, TLabel, TContext> {
     override addChartEventListeners(): void {
-        this.destroyFns.push(
-            this.ctx.chartEventManager.addListener('legend-item-click', (event) => {
+        this.cleanup.register(
+            this.ctx.eventsHub.on('legend:item-click', (event) => {
                 this.onLegendItemClick(event);
             }),
-            this.ctx.chartEventManager.addListener('legend-item-double-click', (event) => {
+            this.ctx.eventsHub.on('legend:item-double-click', (event) => {
                 this.onLegendItemDoubleClick(event);
             })
         );

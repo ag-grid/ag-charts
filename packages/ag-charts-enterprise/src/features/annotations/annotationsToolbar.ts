@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { type BoxBounds, CleanupRegistry, EventEmitter } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 import { type AnnotationType } from './annotationTypes';
@@ -14,11 +15,11 @@ const { ActionOnSet, LayoutElement, Menu, PropertiesArray, ToolbarButtonProperti
     _ModuleSupport;
 
 interface EventMap {
-    'cancel-create-annotation': void;
+    'cancel-create-annotation': null;
     'pressed-create-annotation': { annotation: AnnotationType };
-    'pressed-clear': void;
-    'pressed-show-menu': void;
-    'pressed-unrelated': void;
+    'pressed-clear': null;
+    'pressed-show-menu': null;
+    'pressed-unrelated': null;
 }
 
 interface AnnotationsToolbarButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
@@ -56,12 +57,12 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     @Property
     public buttons = new PropertiesArray(AnnotationsToolbarButtonProperties);
 
-    private readonly events = new _ModuleSupport.Listeners<keyof EventMap, any>();
+    readonly events = new EventEmitter<EventMap>();
 
     private readonly toolbar: SharedToolbarWithSection<AnnotationsToolbarButtonOptions>;
     private readonly annotationMenu = new Menu(this.ctx, 'annotations');
 
-    private readonly destroyFns: (() => void)[] = [];
+    private readonly cleanup = new CleanupRegistry();
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -71,7 +72,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         const onKeyDown = this.onKeyDown.bind(this);
         this.toolbar.addListener('keydown', onKeyDown);
 
-        this.destroyFns.push(
+        this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onToolbarButtonPress.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.ToolbarLeft, this.onLayoutStart.bind(this)),
             () => {
@@ -82,13 +83,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     }
 
     public destroy() {
-        for (const destroyFn of this.destroyFns) {
-            destroyFn();
-        }
-    }
-
-    public addListener<K extends keyof EventMap>(eventType: K, handler: (event: EventMap[K]) => void) {
-        return this.events.addListener(eventType, handler);
+        this.cleanup.flush();
     }
 
     public toggleVisibility(visible: boolean) {
@@ -134,10 +129,6 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         this.toolbar.clearActiveButton();
     }
 
-    private dispatch<K extends keyof EventMap>(eventType: K, event?: EventMap[K]) {
-        this.events.dispatch(eventType, event);
-    }
-
     private onLayoutStart(event: _ModuleSupport.LayoutContext) {
         if (!this.enabled) return;
         this.toolbar.updateButtons(this.buttons);
@@ -160,7 +151,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
 
         switch (button.value) {
             case 'clear':
-                this.dispatch('pressed-clear');
+                this.events.emit('pressed-clear', null);
                 break;
 
             case 'line-menu':
@@ -217,12 +208,12 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
 
     private onToolbarButtonPressShowMenu(
         event: _ModuleSupport.MouseWidgetEvent<'click'>,
-        buttonBounds: _ModuleSupport.BBoxValues,
+        buttonBounds: BoxBounds,
         menu: AnnotationsToolbarButtonValue,
         ariaLabel: string,
         items: Array<_ModuleSupport.MenuItem<AnnotationType>>
     ) {
-        this.dispatch('pressed-show-menu');
+        this.events.emit('pressed-show-menu', null);
 
         const index = this.buttons.findIndex((button) => button.value === menu);
         this.toolbar.toggleActiveButtonByIndex(index);
@@ -242,13 +233,13 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     ) {
         const index = this.buttons.findIndex((button) => button.value === menu);
         this.updateButtonByIndex(index, { icon: item.icon });
-        this.dispatch('pressed-create-annotation', { annotation: item.value });
+        this.events.emit('pressed-create-annotation', { annotation: item.value });
         this.annotationMenu.hide();
     }
 
     private onKeyDown({ sourceEvent }: _ModuleSupport.KeyboardWidgetEvent) {
         if (sourceEvent.key === 'Escape') {
-            this.dispatch('cancel-create-annotation');
+            this.events.emit('cancel-create-annotation', null);
         }
     }
 

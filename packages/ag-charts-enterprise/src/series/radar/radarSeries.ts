@@ -4,6 +4,8 @@ import { type RequireOptional, isFiniteNumber, isNumberEqual } from 'ag-charts-c
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
 const {
+    DEFAULT_POLAR_DIRECTION_KEYS,
+    DEFAULT_POLAR_DIRECTION_NAMES,
     ChartAxisDirection,
     PolarAxis,
     SeriesNodePickMode,
@@ -71,7 +73,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         super({
             moduleCtx,
             categoryKey: 'angleValue',
-            useLabelLayer: true,
+            propertyKeys: DEFAULT_POLAR_DIRECTION_KEYS,
+            propertyNames: DEFAULT_POLAR_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             canHaveAxes: true,
             animationResetFns: {
@@ -183,7 +186,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
             let labelNodeDatum: RadarNodeDatum['label'];
             if (label.enabled) {
-                const labelText = this.getLabelText(label, {
+                const labelText = this.getLabelText(radiusDatum, datum, radiusKey, 'radius', label, {
                     value: radiusDatum,
                     datum,
                     angleKey,
@@ -380,9 +383,15 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: angleAxis.formatDatum(angleValue),
+                heading: angleAxis.formatDatum(angleValue, 'tooltip', datum, angleKey),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: radiusName, fallbackLabel: radiusKey, value: radiusAxis.formatDatum(radiusValue) }],
+                data: [
+                    {
+                        label: radiusName,
+                        fallbackLabel: radiusKey,
+                        value: radiusAxis.formatDatum(radiusValue, 'tooltip', datum, radiusKey),
+                    },
+                ],
             },
             {
                 seriesId,

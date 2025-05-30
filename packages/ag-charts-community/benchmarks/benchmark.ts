@@ -18,6 +18,8 @@ if (isHistoricBenchmarkTest()) {
     console.warn('Attempting to run against version: ', getVersion().join('.'));
 }
 
+globalThis.agChartsDebugTimeout = 60_000; // Use Jest timeouts
+
 interface BenchmarkExpectations {
     expectedMaxMemoryMB?: number;
     expectedRelativeMB?: number;

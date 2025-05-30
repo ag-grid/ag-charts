@@ -24,8 +24,6 @@ import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
-import type { AxisLabel } from './axisLabel';
-import type { AxisTick } from './axisTick';
 import { AxisTickGenerator, type TickGenerationResult } from './axisTickGenerator';
 import {
     type AxisLabelDatum,
@@ -66,14 +64,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     @Property
     position!: AgCartesianAxisPosition;
-
-    protected get primaryLabel(): AxisLabel | undefined {
-        return undefined;
-    }
-
-    protected get primaryTick(): AxisTick | undefined {
-        return undefined;
-    }
 
     protected animationManager: AnimationManager;
 
@@ -129,8 +119,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         this.headingLabelGroup.appendChild(this.title.caption.node);
 
         let previousSize: readonly [number, number] | undefined = undefined;
-        this.destroyFns.push(
-            moduleCtx.layoutManager.addListener('layout:complete', (e) => {
+        this.cleanup.register(
+            moduleCtx.eventsHub.on('layout:complete', (e) => {
                 // Fire resize animation action if chart canvas size changes.
                 const size = [e.chart.width, e.chart.height] as const;
                 if (previousSize != null && !arraysEqual(size, previousSize)) {
@@ -438,14 +428,32 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             }
         }
 
-        if (primaryLabel?.enabled && primaryLabel.format != null && position === 'bottom') {
-            const { fontSize, format } = primaryLabel;
-            const formats = isPlainObject(format) ? Object.values(format) : [format];
-            const maxLines = formats.reduce((m, f) => Math.max(m, countLines(f)), 0);
-            const labelOffset = this.getTickSize(primaryTick ?? tick) + primaryLabel.spacing + seriesAreaPadding;
+        if (primaryLabel?.enabled && position === 'bottom') {
             const inexactMeasurementPadding = 2;
-            const height = maxLines * TextUtils.getLineHeight(fontSize) + inexactMeasurementPadding;
-            boxes.push(new BBox(0, labelOffset, 1, height));
+
+            // Force base min-height
+            boxes.push(
+                new BBox(
+                    0,
+                    TextUtils.getLineHeight(label.fontSize) + inexactMeasurementPadding,
+                    1,
+                    this.getTickSize(tick) + label.spacing + seriesAreaPadding
+                )
+            );
+
+            if (primaryLabel.format != null) {
+                const { format } = primaryLabel;
+                const formats = isPlainObject(format) ? Object.values(format) : [format];
+                const maxLines = formats.reduce((m, f) => Math.max(m, countLines(f)), 0);
+                boxes.push(
+                    new BBox(
+                        0,
+                        this.getTickSize(primaryTick ?? tick) + primaryLabel.spacing + seriesAreaPadding,
+                        1,
+                        maxLines * TextUtils.getLineHeight(primaryLabel.fontSize) + inexactMeasurementPadding
+                    )
+                );
+            }
         }
 
         let spacing = 0;

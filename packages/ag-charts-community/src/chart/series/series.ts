@@ -1,19 +1,27 @@
-import { type AnyFn, Logger, type RequireOptional, createId } from 'ag-charts-core';
-import type {
-    RequiredInternalAgGradientColor,
-    RequiredInternalAgImageFill,
-    RequiredInternalAgPatternColor,
+import {
+    type AnyFn,
+    CleanupRegistry,
+    EventEmitter,
+    Logger,
+    type RequireOptional,
+    type RequiredInternalAgGradientColor,
+    type RequiredInternalAgImageFill,
+    type RequiredInternalAgPatternColor,
+    createId,
 } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
-    AgChartLabelOptions,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
+    FormatterParams,
+    FormatterPropertyType,
     ISeriesMarker,
 } from 'ag-charts-types';
 
+import type { LegendItemClickEvent, LegendItemDoubleClickEvent } from '../../core/eventsHub';
+import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
@@ -24,9 +32,7 @@ import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { callWithContext } from '../../util/callbackCache';
-import { formatValue } from '../../util/format.util';
 import { jsonDiff } from '../../util/json';
-import { Listeners } from '../../util/listeners';
 import { LRUCache } from '../../util/lruCache';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
 import { mergeDefaults } from '../../util/object';
@@ -38,17 +44,21 @@ import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
-import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../interaction/chartEventManager';
+import type { DataModel, ProcessedData } from '../data/dataModel';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
-import type { SeriesEventType } from './seriesEvents';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type { INodeEvent, ISeries, NodeDataDependencies, SeriesNodeDatum, SeriesNodeEventTypes } from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
 import { type ShapeFillBBox, applyShapeStyle, getShapeStyle } from './shapeUtil';
+
+export interface SeriesDataEvent {
+    readonly dataModel: DataModel<any, any, any>;
+    readonly processedData: ProcessedData<any>;
+}
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
 export enum SeriesNodePickMode {
@@ -134,7 +144,7 @@ enum SeriesHighlight {
 export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesOptionInstance, SeriesContext>;
 
 export type SeriesDirectionKeysMapping<P extends SeriesProperties<any>> = {
-    [key in ChartAxisDirection]?: (keyof P & string)[];
+    [key in ChartAxisDirection | FormatterPropertyType]?: (keyof P & string)[];
 };
 
 export class SeriesGroupingChangedEvent implements TypedEvent {
@@ -149,13 +159,38 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
 
 export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     moduleCtx: ModuleContext;
-    useLabelLayer?: boolean;
     pickModes: SeriesNodePickMode[];
-    directionKeys?: SeriesDirectionKeysMapping<TProps>;
-    directionNames?: SeriesDirectionKeysMapping<TProps>;
+    propertyKeys?: SeriesDirectionKeysMapping<TProps>;
+    propertyNames?: SeriesDirectionKeysMapping<TProps>;
     canHaveAxes?: boolean;
     usesPlacedLabels?: boolean;
 };
+
+function propertyAxisDirection(property: FormatterPropertyType): ChartAxisDirection | undefined {
+    switch (property) {
+        case 'x':
+            return ChartAxisDirection.X;
+        case 'y':
+            return ChartAxisDirection.Y;
+        case 'angle':
+            return ChartAxisDirection.Angle;
+        case 'radius':
+            return ChartAxisDirection.Radius;
+    }
+}
+
+function axisDirectionProperty(direction: ChartAxisDirection): FormatterPropertyType {
+    switch (direction) {
+        case ChartAxisDirection.X:
+            return 'x';
+        case ChartAxisDirection.Y:
+            return 'y';
+        case ChartAxisDirection.Angle:
+            return 'angle';
+        case ChartAxisDirection.Radius:
+            return 'radius';
+    }
+}
 
 export abstract class Series<
         TDatumIndex,
@@ -171,7 +206,7 @@ export abstract class Series<
     extends Observable
     implements ISeries<TDatumIndex, TDatum, TProps, TLabel>
 {
-    protected destroyFns: (() => void)[] = [];
+    protected cleanup = new CleanupRegistry();
     abstract readonly properties: TProps;
 
     pickModes: SeriesNodePickMode[];
@@ -239,8 +274,8 @@ export abstract class Series<
     axes: { [K in ChartAxisDirection]?: ChartAxis } = {};
     directions: ChartAxisDirection[] = [ChartAxisDirection.X, ChartAxisDirection.Y];
 
-    private readonly directionKeys: SeriesDirectionKeysMapping<TProps>;
-    private readonly directionNames: SeriesDirectionKeysMapping<TProps>;
+    private readonly propertyKeys: SeriesDirectionKeysMapping<TProps>;
+    private readonly propertyNames: SeriesDirectionKeysMapping<TProps>;
 
     // Flag to determine if we should recalculate node data.
     protected nodeDataRefresh = true;
@@ -325,15 +360,15 @@ export abstract class Series<
         const {
             moduleCtx,
             pickModes,
-            directionKeys = {},
-            directionNames = {},
+            propertyKeys = {},
+            propertyNames = {},
             canHaveAxes = false,
             usesPlacedLabels = false,
         } = seriesOpts;
 
         this.ctx = moduleCtx;
-        this.directionKeys = directionKeys;
-        this.directionNames = directionNames;
+        this.propertyKeys = propertyKeys;
+        this.propertyNames = propertyNames;
         this.canHaveAxes = canHaveAxes;
         this.usesPlacedLabels = usesPlacedLabels;
 
@@ -378,7 +413,7 @@ export abstract class Series<
         return false;
     }
 
-    private readonly seriesListeners = new Listeners<SeriesEventType, (event: any) => void>();
+    readonly events = new EventEmitter<{ 'data-update': SeriesDataEvent; 'data-processed': SeriesDataEvent }>();
 
     override addEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
     override addEventListener(type: 'seriesNodeClick', listener: (e: SeriesNodeEvent<any>) => void): void;
@@ -404,14 +439,6 @@ export abstract class Series<
         return super.hasEventListener(type);
     }
 
-    public addListener<T extends SeriesEventType, E>(type: T, listener: (event: E) => void) {
-        return this.seriesListeners.addListener(type, listener);
-    }
-
-    protected dispatch<T extends SeriesEventType, E>(type: T, event: E): void {
-        this.seriesListeners.dispatch(type, event);
-    }
-
     addChartEventListeners(): void {
         return;
     }
@@ -421,20 +448,21 @@ export abstract class Series<
     }
 
     destroy(): void {
-        this.destroyFns.forEach((f) => f());
-        this.destroyFns = [];
+        this.cleanup.flush();
         this.resetDatumCallbackCache();
         this.ctx.seriesStateManager.deregisterSeries(this);
     }
 
     abstract resetAnimation(chartAnimationPhase: ChartAnimationPhase): void;
 
-    private getDirectionValues(
-        direction: ChartAxisDirection,
-        properties: { [key in ChartAxisDirection]?: string[] }
+    private getPropertyValues(
+        property: FormatterPropertyType,
+        properties: { [key in FormatterPropertyType]?: string[] }
     ): string[] {
-        const resolvedDirection = this.resolveKeyDirection(direction);
-        const keys = properties?.[resolvedDirection];
+        const direction = propertyAxisDirection(property);
+        const resolvedProperty =
+            direction != null ? axisDirectionProperty(this.resolveKeyDirection(direction)) : property;
+        const keys = properties?.[resolvedProperty];
         const values: string[] = [];
 
         if (!keys) {
@@ -459,15 +487,25 @@ export abstract class Series<
     }
 
     getKeys(direction: ChartAxisDirection): string[] {
-        return this.getDirectionValues(direction, this.directionKeys);
+        return this.getPropertyValues(axisDirectionProperty(direction), this.propertyKeys);
     }
 
     getKeyProperties(direction: ChartAxisDirection): (keyof TProps & string)[] {
-        return this.directionKeys[this.resolveKeyDirection(direction)] ?? [];
+        return this.propertyKeys[this.resolveKeyDirection(direction)] ?? [];
     }
 
     getNames(direction: ChartAxisDirection): (string | undefined)[] {
-        return this.getDirectionValues(direction, this.directionNames);
+        return this.getPropertyValues(axisDirectionProperty(direction), this.propertyNames);
+    }
+
+    getFormatterContext(property: FormatterPropertyType): Array<{ key: string; name: string | undefined }> {
+        const keys = this.getPropertyValues(property, this.propertyKeys);
+        const names = this.getPropertyValues(property, this.propertyNames);
+        const out: Array<{ key: string; name: string | undefined }> = [];
+        for (let idx = 0; idx < keys.length; idx++) {
+            out.push({ key: keys[idx], name: names[idx] });
+        }
+        return out;
     }
 
     protected resolveKeyDirection(direction: ChartAxisDirection): ChartAxisDirection {
@@ -714,7 +752,7 @@ export abstract class Series<
         this.toggleSeriesItem(visible, legendType, itemId, legendItemName);
     }
 
-    onLegendItemClick(event: LegendItemClickChartEvent) {
+    onLegendItemClick(event: LegendItemClickEvent) {
         const { enabled, itemId, series, legendType } = event;
         const legendItemName =
             'legendItemName' in this.properties ? (this.properties.legendItemName as string) : undefined;
@@ -726,7 +764,7 @@ export abstract class Series<
         }
     }
 
-    onLegendItemDoubleClick(event: LegendItemDoubleClickChartEvent) {
+    onLegendItemDoubleClick(event: LegendItemDoubleClickEvent) {
         const { enabled, itemId, series, numVisibleItems, legendType } = event;
         const legendItemName =
             'legendItemName' in this.properties ? (this.properties.legendItemName as string) : undefined;
@@ -786,18 +824,70 @@ export abstract class Series<
         return { ...this.ctx, series: this };
     }
 
-    protected getLabelText<TParams>(
-        label: AgChartLabelOptions<any, TParams>,
-        params: TParams & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>,
-        defaultFormatter: (value: any) => string = formatValue
-    ) {
-        if (label.formatter) {
-            return (
-                this.cachedCallWithContext(label.formatter, { seriesId: this.id, ...params }) ??
-                this.callWithContext(defaultFormatter, params.value)
+    protected getLabelText<TParams extends object>(
+        value: any,
+        datum: any,
+        key: string,
+        property: FormatterPropertyType,
+        label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
+        baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>
+    ): string {
+        if (value == null) return '';
+
+        const { axes, canHaveAxes, ctx } = this;
+        const { formatManager } = ctx;
+        const source = 'series-label';
+        const params: AgChartLabelFormatterParams<any> & RequireOptional<TParams> = {
+            seriesId: this.id,
+            ...baseParams,
+        };
+
+        const formatInContext = this.callWithContext.bind(this);
+
+        const format = (formatParams: FormatterParams<any>) => {
+            let result: string | undefined;
+
+            if (label.formatter) {
+                result = formatInContext(label.formatter, params);
+            }
+
+            result ??= formatManager.format(formatParams, label.format);
+            result ??= value;
+
+            return String(result);
+        };
+
+        const direction = canHaveAxes ? propertyAxisDirection(property) : undefined;
+        const axis = direction != null ? axes[this.resolveKeyDirection(direction)] : undefined;
+        if (axis != null) {
+            return axis.formatDatum<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>(
+                value,
+                source,
+                datum,
+                key,
+                label,
+                params,
+                formatInContext
             );
         }
-        return this.callWithContext(defaultFormatter, params.value);
+
+        const boundSeries = this.getFormatterContext(property);
+        switch (property) {
+            case 'y':
+            case 'color':
+            case 'size':
+                const fractionDigits = undefined;
+                return format({ type: 'number', value, datum, key, source, property, boundSeries, fractionDigits });
+
+            case 'x':
+            case 'radius':
+            case 'angle':
+            case 'label':
+            case 'secondaryLabel':
+            case 'calloutLabel':
+            case 'sectorLabel':
+                return format({ type: 'category', value, datum, key, source, property, boundSeries });
+        }
     }
 
     public getMarkerStyle<TParams>(
@@ -889,9 +979,9 @@ export abstract class Series<
 
             // AG-12745 Calculate the marker size to ensure that the focus indicator is correct.
             const bb = markerNode.getBBox();
-            if (point !== undefined && bb.isFinite()) {
+            if (point != null && bb.isFinite()) {
                 const center = bb.computeCenter();
-                const [dx, dy] = (['x', 'y'] satisfies (keyof Point)[]).map(
+                const [dx, dy] = (['x', 'y'] as const).map(
                     (key) => (activeStyle.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
                 );
                 point.focusSize = Math.max(bb.width + dx, bb.height + dy);
@@ -940,11 +1030,11 @@ export abstract class Series<
     }
 
     private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
-        return this.ctx.callbackCache.call(this.properties, this.ctx.chartService, fn, ...params);
+        return this.ctx.callbackCache.call([this.properties, this.ctx.chartService], fn, ...params);
     }
 
     public callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> {
-        return callWithContext(this.properties, this.ctx.chartService, fn, params);
+        return callWithContext([this.properties, this.ctx.chartService], fn, params);
     }
 
     protected formatTooltipWithContext<P extends AgSeriesTooltipRendererParams<any>, Tooltip extends SeriesTooltip<P>>(
@@ -952,10 +1042,15 @@ export abstract class Series<
         content: TooltipStructuredContent,
         params: RequireOptional<P>
     ) {
-        return tooltip.formatTooltip(this.properties, this.ctx.chartService, content, params);
+        return tooltip.formatTooltip([this.properties, this.ctx.chartService], content, params);
     }
 
     abstract getCategoryValue(datumIndex: TDatumIndex): any;
 
     abstract datumIndexForCategoryValue(categoryValue: any): TDatumIndex | undefined;
+
+    // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)
+    minTimeInterval(): number | undefined {
+        return;
+    }
 }

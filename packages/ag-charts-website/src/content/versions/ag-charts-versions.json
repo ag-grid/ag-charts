@@ -1,5 +1,12 @@
 [
     {
+        "version": "11.3.2"
+    },
+    {
+        "version": "11.3.1",
+        "date": "May 28th, 2025"
+    },
+    {
         "version": "11.3.0",
         "date": "May 13th, 2025",
         "highlights": [

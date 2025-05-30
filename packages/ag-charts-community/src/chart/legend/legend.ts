@@ -1,9 +1,9 @@
-import { type AnyFn, Logger, clamp, createId } from 'ag-charts-core';
 import type {
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, Logger, clamp, createId } from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -19,6 +19,7 @@ import type {
     Formatter,
 } from 'ag-charts-types';
 
+import type { HighlightNodeDatum, LegendChangeEvent } from '../../core/eventsHub';
 import type { LayoutContext } from '../../module/baseModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
@@ -28,8 +29,7 @@ import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
 import { isImageFill, isPatternFill } from '../../scene/util/fill';
 import { objectsEqual } from '../../util/object';
-import { BaseProperties } from '../../util/properties';
-import { Property } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import { CachedTextMeasurer, CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
@@ -38,7 +38,6 @@ import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
-import type { HighlightNodeDatum } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import { LayoutElement } from '../layout/layoutManager';
 import { Marker } from '../marker/marker';
@@ -49,7 +48,6 @@ import { ZIndexMap } from '../zIndexMap';
 import { LegendDOMProxy } from './legendDOMProxy';
 import type { CategoryLegendDatum } from './legendDatum';
 import { makeLegendItemEvent } from './legendEvent';
-import type { LegendChangeEvent } from './legendManager';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { LegendSymbolOptions } from './legendSymbol';
 
@@ -277,7 +275,7 @@ export class Legend extends BaseProperties {
     @Property
     spacing = 20;
 
-    private readonly destroyFns: Function[] = [];
+    private readonly cleanup = new CleanupRegistry();
 
     private readonly domProxy: LegendDOMProxy;
     private pendingHighlightDatum?: HighlightNodeDatum;
@@ -294,13 +292,12 @@ export class Legend extends BaseProperties {
         const { items } = ctx.contextMenuRegistry.builtins;
         items['toggle-series-visibility'].action = (params) => this.contextToggleVisibility(params);
         items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
-        this.destroyFns.push(ctx.legendManager.addListener('legend-change', this.onLegendDataChange.bind(this)));
-
-        this.destroyFns.push(
+        this.cleanup.register(
+            ctx.eventsHub.on('legend:change', this.onLegendDataChange.bind(this)),
+            ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
+            ctx.eventsHub.on('locale:change', () => this.onLocaleChanged()),
             () => delete items['toggle-series-visibility'].action,
             () => delete items['toggle-other-series'].action,
-            ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
-            ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
             () => this.group.remove()
         );
 
@@ -317,10 +314,8 @@ export class Legend extends BaseProperties {
     public destroy() {
         this.ctx.domManager.removeChild('canvas-overlay', `${this.id}-toolbar`);
         this.ctx.domManager.removeChild('canvas-overlay', `${this.id}-pagination`);
-        this.destroyFns.forEach((f) => f());
-
+        this.cleanup.flush();
         this.itemSelection.clear();
-        this.domProxy.destroy();
     }
 
     private getOrientation(): AgChartLegendOrientation {
@@ -933,7 +928,13 @@ export class Legend extends BaseProperties {
             }
 
             proxyButton.setChecked(newEnabled);
-            this.ctx.chartEventManager.legendItemClick(legendType, series, itemId, newEnabled, datum.legendItemName);
+            this.ctx.eventsHub.emit('legend:item-click', {
+                legendType,
+                series,
+                itemId,
+                enabled: newEnabled,
+                legendItemName: datum.legendItemName,
+            });
         }
 
         if (newEnabled) {
@@ -1003,14 +1004,14 @@ export class Legend extends BaseProperties {
 
             const clickedItem = legendData.find((d) => d.itemId === itemId && d.seriesId === seriesId);
 
-            this.ctx.chartEventManager.legendItemDoubleClick(
+            this.ctx.eventsHub.emit('legend:item-double-click', {
                 legendType,
                 series,
                 itemId,
-                clickedItem?.enabled ?? false,
                 numVisibleItems,
-                clickedItem?.legendItemName
-            );
+                enabled: clickedItem?.enabled ?? false,
+                legendItemName: clickedItem?.legendItemName,
+            });
         }
 
         this.ctx.legendManager.update();
@@ -1200,6 +1201,6 @@ export class Legend extends BaseProperties {
 
     private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         const { callbackCache, chartService } = this.ctx;
-        return callbackCache.call(this, chartService, fn, ...params);
+        return callbackCache.call([this, chartService], fn, ...params);
     }
 }

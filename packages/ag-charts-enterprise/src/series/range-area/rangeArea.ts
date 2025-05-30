@@ -1,5 +1,6 @@
 import {
     type AgMarkerShape,
+    type AgRangeAreaSeriesLabelFormatterParams,
     type FillOptions,
     type LineDashOptions,
     type StrokeOptions,
@@ -94,11 +95,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             hasMarkers: true,
             pathsPerSeries: ['fill', 'stroke'],
             pickModes: [_ModuleSupport.SeriesNodePickMode.AXIS_ALIGNED],
-            directionKeys: {
+            propertyKeys: {
                 [ChartAxisDirection.X]: ['xKey'],
                 [ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'],
             },
-            directionNames: {
+            propertyNames: {
                 [ChartAxisDirection.X]: ['xName'],
                 [ChartAxisDirection.Y]: ['yLowName', 'yHighName', 'yName'],
             },
@@ -397,18 +398,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             itemId,
             datum,
             datumIndex,
-            text: this.getLabelText(label, {
+            text: this.getLabelText<AgRangeAreaSeriesLabelFormatterParams>(
                 value,
                 datum,
-                itemId,
-                xKey,
-                yLowKey,
-                yHighKey,
-                xName,
-                yLowName,
-                yHighName,
-                yName,
-            }),
+                itemId === 'high' ? yHighKey : yLowKey,
+                'y',
+                label,
+                { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName }
+            ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
         };
@@ -656,11 +653,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const format = this.getMarkerItemBaseStyle(false);
         Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
-        const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
+        const value = `${yAxis.formatDatum(yLowValue, 'tooltip', datum, yLowKey)} - ${yAxis.formatDatum(yHighValue, 'tooltip', datum, yHighKey)}`;
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue),
+                heading: xAxis.formatDatum(xValue, 'tooltip', datum, xKey),
                 symbol: this.legendItemSymbol(),
                 data: [{ label: yName, fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`, value }],
             },

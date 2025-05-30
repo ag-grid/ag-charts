@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger, clamp } from 'ag-charts-core';
+import { type BoxBounds, Logger, clamp } from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
@@ -8,6 +8,14 @@ import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
 
 const { BaseModuleInstance, ObserveChanges, Property } = _ModuleSupport;
+
+interface BBoxProvider {
+    id: string;
+    visible?: boolean;
+    toCanvasBBox(): BoxBounds;
+    fromCanvasPoint(x: number, y: number): { x: number; y: number };
+    getBBox(): _ModuleSupport.BBox;
+}
 
 export class Navigator extends BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     // @TempValidate
@@ -26,12 +34,12 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
     public mask = new RangeMask();
     public minHandle = new RangeHandle();
     public maxHandle = new RangeHandle();
-    private readonly maskVisibleRange = {
+    private readonly maskVisibleRange: BBoxProvider = {
         id: 'navigator-mask-visible-range',
         getBBox: (): _ModuleSupport.BBox => this.mask.computeVisibleRangeBBox(),
         toCanvasBBox: (): _ModuleSupport.BBox => this.mask.computeVisibleRangeBBox(),
         fromCanvasPoint: (x: number, y: number) => ({ x, y }),
-    } satisfies _ModuleSupport.BBoxProvider & { getBBox(): _ModuleSupport.BBox };
+    };
 
     @Property
     public height: number = 30;
@@ -57,14 +65,12 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
     public constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.destroyFns.push(
+        this.cleanup.register(
             ctx.scene.attachNode(this.rangeSelector),
-            this.ctx.localeManager.addListener('locale-changed', () => this.updateZoom()),
-            this.ctx.layoutManager.registerElement(_ModuleSupport.LayoutElement.Navigator, (e) =>
-                this.onLayoutStart(e)
-            ),
-            this.ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
-            ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
+            ctx.eventsHub.on('locale:change', () => this.updateZoom()),
+            ctx.layoutManager.registerElement(_ModuleSupport.LayoutElement.Navigator, (e) => this.onLayoutStart(e)),
+            ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
+            ctx.eventsHub.on('zoom:change', (event) => this.onZoomChange(event))
         );
 
         this.domProxy = new NavigatorDOMProxy(ctx, this);

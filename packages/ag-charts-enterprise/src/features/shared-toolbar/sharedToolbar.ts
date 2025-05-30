@@ -52,7 +52,7 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
 
         this.container.append(this.sharedToolbar.getElement());
 
-        this.destroyFns.push(() => {
+        this.cleanup.register(() => {
             if (!this.sharedToolbar) return;
             this.container.removeChild(this.sharedToolbar.getElement());
             this.sharedToolbar.destroy();
@@ -100,7 +100,7 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
                     handler(event as any);
                 });
             },
-            updateButtons: (buttons: Array<ButtonOptions>) => {
+            updateButtons: (buttons: ButtonOptions[]) => {
                 this.sectionButtons[section] = buttons;
                 const sharedButtons = SharedToolbar.SECTION_ORDER.flatMap((order) => this.sectionButtons[order]);
                 sharedToolbar.updateButtons(sharedButtons);

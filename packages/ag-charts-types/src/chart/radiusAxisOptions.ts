@@ -7,14 +7,14 @@ import type {
 } from './axisOptions';
 import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions } from './crossLineOptions';
 import type { AgPolarAxisShape } from './polarAxisOptions';
-import type { Degree, Ratio } from './types';
+import type { Degree, Ratio, TContextDefault } from './types';
 
 interface AgRadiusAxisFormattableLabelOptions extends AgNumericAxisFormattableLabelOptions {}
 interface AgRadiusAxisLabelOptions extends AgBaseAxisLabelOptions {}
 
-export interface AgRadiusNumberAxisOptions
-    extends Omit<AgBaseAxisOptions<AgRadiusAxisFormattableLabelOptions>, 'interval'>,
-        AgContinuousAxisOptions {
+export interface AgRadiusNumberAxisOptions<TContext = TContextDefault>
+    extends Omit<AgBaseAxisOptions<AgRadiusAxisFormattableLabelOptions, TContext>, 'interval'>,
+        AgContinuousAxisOptions<number, number> {
     type: 'radius-number';
     /** The rotation angle of axis line and labels in degrees. */
     positionAngle?: Degree;
@@ -31,7 +31,8 @@ export interface AgRadiusNumberAxisOptions
     innerRadiusRatio?: Ratio;
 }
 
-export interface AgRadiusCategoryAxisOptions extends AgBaseAxisOptions<AgRadiusAxisLabelOptions> {
+export interface AgRadiusCategoryAxisOptions<TContext = TContextDefault>
+    extends AgBaseAxisOptions<AgRadiusAxisLabelOptions, TContext> {
     type: 'radius-category';
     /** The rotation angle of axis line and labels in degrees. */
     positionAngle?: Degree;

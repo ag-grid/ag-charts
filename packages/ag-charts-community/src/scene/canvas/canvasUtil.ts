@@ -12,9 +12,12 @@ export function clearContext({
     height: number;
 }) {
     context.save();
-    context.resetTransform();
-    context.clearRect(0, 0, Math.ceil(width * pixelRatio), Math.ceil(height * pixelRatio));
-    context.restore();
+    try {
+        context.resetTransform();
+        context.clearRect(0, 0, Math.ceil(width * pixelRatio), Math.ceil(height * pixelRatio));
+    } finally {
+        context.restore();
+    }
 }
 
 export function debugContext(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {

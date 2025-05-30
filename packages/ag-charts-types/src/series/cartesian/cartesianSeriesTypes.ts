@@ -1,3 +1,4 @@
+import type { TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgAreaSeriesOptions } from './areaOptions';
 import type { AgBarSeriesOptions } from './barOptions';
 import type { AgBoxPlotSeriesOptions } from './boxPlotOptions';
@@ -14,19 +15,19 @@ import type { AgRangeBarSeriesOptions } from './rangeBarOptions';
 import type { AgScatterSeriesOptions } from './scatterOptions';
 import type { AgWaterfallSeriesOptions } from './waterfallOptions';
 
-export type AgCartesianSeriesOptions =
-    | AgAreaSeriesOptions
-    | AgBarSeriesOptions
-    | AgBoxPlotSeriesOptions
-    | AgBubbleSeriesOptions
-    | AgCandlestickSeriesOptions
-    | AgConeFunnelSeriesOptions
-    | AgFunnelSeriesOptions
-    | AgHeatmapSeriesOptions
-    | AgHistogramSeriesOptions
-    | AgLineSeriesOptions
-    | AgOhlcSeriesOptions
-    | AgRangeAreaSeriesOptions
-    | AgRangeBarSeriesOptions
-    | AgScatterSeriesOptions
-    | AgWaterfallSeriesOptions;
+export type AgCartesianSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault> =
+    | AgAreaSeriesOptions<TDatum, TContext>
+    | AgBarSeriesOptions<TDatum, TContext>
+    | AgBoxPlotSeriesOptions<TDatum, TContext>
+    | AgBubbleSeriesOptions<TDatum, TContext>
+    | AgCandlestickSeriesOptions<TDatum, TContext>
+    | AgConeFunnelSeriesOptions<TDatum, TContext>
+    | AgFunnelSeriesOptions<TDatum, TContext>
+    | AgHeatmapSeriesOptions<TDatum, TContext>
+    | AgHistogramSeriesOptions<TDatum, TContext>
+    | AgLineSeriesOptions<TDatum, TContext>
+    | AgOhlcSeriesOptions<TDatum, TContext>
+    | AgRangeAreaSeriesOptions<TDatum, TContext>
+    | AgRangeBarSeriesOptions<TDatum, TContext>
+    | AgScatterSeriesOptions<TDatum, TContext>
+    | AgWaterfallSeriesOptions<TDatum, TContext>;

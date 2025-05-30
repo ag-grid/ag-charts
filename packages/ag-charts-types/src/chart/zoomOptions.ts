@@ -10,9 +10,9 @@ export type AgAutoScaledAxes = Array<'y'>;
 
 export interface AgZoomRange {
     /** The start of the axis zoom range. */
-    start?: Date | number;
+    start?: Date | string | number;
     /** The end of the axis zoom range. */
-    end?: Date | number;
+    end?: Date | string | number;
 }
 
 export interface AgZoomRatio {
@@ -47,9 +47,9 @@ export type AgZoomButtonValue = 'reset' | 'zoom-in' | 'zoom-out' | 'pan-left' | 
 
 export interface AgZoomAutoScaling {
     /**
-     * Set to `true` to enable the auto scaling of the y axis when zooming.
+     * Set to `false` to disable the auto scaling of the y-axis when zooming the x-axis.
      *
-     * Default: `false`
+     * Default: `true`
      */
     enabled?: boolean;
     /**

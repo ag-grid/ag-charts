@@ -1,3 +1,5 @@
+import { CleanupRegistry } from 'ag-charts-core';
+
 import type { AxisModule } from './axisModule';
 import type { AxisOptionModule } from './axisOptionModule';
 import type { ModuleInstance } from './baseModule';
@@ -14,12 +16,10 @@ export type Module<M extends ModuleInstance = ModuleInstance> =
     | SeriesOptionModule;
 
 export abstract class BaseModuleInstance {
-    protected readonly destroyFns: (() => void)[] = [];
+    protected readonly cleanup = new CleanupRegistry();
 
     destroy() {
-        for (const destroyFn of this.destroyFns) {
-            destroyFn();
-        }
+        this.cleanup.flush();
     }
 }
 

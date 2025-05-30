@@ -1,6 +1,7 @@
 import { clamp, createId } from 'ag-charts-core';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
+import type { HighlightChangeEvent, LayoutCompleteEvent } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
 import { BBox } from '../../scene/bbox';
@@ -14,7 +15,9 @@ import { debouncedAnimationFrame } from '../../util/render';
 import { Vec4 } from '../../util/vector4';
 import type { Widget } from '../../widget/widget';
 import type {
+    ClickLikeEvent,
     DragWidgetEvent,
+    HoverLikeEvent,
     KeyboardSyntheticMouseWidgetEvent,
     KeyboardWidgetEvent,
     MouseWidgetEvent,
@@ -25,12 +28,10 @@ import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { ChartType } from '../factory/chartTypes';
-import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
 import { TooltipManager } from '../interaction/tooltipManager';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
-import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import {
     DEFAULT_TOOLTIP_CLASS,
@@ -42,7 +43,7 @@ import {
 import type { UpdateOpts } from '../updateService';
 import { type Series, type SeriesNodePickIntent } from './series';
 import type { SeriesProperties } from './seriesProperties';
-import type { ISeries, SeriesNodeDatum } from './seriesTypes';
+import type { SeriesNodeDatum } from './seriesTypes';
 
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
@@ -60,9 +61,6 @@ export interface SeriesAreaChartDependencies {
     overlays: ChartOverlays;
     mode: ChartMode;
 }
-
-type ClickLikeEvent = MouseWidgetEvent<'click' | 'dblclick'> & { device: 'mouse' | 'touch' };
-type HoverLikeEvent = ClickLikeEvent | MouseWidgetEvent<'mousemove'> | DragWidgetEvent<'drag-move'>;
 
 type PickedNodes = {
     matches: PickedNode[];
@@ -193,7 +191,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const { seriesDragInterpreter, seriesWidget, containerWidget } = chart.ctx.widgets;
         seriesWidget.setTabIndex(-1);
-        this.destroyFns.push(
+        this.cleanup.register(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label2'),
             seriesWidget.addListener('focus', () => this.swapChain.focus()),
@@ -202,20 +200,20 @@ export class SeriesAreaManager extends BaseManager {
             seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
             seriesWidget.addListener('keydown', (event) => this.onKeyDown(event)),
             seriesWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
-            seriesDragInterpreter.addListener('drag-move', (event) => this.onDragMove(event)),
-            seriesDragInterpreter.addListener('click', (event) => this.onClick(event, seriesWidget)),
-            seriesDragInterpreter.addListener('dblclick', (event) => this.onClick(event, seriesWidget)),
+            seriesDragInterpreter.events.on('drag-move', (event) => this.onDragMove(event)),
+            seriesDragInterpreter.events.on('click', (event) => this.onClick(event, seriesWidget)),
+            seriesDragInterpreter.events.on('dblclick', (event) => this.onClick(event, seriesWidget)),
             containerWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
             containerWidget.addListener('click', (event, current) => this.onClick(event, current)),
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
             chart.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
-            chart.ctx.domManager.addListener('resize', () => this.clearAll()),
-            chart.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            chart.ctx.eventsHub.on('dom:resize', () => this.clearAll()),
+            chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
+            chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
             chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
-            chart.ctx.zoomManager.addListener('zoom-change', () => this.clearAll()),
-            chart.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearAll())
+            chart.ctx.eventsHub.on('zoom:change', () => this.clearAll()),
+            chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll())
         );
     }
 
@@ -360,7 +358,7 @@ export class SeriesAreaManager extends BaseManager {
         if (relatedTarget?.className === 'ag-charts-text-input__textarea') {
             return;
         }
-        if (this.chart.ctx.tooltipManager.isEnteringInteractiveTooltip(event.sourceEvent)) {
+        if (this.chart.ctx.tooltipManager.maybeEnterInteractiveTooltip(this.id, event.sourceEvent)) {
             return;
         }
 
@@ -472,7 +470,7 @@ export class SeriesAreaManager extends BaseManager {
     private onBlur(event: FocusEvent) {
         if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = 'pointer';
-        if (!this.chart.ctx.tooltipManager.isEnteringInteractiveTooltip(event)) {
+        if (!this.chart.ctx.tooltipManager.maybeEnterInteractiveTooltip(this.id, event)) {
             this.clearAll();
         }
         this.focusIndicator?.overrideFocusVisible(undefined);
@@ -488,13 +486,13 @@ export class SeriesAreaManager extends BaseManager {
 
         switch (action?.name) {
             case 'redo':
-                return this.chart.ctx.chartEventManager.seriesEvent('series-redo');
+                return this.chart.ctx.eventsHub.emit('series:redo', null);
             case 'undo':
-                return this.chart.ctx.chartEventManager.seriesEvent('series-undo');
+                return this.chart.ctx.eventsHub.emit('series:undo', null);
             case 'zoomin':
-                return this.chart.ctx.chartEventManager.seriesKeyNavZoom(1, widgetEvent);
+                return this.chart.ctx.eventsHub.emit('series:keynav-zoom', { delta: 1, widgetEvent });
             case 'zoomout':
-                return this.chart.ctx.chartEventManager.seriesKeyNavZoom(-1, widgetEvent);
+                return this.chart.ctx.eventsHub.emit('series:keynav-zoom', { delta: -1, widgetEvent });
             case 'arrowup':
                 return this.onArrow(-1, 0, widgetEvent);
             case 'arrowdown':
@@ -517,14 +515,14 @@ export class SeriesAreaManager extends BaseManager {
         this.focus.datumIndex += datumIndexDelta;
         this.handleFocus(seriesIndexDelta, datumIndexDelta);
         event.sourceEvent.preventDefault();
-        this.chart.ctx.chartEventManager.seriesEvent('series-focus-change');
+        this.chart.ctx.eventsHub.emit('series:focus-change', null);
     }
 
     private onSubmit(event: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.isState(InteractionState.Focusable)) return;
         const { series, datum } = this.focus;
         const sourceEvent = event.sourceEvent;
-        if (series !== undefined && datum !== undefined) {
+        if (series != null && datum != null) {
             series.fireNodeClickEvent(sourceEvent, datum);
         } else {
             this.chart.fireEvent<AgChartClickEvent>({
@@ -654,30 +652,27 @@ export class SeriesAreaManager extends BaseManager {
         refresh: boolean
     ) {
         const { focus, hoverRect, seriesRect } = this;
-        if (focus.series === undefined || hoverRect === undefined) return;
+        if (focus.series == null || hoverRect == null) return;
 
         const pick = focus?.series?.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
         if (!pick) return;
 
         const { datum } = pick;
-        if (pick.otherIndex !== undefined) {
+        focus.datum = datum;
+        focus.datumIndex = pick.datumIndex;
+        if (pick.otherIndex != null) {
             focus.seriesIndex = pick.otherIndex;
         }
-        focus.datumIndex = pick.datumIndex;
-        focus.datum = datum;
 
         if (this.focusIndicator?.isFocusVisible()) {
             this.chart.ctx.animationManager.reset();
-        }
 
-        if (this.focusIndicator?.isFocusVisible()) {
             const focusBBox: Readonly<BBox> = getPickedFocusBBox(pick);
             const { x, y } = focusBBox.computeCenter();
+
             if (!hoverRect.containsPoint(x, y)) {
                 const panSuccess = this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
-                if (panSuccess) {
-                    return; // Wait for update to ensure that we show the tooltip/highlight correctly.
-                }
+                if (panSuccess) return; // Wait for an update to ensure that we show the tooltip/highlight correctly.
             }
             // AG-14102 Check if focusBBox is still completely outside the viewport (e.g. panning is disabled), and
             // move/clip it if needed.
@@ -715,7 +710,7 @@ export class SeriesAreaManager extends BaseManager {
         const keyboardEvent = makeKeyboardPointerEvent(focus.series, hoverRect, pick);
 
         // Update highlight/tooltip for keyboard users:
-        if (keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {
+        if (keyboardEvent != null && this.hoverDevice === 'keyboard') {
             // Stop pending async mouse events from updating the highlight/tooltip. At this point, the most recent event
             // came from the keyboard so that's what we should honour.
             this.tooltip.lastHover = undefined;
@@ -889,31 +884,27 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private changeHighlightDatum(event: HighlightChangeEvent) {
-        const seriesToUpdate: Set<ISeries<any, any, any>> = new Set();
-        const { series: newSeries = undefined, datum: newDatum } = event.currentHighlight ?? {};
-        const { series: lastSeries = undefined, datum: lastDatum } = event.previousHighlight ?? {};
+        const lastSeries = event.previousHighlight?.series;
+        const newSeries = event.currentHighlight?.series;
 
-        if (lastSeries) {
-            seriesToUpdate.add(lastSeries);
-        }
-
-        if (newSeries) {
-            seriesToUpdate.add(newSeries);
-        }
-
-        // Adjust cursor if a specific datum is highlighted, rather than just a series.
-        if (lastSeries?.properties.cursor && lastDatum) {
+        // Adjust the cursor if a specific datum is highlighted, rather than just a series.
+        if (lastSeries?.properties.cursor && event.previousHighlight?.datum) {
             this.chart.ctx.domManager.updateCursor(lastSeries.id);
         }
-        if (newSeries?.properties.cursor && newSeries?.properties.cursor !== 'default' && newDatum) {
+        if (
+            newSeries?.properties.cursor &&
+            newSeries.properties.cursor !== 'default' &&
+            event.currentHighlight?.datum
+        ) {
             this.chart.ctx.domManager.updateCursor(newSeries.id, newSeries.properties.cursor);
         }
 
-        const updateAll = newSeries == null || lastSeries == null;
-        if (updateAll) {
+        if (newSeries == null || lastSeries == null) {
             this.update(ChartUpdateType.SERIES_UPDATE);
         } else {
-            this.update(ChartUpdateType.SERIES_UPDATE, { seriesToUpdate });
+            this.update(ChartUpdateType.SERIES_UPDATE, {
+                seriesToUpdate: new Set([lastSeries, newSeries].filter(Boolean)),
+            });
         }
     }
 

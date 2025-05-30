@@ -1,4 +1,4 @@
-import { type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgFunnelSeriesLabelFormatterParams, type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 
 import {
     BaseFunnelSeries,
@@ -16,7 +16,6 @@ const {
     prepareBarAnimationFunctions,
     midpointStartingBarPosition,
     createDatumId,
-    formatValue,
     Rect,
     motion,
     applyShapeStyle,
@@ -112,9 +111,13 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
             y: rect.y + rect.height / 2,
             textAlign: 'center',
             textBaseline: 'middle',
-            text: this.getLabelText(label, { itemId: stageKey, value: yDatum, datum, valueKey, stageKey }, (value) =>
-                formatValue(value, 0)
-            ),
+            text: this.getLabelText<AgFunnelSeriesLabelFormatterParams>(yDatum, datum, valueKey, 'y', label, {
+                itemId: stageKey,
+                value: yDatum,
+                datum,
+                valueKey,
+                stageKey,
+            }),
             itemId: stageKey,
             datum,
             datumIndex,

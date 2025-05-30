@@ -24,6 +24,7 @@ import type {
 } from 'ag-charts-types';
 
 import {
+    cartesianAxisBandHighlightOptions,
     cartesianAxisCrosshairOptions,
     cartesianAxisOptionsDefs,
     cartesianTimeAxisLabel,
@@ -46,6 +47,7 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
     parentLevel: cartesianTimeAxisParentLevel,
     interval: continuousAxisOptions(or(number, date), true).interval,
     crosshair: cartesianAxisCrosshairOptions(true),
+    bandHighlight: cartesianAxisBandHighlightOptions,
 };
 
 export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> = {

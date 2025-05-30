@@ -77,7 +77,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     constructor(ctx: _ModuleSupport.ModuleContext, id: string) {
         super(ctx, id);
-        this.destroyFns.push(ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)));
+        this.cleanup.register(ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)));
     }
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {

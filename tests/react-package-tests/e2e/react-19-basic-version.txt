@@ -1,6 +1,6 @@
-    "ag-charts-react": "^11.3.0",
+    "ag-charts-react": "^11.3.1",
   "name": "react-19-basic-test",
-    "ag-charts-react": "^11.3.0",
+    "ag-charts-react": "^11.3.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
     "@types/react": "^19.1.2",

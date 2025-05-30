@@ -1,4 +1,5 @@
-import { Listeners } from '../../util/listeners';
+import { CleanupRegistry, EventEmitter } from 'ag-charts-core';
+
 import type { Widget } from '../../widget/widget';
 import type {
     DragWidgetEvent,
@@ -52,7 +53,6 @@ function checkDoubleTapDistance(t1: { clientX: number; clientY: number }, t2: { 
     return distanceSquared < thresholdSquared;
 }
 
-type Type = 'mousemove' | 'click' | 'dblclick' | 'drag-start' | 'drag-move' | 'drag-end';
 type EventMap = Omit<WidgetEventMap, 'click' | 'dblclick'> & {
     click: DragInterpreterClickEvent;
     dblclick: DragInterpreterDblClickEvent;
@@ -71,8 +71,8 @@ type EventMap = Omit<WidgetEventMap, 'click' | 'dblclick'> & {
  * dispatches either a set of 'drag-*' events or a single 'click' event but not both.
  */
 export class DragInterpreter {
-    private readonly destroyFns: (() => void)[] = [];
-    private readonly listeners = new Listeners<Type, (e: unknown) => void>();
+    private readonly cleanup = new CleanupRegistry();
+    readonly events = new EventEmitter<EventMap>();
 
     private dragStartEvent?: DragWidgetEvent<'drag-start'>;
     private isDragging = false;
@@ -80,7 +80,7 @@ export class DragInterpreter {
     private readonly touch = { distanceTravelledX: 0, distanceTravelledY: 0, clientX: 0, clientY: 0 };
 
     constructor(widget: Widget) {
-        this.destroyFns.push(
+        this.cleanup.register(
             widget.addListener('touchstart', this.onTouchStart.bind(this)),
             widget.addListener('touchmove', this.onTouchMove.bind(this)),
             widget.addListener('touchend', this.onTouchEnd.bind(this)),
@@ -93,17 +93,7 @@ export class DragInterpreter {
     }
 
     destroy(): void {
-        this.destroyFns.forEach((fn) => fn());
-        this.listeners.destroy();
-    }
-
-    addListener<T extends Type>(type: T, handler: (e: EventMap[T]) => void): () => void;
-    addListener<T extends Type>(type: T, handler: (e: unknown) => void): () => void {
-        return this.listeners.addListener(type, handler);
-    }
-
-    private dispatch(event: EventMap[Type]) {
-        this.listeners.dispatch(event.type, event);
+        this.cleanup.flush();
     }
 
     private onTouchStart(e: TouchWidgetEvent<'touchstart'>) {
@@ -132,11 +122,11 @@ export class DragInterpreter {
     }
 
     private onMouseMove(event: MouseWidgetEvent<'mousemove'>) {
-        this.dispatch(event);
+        this.events.emit('mousemove', event);
     }
 
     private onDblClick(event: MouseWidgetEvent<'dblclick'>) {
-        this.dispatch(event);
+        this.events.emit('dblclick', event);
     }
 
     private onDragStart(event: DragWidgetEvent<'drag-start'>) {
@@ -146,28 +136,28 @@ export class DragInterpreter {
     private onDragMove(event: DragWidgetEvent<'drag-move'>) {
         if (this.dragStartEvent != null) {
             if (checkDragDistance(event.originDeltaX, event.originDeltaY)) {
-                this.dispatch(this.dragStartEvent);
-                this.dispatch({ ...this.dragStartEvent, type: 'drag-move' });
+                this.events.emit('drag-start', this.dragStartEvent);
+                this.events.emit('drag-move', { ...this.dragStartEvent, type: 'drag-move' });
                 this.dragStartEvent = undefined;
                 this.isDragging = true;
             }
         }
 
         if (this.isDragging) {
-            this.dispatch(event);
+            this.events.emit('drag-move', event);
         }
     }
 
     private onDragEnd(event: DragWidgetEvent<'drag-end'>) {
         if (this.isDragging) {
-            this.dispatch(event);
+            this.events.emit('drag-end', event);
             this.isDragging = false;
             return;
         }
 
         if (event.device === 'mouse') {
             const click = makeSynthetic('click', event);
-            this.dispatch(click);
+            this.events.emit('click', click);
         }
         // ignore 'drag-end' events from 'touchstart' or 'touchcancel'
         else if (event.sourceEvent.type === 'touchend') {
@@ -176,7 +166,7 @@ export class DragInterpreter {
             }
 
             const click = makeSynthetic('click', event);
-            this.dispatch(click);
+            this.events.emit('click', click);
 
             // Handle double-click logic
             const now = Date.now();
@@ -186,7 +176,7 @@ export class DragInterpreter {
                 checkDoubleTapDistance(this.lastClick, event)
             ) {
                 const dblClick = makeSynthetic('dblclick', event);
-                this.dispatch(dblClick);
+                this.events.emit('dblclick', dblClick);
                 this.lastClick = undefined;
             } else {
                 this.lastClick = { time: now, clientX: event.clientX, clientY: event.clientY };

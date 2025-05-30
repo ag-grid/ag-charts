@@ -89,11 +89,11 @@ export abstract class OhlcSeriesBase<
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            directionKeys: {
+            propertyKeys: {
                 x: ['xKey'],
                 y: ['lowKey', 'highKey', 'openKey', 'closeKey'],
             },
-            directionNames: {
+            propertyNames: {
                 x: ['xName'],
                 y: ['lowName', 'highName', 'openName', 'closeName'],
             },
@@ -527,16 +527,32 @@ export abstract class OhlcSeriesBase<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue),
+                heading: xAxis.formatDatum(xValue, 'tooltip', datum, xKey),
                 title: legendItemName,
                 symbol: {
                     marker,
                 },
                 data: [
-                    { label: openName, fallbackLabel: openKey, value: yAxis.formatDatum(openValue) },
-                    { label: highName, fallbackLabel: highKey, value: yAxis.formatDatum(highValue) },
-                    { label: lowName, fallbackLabel: lowKey, value: yAxis.formatDatum(lowValue) },
-                    { label: closeName, fallbackLabel: closeKey, value: yAxis.formatDatum(closeValue) },
+                    {
+                        label: openName,
+                        fallbackLabel: openKey,
+                        value: yAxis.formatDatum(openValue, 'tooltip', datum, openKey),
+                    },
+                    {
+                        label: highName,
+                        fallbackLabel: highKey,
+                        value: yAxis.formatDatum(highValue, 'tooltip', datum, highKey),
+                    },
+                    {
+                        label: lowName,
+                        fallbackLabel: lowKey,
+                        value: yAxis.formatDatum(lowValue, 'tooltip', datum, lowKey),
+                    },
+                    {
+                        label: closeName,
+                        fallbackLabel: closeKey,
+                        value: yAxis.formatDatum(closeValue, 'tooltip', datum, closeKey),
+                    },
                 ],
             },
             {

@@ -1,4 +1,4 @@
-import { getWindow } from 'ag-charts-core';
+import { CleanupRegistry, attachListener, getWindow } from 'ag-charts-core';
 
 const LONG_TAP_DURATION_MS = 500; /* milliseconds */
 const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX = 100; /* px²*/
@@ -17,6 +17,7 @@ function deltaClientSquared(a: Touch, b: Touch): number {
 let gIsInLongTap = false;
 
 export class TouchDragger {
+    private readonly cleanup = new CleanupRegistry();
     private readonly longtapTimer: ReturnType<typeof setTimeout>;
     private longTapInterrupted = false;
 
@@ -32,21 +33,20 @@ export class TouchDragger {
         // "drag-move" happens when there is exactly 1 finger on the screen, so callback touchend whenever a finger is
         // removed or added.
         const { touchmove, touchend } = this;
-        target.addEventListener('touchmove', touchmove, { passive: false });
-        target.addEventListener('touchstart', touchend, { passive: false });
-        target.addEventListener('touchend', touchend, { passive: false });
-        target.addEventListener('touchcancel', touchend, { passive: false });
+        this.cleanup.register(
+            attachListener(target, 'touchmove', touchmove, { passive: false }),
+            attachListener(target, 'touchstart', touchend, { passive: false }),
+            attachListener(target, 'touchend', touchend, { passive: false }),
+            attachListener(target, 'touchcancel', touchend, { passive: false })
+        );
+
         self.touchDragger = this;
         glob.globalTouchDragCallbacks = myCallbacks;
     }
 
     destroy(): void {
-        const { longtapTimer, touchmove, touchend } = this;
-        clearTimeout(longtapTimer);
-        this.target.removeEventListener('touchstart', touchend);
-        this.target.removeEventListener('touchmove', touchmove);
-        this.target.removeEventListener('touchend', touchend);
-        this.target.removeEventListener('touchcancel', touchend);
+        clearTimeout(this.longtapTimer);
+        this.cleanup.flush();
         this.glob.globalTouchDragCallbacks = undefined;
         this.self.touchDragger = undefined;
     }
@@ -59,6 +59,8 @@ export class TouchDragger {
     private readonly longtap = () => {
         const { target, initialTouch } = this;
         if (!this.longTapInterrupted) {
+            const cleanup = new CleanupRegistry();
+
             // Cancel current 'drag-start':
             target.dispatchEvent(new TouchEvent('touchcancel', { touches: [initialTouch], bubbles: true }));
 
@@ -66,20 +68,20 @@ export class TouchDragger {
             gIsInLongTap = true;
 
             // Block 'touchmove' page-scroll until the user lifts the finger:
-            const longTapMove = (e: Event) => {
-                e.preventDefault();
-            };
+            const longTapMove = (e: Event) => e.preventDefault();
+
             // Unblock new 'drag-start' events:
             const longTapEnd = (e: Event) => {
                 gIsInLongTap = false;
                 e.preventDefault();
-                target.removeEventListener('touchmove', longTapMove);
-                target.removeEventListener('touchend', longTapEnd);
-                target.removeEventListener('touchcancel', longTapEnd);
+                cleanup.flush();
             };
-            target.addEventListener('touchmove', longTapMove, { passive: false });
-            target.addEventListener('touchend', longTapEnd, { passive: false });
-            target.addEventListener('touchcancel', longTapEnd, { passive: false });
+
+            cleanup.register(
+                attachListener(target, 'touchmove', longTapMove, { passive: false }),
+                attachListener(target, 'touchend', longTapEnd, { passive: false }),
+                attachListener(target, 'touchcancel', longTapEnd, { passive: false })
+            );
 
             // Fire context menu
             const { clientX, clientY } = initialTouch;
@@ -102,7 +104,7 @@ export class TouchDragger {
             this.longTapInterrupted =
                 this.longTapInterrupted ||
                 deltaClientSquared(initialTouch, touch) > LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX;
-            if (self.dragTouchEnabled && touch != null) {
+            if (self.dragTouchEnabled) {
                 glob.globalTouchDragCallbacks?.touchmove(moveEvent, touch);
             }
         }

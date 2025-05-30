@@ -1,3 +1,4 @@
+import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
@@ -6,7 +7,6 @@ import { Rect } from '../../scene/shape/rect';
 import { Text } from '../../scene/shape/text';
 import { Property } from '../../util/properties';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
-import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import { ZIndexMap } from '../zIndexMap';
 
 export class Background<TImage = never> extends BaseModuleInstance implements ModuleInstance {
@@ -39,9 +39,9 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
 
         this.visible = true;
 
-        this.destroyFns.push(
+        this.cleanup.register(
             ctx.scene.attachNode(this.node),
-            ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e))
+            ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e))
         );
     }
 

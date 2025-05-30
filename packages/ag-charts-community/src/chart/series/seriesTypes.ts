@@ -5,7 +5,7 @@ import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlaceme
 import type { TypedEvent } from '../../util/observable';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
-import type { TooltipContent } from '../tooltip/tooltip';
+import type { TooltipContent } from '../tooltip/tooltipContent';
 
 // Breaks circular dependency between ISeries and ChartAxis.
 interface ChartAxisLike {
@@ -56,12 +56,15 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     getKeys(direction: ChartAxisDirection): string[];
     getKeyProperties(direction: ChartAxisDirection): string[];
     getNames(direction: ChartAxisDirection): (string | undefined)[];
+    getFormatterContext(direction: ChartAxisDirection): Array<{ key: string; name: string | undefined }>;
     datumMidPoint?<T extends SeriesNodeDatum<unknown>>(datum: T): Point | undefined;
     isEnabled(): boolean;
     type: string;
     visible: boolean;
     connectsToYAxis: boolean;
     tooltipEnabled?: boolean;
+    // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)
+    minTimeInterval(): number | undefined;
 }
 
 /**

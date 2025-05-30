@@ -1,17 +1,11 @@
-import { Listeners } from './listeners';
+import { CleanupRegistry } from 'ag-charts-core';
 
-export abstract class BaseManager<EventType extends string = never, Event extends { type: any } = never> {
-    protected readonly listeners = new Listeners<EventType, (event: Event) => void>();
-    protected readonly destroyFns: (() => void)[] = [];
+export abstract class BaseManager {
+    protected readonly cleanup = new CleanupRegistry();
     protected destroyed = false;
 
-    public addListener<T extends EventType>(type: T, handler: (event: Event & { type: T }) => void) {
-        return this.listeners.addListener(type, handler);
-    }
-
     public destroy() {
-        this.listeners.destroy();
-        this.destroyFns.forEach((fn) => fn());
+        this.cleanup.flush();
         this.destroyed = true;
     }
 }

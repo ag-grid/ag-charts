@@ -78,7 +78,7 @@ export abstract class DataModelSeries<
 
         this.dataModel = dataModel;
         this.processedData = processedData;
-        this.dispatch('data-processed', { dataModel, processedData });
+        this.events.emit('data-processed', { dataModel, processedData });
         return { dataModel, processedData };
     }
 
@@ -167,7 +167,7 @@ export abstract class DataModelSeries<
     }
 
     // Workaround - it would be nice if this difference didn't exist
-    protected keysOrValues(xKey: string) {
+    protected keysOrValues<T = any>(xKey: string): T[] {
         const key = this.dataModel!.resolveProcessedDataIndexById(this, xKey);
         return this.processedData?.keys[key]?.get(this.id) ?? this.processedData?.columns[key] ?? [];
     }

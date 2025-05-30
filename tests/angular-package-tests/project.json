@@ -2,7 +2,7 @@
   "name": "angular-package-tests",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "tests/angular-package-tests",
-  "projectType": "",
+  "projectType": "application",
   "targets": {
     "test:package": {
       "executor": "nx:noop",
@@ -12,6 +12,7 @@
         "test:package:local-17",
         "test:package:local-18",
         "test:package:local-19",
+        "test:package:local-20",
         "test:package:local-latest",
         "test:package:production-19"
       ],

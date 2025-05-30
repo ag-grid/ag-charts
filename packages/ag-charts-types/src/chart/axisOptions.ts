@@ -1,5 +1,14 @@
 import type { Formatter, Styler } from './callbackOptions';
-import type { CssColor, Degree, FontFamilyFull, FontSize, FontStyle, FontWeight, PixelSize } from './types';
+import type {
+    CssColor,
+    Degree,
+    FontFamilyFull,
+    FontSize,
+    FontStyle,
+    FontWeight,
+    PixelSize,
+    TContextDefault,
+} from './types';
 
 export interface AgAxisBoundSeries {
     /** Key used by the series for values on the related axis. */
@@ -40,11 +49,11 @@ export interface AgAxisCaptionOptions {
     formatter?: Formatter<AgAxisCaptionFormatterParams>;
 }
 
-export interface AgBaseAxisOptions<LabelType = any> {
+export interface AgBaseAxisOptions<LabelType = any, TContext = TContextDefault> {
     /** Axis type identifier. */
     type: string;
     /** Context object to use in callbacks */
-    context?: unknown;
+    context?: TContext;
     /** Reverse the axis scale domain if `true`. */
     reverse?: boolean;
     /** Configuration for the axis line. */

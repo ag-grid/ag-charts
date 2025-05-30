@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { createElement, entries } from 'ag-charts-core';
+import { CleanupRegistry, createElement, entries } from 'ag-charts-core';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -75,7 +75,7 @@ export class ZoomToolbar extends BaseProperties {
     private readonly container: _ModuleSupport.NativeWidget<HTMLDivElement>;
     private readonly toolbar: _ModuleSupport.Toolbar<ZoomToolbarButtonOptions>;
 
-    private readonly destroyFns: Array<() => void> = [];
+    private readonly cleanup = new CleanupRegistry();
 
     private previousZoom?: DefinedZoomState;
 
@@ -106,20 +106,18 @@ export class ZoomToolbar extends BaseProperties {
 
         this.toggleVisibility(this.visible === 'always');
 
-        this.destroyFns.push(
+        this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             this.toolbar.addToolbarListener('button-focused', this.onButtonFocus.bind(this)),
             ctx.widgets.containerWidget.addListener('mousemove', this.onHover.bind(this)),
             ctx.widgets.containerWidget.addListener('mouseleave', this.onLeave.bind(this)),
-            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
             this.teardown.bind(this)
         );
     }
 
     public destroy() {
-        for (const fn of this.destroyFns) {
-            fn();
-        }
+        this.cleanup.flush();
     }
 
     public toggleVisibleZoomed(isMaxZoom: boolean) {

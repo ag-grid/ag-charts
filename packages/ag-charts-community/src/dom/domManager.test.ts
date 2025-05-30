@@ -1,7 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { getDocument } from 'ag-charts-core';
+import { EventEmitter, getDocument } from 'ag-charts-core';
 
+import { EventsHub } from '../core/eventsHub';
 import { DOMManager } from './domManager';
 
 describe('DOMManager', () => {
@@ -10,13 +11,15 @@ describe('DOMManager', () => {
         getDocument().head.innerHTML = '';
     });
 
+    const eventsHub: EventsHub = new EventEmitter();
+
     describe('for normal container cases', () => {
         it('should initialize the expected DOM', () => {
             const doc = getDocument();
             const container = doc.createElement('div');
             doc.body.append(container);
 
-            const dm = new DOMManager({ styleNonce: '416d1177' }, container);
+            const dm = new DOMManager(eventsHub, { styleNonce: '416d1177' }, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchInlineSnapshot(`
@@ -118,7 +121,7 @@ describe('DOMManager', () => {
             const container = doc.createElement('div');
             // doc.body.append(container);
 
-            const dm = new DOMManager({ styleNonce: '416d1171' }, container);
+            const dm = new DOMManager(eventsHub, { styleNonce: '416d1171' }, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchInlineSnapshot(`
@@ -220,7 +223,7 @@ describe('DOMManager', () => {
             const shadow = component.attachShadow({ mode: 'open' });
             shadow.appendChild(container);
 
-            const dm = new DOMManager({ styleNonce: '416d1177' }, container);
+            const dm = new DOMManager(eventsHub, { styleNonce: '416d1177' }, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchInlineSnapshot(`

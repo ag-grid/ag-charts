@@ -8,7 +8,6 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { countFractionDigits } from 'ag-charts-core';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { DatumUnion } from '../gauge-util/datumUnion';
@@ -55,6 +54,7 @@ const {
     Text,
     Marker,
     getColorStops,
+    tickFormat,
 } = _ModuleSupport;
 
 interface TargetLabel {
@@ -211,7 +211,6 @@ export class RadialGaugeSeries
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
 
@@ -343,16 +342,7 @@ export class RadialGaugeSeries
                 tickCount,
             })?.ticks ??
             [];
-        const fractionDigits = ticks.reduce(
-            (f, tick) => Math.max(f, typeof tick === 'number' ? countFractionDigits(tick) : 0),
-            0
-        );
-        const tickFormatter = scale.tickFormatter({
-            domain: scale.domain,
-            ticks,
-            fractionDigits,
-            specifier: typeof label.format === 'string' ? label.format : undefined,
-        });
+        const tickFormatter = tickFormat(ticks, typeof label.format === 'string' ? label.format : undefined);
 
         const measurer = CachedTextMeasurerPool.getMeasurer({ font: label });
         const tickData = ticks.map((value, index): RadialGaugeTickDatum => {

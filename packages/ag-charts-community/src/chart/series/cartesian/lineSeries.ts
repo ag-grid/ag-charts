@@ -1,6 +1,10 @@
 import type { RequireOptional } from 'ag-charts-core';
 import { isDefined } from 'ag-charts-core';
-import type { AgErrorBoundSeriesTooltipRendererParams, AgSeriesMarkerStyle } from 'ag-charts-types';
+import {
+    type AgErrorBoundSeriesTooltipRendererParams,
+    type AgLineSeriesLabelFormatterParams,
+    type AgSeriesMarkerStyle,
+} from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -93,8 +97,8 @@ export class LineSeries extends CartesianSeries<
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
-            directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
-            directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
+            propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            propertyNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             categoryKey: 'xValue',
             hasMarkers: true,
             pickModes: [
@@ -323,7 +327,7 @@ export class LineSeries extends CartesianSeries<
 
             if (yDatum != null) {
                 const labelText = label.enabled
-                    ? this.getLabelText(label, {
+                    ? this.getLabelText<AgLineSeriesLabelFormatterParams>(yDatum, datum, yKey, 'y', label, {
                           value: yDatum,
                           datum,
                           xKey,
@@ -595,9 +599,7 @@ export class LineSeries extends CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!dataModel || !processedData || !xAxis || !yAxis) {
-            return;
-        }
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
@@ -611,9 +613,15 @@ export class LineSeries extends CartesianSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue),
+                heading: xAxis.formatDatum(xValue, 'tooltip', datum, xKey),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) }],
+                data: [
+                    {
+                        label: yName,
+                        fallbackLabel: yKey,
+                        value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey),
+                    },
+                ],
             },
             {
                 seriesId,

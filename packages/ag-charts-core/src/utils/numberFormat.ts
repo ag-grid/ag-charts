@@ -75,15 +75,14 @@ export function createNumberFormatter(format: string | FormatterOptions) {
         throw new Error(`The number formatter type is invalid: ${type}`);
     }
 
-    let formatterPrecision: number;
-    if (precisionIsNaN) {
-        formatterPrecision = type ? 6 : 12;
-    } else {
+    const defaultFormatterPrecision = type ? 6 : 12;
+    let formatterPrecision: number | undefined;
+    if (!precisionIsNaN) {
         formatterPrecision = precision;
     }
 
-    return (n: number) => {
-        let result = formatBody(n, formatterPrecision);
+    return (n: number, fractionDigits?: number) => {
+        let result = formatBody(n, formatterPrecision ?? fractionDigits ?? defaultFormatterPrecision);
         if (trim) {
             result = removeTrailingZeros(result);
         }

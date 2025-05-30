@@ -1,6 +1,5 @@
-import { type AnyFn } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, attachListener, boxContains } from 'ag-charts-core';
 
-import { BBoxValues } from '../util/bboxinterface';
 import { partialAssign } from '../util/object';
 import { type MouseDragCallbacks, type MouseDragger, startMouseDrag } from './mouseDragger';
 import { type TouchDragCallbacks, type TouchDragger, startOneFingerTouch } from './touchDragger';
@@ -129,14 +128,15 @@ export class WidgetListenerInternal {
 
     private registerDragTrigger<T extends Targetable>(target: T) {
         if (this.dragTriggerRemover == null) {
-            const mouseTrigger = (event: MouseEvent) => this.triggerMouseDrag(target, event);
-            const touchTrigger = (event: TouchEvent) => this.triggerTouchDrag(target, event);
-            target.getElement().addEventListener('mousedown', mouseTrigger);
-            target.getElement().addEventListener('touchstart', touchTrigger, { passive: false });
-            this.dragTriggerRemover = () => {
-                target.getElement().removeEventListener('mousedown', mouseTrigger);
-                target.getElement().removeEventListener('touchstart', touchTrigger);
-            };
+            const element = target.getElement();
+            const cleanup = new CleanupRegistry();
+            cleanup.register(
+                attachListener(element, 'mousedown', (event) => this.triggerMouseDrag(target, event)),
+                attachListener(element, 'touchstart', (event) => this.triggerTouchDrag(target, event), {
+                    passive: false,
+                })
+            );
+            this.dragTriggerRemover = () => cleanup.flush();
         }
     }
 
@@ -172,7 +172,7 @@ export class WidgetListenerInternal {
     private endDrag(target: Targetable, { sourceEvent, clientX, clientY }: DragWidgetEvent<'drag-end'>) {
         const elem = target.getElement();
         const rect = elem.getBoundingClientRect();
-        if (!BBoxValues.containsPoint(rect, clientX, clientY)) {
+        if (!boxContains(rect, clientX, clientY)) {
             elem.dispatchEvent(new MouseEvent('mouseleave', sourceEvent));
             sourceEvent.target?.dispatchEvent(new MouseEvent('mouseenter', sourceEvent));
         }

@@ -1,4 +1,5 @@
 import {
+    type BoxBounds,
     Logger,
     type OptionsDefs,
     type RequireOptional,
@@ -12,36 +13,24 @@ import {
     number,
     or,
     ratio as ratioValidator,
+    string,
     union,
     validate,
 } from 'ag-charts-core';
 import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
-import type { MementoOriginator } from '../../api/state/memento';
+import type { AxisZoomState, EventsHub, ZoomState } from '../../core/eventsHub';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
-import type { BBoxValues } from '../../util/bboxinterface';
 import { deepClone } from '../../util/json';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
 import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
-import type { LayoutManager } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';
-
-export interface ZoomState {
-    min: number;
-    max: number;
-}
-
-export interface AxisZoomState {
-    x?: ZoomState;
-    y?: ZoomState;
-    autoScaleYAxis?: boolean;
-}
 
 export interface DefinedZoomState {
     x: ZoomState;
@@ -56,19 +45,6 @@ export type ZoomMemento = {
     autoScaledAxes?: AgAutoScaledAxes;
 };
 
-export interface ZoomChangeEvent extends AxisZoomState {
-    readonly type: 'zoom-change';
-    readonly x?: Readonly<ZoomState>;
-    readonly y?: Readonly<ZoomState>;
-    readonly callerId: string;
-    readonly axes: Record<string, Readonly<ZoomState> | undefined>;
-}
-
-export interface ZoomPanStartEvent {
-    readonly type: 'zoom-pan-start';
-    readonly callerId: string;
-}
-
 export type ChartAxisLike = {
     id: string;
     direction: ChartAxisDirection;
@@ -79,8 +55,6 @@ export type ChartAxisLike = {
     min?: number;
     max?: number;
 };
-
-type ZoomEvents = ZoomChangeEvent | ZoomPanStartEvent;
 
 const expectedMementoKeys: Array<keyof ZoomMemento> = ['rangeX', 'rangeY', 'ratioX', 'ratioY', 'autoScaledAxes'];
 
@@ -101,7 +75,7 @@ const rangeValidator = (axis?: ChartAxisLike) =>
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
  */
-export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> implements MementoOriginator<ZoomMemento> {
+export class ZoomManager extends BaseManager {
     public mementoOriginatorKey = 'zoom' as const;
 
     private readonly axisZoomManagers = new Map<string, AxisZoomManager>();
@@ -127,13 +101,13 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         | undefined = undefined;
 
     constructor(
-        private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void,
-        layoutManager: LayoutManager
+        private readonly eventsHub: EventsHub,
+        private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
     ) {
         super();
 
-        this.destroyFns.push(
-            layoutManager.addListener('layout:complete', () => {
+        this.cleanup.register(
+            eventsHub.on('layout:complete', () => {
                 const { pendingMemento } = this;
                 const shouldPerformInitialLayout = !this.didLayoutAxes;
                 this.didLayoutAxes = true;
@@ -164,8 +138,8 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         const primaryY = this.getPrimaryAxis(ChartAxisDirection.Y);
 
         const zoomMementoDefs: OptionsDefs<ZoomMemento> = {
-            rangeX: { start: and(or(number, date), rangeValidator(primaryX)), end: or(number, date) },
-            rangeY: { start: and(or(number, date), rangeValidator(primaryY)), end: or(number, date) },
+            rangeX: { start: and(or(number, string, date), rangeValidator(primaryX)), end: or(number, string, date) },
+            rangeY: { start: and(or(number, string, date), rangeValidator(primaryY)), end: or(number, string, date) },
             ratioX: { start: and(ratioValidator, lessThan('end')), end: ratioValidator },
             ratioY: { start: and(ratioValidator, lessThan('end')), end: ratioValidator },
             autoScaledAxes: arrayOf(union('y')),
@@ -367,7 +341,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         this.updateAxisZoom(callerId, primaryAxis.id, newZoom);
     }
 
-    public panToBBox(callerId: string, seriesRect: BBox, target: BBoxValues): boolean {
+    public panToBBox(callerId: string, seriesRect: BBox, target: BoxBounds): boolean {
         if (!this.isZoomEnabled() && !this.isNavigatorEnabled()) return false;
 
         const zoom = this.getZoom();
@@ -396,7 +370,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
     // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.
     public fireZoomPanStartEvent(callerId: string) {
-        this.listeners.dispatch('zoom-pan-start', { type: 'zoom-pan-start', callerId });
+        this.eventsHub.emit('zoom:pan-start', { callerId });
     }
 
     public extendToEnd(callerId: string, direction: ChartAxisDirection, extent: number) {
@@ -585,7 +559,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             axes[axisId] = axis.getZoom();
         }
 
-        this.listeners.dispatch('zoom-change', { type: 'zoom-change', ...this.getZoom(), axes, callerId });
+        this.eventsHub.emit('zoom:change', { ...this.getZoom(), axes, callerId });
         this.fireChartEvent<AgZoomEvent>({ type: 'zoom', ...this.getMementoRanges() });
     }
 
@@ -621,8 +595,9 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         const [d0, d1] = extents;
 
-        let r0 = range.start == null ? d0 : axis.scale.convert?.(range.start);
-        let r1 = range.end == null ? d1 : axis.scale.convert?.(range.end);
+        const { scale } = axis;
+        let r0 = range.start == null ? d0 : scale.convert?.(range.start);
+        let r1 = range.end == null ? d1 : scale.convert?.(range.end) + (scale.bandwidth ?? 0);
 
         if (!isFiniteNumber(r0) || !isFiniteNumber(r1)) return;
 
@@ -630,14 +605,14 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         if (r0 < dMin || r0 > dMax) {
             Logger.warnOnce(
-                `Invalid range start [${range.start}], expecting a value between [${axis.scale.invert?.(d0)}] and [${axis.scale.invert?.(d1)}], ignoring.`
+                `Invalid range start [${range.start}], expecting a value between [${scale.invert?.(d0)}] and [${scale.invert?.(d1)}], ignoring.`
             );
             return;
         }
 
         if (r1 < dMin || r1 > dMax) {
             Logger.warnOnce(
-                `Invalid range end [${range.end}], expecting a value between [${axis.scale.invert?.(d0)}] and [${axis.scale.invert?.(d1)}], ignoring.`
+                `Invalid range end [${range.end}], expecting a value between [${scale.invert?.(d0)}] and [${scale.invert?.(d1)}], ignoring.`
             );
             return;
         }
@@ -667,9 +642,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     private getDomainPixelExtents(axis: ChartAxisLike) {
-        const { domain } = axis.scale;
-        const d0 = axis.scale.convert?.(domain.at(0));
-        const d1 = axis.scale.convert?.(domain.at(-1));
+        const [d0, d1] = axis.scale.range;
 
         if (!isFiniteNumber(d0) || !isFiniteNumber(d1)) return;
 

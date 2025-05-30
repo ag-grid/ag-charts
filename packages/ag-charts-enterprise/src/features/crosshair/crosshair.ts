@@ -1,20 +1,11 @@
 import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { type AnyFn, createId, isInteger } from 'ag-charts-core';
+import { createId } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
 
-const {
-    Group,
-    TranslatableGroup,
-    Line,
-    BBox,
-    InteractionState,
-    Property,
-    ZIndexMap,
-    formatNumber,
-    ChartAxisDirection,
-} = _ModuleSupport;
+const { Group, TranslatableGroup, Line, BBox, InteractionState, Property, ZIndexMap, ChartAxisDirection } =
+    _ModuleSupport;
 
 type HoverLikeEvent =
     | _Widget.DragWidgetEvent
@@ -54,7 +45,6 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     private seriesRect: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
     private bounds: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
     private axisLayout?: _ModuleSupport.AxisLayout;
-    private labelFormatter?: (value: any) => string;
 
     private readonly crosshairGroup = new TranslatableGroup({
         name: 'crosshairs',
@@ -85,17 +75,17 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             }
         });
 
-        this.destroyFns.push(
+        this.cleanup.register(
             ctx.scene.attachNode(this.crosshairGroup),
             ctx.widgets.seriesWidget.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
             ctx.widgets.seriesWidget.addListener('drag-move', (event) => this.onMouseHoverLike(event)),
             ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseOut()),
-            ctx.widgets.seriesDragInterpreter.addListener('click', (event) => this.onClick(event)),
-            ctx.chartEventManager.addListener('series-focus-change', () => this.onKeyPress()),
-            ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),
-            ctx.zoomManager.addListener('zoom-change', () => this.onMouseOut()),
-            ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
-            ctx.layoutManager.addListener('layout:complete', (event) => this.layout(event)),
+            ctx.widgets.seriesDragInterpreter.events.on('click', (event) => this.onClick(event)),
+            ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
+            ctx.eventsHub.on('zoom:pan-start', () => this.onMouseOut()),
+            ctx.eventsHub.on('zoom:change', () => this.onMouseOut()),
+            ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
+            ctx.eventsHub.on('layout:complete', (event) => this.layout(event)),
             () => Object.values(this.labels).forEach((label) => label.destroy())
         );
     }
@@ -140,7 +130,6 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
                 this.updateLabel(labels[key]);
             }
         }
-        this.labelFormatter = this.axisCtx.scaleValueFormatter(this.label.format);
     }
 
     private updateLabel(label: CrosshairLabel) {
@@ -187,19 +176,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private formatValue(value: unknown): string {
-        const { labelFormatter, axisLayout } = this;
-
-        if (labelFormatter) {
-            const result = this.cachedCallWithContext(labelFormatter, value);
-            if (result != null) {
-                return result;
-            }
-        }
-        if (typeof value === 'number') {
-            const fractionDigits = (axisLayout?.label.fractionDigits ?? 0) + (isInteger(value) ? 0 : 1);
-            return formatNumber(value, fractionDigits);
-        }
-        return String(value ?? '');
+        return this.axisCtx.formatScaleValue(value, 'crosshair', this.label);
     }
 
     private onClick(event: _ModuleSupport.DragInterpreterClickEvent) {
@@ -353,7 +330,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return activeHighlightData;
     }
 
-    private getLabelHtml(value: any, label: CrosshairLabel): string {
+    private getLabelHtml(value: any, label: CrosshairLabel) {
         const fractionDigits = this.axisLayout?.label?.fractionDigits ?? 0;
         const defaults: AgCrosshairLabelRendererResult = { text: this.formatValue(value) };
         if (this.label.renderer) {
@@ -399,10 +376,5 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private hideLabel(key: string) {
         this.labels[key]?.toggle(false);
-    }
-
-    private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
-        const { callbackCache, chartService } = this.ctx;
-        return callbackCache.call(this.axisCtx, chartService, fn, ...params);
     }
 }

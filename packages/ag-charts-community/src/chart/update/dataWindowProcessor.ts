@@ -1,7 +1,10 @@
+import { CleanupRegistry } from 'ag-charts-core';
+
+import type { EventsHub, ZoomState } from '../../core/eventsHub';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
-import type { ZoomManager, ZoomState } from '../interaction/zoomManager';
+import type { ZoomManager } from '../interaction/zoomManager';
 import type { UpdateCompleteEvent, UpdateService } from '../updateService';
 import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 
@@ -10,26 +13,27 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     private dirtyDataSource = false;
     private readonly lastAxisZooms = new Map<string, ZoomState>();
 
-    private readonly destroyFns: (() => void)[] = [];
+    private readonly cleanup = new CleanupRegistry();
 
     constructor(
         private readonly chart: ChartLike,
+        private readonly eventsHub: EventsHub,
         private readonly dataService: DataService<D>,
         private readonly updateService: UpdateService,
         private readonly zoomManager: ZoomManager,
         private readonly animationManager: AnimationManager
     ) {
-        this.destroyFns.push(
-            this.dataService.addListener('data-source-change', () => this.onDataSourceChange()),
-            this.dataService.addListener('data-load', () => this.onDataLoad()),
-            this.dataService.addListener('data-error', () => this.onDataError()),
+        this.cleanup.register(
+            this.eventsHub.on('data:source-change', () => this.onDataSourceChange()),
+            this.eventsHub.on('data:load', () => this.onDataLoad()),
+            this.eventsHub.on('data:error', () => this.onDataError()),
             this.updateService.addListener('update-complete', (e) => this.onUpdateComplete(e)),
-            this.zoomManager.addListener('zoom-change', () => this.onZoomChange())
+            this.eventsHub.on('zoom:change', () => this.onZoomChange())
         );
     }
 
     public destroy() {
-        this.destroyFns.forEach((cb) => cb());
+        this.cleanup.flush();
     }
 
     private onDataLoad() {

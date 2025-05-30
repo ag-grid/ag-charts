@@ -27,6 +27,7 @@ import type {
 } from 'ag-charts-types';
 
 import {
+    cartesianAxisBandHighlightOptions,
     cartesianAxisCrosshairOptions,
     cartesianAxisLabelOptionsDefs,
     cartesianAxisOptionsDefs,
@@ -82,6 +83,7 @@ export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
     paddingOuter: ratio,
     groupPaddingInner: ratio,
     crosshair: cartesianAxisCrosshairOptions(),
+    bandHighlight: cartesianAxisBandHighlightOptions,
 };
 
 export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOptions> = {
@@ -89,6 +91,7 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
     type: required(constant('grouped-category')),
     label: cartesianAxisLabelOptionsDefs,
     crosshair: cartesianAxisCrosshairOptions(),
+    bandHighlight: cartesianAxisBandHighlightOptions,
     paddingInner: ratio,
     groupPaddingInner: ratio,
     depthOptions: arrayOfDefs<AgGroupedCategoryDepthOptions>(
@@ -123,6 +126,7 @@ export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
     paddingOuter: ratio,
     groupPaddingInner: ratio,
     crosshair: cartesianAxisCrosshairOptions(true),
+    bandHighlight: cartesianAxisBandHighlightOptions,
 };
 
 export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions> = {

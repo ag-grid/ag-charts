@@ -158,11 +158,11 @@ export abstract class BaseFunnelSeries<
             moduleCtx,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
-            directionKeys: {
+            propertyKeys: {
                 x: ['stageKey'],
                 y: ['valueKey'],
             },
-            directionNames: {
+            propertyNames: {
                 x: [],
                 y: [],
             },
@@ -568,7 +568,12 @@ export abstract class BaseFunnelSeries<
             tooltip,
             {
                 symbol: this.legendItemSymbol(datumIndex),
-                data: [{ label: xAxis.formatDatum(xValue), value: yAxis.formatDatum(yValue) }],
+                data: [
+                    {
+                        label: xAxis.formatDatum(xValue, 'tooltip', datum, stageKey),
+                        value: yAxis.formatDatum(yValue, 'tooltip', datum, valueKey),
+                    },
+                ],
             },
             { seriesId, datum, title: stageKey, stageKey, valueKey, ...this.tooltipStyle(datum, datumIndex) }
         );

@@ -1,8 +1,7 @@
-import { clamp, createElement } from 'ag-charts-core';
+import { type BoxBounds, clamp, createElement } from 'ag-charts-core';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import type { BBoxValues } from '../../util/bboxinterface';
 import { getIconClassNames } from '../../util/dom';
 import type { Vec2 } from '../../util/vector';
 import { NativeWidget } from '../../widget/nativeWidget';
@@ -19,8 +18,8 @@ export interface FloatingToolbarAnchor {
 
 interface FloatingToolbarEventMap<ButtonOptions extends ToolbarButtonOptions> extends ToolbarEventMap<ButtonOptions> {
     'toolbar-moved': {
-        buttonBounds: Array<BBoxValues>;
-        popoverBounds: BBoxValues;
+        buttonBounds: Array<BoxBounds>;
+        popoverBounds: BoxBounds;
     };
 }
 
