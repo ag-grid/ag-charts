@@ -6,6 +6,7 @@ import { AgCharts } from '../../../api/agCharts';
 import * as examples from '../../test/examples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    PATTERN_SNAPSHOT_DEFAULTS,
     extractImageData,
     prepareTestOptions,
     repeat,
@@ -18,11 +19,11 @@ import {
 describe('ScatterSeries', () => {
     setupMockConsole();
 
-    const compare = async () => {
+    const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(defaults);
     };
 
     let chart: AgChartInstance;
@@ -386,7 +387,7 @@ describe('ScatterSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
-            await compare();
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
     });
 
@@ -410,7 +411,7 @@ describe('ScatterSeries', () => {
         prepareTestOptions(options);
 
         chart = AgCharts.create(options);
-        await compare();
+        await compare(PATTERN_SNAPSHOT_DEFAULTS);
     });
 
     describe('initial animation', () => {

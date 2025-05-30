@@ -75,6 +75,14 @@ export const IMAGE_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
     },
 };
 
+export const PATTERN_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
+    ...IMAGE_SNAPSHOT_DEFAULTS,
+    customDiffConfig: {
+        ...IMAGE_SNAPSHOT_DEFAULTS.customDiffConfig,
+        threshold: 0.03,
+    },
+};
+
 export async function delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }

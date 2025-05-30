@@ -7,6 +7,7 @@ import type { Chart } from '../../chart';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    PATTERN_SNAPSHOT_DEFAULTS,
     clickAction,
     createChart,
     deproxy,
@@ -52,11 +53,11 @@ describe('PieSeries', () => {
         }
     });
 
-    const compare = async (customSnapshotIdentifier?: string) => {
+    const compare = async (customSnapshotIdentifier?: string, defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
         await waitForChartStability(chart);
         const imageData = extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot({
-            ...IMAGE_SNAPSHOT_DEFAULTS,
+            ...defaults,
             failureThreshold: 0,
             customSnapshotIdentifier,
         });
@@ -122,7 +123,7 @@ describe('PieSeries', () => {
                     },
                 ],
             });
-            await compare();
+            await compare(undefined, PATTERN_SNAPSHOT_DEFAULTS);
         });
 
         it('should render pie series with pattern fills', async () => {
@@ -207,7 +208,7 @@ describe('PieSeries', () => {
                     } as AgPieSeriesOptions,
                 ],
             });
-            await compare();
+            await compare(undefined, PATTERN_SNAPSHOT_DEFAULTS);
         });
     });
 

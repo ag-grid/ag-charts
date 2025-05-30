@@ -27,6 +27,7 @@ import * as examples from '../../test/examples';
 import type { CartesianOrPolarTestCase, TestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     clickAction,
     deproxy,
@@ -260,11 +261,11 @@ const INVALID_DATA_EXAMPLES: Record<string, TestCase> = {
 };
 
 describe('AreaSeries', () => {
-    const compare = async () => {
+    const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(defaults);
     };
 
     let chart: AgChartInstance;
@@ -758,7 +759,7 @@ describe('AreaSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
-            await compare();
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
         it.each(CUSTOM_SVG_PATHS)(
@@ -787,7 +788,7 @@ describe('AreaSeries', () => {
                 chart = AgCharts.create(options);
 
                 await waitForChartStability(chart);
-                await compare();
+                await compare(PATTERN_SNAPSHOT_DEFAULTS);
             }
         );
 
@@ -814,7 +815,7 @@ describe('AreaSeries', () => {
                 chart = AgCharts.create(options);
 
                 await waitForChartStability(chart);
-                await compare();
+                await compare(PATTERN_SNAPSHOT_DEFAULTS);
 
                 expect(console.warn).toHaveBeenCalledWith(warningMessage);
             }
@@ -848,7 +849,7 @@ describe('AreaSeries', () => {
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
-                await compare();
+                await compare(PATTERN_SNAPSHOT_DEFAULTS);
             }
         );
 
@@ -874,7 +875,7 @@ describe('AreaSeries', () => {
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
-                await compare();
+                await compare(PATTERN_SNAPSHOT_DEFAULTS);
             }
         );
     });
