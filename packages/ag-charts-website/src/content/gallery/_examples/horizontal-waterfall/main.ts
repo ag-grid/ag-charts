@@ -40,7 +40,7 @@ const options: AgChartOptions = {
                     strokeWidth: 1,
                     lineDash: [2],
                     label: {
-                        formatter: ({ value }) => `${value < 0 ? '-' : '+'}${Math.abs(value).toFixed(0)}`,
+                        enabled: true,
                     },
                 },
                 negative: {
@@ -48,19 +48,26 @@ const options: AgChartOptions = {
                     strokeWidth: 1,
                     lineDash: [2],
                     label: {
-                        formatter: ({ value }) => `${value < 0 ? '-' : '+'}${Math.abs(value).toFixed(0)}`,
+                        enabled: true,
                     },
                 },
                 total: {
                     fillOpacity: 0.3,
                     label: {
+                        enabled: true,
                         placement: 'inside-center',
-                        formatter: ({ value }) => `${value < 0 ? '-' : '+'}£${Math.abs(value).toFixed(0)} bn`,
                     },
                 },
             },
         },
     ],
+    formatter: {
+        x: (params) => {
+            const value = params.value as number;
+            const positiveSign = params.source === 'axis' ? '' : '+';
+            return `${value < 0 ? '-' : positiveSign}£${Math.abs(value).toFixed(0)} bn`;
+        },
+    },
 };
 
 AgCharts.create(options);

@@ -22,12 +22,9 @@ const options: AgChartOptions = {
             type: 'map-shape',
             idKey: 'name',
             colorKey: 'gdp',
+            colorName: 'GDP',
             labelKey: 'code',
-            tooltip: {
-                renderer: ({ datum }) => ({
-                    data: [{ label: 'GDP', value: `${numberFormatter.format(datum.gdp)} million` }],
-                }),
-            },
+            labelName: 'State Code',
         },
     ],
     gradientLegend: {
@@ -35,8 +32,16 @@ const options: AgChartOptions = {
         scale: {
             label: {
                 fontSize: 9,
-                formatter: ({ value }) => `$${Math.floor(+value / 1e6)}T`,
             },
+        },
+    },
+    formatter: {
+        color: (params) => {
+            const value = params.value as number;
+            console.log(params);
+            return params.source === 'tooltip'
+                ? `${numberFormatter.format(value)} million`
+                : `$${Math.floor(value / 1e6)}T`;
         },
     },
 };

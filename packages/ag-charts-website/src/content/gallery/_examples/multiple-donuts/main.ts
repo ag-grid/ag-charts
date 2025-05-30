@@ -1,13 +1,8 @@
-import { AgChartOptions, AgCharts, AgPieSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 const data = getData();
-const tooltip = {
-    renderer({ datum, sectorLabelKey, angleKey }: AgPieSeriesTooltipRendererParams<any>) {
-        return { data: [{ label: datum[sectorLabelKey!], value: `${datum[angleKey]} Litres` }] };
-    },
-};
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -27,7 +22,6 @@ const options: AgChartOptions = {
             innerRadiusRatio: 0.6,
             cornerRadius: 4,
             fillOpacity: 0.9,
-            tooltip,
         },
         {
             data: data['continents'],
@@ -37,9 +31,11 @@ const options: AgChartOptions = {
             outerRadiusRatio: 0.5,
             innerRadiusRatio: 0.1,
             cornerRadius: 4,
-            tooltip,
         },
     ],
+    formatter: {
+        angle: '#{,.0f} Litres',
+    },
 };
 
 AgCharts.create(options);

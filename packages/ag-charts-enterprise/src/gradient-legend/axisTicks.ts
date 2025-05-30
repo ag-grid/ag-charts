@@ -100,22 +100,31 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
         _primary: boolean,
         fractionDigits?: number
     ): (value: any, index: number) => string | undefined {
-        const { formatter, format } = this.label;
-
-        const valueFormatter = format != null ? _ModuleSupport.FormatManager.getFormatter('number', format) : undefined;
-
         return (value, index) => {
+            const { ctx } = this;
+            const { formatManager } = ctx;
+            const boundSeries: any[] = [];
             let result: string | undefined;
-            if (formatter != null) {
-                result ??= formatWithContext(this.ctx, formatter, {
-                    value,
-                    index,
-                    domain,
-                    boundSeries: [],
-                    fractionDigits,
-                });
-            }
-            result ??= valueFormatter?.(value, fractionDigits);
+            result ??= this.label.formatValue(
+                (fn, params) => formatWithContext(ctx, fn, params),
+                'number',
+                value,
+                index,
+                domain,
+                boundSeries,
+                fractionDigits,
+                undefined
+            );
+            result ??= formatManager.format({
+                type: 'number',
+                value,
+                datum: 'undefined',
+                key: 'undefined',
+                source: 'axis',
+                property: 'color',
+                boundSeries,
+                fractionDigits,
+            });
             result ??= formatValue(value, fractionDigits);
             return result;
         };

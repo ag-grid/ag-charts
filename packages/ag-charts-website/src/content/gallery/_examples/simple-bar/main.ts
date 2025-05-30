@@ -2,11 +2,6 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-function formatNumber(value: number) {
-    value /= 1000_000;
-    return `${Math.floor(value)}M`;
-}
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -22,7 +17,7 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'visitors',
             label: {
-                formatter: ({ value }) => formatNumber(value),
+                enabled: true,
             },
         },
     ],
@@ -40,11 +35,15 @@ const options: AgChartOptions = {
             title: {
                 text: 'Total Visitors',
             },
-            label: {
-                formatter: ({ value }) => formatNumber(value),
-            },
         },
     ],
+    formatter: {
+        y(params) {
+            let value = params.value as number;
+            value /= 1000_000;
+            return `${Math.floor(value)}M`;
+        },
+    },
 };
 
 AgCharts.create(options);

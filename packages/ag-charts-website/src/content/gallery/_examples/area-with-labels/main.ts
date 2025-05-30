@@ -2,13 +2,13 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const formatDate = (value: number | Date | undefined) => {
-    return Intl.DateTimeFormat('en-GB').format(value);
-};
-
-const formatNumber = (value: number) => {
-    return `$${Math.floor(value)}B`;
-};
+const labelDates = [
+    new Date(2008, 9, 11).valueOf(),
+    new Date(2012, 9, 26).valueOf(),
+    new Date(2017, 0, 8).valueOf(),
+    new Date(2020, 10, 25).valueOf(),
+    new Date(2023, 0, 1).valueOf(),
+];
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -36,16 +36,6 @@ const options: AgChartOptions = {
             },
             label: {
                 enabled: true,
-                formatter: ({ xKey, yKey, datum }) => {
-                    const dates = [
-                        formatDate(new Date(2008, 9, 11)),
-                        formatDate(new Date(2012, 9, 26)),
-                        formatDate(new Date(2017, 0, 8)),
-                        formatDate(new Date(2020, 10, 25)),
-                        formatDate(new Date(2023, 0, 1)),
-                    ];
-                    return dates.includes(formatDate(datum[xKey])) ? formatNumber(datum[yKey]) : '';
-                },
             },
         },
     ],
@@ -53,21 +43,20 @@ const options: AgChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            crosshair: {
-                label: {
-                    renderer: ({ value }) =>
-                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${formatDate(value)}</div>`,
-                },
-            },
         },
         {
             type: 'number',
             position: 'left',
-            label: {
-                formatter: ({ value }) => formatNumber(value),
-            },
         },
     ],
+    formatter: {
+        y(params) {
+            if (params.source === 'series-label' && !labelDates.includes(params.datum.date.valueOf())) {
+                return '';
+            }
+            return `$${Math.floor(params.value as number)}B`;
+        },
+    },
 };
 
 AgCharts.create(options);

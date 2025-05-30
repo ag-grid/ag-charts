@@ -1,4 +1,4 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -85,13 +85,14 @@ const options: AgChartOptions = {
             title: {
                 text: 'Total visitors',
             },
-            label: {
-                formatter: (params) => {
-                    return params.value / 1000 + 'k';
-                },
-            },
         },
     ],
+    formatter: {
+        y: (params) => {
+            if (params.type !== 'number') return;
+            return (params.value / 1000).toFixed(params.fractionDigits) + 'k';
+        },
+    },
 };
 
 AgCharts.create(options);
