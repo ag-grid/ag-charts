@@ -114,12 +114,14 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     }
 
     setPatternTransform(pattern: CanvasPattern | null | undefined, pixelRatio: number, tx: number = 0, ty: number = 0) {
+        if (pattern == null) return;
+
         const angle = normalizeAngle360FromDegrees(this.rotation);
         const scale = 1 / pixelRatio;
         const cos = Math.cos(angle) * scale;
         const sin = Math.sin(angle) * scale;
 
-        pattern?.setTransform(new DOMMatrix([cos, sin, -sin, cos, tx, ty]));
+        pattern.setTransform(new DOMMatrix([cos, sin, -sin, cos, tx, ty]));
     }
 
     private _cache:
