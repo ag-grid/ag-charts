@@ -1,5 +1,5 @@
 import { type Has, type InternalAgColorType, Logger, modulus } from 'ag-charts-core';
-import type { AgPieSeriesStyle } from 'ag-charts-types';
+import type { AgPieSeriesLabelFormatterParams, AgPieSeriesStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -521,10 +521,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         if (calloutLabelKey && span >= toRadians(calloutLabel.minAngle)) {
             result.calloutLabel = {
                 ...this.getTextAlignment(midAngle),
-                text: this.getLabelText(calloutLabelValue, datum, calloutLabelKey, 'calloutLabel', calloutLabel, {
-                    ...labelFormatterParams,
-                    value: calloutLabelValue,
-                }),
+                text: this.getLabelText<AgPieSeriesLabelFormatterParams>(
+                    calloutLabelValue,
+                    datum,
+                    calloutLabelKey,
+                    'calloutLabel',
+                    calloutLabel,
+                    { ...labelFormatterParams, value: calloutLabelValue }
+                ),
                 hidden: false,
                 collisionTextAlign: undefined,
                 collisionOffsetY: 0,
@@ -534,10 +538,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         if (sectorLabelKey) {
             result.sectorLabel = {
-                text: this.getLabelText(sectorLabelValue, datum, sectorLabelKey, 'sectorLabel', sectorLabel, {
-                    ...labelFormatterParams,
-                    value: sectorLabelValue,
-                }),
+                text: this.getLabelText<AgPieSeriesLabelFormatterParams>(
+                    sectorLabelValue,
+                    datum,
+                    sectorLabelKey,
+                    'sectorLabel',
+                    sectorLabel,
+                    { ...labelFormatterParams, value: sectorLabelValue }
+                ),
             };
         }
 

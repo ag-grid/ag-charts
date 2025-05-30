@@ -224,12 +224,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             if (stageLabelData == null) return;
 
-            const text = this.getLabelText(xValue, datum, stageKey, 'x', this.properties.stageLabel, {
+            const text = this.getLabelText<AgPyramidSeriesLabelFormatterParams>(
+                xValue,
                 datum,
-                value: yValue,
                 stageKey,
-                valueKey,
-            });
+                'x',
+                this.properties.stageLabel,
+                { datum, value: yValue, stageKey, valueKey }
+            );
 
             const { width } = textMeasurer.measureText(text);
             const height = text.split('\n').length * TextUtils.getLineHeight(label.fontSize);
@@ -351,7 +353,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 bottom = reverse ? bounds.width - x1 : x1;
             }
 
-            const text = this.getLabelText(yValue, datum, valueKey, 'y', label, {
+            const text = this.getLabelText<AgPyramidSeriesLabelFormatterParams>(yValue, datum, valueKey, 'y', label, {
                 datum,
                 value: yValue,
                 stageKey,
@@ -610,18 +612,22 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         if (xValue == null) return;
 
-        const label = this.getLabelText(xValue, datum, stageKey, 'x', this.properties.stageLabel, {
+        const label = this.getLabelText<AgPyramidSeriesLabelFormatterParams>(
+            xValue,
             datum,
-            value: xValue,
             stageKey,
-            valueKey,
-        });
-        const value = this.getLabelText(yValue, datum, valueKey, 'y', this.properties.stageLabel, {
+            'x',
+            this.properties.stageLabel,
+            { datum, value: xValue, stageKey, valueKey }
+        );
+        const value = this.getLabelText<AgPyramidSeriesLabelFormatterParams>(
+            yValue,
             datum,
-            value: yValue,
-            stageKey,
             valueKey,
-        });
+            'y',
+            this.properties.stageLabel,
+            { datum, value: yValue, stageKey, valueKey }
+        );
 
         const format = this.getItemBaseStyle(false) as any as Required<ItemStyle>;
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, datumIndex, format, false));

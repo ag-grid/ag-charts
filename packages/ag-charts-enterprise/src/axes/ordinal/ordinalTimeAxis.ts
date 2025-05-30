@@ -57,7 +57,9 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
         timeInterval ??= lowestGranularityUnitForTicks(ticks);
         const includeYear = domainSpansMultipleYears(domain);
         const unit = intervalUnit(timeInterval);
-        return { type: 'date', unit, includeYear };
+        const step = intervalStep(timeInterval);
+        const epoch = intervalEpoch(timeInterval);
+        return { type: 'date', unit, step, epoch, includeYear };
     }
 
     override datumFormatParams(

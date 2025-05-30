@@ -17,7 +17,11 @@ type LabelDatum = Point & {
     textBaseline: CanvasTextBaseline;
 };
 
-export function updateLabelNode(textNode: Text, label: Label, labelDatum?: LabelDatum) {
+export function updateLabelNode(
+    textNode: Text,
+    label: Pick<Label, 'enabled' | 'color' | 'fontStyle' | 'fontWeight' | 'fontSize' | 'fontFamily'>,
+    labelDatum?: LabelDatum
+) {
     if (label.enabled && labelDatum) {
         const { x, y, text, textAlign, textBaseline } = labelDatum;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = label;

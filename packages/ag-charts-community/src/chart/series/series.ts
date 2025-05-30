@@ -844,18 +844,10 @@ export abstract class Series<
 
         const formatInContext = this.callWithContext.bind(this);
 
-        const format = (formatParams: FormatterParams<any>) => {
-            let result: string | undefined;
-
-            if (label.formatter) {
-                result = formatInContext(label.formatter, params);
-            }
-
-            result ??= formatManager.format(formatParams, label.format);
-            result ??= value;
-
-            return String(result);
-        };
+        const format = (formatParams: FormatterParams<any>) =>
+            label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
+            formatManager.format(formatParams) ??
+            String(value);
 
         const direction = canHaveAxes ? propertyAxisDirection(property) : undefined;
         const axis = direction != null ? axes[this.resolveKeyDirection(direction)] : undefined;

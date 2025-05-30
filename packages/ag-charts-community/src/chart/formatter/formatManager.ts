@@ -29,6 +29,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
     );
     formatter: FormatterConfiguration<any> | undefined = undefined;
 
+    static mergeSpecifiers(a: Specifier | undefined, ...specifiers: Array<Specifier>): Specifier;
     static mergeSpecifiers(a: Specifier, ...specifiers: Array<Specifier | undefined>): Specifier;
     static mergeSpecifiers(...specifiers: Array<Specifier | undefined>): Specifier | undefined;
     static mergeSpecifiers(...specifiers: Array<Specifier | undefined>): Specifier | undefined {
@@ -99,13 +100,15 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
 
         const { formatter } = this;
         if (typeof formatter === 'function') {
-            return formatter(params);
+            const value = formatter(params);
+            return value != null ? String(value) : undefined;
         }
 
         const propertyFormatter = formatter?.[params.property];
 
         if (typeof propertyFormatter === 'function') {
-            return propertyFormatter(params);
+            const value = propertyFormatter(params);
+            return value != null ? String(value) : undefined;
         } else if (params.type === 'date') {
             const { unit, style } = params;
             const dateFormatter = this.dateFormatter(propertyFormatter, specifier, unit, style, includeYear);

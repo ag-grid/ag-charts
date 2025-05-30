@@ -1,5 +1,6 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
+import type { AgMapLineSeriesLabelFormatterParams } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
@@ -217,18 +218,25 @@ export class MapLineSeries extends TopologySeries<
         const { idKey, idName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } = this.properties;
         if (labelKey == null) return;
 
-        const labelText = this.getLabelText(labelValue, datum, labelKey, 'label', label, {
-            value: labelValue,
+        const labelText = this.getLabelText<AgMapLineSeriesLabelFormatterParams>(
+            labelValue,
             datum,
-            idKey,
-            idName,
-            sizeKey,
-            sizeName,
-            colorKey,
-            colorName,
             labelKey,
-            labelName,
-        });
+            'label',
+            label,
+            {
+                value: labelValue,
+                datum,
+                idKey,
+                idName,
+                sizeKey,
+                sizeName,
+                colorKey,
+                colorName,
+                labelKey,
+                labelName,
+            }
+        );
         if (labelText == null) return;
 
         const labelSize = measurer.measureText(String(labelText));

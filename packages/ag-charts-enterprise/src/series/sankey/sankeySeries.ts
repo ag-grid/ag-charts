@@ -1,4 +1,10 @@
-import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgSankeySeriesLabelFormatterParams,
+    type FillOptions,
+    type LineDashOptions,
+    type StrokeOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 import {
@@ -167,14 +173,14 @@ export class SankeySeries extends FlowProportionSeries<
             node.x = column.x;
             node.size = size;
 
-            const label = this.getLabelText(node.label, node.datum, labelKey!, 'label', this.properties.label, {
-                datum: node.datum,
-                value: node.label,
-                fromKey,
-                toKey,
-                sizeKey,
-                size,
-            });
+            const label = this.getLabelText<AgSankeySeriesLabelFormatterParams>(
+                node.label,
+                node.datum,
+                labelKey!,
+                'label',
+                this.properties.label,
+                { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size }
+            );
             node.label = String(label);
 
             column.nodes.push(graphNode);

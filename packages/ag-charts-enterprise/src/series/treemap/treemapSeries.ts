@@ -1,4 +1,5 @@
 import {
+    type AgTreemapSeriesLabelFormatterParams,
     type AgTreemapSeriesStyle,
     type FontOptions,
     type FontStyle,
@@ -516,18 +517,25 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             let labelValue: string | undefined;
             if (datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
-                labelValue = this.getLabelText(value, datum, labelKey, 'label', labelStyle, {
-                    depth,
-                    datum,
-                    childrenKey,
-                    colorKey,
-                    colorName,
-                    labelKey,
-                    secondaryLabelKey,
-                    sizeKey,
-                    sizeName,
+                labelValue = this.getLabelText<AgTreemapSeriesLabelFormatterParams>(
                     value,
-                });
+                    datum,
+                    labelKey,
+                    'label',
+                    labelStyle,
+                    {
+                        depth,
+                        datum,
+                        childrenKey,
+                        colorKey,
+                        colorName,
+                        labelKey,
+                        secondaryLabelKey,
+                        sizeKey,
+                        sizeName,
+                        value,
+                    }
+                );
             }
             if (labelValue === '') {
                 labelValue = undefined;
@@ -536,7 +544,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             let secondaryLabelValue: string | undefined;
             if (isLeaf && datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
-                secondaryLabelValue = this.getLabelText(
+                secondaryLabelValue = this.getLabelText<AgTreemapSeriesLabelFormatterParams>(
                     value,
                     datum,
                     secondaryLabelKey,

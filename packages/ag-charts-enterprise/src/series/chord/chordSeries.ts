@@ -1,5 +1,6 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
+import type { AgChordSeriesLabelFormatterParams } from 'ag-charts-types';
 
 import {
     FlowProportionDatumType,
@@ -149,14 +150,14 @@ export class ChordSeries extends FlowProportionSeries<
                 node.size = size;
                 totalSize += node.size;
 
-                const label = this.getLabelText(node.label, node.datum, labelKey!, 'label', this.properties.label, {
-                    datum: node.datum,
-                    value: node.label,
-                    fromKey,
-                    toKey,
-                    sizeKey,
-                    size: node.size,
-                });
+                const label = this.getLabelText<AgChordSeriesLabelFormatterParams>(
+                    node.label,
+                    node.datum,
+                    labelKey!,
+                    'label',
+                    this.properties.label,
+                    { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size: node.size }
+                );
                 node.label = String(label);
             }
         });
