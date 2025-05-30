@@ -2,10 +2,6 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-function formatNumber(value: number) {
-    return `${Math.floor(value / 60)}h ${Math.round(value % 60)}m`;
-}
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -96,17 +92,17 @@ const options: AgChartOptions = {
             max: 540,
             nice: false,
             interval: { values: [0, 180, 360, 540] },
-            label: {
-                formatter: ({ value }) => `${Math.floor(value / 60)}h`,
-            },
-            crosshair: {
-                label: {
-                    renderer: ({ value }) =>
-                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${formatNumber(value)}</div>`,
-                },
-            },
         },
     ],
+    formatter: {
+        y(params) {
+            const value = params.value as number;
+            if (params.source === 'axis') {
+                return `${Math.floor(value / 60)}h`;
+            }
+            return `${Math.floor(value / 60)}h ${String(Math.round(value % 60)).padStart(2, '0')}m`;
+        },
+    },
 };
 
 AgCharts.create(options);

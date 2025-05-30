@@ -1,4 +1,4 @@
-import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -13,17 +13,11 @@ const options: AgChartOptions = {
                     stroke: 'transparent',
                     strokeWidth: 2,
                     cornerRadius: 6,
-                    label: {
-                        enabled: true,
-                        formatter: ({ value }) => `${Math.abs(value)}`,
-                    },
                     itemStyler: ({ datum, yKey }) => ({
                         fillOpacity: getOpacity(Math.abs(datum[yKey]), yKey, 0.4, 1),
                     }),
-                    tooltip: {
-                        renderer: ({ datum, xKey, yKey }: AgBarSeriesTooltipRendererParams) => ({
-                            data: [{ label: `${datum[xKey]}`, value: `${Math.abs(datum[yKey])}` }],
-                        }),
+                    label: {
+                        enabled: true,
                     },
                 },
             },
@@ -138,6 +132,11 @@ const options: AgChartOptions = {
     ],
     legend: {
         enabled: false,
+    },
+    formatter: {
+        x(params) {
+            return `${Math.abs(params.value as number)}`;
+        },
     },
 };
 

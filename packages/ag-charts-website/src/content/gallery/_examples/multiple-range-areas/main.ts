@@ -36,9 +36,6 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'left',
             interval: { step: 25 },
-            label: {
-                formatter: ({ value }) => `${value}%`,
-            },
             crossLines: [
                 {
                     type: 'line',
@@ -47,7 +44,7 @@ const options: AgChartOptions = {
                     strokeOpacity: 0.5,
 
                     label: {
-                        text: 'Highest Share 88% ',
+                        text: 'Highest Share 88%',
                         position: 'inside-top-right',
                     },
                 },
@@ -58,7 +55,7 @@ const options: AgChartOptions = {
                     strokeOpacity: 0.5,
 
                     label: {
-                        text: 'Lowest Share 60% ',
+                        text: 'Lowest Share 60%',
                         position: 'inside-bottom-right',
                     },
                 },
@@ -97,6 +94,9 @@ const options: AgChartOptions = {
     },
     legend: {
         position: 'top',
+    },
+    formatter: {
+        y: '#{.0f}%',
     },
 };
 

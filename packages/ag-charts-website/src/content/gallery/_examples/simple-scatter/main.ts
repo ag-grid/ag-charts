@@ -19,7 +19,9 @@ const options: AgChartOptions = {
         {
             type: 'scatter',
             xKey: 'weight',
+            xName: 'Wight',
             yKey: 'height',
+            yName: 'Height',
         },
     ],
     axes: [
@@ -39,7 +41,7 @@ const options: AgChartOptions = {
                     value: 210,
                     lineDash: [5, 4],
                     label: {
-                        text: 'Height (Inches)',
+                        text: 'Height',
                         position: 'inside-top-left',
                     },
                 },
@@ -61,13 +63,20 @@ const options: AgChartOptions = {
                     value: 75,
                     lineDash: [5, 4],
                     label: {
-                        text: 'Weight (Pounds)',
+                        text: 'Weight',
                         position: 'inside-bottom-right',
                     },
                 },
             ],
         },
     ],
+    formatter: {
+        x: '#{.0f} lbs',
+        y(params) {
+            const value = params.value as number;
+            return `${Math.floor(value / 12)}' ${Math.floor(value % 12)}"`;
+        },
+    },
 };
 
 AgCharts.create(options);

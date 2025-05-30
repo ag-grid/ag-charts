@@ -49,11 +49,11 @@ const options: AgChartOptions = {
             min: 0,
             max: 35000000,
             interval: { values: [3000000, 32000000] },
-            label: {
-                formatter: ({ value }) => `${value / 1000000}M`,
-            },
         },
     ],
+    formatter: {
+        x: ({ value }) => `${Number(value) / 1000000}M`,
+    },
 };
 
 AgCharts.create(options);

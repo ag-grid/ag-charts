@@ -63,23 +63,14 @@ const options: AgChartOptions = {
         {
             type: 'ordinal-time',
             position: 'bottom',
-            interval: { step: 'month' },
             line: {
                 enabled: false,
             },
             gridLine: {
                 enabled: true,
             },
-            label: {
-                formatter: ({ value }) => {
-                    const dateObject = new Date(value);
-                    if (dateObject.getFullYear() === 2024 && dateObject.getMonth() === 0) {
-                        return '2024';
-                    }
-                    return dateObject.toLocaleString('en-GB', {
-                        month: 'short',
-                    });
-                },
+            parentLevel: {
+                enabled: true,
             },
             crosshair: {
                 label: {
@@ -91,14 +82,6 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'right',
             interval: { step: 0.01 },
-            label: {
-                formatter: ({ value }) => Number(value).toFixed(4),
-            },
-            crosshair: {
-                label: {
-                    format: `.4f`,
-                },
-            },
             crossLines: [
                 {
                     type: 'line',
@@ -116,6 +99,9 @@ const options: AgChartOptions = {
             xOffset: 10,
             yOffset: 55,
         },
+    },
+    formatter: {
+        y: '#{,.4f}',
     },
 };
 AgCharts.create(options);

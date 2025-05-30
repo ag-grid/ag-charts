@@ -68,11 +68,11 @@ const options: AgChartOptions = {
             gridLine: {
                 enabled: false,
             },
-            label: {
-                formatter: ({ value }) => Number(value).toLocaleString('en-GB', numberFormatOptions),
-            },
         },
     ],
+    formatter: {
+        x: ({ value }) => Number(value).toLocaleString('en-GB', numberFormatOptions),
+    },
 };
 
 AgCharts.create(options);
