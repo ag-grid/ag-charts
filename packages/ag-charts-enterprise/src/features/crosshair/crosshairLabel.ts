@@ -2,10 +2,16 @@ import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } f
 import { _ModuleSupport } from 'ag-charts-community';
 import { createId, setAttribute } from 'ag-charts-core';
 
-const { BaseProperties, Property } = _ModuleSupport;
+const { FormatManager, BaseProperties, Property } = _ModuleSupport;
 
 const DEFAULT_LABEL_CLASS = 'ag-charts-crosshair-label';
 type StyleValue = string | number | undefined;
+
+interface FormatterCache {
+    type: string;
+    format: string;
+    formatter: ((value: any, fractionDigits?: number) => string) | undefined;
+}
 
 export class CrosshairLabelProperties extends _ModuleSupport.ChangeDetectableProperties {
     @Property
@@ -22,6 +28,28 @@ export class CrosshairLabelProperties extends _ModuleSupport.ChangeDetectablePro
 
     @Property
     renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult = undefined;
+
+    private _cachedFormatter: FormatterCache | undefined = undefined;
+    formatValue(_ctx: any, type: 'number' | 'date' | 'category', value: any) {
+        const { format } = this;
+
+        let result: string | undefined;
+        if (format != null) {
+            let cachedFormatter = this._cachedFormatter;
+            if (cachedFormatter == null || cachedFormatter.type !== type || cachedFormatter.format !== format) {
+                cachedFormatter = {
+                    type,
+                    format,
+                    formatter: FormatManager.getFormatter(type, format),
+                };
+                this._cachedFormatter = cachedFormatter;
+            }
+
+            result ??= cachedFormatter.formatter?.(value);
+        }
+
+        return result != null ? String(result) : undefined;
+    }
 }
 
 export class CrosshairLabel extends BaseProperties {

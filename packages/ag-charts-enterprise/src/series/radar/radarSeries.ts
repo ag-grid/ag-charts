@@ -1,4 +1,4 @@
-import { type AgSeriesMarkerStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgRadarSeriesLabelFormatterParams, type AgSeriesMarkerStyle, _ModuleSupport } from 'ag-charts-community';
 import { type RequireOptional, isFiniteNumber, isNumberEqual } from 'ag-charts-core';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
@@ -186,14 +186,21 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
             let labelNodeDatum: RadarNodeDatum['label'];
             if (label.enabled) {
-                const labelText = this.getLabelText(radiusDatum, datum, radiusKey, 'radius', label, {
-                    value: radiusDatum,
+                const labelText = this.getLabelText<AgRadarSeriesLabelFormatterParams>(
+                    radiusDatum,
                     datum,
-                    angleKey,
                     radiusKey,
-                    angleName,
-                    radiusName,
-                });
+                    'radius',
+                    label,
+                    {
+                        value: radiusDatum,
+                        datum,
+                        angleKey,
+                        radiusKey,
+                        angleName,
+                        radiusName,
+                    }
+                );
 
                 if (labelText) {
                     let textAlign: CanvasTextAlign = 'right';

@@ -34,28 +34,29 @@ import {
     undocumented,
     union,
 } from 'ag-charts-core';
-import type {
-    AgBaseSeriesOptions,
-    AgBaseSeriesThemeableOptions,
-    AgBaseThemeableChartOptions,
-    AgChartAutoSizedBaseLabelOptions,
-    AgChartCaptionOptions,
-    AgChartLabelOptions,
-    AgChartOverlayOptions,
-    AgContextMenuItem,
-    AgContextMenuItemLiteral,
-    AgDropShadowOptions,
-    AgErrorBarOptions,
-    AgErrorBarThemeableOptions,
-    AgInterpolationType,
-    AgRangesButton,
-    AgSeriesMarkerOptions,
-    AgSeriesMarkerStyle,
-    AgSeriesTooltip,
-    AgTooltipRendererDataRow,
-    AgTooltipRendererResult,
-    AgZoomButton,
-    ToolbarButton,
+import {
+    type AgBaseSeriesOptions,
+    type AgBaseSeriesThemeableOptions,
+    type AgBaseThemeableChartOptions,
+    type AgChartAutoSizedBaseLabelOptions,
+    type AgChartCaptionOptions,
+    type AgChartLabelOptions,
+    type AgChartOverlayOptions,
+    type AgContextMenuItem,
+    type AgContextMenuItemLiteral,
+    type AgDropShadowOptions,
+    type AgErrorBarOptions,
+    type AgErrorBarThemeableOptions,
+    type AgInterpolationType,
+    type AgRangesButton,
+    type AgSeriesMarkerOptions,
+    type AgSeriesMarkerStyle,
+    type AgSeriesTooltip,
+    type AgTooltipRendererDataRow,
+    type AgTooltipRendererResult,
+    type AgZoomButton,
+    type FormatterPropertyType,
+    type ToolbarButton,
 } from 'ag-charts-types';
 
 import { numberFormatValidator } from './axesOptionsDefs';
@@ -210,6 +211,19 @@ export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
         'zoom-out'
     ),
 };
+
+export const formatObjectValidator = optionsDefs<Record<FormatterPropertyType, () => string>>({
+    x: callbackOf(string),
+    y: callbackOf(string),
+    angle: callbackOf(string),
+    radius: callbackOf(string),
+    size: callbackOf(string),
+    color: callbackOf(string),
+    label: callbackOf(string),
+    secondaryLabel: callbackOf(string),
+    sectorLabel: callbackOf(string),
+    calloutLabel: callbackOf(string),
+});
 
 export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, 'navigator'>> = {
     width: positiveNumber,
@@ -439,7 +453,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             visible: union('always', 'zoomed', 'hover'),
         },
     },
-    formatter: or(callback, object),
+    formatter: or(callbackOf(string), formatObjectValidator),
 };
 
 // @ts-expect-error undocumented option

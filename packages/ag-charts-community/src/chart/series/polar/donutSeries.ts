@@ -1,5 +1,5 @@
 import { type Has, type InternalAgColorType, Logger, modulus } from 'ag-charts-core';
-import type { AgDonutSeriesStyle } from 'ag-charts-types';
+import type { AgDonutSeriesLabelFormatterParams, AgDonutSeriesStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -532,10 +532,14 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         if (calloutLabelKey && span >= toRadians(calloutLabel.minAngle)) {
             result.calloutLabel = {
                 ...this.getTextAlignment(midAngle),
-                text: this.getLabelText(calloutLabelValue, datum, calloutLabelKey, 'calloutLabel', calloutLabel, {
-                    ...labelFormatterParams,
-                    value: calloutLabelValue,
-                }),
+                text: this.getLabelText<AgDonutSeriesLabelFormatterParams>(
+                    calloutLabelValue,
+                    datum,
+                    calloutLabelKey,
+                    'calloutLabel',
+                    calloutLabel,
+                    { ...labelFormatterParams, value: calloutLabelValue }
+                ),
                 hidden: false,
                 collisionTextAlign: undefined,
                 collisionOffsetY: 0,
@@ -545,10 +549,14 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         if (sectorLabelKey) {
             result.sectorLabel = {
-                text: this.getLabelText(sectorLabelValue, datum, sectorLabelKey, 'sectorLabel', sectorLabel, {
-                    ...labelFormatterParams,
-                    value: sectorLabelValue,
-                }),
+                text: this.getLabelText<AgDonutSeriesLabelFormatterParams>(
+                    sectorLabelValue,
+                    datum,
+                    sectorLabelKey,
+                    'sectorLabel',
+                    sectorLabel,
+                    { ...labelFormatterParams, value: sectorLabelValue }
+                ),
             };
         }
 

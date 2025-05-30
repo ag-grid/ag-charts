@@ -115,7 +115,7 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
         primary: boolean,
         fractionDigits: number | undefined,
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
-        timeStyle: DateFormatterStyle
+        dateStyle: DateFormatterStyle
     ): (value: any, index: number) => string | undefined;
 }
 
@@ -797,13 +797,13 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             primaryTicksIndices = undefined;
         }
 
-        const timeStyle: DateFormatterStyle = generatePrimaryTicks ? 'component' : 'long';
+        const dateStyle: DateFormatterStyle = generatePrimaryTicks ? 'component' : 'long';
         const axisTickFormatter = label.enabled
-            ? this.axis.tickFormatter(niceDomain, rawTicks, false, fractionDigits, timeInterval, timeStyle)
+            ? this.axis.tickFormatter(niceDomain, rawTicks, false, fractionDigits, timeInterval, dateStyle)
             : undefined;
         const parentInterval = timeInterval != null ? intervalHierarchy(timeInterval) : undefined;
         const axisPrimaryTickFormatter = generatePrimaryTicks
-            ? this.axis.tickFormatter(niceDomain, rawTicks, true, fractionDigits, parentInterval, timeStyle)
+            ? this.axis.tickFormatter(niceDomain, rawTicks, true, fractionDigits, parentInterval, dateStyle)
             : undefined;
 
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;

@@ -1,4 +1,4 @@
-import { type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgRadialSeriesLabelFormatterParams, type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { type RequiredInternalAgGradientColor, isDefined } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
@@ -265,14 +265,14 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             x: number,
             y: number
         ): RadialBarLabelNodeDatum | undefined => {
-            const labelText = this.getLabelText(angleDatum, datum, angleKey, 'angle', label, {
-                value: angleDatum,
+            const labelText = this.getLabelText<AgRadialSeriesLabelFormatterParams>(
+                angleDatum,
                 datum,
                 angleKey,
-                radiusKey,
-                angleName,
-                radiusName,
-            });
+                'angle',
+                label,
+                { value: angleDatum, datum, angleKey, radiusKey, angleName, radiusName }
+            );
             if (labelText) {
                 return { x, y, text: labelText, textAlign: 'center', textBaseline: 'middle' };
             }

@@ -1,4 +1,4 @@
-import type { AgRadialSeriesStyle } from 'ag-charts-community';
+import type { AgRadialSeriesLabelFormatterParams, AgRadialSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { isDefined } from 'ag-charts-core';
 
@@ -268,14 +268,14 @@ export abstract class RadialColumnSeriesBase<
             x: number,
             y: number
         ): RadialColumnLabelNodeDatum | undefined => {
-            const labelText = this.getLabelText(radiusDatum, datum, radiusKey, 'radius', label, {
-                value: radiusDatum,
+            const labelText = this.getLabelText<AgRadialSeriesLabelFormatterParams>(
+                radiusDatum,
                 datum,
-                angleKey,
                 radiusKey,
-                angleName,
-                radiusName,
-            });
+                'radius',
+                label,
+                { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName }
+            );
 
             if (labelText) {
                 return { x, y, text: labelText, textAlign: 'center', textBaseline: 'middle' };

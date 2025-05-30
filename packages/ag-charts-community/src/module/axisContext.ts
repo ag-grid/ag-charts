@@ -12,8 +12,12 @@ export type ContextFormatter<Params> = (
 ) => string | undefined;
 
 export interface AxisFormattableLabel<Params extends object> {
-    formatter?: (params: Params) => string | undefined;
-    format?: string;
+    formatValue(
+        formatInContext: ContextFormatter<Params>,
+        type: 'number' | 'date' | 'category',
+        value: any,
+        params: Params
+    ): string | undefined;
 }
 
 export interface AxisBandDatum {

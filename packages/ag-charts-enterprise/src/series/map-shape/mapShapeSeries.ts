@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
-import type { AgMapShapeSeriesStyle } from 'ag-charts-types';
+import type { AgMapShapeSeriesLabelFormatterParams, AgMapShapeSeriesStyle } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
@@ -227,16 +227,23 @@ export class MapShapeSeries
         const { idKey, idName, colorKey, colorName, labelKey, labelName, padding, label } = this.properties;
         if (labelKey == null) return;
 
-        const labelText = this.getLabelText(labelValue, datum, labelKey, 'label', label, {
-            value: labelValue,
+        const labelText = this.getLabelText<AgMapShapeSeriesLabelFormatterParams>(
+            labelValue,
             datum,
-            idKey,
-            idName,
-            colorKey,
-            colorName,
             labelKey,
-            labelName,
-        });
+            'label',
+            label,
+            {
+                value: labelValue,
+                datum,
+                idKey,
+                idName,
+                colorKey,
+                colorName,
+                labelKey,
+                labelName,
+            }
+        );
         if (labelText == null) return;
 
         const baseSize = measurer.measureText(String(labelText));

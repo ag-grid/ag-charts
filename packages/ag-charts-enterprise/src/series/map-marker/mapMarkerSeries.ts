@@ -1,5 +1,6 @@
 import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
+import { type AgMapMarkerSeriesLabelFormatterParams } from 'ag-charts-types';
 
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
@@ -317,22 +318,29 @@ export class MapMarkerSeries
         if (labelKey == null) return;
 
         const { placement } = label;
-        const labelText = this.getLabelText(labelValue, datum, labelKey, 'label', label, {
-            value: labelValue,
+        const labelText = this.getLabelText<AgMapMarkerSeriesLabelFormatterParams>(
+            labelValue,
             datum,
-            idKey,
-            idName,
-            latitudeKey,
-            latitudeName,
-            longitudeKey,
-            longitudeName,
-            sizeKey,
-            sizeName,
-            colorKey,
-            colorName,
             labelKey,
-            labelName,
-        });
+            'label',
+            label,
+            {
+                value: labelValue,
+                datum,
+                idKey,
+                idName,
+                latitudeKey,
+                latitudeName,
+                longitudeKey,
+                longitudeName,
+                sizeKey,
+                sizeName,
+                colorKey,
+                colorName,
+                labelKey,
+                labelName,
+            }
+        );
         if (labelText == null) return;
 
         const { width, height } = measurer.measureText(String(labelText));

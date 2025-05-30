@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgSunburstSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 import type { AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
 
@@ -262,18 +262,25 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             let labelValue: string | undefined;
             if (datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
-                labelValue = this.getLabelText(value, datum, labelKey, 'label', this.properties.label, {
-                    depth,
-                    datum,
-                    childrenKey,
-                    colorKey,
-                    colorName,
-                    labelKey,
-                    secondaryLabelKey,
-                    sizeKey,
-                    sizeName,
+                labelValue = this.getLabelText<AgSunburstSeriesLabelFormatterParams>(
                     value,
-                });
+                    datum,
+                    labelKey,
+                    'label',
+                    this.properties.label,
+                    {
+                        depth,
+                        datum,
+                        childrenKey,
+                        colorKey,
+                        colorName,
+                        labelKey,
+                        secondaryLabelKey,
+                        sizeKey,
+                        sizeName,
+                        value,
+                    }
+                );
             }
             if (labelValue === '') {
                 labelValue = undefined;
@@ -282,7 +289,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             let secondaryLabelValue: string | undefined;
             if (datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
-                secondaryLabelValue = this.getLabelText(
+                secondaryLabelValue = this.getLabelText<AgSunburstSeriesLabelFormatterParams>(
                     value,
                     datum,
                     secondaryLabelKey,
