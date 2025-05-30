@@ -15,6 +15,7 @@ export type EventsHub = EventEmitter<EventsHubMap>;
 export interface EventsHubMap {
     'annotations:restore': AnnotationsRestoreEvent;
     'axis:hover': AxisHoverEvent;
+    'axis:change': null;
     'context-menu:setup': ContextMenuEvent;
     'context-menu:complete': ContextMenuEvent;
     'data:load': { data: object };

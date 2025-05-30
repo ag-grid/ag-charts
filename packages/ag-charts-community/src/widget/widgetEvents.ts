@@ -76,6 +76,9 @@ export type WheelWidgetEvent = {
     readonly sourceEvent: WheelEvent;
 };
 
+export type ClickLikeEvent = MouseWidgetEvent<'click' | 'dblclick'> & { device: 'mouse' | 'touch' };
+export type HoverLikeEvent = ClickLikeEvent | MouseWidgetEvent<'mousemove'> | DragWidgetEvent<'drag-move'>;
+
 // `originDelta` is the offset relative to position of the HTML element when the drag initiated.
 // This is helpful for elements that move during drag actions, like navigator sliders.
 export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType> =

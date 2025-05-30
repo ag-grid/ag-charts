@@ -15,23 +15,25 @@ import type {
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../../core/eventsHub';
-import type { AxisContext, AxisFormattableLabel } from '../../module/axisContext';
+import type { AxisBandDatum, AxisContext, AxisFormattableLabel } from '../../module/axisContext';
 import type { AxisOptionModule } from '../../module/axisOptionModule';
 import type { ModuleInstance } from '../../module/baseModule';
 import type { ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
+import { BandScale } from '../../scale/bandScale';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
+import type { Point } from '../../scene/point';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable, Translatable } from '../../scene/transformable';
 import { formatValue } from '../../util/format.util';
-import { findMinMax, findRangeExtent } from '../../util/number';
+import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import type { Padding } from '../../util/padding';
 import { Property } from '../../util/properties';
@@ -833,7 +835,38 @@ export abstract class Axis<
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),
+            pickBand: (point) => this.pickBand(point),
         };
+    }
+
+    pickBand(point: Point): AxisBandDatum | undefined {
+        if (!BandScale.is(this.scale)) {
+            return;
+        }
+
+        const { scale, range } = this;
+
+        const value = scale.invert(this.isVertical() ? point.y : point.x, true);
+
+        const bandwidth = scale.bandwidth ?? 0;
+        const step = scale.step ?? 0;
+        const offset = (step - bandwidth) / 2;
+
+        const position = scale.convert(value);
+
+        const start = position - offset;
+        const end = position + bandwidth + offset;
+
+        return {
+            id: this.id,
+            value,
+            band: [clampArray(start, range), clampArray(end, range)],
+            position,
+        };
+    }
+
+    private isVertical() {
+        return this.direction === ChartAxisDirection.Y;
     }
 
     isReversed() {

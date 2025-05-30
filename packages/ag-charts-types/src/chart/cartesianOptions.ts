@@ -14,6 +14,7 @@ import type {
     TimeInterval,
     TimeIntervalUnit,
 } from './axisOptions';
+import type { AgBandHighlightOptions } from './bandHighlightOptions';
 import type { Styler } from './callbackOptions';
 import type { AgBaseThemeableChartOptions } from './chartOptions';
 import type {
@@ -117,6 +118,8 @@ export interface AgCategoryAxisOptions<TContext = TContextDefault>
     paddingOuter?: Ratio;
     /** This property is for grouped column/bar series plotted on a category axis. It is a proportion between 0 and 1 which determines the size of the gap between the bars or columns within a single group along the axis. */
     groupPaddingInner?: Ratio;
+    /** Configuration for the axis band highlight. */
+    bandHighlight?: AgBandHighlightOptions;
 }
 
 type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;
@@ -135,6 +138,8 @@ export interface AgGroupedCategoryAxisOptions<TContext = TContextDefault>
     depthOptions?: AgGroupedCategoryDepthOptions[];
     /** Configuration for the axis ticks. */
     tick?: AgGroupedCategoryAxisTickOptions;
+    /** Configuration for the axis band highlight. */
+    bandHighlight?: AgBandHighlightOptions;
 }
 
 export interface AgTimeAxisOptions<TContext = TContextDefault>
@@ -152,6 +157,8 @@ export interface AgTimeAxisOptions<TContext = TContextDefault>
     paddingOuter?: Ratio;
     /** This property is for grouped column/bar series plotted on a category axis. It is a proportion between 0 and 1 which determines the size of the gap between the bars or columns within a single group along the axis. */
     groupPaddingInner?: Ratio;
+    /** Configuration for the axis band highlight. */
+    bandHighlight?: AgBandHighlightOptions;
 }
 
 export interface AgOrdinalTimeAxisOptions<TContext = TContextDefault>
@@ -167,6 +174,8 @@ export interface AgOrdinalTimeAxisOptions<TContext = TContextDefault>
     paddingOuter?: Ratio;
     /** This property is for grouped column/bar series plotted on a category axis. It is a proportion between 0 and 1 which determines the size of the gap between the bars or columns within a single group along the axis. */
     groupPaddingInner?: Ratio;
+    /** Configuration for the axis band highlight. */
+    bandHighlight?: AgBandHighlightOptions;
 }
 
 export interface AgNumberAxisOptions<TContext = TContextDefault>
