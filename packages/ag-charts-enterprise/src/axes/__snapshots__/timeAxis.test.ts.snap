@@ -39,7 +39,7 @@ exports[`Time Axis Examples when zooming for should render as expected as zoom [
 exports[`Time Axis Examples when zooming for should render as expected as zoom [0.25, 0.35] 1`] = `
 {
   "height": 25,
-  "width": 721.6666666666667,
+  "width": 721,
   "x": 59,
   "y": 493,
 }
