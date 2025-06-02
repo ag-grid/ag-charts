@@ -242,13 +242,13 @@ export class LineSeries extends CartesianSeries<
         }
 
         const yKey = this.dataModel?.hasColumnById(this, `yValueEnd`) ? 'yValueEnd' : 'yValueRaw';
-        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, [yKey], 'xValue', true);
+        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, [yKey], 'xValue');
         return fixNumericExtent(yExtent);
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): number[] {
         const yKey = this.dataModel?.hasColumnById(this, `yValueEnd`) ? 'yValueEnd' : 'yValueRaw';
-        return this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange, true);
+        return this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange);
     }
 
     override getVisibleItems(

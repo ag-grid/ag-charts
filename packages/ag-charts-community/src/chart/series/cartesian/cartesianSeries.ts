@@ -768,11 +768,24 @@ export abstract class CartesianSeries<
     protected abstract xCoordinateRange(xValue: any, pixelSize: number, index: number): [number, number];
     protected abstract yCoordinateRange(yValues: any[], pixelSize: number, index: number): [number, number];
 
-    protected visibleRange(axisKey: string, visibleRange: [any, any], indices?: number[]) {
+    protected visibleRange(
+        axisKey: string,
+        visibleRange: [any, any],
+        indices?: number[],
+        sortOrderParams?: { sortOrder: 1 | -1 }
+    ) {
+        let sortOrder: 1 | -1;
+        if (sortOrderParams == null) {
+            const { processedData, dataModel } = this;
+            sortOrder = dataModel!.getSortOrder(this, axisKey, processedData!) ?? 1;
+        } else {
+            sortOrder = sortOrderParams.sortOrder;
+        }
+
         const xValues = this.keysOrValues(axisKey);
         // @todo(AG-7083) - figure out how to determine this
         const pixelSize = 0;
-        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, (topIndex) => {
+        return visibleRangeIndices(sortOrder, indices?.length ?? xValues.length, visibleRange, (topIndex) => {
             const datumIndex = indices?.[topIndex] ?? topIndex;
             return this.xCoordinateRange(xValues[datumIndex], pixelSize, datumIndex);
         });
@@ -783,7 +796,6 @@ export abstract class CartesianSeries<
         axisKeys: string[],
         crossAxisKey: string,
         visibleRange: [any, any],
-        sorted: boolean,
         indices?: number[]
     ) {
         const { processedData, dataModel } = this;
@@ -791,8 +803,9 @@ export abstract class CartesianSeries<
         const [r0, r1] = visibleRange;
         const crossAxisValues = this.keysOrValues(crossAxisKey);
 
-        if (sorted) {
-            const crossAxisRange = this.visibleRange(crossAxisKey, visibleRange, indices);
+        const sortOrder = dataModel!.getSortOrder(this, crossAxisKey, processedData!);
+        if (sortOrder != null) {
+            const crossAxisRange = this.visibleRange(crossAxisKey, visibleRange, indices, { sortOrder });
             return dataModel!.getDomainBetweenRange(this, axisKeys, crossAxisRange, processedData!);
         }
 
@@ -816,12 +829,7 @@ export abstract class CartesianSeries<
         return [axisMin, axisMax];
     }
 
-    protected domainForClippedRange(
-        direction: ChartAxisDirection,
-        axisKeys: string[],
-        crossAxisKey: string,
-        sorted: boolean
-    ) {
+    protected domainForClippedRange(direction: ChartAxisDirection, axisKeys: string[], crossAxisKey: string) {
         const { processedData, dataModel, axes } = this;
 
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
@@ -832,8 +840,10 @@ export abstract class CartesianSeries<
         }
 
         const crossAxisValues = this.keysOrValues(crossAxisKey);
-        if (sorted) {
+        const sortOrder = dataModel!.getSortOrder(this, crossAxisKey, processedData!);
+        if (sortOrder != null) {
             const crossRange = clippedRangeIndices(
+                sortOrder,
                 crossAxisValues.length,
                 crossAxisRange,
                 (index) => crossAxisValues[index]
@@ -1205,22 +1215,34 @@ function axisExtent(axis: ChartAxis): [number | Date, number | Date] | undefined
     return [min, max];
 }
 
-function clippedRangeIndices(length: number, range: [any, any], xValue: (index: number) => any): [number, number] {
+function clippedRangeIndices(
+    sortOrder: 1 | -1,
+    length: number,
+    range: [any, any],
+    xValue: (index: number) => any
+): [number, number] {
     const range0 = range[0].valueOf();
     const range1 = range[1].valueOf();
 
-    const xMinIndex = findMinIndex(0, length - 1, (index) => {
+    let xMinIndex = findMinIndex(0, length - 1, (i) => {
+        const index = sortOrder === 1 ? i : length - i;
         const x = xValue(index)?.valueOf();
         return !Number.isFinite(x) || x >= range0;
     });
 
-    let xMaxIndex = findMaxIndex(0, length - 1, (index) => {
+    let xMaxIndex = findMaxIndex(0, length - 1, (i) => {
+        const index = sortOrder === 1 ? i : length - i;
         const x = xValue(index)?.valueOf();
         return !Number.isFinite(x) || x! <= range1;
     });
 
     if (xMinIndex == null || xMaxIndex == null) return [0, 0];
 
+    if (sortOrder === -1) {
+        [xMinIndex, xMaxIndex] = [length - xMaxIndex, length - xMinIndex];
+    }
+
+    xMinIndex = Math.max(xMinIndex, 0);
     xMaxIndex = Math.min(xMaxIndex + 1, length);
 
     return [xMinIndex, xMaxIndex];

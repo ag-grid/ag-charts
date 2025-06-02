@@ -259,7 +259,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
         }
 
         const yKey = this.dataModel?.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
-        let yExtent = this.domainForClippedRange(direction, [yKey], 'xValue', true);
+        let yExtent = this.domainForClippedRange(direction, [yKey], 'xValue');
         const yFilterExtent = this.crossFilteringEnabled()
             ? dataModel.getDomain(this, `yFilterValue`, 'value', processedData)
             : undefined;
@@ -279,7 +279,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
         const yKey = this.dataModel?.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
-        const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange, true);
+        const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange);
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 

@@ -276,7 +276,7 @@ export class AreaSeries extends CartesianSeries<
             return fixNumericExtent(extent(keys));
         }
 
-        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yValueCumulative'], 'xValue', true);
+        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yValueCumulative'], 'xValue');
 
         if (yAxis instanceof LogAxis || yAxis instanceof ContinuousTimeAxis) {
             return fixNumericExtent(yExtent);
@@ -289,13 +289,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const [y0, y1] = this.domainForVisibleRange(
-            ChartAxisDirection.Y,
-            ['yValueCumulative'],
-            'xValue',
-            visibleRange,
-            true
-        );
+        const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, ['yValueCumulative'], 'xValue', visibleRange);
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 

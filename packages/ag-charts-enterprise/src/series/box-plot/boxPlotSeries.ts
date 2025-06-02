@@ -125,12 +125,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             return this.padBandExtent(keys);
         }
 
-        const yExtent = this.domainForClippedRange(direction, ['minValue', 'maxValue'], 'xValue', true);
+        const yExtent = this.domainForClippedRange(direction, ['minValue', 'maxValue'], 'xValue');
         return fixNumericExtent(yExtent);
     }
 
     override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
-        return this.domainForVisibleRange(ChartAxisDirection.Y, ['maxValue', 'minValue'], 'xValue', visibleRange, true);
+        return this.domainForVisibleRange(ChartAxisDirection.Y, ['maxValue', 'minValue'], 'xValue', visibleRange);
     }
 
     override createNodeData() {
