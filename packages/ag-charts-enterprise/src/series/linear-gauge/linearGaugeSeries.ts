@@ -145,7 +145,7 @@ class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSuppor
         const { format } = this.label;
         let tickFormatter: ((value: number) => string) | undefined;
         if (format != null) {
-            tickFormat(ticks, typeof format === 'string' ? format : undefined);
+            tickFormatter = tickFormat(ticks, typeof format === 'string' ? format : undefined);
         }
 
         return (value: number, index: number): string => {

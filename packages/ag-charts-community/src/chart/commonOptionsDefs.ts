@@ -542,7 +542,7 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
     enabled: boolean,
     formatter: callback,
-    format: string,
+    format: numberFormatValidator,
     ...fontOptionsDef,
 };
 

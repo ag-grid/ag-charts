@@ -345,22 +345,25 @@ export class RadialGaugeSeries
         const tickFormatter = tickFormat(ticks, typeof label.format === 'string' ? label.format : undefined);
 
         const measurer = CachedTextMeasurerPool.getMeasurer({ font: label });
-        const tickData = ticks.map((value, index): RadialGaugeTickDatum => {
-            let text: string | undefined;
-            if (label.formatter) {
-                text = formatWithContext(this.ctx, label.formatter, {
-                    value,
-                    index,
-                    domain: scale.domain,
-                    boundSeries: undefined!,
-                });
-            }
-            if (text === undefined) {
-                text = tickFormatter(value);
-            }
-            const { width, height } = measurer.measureText(text);
-            return { index, value, text, width, height };
-        });
+        const tickData = ticks
+            .map((value, index): RadialGaugeTickDatum | undefined => {
+                let text: string | undefined;
+                if (label.formatter) {
+                    text = formatWithContext(this.ctx, label.formatter, {
+                        value,
+                        index,
+                        domain: scale.domain,
+                        boundSeries: undefined!,
+                    });
+                }
+                text ??= tickFormatter?.(value);
+
+                if (text == null) return;
+
+                const { width, height } = measurer.measureText(text);
+                return { index, value, text, width, height };
+            })
+            .filter((value): value is RadialGaugeTickDatum => value != null);
 
         const maxWidth = tickData.reduce((m, t) => Math.max(m, t.width), 0);
         const maxHeight = tickData.reduce((m, t) => Math.max(m, t.height), 0);
