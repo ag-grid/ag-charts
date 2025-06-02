@@ -34,7 +34,8 @@ const options: AgCartesianChartOptions = {
             maxSize: 50,
             size: 15,
             strokeWidth: 2,
-            itemStyler: ({ datum }) => {
+            itemStyler: ({ datum, highlighted }) => {
+                if (highlighted) return;
                 return {
                     fill: {
                         type: 'image',
@@ -53,14 +54,6 @@ const options: AgCartesianChartOptions = {
             },
             gridLine: {
                 enabled: false,
-            },
-            crosshair: {
-                label: {
-                    format: `#{d} CE`,
-                },
-            },
-            label: {
-                formatter: ({ value }) => (value === -250 ? `BCE` : value === 250 ? `CE` : `${value} CE`),
             },
             interval: {
                 values: [-250, 250],
@@ -81,14 +74,24 @@ const options: AgCartesianChartOptions = {
             },
             min: 0,
             max: 10,
-            label: {
-                formatter: ({ value }) => (value === 0 ? `Easy` : value === 10 ? `Difficult` : value),
-            },
             interval: {
                 values: [0, 10],
             },
         },
     ],
+    formatter: {
+        x: (params) => {
+            const value = params.value as number;
+            const era = value < 0 ? 'BCE' : 'CE';
+            if (params.source === 'axis') return era;
+            return `${Math.abs(value)} ${era}`;
+        },
+        y: (params) => {
+            const value = params.value as number;
+            if (params.source === 'axis') return value > 5 ? 'Difficult' : 'Easy';
+            return value.toFixed(0);
+        },
+    },
 };
 
 AgCharts.create(options);

@@ -25,16 +25,6 @@ const options: AgChartOptions = {
             calloutLabel: {
                 offset: 10,
             },
-            sectorLabel: {
-                formatter: ({ datum, sectorLabelKey = 'weight' }) => {
-                    return `${numFormatter.format(datum[sectorLabelKey])}g`;
-                },
-            },
-            tooltip: {
-                renderer: ({ datum, angleKey, calloutLabelKey = 'ingredient' }) => ({
-                    data: [{ label: `${datum[calloutLabelKey]}`, value: `${datum[angleKey]}g` }],
-                }),
-            },
             title: {
                 text: 'Recipe',
             },
@@ -43,5 +33,7 @@ const options: AgChartOptions = {
     legend: {
         enabled: false,
     },
+    formatter: (params) =>
+        typeof params.value === 'number' ? `${numFormatter.format(params.value)}g` : String(params.value),
 };
 AgCharts.create(options);

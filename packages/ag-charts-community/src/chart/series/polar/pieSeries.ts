@@ -1369,7 +1369,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, properties } = this;
+        const {
+            id: seriesId,
+            dataModel,
+            processedData,
+            properties,
+            ctx: { formatManager },
+        } = this;
         const {
             legendItemKey,
             calloutLabelKey,
@@ -1399,18 +1405,24 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             (sectorLabelKey === angleKey ? undefined : sectorLabelValues?.[datumIndex]) ??
             angleName;
 
+        const angleContent =
+            formatManager.format({
+                type: 'number',
+                value: angleRawValue,
+                datum,
+                key: angleKey,
+                source: 'tooltip',
+                property: 'angle',
+                boundSeries: this.getFormatterContext('angle'),
+                fractionDigits: undefined,
+            }) ?? formatValue(angleRawValue, 3);
+
         return this.formatTooltipWithContext(
             tooltip,
             {
                 title,
                 symbol: this.legendItemSymbol(datumIndex),
-                data: [
-                    {
-                        label,
-                        fallbackLabel: angleKey,
-                        value: formatValue(angleRawValue, 3),
-                    },
-                ],
+                data: [{ label, fallbackLabel: angleKey, value: angleContent }],
             },
             {
                 seriesId,

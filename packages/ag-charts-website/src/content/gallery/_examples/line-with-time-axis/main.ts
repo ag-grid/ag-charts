@@ -66,11 +66,6 @@ const options: AgChartOptions = {
             interval: {
                 step: { unit: 'year', step: 5 },
             },
-            crosshair: {
-                label: {
-                    format: `%b %Y`,
-                },
-            },
             crossLines: [
                 {
                     type: 'line',
@@ -88,11 +83,11 @@ const options: AgChartOptions = {
             title: {
                 text: `ktoe`,
             },
-            label: {
-                formatter: (params) => `${params.value / 1000}K`,
-            },
         },
     ],
+    formatter: {
+        y: (params) => `${(params.value as number) / 1000}K`,
+    },
 };
 
 AgCharts.create(options);

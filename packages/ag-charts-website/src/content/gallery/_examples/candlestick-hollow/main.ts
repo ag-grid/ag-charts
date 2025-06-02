@@ -53,24 +53,11 @@ const options: AgChartOptions = {
             gridLine: {
                 enabled: true,
             },
-            crosshair: {
-                label: {
-                    format: '%d %b %y',
-                },
-            },
         },
         {
             type: 'number',
             position: 'right',
             interval: { step: 10000 },
-            label: {
-                formatter: ({ value }) => Number(value).toLocaleString(),
-            },
-            crosshair: {
-                label: {
-                    format: `,f`,
-                },
-            },
         },
     ],
     tooltip: {
@@ -78,6 +65,9 @@ const options: AgChartOptions = {
             anchorTo: 'pointer',
             yOffset: -20,
         },
+    },
+    formatter: {
+        y: '#{,.0f}',
     },
 };
 AgCharts.create(options);

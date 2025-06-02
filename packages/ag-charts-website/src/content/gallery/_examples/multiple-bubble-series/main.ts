@@ -79,6 +79,11 @@ const options: AgChartOptions = {
             nice: false,
         },
     ],
+    formatter: {
+        x: '#{,.0f}',
+        y: '#{.0f}%',
+        size: (params) => `£${Math.round((params.value as number) / 1000)}k`,
+    },
 };
 
 AgCharts.create(options);

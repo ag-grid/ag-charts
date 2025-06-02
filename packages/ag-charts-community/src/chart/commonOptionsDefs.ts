@@ -212,17 +212,19 @@ export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
     ),
 };
 
+const formatter = or(string, callbackOf(string));
+
 export const formatObjectValidator = optionsDefs<Record<FormatterPropertyType, () => string>>({
-    x: callbackOf(string),
-    y: callbackOf(string),
-    angle: callbackOf(string),
-    radius: callbackOf(string),
-    size: callbackOf(string),
-    color: callbackOf(string),
-    label: callbackOf(string),
-    secondaryLabel: callbackOf(string),
-    sectorLabel: callbackOf(string),
-    calloutLabel: callbackOf(string),
+    x: formatter,
+    y: formatter,
+    angle: formatter,
+    radius: formatter,
+    size: formatter,
+    color: formatter,
+    label: formatter,
+    secondaryLabel: formatter,
+    sectorLabel: formatter,
+    calloutLabel: formatter,
 });
 
 export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, 'navigator'>> = {

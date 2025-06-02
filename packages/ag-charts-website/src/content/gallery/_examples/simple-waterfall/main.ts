@@ -3,6 +3,8 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 import { getData } from './data';
 
 const formatter = new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: 'GBP',
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
 });
@@ -29,21 +31,17 @@ const options: AgChartOptions = {
             item: {
                 positive: {
                     name: 'Outs',
+                    label: { enabled: true },
                     itemStyler: ({ datum, yKey }) => ({
                         fillOpacity: Math.max(0.5, datum[yKey] / 17.5),
                     }),
-                    label: {
-                        formatter: ({ value }) => `£${value}M`,
-                    },
                 },
                 negative: {
                     name: 'Ins',
+                    label: { enabled: true },
                     itemStyler: ({ datum, yKey }) => ({
                         fillOpacity: Math.max(0.5, Math.abs(datum[yKey]) / 75),
                     }),
-                    label: {
-                        formatter: ({ value }) => `-£${Math.abs(value)}M`,
-                    },
                 },
             },
         },
@@ -53,9 +51,6 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'left',
             interval: { values: [0, -148.1] },
-            label: {
-                formatter: ({ value }) => `-£${formatter.format(Math.abs(value))}M`,
-            },
         },
         {
             type: 'category',
@@ -65,6 +60,9 @@ const options: AgChartOptions = {
     ],
     legend: {
         position: 'top',
+    },
+    formatter: {
+        y: (params) => `${formatter.format(params.value as number)}M`,
     },
 };
 

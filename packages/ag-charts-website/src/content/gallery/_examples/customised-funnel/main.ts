@@ -28,16 +28,14 @@ const options: AgChartOptions = {
                 fill: stroke,
                 fillOpacity: getOpacity(datum[valueKey], valueKey as ValueKey, 0.4, 1),
             }),
-            label: {
-                formatter({ value }) {
-                    return value.toLocaleString();
-                },
-            },
             stageLabel: {
                 placement: 'before',
             },
         },
     ],
+    formatter: {
+        y: '#{,.0f}',
+    },
 };
 
 function getOpacity(value: number, key: ValueKey, minOpacity: number, maxOpacity: number) {

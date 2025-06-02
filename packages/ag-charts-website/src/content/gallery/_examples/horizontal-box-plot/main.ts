@@ -59,5 +59,8 @@ const options: AgChartOptions = {
             },
         },
     ],
+    formatter: {
+        x: '£#{,.0f}',
+    },
 };
 AgCharts.create(options);

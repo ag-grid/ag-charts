@@ -1,17 +1,6 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
-function renderer({ datum, yKey, title }: AgCartesianSeriesTooltipRendererParams) {
-    return {
-        data: [
-            {
-                label: title!,
-                value: datum[yKey].toFixed(1),
-            },
-        ],
-    };
-}
 
 const interpolation = { type: 'smooth' } as const;
 
@@ -30,10 +19,9 @@ const options: AgChartOptions = {
             xKey: 'date',
             yKey: 'coal',
             yName: 'Coal',
-            normalizedTo: 100,
+            normalizedTo: 1,
             stacked: true,
             interpolation,
-            tooltip: { renderer: renderer },
             fill: {
                 type: 'pattern',
             },
@@ -43,20 +31,18 @@ const options: AgChartOptions = {
             xKey: 'date',
             yKey: 'petroleum',
             yName: 'Petroleum',
-            normalizedTo: 100,
+            normalizedTo: 1,
             stacked: true,
             interpolation,
-            tooltip: { renderer: renderer },
         },
         {
             type: 'area',
             xKey: 'date',
             yKey: 'naturalGas',
             yName: 'Natural gas',
-            normalizedTo: 100,
+            normalizedTo: 1,
             stacked: true,
             interpolation,
-            tooltip: { renderer: renderer },
             fill: {
                 type: 'pattern',
             },
@@ -66,20 +52,18 @@ const options: AgChartOptions = {
             xKey: 'date',
             yKey: 'bioenergyWaste',
             yName: 'Bioenergy & waste',
-            normalizedTo: 100,
+            normalizedTo: 1,
             stacked: true,
             interpolation,
-            tooltip: { renderer: renderer },
         },
         {
             type: 'area',
             xKey: 'date',
             yKey: 'nuclear',
             yName: 'Nuclear',
-            normalizedTo: 100,
+            normalizedTo: 1,
             stacked: true,
             interpolation,
-            tooltip: { renderer: renderer },
             fill: {
                 type: 'pattern',
             },
@@ -89,20 +73,18 @@ const options: AgChartOptions = {
             xKey: 'date',
             yKey: 'windSolarHydro',
             yName: 'Wind, solar & hydro',
-            normalizedTo: 100,
+            normalizedTo: 1,
             stacked: true,
             interpolation,
-            tooltip: { renderer: renderer },
         },
         {
             type: 'area',
             xKey: 'date',
             yKey: 'imported',
             yName: 'Imported',
-            normalizedTo: 100,
+            normalizedTo: 1,
             stacked: true,
             interpolation,
-            tooltip: { renderer: renderer },
             fill: {
                 type: 'pattern',
             },
@@ -120,7 +102,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             label: {
-                format: '#{.0f}%',
+                format: '#{p}',
             },
             title: {
                 text: 'Normalized Percentage Energy',
@@ -129,6 +111,9 @@ const options: AgChartOptions = {
     ],
     legend: {
         position: 'top',
+    },
+    formatter: {
+        y: '#{.1f} Mtoe',
     },
 };
 

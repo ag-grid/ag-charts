@@ -79,13 +79,6 @@ const options: AgChartOptions = {
             type: 'number',
             label: {
                 spacing: 20,
-                formatter: ({ value }) => `${value}%`,
-            },
-            crosshair: {
-                label: {
-                    renderer: ({ value }) =>
-                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${numberFormatter.format(value)}%</div>`,
-                },
             },
         },
         {
@@ -109,6 +102,9 @@ const options: AgChartOptions = {
             },
         },
     ],
+    formatter: {
+        y: '#{~f}%',
+    },
 };
 
 AgCharts.create(options);

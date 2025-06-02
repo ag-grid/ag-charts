@@ -64,9 +64,6 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'right',
             nice: false,
-            label: {
-                formatter: ({ value }) => Number(value).toLocaleString(),
-            },
             gridLine: {
                 style: [
                     {
@@ -77,6 +74,9 @@ const options: AgChartOptions = {
             },
         },
     ],
+    formatter: {
+        y: '#{,.0f}',
+    },
 };
 
 AgCharts.create(options);

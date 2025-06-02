@@ -1,9 +1,4 @@
-import {
-    AgCartesianSeriesTooltipRendererParams,
-    AgChartOptions,
-    AgCharts,
-    AgTooltipRendererResult,
-} from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -22,7 +17,6 @@ const options: AgChartOptions = {
                     fillOpacity: 0.8,
                     label: {
                         enabled: true,
-                        formatter: ({ value }) => `${numFormatter.format(value)}`,
                     },
                 },
             },
@@ -101,5 +95,15 @@ const options: AgChartOptions = {
             },
         },
     ],
+    formatter: {
+        x(params) {
+            if (params.source === 'axis') {
+                return (params.value as string).replace(' ', '\n');
+            }
+        },
+        y(params) {
+            return numFormatter.format(params.value as number);
+        },
+    },
 };
 AgCharts.create(options);

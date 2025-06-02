@@ -638,7 +638,13 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     override getTooltipContent(datumIndex: FlowProportionNodeDatumIndex): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, linksProcessedData, nodesProcessedData, properties } = this;
+        const {
+            id: seriesId,
+            linksProcessedData,
+            nodesProcessedData,
+            properties,
+            ctx: { formatManager },
+        } = this;
         const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
 
         // This needs refactoring
@@ -686,12 +692,27 @@ export class SankeySeries extends FlowProportionSeries<
             format = nodeFormat as any;
         }
 
+        const data: _ModuleSupport.TooltipContentDataRow[] = [];
+        if (sizeKey != null) {
+            const content = formatManager.format({
+                type: 'number',
+                value: size,
+                datum,
+                key: sizeKey,
+                source: 'tooltip',
+                property: 'size',
+                boundSeries: this.getFormatterContext('size'),
+                fractionDigits: undefined,
+            });
+            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(size) });
+        }
+
         return this.formatTooltipWithContext(
             tooltip,
             {
                 title,
                 symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex, format),
-                data: sizeKey != null ? [{ label: sizeName, fallbackLabel: sizeKey, value: String(size) }] : [],
+                data,
             },
             {
                 seriesId,

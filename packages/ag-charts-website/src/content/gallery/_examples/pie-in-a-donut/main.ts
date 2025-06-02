@@ -11,20 +11,7 @@ const sharedSeriesOptions: AgPolarSeriesOptions = {
     type: 'pie',
     sectorLabelKey: 'share',
     angleKey: 'share',
-    sectorLabel: {
-        formatter: ({ datum, sectorLabelKey }) => {
-            return numFormatter.format(datum[sectorLabelKey!]);
-        },
-    },
     legendItemKey: 'browser',
-    tooltip: {
-        renderer: ({ datum, legendItemKey, angleKey }) => {
-            return {
-                title: datum['year'],
-                data: [{ label: datum[legendItemKey!], value: numFormatter.format(datum[angleKey!]) }],
-            };
-        },
-    },
 };
 
 const options: AgPolarChartOptions = {
@@ -55,6 +42,8 @@ const options: AgPolarChartOptions = {
             },
         },
     ],
+    formatter: (params) =>
+        typeof params.value === 'number' ? numFormatter.format(params.value) : String(params.value),
 };
 
 AgCharts.create(options);

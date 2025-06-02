@@ -66,6 +66,9 @@ const options: AgChartOptions = {
             },
         },
     ],
+    formatter: {
+        y: '#{,.0f}',
+    },
 };
 
 AgCharts.create(options);

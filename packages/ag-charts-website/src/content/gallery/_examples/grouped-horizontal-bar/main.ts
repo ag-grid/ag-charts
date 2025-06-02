@@ -20,7 +20,7 @@ const options: AgChartOptions = {
             yName: 'Male',
             cornerRadius: 20,
             label: {
-                formatter: ({ value }) => value.toFixed(0),
+                enabled: true,
             },
         },
         {
@@ -31,7 +31,7 @@ const options: AgChartOptions = {
             yName: 'Female',
             cornerRadius: 20,
             label: {
-                formatter: ({ value }) => value.toFixed(0),
+                enabled: true,
             },
         },
     ],
