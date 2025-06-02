@@ -45,6 +45,8 @@ jobs:
     init:
         runs-on: ubuntu-24.04
         name: Initialise Workflow
+        permissions:
+            contents: write
         env:
             AG_FORCE_ALL_TESTS: 1
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
@@ -184,6 +186,8 @@ jobs:
     test:
         runs-on: ubuntu-24.04
         name: Unit & Integration Tests (${{ matrix.shard }}/${{ strategy.job-total }})
+        permissions:
+            contents: write
         needs: init
         if: needs.init.outputs.test_count > 0
         strategy:
@@ -245,6 +249,8 @@ jobs:
     e2e:
         runs-on: ubuntu-latest
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
+        permissions:
+            contents: write
         needs: init
         if: needs.init.outputs.e2e_count > 0
         strategy:
@@ -298,6 +304,8 @@ jobs:
     fw_pkg_test:
         runs-on: ubuntu-24.04
         name: Framework Package Tests (${{ matrix.framework }})
+        permissions:
+            contents: write
         needs: init
         strategy:
             fail-fast: false
@@ -341,6 +349,8 @@ jobs:
 
     report:
         runs-on: ubuntu-24.04
+        permissions:
+            pull-requests: write
         needs: [init, build_lint, test, e2e, sonarqube, fw_pkg_test]
         if: cancelled() != true
         steps:
