@@ -30,6 +30,7 @@ export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDa
     readonly labelValue: string | undefined;
     readonly colorValue: number | undefined;
     readonly sizeValue: number | undefined;
+    readonly legendItemName: string | undefined;
     readonly point: Readonly<_ModuleSupport.SizedPoint>;
 }
 

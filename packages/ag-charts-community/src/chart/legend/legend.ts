@@ -1049,7 +1049,13 @@ export class Legend extends BaseProperties {
         }
 
         if (datum?.enabled && series) {
-            this.updateHighlight({ series, itemId: datum?.itemId, datum: undefined, datumIndex: undefined });
+            this.updateHighlight({
+                series,
+                itemId: datum?.itemId,
+                datum: undefined,
+                datumIndex: undefined,
+                legendItemName: datum?.legendItemName,
+            });
         } else {
             this.updateHighlight();
         }

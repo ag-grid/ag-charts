@@ -356,7 +356,7 @@ export class MapMarkerSeries
 
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, sizeScale, properties, scale } = this;
-        const { idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, label } = properties;
+        const { idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, label, legendItemName } = properties;
 
         if (dataModel == null || processedData == null || scale == null) return;
 
@@ -436,6 +436,7 @@ export class MapMarkerSeries
                     colorValue,
                     point: { x, y, size },
                     midPoint: { x, y },
+                    legendItemName,
                 });
             } else if (projectedGeometry != null) {
                 markerPositions(projectedGeometry, 1).forEach(([x, y], index) => {
@@ -458,6 +459,7 @@ export class MapMarkerSeries
                         colorValue,
                         point: { x, y, size },
                         midPoint: { x, y },
+                        legendItemName,
                     });
                 });
             }
@@ -506,7 +508,13 @@ export class MapMarkerSeries
         this.contentGroup.opacity = this.getOpacity();
 
         let highlightedDatum: MapMarkerNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.datum == null)) {
+        const { legendItemName } = this.properties;
+        const matchingLegendItemName = legendItemName != null && legendItemName === highlightedDatum?.legendItemName;
+
+        if (
+            highlightedDatum != null &&
+            ((highlightedDatum.series !== this && !matchingLegendItemName) || highlightedDatum.datum == null)
+        ) {
             highlightedDatum = undefined;
         }
 

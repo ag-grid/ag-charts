@@ -1,5 +1,6 @@
 import { findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
 
+import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { BandScale } from '../../../scale/bandScale';
@@ -366,10 +367,19 @@ export abstract class CartesianSeries<
         this._contextNodeData = undefined;
     }
 
+    protected override isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined) {
+        const { series, legendItemName: activeLegendItemName } = highlightedDatum ?? {};
+
+        const { legendItemName } = this.properties;
+
+        return series === this || (legendItemName != null && legendItemName === activeLegendItemName);
+    }
+
     update({ seriesRect }: { seriesRect?: BBox }) {
         const { visible, _contextNodeData: previousContextData } = this;
-        const series = this.ctx.highlightManager?.getActiveHighlight()?.series;
-        const seriesHighlighted = series === this;
+
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
 
         const resize = this.checkResize(seriesRect);
         const highlightItems = this.updateHighlightSelection(seriesHighlighted);
