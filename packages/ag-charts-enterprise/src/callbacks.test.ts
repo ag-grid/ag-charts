@@ -1,17 +1,66 @@
 import { afterEach, describe, expect } from '@jest/globals';
 
-import { AgChartInstance, AgCharts, AgLinearGaugeOptions, AgRadialGaugeOptions } from 'ag-charts-community';
+import {
+    AgChartInstance,
+    AgChartOptions,
+    AgCharts,
+    AgLinearGaugeOptions,
+    AgRadialGaugeOptions,
+    AgZoomEvent,
+} from 'ag-charts-community';
 import {
     AgLinearGaugeOptionsWithContext,
     AgRadialGaugeOptionsWithContext,
     MockChartLabelFormatter,
+    MockZoomListener,
     newFreezableMock,
+    scrollAction,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from './test/utils';
+
+describe('AG-14631 context enterprise', () => {
+    setupMockConsole();
+    setupMockCanvas();
+    let chart: AgChartInstance;
+    afterEach(() => {
+        chart?.destroy();
+        (chart as unknown) = undefined;
+    });
+
+    async function createChart(options: AgChartOptions): Promise<AgChartInstance> {
+        prepareEnterpriseTestOptions(options);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        return chart;
+    }
+
+    test('zoom', async () => {
+        const zoomListener = newFreezableMock<MockZoomListener>((_params: AgZoomEvent) => {});
+        const context = { name: 'chart context' } as const;
+        const opts: AgChartOptions<{ x: number; y: number }, typeof context> = {
+            data: [
+                { x: 0, y: 0 },
+                { x: 1, y: 1 },
+                { x: 2, y: 2 },
+            ],
+            context,
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            zoom: { enabled: true },
+            listeners: { zoom: zoomListener.frozen },
+        };
+
+        chart = await createChart(opts);
+        await scrollAction(400, 300, -1)(chart);
+        await scrollAction(400, 300, 1)(chart);
+
+        expect(Object.isFrozen(context)).toBe(false);
+        zoomListener.expect().toHaveBeenCalledTimes(2).withContext(context);
+    });
+});
 
 describe('AG-13024 API context gauges', () => {
     setupMockConsole();

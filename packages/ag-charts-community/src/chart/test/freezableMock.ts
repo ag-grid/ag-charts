@@ -2,6 +2,7 @@ import { Caster } from 'ag-charts-test';
 import type {
     AgBarSeriesOptions,
     AgBarSeriesThemeableOptions,
+    AgBaseChartListeners,
     AgCartesianAxisOptions,
     AgChartLabelOptions,
 } from 'ag-charts-types';
@@ -12,13 +13,16 @@ export type MockSeriesLabelFormatter = NonNullable<NonNullable<AgBarSeriesThemea
 export type MockTooltipRenderer = NonNullable<NonNullable<AgBarSeriesThemeableOptions['tooltip']>['renderer']>;
 export type MockErrorBarStyler = NonNullable<NonNullable<AgBarSeriesOptions['errorBar']>['itemStyler']>;
 export type MockChartLabelFormatter = NonNullable<NonNullable<AgChartLabelOptions<unknown, unknown>['formatter']>>;
+export type MockZoomListener = NonNullable<NonNullable<AgBaseChartListeners<unknown>['zoom']>>;
 
 type APICallback =
     | MockItemStyler
     | MockAxisLabelFormatter
     | MockSeriesLabelFormatter
     | MockTooltipRenderer
-    | MockErrorBarStyler;
+    | MockErrorBarStyler
+    | MockChartLabelFormatter
+    | MockZoomListener;
 
 // AG Charts calls Object.freeze on theme options, so we must create intermediate functions to circumvent that.
 export function newFreezableMock<F extends APICallback>(mockImp?: F) {
