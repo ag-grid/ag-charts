@@ -55,7 +55,8 @@ const options: AgChartOptions = {
     formatter: {
         x(params) {
             if (params.type !== 'number') return;
-            const fractionDigits = Math.max(params.fractionDigits - 1, 0);
+            let fractionDigits = params.fractionDigits ?? 0;
+            fractionDigits = Math.max(fractionDigits - 1, 0);
             return `${(params.value / 1000).toFixed(fractionDigits)}K`;
         },
     },
