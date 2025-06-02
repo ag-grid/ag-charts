@@ -132,10 +132,9 @@ describe('AG-14631 context enterprise', () => {
         });
 
         afterEach(() => {
-            expect(Object.isFrozen(alwaysAction)).toBe(false);
-            expect(Object.isFrozen(seriesAreaAction)).toBe(false);
-            expect(Object.isFrozen(seriesNodeAction)).toBe(false);
-            expect(Object.isFrozen(legendItemAction)).toBe(false);
+            expect(Object.isFrozen(chartContext)).toBe(false);
+            expect(Object.isFrozen(series0Context)).toBe(false);
+            expect(Object.isFrozen(series1Context)).toBe(false);
         });
 
         test('always', async () => {
