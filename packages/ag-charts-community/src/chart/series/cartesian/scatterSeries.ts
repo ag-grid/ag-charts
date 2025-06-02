@@ -130,12 +130,12 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
         const crossId = dataValues[crossDirection]!;
 
-        const ext = this.domainForClippedRange(direction, [id], crossId, false);
+        const ext = this.domainForClippedRange(direction, [id], crossId);
         return fixNumericExtent(extent(ext));
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
-        return this.domainForVisibleRange(ChartAxisDirection.Y, ['yValue'], 'xValue', visibleRange, false);
+        return this.domainForVisibleRange(ChartAxisDirection.Y, ['yValue'], 'xValue', visibleRange);
     }
 
     override getVisibleItems(

@@ -49,22 +49,30 @@ export function datumStylerProperties<TDatum extends { xValue: any; yValue: any 
 }
 
 export function visibleRangeIndices(
+    sortOrder: 1 | -1,
     length: number,
     [range0, range1]: [number, number],
     xRange: (index: number) => [number, number] | undefined
 ): [number, number] {
-    const xMinIndex =
-        findMinIndex(0, length - 1, (index) => {
+    let xMinIndex =
+        findMinIndex(0, length - 1, (i) => {
+            const index = sortOrder === 1 ? i : length - i;
             const x1 = xRange(index)?.[1] ?? NaN;
             return !Number.isFinite(x1) || x1 > range0;
         }) ?? 0;
 
     let xMaxIndex =
-        findMaxIndex(0, length - 1, (index) => {
+        findMaxIndex(0, length - 1, (i) => {
+            const index = sortOrder === 1 ? i : length - i;
             const x0 = xRange(index)?.[0] ?? NaN;
             return !Number.isFinite(x0) || x0 < range1;
         }) ?? length - 1;
 
+    if (sortOrder === -1) {
+        [xMinIndex, xMaxIndex] = [length - xMaxIndex, length - xMinIndex];
+    }
+
+    xMinIndex = Math.max(xMinIndex, 0);
     xMaxIndex = Math.min(xMaxIndex + 1, length);
 
     return [xMinIndex, xMaxIndex];

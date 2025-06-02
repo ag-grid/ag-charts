@@ -256,7 +256,7 @@ export abstract class BaseFunnelSeries<
             }
             return this.padBandExtent(keys);
         } else {
-            const yExtent = this.domainForClippedRange(direction, ['yValue'], 'xValue', true);
+            const yExtent = this.domainForClippedRange(direction, ['yValue'], 'xValue');
             const maxExtent = Math.max(...yExtent);
             const fixedYExtent = [-maxExtent, maxExtent];
             return fixNumericExtent(fixedYExtent);

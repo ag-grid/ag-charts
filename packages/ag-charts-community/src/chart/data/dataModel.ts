@@ -4,6 +4,7 @@ import { Debug } from '../../util/debug';
 import type { ChartMode } from '../chartMode';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
 import { RangeLookup } from './rangeLookup';
+import { type SortOrder, valuesSortOrder } from './sortOrder';
 
 export interface ScopeProvider {
     id: string;
@@ -25,6 +26,7 @@ export interface UngroupedDataItem<I, D, V> {
     validScopes?: Set<string>;
 }
 
+const SORT_ORDERS = Symbol('sort-orders');
 const DOMAIN_RANGES = Symbol('domain-ranges');
 
 type ScopeId = string;
@@ -64,6 +66,7 @@ interface CommonMetadata<D> {
     partialValidDataCount: number;
     time: number;
     [DOMAIN_RANGES]: Map<string, RangeLookup>;
+    [SORT_ORDERS]: Map<number, { sortOrder: SortOrder }>;
 }
 
 export interface UngroupedData<D> extends CommonMetadata<D> {
@@ -576,6 +579,18 @@ export class DataModel<
         return rangeLookup.rangeBetween(i0, i1);
     }
 
+    getSortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
+        const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
+        const sortOrders = processedData[SORT_ORDERS];
+        let sortOrder = sortOrders.get(columnIndex);
+        if (sortOrder == null) {
+            const values = processedData.columns[columnIndex];
+            sortOrder = { sortOrder: valuesSortOrder(values) };
+            sortOrders.set(columnIndex, sortOrder);
+        }
+        return sortOrder.sortOrder;
+    }
+
     private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
         switch (type) {
             case 'key':
@@ -772,6 +787,7 @@ export class DataModel<
             partialValidDataCount,
             time: 0,
             [DOMAIN_RANGES]: new Map(),
+            [SORT_ORDERS]: new Map(),
         } satisfies UngroupedData<D>;
     }
 

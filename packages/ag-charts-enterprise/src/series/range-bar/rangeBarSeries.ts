@@ -208,20 +208,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             }
             return this.padBandExtent(keys);
         } else {
-            const yExtent = this.domainForClippedRange(direction, ['yHighValue', 'yLowValue'], 'xValue', true);
+            const yExtent = this.domainForClippedRange(direction, ['yHighValue', 'yLowValue'], 'xValue');
             const fixedYExtent = findMinMax(yExtent);
             return fixNumericExtent(fixedYExtent);
         }
     }
 
     override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
-        return this.domainForVisibleRange(
-            ChartAxisDirection.Y,
-            ['yHighValue', 'yLowValue'],
-            'xValue',
-            visibleRange,
-            true
-        );
+        return this.domainForVisibleRange(ChartAxisDirection.Y, ['yHighValue', 'yLowValue'], 'xValue', visibleRange);
     }
 
     override createNodeData() {
@@ -350,7 +344,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (dataAggregationFilter != null) {
             const { maxRange, indexData } = dataAggregationFilter;
-            const [start, end] = visibleRangeIndices(maxRange, xAxis.range, (index) => {
+            const [start, end] = visibleRangeIndices(1, maxRange, xAxis.range, (index) => {
                 const aggIndex = index * SPAN;
                 const xMinIndex = indexData[aggIndex + X_MIN];
                 const xMaxIndex = indexData[aggIndex + X_MAX];
@@ -381,7 +375,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 handleDatum(midDatumIndex, 0, x, width, yLow, yHigh, false);
             }
         } else if (processedData.type === 'ungrouped') {
-            let [start, end] = visibleRangeIndices(rawData.length, xAxis.range, (index) => {
+            let [start, end] = visibleRangeIndices(1, rawData.length, xAxis.range, (index) => {
                 const x = xPosition(index);
                 return [x, effectiveBarWidth];
             });
