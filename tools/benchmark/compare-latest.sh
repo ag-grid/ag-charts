@@ -76,13 +76,18 @@ echo "Running benchmarks on ${branch} against ${base_name}"
 echo "${base} (${base_name}) vs ${head} (${branch})"
 
 data_file="${root}/reports/benchmark-data.ts"
-git checkout ${base} && git restore --source $head -- ${tools_dir}
-benchmark
-node ${tools_dir}/collate-reports.js --name "${base_name}-${base}" --data-file "$data_file"
 
-git stash -u && git checkout ${head}
 benchmark
 node ${tools_dir}/collate-reports.js --name "${branch}-${head}" --data-file "$data_file"
+
+git stash -u && git checkout ${base} && git restore --source $head -- ${tools_dir}
+if ! git diff --quiet ${head} ${base} -- yarn.lock; then
+    echo "yarn.lock has changed, running yarn..."
+    yarn
+fi
+
+benchmark
+node ${tools_dir}/collate-reports.js --name "${base_name}-${base}" --data-file "$data_file"
 
 output=${root}/reports/benchmark.log
 if [[ ${format} == "json" ]] ; then
