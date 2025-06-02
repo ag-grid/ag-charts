@@ -1,3 +1,4 @@
+import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -285,5 +286,16 @@ export abstract class PolarSeries<
 
     override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
         return [NaN, NaN];
+    }
+
+    protected override isSeriesHighlighted(
+        highlightedDatum: HighlightNodeDatum | undefined,
+        legendItemValues?: string[]
+    ) {
+        const { series, legendItemName: activeLegendItemName, itemId } = highlightedDatum ?? {};
+
+        const legendItemName = legendItemValues?.[itemId];
+
+        return series === this || (legendItemName != null && legendItemName === activeLegendItemName);
     }
 }

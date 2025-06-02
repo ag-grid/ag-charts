@@ -256,7 +256,7 @@ export class MapLineSeries extends TopologySeries<
 
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, sizeScale, properties, scale } = this;
-        const { idKey, sizeKey, colorKey, labelKey, label } = properties;
+        const { idKey, sizeKey, colorKey, labelKey, label, legendItemName } = properties;
 
         if (dataModel == null || processedData == null) return;
 
@@ -317,6 +317,7 @@ export class MapLineSeries extends TopologySeries<
                 colorValue,
                 sizeValue,
                 projectedGeometry,
+                legendItemName,
             });
         });
 
@@ -353,7 +354,14 @@ export class MapLineSeries extends TopologySeries<
         this.contentGroup.opacity = this.getOpacity();
 
         let highlightedDatum: MapLineNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.datum == null)) {
+
+        const { legendItemName } = this.properties;
+        const matchingLegendItemName = legendItemName != null && legendItemName === highlightedDatum?.legendItemName;
+
+        if (
+            highlightedDatum != null &&
+            ((highlightedDatum.series !== this && !matchingLegendItemName) || highlightedDatum.datum == null)
+        ) {
             highlightedDatum = undefined;
         }
 
