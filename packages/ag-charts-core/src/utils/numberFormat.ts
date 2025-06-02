@@ -1,3 +1,4 @@
+import { Logger } from '../globals';
 import { clamp } from './numbers';
 import { isString } from './typeGuards';
 
@@ -26,7 +27,7 @@ export function isValidNumberFormat(value: unknown): boolean {
     return formatRegEx.test(match ? match[2] : value);
 }
 
-export function parseNumberFormat(format: string): FormatterOptions {
+export function parseNumberFormat(format: string): FormatterOptions | undefined {
     let prefix: string | undefined;
     let suffix: string | undefined;
     const surrounded = surroundedRegEx.exec(format);
@@ -36,8 +37,10 @@ export function parseNumberFormat(format: string): FormatterOptions {
 
     const match = formatRegEx.exec(format);
     if (!match) {
-        throw new Error(`The number formatter is invalid: ${format}`);
+        Logger.warnOnce(`The number formatter is invalid: ${format}`);
+        return;
     }
+
     const [, fill, align, sign, symbol, zero, width, comma, precision, trim, type] = match;
     return {
         fill,
@@ -55,8 +58,11 @@ export function parseNumberFormat(format: string): FormatterOptions {
     };
 }
 
+export function createNumberFormatter(format: FormatterOptions): (n: number, fractionDigits?: number) => string;
+export function createNumberFormatter(format: string): ((n: number, fractionDigits?: number) => string) | undefined;
 export function createNumberFormatter(format: string | FormatterOptions) {
     const options = typeof format === 'string' ? parseNumberFormat(format) : format;
+    if (options == null) return;
     const { fill, align, sign = '-', symbol, zero, width, comma, type, prefix = '', suffix = '', precision } = options;
     let { trim } = options;
 

@@ -183,8 +183,10 @@ function decimalPlaces(decimal: string) {
     return 0;
 }
 
-export function tickFormat(ticks: any[], format?: string): (n: number | { valueOf(): number }) => string {
+export function tickFormat(ticks: any[], format?: string): ((n: number | { valueOf(): number }) => string) | undefined {
     const options = parseNumberFormat(format ?? ',f');
+    if (options == null) return;
+
     if (options.precision == null || isNaN(options.precision)) {
         if (!options.type || 'eEFgGnprs'.includes(options.type)) {
             options.precision = Math.max(

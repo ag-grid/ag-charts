@@ -190,28 +190,28 @@ describe('LinearScale', () => {
             const scale = new LinearScale();
             const domain = [-50000000, 50000000];
             const { ticks } = scale.ticks(tickFormatParams, domain);
-            const f = tickFormat(ticks, '~s');
+            const f = tickFormat(ticks, '~s')!;
             expect(f(43000000)).toBe('43M');
         }
         {
             const scale = new LinearScale();
             const domain = [-50000000, 50000000];
             const { ticks } = scale.ticks(tickFormatParams, domain);
-            const f = tickFormat(ticks, '~s');
+            const f = tickFormat(ticks, '~s')!;
             expect(f(-43000000)).toBe('−43M');
         }
         {
             const scale = new LinearScale();
             const domain = [-50000000, 50000000];
             const { ticks } = scale.ticks(tickFormatParams, domain);
-            const f = tickFormat(ticks, '~s');
+            const f = tickFormat(ticks, '~s')!;
             expect(f(43500000)).toBe('44M');
         }
         {
             const scale = new LinearScale();
             const domain = [35000000, 44000000];
             const { ticks } = scale.ticks(tickFormatParams, domain);
-            const f = tickFormat(ticks, '~s');
+            const f = tickFormat(ticks, '~s')!;
             const expectedTicks = ['36M', '38M', '40M', '42M', '44M'];
             const actualTicks = scale.ticks(tickFormatParams, domain).ticks.map((t) => f(t));
             expect(actualTicks).toEqual(expectedTicks);
@@ -220,7 +220,7 @@ describe('LinearScale', () => {
             const scale = new LinearScale();
             const domain = [3500000, 4400000];
             const { ticks } = scale.ticks(tickFormatParams, domain);
-            const f = tickFormat(ticks, '~s');
+            const f = tickFormat(ticks, '~s')!;
             const expectedTicks = ['3.6M', '3.8M', '4M', '4.2M', '4.4M'];
             const actualTicks = scale.ticks(tickFormatParams, domain).ticks.map((t) => f(t));
             expect(actualTicks).toEqual(expectedTicks);
@@ -229,7 +229,7 @@ describe('LinearScale', () => {
             const scale = new LinearScale();
             const domain = [0.0034, 0.0044];
             const { ticks } = scale.ticks(tickFormatParams, domain);
-            const f = tickFormat(ticks, '~s');
+            const f = tickFormat(ticks, '~s')!;
             const expectedTicks = ['3.4m', '3.6m', '3.8m', '4m', '4.2m', '4.4m'];
             const actualTicks = scale.ticks(tickFormatParams, domain).ticks.map((t) => f(t));
             expect(actualTicks).toEqual(expectedTicks);
@@ -238,7 +238,7 @@ describe('LinearScale', () => {
             const scale = new LinearScale();
             const domain = [0.0034, 0.0044];
             const { ticks } = scale.ticks(tickFormatParams, domain);
-            const f = tickFormat(ticks, 'f');
+            const f = tickFormat(ticks, 'f')!;
             const expectedTicks = ['0.0034', '0.0036', '0.0038', '0.0040', '0.0042', '0.0044'];
             const actualTicks = scale.ticks(tickFormatParams, domain).ticks.map((t) => f(t));
             expect(actualTicks).toEqual(expectedTicks);
@@ -247,7 +247,7 @@ describe('LinearScale', () => {
             const scale = new LinearScale();
             const domain = [34, 44];
             const { ticks } = scale.ticks(tickFormatParams, domain);
-            const f = tickFormat(ticks, 'f');
+            const f = tickFormat(ticks, 'f')!;
             const expectedTicks = ['34', '36', '38', '40', '42', '44'];
             const actualTicks = scale.ticks(tickFormatParams, domain).ticks.map((t) => f(t));
             expect(actualTicks).toEqual(expectedTicks);
@@ -256,14 +256,14 @@ describe('LinearScale', () => {
             const scale = new LinearScale();
             const domain = [35, 36];
             const { ticks } = scale.ticks(tickFormatParams, domain);
-            const f = tickFormat(ticks, 'f');
+            const f = tickFormat(ticks, 'f')!;
             const expectedTicks = ['35.0', '35.2', '35.4', '35.6', '35.8', '36.0'];
             const actualTicks = ticks.map((t) => f(t));
             expect(actualTicks).toEqual(expectedTicks);
         }
 
         const singlePointFormat = (n: number, specifier: string) => {
-            const format = tickFormat([n], specifier);
+            const format = tickFormat([n], specifier)!;
             return format(n);
         };
 
