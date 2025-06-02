@@ -13,7 +13,7 @@ export type MockSeriesLabelFormatter = NonNullable<NonNullable<AgBarSeriesThemea
 export type MockTooltipRenderer = NonNullable<NonNullable<AgBarSeriesThemeableOptions['tooltip']>['renderer']>;
 export type MockErrorBarStyler = NonNullable<NonNullable<AgBarSeriesOptions['errorBar']>['itemStyler']>;
 export type MockChartLabelFormatter = NonNullable<NonNullable<AgChartLabelOptions<unknown, unknown>['formatter']>>;
-export type MockZoomListener = NonNullable<NonNullable<AgBaseChartListeners<unknown>['zoom']>>;
+export type MockZoomListener = NonNullable<AgBaseChartListeners<unknown>['zoom']>;
 
 type APICallback =
     | MockItemStyler
