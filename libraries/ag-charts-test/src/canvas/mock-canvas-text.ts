@@ -105,7 +105,7 @@ function getFontSize(context: CanvasRenderingContext2D) {
 }
 
 function isFontBold(context: CanvasRenderingContext2D) {
-    return context.font.includes('bold');
+    return context.font.includes('bold') || context.font.includes('700');
 }
 
 function getPixelSize(context: CanvasRenderingContext2D) {
