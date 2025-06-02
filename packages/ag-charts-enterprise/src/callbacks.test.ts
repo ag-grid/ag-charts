@@ -167,13 +167,13 @@ describe('AG-14631 context enterprise', () => {
             await clickMenuItem('series-node');
 
             alwaysAction.expect().toHaveBeenCalledTimes(0);
-            seriesNodeAction.expect().toHaveBeenCalledTimes(0);
+            seriesAreaAction.expect().toHaveBeenCalledTimes(0);
             legendItemAction.expect().toHaveBeenCalledTimes(0);
 
-            seriesAreaAction.expect().toHaveBeenCalledTimes(3);
-            seriesAreaAction.expect().nthCalledWithContext(0, series0Context);
-            seriesAreaAction.expect().nthCalledWithContext(1, series1Context);
-            seriesAreaAction.expect().nthCalledWithoutContext(2);
+            seriesNodeAction.expect().toHaveBeenCalledTimes(3);
+            seriesNodeAction.expect().nthCalledWithContext(0, series0Context);
+            seriesNodeAction.expect().nthCalledWithContext(1, series1Context);
+            seriesNodeAction.expect().nthCalledWithoutContext(2);
         });
 
         test('legend-item', async () => {
