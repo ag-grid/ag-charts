@@ -799,7 +799,13 @@ export class MapMarkerSeries
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, properties } = this;
+        const {
+            id: seriesId,
+            dataModel,
+            processedData,
+            properties,
+            ctx: { formatManager },
+        } = this;
         const {
             idKey,
             idName,
@@ -831,15 +837,44 @@ export class MapMarkerSeries
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        if (sizeValue != null) {
-            data.push({ label: sizeName, fallbackLabel: sizeKey!, value: String(sizeValue) });
+        if (sizeKey != null && sizeValue != null) {
+            const content = formatManager.format({
+                type: 'number',
+                value: sizeValue,
+                datum,
+                key: sizeKey,
+                source: 'tooltip',
+                property: 'size',
+                boundSeries: this.getFormatterContext('size'),
+                fractionDigits: undefined,
+            });
+            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(sizeValue) });
         }
-        if (colorValue != null) {
-            data.push({ label: colorName, fallbackLabel: colorKey!, value: String(colorValue) });
+        if (colorKey != null && colorValue != null) {
+            const content = formatManager.format({
+                type: 'number',
+                value: colorValue,
+                datum,
+                key: colorKey,
+                source: 'tooltip',
+                property: 'color',
+                boundSeries: this.getFormatterContext('color'),
+                fractionDigits: undefined,
+            });
+            data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? String(colorValue) });
         }
         if (labelKey != null && labelKey !== idKey) {
             const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
-            data.push({ label: labelName, fallbackLabel: labelKey, value: labelValue });
+            const content = formatManager.format({
+                type: 'category',
+                value: labelValue,
+                datum,
+                key: labelKey,
+                source: 'tooltip',
+                property: 'label',
+                boundSeries: this.getFormatterContext('label'),
+            });
+            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
         }
 
         let heading: string | undefined;

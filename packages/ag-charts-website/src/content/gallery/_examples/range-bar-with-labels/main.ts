@@ -1,37 +1,6 @@
-import {
-    AgCartesianChartOptions,
-    AgChartOptions,
-    AgCharts,
-    AgRangeBarSeriesTooltipRendererParams,
-    AgSeriesTooltip,
-} from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
-const tooltip: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<any>> = {
-    renderer: ({ datum, xKey, yLowKey, yHighKey, yLowName, yHighName }) => {
-        return {
-            heading: undefined,
-            title: datum[xKey],
-            data: [
-                {
-                    label: yLowName!,
-                    value: datum[yLowKey].toLocaleString('en-GB', {
-                        notation: 'compact',
-                        compactDisplay: 'short',
-                    }),
-                },
-                {
-                    label: yHighName!,
-                    value: datum[yHighKey].toLocaleString('en-GB', {
-                        notation: 'compact',
-                        compactDisplay: 'short',
-                    }),
-                },
-            ],
-        };
-    },
-};
 
 const data: any[] = getData();
 
@@ -63,9 +32,7 @@ const options: AgCartesianChartOptions = {
             label: {
                 placement: 'outside',
                 color: 'rgb(118,118,118)',
-                formatter: ({ value }) => `£${value / 1000}K`,
             },
-            tooltip,
         },
     ],
     axes: [
@@ -77,9 +44,6 @@ const options: AgCartesianChartOptions = {
         {
             type: 'number',
             position: 'right',
-            label: {
-                formatter: ({ value }) => Number(value).toLocaleString(),
-            },
             gridLine: {
                 style: [
                     {
@@ -94,6 +58,15 @@ const options: AgCartesianChartOptions = {
         padding: {
             right: 25,
         },
+    },
+    formatter: {
+        y: (params) =>
+            (params.value as number).toLocaleString('en-GB', {
+                style: 'currency',
+                currency: 'GBP',
+                notation: 'compact',
+                compactDisplay: 'short',
+            }),
     },
 };
 

@@ -2,11 +2,7 @@ import { AgChartOptions, AgCharts, AgRangeAreaSeriesTooltipRendererParams } from
 
 import { getData } from './data';
 
-const tooltip = {
-    renderer: ({ datum, xKey }: AgRangeAreaSeriesTooltipRendererParams) => ({
-        heading: Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short' }).format(datum[xKey]),
-    }),
-};
+const dateFormatter = Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short' });
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -35,7 +31,6 @@ const options: AgChartOptions = {
                           : '';
                 },
             },
-            tooltip,
         },
     ],
     axes: [
@@ -48,16 +43,8 @@ const options: AgChartOptions = {
             gridLine: {
                 enabled: true,
             },
-            label: {
-                formatter: ({ value }) => `'${String(new Date(value).getFullYear()).slice(2)}`,
-            },
             title: {
                 text: 'Year',
-            },
-            crosshair: {
-                label: {
-                    format: '%b %Y',
-                },
             },
         },
         {
@@ -69,6 +56,12 @@ const options: AgChartOptions = {
             },
         },
     ],
+    formatter: {
+        x: (params) =>
+            params.source === 'axis'
+                ? `'${String((params.value as Date).getFullYear()).slice(2)}`
+                : dateFormatter.format(params.value as Date),
+    },
 };
 
 AgCharts.create(options);

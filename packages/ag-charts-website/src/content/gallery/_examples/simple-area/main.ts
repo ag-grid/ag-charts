@@ -2,6 +2,17 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+const shortDateFormat = new Intl.DateTimeFormat('en-US', {
+    day: 'numeric',
+    month: 'long',
+});
+
+const longDateFormat = new Intl.DateTimeFormat('en-US', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+});
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -35,15 +46,6 @@ const options: AgChartOptions = {
         {
             type: 'time',
             position: 'bottom',
-            label: {
-                formatter: ({ value }) => {
-                    const day = value.getDate();
-                    const suffixes = ['st', 'nd', 'rd'];
-                    const suffix = suffixes[day - 1] ?? 'th';
-
-                    return `${day}${suffix} May`;
-                },
-            },
         },
         {
             type: 'number',
@@ -53,6 +55,22 @@ const options: AgChartOptions = {
             },
         },
     ],
+    formatter: {
+        x(params) {
+            if (params.type !== 'date') return;
+            const formatter = params.style === 'component' ? shortDateFormat : longDateFormat;
+            return formatter
+                .formatToParts(params.value)
+                .map((part) => {
+                    if (part.type !== 'day') return part.value;
+
+                    const suffixes = ['st', 'nd', 'rd'];
+                    const suffix = suffixes[Number(part.value) - 1] ?? 'th';
+                    return `${part.value}${suffix}`;
+                })
+                .join('');
+        },
+    },
 };
 
 AgCharts.create(options);

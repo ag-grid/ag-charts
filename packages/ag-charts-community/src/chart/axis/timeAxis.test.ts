@@ -547,4 +547,69 @@ describe('Time Axis Examples', () => {
         chart = await createChart(options);
         await compare();
     });
+
+    it('should handle two values', async () => {
+        const options: AgCartesianChartOptions = {
+            ...BASIC_TIME_AXIS_EXAMPLE,
+            data: [
+                {
+                    date: new Date('2007-01-01T00:00:00.000Z'),
+                    sales: 0.15813911278157827,
+                },
+                {
+                    date: new Date('2007-04-28T23:00:00.000Z'),
+                    sales: 0.7397676872473231,
+                },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'date',
+                    yKey: 'sales',
+                },
+            ],
+            axes: [
+                { type: 'time', position: 'bottom' },
+                { type: 'number', position: 'left' },
+            ],
+        };
+        chart = await createChart(options);
+        await compare();
+    });
+
+    it('should handle multiple single values', async () => {
+        const options: AgCartesianChartOptions = {
+            ...BASIC_TIME_AXIS_EXAMPLE,
+            data: undefined,
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'date',
+                    yKey: 'value',
+                    yName: 'A',
+                    data: [{ date: new Date(2020, 0, 1), value: 1 }],
+                },
+                {
+                    type: 'line',
+                    xKey: 'date',
+                    yKey: 'value',
+                    yName: 'B',
+                    data: [{ date: new Date(2021, 0, 1), value: 2 }],
+                },
+                {
+                    type: 'line',
+                    xKey: 'date',
+                    yKey: 'value',
+                    yName: 'C',
+                    data: [{ date: new Date(2022, 0, 1), value: 3 }],
+                },
+            ],
+            axes: [
+                { type: 'time', position: 'bottom' },
+                { type: 'number', position: 'left' },
+            ],
+        };
+        chart = await createChart(options);
+        await compare();
+    });
 });

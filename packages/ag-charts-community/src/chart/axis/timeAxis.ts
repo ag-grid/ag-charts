@@ -195,14 +195,18 @@ export function calculateDefaultUnit(
     let start = Infinity;
     let end = -Infinity;
     let interval: number | undefined;
+    let maxDataCount = 0;
+    const domainValues: number[] = [];
     for (const series of boundSeries) {
         if (!series.visible) continue;
 
         const { domain } = normaliseTimeDataDomain(series.getDomain(direction), undefined, undefined);
-        if (domain.length !== 2) continue;
+        if (domain.length === 0) continue;
 
         const d0 = domain[0].valueOf();
-        const d1 = domain[1].valueOf();
+        const d1 = domain[domain.length - 1].valueOf();
+
+        domainValues.push(d0, d1);
 
         start = Math.min(start ?? Infinity, d0, d1);
         end = Math.max(end ?? -Infinity, d0, d1);
@@ -211,6 +215,7 @@ export function calculateDefaultUnit(
         if (domainExtent === 0) continue;
 
         const dataCount = series.dataCount();
+        maxDataCount = Math.max(maxDataCount, dataCount);
         if (dataCount <= 1) continue;
 
         const i = domainExtent / (dataCount - 1);
@@ -224,9 +229,33 @@ export function calculateDefaultUnit(
 
     interval ??= Math.abs(end - start);
 
+    interval = Math.min(interval, minNonZeroDifference(domainValues));
+
     const unit = lowestGranularityForInterval(interval);
-    const step = Math.max(Math.round(interval / intervalMilliseconds(unit)), 1);
-    const epoch = start != null && step !== 1 ? intervalFloor(unit, start) : undefined;
+    let step = interval / intervalMilliseconds(unit);
+    if (maxDataCount <= 2) {
+        step = Math.floor(step);
+    } else {
+        step = Math.round(step);
+    }
+    step = Math.max(step, 1);
+    const epoch = step === 1 ? undefined : intervalFloor(unit, start);
 
     return { unit, step, epoch };
+}
+
+function minNonZeroDifference(values: number[]): number {
+    values.sort((a, b) => a - b);
+
+    let minDiff = Infinity;
+    for (let i = 1; i < values.length; i++) {
+        const d0 = values[i - 1];
+        const d1 = values[i];
+        const delta = d1 - d0;
+        if (delta > 0) {
+            minDiff = Math.min(minDiff, Math.abs(d1 - d0));
+        }
+    }
+
+    return minDiff;
 }

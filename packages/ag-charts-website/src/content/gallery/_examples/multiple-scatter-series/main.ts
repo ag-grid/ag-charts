@@ -31,17 +31,8 @@ const options: AgChartOptions = {
             position: 'bottom',
             type: 'number',
             nice: false,
-            label: {
-                formatter: ({ value }) => `${value / 1000}K`,
-            },
             title: {
                 text: 'National Income',
-            },
-            crosshair: {
-                label: {
-                    renderer: ({ value }) =>
-                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${Math.round(value / 1000)}K</div>`,
-                },
             },
         },
         {
@@ -59,6 +50,14 @@ const options: AgChartOptions = {
             marker: {
                 size: 10,
             },
+        },
+    },
+    formatter: {
+        x(params) {
+            if (params.type !== 'number') return;
+            let fractionDigits = params.fractionDigits ?? 0;
+            fractionDigits = Math.max(fractionDigits - 1, 0);
+            return `${(params.value / 1000).toFixed(fractionDigits)}K`;
         },
     },
 };

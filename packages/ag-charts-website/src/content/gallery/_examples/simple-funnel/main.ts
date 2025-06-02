@@ -17,13 +17,11 @@ const options: AgChartOptions = {
             stageLabel: {
                 enabled: false,
             },
-            label: {
-                formatter({ value }) {
-                    return value.toLocaleString();
-                },
-            },
         },
     ],
+    formatter: {
+        x: '#{,.0f}',
+    },
 };
 
 AgCharts.create(options);

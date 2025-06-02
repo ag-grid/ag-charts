@@ -24,12 +24,6 @@ const options: AgChartOptions = {
             calloutLabel: {
                 enabled: false,
             },
-            sectorLabel: {
-                formatter: ({ datum, sectorLabelKey }) => {
-                    const value = datum[sectorLabelKey!];
-                    return numFormatter.format(value);
-                },
-            },
             title: {
                 text: 'Annual Count',
             },
@@ -47,6 +41,7 @@ const options: AgChartOptions = {
             sectorSpacing: 3,
         },
     ],
+    formatter: (params) => (typeof params.value === 'number' ? numFormatter.format(params.value as number) : undefined),
 };
 
 AgCharts.create(options);

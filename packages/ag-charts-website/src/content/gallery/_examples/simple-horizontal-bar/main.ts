@@ -26,7 +26,7 @@ const options: AgChartOptions = {
                 yUpperKey: 'earningsUpper',
             },
             label: {
-                formatter: ({ value }) => `£${value.toFixed(0)}`,
+                enabled: true,
             },
             itemStyler: ({ datum, yKey }) => ({
                 fillOpacity: getOpacity(datum[yKey], yKey as YKey, 0.4, 1),
@@ -45,9 +45,11 @@ const options: AgChartOptions = {
                 enabled: true,
                 text: '£ / Week',
             },
-            label: { formatter: ({ value }) => `£${value.toFixed(0)}` },
         },
     ],
+    formatter: {
+        x: '£#{.0f}',
+    },
 };
 
 function getOpacity(value: number, key: YKey, minOpacity: number, maxOpacity: number) {

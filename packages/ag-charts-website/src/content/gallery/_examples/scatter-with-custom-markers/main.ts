@@ -56,16 +56,10 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             label: {
-                formatter: ({ value }) => `${value / 1000}K`,
                 spacing: 15,
             },
             title: {
                 text: 'Website Visits',
-            },
-            crosshair: {
-                label: {
-                    format: `s`,
-                },
             },
         },
         {
@@ -79,13 +73,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             label: {
-                formatter: ({ value }) => `${value / 1000}K`,
                 spacing: 15,
-            },
-            crosshair: {
-                label: {
-                    format: `s`,
-                },
             },
         },
         {
@@ -95,7 +83,6 @@ const options: AgChartOptions = {
                 enabled: true,
             },
             label: {
-                format: '%b %y',
                 spacing: 10,
             },
             tick: {
@@ -105,6 +92,14 @@ const options: AgChartOptions = {
     ],
     legend: {
         position: 'top',
+    },
+    formatter: {
+        x: '%b %y',
+        y: (params) => {
+            if (params.type !== 'number') return;
+            const fractionDigits = params.source === 'tooltip' ? 1 : 0;
+            return `${(params.value / 1000).toFixed(fractionDigits)}K`;
+        },
     },
 };
 

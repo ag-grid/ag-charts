@@ -104,9 +104,6 @@ const options: AgChartOptions = {
             position: 'bottom',
             type: 'number',
             nice: false,
-            label: {
-                formatter: ({ value }) => `${Math.round(value / Math.PI)}π`,
-            },
             interval: { step: Math.PI },
             crossLines: [
                 {
@@ -122,6 +119,15 @@ const options: AgChartOptions = {
             ],
         },
     ],
+    formatter: {
+        x(params) {
+            const value = params.value as number;
+            if (params.source === 'axis') {
+                return `${Math.round(value / Math.PI)}π`;
+            }
+            return value.toFixed(2);
+        },
+    },
 };
 
 AgCharts.create(options);

@@ -3,6 +3,8 @@ import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
 import { type Span, clipSpanX, collapseSpanToPoint, rescaleSpan, spanRange } from './lineInterpolation';
 import type { Scaling } from './scaling';
 
+const MAX_CATEGORIES = 1000;
+
 type AxisValue = string | number;
 
 export interface SpanDatum {
@@ -103,6 +105,15 @@ function getAxisIndices({ data }: SpanContext, values: any[]): SpanIndices[] {
         xValue1Index: values.indexOf(toAxisValue(datum.xValue1)),
         datumIndex,
     }));
+}
+
+function isValidScaling(data: SpanContext) {
+    return Object.values(data.scales).every((s) => {
+        if (s.type === 'category') {
+            return s.domain.length < MAX_CATEGORIES;
+        }
+        return true;
+    });
 }
 
 function validateCategorySorting(newData: SpanContext, oldData: SpanContext) {
@@ -527,6 +538,7 @@ export function pairUpSpans(
     oldData: SpanContext,
     collapseMode: CollapseMode
 ): SpanInterpolationResult | undefined {
+    if (!isValidScaling(newData) || !isValidScaling(oldData)) return;
     if (!validateCategorySorting(newData, oldData)) return;
 
     const axisContext = spanAxisContext(newData, oldData);

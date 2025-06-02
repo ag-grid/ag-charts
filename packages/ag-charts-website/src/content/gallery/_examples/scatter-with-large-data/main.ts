@@ -35,17 +35,6 @@ const options: AgChartOptions = {
             gridLine: {
                 enabled: false,
             },
-            label: {
-                formatter: ({ value }) => `${value < 0 ? 'p' : 'q'}${Math.abs(value)}`,
-            },
-            crosshair: {
-                label: {
-                    renderer: (p) => {
-                        let pq = p.value < 0 ? 'p' : 'q';
-                        return { text: pq + Math.abs(p.value).toFixed(1) };
-                    },
-                },
-            },
             crossLines: [
                 {
                     type: 'line',
@@ -90,5 +79,12 @@ const options: AgChartOptions = {
             },
         },
     ],
+    formatter: {
+        y(params) {
+            if (params.type !== 'number') return;
+            let pq = params.value < 0 ? 'p' : 'q';
+            return `${pq}${Math.abs(params.value).toFixed(params.fractionDigits)}`;
+        },
+    },
 };
 AgCharts.create(options);

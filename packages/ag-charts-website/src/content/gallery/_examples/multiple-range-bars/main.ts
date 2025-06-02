@@ -45,7 +45,6 @@ const options: AgChartOptions = {
             },
             label: {
                 spacing: 15,
-                formatter: ({ value }) => `${value} ℃`,
             },
             crossLines: [
                 {
@@ -54,7 +53,7 @@ const options: AgChartOptions = {
                     lineDash: [5, 7],
                     strokeOpacity: 0.5,
                     label: {
-                        text: '42 ℃',
+                        text: '42° C',
                         position: 'top',
                     },
                 },
@@ -64,13 +63,16 @@ const options: AgChartOptions = {
                     lineDash: [5, 7],
                     strokeOpacity: 0.5,
                     label: {
-                        text: '5 ℃',
+                        text: '5° C',
                         position: 'bottom',
                     },
                 },
             ],
         },
     ],
+    formatter: {
+        y: '#{.0f}° C',
+    },
 };
 
 AgCharts.create(options);

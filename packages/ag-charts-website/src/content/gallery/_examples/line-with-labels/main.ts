@@ -2,12 +2,6 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const formatTime = (value: number) => {
-    const hours = Math.floor(value);
-    const minutes = Math.round((value % 1) * 60);
-    return `${hours > 0 ? hours + 'h' : ''} ${minutes + 'm'}`;
-};
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -27,7 +21,6 @@ const options: AgChartOptions = {
         yName: ageGroup,
         label: {
             enabled: true,
-            formatter: ({ value }) => `${Math.floor(value) * 60 + Math.round((value % 1) * 60)}m`,
         },
         marker: {
             size: 10,
@@ -63,9 +56,6 @@ const options: AgChartOptions = {
             line: {
                 enabled: true,
             },
-            label: {
-                formatter: ({ value }) => formatTime(value),
-            },
             crossLines: [
                 {
                     type: 'line',
@@ -86,6 +76,29 @@ const options: AgChartOptions = {
         padding: {
             left: 10,
             bottom: 10,
+        },
+    },
+    formatter: {
+        y(params) {
+            const value = params.value as number;
+
+            if (params.source === 'series-label') {
+                return `${Math.round(value * 60)}m`;
+            }
+
+            const hours = Math.floor(value);
+            const minutes = Math.round((value % 1) * 60);
+            const minutesString = String(minutes).padStart(2, '0');
+            if (params.source !== 'axis') {
+                return `${hours}h ${minutesString}m`;
+            }
+
+            if (hours === 0) {
+                return `${minutes}m`;
+            } else if (minutes === 0) {
+                return `${hours}h`;
+            }
+            return `${hours}h ${minutesString}m`;
         },
     },
 };
