@@ -84,7 +84,7 @@ export class SliderWidget extends Widget<HTMLInputElement> {
     }
 
     getValueRatio() {
-        return parseFloat(this.getElement().value) / this.step.divider;
+        return this.getElement().valueAsNumber / this.step.divider;
     }
 
     private static registerDefaultPreventers(target: SliderWidget, orientation: RovingDirection) {
