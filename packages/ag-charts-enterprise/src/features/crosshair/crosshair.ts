@@ -115,11 +115,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private updateSelections(data: string[]) {
-        this.lineGroupSelection.update(
-            data,
-            (group) => group.append(new Line()),
-            (key: string) => key
-        );
+        this.lineGroupSelection.update(data, undefined, (key: string) => key);
     }
 
     private updateLabels(keys: string[]) {

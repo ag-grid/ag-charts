@@ -381,14 +381,14 @@ export abstract class Series<
         this.pickModes = pickModes;
     }
 
-    attachSeries(seriesContentNode: Node, seriesNode: Node, annotationNode: Node | undefined) {
+    attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined) {
         seriesContentNode.appendChild(this.contentGroup);
         seriesNode.appendChild(this.highlightGroup);
         seriesNode.appendChild(this.labelGroup);
         annotationNode?.appendChild(this.annotationGroup);
     }
 
-    detachSeries(seriesContentNode: Node | undefined, seriesNode: Node, annotationNode: Node | undefined) {
+    detachSeries(seriesContentNode: Group | undefined, seriesNode: Group, annotationNode: Group | undefined) {
         seriesContentNode?.removeChild(this.contentGroup);
         seriesNode.removeChild(this.highlightGroup);
         seriesNode.removeChild(this.labelGroup);

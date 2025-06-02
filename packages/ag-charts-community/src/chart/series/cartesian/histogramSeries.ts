@@ -4,6 +4,7 @@ import type { AgHistogramBinDatum } from 'ag-charts-types';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { BBox } from '../../../scene/bbox';
+import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
@@ -485,7 +486,7 @@ export class HistogramSeries extends CartesianSeries<
 
     protected override initQuadTree(quadtree: QuadtreeNearest<HistogramNodeDatum>) {
         const { value: childNode } = this.contentGroup.children().next();
-        if (childNode) {
+        if (childNode instanceof Group) {
             addHitTestersToQuadtree(quadtree, childNode.children() as Iterable<Rect>);
         }
     }

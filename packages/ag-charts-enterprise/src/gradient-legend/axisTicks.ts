@@ -45,7 +45,7 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
         return this.position === 'top' || this.position === 'bottom';
     }
 
-    attachAxis(axisNode: _ModuleSupport.Node) {
+    attachAxis(axisNode: _ModuleSupport.Group) {
         axisNode.appendChild(this.axisGroup);
     }
 

@@ -141,7 +141,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
         this.label.x = length + spacing;
     }
 
-    protected override computeBBox(): BBox {
+    protected override computeBBox(): BBox | undefined {
         this.layout();
         return super.computeBBox();
     }

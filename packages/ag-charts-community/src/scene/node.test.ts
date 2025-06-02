@@ -1,9 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { BBox } from './bbox';
+import { Group } from './group';
 import { Node } from './node';
 
-class TestNode<D = any> extends Node<D> {
+class TestNode<D = any> extends Group<D> {
     protected override computeBBox(): BBox | undefined {
         return BBox.merge(Array.from(this.children(), (c) => c.getBBox()));
     }

@@ -1,4 +1,4 @@
-import { Logger, createId, createSvgElement, toIterable } from 'ag-charts-core';
+import { Logger, createId, createSvgElement } from 'ag-charts-core';
 
 import { objectsEqual } from '../util/object';
 import { BBox } from './bbox';
@@ -100,27 +100,25 @@ export abstract class Node<D = any> {
 
     /** Unique node ID in the form `ClassName-NaturalNumber`. */
     readonly id = createId(this);
-    readonly name?: string;
+    readonly name: string | undefined = undefined;
 
     /**
      * Some number to identify this node, typically within a `Group` node.
      * Usually this will be some enum value used as a selector.
      */
     tag: number;
-    transitionOut?: boolean;
+    transitionOut: boolean | undefined = undefined;
     pointerEvents: PointerEvents = PointerEvents.All;
 
-    protected _datum?: D;
-    protected _previousDatum?: D;
+    protected _datum: D | undefined = undefined;
+    protected _previousDatum: D | undefined = undefined;
 
-    protected _debug?: (...args: any[]) => void;
     protected scene: IScene | undefined = undefined;
-    private readonly _debugDirtyProperties?: Map<string, string[]>;
+    private readonly _debugDirtyProperties: Map<string, string[]> | undefined = undefined;
 
-    private parentNode?: Node;
-    private childNodes?: Set<Node>;
+    parentNode: Node | undefined = undefined;
 
-    private cachedBBox?: BBox;
+    private cachedBBox: BBox | undefined = undefined;
 
     /**
      * To simplify the type system (especially in Selections) we don't have the `Parent` node
@@ -183,18 +181,11 @@ export abstract class Node<D = any> {
     }
 
     /** Perform any pre-rendering initialization. */
-    preRender(renderCtx: RenderContext, thisComplexity = 1): ChildNodeCounts {
+    preRender(_renderCtx: RenderContext, thisComplexity = 1): ChildNodeCounts {
         this.childNodeCounts.groups = 0;
         this.childNodeCounts.nonGroups = 1; // Assume this node isn't a group.
         this.childNodeCounts.complexity = thisComplexity;
         this.childNodeCounts.thisComplexity = thisComplexity;
-
-        for (const child of this.children()) {
-            const childCounts = child.preRender(renderCtx);
-            this.childNodeCounts.groups += childCounts.groups;
-            this.childNodeCounts.nonGroups += childCounts.nonGroups;
-            this.childNodeCounts.complexity += childCounts.complexity;
-        }
 
         return this.childNodeCounts;
     }
@@ -240,22 +231,6 @@ export abstract class Node<D = any> {
 
     setScene(scene?: IScene) {
         this.scene = scene;
-        this._debug = scene?.layersManager?.debug;
-
-        for (const child of this.children()) {
-            child.setScene(scene);
-        }
-    }
-
-    protected sortChildren(compareFn?: (a: Node, b: Node) => number) {
-        if (!this.childNodes) return;
-
-        // Sort children, and re-add in new order (Set preserves insertion order).
-        const sortedChildren = [...this.childNodes].sort(compareFn);
-        this.childNodes.clear();
-        for (const child of sortedChildren) {
-            this.childNodes.add(child);
-        }
     }
 
     *traverseUp(includeSelf?: boolean): Generator<Node, void, unknown> {
@@ -268,27 +243,6 @@ export abstract class Node<D = any> {
         }
     }
 
-    *children(): Generator<Node, void, undefined> {
-        if (!this.childNodes) return;
-        for (const child of this.childNodes) {
-            yield child;
-        }
-    }
-
-    *descendants(): Generator<Node, void, undefined> {
-        for (const child of this.children()) {
-            yield child;
-            yield* child.descendants();
-        }
-    }
-
-    /**
-     * Checks if the node is a leaf (has no children).
-     */
-    isLeaf() {
-        return !this.childNodes?.size;
-    }
-
     /**
      * Checks if the node is the root (has no parent).
      */
@@ -296,58 +250,14 @@ export abstract class Node<D = any> {
         return !this.parentNode;
     }
 
-    /**
-     * Appends one or more new node instances to this parent.
-     * If one needs to:
-     * - move a child to the end of the list of children
-     * - move a child from one parent to another (including parents in other scenes)
-     * one should use the {@link insertBefore} method instead.
-     * @param nodes A node or nodes to append.
-     */
-    append(nodes: Iterable<Node> | Node) {
-        this.childNodes ??= new Set();
-        for (const node of toIterable(nodes)) {
-            node.parentNode?.removeChild(node);
-            this.childNodes.add(node);
-
-            node.parentNode = this;
-            node.setScene(this.scene);
-        }
-
-        this.markDirtyChildrenOrder();
-        this.markDirty();
-    }
-
-    appendChild<T extends Node>(node: T): T {
-        this.append(node);
-        return node;
-    }
-
     removeChild(node: Node) {
-        if (!this.childNodes?.delete(node)) {
-            throw new Error(
-                `AG Charts - internal error, unknown child node ${node.name ?? node.id} in $${this.name ?? this.id}`
-            );
-        }
-
-        delete node.parentNode;
-        node.setScene();
-
-        this.markDirtyChildrenOrder();
-        this.markDirty();
+        throw new Error(
+            `AG Charts - internal error, unknown child node ${node.name ?? node.id} in $${this.name ?? this.id}`
+        );
     }
 
     remove() {
         this.parentNode?.removeChild(this);
-    }
-
-    clear() {
-        for (const child of this.children()) {
-            delete child.parentNode;
-            child.setScene();
-        }
-        this.childNodes?.clear();
-        this.markDirty();
     }
 
     destroy(): void {
@@ -369,46 +279,16 @@ export abstract class Node<D = any> {
         return false;
     }
 
-    /**
-     * Hit testing method.
-     * Recursively checks if the given point is inside this node or any of its children.
-     * Returns the first matching node or `undefined`.
-     * Nodes that render later (show on top) are hit tested first.
-     */
     pickNode(x: number, y: number): Node | undefined {
-        if (!this.visible || this.pointerEvents === PointerEvents.None || !this.containsPoint(x, y)) {
-            return;
-        }
-
-        if (this.childNodes != null && this.childNodes.size !== 0) {
-            const children = [...this.children()];
-            // Nodes added later should be hit-tested first,
-            // as they are rendered on top of the previously added nodes.
-            for (let i = children.length - 1; i >= 0; i--) {
-                const hit = children[i].pickNode(x, y);
-                if (hit) {
-                    return hit;
-                }
-            }
-        } else if (!this.isContainerNode) {
-            // a leaf node, but not a container leaf
+        if (this.containsPoint(x, y)) {
             return this;
         }
     }
 
     pickNodes(x: number, y: number, into: Node<any>[] = []): Node<any>[] {
-        if (!this.visible || this.pointerEvents === PointerEvents.None || !this.containsPoint(x, y)) {
-            return into;
-        }
-
-        if (!this.isContainerNode) {
+        if (this.containsPoint(x, y)) {
             into.push(this);
         }
-
-        for (const child of this.children()) {
-            child.pickNodes(x, y, into);
-        }
-
         return into;
     }
 

@@ -54,7 +54,7 @@ export class ErrorBarNode extends _ModuleSupport.Group {
     // of 0. Therefore, we only need bounding boxes for number based ranges.
     private readonly bboxes: HierarchicalBBox;
 
-    protected override _datum?: ErrorBarNodeDatum = undefined;
+    protected override _datum: ErrorBarNodeDatum | undefined = undefined;
     public override get datum(): ErrorBarNodeDatum | undefined {
         return this._datum;
     }
