@@ -27,6 +27,8 @@ env:
 jobs:
     benchmark:
         runs-on: macos-benchmark
+        permissions:
+            pull-requests: write
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/benchmarks') || github.event_name == 'schedule'
         env:
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
