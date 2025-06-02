@@ -56,4 +56,56 @@ test.describe('legend', () => {
             });
         });
     }
+
+    for (const { framework, url } of toExamplePageUrls('legend-test', 'legend-item-name')) {
+        test.describe(`for ${framework}`, () => {
+            test('mouse hovering shared legend items updates highlight for all linked series', async ({ page }) => {
+                await gotoExample(page, url);
+                const canvasCenter = page.locator(SELECTORS.canvasCenter);
+                const legendItems = await page.locator(SELECTORS.legendItems).all();
+
+                await legendItems[0].hover();
+                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-Q1-highlighted.png');
+
+                await legendItems[1].hover();
+                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-Q2-highlighted.png');
+
+                await legendItems[2].hover();
+                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-Q3-highlighted.png');
+
+                await legendItems[3].hover();
+                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-Q4-highlighted.png');
+            });
+        });
+    }
+
+    for (const { framework, url } of toExamplePageUrls('legend-test', 'legend-item-key')) {
+        test.describe(`for ${framework}`, () => {
+            test('mouse hovering shared legend items for single series updates highlight for all linked items', async ({
+                page,
+            }) => {
+                await gotoExample(page, url);
+                const canvasCenter = page.locator(SELECTORS.canvasCenter);
+                const legendItems = await page.locator(SELECTORS.legendItems).all();
+
+                await legendItems[0].hover();
+                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-android-highlighted.png');
+
+                await legendItems[1].hover();
+                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-ios-highlighted.png');
+
+                await legendItems[2].hover();
+                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-blackberry-highlighted.png');
+
+                await legendItems[3].hover();
+                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-symbian-highlighted.png');
+
+                await legendItems[4].hover();
+                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-bada-highlighted.png');
+
+                await legendItems[5].hover();
+                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-windows-highlighted.png');
+            });
+        });
+    }
 });
