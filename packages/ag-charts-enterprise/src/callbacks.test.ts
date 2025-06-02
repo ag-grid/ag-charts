@@ -1,18 +1,25 @@
 import { afterEach, describe, expect } from '@jest/globals';
 
 import {
+    AgChartContextMenuEvent,
     AgChartInstance,
+    AgChartLegendContextMenuEvent,
     AgChartOptions,
     AgCharts,
+    AgContextMenuItemShowOn,
     AgLinearGaugeOptions,
+    AgNodeContextMenuActionEvent,
     AgRadialGaugeOptions,
+    AgSeriesAreaContextMenuActionEvent,
     AgZoomEvent,
 } from 'ag-charts-community';
 import {
     AgLinearGaugeOptionsWithContext,
     AgRadialGaugeOptionsWithContext,
     MockChartLabelFormatter,
+    MockContextMenuAction,
     MockZoomListener,
+    contextMenuAction,
     newFreezableMock,
     scrollAction,
     setupMockCanvas,
@@ -59,6 +66,133 @@ describe('AG-14631 context enterprise', () => {
 
         expect(Object.isFrozen(context)).toBe(false);
         zoomListener.expect().toHaveBeenCalledTimes(2).withContext(context);
+    });
+
+    describe('contextMenu', () => {
+        type TDatum = Readonly<{ x: number; a: number; b: number; c: number }>;
+        type TContext = Readonly<{ readonly name: string }>;
+
+        let alwaysAction: ReturnType<typeof newFreezableMock<MockContextMenuAction>>;
+        let seriesAreaAction: ReturnType<typeof newFreezableMock<MockContextMenuAction>>;
+        let seriesNodeAction: ReturnType<typeof newFreezableMock<MockContextMenuAction>>;
+        let legendItemAction: ReturnType<typeof newFreezableMock<MockContextMenuAction>>;
+        let chartContext: TContext;
+        let series0Context: TContext;
+        let series1Context: TContext;
+
+        function newFreezable<T extends MockContextMenuAction>(fn: T) {
+            return newFreezableMock<MockContextMenuAction>(fn);
+        }
+
+        async function clickMenuItem(label: AgContextMenuItemShowOn) {
+            let matchedNode: Element | undefined;
+            for (const node of Array.from(document.querySelectorAll('[role="menuitem"]'))) {
+                if (node.textContent === label) {
+                    matchedNode = node;
+                    break;
+                }
+            }
+            expect(matchedNode).toBeDefined();
+            matchedNode!.dispatchEvent(new MouseEvent('click'));
+            await waitForChartStability(chart);
+        }
+
+        beforeEach(async () => {
+            alwaysAction = newFreezable((_params: AgChartContextMenuEvent) => {});
+            seriesAreaAction = newFreezable((_params: AgSeriesAreaContextMenuActionEvent) => {});
+            seriesNodeAction = newFreezable((_params: AgNodeContextMenuActionEvent<TDatum>) => {});
+            legendItemAction = newFreezable((_params: AgChartLegendContextMenuEvent) => {});
+            chartContext = { name: 'chart context' } as const;
+            series0Context = { name: 'series 0 context' } as const;
+            series1Context = { name: 'series 1 context' } as const;
+            const opts: AgChartOptions<TDatum, TContext> = {
+                data: [
+                    { x: 0, a: 1, b: 2, c: 3 },
+                    { x: 1, a: 1, b: 2, c: 3 },
+                    { x: 2, a: 1, b: 2, c: 3 },
+                ],
+                context: chartContext,
+                contextMenu: {
+                    enabled: true,
+                    items: [
+                        { showOn: 'always', label: 'always', action: alwaysAction.frozen },
+                        { showOn: 'series-area', label: 'series-area', action: seriesAreaAction.frozen },
+                        { showOn: 'series-node', label: 'series-node', action: seriesNodeAction.frozen },
+                        { showOn: 'legend-item', label: 'legend-item', action: legendItemAction.frozen },
+                    ],
+                },
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'a', context: series0Context },
+                    { type: 'bar', xKey: 'x', yKey: 'b', context: series1Context },
+                    { type: 'bar', xKey: 'x', yKey: 'c' },
+                ],
+                zoom: { enabled: true },
+            };
+            chart = await createChart(opts);
+        });
+
+        afterEach(() => {
+            expect(Object.isFrozen(alwaysAction)).toBe(false);
+            expect(Object.isFrozen(seriesAreaAction)).toBe(false);
+            expect(Object.isFrozen(seriesNodeAction)).toBe(false);
+            expect(Object.isFrozen(legendItemAction)).toBe(false);
+        });
+
+        test('always', async () => {
+            await contextMenuAction(146, 133)(chart);
+            await clickMenuItem('always');
+            seriesAreaAction.expect().toHaveBeenCalledTimes(0);
+            seriesNodeAction.expect().toHaveBeenCalledTimes(0);
+            legendItemAction.expect().toHaveBeenCalledTimes(0);
+
+            alwaysAction.expect().toHaveBeenCalledTimes(1).withContext(chartContext);
+        });
+
+        test('series-area', async () => {
+            await contextMenuAction(146, 133)(chart);
+            await clickMenuItem('series-area');
+            alwaysAction.expect().toHaveBeenCalledTimes(0);
+            seriesNodeAction.expect().toHaveBeenCalledTimes(0);
+            legendItemAction.expect().toHaveBeenCalledTimes(0);
+
+            seriesAreaAction.expect().toHaveBeenCalledTimes(1).withContext(chartContext);
+        });
+
+        test('series-node', async () => {
+            await contextMenuAction(118, 400)(chart);
+            await clickMenuItem('series-node');
+            await contextMenuAction(171, 400)(chart);
+            await clickMenuItem('series-node');
+            await contextMenuAction(234, 400)(chart);
+            await clickMenuItem('series-node');
+
+            alwaysAction.expect().toHaveBeenCalledTimes(0);
+            seriesNodeAction.expect().toHaveBeenCalledTimes(0);
+            legendItemAction.expect().toHaveBeenCalledTimes(0);
+
+            seriesAreaAction.expect().toHaveBeenCalledTimes(3);
+            seriesAreaAction.expect().nthCalledWithContext(0, series0Context);
+            seriesAreaAction.expect().nthCalledWithContext(1, series1Context);
+            seriesAreaAction.expect().nthCalledWithoutContext(2);
+        });
+
+        test('legend-item', async () => {
+            await contextMenuAction(356, 572)(chart);
+            await clickMenuItem('legend-item');
+            await contextMenuAction(406, 572)(chart);
+            await clickMenuItem('legend-item');
+            await contextMenuAction(451, 572)(chart);
+            await clickMenuItem('legend-item');
+
+            alwaysAction.expect().toHaveBeenCalledTimes(0);
+            seriesAreaAction.expect().toHaveBeenCalledTimes(0);
+            seriesNodeAction.expect().toHaveBeenCalledTimes(0);
+
+            legendItemAction.expect().toHaveBeenCalledTimes(3);
+            legendItemAction.expect().nthCalledWithContext(0, series0Context);
+            legendItemAction.expect().nthCalledWithContext(1, series1Context);
+            legendItemAction.expect().nthCalledWithoutContext(2);
+        });
     });
 });
 

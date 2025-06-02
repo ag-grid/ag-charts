@@ -5,6 +5,7 @@ import type {
     AgBaseChartListeners,
     AgCartesianAxisOptions,
     AgChartLabelOptions,
+    AgContextMenuItem,
 } from 'ag-charts-types';
 
 export type MockItemStyler = NonNullable<AgBarSeriesThemeableOptions['itemStyler']>;
@@ -14,6 +15,7 @@ export type MockTooltipRenderer = NonNullable<NonNullable<AgBarSeriesThemeableOp
 export type MockErrorBarStyler = NonNullable<NonNullable<AgBarSeriesOptions['errorBar']>['itemStyler']>;
 export type MockChartLabelFormatter = NonNullable<NonNullable<AgChartLabelOptions<unknown, unknown>['formatter']>>;
 export type MockZoomListener = NonNullable<AgBaseChartListeners<unknown>['zoom']>;
+export type MockContextMenuAction = NonNullable<Extract<AgContextMenuItem, object>['action']>;
 
 type APICallback =
     | MockItemStyler
@@ -22,7 +24,8 @@ type APICallback =
     | MockTooltipRenderer
     | MockErrorBarStyler
     | MockChartLabelFormatter
-    | MockZoomListener;
+    | MockZoomListener
+    | MockContextMenuAction;
 
 // AG Charts calls Object.freeze on theme options, so we must create intermediate functions to circumvent that.
 export function newFreezableMock<F extends APICallback>(mockImp?: F) {
@@ -47,6 +50,13 @@ export function newFreezableMock<F extends APICallback>(mockImp?: F) {
                 nthCalledWithContext(nthCall: number, expected: unknown) {
                     const actual = getCallContext(mock.mock.calls[nthCall]);
                     expect(actual).toBe(expected); // `toBe` is intentional. The `context` must not be cloned
+                    return this;
+                },
+                nthCalledWithoutContext(nthCall: number) {
+                    const args = mock.mock.calls[nthCall];
+                    expect(args).toBeDefined();
+                    expect(args[0]).toBeDefined();
+                    expect(args[0]).not.toHaveProperty('context');
                     return this;
                 },
                 withContext(expected: unknown) {
