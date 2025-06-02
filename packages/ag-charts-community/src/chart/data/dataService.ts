@@ -11,14 +11,6 @@ interface DataSourceCallbackParams {
 }
 type DataSourceCallback = (params: DataSourceCallbackParams) => Promise<unknown>;
 
-// type EventType = 'data-source-change' | 'data-load' | 'data-error';
-// type EventHandler<D extends object> = (() => void) | ((event: DataLoadEvent<D>) => void);
-
-export interface DataLoadEvent<D extends object> {
-    type: 'data-load';
-    data: D[];
-}
-
 export class DataService<D extends object> {
     public dispatchOnlyLatest = true;
 
@@ -86,10 +78,7 @@ export class DataService<D extends object> {
         return throttle(
             (params: DataSourceCallbackParams) => this.fetch(params).catch((e) => Logger.error('callback failed', e)),
             requestThrottle,
-            {
-                leading: false,
-                trailing: true,
-            }
+            { leading: false, trailing: true }
         );
     }
 
@@ -100,10 +89,7 @@ export class DataService<D extends object> {
                 this.eventsHub.emit('data:load', { data });
             },
             dispatchThrottle,
-            {
-                leading: true,
-                trailing: true,
-            }
+            { leading: true, trailing: true }
         );
     }
 

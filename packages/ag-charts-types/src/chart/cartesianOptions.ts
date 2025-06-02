@@ -40,6 +40,11 @@ export interface AgBaseCartesianAxisOptions<
     crossLines?: AgCartesianCrossLineOptions[];
     /** If set to a non-zero value, the axis will have the specified thickness regardless of label size. */
     thickness?: PixelSize;
+    /**
+     * The maximum thickness of the axis, as a ratio of the chart's width or height depending on axis direction.
+     * Used to prevent the axis from growing too large when labels or content are oversized.
+     */
+    maxThickness?: Ratio;
     /** Configuration for the title shown next to the axis. */
     title?: AgAxisCaptionOptions;
     /** Configuration for the axis crosshair. */

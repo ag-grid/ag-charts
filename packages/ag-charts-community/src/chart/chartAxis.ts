@@ -117,6 +117,7 @@ export interface ChartAxis {
     scale: Scale<any, any, any>;
     seriesAreaPadding: number;
     thickness?: number;
+    maxThickness?: number;
     tick: AxisTick;
     translation: { x: number; y: number };
     type: string;

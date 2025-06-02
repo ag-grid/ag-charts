@@ -63,6 +63,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     thickness?: number;
 
     @Property
+    maxThickness: number = 0.3;
+
+    @Property
     position!: AgCartesianAxisPosition;
 
     protected animationManager: AnimationManager;
@@ -74,12 +77,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     protected readonly lineNodeGroup = this.axisGroup.appendChild(
         new TranslatableGroup({ name: `${this.id}-Axis-line` })
     );
-    protected readonly lineNode = this.lineNodeGroup.appendChild(
-        new Line({
-            // name: `${this.id}-Axis-line`,
-            zIndex: AxisGroupZIndexMap.AxisLine,
-        })
-    );
+    protected readonly lineNode = this.lineNodeGroup.appendChild(new Line({ zIndex: AxisGroupZIndexMap.AxisLine }));
 
     protected tickLineGroupSelection = Selection.select<Line, AxisLineDatum>(this.tickLineGroup, Line, false);
     protected gridLineGroupSelection = Selection.select<Line, AxisLineDatum>(this.gridLineGroup, Line, false);

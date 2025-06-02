@@ -257,7 +257,15 @@ export class CartesianChart extends Chart {
             primaryTickCounts[direction] ??= primaryTickCount;
             clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
-            axisWidths.set(axis.id, Math.ceil(axis.thickness ?? (isVertical ? bbox?.width : bbox?.height) ?? 0));
+            let axisWidth: number;
+            if (axis.thickness == null) {
+                const { scene } = this.ctx;
+                const size = (isVertical ? bbox?.width : bbox?.height) ?? 0;
+                axisWidth = Math.min(size, (isVertical ? scene.width : scene.height) * (axis.maxThickness ?? 1));
+            } else {
+                axisWidth = axis.thickness;
+            }
+            axisWidths.set(axis.id, Math.ceil(axisWidth));
         }
 
         const axisGroups = groupBy(this.axes, (axis) => axis.position ?? 'left');
