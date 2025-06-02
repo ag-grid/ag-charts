@@ -79,9 +79,8 @@ data_file="${root}/reports/benchmark-data.ts"
 
 benchmark
 node ${tools_dir}/collate-reports.js --name "${branch}-${head}" --data-file "$data_file"
-git stash -u && git checkout ${head}
 
-git checkout ${base} && git restore --source $head -- ${tools_dir}
+git stash -u && git checkout ${base} && git restore --source $head -- ${tools_dir}
 if ! git diff --quiet ${head} ${base} -- yarn.lock; then
     echo "yarn.lock has changed, running yarn..."
     yarn
