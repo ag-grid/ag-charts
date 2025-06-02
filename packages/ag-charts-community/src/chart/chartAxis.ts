@@ -53,11 +53,16 @@ export interface AxisGroups {
 
 export type FormatDatumParams = Omit<FormatterParams<any>, 'type' | 'value'>;
 
+export interface ChartLayout {
+    padding: Padding;
+    sizeLimit: number;
+}
+
 export interface ChartAxis {
     attachAxis(opts: AxisGroups): void;
     calculateLayout(
         primaryTickCount?: AxisPrimaryTickCount,
-        chartPadding?: Padding
+        chartLayout?: ChartLayout
     ): { primaryTickCount?: AxisPrimaryTickCount; bbox?: BBox };
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;

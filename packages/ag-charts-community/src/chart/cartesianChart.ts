@@ -240,30 +240,34 @@ export class CartesianChart extends Chart {
             axisAreaBound.shrink(crossLinePadding);
         }
 
+        const { scene } = this.ctx;
         const seriesRect = axisAreaBound.clone().shrink(Object.fromEntries(axisAreaWidths));
 
         // Step 1) Calculate individual axis widths.
         for (const axis of this.axes) {
             const { position = 'left', direction } = axis;
+            const isVertical = direction === ChartAxisDirection.Y;
+            let axisWidth: number;
 
             this.sizeAxis(axis, seriesRect, position);
 
-            const isVertical = direction === ChartAxisDirection.Y;
+            if (axis.thickness == null) {
+                const availableSize = isVertical ? scene.width : scene.height;
+                axisWidth = availableSize * (axis.maxThicknessRatio ?? 1);
+            } else {
+                axisWidth = axis.thickness;
+            }
+
             const { primaryTickCount, bbox } = axis.calculateLayout(
                 axis.nice ? primaryTickCounts[direction] : undefined,
-                this.padding
+                { sizeLimit: axisWidth, padding: this.padding }
             );
 
             primaryTickCounts[direction] ??= primaryTickCount;
             clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
-            let axisWidth: number;
             if (axis.thickness == null) {
-                const { scene } = this.ctx;
-                const size = (isVertical ? bbox?.width : bbox?.height) ?? 0;
-                axisWidth = Math.min(size, (isVertical ? scene.width : scene.height) * (axis.maxThicknessRatio ?? 1));
-            } else {
-                axisWidth = axis.thickness;
+                axisWidth = Math.min((isVertical ? bbox?.width : bbox?.height) ?? 0, axisWidth);
             }
             axisWidths.set(axis.id, Math.ceil(axisWidth));
         }

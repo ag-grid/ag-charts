@@ -33,12 +33,11 @@ import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
-import type { Padding } from '../../util/padding';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
-import type { AxisGroups, ChartAxis, FormatDatumParams } from '../chartAxis';
+import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
@@ -470,7 +469,7 @@ export abstract class Axis<
         this.animatable = animatable;
     }
 
-    protected chartPadding?: Padding;
+    protected chartLayout?: ChartLayout;
 
     private unzoomedInputDomain: D[] | undefined = undefined;
     private unzoomedInputRangeExtent: number = NaN;
@@ -528,12 +527,12 @@ export abstract class Axis<
 
     calculateLayout(
         initialPrimaryTickCount?: AxisPrimaryTickCount,
-        chartPadding?: Padding
+        chartLayout?: ChartLayout
     ): {
         primaryTickCount?: AxisPrimaryTickCount;
         bbox?: BBox;
     } {
-        this.chartPadding = chartPadding;
+        this.chartLayout = chartLayout;
 
         const { visibleRange, nice } = this;
         const unzoomed = visibleRange[0] === 0 && visibleRange[1] === 1;

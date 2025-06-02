@@ -8,7 +8,7 @@ import type { Scale, ScaleTickParams } from '../../scale/scale';
 import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { Matrix } from '../../scene/matrix';
-import { type PlacedLabel, type PlacedLabelDatum } from '../../scene/util/labelPlacement';
+import { type PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { normalizeAngle360FromDegrees } from '../../util/angle';
 import { compareDates } from '../../util/date';
 import { findMinMax, findRangeExtent } from '../../util/number';
@@ -39,7 +39,6 @@ import {
 import type { AxisInterval } from './axisInterval';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
-
 export type AnyTimeInterval = AgTimeInterval | AgTimeIntervalUnit;
 
 export interface TickData<D = any> {
@@ -64,6 +63,7 @@ export interface TickGenerationParams<D = any> {
     regularFlipRotation: number;
     labelX: number;
     sideFlag: ChartAxisLabelFlipFlag;
+    sizeLimit?: number;
     removeOverflowLabels: boolean;
     removeOverflowThreshold?: number;
 }
@@ -163,6 +163,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         sideFlag,
         removeOverflowLabels,
         removeOverflowThreshold = 0,
+        sizeLimit: _sizeLimit,
     }: TickGenerationParams<D>): TickGenerationResult<D> {
         const {
             scale,
@@ -791,14 +792,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 }
 
 function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding: number = 0): boolean {
-    const result: PlacedLabel<PlacedLabelDatum>[] = [];
+    const result: BoxBounds[] = [];
 
-    for (let index = 0; index < data.length; index++) {
-        const datum = data[index];
-        const {
-            point: { x, y },
-            label: { text },
-        } = datum;
+    for (const datum of data) {
+        const { x, y } = datum.point;
         let { width, height } = datum.label;
 
         width += padding;
@@ -808,7 +805,7 @@ function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding: number = 
             return true;
         }
 
-        result.push({ index, text, x, y, width, height, datum });
+        result.push({ x, y, width, height });
     }
 
     return false;
