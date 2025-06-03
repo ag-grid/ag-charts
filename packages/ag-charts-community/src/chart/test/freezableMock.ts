@@ -5,6 +5,7 @@ import type {
     AgBaseChartListeners,
     AgBaseChartOptions,
     AgBaseSeriesOptions,
+    AgBaseThemeableChartOptions,
     AgCartesianAxisOptions,
     AgChartLabelOptions,
     AgContextMenuItem,
@@ -18,6 +19,7 @@ export type MockErrorBarStyler = NonNullable<NonNullable<AgBarSeriesOptions['err
 export type MockChartLabelFormatter = NonNullable<NonNullable<AgChartLabelOptions<unknown, unknown>['formatter']>>;
 export type MockAnnotationsListener = NonNullable<AgBaseChartListeners<unknown>['annotations']>;
 export type MockZoomListener = NonNullable<AgBaseChartListeners<unknown>['zoom']>;
+export type MockGetDataCallback = NonNullable<AgBaseThemeableChartOptions<unknown>['dataSource']>['getData'];
 export type MockChartClickListener = NonNullable<AgBaseChartListeners<unknown>['click']>;
 export type MockChartDblClickListener = NonNullable<AgBaseChartListeners<unknown>['doubleClick']>;
 export type MockChartSeriesNodeClickListener = NonNullable<AgBaseChartListeners<unknown>['seriesNodeClick']>;
@@ -46,6 +48,7 @@ export type MockAPICallback =
     | MockChartLabelFormatter
     | MockAnnotationsListener
     | MockZoomListener
+    | MockGetDataCallback
     | MockChartClickListener
     | MockChartDblClickListener
     | MockChartSeriesNodeClickListener

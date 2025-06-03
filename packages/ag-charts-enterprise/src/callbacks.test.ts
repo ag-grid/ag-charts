@@ -1,4 +1,5 @@
 import { afterEach, describe, expect } from '@jest/globals';
+import { AgDataSourceCallbackParams } from 'packages/ag-charts-types/src/chart/dataSourceOptions';
 
 import {
     AgAnnotationsEvent,
@@ -32,6 +33,7 @@ import {
     MockChartSeriesNodeDblClickListener,
     MockChartSeriesVisibilityChangeListener,
     MockContextMenuAction,
+    MockGetDataCallback,
     MockLegendItemClickListener,
     MockLegendItemDblClickListener,
     MockSeriesNodeClickListener,
@@ -107,6 +109,24 @@ describe('AG-14631 context enterprise', () => {
         chart = await createChart(opts);
         expect(Object.isFrozen(context)).toBe(false);
         annotationsListener.expect().toHaveBeenCalledTimes(1).withContext(context);
+    });
+
+    test('dataSource', async () => {
+        const imp = (_params: AgDataSourceCallbackParams): Promise<unknown[]> => new Promise((_resolve) => []);
+        const getDataCallback = newFreezableMock<MockGetDataCallback>(imp);
+        const chartContext = { name: 'chart context' };
+        const seriesContext = { name: 'series context' };
+        const opts: AgChartOptions<unknown, { name: string }> = {
+            dataSource: { getData: getDataCallback.frozen },
+            context: chartContext,
+            series: [{ type: 'line', xKey: 'x', yKey: 'y', context: seriesContext }],
+            zoom: { enabled: true },
+        };
+
+        chart = await createChart(opts);
+        expect(Object.isFrozen(chartContext)).toBe(false);
+        expect(Object.isFrozen(seriesContext)).toBe(false);
+        getDataCallback.expect().toHaveBeenCalledTimes(1).withContext(chartContext);
     });
 
     describe('clicks', () => {
