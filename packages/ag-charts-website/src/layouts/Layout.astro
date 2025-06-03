@@ -2,7 +2,7 @@
 import { getEntry, type CollectionEntry } from 'astro:content';
 import { getFavIconsData, getAppleTouchIconsData } from '@utils/favicons';
 import SiteHeader from '@ag-website-shared/components/site-header/SiteHeader.astro';
-import '@design-system/design-system.scss';
+import dsStylesUrl from '@design-system/design-system.scss?url';
 import { Footer } from '@ag-website-shared/components/footer/Footer';
 import type { ApiMenuItem } from '@ag-grid-types';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
@@ -105,6 +105,9 @@ const isHomepage = Astro.url.pathname.replaceAll('/', '') === SITE_BASE_URL.repl
         <title>{title}</title>
         <link rel="canonical" href={canonicalUrl}>
         <link rel="sitemap" type="application/xml" title="Sitemap" href={urlWithBaseUrl("/sitemap-index.xml")} />
+
+        <!-- Import all global design system CSS -->
+        <link rel="stylesheet" href={dsStylesUrl} />
 
         <!-- Facebook Meta Tags -->
         <meta property="og:url" content={canonicalUrl}>
