@@ -8,18 +8,27 @@ import * as prettier from 'prettier';
 const env = import.meta.env;
 
 const rewriteAstroGeneratedContent = (body: string) => {
+    if (!env.DEV) return body;
+
     const html = parse(body, { comment: true });
 
     // In dev, add public site url base for all scripts, so it works in external sites
-    if (env.DEV) {
-        html.querySelectorAll('script').forEach((script: HTMLElement) => {
-            const src = script.getAttribute('src');
-            const shouldAddScript = src == null ? false : src.startsWith('/');
-            if (shouldAddScript) {
-                script.setAttribute('src', new URL(src!, env.PUBLIC_SITE_URL).toString());
-            }
-        });
-    }
+    const firstBodyScript = html.querySelector('body script');
+    html.querySelectorAll('script').forEach((script) => {
+        const src = script.getAttribute('src');
+        if (src == null) return;
+
+        if (src.startsWith('/')) {
+            script.setAttribute('src', new URL(src, env.PUBLIC_SITE_URL).toString());
+        }
+
+        // Move @vite/client script so it's easier to update examples to localhost
+        if (src.endsWith('@vite/client') === true && firstBodyScript != null) {
+            firstBodyScript.insertAdjacentHTML('beforebegin', script.outerHTML);
+            script.remove();
+        }
+    });
+
     return html.toString();
 };
 
