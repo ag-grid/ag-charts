@@ -10,7 +10,7 @@ describe('zoom-large-dataset benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 80, expectedCanvasCount: 9, autoSnapshot: false },
+        { expectedRelativeMB: 80, expectedCanvasCount: 4, autoSnapshot: false },
         async () => {
             await ctx.create();
         }
@@ -24,7 +24,7 @@ describe('zoom-large-dataset benchmark', () => {
         benchmark(
             '100x zoom',
             ctx,
-            { expectedRelativeMB: 2, expectedCanvasCount: 7, autoSnapshot: false },
+            { expectedRelativeMB: 2, expectedCanvasCount: 2, autoSnapshot: false },
             async () => {
                 const zoomIn = scrollAction(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);
                 for (let i = 0; i < 100; i++) {

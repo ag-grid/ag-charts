@@ -1,8 +1,6 @@
-import { CanvasRenderingContext2D } from 'canvas';
-
 export function mockCanvasText(context: CanvasRenderingContext2D): CanvasRenderingContext2D {
     // Returning a proxy doesn't seem to work here
-    context.measureText = (text: string) => measureText(context, text);
+    context.measureText = (text: string, _maxWidth?: number) => measureText(context, text);
     context.fillText = (text: string, x: number, y: number) => fillText(context, text, x, y);
     return context;
 }
@@ -107,7 +105,7 @@ function getFontSize(context: CanvasRenderingContext2D) {
 }
 
 function isFontBold(context: CanvasRenderingContext2D) {
-    return context.font.includes('bold');
+    return context.font.includes('bold') || context.font.includes('700');
 }
 
 function getPixelSize(context: CanvasRenderingContext2D) {

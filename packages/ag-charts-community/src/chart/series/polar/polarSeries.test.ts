@@ -234,7 +234,7 @@ describe('PolarSeries', () => {
             const snapshot = async () => {
                 await waitForChartStability(chart);
 
-                return ctx.nodeCanvas?.toBuffer('raw');
+                return ctx.snapshot();
             };
 
             const options: AgPolarChartOptions = { ...examples.PIE_SERIES };

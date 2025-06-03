@@ -8,7 +8,7 @@ import { themes } from './mapping/themes';
 import { AreaSeries } from './series/cartesian/areaSeries';
 import { BarSeries } from './series/cartesian/barSeries';
 import { LineSeries } from './series/cartesian/lineSeries';
-import { deproxy, setupMockConsole, waitForChartStability } from './test/utils';
+import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from './test/utils';
 
 const revenueProfitData = [
     {
@@ -43,6 +43,7 @@ const revenueProfitData = [
 
 describe('AgChart', () => {
     setupMockConsole();
+    setupMockCanvas();
 
     let chartProxy: AgChartInstance;
 

@@ -203,7 +203,7 @@ module.exports = {
             name: 'ag-isolated-scene',
             comment: 'Options modules should be isolated from implementation modules.',
             severity: 'error',
-            from: { path: '^src/scene/' },
+            from: { path: '^src/scene/', pathNot: ['^src/scene/.*/.*.test.ts'] },
             to: { pathNot: ['ag-charts-core', 'ag-charts-types', '^src/(scale|scene|util|core)/', 'node_modules'] },
         },
         {

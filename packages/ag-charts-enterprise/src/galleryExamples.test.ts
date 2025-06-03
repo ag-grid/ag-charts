@@ -106,7 +106,7 @@ describe('Gallery Examples', () => {
                     const snapshot = async () => {
                         await waitForChartStability(chart);
 
-                        return ctx.nodeCanvas.toBuffer('raw');
+                        return ctx.snapshot();
                     };
 
                     chart.update(options);

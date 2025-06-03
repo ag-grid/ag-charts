@@ -1,13 +1,18 @@
 import { expect } from '@jest/globals';
-import { CanvasRenderingContext2D, DOMMatrix, Image } from 'canvas';
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
-import { Path2D, applyPath2DToCanvasRenderingContext } from 'path2d';
+import { DOMMatrix, Image, Path2D } from 'skia-canvas';
 import { URL } from 'url';
 import { TextDecoder, TextEncoder } from 'util';
 
+import { mockCanvas } from 'ag-charts-test';
+
 import { toMatchImage } from './src/chart/test/utils';
 
-global.Blob = Blob;
+// @ts-expect-error types don't exactly align
+global.Canvas = mockCanvas.ConfiguredCanvas;
+
+// @ts-expect-error types don't exactly align
+global.OffscreenCanvas = mockCanvas.ConfiguredCanvas;
 
 // @ts-expect-error types don't exactly align
 global.DOMMatrix = DOMMatrix;
@@ -38,11 +43,9 @@ global.HTMLElement.prototype.togglePopover = function (visible) {
     return visible;
 };
 
-applyPath2DToCanvasRenderingContext(CanvasRenderingContext2D);
-
 declare module 'expect' {
     interface Matchers<R> {
-        toMatchImage(expected: Buffer, options?: { writeDiff: boolean }): R;
+        toMatchImage(expected: ImageData, options?: { writeDiff: boolean }): R;
         toMatchImageSnapshot(options?: MatchImageSnapshotOptions): R;
     }
 }

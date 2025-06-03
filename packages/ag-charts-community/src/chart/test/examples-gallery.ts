@@ -2,6 +2,7 @@ import type { AgChartOptions } from 'ag-charts-types';
 
 import * as examples from './examples';
 import {
+    PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     flowProportionChartAssertions,
     gaugeAssertions,
@@ -9,7 +10,7 @@ import {
     polarChartAssertions,
     repeat,
 } from './utils';
-import type { ChartOrProxy } from './utils';
+import type { ChartOrProxy, IMAGE_SNAPSHOT_DEFAULTS } from './utils';
 
 export type TestCase = {
     type?: 'chart' | 'gauge';
@@ -17,6 +18,7 @@ export type TestCase = {
     enterprise: boolean;
     assertions: (chart: ChartOrProxy) => void | Promise<void>;
     extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
+    imageSnapshotDefaults?: typeof IMAGE_SNAPSHOT_DEFAULTS;
 };
 export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
     BAR_CHART_EXAMPLE: {
@@ -93,6 +95,7 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
         options: examples.SIMPLE_SCATTER_CHART_EXAMPLE,
         assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
         enterprise: false,
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: {
         options: examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,

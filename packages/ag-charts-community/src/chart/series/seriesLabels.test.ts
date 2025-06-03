@@ -6,6 +6,7 @@ import { AgCharts } from '../../api/agCharts';
 import type { TestCase } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     extractImageData,
     polarChartAssertions,
@@ -82,6 +83,7 @@ const EXAMPLES: Record<string, TestCase> = {
     SCATTER_SERIES_LABELS: {
         options: examples.SCATTER_SERIES_LABELS,
         assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     GROUPED_SCATTER_SERIES_LABELS: {
         options: examples.GROUPED_SCATTER_SERIES_LABELS,
@@ -159,18 +161,18 @@ describe('series labels', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
-                const compare = async () => {
+                const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
                     await waitForChartStability(chart);
 
                     const imageData = extractImageData(ctx);
-                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                    expect(imageData).toMatchImageSnapshot(defaults);
                 };
 
                 const options: AgChartOptions = { ...example.options };
                 prepareTestOptions(options);
 
                 chart = AgCharts.create(options);
-                await compare();
+                await compare(example.imageSnapshotDefaults);
             }
         );
     });

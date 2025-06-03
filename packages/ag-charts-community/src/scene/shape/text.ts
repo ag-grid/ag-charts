@@ -247,6 +247,10 @@ export class Text<D = any> extends Shape<D> {
     ): void {
         const { lines, x, y } = this;
 
+        if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(offsetY) || !Number.isFinite(lineHeight)) {
+            return;
+        }
+
         for (const line of lines) {
             renderCallback(line, x, y + offsetY);
             offsetY += lineHeight;

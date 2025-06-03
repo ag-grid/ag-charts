@@ -10,7 +10,7 @@ import type { AreaSeries } from '../series/cartesian/areaSeries';
 import type { BarSeries } from '../series/cartesian/barSeries';
 import type { LineSeries } from '../series/cartesian/lineSeries';
 import type { PieSeries } from '../series/polar/pieSeries';
-import { deproxy, setupMockConsole, waitForChartStability } from '../test/utils';
+import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 import type { ChartOrProxy } from '../test/utils';
 import { ChartTheme } from './chartTheme';
 
@@ -24,6 +24,7 @@ const data = [
 
 describe('ChartTheme', () => {
     setupMockConsole();
+    setupMockCanvas();
 
     let chart: ChartOrProxy;
 
