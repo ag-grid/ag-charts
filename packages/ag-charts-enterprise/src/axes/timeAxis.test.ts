@@ -49,7 +49,7 @@ const TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
     ],
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             interval: {
                 maxSpacing: 150,
@@ -76,7 +76,7 @@ describe('Time Axis Examples', () => {
         await waitForChartStability(chart);
 
         for (const axis of deproxy(chart).axes) {
-            if (axis.type !== 'time') continue;
+            if (!axis.type.endsWith('time')) continue;
 
             const axisBbox = calculateAxisBBox(axis);
             expect(axisBbox).toMatchSnapshot();

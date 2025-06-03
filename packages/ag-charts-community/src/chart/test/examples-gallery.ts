@@ -81,7 +81,7 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
     },
     SIMPLE_LINE_CHART_EXAMPLE: {
         options: examples.SIMPLE_LINE_CHART_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['line', 'line'] }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line', 'line'] }),
         enterprise: false,
     },
     LINE_GRAPH_WITH_GAPS_EXAMPLE: {
@@ -106,12 +106,12 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
     },
     SIMPLE_AREA_GRAPH_EXAMPLE: {
         options: examples.SIMPLE_AREA_GRAPH_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('area', 4) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('area', 4) }),
         enterprise: false,
     },
     STACKED_AREA_GRAPH_EXAMPLE: {
         options: examples.STACKED_AREA_GRAPH_EXAMPLE,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('area', 6) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('area', 6) }),
         enterprise: false,
     },
     ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE: {
@@ -175,7 +175,7 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
     ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS: {
         options: examples.ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['continuous-time', 'number'],
+            axisTypes: ['time', 'number'],
             seriesTypes: ['line', 'line', 'line', 'line'],
         }),
         enterprise: false,

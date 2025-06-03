@@ -55,7 +55,7 @@ const options: AgChartOptions = {
             max: 160,
         },
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             tick: {
                 size: 14,

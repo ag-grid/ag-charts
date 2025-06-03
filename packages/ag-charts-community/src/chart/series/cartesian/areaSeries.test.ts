@@ -8,7 +8,7 @@ import type {
     AgColorRepeat,
     AgImageFillFit,
     AgPatternName,
-    AgTimeAxisOptions,
+    AgUnitTimeAxisOptions,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
@@ -96,7 +96,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
         },
         AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['area'] }),
+            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['area'] }),
             warnings: [['AG Charts - invalid value of type [object] for [AreaSeries-1 / xValue] ignored:', '[null]']],
         },
         STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
@@ -114,7 +114,10 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
         },
         STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('area', 2) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: ['unit-time', 'number'],
+                seriesTypes: repeat('area', 2),
+            }),
             warnings: [
                 [
                     'AG Charts - invalid value of type [object] for [AreaSeries-1,AreaSeries-2 / xValue] ignored:',
@@ -124,11 +127,17 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
         },
         AREA__TIME_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.AREA_TIME_X_AXIS_NUMBER_Y_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('area', 2) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: ['unit-time', 'number'],
+                seriesTypes: repeat('area', 2),
+            }),
         },
         AREA_NUMBER_X_AXIS_TIME_Y_AXIS: {
             options: examples.AREA_NUMBER_X_AXIS_TIME_Y_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'time'], seriesTypes: repeat('area', 2) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: ['number', 'unit-time'],
+                seriesTypes: repeat('area', 2),
+            }),
             skip: true,
         },
         AREA_NUMBER_AXES_0_X_DOMAIN: {
@@ -355,7 +364,7 @@ describe('AreaSeries', () => {
         const animate = spyOnAnimationManager();
 
         const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
-        (EXAMPLE.axes![0] as AgTimeAxisOptions).label!.format = '%b %Y';
+        (EXAMPLE.axes![0] as AgUnitTimeAxisOptions).label!.format = '%b %Y';
 
         const mutateData = (count: number) => {
             return ({ date: inputDate, ...d }: any) => {

@@ -62,7 +62,7 @@ const options: AgChartOptions = {
     axes: [
         {
             position: 'bottom',
-            type: 'time',
+            type: 'unit-time',
             interval: {
                 step: { unit: 'year', step: 5 },
             },

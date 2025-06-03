@@ -1,6 +1,6 @@
-import { AgCartesianChartOptions, AgCharts, AgTimeAxisThemeOptions } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgUnitTimeAxisThemeOptions } from 'ag-charts-community';
 
-const options: AgCartesianChartOptions & { axes: AgTimeAxisThemeOptions[] } = {
+const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Monthly average daily temperatures in the UK',

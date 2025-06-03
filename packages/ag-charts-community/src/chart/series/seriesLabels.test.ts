@@ -86,7 +86,7 @@ const EXAMPLES: Record<string, TestCase> = {
     GROUPED_SCATTER_SERIES_LABELS: {
         options: examples.GROUPED_SCATTER_SERIES_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['continuous-time', 'number'],
+            axisTypes: ['time', 'number'],
             seriesTypes: repeat('scatter', 4),
         }),
     },

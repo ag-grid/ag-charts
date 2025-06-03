@@ -23,7 +23,7 @@ const options: AgChartOptions = {
     })),
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             paddingInner: 0.5,
             groupPaddingInner: 0,

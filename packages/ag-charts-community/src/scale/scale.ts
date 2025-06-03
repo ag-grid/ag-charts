@@ -1,4 +1,4 @@
-export type ScaleType = 'number' | 'log' | 'time' | 'ordinal-time' | 'continuous-time' | 'band' | 'mercator' | 'color';
+export type ScaleType = 'number' | 'log' | 'time' | 'unit-time' | 'ordinal-time' | 'band' | 'mercator' | 'color';
 
 export interface ScaleTickParams<I> {
     nice: boolean;

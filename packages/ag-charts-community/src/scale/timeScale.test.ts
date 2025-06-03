@@ -10,11 +10,11 @@ import {
     durationWeek,
     durationYear,
 } from '../util/time/duration';
-import { ContinuousTimeScale } from './continuousTimeScale';
+import { TimeScale } from './timeScale';
 
-describe('ContinuousTimeScale', () => {
+describe('TimeScale', () => {
     it('should create nice domain', () => {
-        const scale = new ContinuousTimeScale();
+        const scale = new TimeScale();
         scale.domain = [new Date(new Date(2022, 1, 13)), new Date(new Date(2022, 10, 30))];
         expect(
             scale.niceDomain({
@@ -28,7 +28,7 @@ describe('ContinuousTimeScale', () => {
     });
 
     it('should create nice ticks', () => {
-        const scale = new ContinuousTimeScale();
+        const scale = new TimeScale();
         scale.domain = [new Date(2022, 1, 13), new Date(2022, 10, 30)];
         const ticks = {
             nice: true,
@@ -106,7 +106,7 @@ describe('ContinuousTimeScale', () => {
             ];
 
             it.each(MILLISECONDS_INTERVALS)(`for $name case`, ({ interval, domain }) => {
-                const scale = new ContinuousTimeScale();
+                const scale = new TimeScale();
 
                 scale.range = [0, 600];
                 scale.domain = domain;
@@ -172,7 +172,7 @@ describe('ContinuousTimeScale', () => {
             ];
 
             it.each(TIME_INTERVALS)(`for $name case`, ({ interval, domain }) => {
-                const scale = new ContinuousTimeScale();
+                const scale = new TimeScale();
 
                 scale.range = [0, 600];
                 scale.domain = domain;

@@ -74,7 +74,7 @@ function setOrdinalTimeAxis() {
 function setContinuousTimeAxis() {
     options.axes = [
         {
-            type: 'continuous-time',
+            type: 'time',
             position: 'bottom',
             title: { text: 'Continuous Time Axis' },
         },

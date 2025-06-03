@@ -49,7 +49,7 @@ describe('CandlestickSeries', () => {
         await compareSnapshot(AgCharts.create(options));
     });
 
-    it(`should render a candlestick chart with a time x-axis`, async () => {
+    it(`should render a candlestick chart with a unit time x-axis`, async () => {
         const options: AgChartOptions = {
             ...CANDLESTICK_OPTIONS,
             axes: [
@@ -59,7 +59,7 @@ describe('CandlestickSeries', () => {
                 },
                 {
                     position: 'bottom',
-                    type: 'time',
+                    type: 'unit-time',
                 },
             ],
         };
@@ -87,7 +87,7 @@ describe('CandlestickSeries', () => {
         await compareSnapshot(AgCharts.create(options));
     });
 
-    it(`should render a candlestick chart with a reversed time x-axis`, async () => {
+    it(`should render a candlestick chart with a reversed unit time x-axis`, async () => {
         const options: AgChartOptions = {
             ...CANDLESTICK_OPTIONS,
             axes: [
@@ -97,7 +97,7 @@ describe('CandlestickSeries', () => {
                 },
                 {
                     position: 'bottom',
-                    type: 'time',
+                    type: 'unit-time',
                     reverse: true,
                 },
             ],

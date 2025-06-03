@@ -276,7 +276,7 @@ describe('CartesianChart', () => {
                 ...examples.SIMPLE_LINE_CHART_EXAMPLE,
                 axes: [
                     {
-                        type: 'time',
+                        type: 'unit-time',
                         position: 'bottom',
                         title: {
                             text: 'Date',

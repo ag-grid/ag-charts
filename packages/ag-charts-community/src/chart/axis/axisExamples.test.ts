@@ -74,17 +74,17 @@ const EXAMPLES: Record<string, TestCase> = {
         },
         BASIC_TIME_AXIS: {
             options: axesExamples.TIME_AXIS_BASIC_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
         },
         BASIC_TIME_MIN_MAX_DATE_AXIS: {
             options: axesExamples.TIME_AXIS_MIN_MAX_DATE_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['line'] }),
-            compare: ['time'],
+            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
+            compare: ['unit-time'],
         },
         BASIC_TIME_MIN_MAX_NUMBER_AXIS: {
             options: axesExamples.TIME_AXIS_MIN_MAX_NUMBER_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['line'] }),
-            compare: ['time'],
+            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
+            compare: ['unit-time'],
         },
         NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE: {
             options: axesExamples.NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE,
@@ -108,14 +108,14 @@ const EXAMPLES_NO_SERIES: Record<string, TestCase> = {
     TIME_AXIS_NO_SERIES: {
         options: axesExamples.TIME_AXIS_NO_SERIES,
         assertions: cartesianChartAssertions({
-            axisTypes: ['continuous-time', 'number'],
+            axisTypes: ['time', 'number'],
             seriesTypes: repeat('line', 4),
         }),
     },
     TIME_AXIS_NO_SERIES_FIXED_DOMAIN: {
         options: axesExamples.TIME_AXIS_NO_SERIES_FIXED_DOMAIN,
         assertions: cartesianChartAssertions({
-            axisTypes: ['continuous-time', 'number'],
+            axisTypes: ['time', 'number'],
             seriesTypes: repeat('line', 4),
         }),
     },
@@ -164,7 +164,7 @@ const EXAMPLES_NO_SERIES: Record<string, TestCase> = {
     AREA_CHART_NO_SERIES: {
         options: axesExamples.AREA_CHART_NO_SERIES,
         assertions: cartesianChartAssertions({
-            axisTypes: ['time', 'number'],
+            axisTypes: ['unit-time', 'number'],
             seriesTypes: repeat('area', 6),
         }),
     },
@@ -186,7 +186,7 @@ const EXAMPLES_TICK_VALUES: Record<string, TestCase> = {
         TIME_AXIS_TICK_VALUES: {
             options: axesExamples.TIME_AXIS_TICK_VALUES,
             assertions: cartesianChartAssertions({
-                axisTypes: ['continuous-time', 'number'],
+                axisTypes: ['time', 'number'],
                 seriesTypes: repeat('line', 4),
             }),
         },
@@ -205,7 +205,7 @@ const EXAMPLES_TICK_SPACING: Record<string, TestCase> = {
         AXIS_TICK_MIN_SPACING: {
             options: axesExamples.AXIS_TICK_MIN_SPACING,
             assertions: cartesianChartAssertions({
-                axisTypes: ['continuous-time', 'number'],
+                axisTypes: ['time', 'number'],
                 seriesTypes: repeat('line', 4),
             }),
         },
