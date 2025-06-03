@@ -12,7 +12,7 @@ export class ConfiguredCanvas extends Canvas {
     transferToImageBitmap() {
         const { width, height } = this;
         const bitmap = new ConfiguredCanvas(width, height);
-        bitmap.getContext('2d').drawImage(this, 0, 0, width, height);
+        bitmap.getContext('2d').drawCanvas(this, 0, 0, width, height);
         Object.defineProperty(bitmap, 'close', {
             // no-op
             value: () => {},
