@@ -26,6 +26,7 @@ import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
 import { deepClone } from '../../util/json';
+import { objectsEqual } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
@@ -108,14 +109,14 @@ export class ZoomManager extends BaseManager {
 
         this.cleanup.register(
             eventsHub.on('layout:complete', () => {
-                const { pendingMemento } = this;
-                const shouldPerformInitialLayout = !this.didLayoutAxes;
                 this.didLayoutAxes = true;
+
+                const { pendingMemento } = this;
                 if (pendingMemento) {
                     this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
-                } else if (shouldPerformInitialLayout) {
-                    this.autoScaleYZoom('zoom-manager');
                 }
+
+                this.autoScaleYZoom('zoom-manager');
             })
         );
     }
@@ -526,7 +527,7 @@ export class ZoomManager extends BaseManager {
         if (zoom?.x == null) return;
 
         const zoomY = this.getAutoScaleYZoom(zoom.x);
-        if (zoomY == null) return;
+        if (zoomY == null || objectsEqual(zoom.y, zoomY)) return;
 
         if (independentAxes) {
             const primaryAxis = this.getPrimaryAxis(ChartAxisDirection.Y);
