@@ -29,9 +29,8 @@ import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group'
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import { Selection } from '../../scene/selection';
-import { Line } from '../../scene/shape/line';
 import { TransformableText } from '../../scene/shape/text';
-import { Transformable, Translatable } from '../../scene/transformable';
+import { Transformable } from '../../scene/transformable';
 import { formatValue } from '../../util/format.util';
 import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
@@ -77,16 +76,12 @@ export interface LabelNodeDatum {
 
 type AxisModuleMap = ModuleMap<AxisOptionModule, ModuleInstance, ModuleContextWithParent<AxisContext>>;
 
-export class TranslatableLine extends Translatable(Line) {}
-
 export enum AxisGroupZIndexMap {
     TickLines,
     // eslint-disable-next-line @typescript-eslint/no-shadow
     AxisLine,
     TickLabels,
 }
-
-export type CrosslineFormatterParams<D> = { domain: D[]; ticks: D[]; fractionDigits: number } | undefined;
 
 export type AxisTickFormatParams =
     | {
@@ -234,10 +229,6 @@ export abstract class Axis<
         TransformableText,
         false
     );
-
-    get labelNodes() {
-        return this.tickLabelGroupSelection.nodes();
-    }
 
     readonly line = new AxisLine();
     readonly tick = new AxisTick();
