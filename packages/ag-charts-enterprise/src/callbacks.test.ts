@@ -1,25 +1,43 @@
 import { afterEach, describe, expect } from '@jest/globals';
 
 import {
+    AgChartClickEvent,
     AgChartContextMenuEvent,
+    AgChartDoubleClickEvent,
     AgChartInstance,
+    AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
+    AgChartLegendDoubleClickEvent,
     AgChartOptions,
     AgCharts,
     AgContextMenuItemShowOn,
     AgLinearGaugeOptions,
+    AgNodeClickEvent,
     AgNodeContextMenuActionEvent,
     AgRadialGaugeOptions,
     AgSeriesAreaContextMenuActionEvent,
+    AgSeriesVisibilityChange,
     AgZoomEvent,
 } from 'ag-charts-community';
 import {
     AgLinearGaugeOptionsWithContext,
     AgRadialGaugeOptionsWithContext,
+    MockAPICallback,
+    MockChartClickListener,
+    MockChartDblClickListener,
     MockChartLabelFormatter,
+    MockChartSeriesNodeClickListener,
+    MockChartSeriesNodeDblClickListener,
+    MockChartSeriesVisibilityChangeListener,
     MockContextMenuAction,
+    MockLegendItemClickListener,
+    MockLegendItemDblClickListener,
+    MockSeriesNodeClickListener,
+    MockSeriesNodeDblClickListener,
     MockZoomListener,
+    clickAction,
     contextMenuAction,
+    doubleClickAction,
     newFreezableMock,
     scrollAction,
     setupMockCanvas,
@@ -66,6 +84,154 @@ describe('AG-14631 context enterprise', () => {
 
         expect(Object.isFrozen(context)).toBe(false);
         zoomListener.expect().toHaveBeenCalledTimes(2).withContext(context);
+    });
+
+    describe('clicks', () => {
+        type TDatum = Readonly<{ x: number; a: number; b: number; c: number }>;
+        type TContext = Readonly<{ readonly name: string }>;
+
+        let click: ReturnType<typeof newFreezableMock<MockChartClickListener>>;
+        let doubleClick: ReturnType<typeof newFreezableMock<MockChartDblClickListener>>;
+        let chartSeriesNodeClick: ReturnType<typeof newFreezableMock<MockChartSeriesNodeClickListener>>;
+        let chartSeriesNodeDoubleClick: ReturnType<typeof newFreezableMock<MockChartSeriesNodeDblClickListener>>;
+        let chartSeriesVisibilityChange: ReturnType<typeof newFreezableMock<MockChartSeriesVisibilityChangeListener>>;
+        let seriesNodeClick: ReturnType<typeof newFreezableMock<MockSeriesNodeClickListener>>;
+        let seriesNodeDoubleClick: ReturnType<typeof newFreezableMock<MockSeriesNodeDblClickListener>>;
+        let legendItemClick: ReturnType<typeof newFreezableMock<MockLegendItemClickListener>>;
+        let legendItemDoubleClick: ReturnType<typeof newFreezableMock<MockLegendItemDblClickListener>>;
+
+        let chartContext: TContext;
+        let series0Context: TContext;
+        let series1Context: TContext;
+
+        function newFreezable<T extends MockAPICallback>(fn: T) {
+            return newFreezableMock<T>(fn);
+        }
+
+        beforeEach(async () => {
+            click = newFreezable((_p: AgChartClickEvent) => {});
+            doubleClick = newFreezable((_p: AgChartDoubleClickEvent) => {});
+            chartSeriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', unknown>) => {});
+            chartSeriesNodeDoubleClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeDoubleClick', unknown>) => {});
+            chartSeriesVisibilityChange = newFreezable((_p: AgSeriesVisibilityChange) => {});
+            seriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', unknown>) => {});
+            seriesNodeDoubleClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeDoubleClick', unknown>) => {});
+            legendItemClick = newFreezable((_p: AgChartLegendClickEvent) => {});
+            legendItemDoubleClick = newFreezable((_p: AgChartLegendDoubleClickEvent) => {});
+
+            chartContext = { name: 'chart context' } as const;
+            series0Context = { name: 'series 0 context' } as const;
+            series1Context = { name: 'series 1 context' } as const;
+            const seriesListeners = {
+                seriesNodeClick: seriesNodeClick.frozen,
+                seriesNodeDoubleClick: seriesNodeDoubleClick.frozen,
+            };
+            const legendListeners = {
+                legendItemClick: legendItemClick.frozen,
+                legendItemDoubleClick: legendItemDoubleClick.frozen,
+            };
+            const chartListeners = {
+                click: click.frozen,
+                doubleClick: doubleClick.frozen,
+                seriesNodeClick: chartSeriesNodeClick.frozen,
+                seriesNodeDoubleClick: chartSeriesNodeDoubleClick.frozen,
+                seriesVisibilityChange: chartSeriesVisibilityChange.frozen,
+            };
+            const opts: AgChartOptions<TDatum, TContext> = {
+                data: [
+                    { x: 0, a: 1, b: 2, c: 3 },
+                    { x: 1, a: 1, b: 2, c: 3 },
+                    { x: 2, a: 1, b: 2, c: 3 },
+                ],
+                context: chartContext,
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'a', listeners: seriesListeners, context: series0Context },
+                    { type: 'bar', xKey: 'x', yKey: 'b', listeners: seriesListeners, context: series1Context },
+                    { type: 'bar', xKey: 'x', yKey: 'c', listeners: seriesListeners },
+                ],
+                legend: { listeners: legendListeners },
+                listeners: chartListeners,
+                zoom: { enabled: true },
+            };
+            chart = await createChart(opts);
+        });
+
+        afterEach(() => {
+            expect(Object.isFrozen(chartContext)).toBe(false);
+            expect(Object.isFrozen(series0Context)).toBe(false);
+            expect(Object.isFrozen(series1Context)).toBe(false);
+        });
+
+        function expectNothingCalled() {
+            click.expect().toHaveBeenCalledTimes(0);
+            doubleClick.expect().toHaveBeenCalledTimes(0);
+            chartSeriesNodeClick.expect().toHaveBeenCalledTimes(0);
+            chartSeriesNodeDoubleClick.expect().toHaveBeenCalledTimes(0);
+            chartSeriesVisibilityChange.expect().toHaveBeenCalledTimes(0);
+            seriesNodeClick.expect().toHaveBeenCalledTimes(0);
+            seriesNodeDoubleClick.expect().toHaveBeenCalledTimes(0);
+            legendItemClick.expect().toHaveBeenCalledTimes(0);
+            legendItemDoubleClick.expect().toHaveBeenCalledTimes(0);
+        }
+
+        test('chart', async () => {
+            await doubleClickAction(146, 133)(chart);
+            click.expect().toHaveBeenCalledTimes(2).withContext(chartContext).mockClear();
+            doubleClick.expect().toHaveBeenCalledTimes(1).withContext(chartContext).mockClear();
+
+            expectNothingCalled();
+        });
+
+        test('series', async () => {
+            await doubleClickAction(118, 400)(chart);
+            chartSeriesNodeClick.expect().toHaveBeenCalledTimes(2).withContext(series0Context).mockClear();
+            chartSeriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(series0Context).mockClear();
+            seriesNodeClick.expect().toHaveBeenCalledTimes(2).withContext(series0Context).mockClear();
+            seriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(series0Context).mockClear();
+
+            await doubleClickAction(171, 400)(chart);
+            chartSeriesNodeClick.expect().toHaveBeenCalledTimes(2).withContext(series1Context).mockClear();
+            chartSeriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(series1Context).mockClear();
+            seriesNodeClick.expect().toHaveBeenCalledTimes(2).withContext(series1Context).mockClear();
+            seriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(series1Context).mockClear();
+
+            await doubleClickAction(234, 400)(chart);
+            chartSeriesNodeClick.expect().toHaveBeenCalledTimes(2).withoutContext().mockClear();
+            chartSeriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withoutContext().mockClear();
+            seriesNodeClick.expect().toHaveBeenCalledTimes(2).withoutContext().mockClear();
+            seriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withoutContext().mockClear();
+
+            expectNothingCalled();
+        });
+
+        test('series-visibility', async () => {
+            await clickAction(356, 572)(chart);
+            chartSeriesVisibilityChange.expect().toHaveBeenCalledTimes(1).withContext(series0Context).mockClear();
+
+            await clickAction(406, 572)(chart);
+            chartSeriesVisibilityChange.expect().toHaveBeenCalledTimes(1).withContext(series1Context).mockClear();
+
+            await clickAction(451, 572)(chart);
+            chartSeriesVisibilityChange.expect().toHaveBeenCalledTimes(1).withoutContext().mockClear();
+
+            expectNothingCalled();
+        });
+
+        test('legend', async () => {
+            await doubleClickAction(356, 572)(chart);
+            legendItemClick.expect().toHaveBeenCalledTimes(2).withContext(series0Context).mockClear();
+            legendItemDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(series0Context).mockClear();
+
+            await doubleClickAction(406, 572)(chart);
+            legendItemClick.expect().toHaveBeenCalledTimes(2).withContext(series1Context).mockClear();
+            legendItemDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(series1Context).mockClear();
+
+            await doubleClickAction(451, 572)(chart);
+            legendItemClick.expect().toHaveBeenCalledTimes(2).withoutContext().mockClear();
+            legendItemDoubleClick.expect().toHaveBeenCalledTimes(1).withoutContext().mockClear();
+
+            expectNothingCalled();
+        });
     });
 
     describe('contextMenu', () => {

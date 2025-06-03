@@ -3,6 +3,8 @@ import type {
     AgBarSeriesOptions,
     AgBarSeriesThemeableOptions,
     AgBaseChartListeners,
+    AgBaseChartOptions,
+    AgBaseSeriesOptions,
     AgCartesianAxisOptions,
     AgChartLabelOptions,
     AgContextMenuItem,
@@ -15,9 +17,26 @@ export type MockTooltipRenderer = NonNullable<NonNullable<AgBarSeriesThemeableOp
 export type MockErrorBarStyler = NonNullable<NonNullable<AgBarSeriesOptions['errorBar']>['itemStyler']>;
 export type MockChartLabelFormatter = NonNullable<NonNullable<AgChartLabelOptions<unknown, unknown>['formatter']>>;
 export type MockZoomListener = NonNullable<AgBaseChartListeners<unknown>['zoom']>;
+export type MockChartClickListener = NonNullable<AgBaseChartListeners<unknown>['click']>;
+export type MockChartDblClickListener = NonNullable<AgBaseChartListeners<unknown>['doubleClick']>;
+export type MockChartSeriesNodeClickListener = NonNullable<AgBaseChartListeners<unknown>['seriesNodeClick']>;
+export type MockChartSeriesNodeDblClickListener = NonNullable<AgBaseChartListeners<unknown>['seriesNodeDoubleClick']>;
+export type MockChartSeriesVisibilityChangeListener = NonNullable<
+    AgBaseChartListeners<unknown>['seriesVisibilityChange']
+>;
+export type MockSeriesNodeClickListener = NonNullable<NonNullable<AgBaseSeriesOptions['listeners']>['seriesNodeClick']>;
+export type MockSeriesNodeDblClickListener = NonNullable<
+    NonNullable<AgBaseSeriesOptions['listeners']>['seriesNodeDoubleClick']
+>;
+export type MockLegendItemClickListener = NonNullable<
+    NonNullable<NonNullable<AgBaseChartOptions['legend']>['listeners']>['legendItemClick']
+>;
+export type MockLegendItemDblClickListener = NonNullable<
+    NonNullable<NonNullable<AgBaseChartOptions['legend']>['listeners']>['legendItemDoubleClick']
+>;
 export type MockContextMenuAction = NonNullable<Extract<AgContextMenuItem, object>['action']>;
 
-type APICallback =
+export type MockAPICallback =
     | MockItemStyler
     | MockAxisLabelFormatter
     | MockSeriesLabelFormatter
@@ -25,10 +44,19 @@ type APICallback =
     | MockErrorBarStyler
     | MockChartLabelFormatter
     | MockZoomListener
+    | MockChartClickListener
+    | MockChartDblClickListener
+    | MockChartSeriesNodeClickListener
+    | MockChartSeriesNodeDblClickListener
+    | MockChartSeriesVisibilityChangeListener
+    | MockSeriesNodeClickListener
+    | MockSeriesNodeDblClickListener
+    | MockLegendItemClickListener
+    | MockLegendItemDblClickListener
     | MockContextMenuAction;
 
 // AG Charts calls Object.freeze on theme options, so we must create intermediate functions to circumvent that.
-export function newFreezableMock<F extends APICallback>(mockImp?: F) {
+export function newFreezableMock<F extends MockAPICallback>(mockImp?: F) {
     type Rtn = ReturnType<F>;
     type Arg = Parameters<F>[0];
 
@@ -43,6 +71,10 @@ export function newFreezableMock<F extends APICallback>(mockImp?: F) {
         frozen: Object.freeze((params: Arg): Rtn => mock(params)),
         expect() {
             return {
+                mockClear() {
+                    mock.mockClear();
+                    return this;
+                },
                 toHaveBeenCalledTimes(expected: number) {
                     expect(mock).toHaveBeenCalledTimes(expected);
                     return this;
