@@ -319,7 +319,7 @@ export class MapShapeSeries
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, properties, scale, previousLabelLayouts } = this;
-        const { idKey, colorKey, labelKey, label } = properties;
+        const { idKey, colorKey, labelKey, label, legendItemName } = properties;
 
         if (dataModel == null || processedData == null) return;
 
@@ -383,6 +383,7 @@ export class MapShapeSeries
                 colorValue,
                 labelValue,
                 projectedGeometry,
+                legendItemName,
             });
         });
 
@@ -419,7 +420,13 @@ export class MapShapeSeries
         this.contentGroup.opacity = this.getOpacity();
 
         let highlightedDatum: MapShapeNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedDatum != null && (highlightedDatum.series !== this || highlightedDatum.datum == null)) {
+        const { legendItemName } = this.properties;
+        const matchingLegendItemName = legendItemName != null && legendItemName === highlightedDatum?.legendItemName;
+
+        if (
+            highlightedDatum != null &&
+            ((highlightedDatum.series !== this && !matchingLegendItemName) || highlightedDatum.datum == null)
+        ) {
             highlightedDatum = undefined;
         }
 

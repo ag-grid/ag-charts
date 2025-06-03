@@ -20,7 +20,7 @@ import type {
     ISeriesMarker,
 } from 'ag-charts-types';
 
-import type { LegendItemClickEvent, LegendItemDoubleClickEvent } from '../../core/eventsHub';
+import type { HighlightNodeDatum, LegendItemClickEvent, LegendItemDoubleClickEvent } from '../../core/eventsHub';
 import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
@@ -596,19 +596,23 @@ export abstract class Series<
     }
 
     protected isItemIdHighlighted(): SeriesHighlight {
-        const series = this.ctx.highlightManager?.getActiveHighlight()?.series;
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+
+        if (this.isSeriesHighlighted(highlightedDatum)) {
+            return SeriesHighlight.This;
+        }
 
         // Highlighting not active.
-        if (series == null) {
+        if (highlightedDatum?.series == null) {
             return SeriesHighlight.None;
         }
 
         // Highlighting active, this series not highlighted.
-        if (series !== this) {
-            return SeriesHighlight.Other;
-        }
+        return SeriesHighlight.Other;
+    }
 
-        return SeriesHighlight.This;
+    protected isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined) {
+        return highlightedDatum?.series === this;
     }
 
     protected getModuleTooltipParams() {

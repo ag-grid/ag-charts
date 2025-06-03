@@ -114,6 +114,7 @@ export interface HighlightNodeDatum extends SeriesNodeDatum<unknown> {
     readonly cumulativeValue?: number;
     readonly aggregatedValue?: number;
     readonly domain?: [number, number];
+    readonly legendItemName?: string;
 }
 
 export interface ZoomState {

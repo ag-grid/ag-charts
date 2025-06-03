@@ -901,11 +901,16 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     private updateNodes(seriesRect: BBox) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const { visible } = this;
+        const { visible, dataModel, processedData } = this;
         this.backgroundGroup.visible = visible;
         this.contentGroup.visible = visible;
-        this.highlightGroup.visible = visible && highlightedDatum?.series === this;
-        this.highlightLabel.visible = visible && highlightedDatum?.series === this;
+
+        if (!dataModel || !processedData) return;
+        const { legendItemValues } = this.getProcessedDataValues(dataModel, processedData);
+        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
+
+        this.highlightGroup.visible = visible && seriesHighlighted;
+        this.highlightLabel.visible = visible && seriesHighlighted;
         this.labelGroup.visible = visible;
 
         this.contentGroup.opacity = this.getOpacity();
