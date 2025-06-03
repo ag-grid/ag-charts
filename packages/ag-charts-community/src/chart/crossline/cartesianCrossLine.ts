@@ -8,7 +8,6 @@ import type {
 } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
-import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
@@ -259,8 +258,6 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const bandwidth = scale.bandwidth ?? 0;
         const step = scale.step ?? 0;
         const rangePadding = (reversedAxis ? -1 : 1) * (scale instanceof BandScale ? (step - bandwidth) / 2 : 0);
-        const ordinalTimeScalePadding =
-            type === 'range' && OrdinalTimeScale.is(scale) ? bandwidth / 2 + rangePadding : 0;
 
         let yStart: number;
         let yEnd: number;
@@ -290,8 +287,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             }
 
             if (Number.isFinite(yStart)) {
-                yStart += ordinalTimeScalePadding;
-                clampedYStart += ordinalTimeScalePadding - rangePadding;
+                clampedYStart -= rangePadding;
             }
 
             if (Number.isFinite(yEnd)) {
