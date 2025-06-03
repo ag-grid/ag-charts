@@ -1,6 +1,7 @@
 import { afterEach, describe, expect } from '@jest/globals';
 
 import {
+    AgAnnotationsEvent,
     AgChartClickEvent,
     AgChartContextMenuEvent,
     AgChartDoubleClickEvent,
@@ -23,6 +24,7 @@ import {
     AgLinearGaugeOptionsWithContext,
     AgRadialGaugeOptionsWithContext,
     MockAPICallback,
+    MockAnnotationsListener,
     MockChartClickListener,
     MockChartDblClickListener,
     MockChartLabelFormatter,
@@ -84,6 +86,27 @@ describe('AG-14631 context enterprise', () => {
 
         expect(Object.isFrozen(context)).toBe(false);
         zoomListener.expect().toHaveBeenCalledTimes(2).withContext(context);
+    });
+
+    test('annotations', async () => {
+        const annotationsListener = newFreezableMock<MockAnnotationsListener>((_params: AgAnnotationsEvent) => {});
+        const context = { name: 'chart context' };
+        const opts: AgChartOptions<{ x: string; y: number }, { name: string }> = {
+            data: [
+                { x: 'Jan', y: 62 },
+                { x: 'Feb', y: 45 },
+                { x: 'Mar', y: 38 },
+            ],
+            context,
+            series: [{ type: 'line', xKey: 'x', yKey: 'y', context: { name: 'series context' } }],
+            annotations: { enabled: true },
+            listeners: { annotations: annotationsListener.frozen },
+            initialState: { annotations: [{ type: 'comment', x: 'Feb', y: 46, text: '$45,000' }] },
+        };
+
+        chart = await createChart(opts);
+        expect(Object.isFrozen(context)).toBe(false);
+        annotationsListener.expect().toHaveBeenCalledTimes(1).withContext(context);
     });
 
     describe('clicks', () => {

@@ -16,6 +16,7 @@ export type MockSeriesLabelFormatter = NonNullable<NonNullable<AgBarSeriesThemea
 export type MockTooltipRenderer = NonNullable<NonNullable<AgBarSeriesThemeableOptions['tooltip']>['renderer']>;
 export type MockErrorBarStyler = NonNullable<NonNullable<AgBarSeriesOptions['errorBar']>['itemStyler']>;
 export type MockChartLabelFormatter = NonNullable<NonNullable<AgChartLabelOptions<unknown, unknown>['formatter']>>;
+export type MockAnnotationsListener = NonNullable<AgBaseChartListeners<unknown>['annotations']>;
 export type MockZoomListener = NonNullable<AgBaseChartListeners<unknown>['zoom']>;
 export type MockChartClickListener = NonNullable<AgBaseChartListeners<unknown>['click']>;
 export type MockChartDblClickListener = NonNullable<AgBaseChartListeners<unknown>['doubleClick']>;
@@ -43,6 +44,7 @@ export type MockAPICallback =
     | MockTooltipRenderer
     | MockErrorBarStyler
     | MockChartLabelFormatter
+    | MockAnnotationsListener
     | MockZoomListener
     | MockChartClickListener
     | MockChartDblClickListener
