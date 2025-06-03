@@ -1446,10 +1446,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             horizontalAxis.line.enabled = false;
 
             horizontalAxis.label.set(
-                without(labelOptions, ['interval', 'rotation', 'minSpacing', 'autoRotate', 'autoRotateAngle'])
-            );
-            horizontalAxis.tick.set(
-                without(intervalOptions, ['enabled', 'width', 'size', 'color', 'interval', 'step'])
+                without(labelOptions, [
+                    'interval',
+                    'autoRotate',
+                    'autoRotateAngle',
+                    'itemStyler',
+                    'minSpacing',
+                    'rotation',
+                ])
             );
 
             if (horizontalAxis.type === 'grouped-category') {
@@ -1471,10 +1475,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 (horizontalAxis as ContinuousTimeAxis).parentLevel.enabled = false;
             }
 
-            const step = intervalOptions?.step;
-            if (step != null) {
-                horizontalAxis.interval.step = step;
-            }
+            horizontalAxis.interval.step = intervalOptions?.step;
+            horizontalAxis.interval.values = intervalOptions?.values;
+            horizontalAxis.interval.minSpacing = intervalOptions?.minSpacing;
+            horizontalAxis.interval.maxSpacing = intervalOptions?.maxSpacing;
         }
     }
 
