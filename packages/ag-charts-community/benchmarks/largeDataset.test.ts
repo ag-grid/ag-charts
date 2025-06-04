@@ -10,7 +10,7 @@ describe('large-dataset benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 760, expectedCanvasCount: 9 },
+        { expectedRelativeMB: 620, expectedCanvasCount: 4 },
         async () => await ctx.create(),
         15_000
     );
@@ -24,7 +24,7 @@ describe('large-dataset benchmark', () => {
         benchmark(
             '1x legend toggle',
             ctx,
-            { expectedRelativeMB: 160, expectedCanvasCount: 9 },
+            { expectedRelativeMB: 160, expectedCanvasCount: 4 },
             async () => {
                 ctx.options.series![0].visible = false;
                 await ctx.update();

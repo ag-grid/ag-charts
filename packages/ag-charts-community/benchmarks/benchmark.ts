@@ -139,7 +139,13 @@ export function benchmark(
             const { autoSnapshot, ...expected } = expectations;
             if (autoSnapshot ?? true) {
                 const newImageData = extractImageData(ctx.canvasCtx);
-                expect(newImageData).toMatchImageSnapshot({ failureThresholdType: 'pixel', failureThreshold: 5 });
+                expect(newImageData).toMatchImageSnapshot({
+                    failureThresholdType: 'pixel',
+                    failureThreshold: 5,
+                    customDiffConfig: {
+                        threshold: 0.05,
+                    },
+                });
             }
 
             const BYTES_PER_MB = 1024 ** 2;

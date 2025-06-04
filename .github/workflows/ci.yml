@@ -191,6 +191,7 @@ jobs:
         needs: init
         if: needs.init.outputs.test_count > 0
         strategy:
+            fail-fast: false
             matrix: ${{ fromJson(needs.init.outputs.test_matrix )}}
         env:
             NX_PARALLEL: 1
@@ -236,6 +237,7 @@ jobs:
               with:
                   path: packages/ag-charts-{community,enterprise}/{benchmarks,src}/
                   branch: ${{ needs.init.outputs.snapshot_branch }}
+                  type: test (shard ${{matrix.shard}})
 
             - name: Perist test results
               if: always()
@@ -292,6 +294,7 @@ jobs:
               with:
                   path: packages/ag-charts-website/e2e/
                   branch: ${{ needs.init.outputs.snapshot_branch }}
+                  type: test:e2e (shard ${{matrix.shard}})
 
             - name: Perist test results
               if: always()
@@ -346,6 +349,7 @@ jobs:
               with:
                   path: tests/*-package-tests/e2e/*-snapshots/
                   branch: ${{ needs.init.outputs.snapshot_branch }}
+                  type: ${{ matrix.framework }}-package-tests:test:package
 
     report:
         runs-on: ubuntu-24.04

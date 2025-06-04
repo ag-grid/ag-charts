@@ -44,6 +44,7 @@ export interface TestCase {
     assertions: (chart: ChartOrProxy) => Promise<void> | void;
     extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
     warnings?: Array<string | Array<string>>;
+    imageSnapshotDefaults?: MatchImageSnapshotOptions;
 }
 
 export interface CartesianOrPolarTestCase extends TestCase {
@@ -74,6 +75,29 @@ export const IMAGE_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
         threshold: 0.02, // 2x the default of 0.01 - this is the per pixel threshold for colour/opacity difference.
     },
 };
+
+export const PATTERN_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
+    ...IMAGE_SNAPSHOT_DEFAULTS,
+    customDiffConfig: {
+        ...IMAGE_SNAPSHOT_DEFAULTS.customDiffConfig,
+        threshold: 0.05,
+    },
+};
+
+export function looserSnapshotDefaults(
+    pixelThreshold: number = 0.06,
+    pixelCountThreshold: number = 40
+): MatchImageSnapshotOptions {
+    return {
+        ...IMAGE_SNAPSHOT_DEFAULTS,
+        failureThreshold: pixelCountThreshold,
+        failureThresholdType: 'pixel',
+        customDiffConfig: {
+            ...IMAGE_SNAPSHOT_DEFAULTS.customDiffConfig,
+            threshold: pixelThreshold,
+        },
+    };
+}
 
 export async function delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));

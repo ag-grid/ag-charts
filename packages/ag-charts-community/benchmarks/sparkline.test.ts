@@ -17,7 +17,7 @@ describe('sparkline benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 10, expectedCanvasCount: 2 },
+        { expectedRelativeMB: 15, expectedCanvasCount: 2 },
         async () => {
             await ctx.create({ pool: false });
         },
@@ -46,7 +46,7 @@ describe('sparkline benchmark', () => {
         benchmark(
             'updateDelta',
             ctx,
-            { expectedRelativeMB: 0.7, expectedCanvasCount: 0, autoSnapshot: false },
+            { expectedRelativeMB: 0.8, expectedCanvasCount: 0, autoSnapshot: false },
             async () => {
                 await ctx.updateDelta({
                     data: ctx.options.data?.map((d) => ({ x: d.x, y: Math.random() * d.y })),

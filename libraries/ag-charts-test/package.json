@@ -2,7 +2,7 @@
   "name": "ag-charts-test",
   "version": "11.3.1-beta.20250602",
   "dependencies": {
-    "canvas": "^3.1.0",
+    "skia-canvas": "^2.0.2",
     "tslib": "^2.3.0"
   },
   "type": "commonjs",

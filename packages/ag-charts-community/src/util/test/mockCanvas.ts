@@ -1,14 +1,14 @@
-import { Canvas, type PngConfig, createCanvas } from 'canvas';
 import * as fs from 'fs';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
+import { Canvas } from 'skia-canvas';
 
 import { resetIds } from 'ag-charts-core';
 import { mockCanvas } from 'ag-charts-test';
 
 export const CANVAS_WIDTH = 800;
 export const CANVAS_HEIGHT = 600;
-export const CANVAS_TO_BUFFER_DEFAULTS: PngConfig = { compressionLevel: 6, filters: Canvas.PNG_NO_FILTERS };
+export const CANVAS_TO_BUFFER_DEFAULTS = { quality: 1 };
 
 export function extractImageData({
     nodeCanvas,
@@ -26,7 +26,7 @@ export function extractImageData({
             throw new Error('Invalid image size provided, dimensions must be greater than zero.');
         }
 
-        sourceCanvas = createCanvas(width, height);
+        sourceCanvas = new mockCanvas.ConfiguredCanvas(width, height);
         sourceCanvas
             ?.getContext('2d')
             .drawImage(
@@ -42,11 +42,12 @@ export function extractImageData({
             );
     }
 
-    return sourceCanvas?.toBuffer('image/png', CANVAS_TO_BUFFER_DEFAULTS);
+    return sourceCanvas?.toBufferSync('png', CANVAS_TO_BUFFER_DEFAULTS);
 }
 
 export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT } = {}): {
     nodeCanvas: Canvas;
+    snapshot: () => ImageData;
     getRenderContext2D: () => CanvasRenderingContext2D;
     getActiveCanvasInstances: () => Canvas[];
     getActiveOffscreenCanvasInstances: () => OffscreenCanvas[];
@@ -67,14 +68,14 @@ export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT }
     return mockCtx.ctx;
 }
 
-export function toMatchImage(this: any, actual: Buffer, expected: Buffer, { writeDiff = true } = {}) {
+export function toMatchImage(this: any, actual: ImageData, expected: ImageData, { writeDiff = true } = {}) {
     // Grab values from enclosing Jest scope.
     const { testPath, currentTestName } = this;
 
     const width = CANVAS_WIDTH;
     const height = CANVAS_HEIGHT;
     const diff = new PNG({ width, height });
-    const result = pixelmatch(actual, expected, diff.data, width, height, { threshold: 0.01 });
+    const result = pixelmatch(actual.data, expected.data, diff.data, width, height, { threshold: 0.01 });
 
     const diffOutputFilename = `${testPath.substring(
         0,

@@ -7,6 +7,7 @@ import type { Chart } from '../../chart';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    PATTERN_SNAPSHOT_DEFAULTS,
     clickAction,
     createChart,
     deproxy,
@@ -41,11 +42,11 @@ describe('DonutSeries', () => {
         }
     });
 
-    const compare = async (customSnapshotIdentifier?: string) => {
+    const compare = async (customSnapshotIdentifier?: string, defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
         await waitForChartStability(chart);
         const imageData = extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot({
-            ...IMAGE_SNAPSHOT_DEFAULTS,
+            ...defaults,
             failureThreshold: 0,
             customSnapshotIdentifier,
         });
@@ -242,7 +243,7 @@ describe('DonutSeries', () => {
                     } as AgDonutSeriesOptions,
                 ],
             });
-            await compare();
+            await compare(undefined, PATTERN_SNAPSHOT_DEFAULTS);
         });
     });
 

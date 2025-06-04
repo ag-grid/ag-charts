@@ -1,87 +1,30 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Canvas, CanvasPattern, CanvasRenderingContext2D, type DOMMatrix, Image, createCanvas } from 'canvas';
+import { Canvas, CanvasRenderingContext2D, ExportFormat, Image } from 'skia-canvas';
 
-import { ConicGradient } from './conicGradient';
 import { mockCanvasText } from './mock-canvas-text';
 
-// node-canvas does not support createImageBitmap() yet (https://github.com/Automattic/node-canvas/issues/876).
-// However, the Canvas.drawImage(img,...) method does accept a Canvas-type img parameter. So use as new Canvas
-// as an ImageBitmap.
-Object.defineProperty(Canvas.prototype, 'transferToImageBitmap', {
-    value: function transferToImageBitmap() {
+export class ConfiguredCanvas extends Canvas {
+    constructor(width: number, height: number) {
+        super(width, height);
+        this.gpu = false;
+    }
+
+    transferToImageBitmap() {
         const { width, height } = this;
-        const bitmap = new Canvas(width, height);
-        bitmap.getContext('2d').drawImage(this, 0, 0, width, height);
+        const bitmap = new ConfiguredCanvas(width, height);
+        bitmap.getContext('2d').drawCanvas(this, 0, 0, width, height);
         Object.defineProperty(bitmap, 'close', {
             // no-op
             value: () => {},
         });
         return bitmap;
-    },
-    enumerable: false,
-    writable: true,
-    configurable: true,
-});
-
-Object.defineProperty(CanvasRenderingContext2D.prototype, 'createConicGradient', {
-    value: function createConicGradient(startAngle: number, x: number, y: number) {
-        return new ConicGradient(this, startAngle, x, y);
-    },
-    enumerable: false,
-    writable: true,
-    configurable: true,
-});
-
-// https://github.com/Automattic/node-canvas/issues/1852
-const context2dTransform = CanvasRenderingContext2D.prototype.transform;
-Object.defineProperty(CanvasRenderingContext2D.prototype, 'transform', {
-    value: function transform(a: number, b: number, c: number, d: number, e: number, f: number) {
-        if (a === 0) {
-            context2dTransform.call(this, 1e-6, 0, 0, 1e-6, 0, 0);
-            return;
-        }
-
-        context2dTransform.call(this, a, b, c, d, e, f);
-    },
-    enumerable: false,
-    writable: true,
-    configurable: true,
-});
-
-// https://github.com/Automattic/node-canvas/issues/1852
-const context2dCreatePattern = CanvasRenderingContext2D.prototype.createPattern;
-Object.defineProperty(CanvasRenderingContext2D.prototype, 'createPattern', {
-    value: function createPattern(image: any, repeat: any) {
-        const pattern = context2dCreatePattern.call(this, image, repeat);
-        if (image instanceof Image) {
-            (pattern as any).__skipSetTransformWorkaround = true;
-        }
-        return pattern;
-    },
-    enumerable: false,
-    writable: true,
-    configurable: true,
-});
-
-const canvasPatternSetTransform = CanvasPattern.prototype.setTransform;
-Object.defineProperty(CanvasPattern.prototype, 'setTransform', {
-    value: function setTransform(matrix: DOMMatrix) {
-        if (this.__skipSetTransformWorkaround !== true) {
-            // Node canvas has bugs with pattern translations
-            matrix.e = 0;
-            matrix.f = 0;
-        }
-
-        canvasPatternSetTransform.call(this, matrix);
-    },
-    enumerable: false,
-    writable: true,
-    configurable: true,
-});
+    }
+}
 
 export class MockContext {
     ctx: {
         nodeCanvas: Canvas;
+        snapshot: () => ImageData;
         getRenderContext2D: () => globalThis.CanvasRenderingContext2D;
         getActiveCanvasInstances: () => Canvas[];
         getActiveOffscreenCanvasInstances: () => OffscreenCanvas[];
@@ -99,10 +42,11 @@ export class MockContext {
         public realCreateElement: Document['createElement'] = document.createElement,
         public realOffscreenCanvas: typeof global.OffscreenCanvas = global.OffscreenCanvas
     ) {
-        const nodeCanvas = createCanvas(width, height);
+        const nodeCanvas = new ConfiguredCanvas(width, height);
 
         this.ctx = {
             nodeCanvas,
+            snapshot: this.snapshot.bind(this),
             getRenderContext2D: this.getRenderContext2D.bind(this),
             getActiveCanvasInstances: this.getActiveCanvasInstances.bind(this),
             getActiveOffscreenCanvasInstances: this.getActiveOffscreenCanvasInstances.bind(this),
@@ -111,10 +55,16 @@ export class MockContext {
         this.registerCanvasInstance(nodeCanvas);
     }
 
+    snapshot() {
+        return this.ctx.nodeCanvas
+            .getContext('2d')
+            .getImageData(0, 0, this.ctx.nodeCanvas.width, this.ctx.nodeCanvas.height);
+    }
+
     getRenderContext2D(): globalThis.CanvasRenderingContext2D {
         let ctx = this.ctx.nodeCanvas.getContext('2d') as unknown as CanvasRenderingContext2D;
         if (this.mockText) {
-            ctx = mockCanvasText(ctx);
+            ctx = mockCanvasText(ctx as any) as any;
         }
         return ctx as unknown as globalThis.CanvasRenderingContext2D;
     }
@@ -155,7 +105,7 @@ function proxyGetContext2D(mockCtx: MockContext, canvas: Canvas, target: any) {
     target.getContext = (type: '2d') => {
         let ctx = getContext.call(canvas, type);
         if (mockCtx.mockText) {
-            ctx = mockCanvasText(ctx);
+            ctx = mockCanvasText(ctx as any) as any;
         }
         return ctx;
     };
@@ -172,14 +122,14 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
 
     const { width, height, document } = mockCtx;
 
-    const nodeCanvas = createCanvas(width, height);
+    const nodeCanvas = new ConfiguredCanvas(width, height);
     mockCtx.ctx.nodeCanvas = nodeCanvas;
     mockCtx.canvasStack = [nodeCanvas];
 
-    if (typeof window !== 'undefined') {
-        (window as any)['agChartsSceneRenderModel'] = 'composite';
-    } else {
+    if (typeof window === 'undefined') {
         (global as any)['agChartsSceneRenderModel'] = 'composite';
+    } else {
+        (window as any)['agChartsSceneRenderModel'] = 'composite';
     }
 
     const realCreateElement = document.createElement;
@@ -189,13 +139,13 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
         if (element === 'canvas') {
             const mockedElement = realCreateElement.call(document, element, options) as HTMLCanvasElement;
 
-            const nextCanvas = mockCtx.canvasStack.shift() ?? createCanvas(width, height);
+            const nextCanvas = mockCtx.canvasStack.shift() ?? new ConfiguredCanvas(width, height);
             mockCtx.registerCanvasInstance(nextCanvas);
 
             proxyGetContext2D(mockCtx, nextCanvas, mockedElement);
 
-            mockedElement.toDataURL = (mimeType?: 'image/png') => {
-                return nextCanvas.toDataURL(mimeType ?? 'image/png');
+            mockedElement.toDataURL = (mimeType = 'image/png') => {
+                return nextCanvas.toDataURLSync(mimeType.split('/')[1] as ExportFormat);
             };
 
             return mockedElement;
@@ -207,14 +157,13 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
     };
 
     if (typeof window !== 'undefined') {
-        const OffscreenCanvas = function OffscreenCanvas(w: number, h: number) {
-            const canvas = new mockCtx.realOffscreenCanvas(w, h);
-            mockCtx.registerOffscreenCanvasInstance(canvas);
-            proxyGetContext2D(mockCtx, canvas as unknown as Canvas, canvas);
-            return canvas;
+        (window as any).OffscreenCanvas = class OffscreenCanvas extends ConfiguredCanvas {
+            constructor(w: number, h: number) {
+                super(w, h);
+                mockCtx.registerOffscreenCanvasInstance(this as any);
+                proxyGetContext2D(mockCtx, this as unknown as Canvas, this);
+            }
         };
-        OffscreenCanvas.prototype = mockCtx.realOffscreenCanvas;
-        (window as any).OffscreenCanvas = OffscreenCanvas;
     }
 
     return mockCtx;

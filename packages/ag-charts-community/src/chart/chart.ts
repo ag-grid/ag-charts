@@ -579,8 +579,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             .acquire(async () => {
                 try {
                     await this.performUpdate(count);
-                } catch (error) {
-                    Logger.error('update error', error);
+                } catch (error: any) {
+                    Logger.error('update error', error, error.stack);
                 }
             })
             .catch((e) => Logger.errorOnce(e));
