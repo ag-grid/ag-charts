@@ -8,7 +8,6 @@ import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale, ScaleTickParams } from '../../scale/scale';
 import { TimeScale } from '../../scale/timeScale';
 import { Matrix } from '../../scene/matrix';
-import type { TextSizeProperties } from '../../scene/shape/text';
 import { type PlacedLabel, type PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { normalizeAngle360FromDegrees } from '../../util/angle';
 import { compareDates } from '../../util/date';
@@ -79,7 +78,6 @@ export interface TickGenerationResult<D = any> {
 interface TickStrategyParams<D = any> {
     readonly index: number;
     readonly tickData: TickData<D>;
-    readonly textProps: TextSizeProperties;
     readonly terminate: boolean;
     readonly primaryTickCount: AxisPrimaryTickCount | undefined;
     readonly defaultTickMinSpacing: number;
@@ -120,20 +118,6 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
 }
 
 const sunday = new Date(1970, 0, 4);
-
-function ticksSpacing(ticks: TickDatum[]) {
-    if (ticks.length < 2) return Infinity;
-
-    let spacing = 0;
-    let y0 = ticks[0].translation;
-    for (let i = 1; i < ticks.length; i++) {
-        const y1 = ticks[i].translation;
-        const delta = Math.abs(y1 - y0);
-        spacing = Math.max(spacing, delta);
-        y0 = y1;
-    }
-    return spacing;
-}
 
 export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     constructor(private readonly axis: TickGenerationAxis<S, D>) {}
@@ -208,20 +192,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const continuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
 
-        let textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
         const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
         const font = { fontFamily, fontSize, fontStyle, fontWeight };
         const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
-
-        const textProps: TextSizeProperties = {
-            fontFamily,
-            fontSize,
-            fontStyle,
-            fontWeight,
-            textBaseline,
-            textAlign,
-        };
-
         const checkLabelOverlap = label.enabled && label.avoidCollisions;
 
         const initialRotation = configuredRotation + defaultRotation;
@@ -287,7 +260,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 ({ tickData, index, autoRotation, terminate } = strategy({
                     index,
                     tickData,
-                    textProps,
                     terminate,
                     primaryTickCount,
                     defaultTickMinSpacing,
@@ -301,7 +273,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             labelOverlap = getLabelOverlap(tickData, autoRotation);
         }
 
-        textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
+        const textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
         const rotation = configuredRotation + autoRotation;
 
         if (removeOverflowLabels && tickData.ticks.length > 2) {
@@ -877,4 +849,18 @@ function ticksEqual(a: unknown[], b: unknown[]) {
         }
     }
     return true;
+}
+
+function ticksSpacing(ticks: TickDatum[]) {
+    if (ticks.length < 2) return Infinity;
+
+    let spacing = 0;
+    let y0 = ticks[0].translation;
+    for (let i = 1; i < ticks.length; i++) {
+        const y1 = ticks[i].translation;
+        const delta = Math.abs(y1 - y0);
+        spacing = Math.max(spacing, delta);
+        y0 = y1;
+    }
+    return spacing;
 }
