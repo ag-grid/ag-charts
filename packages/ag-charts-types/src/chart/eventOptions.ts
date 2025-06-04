@@ -84,7 +84,7 @@ export type AgChartContextMenuEvent = AgChartEvent<'contextMenuEvent'>;
 export type AgSeriesAreaContextMenuActionEvent = AgChartEvent<'seriesContextMenuAction'>;
 export type AgNodeContextMenuActionEvent<TDatum = TDatumDefault> = AgNodeClickEvent<'nodeContextMenuAction', TDatum>;
 
-export interface AgBaseChartListeners<TDatum, TContext> {
+export interface AgBaseChartListeners<TDatum, TContext = TContextDefault> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is clicked.
      *  Useful for a chart containing multiple series.
      */
