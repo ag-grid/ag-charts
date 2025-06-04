@@ -53,15 +53,12 @@ function setTimeAxis() {
     chart.update(options);
 }
 
-function setOrdinalTimeAxis() {
+function setUnitTimeAxis() {
     options.axes = [
         {
-            type: 'ordinal-time',
+            type: 'unit-time',
             position: 'bottom',
-            interval: {
-                step: 'month',
-            },
-            title: { text: 'Ordinal Time Axis' },
+            title: { text: 'Continuous Time Axis' },
         },
         {
             type: 'number',
@@ -71,12 +68,15 @@ function setOrdinalTimeAxis() {
     chart.update(options);
 }
 
-function setContinuousTimeAxis() {
+function setOrdinalTimeAxis() {
     options.axes = [
         {
-            type: 'time',
+            type: 'ordinal-time',
             position: 'bottom',
-            title: { text: 'Continuous Time Axis' },
+            interval: {
+                step: 'month',
+            },
+            title: { text: 'Ordinal Time Axis' },
         },
         {
             type: 'number',
