@@ -1,7 +1,6 @@
 import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import { datesSortOrder, sortAndUniqueDates } from '../util/date';
-import { dateToNumber } from '../util/timeFormatDefaults';
 import { getDateTicksForInterval } from './continuousTimeScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
 import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from './scale';
@@ -14,9 +13,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
     }
 
     private _domain: Date[] = [];
-    private sortedTimestamps: number[] | undefined;
     private isReversed: boolean = false;
-    private precomputedSteps: Int32Array | undefined;
     override set domain(domain: Date[]) {
         if (domain === this._domain) return;
 
@@ -24,9 +21,6 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         this._domain = domain;
         this._bands = undefined;
         this.isReversed = domain.length > 0 && domain[0] > domain[domain.length - 1];
-
-        this.sortedTimestamps = undefined;
-        this.precomputedSteps = undefined;
     }
     override get domain(): Date[] {
         return this._domain;
@@ -91,7 +85,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 
         let lastIndex = -1;
         ticks = ticks.filter((tick) => {
-            const index = this.findInterval(tick.valueOf());
+            const index = this.findIndex(tick) ?? -1;
             const duplicated = index === lastIndex;
             lastIndex = index;
 
@@ -102,86 +96,6 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             ticks,
             count: undefined,
         };
-    }
-
-    private getSortedTimestamps() {
-        let { sortedTimestamps } = this;
-
-        if (sortedTimestamps == null) {
-            sortedTimestamps ??= this.bands.map<number>(dateToNumber);
-            this.sortedTimestamps = sortedTimestamps;
-        }
-
-        return sortedTimestamps;
-    }
-
-    private getPrecomputedSteps() {
-        const { domain } = this;
-        let { precomputedSteps } = this;
-        const computedStepCount = domain.length < 1e4 ? domain.length : Math.ceil(domain.length / 16);
-
-        if (precomputedSteps != null || computedStepCount <= 1) return precomputedSteps;
-
-        const sortedTimestamps = this.getSortedTimestamps();
-
-        precomputedSteps = new Int32Array(computedStepCount);
-        const d0 = sortedTimestamps[0];
-        const d1 = sortedTimestamps[sortedTimestamps.length - 1];
-        const dRange = d1 - d0;
-        const low = 0;
-        const high = sortedTimestamps.length - 1;
-        for (let i = 0; i < precomputedSteps.length; i += 1) {
-            precomputedSteps[i] = this.findIntervalInRange(d0 + (i / computedStepCount) * dRange, low, high);
-        }
-
-        this.precomputedSteps = precomputedSteps;
-    }
-
-    private findIntervalInRange(target: number, low: number, high: number) {
-        const sortedTimestamps = this.getSortedTimestamps();
-        while (low <= high) {
-            const mid = ((low + high) / 2) | 0;
-            if (sortedTimestamps[mid] === target) {
-                return mid;
-            } else if (sortedTimestamps[mid] < target) {
-                low = mid + 1;
-            } else {
-                high = mid - 1;
-            }
-        }
-        return low;
-    }
-
-    private findInterval(target: number) {
-        // Binary search for the target
-        const precomputedSteps = this.getPrecomputedSteps();
-        let low: number;
-        let high: number;
-        if (precomputedSteps == null) {
-            low = 0;
-            high = this.domain.length - 1;
-        } else {
-            const sortedTimestamps = this.getSortedTimestamps();
-            const d0 = sortedTimestamps[0];
-            const d1 = sortedTimestamps[sortedTimestamps.length - 1];
-            const i = Math.min(
-                (((target - d0) / (d1 - d0)) * precomputedSteps.length) | 0,
-                (precomputedSteps.length - 1) | 0
-            );
-            low = precomputedSteps[i];
-            high = i < precomputedSteps.length - 2 ? precomputedSteps[i + 1] : sortedTimestamps.length - 1;
-        }
-
-        return this.findIntervalInRange(target, low, high);
-    }
-
-    findIndex(value: Date): number | undefined {
-        const sortedTimestamps = this.getSortedTimestamps();
-        const n = Number(value);
-        if (n < sortedTimestamps[0]) {
-            return undefined;
-        }
-        return this.findInterval(n);
     }
 }
 
