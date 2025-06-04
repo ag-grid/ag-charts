@@ -43,23 +43,31 @@
       }
     },
     "test": {
-      "executor": "@nx/jest:jest",
+      "executor": "nx:run-commands",
+      "inputs": ["default", "buildOutputExcludes", "^production", "{workspaceRoot}/jest.preset.js"],
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-community.xml"],
+      "cache": true,
       "parallelism": false,
       "options": {
-        "jestConfig": "{projectRoot}/jest.config.ts",
-        "testPathIgnorePatterns": [".*/benchmarks/.*"],
-        "passWithNoTests": false
+        "commands": [
+          "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathIgnorePatterns='benchmarks/.*'"
+        ]
       },
       "configurations": {
         "ci": {
-          "updateSnapshot": true
+          "commands": [
+            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts  --testPathIgnorePatterns='benchmarks/.*' -u"
+          ]
         },
         "watch": {
-          "watch": true
+          "commands": [
+            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts  --testPathIgnorePatterns='benchmarks/.*' --watch"
+          ]
         },
         "update": {
-          "updateSnapshot": true
+          "commands": [
+            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts  --testPathIgnorePatterns='benchmarks/.*' -u"
+          ]
         }
       },
       "dependsOn": [

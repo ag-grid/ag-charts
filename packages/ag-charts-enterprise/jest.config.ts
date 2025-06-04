@@ -16,19 +16,31 @@ if (swcJestConfig.swcrc === undefined) {
 // jest needs EsModule Interop to find the default exported setup/teardown functions
 // swcJestConfig.module.noInterop = false;
 
-const pathToGlob = (path: string) => path.replace('./', '**/');
+const pathToGlob = ({ path }: { path: string }) => path.replace('./', '**/');
 
-const tests = glob.sync('packages/ag-charts-enterprise/src/**/*.test.ts');
-const benchmarks = glob.sync('packages/ag-charts-enterprise/benchmarks/**/*.test.ts').map(pathToGlob);
-const e2eTests = tests
-    .filter((path) => {
-        const fileContents = readFileSync(path).toString();
+const tests = glob.sync('packages/ag-charts-community/src/**/*.test.ts').map((path) => {
+    const fileContents = readFileSync(path).toString();
 
+    let type = 'unit';
+    if (fileContents.indexOf('jest.retryTimes') >= 0) {
+        type = 'flaky';
+    } else if (fileContents.indexOf('setupMockCanvas()') >= 0) {
         // 'Heuristic' for finding e2e tests :-P
-        return fileContents.indexOf('setupMockCanvas()') >= 0;
-    })
+        type = 'e2e';
+    }
+
+    return {
+        path,
+        type,
+    };
+});
+const e2eTests = tests.filter((test) => test.type === 'e2e').map(pathToGlob);
+const unitTests = tests.filter((test) => test.type === 'unit').map(pathToGlob);
+const flakyTests = tests.filter((test) => test.type === 'flaky').map(pathToGlob);
+const benchmarks = glob
+    .sync('packages/ag-charts-community/benchmarks/**/*.test.ts')
+    .map((path) => ({ path }))
     .map(pathToGlob);
-const unitTests = tests.map(pathToGlob).filter((path) => !e2eTests.includes(path));
 
 const commonConfig = {
     resolver: undefined, // NX redirects CSS imports https://github.com/nrwl/nx/blob/7495f0664b19e8fa32ef693f43d709173b6a2bc4/packages/jest/plugins/resolver.ts#L43
@@ -59,6 +71,12 @@ const pathFix = (v: string) => v.replace('packages/ag-charts-enterprise/', '**/'
 export default {
     reporters,
     projects: [
+        {
+            displayName: 'ag-charts-enterprise - flaky',
+            testMatch: flakyTests.map(pathFix),
+            ...commonConfig,
+            runner: 'jest-serial-runner',
+        },
         {
             displayName: 'ag-charts-enterprise - unit',
             testMatch: unitTests.map(pathFix),
