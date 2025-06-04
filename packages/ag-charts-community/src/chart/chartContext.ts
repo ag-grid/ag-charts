@@ -46,7 +46,7 @@ import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
 import { type UpdateCallback, UpdateService } from './updateService';
 
-export interface ChartEventsMap {
+export interface ChartUserEventsMap {
     annotations: AgAnnotationsEvent;
     click: AgChartClickEvent;
     doubleClick: AgChartDoubleClickEvent;

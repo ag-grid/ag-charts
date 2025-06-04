@@ -1,4 +1,4 @@
-import { EventEmitter, clamp, createId } from 'ag-charts-core';
+import { clamp, createId } from 'ag-charts-core';
 
 import type { HighlightChangeEvent, LayoutCompleteEvent } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
@@ -21,7 +21,7 @@ import type {
     MouseWidgetEvent,
     WheelWidgetEvent,
 } from '../../widget/widgetEvents';
-import type { ChartContext, ChartEventsMap } from '../chartContext';
+import type { ChartContext, ChartUserEventsMap } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
 import { ChartUpdateType } from '../chartUpdateType';
@@ -44,7 +44,7 @@ import type { SeriesProperties } from './seriesProperties';
 import type { SeriesNodeDatum } from './seriesTypes';
 
 export interface SeriesAreaChartDependencies {
-    events: EventEmitter<ChartEventsMap>;
+    emitUserEvent<K extends keyof ChartUserEventsMap>(eventName: K, event: ChartUserEventsMap[K]): void;
     getUpdateType(): ChartUpdateType;
     getTooltipContent: <DatumIndex = unknown>(
         series: Series<DatumIndex, any, any>,
@@ -454,7 +454,7 @@ export class SeriesAreaManager extends BaseManager {
 
         // Fallback to Chart-level event dispatch.
         const eventName = event.type === 'click' ? 'click' : 'doubleClick';
-        this.chart.events.emit(eventName, { type: eventName, event: event.sourceEvent });
+        this.chart.emitUserEvent(eventName, { type: eventName, event: event.sourceEvent });
     }
 
     private onFocus(): void {
@@ -521,7 +521,7 @@ export class SeriesAreaManager extends BaseManager {
         if (series != null && datum != null) {
             series.fireNodeClickEvent(sourceEvent, datum);
         } else {
-            this.chart.events.emit('click', { type: 'click', event: sourceEvent });
+            this.chart.emitUserEvent('click', { type: 'click', event: sourceEvent });
         }
         sourceEvent.preventDefault();
     }

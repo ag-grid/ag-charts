@@ -52,7 +52,7 @@ import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
 import { ChartCaptions } from './chartCaptions';
-import { ChartContext, type ChartEventsMap } from './chartContext';
+import { ChartContext, type ChartUserEventsMap } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import type { ChartService } from './chartService';
@@ -120,9 +120,13 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     readonly id = createId(this);
-    readonly events = new EventEmitter<ChartEventsMap>();
 
     className?: string;
+
+    protected readonly userEvents = new EventEmitter<ChartUserEventsMap>();
+    protected emitUserEvent<K extends keyof ChartUserEventsMap>(eventName: K, event: ChartUserEventsMap[K]) {
+        this.userEvents.emit(eventName, event);
+    }
 
     readonly seriesRoot = new TranslatableGroup({
         name: `${this.id}-series-root`,
@@ -332,7 +336,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         this.cleanup.register(
             ctx.eventsHub.on('annotations:change', (event) =>
-                this.events.emit('annotations', { type: 'annotations', ...deepClone(event) })
+                this.emitUserEvent('annotations', { type: 'annotations', ...deepClone(event) })
             ),
             ctx.eventsHub.on('dom:resize', () => this.parentResize(ctx.domManager.containerSize))
         );
@@ -396,7 +400,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 this.series.forEach((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
-                this.events.emit('zoom', { type: 'zoom', ...event.memento });
+                this.emitUserEvent('zoom', { type: 'zoom', ...event.memento });
             })
         );
 
@@ -417,7 +421,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             removeThisDatum: unknown
         ) => this.getTooltipContent(series, datumIndex, removeThisDatum);
         return {
-            events: this.events,
+            emitUserEvent: this.emitUserEvent.bind(this),
             getUpdateType,
             getTooltipContent,
             chartType,
@@ -911,13 +915,13 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     private addSeriesListeners(series: Series<unknown, any, any>) {
-        if (this.events.has('seriesNodeClick')) {
+        if (this.userEvents.has('seriesNodeClick')) {
             series.events.on('seriesNodeClick', this.onSeriesNodeClick);
         }
-        if (this.events.has('seriesNodeDoubleClick')) {
+        if (this.userEvents.has('seriesNodeDoubleClick')) {
             series.events.on('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
         }
-        if (this.events.has('seriesVisibilityChange')) {
+        if (this.userEvents.has('seriesVisibilityChange')) {
             series.events.on('series-visibility:change', this.onSeriesVisibilityChange);
         }
         series.events.on('series-grouping:change', this.seriesGroupingChanged);
@@ -1150,15 +1154,15 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     private readonly onSeriesNodeClick = (event: AgNodeClickEvent<'seriesNodeClick', any>) => {
-        this.events.emit('seriesNodeClick', event);
+        this.emitUserEvent('seriesNodeClick', event);
     };
 
     private readonly onSeriesNodeDoubleClick = (event: AgNodeClickEvent<'seriesNodeDoubleClick', any>) => {
-        this.events.emit('seriesNodeDoubleClick', event);
+        this.emitUserEvent('seriesNodeDoubleClick', event);
     };
 
     private readonly onSeriesVisibilityChange = (event: AgSeriesVisibilityChange) => {
-        this.events.emit('seriesVisibilityChange', event);
+        this.emitUserEvent('seriesVisibilityChange', event);
     };
 
     private readonly seriesGroupingChanged = (event: SeriesGroupingChangeEvent) => {
@@ -1264,10 +1268,13 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
         if (deltaOptions.listeners) {
-            this.events.clear();
+            this.userEvents.clear();
             const { listeners } = deltaOptions;
-            for (const eventName of Object.keys(listeners) as Array<keyof ChartEventsMap>) {
-                this.events.on(eventName, listeners[eventName] as EventListener<ChartEventsMap[typeof eventName]>);
+            for (const eventName of Object.keys(listeners) as Array<keyof ChartUserEventsMap>) {
+                this.userEvents.on(
+                    eventName,
+                    listeners[eventName] as EventListener<ChartUserEventsMap[typeof eventName]>
+                );
             }
         }
 
