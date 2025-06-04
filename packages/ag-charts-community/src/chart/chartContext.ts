@@ -1,4 +1,12 @@
 import { CleanupRegistry, EventEmitter, type StrictHTMLElement } from 'ag-charts-core';
+import type {
+    AgAnnotationsEvent,
+    AgChartClickEvent,
+    AgChartDoubleClickEvent,
+    AgNodeClickEvent,
+    AgSeriesVisibilityChange,
+    AgZoomEvent,
+} from 'ag-charts-types';
 
 import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import { HistoryManager } from '../api/state/historyManager';
@@ -15,7 +23,6 @@ import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
 import { CallbackCache } from '../util/callbackCache';
 import type { Mutex } from '../util/mutex';
-import type { TypedEvent } from '../util/observable';
 import { AnnotationManager } from './annotation/annotationManager';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
@@ -38,6 +45,16 @@ import { LegendManager } from './legend/legendManager';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
 import { type UpdateCallback, UpdateService } from './updateService';
+
+export interface ChartEventsMap {
+    annotations: AgAnnotationsEvent;
+    click: AgChartClickEvent;
+    doubleClick: AgChartDoubleClickEvent;
+    seriesNodeClick: AgNodeClickEvent<'seriesNodeClick', any>;
+    seriesNodeDoubleClick: AgNodeClickEvent<'seriesNodeDoubleClick', any>;
+    seriesVisibilityChange: AgSeriesVisibilityChange;
+    zoom: AgZoomEvent;
+}
 
 export class ChartContext implements ModuleContext {
     readonly eventsHub = new EventEmitter<EventsHubMap>();
@@ -84,23 +101,12 @@ export class ChartContext implements ModuleContext {
             container?: HTMLElement;
             styleContainer?: HTMLElement;
             domMode?: 'normal' | 'minimal';
-            fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
             updateCallback: UpdateCallback;
             updateMutex: Mutex;
         }
     ) {
-        const {
-            scene,
-            root,
-            syncManager,
-            container,
-            fireEvent,
-            updateCallback,
-            updateMutex,
-            styleContainer,
-            chartType,
-            domMode,
-        } = vars;
+        const { scene, root, syncManager, container, updateCallback, updateMutex, styleContainer, chartType, domMode } =
+            vars;
 
         this.chartService = chart;
         this.syncManager = syncManager;
@@ -124,7 +130,7 @@ export class ChartContext implements ModuleContext {
 
         this.axisManager = new AxisManager(this.eventsHub, root);
         this.legendManager = new LegendManager(this.eventsHub);
-        this.annotationManager = new AnnotationManager(this.eventsHub, chart.annotationRoot, fireEvent);
+        this.annotationManager = new AnnotationManager(this.eventsHub, chart.annotationRoot);
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.interactionManager = new InteractionManager();
         this.contextMenuRegistry = new ContextMenuRegistry(this.eventsHub);
@@ -135,7 +141,7 @@ export class ChartContext implements ModuleContext {
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.eventsHub, this.animationManager);
         this.tooltipManager = new TooltipManager(this.eventsHub, this.localeManager, this.domManager, chart.tooltip);
-        this.zoomManager = new ZoomManager(this.eventsHub, fireEvent);
+        this.zoomManager = new ZoomManager(this.eventsHub);
 
         for (const module of moduleRegistry.byType<ContextModule>('context')) {
             if (!module.chartTypes.includes(chartType)) continue;

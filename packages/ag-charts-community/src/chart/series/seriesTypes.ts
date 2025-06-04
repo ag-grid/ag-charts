@@ -4,7 +4,6 @@ import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
-import type { TypedEvent } from '../../util/observable';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltipContent';
@@ -21,7 +20,7 @@ export type SeriesNodeEventTypes = 'nodeContextMenuAction' | 'seriesNodeClick' |
 export interface SeriesEventsMap {
     'data-update': SeriesDataEvent;
     'data-processed': SeriesDataEvent;
-    'grouping:change': SeriesGroupingChangeEvent;
+    'series-grouping:change': SeriesGroupingChangeEvent;
     'series-visibility:change': AgSeriesVisibilityChange;
     seriesNodeClick: INodeEvent<'seriesNodeClick'>;
     seriesNodeDoubleClick: INodeEvent<'seriesNodeDoubleClick'>;
@@ -33,7 +32,7 @@ export interface SeriesGroupingChangeEvent {
     oldGrouping: SeriesGrouping | undefined;
 }
 
-export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
+export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> {
     readonly type: TEvent;
     // Note: this is typically a MouseEvent, but it can be a TouchEvent or KeyboardEvent too.
     readonly event: Event;

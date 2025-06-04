@@ -5,9 +5,7 @@ import type { MementoOriginator } from '../../api/state/memento';
 import type { EventsHub } from '../../core/eventsHub';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
-import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
-import type { TypedEvent } from '../../util/observable';
 
 type AnnotationsMemento = AgAnnotation[];
 
@@ -19,8 +17,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
 
     constructor(
         private readonly eventsHub: EventsHub,
-        private readonly annotationRoot: Group,
-        private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
+        private readonly annotationRoot: Group
     ) {}
 
     public createMemento() {
@@ -47,7 +44,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     }
 
     public fireChangedEvent() {
-        this.fireChartEvent({ type: 'annotations', annotations: deepClone([...this.annotations]) });
+        this.eventsHub.emit('annotations:change', { annotations: this.annotations });
     }
 
     public attachNode(node: Node) {

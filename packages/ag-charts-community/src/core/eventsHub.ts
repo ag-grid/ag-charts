@@ -1,5 +1,11 @@
 import { EventEmitter } from 'ag-charts-core';
-import type { AgAnnotation, AgContextMenuItemShowOn, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type {
+    AgAnnotation,
+    AgContextMenuItemShowOn,
+    AgZoomEvent,
+    TimeInterval,
+    TimeIntervalUnit,
+} from 'ag-charts-types';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
@@ -13,6 +19,7 @@ export type EventsHub = EventEmitter<EventsHubMap>;
 
 // Event name convention is 'module:event-name'
 export interface EventsHubMap {
+    'annotations:change': AnnotationsChangeEvent;
     'annotations:restore': AnnotationsRestoreEvent;
     'axis:hover': AxisHoverEvent;
     'axis:change': null;
@@ -36,6 +43,10 @@ export interface EventsHubMap {
     'series:undo': null;
     'zoom:change': ZoomChangeEvent;
     'zoom:pan-start': ZoomPanStartEvent;
+}
+
+interface AnnotationsChangeEvent {
+    annotations: AgAnnotation[];
 }
 
 interface AnnotationsRestoreEvent {
@@ -97,6 +108,7 @@ export interface SeriesKeyNavZoomEvent {
 export interface ZoomChangeEvent extends AxisZoomState {
     readonly callerId: string;
     readonly axes: Record<string, Readonly<ZoomState> | undefined>;
+    readonly memento: Omit<AgZoomEvent, 'type'>;
     readonly x?: Readonly<ZoomState>;
     readonly y?: Readonly<ZoomState>;
 }

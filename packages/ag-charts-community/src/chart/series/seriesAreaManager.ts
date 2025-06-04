@@ -1,5 +1,4 @@
-import { clamp, createId } from 'ag-charts-core';
-import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
+import { EventEmitter, clamp, createId } from 'ag-charts-core';
 
 import type { HighlightChangeEvent, LayoutCompleteEvent } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
@@ -10,7 +9,6 @@ import type { Point } from '../../scene/point';
 import { Transformable } from '../../scene/transformable';
 import { BaseManager } from '../../util/baseManager';
 import { objectsEqual } from '../../util/object';
-import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
 import { Vec4 } from '../../util/vector4';
 import type { Widget } from '../../widget/widget';
@@ -23,7 +21,7 @@ import type {
     MouseWidgetEvent,
     WheelWidgetEvent,
 } from '../../widget/widgetEvents';
-import type { ChartContext } from '../chartContext';
+import type { ChartContext, ChartEventsMap } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
 import { ChartUpdateType } from '../chartUpdateType';
@@ -46,7 +44,7 @@ import type { SeriesProperties } from './seriesProperties';
 import type { SeriesNodeDatum } from './seriesTypes';
 
 export interface SeriesAreaChartDependencies {
-    fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
+    events: EventEmitter<ChartEventsMap>;
     getUpdateType(): ChartUpdateType;
     getTooltipContent: <DatumIndex = unknown>(
         series: Series<DatumIndex, any, any>,
@@ -455,10 +453,8 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         // Fallback to Chart-level event dispatch.
-        const newEvent = { type: event.type === 'click' ? 'click' : 'doubleClick', event: event.sourceEvent } satisfies
-            | AgChartClickEvent
-            | AgChartDoubleClickEvent;
-        this.chart.fireEvent(newEvent);
+        const eventName = event.type === 'click' ? 'click' : 'doubleClick';
+        this.chart.events.emit(eventName, { type: eventName, event: event.sourceEvent });
     }
 
     private onFocus(): void {
@@ -525,10 +521,7 @@ export class SeriesAreaManager extends BaseManager {
         if (series != null && datum != null) {
             series.fireNodeClickEvent(sourceEvent, datum);
         } else {
-            this.chart.fireEvent<AgChartClickEvent>({
-                type: 'click',
-                event: sourceEvent,
-            });
+            this.chart.events.emit('click', { type: 'click', event: sourceEvent });
         }
         sourceEvent.preventDefault();
     }

@@ -17,7 +17,7 @@ import {
     union,
     validate,
 } from 'ag-charts-core';
-import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
+import type { AgAutoScaledAxes, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { AxisZoomState, EventsHub, ZoomState } from '../../core/eventsHub';
 import { ContinuousScale } from '../../scale/continuousScale';
@@ -27,7 +27,6 @@ import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
 import { deepClone } from '../../util/json';
 import { objectsEqual } from '../../util/object';
-import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
 import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
@@ -101,10 +100,7 @@ export class ZoomManager extends BaseManager {
           }
         | undefined = undefined;
 
-    constructor(
-        private readonly eventsHub: EventsHub,
-        private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
-    ) {
+    constructor(private readonly eventsHub: EventsHub) {
         super();
 
         this.cleanup.register(
@@ -560,8 +556,8 @@ export class ZoomManager extends BaseManager {
             axes[axisId] = axis.getZoom();
         }
 
-        this.eventsHub.emit('zoom:change', { ...this.getZoom(), axes, callerId });
-        this.fireChartEvent<AgZoomEvent>({ type: 'zoom', ...this.getMementoRanges() });
+        const memento = this.getMementoRanges();
+        this.eventsHub.emit('zoom:change', { ...this.getZoom(), axes, callerId, memento });
     }
 
     private getRangeDirection(ratio: ZoomState, direction: ChartAxisDirection): AgZoomRange | undefined {

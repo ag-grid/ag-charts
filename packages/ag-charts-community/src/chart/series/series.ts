@@ -2,7 +2,6 @@ import {
     type AnyFn,
     CleanupRegistry,
     EventEmitter,
-    type EventListener,
     Logger,
     type RequireOptional,
     type RequiredInternalAgGradientColor,
@@ -199,6 +198,7 @@ export abstract class Series<
     >,
 > implements ISeries<TDatumIndex, TDatum, TProps, TLabel>
 {
+    readonly events = new EventEmitter<SeriesEventsMap>();
     protected cleanup = new CleanupRegistry();
     abstract readonly properties: TProps;
 
@@ -336,7 +336,7 @@ export abstract class Series<
         if (next) {
             this.ctx.seriesStateManager.registerSeries({ internalId, type, visible, seriesGrouping: next });
         }
-        this.events.emit('grouping:change', { series: this, seriesGrouping: next, oldGrouping: prev });
+        this.events.emit('series-grouping:change', { series: this, seriesGrouping: next, oldGrouping: prev });
     }
 
     getBandScalePadding() {
@@ -400,12 +400,6 @@ export abstract class Series<
 
     renderToOffscreenCanvas() {
         return false;
-    }
-
-    readonly events = new EventEmitter<SeriesEventsMap>();
-
-    addEventListener<K extends keyof SeriesEventsMap>(eventName: K, listener: EventListener<SeriesEventsMap[K]>): void {
-        this.events.on(eventName, listener);
     }
 
     addChartEventListeners(): void {
