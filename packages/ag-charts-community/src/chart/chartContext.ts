@@ -135,7 +135,7 @@ export class ChartContext implements ModuleContext {
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.eventsHub, this.animationManager);
         this.tooltipManager = new TooltipManager(this.eventsHub, this.localeManager, this.domManager, chart.tooltip);
-        this.zoomManager = new ZoomManager(this.eventsHub, fireEvent);
+        this.zoomManager = new ZoomManager(this.eventsHub, chart, fireEvent);
 
         for (const module of moduleRegistry.byType<ContextModule>('context')) {
             if (!module.chartTypes.includes(chartType)) continue;

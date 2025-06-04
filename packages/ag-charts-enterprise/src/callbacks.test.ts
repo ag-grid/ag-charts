@@ -49,8 +49,7 @@ import {
 
 import { prepareEnterpriseTestOptions } from './test/utils';
 
-// Skip unit test (not yet implemented)
-xdescribe('AG-14631 context enterprise', () => {
+describe('AG-14631 context enterprise', () => {
     setupMockConsole();
     setupMockCanvas();
     let chart: AgChartInstance;
@@ -92,7 +91,8 @@ xdescribe('AG-14631 context enterprise', () => {
         zoomListener.expect().toHaveBeenCalledTimes(2).withContext(context);
     });
 
-    test('annotations', async () => {
+    // Skip unit test (not yet implemented)
+    xtest('annotations', async () => {
         type TDatum = Readonly<{ x: string; y: number }>;
         type TContext = Readonly<{ name: string }>;
         type TMock = MockAnnotationsListener<TDatum, TContext>;
@@ -116,7 +116,8 @@ xdescribe('AG-14631 context enterprise', () => {
         annotationsListener.expect().toHaveBeenCalledTimes(1).withContext(context);
     });
 
-    test('dataSource', async () => {
+    // Skip unit test (not yet implemented)
+    xtest('dataSource', async () => {
         type TDatum = unknown;
         type TContext = Readonly<{ name: string }>;
         type TMock = MockGetDataCallback<TDatum, TContext>;
@@ -137,7 +138,8 @@ xdescribe('AG-14631 context enterprise', () => {
         getDataCallback.expect().toHaveBeenCalledTimes(1).withContext(chartContext);
     });
 
-    describe('clicks', () => {
+    // Skip unit test (not yet implemented)
+    xdescribe('clicks', () => {
         type TDatum = Readonly<{ x: number; a: number; b: number; c: number }>;
         type TContext = Readonly<{ readonly name: string }>;
         type TFreezable<TMock extends MockAPICallback<TDatum, TContext>> = ReturnType<typeof newFreezable<TMock>>;
@@ -286,7 +288,8 @@ xdescribe('AG-14631 context enterprise', () => {
         });
     });
 
-    describe('contextMenu', () => {
+    // Skip unit test (not yet implemented)
+    xdescribe('contextMenu', () => {
         type TDatum = Readonly<{ x: number; a: number; b: number; c: number }>;
         type TContext = Readonly<{ name: string }>;
         type TFreezable<TEvent> = ReturnType<typeof newFreezable<TEvent, MockContextMenuAction<TDatum, TContext>>>;
