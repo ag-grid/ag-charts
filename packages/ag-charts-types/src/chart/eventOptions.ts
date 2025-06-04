@@ -1,6 +1,6 @@
 import type { AgAnnotation } from './annotationsOptions';
 import type { Listener } from './callbackOptions';
-import type { Ratio, TDatumDefault } from './types';
+import type { Ratio, TContextDefault, TDatumDefault } from './types';
 import type { AgAutoScaledAxes } from './zoomOptions';
 
 interface AgChartEvent<T extends string> {
@@ -58,13 +58,14 @@ export interface AgAnnotationsEvent {
     annotations?: AgAnnotation[];
 }
 
-export interface AgZoomEvent {
+export interface AgZoomEvent<TContext = TContextDefault> {
     type: 'zoom';
     rangeX?: AgZoomEventRange;
     rangeY?: AgZoomEventRange;
     ratioX: AgZoomEventRatio;
     ratioY: AgZoomEventRatio;
     autoScaledAxes?: AgAutoScaledAxes;
+    context?: TContext;
 }
 
 export interface AgZoomEventRange {
@@ -83,7 +84,7 @@ export type AgChartContextMenuEvent = AgChartEvent<'contextMenuEvent'>;
 export type AgSeriesAreaContextMenuActionEvent = AgChartEvent<'seriesContextMenuAction'>;
 export type AgNodeContextMenuActionEvent<TDatum = TDatumDefault> = AgNodeClickEvent<'nodeContextMenuAction', TDatum>;
 
-export interface AgBaseChartListeners<TDatum> {
+export interface AgBaseChartListeners<TDatum, TContext> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is clicked.
      *  Useful for a chart containing multiple series.
      */
@@ -100,7 +101,7 @@ export interface AgBaseChartListeners<TDatum> {
     /** The listener to call when the annotations are changed. */
     annotations?: Listener<AgAnnotationsEvent>;
     /** The listener to call when the zoom is changed. */
-    zoom?: Listener<AgZoomEvent>;
+    zoom?: Listener<AgZoomEvent<TContext>>;
 }
 
 export interface AgSeriesListeners<TDatum> {

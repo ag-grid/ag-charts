@@ -231,7 +231,8 @@ export interface AgCartesianAxisThemeOptions<T> {
     left?: Omit<T, AgCartesianAxisThemeSpecialOptions>;
 }
 
-export interface AgBaseCartesianThemeOptions<TDatum = TDatumDefault> extends AgBaseThemeableChartOptions<TDatum> {
+export interface AgBaseCartesianThemeOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseThemeableChartOptions<TDatum, TContext> {
     /** Axis configurations. */
     axes?: AgCartesianAxesTheme;
 }

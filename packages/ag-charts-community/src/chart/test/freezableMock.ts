@@ -27,35 +27,35 @@ export type MockErrorBarStyler<TDatum, TContext> = NonNullable<
 export type MockChartLabelFormatter<TDatum, TContext> = NonNullable<
     NonNullable<AgChartLabelOptions<TDatum, TContext>['formatter']>
 >;
-export type MockAnnotationsListener<TDatum, _TContext> = NonNullable<AgBaseChartListeners<TDatum>['annotations']>;
-export type MockZoomListener<TDatum, _TContext> = NonNullable<AgBaseChartListeners<TDatum>['zoom']>;
-export type MockGetDataCallback<TDatum, _TContext> = NonNullable<
-    AgBaseThemeableChartOptions<TDatum>['dataSource']
+export type MockAnnotationsListener<TDatum, TContext> = NonNullable<
+    AgBaseChartListeners<TDatum, TContext>['annotations']
+>;
+export type MockZoomListener<TDatum, TContext> = NonNullable<AgBaseChartListeners<TDatum, TContext>['zoom']>;
+export type MockGetDataCallback<TDatum, TContext> = NonNullable<
+    AgBaseThemeableChartOptions<TDatum, TContext>['dataSource']
 >['getData'];
-export type MockChartClickListener<TDatum, _TContext> = NonNullable<AgBaseChartListeners<TDatum>['click']>;
-export type MockChartDblClickListener<TDatum, _TContext> = NonNullable<AgBaseChartListeners<TDatum>['doubleClick']>;
-export type MockChartSeriesNodeClickListener<TDatum, _TContext> = NonNullable<
-    AgBaseChartListeners<TDatum>['seriesNodeClick']
+export type MockChartClickListener<TDatum, TContext> = NonNullable<AgBaseChartListeners<TDatum, TContext>['click']>;
+export type MockChartDblClickListener<TDatum, TContext> = NonNullable<
+    AgBaseChartListeners<TDatum, TContext>['doubleClick']
 >;
-export type MockChartSeriesNodeDblClickListener<TDatum, _TContext> = NonNullable<
-    AgBaseChartListeners<TDatum>['seriesNodeDoubleClick']
+export type MockChartSeriesVisibilityChangeListener<TDatum, TContext> = NonNullable<
+    AgBaseChartListeners<TDatum, TContext>['seriesVisibilityChange']
 >;
-export type MockChartSeriesVisibilityChangeListener<TDatum, _TContext> = NonNullable<
-    AgBaseChartListeners<TDatum>['seriesVisibilityChange']
+export type MockSeriesNodeClickListener<TDatum, TContext> = NonNullable<
+    NonNullable<AgBaseSeriesOptions<TDatum, TContext>['listeners']>['seriesNodeClick']
 >;
-export type MockSeriesNodeClickListener<_TDatum, _TContext> = NonNullable<
-    NonNullable<AgBaseSeriesOptions['listeners']>['seriesNodeClick']
+export type MockSeriesNodeDblClickListener<TDatum, TContext> = NonNullable<
+    NonNullable<AgBaseSeriesOptions<TDatum, TContext>['listeners']>['seriesNodeDoubleClick']
 >;
-export type MockSeriesNodeDblClickListener<_TDatum, _TContext> = NonNullable<
-    NonNullable<AgBaseSeriesOptions['listeners']>['seriesNodeDoubleClick']
+export type MockLegendItemClickListener<TDatum, TContext> = NonNullable<
+    NonNullable<NonNullable<AgBaseChartOptions<TDatum, TContext>['legend']>['listeners']>['legendItemClick']
 >;
-export type MockLegendItemClickListener<_TDatum, _TContext> = NonNullable<
-    NonNullable<NonNullable<AgBaseChartOptions['legend']>['listeners']>['legendItemClick']
+export type MockLegendItemDblClickListener<TDatum, TContext> = NonNullable<
+    NonNullable<NonNullable<AgBaseChartOptions<TDatum, TContext>['legend']>['listeners']>['legendItemDoubleClick']
 >;
-export type MockLegendItemDblClickListener<_TDatum, _TContext> = NonNullable<
-    NonNullable<NonNullable<AgBaseChartOptions['legend']>['listeners']>['legendItemDoubleClick']
+export type MockContextMenuAction<TDatum, _TContext> = NonNullable<
+    Extract<AgContextMenuItem<TDatum>, object>['action']
 >;
-export type MockContextMenuAction<_TDatum, _TContext> = NonNullable<Extract<AgContextMenuItem, object>['action']>;
 
 export type MockAPICallback<TDatum, TContext> =
     | MockItemStyler<TDatum, TContext>
@@ -69,8 +69,6 @@ export type MockAPICallback<TDatum, TContext> =
     | MockGetDataCallback<TDatum, TContext>
     | MockChartClickListener<TDatum, TContext>
     | MockChartDblClickListener<TDatum, TContext>
-    | MockChartSeriesNodeClickListener<TDatum, TContext>
-    | MockChartSeriesNodeDblClickListener<TDatum, TContext>
     | MockChartSeriesVisibilityChangeListener<TDatum, TContext>
     | MockSeriesNodeClickListener<TDatum, TContext>
     | MockSeriesNodeDblClickListener<TDatum, TContext>

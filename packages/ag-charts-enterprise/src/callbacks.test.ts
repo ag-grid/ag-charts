@@ -29,8 +29,6 @@ import {
     MockChartClickListener,
     MockChartDblClickListener,
     MockChartLabelFormatter,
-    MockChartSeriesNodeClickListener,
-    MockChartSeriesNodeDblClickListener,
     MockChartSeriesVisibilityChangeListener,
     MockContextMenuAction,
     MockGetDataCallback,
@@ -61,7 +59,7 @@ xdescribe('AG-14631 context enterprise', () => {
         (chart as unknown) = undefined;
     });
 
-    async function createChart(options: AgChartOptions): Promise<AgChartInstance> {
+    async function createChart(options: AgChartOptions<any, any>): Promise<AgChartInstance> {
         prepareEnterpriseTestOptions(options);
         chart = AgCharts.create(options);
         await waitForChartStability(chart);
@@ -146,8 +144,8 @@ xdescribe('AG-14631 context enterprise', () => {
 
         let click: TFreezable<MockChartClickListener<TDatum, TContext>>;
         let doubleClick: TFreezable<MockChartDblClickListener<TDatum, TContext>>;
-        let chartSeriesNodeClick: TFreezable<MockChartSeriesNodeClickListener<TDatum, TContext>>;
-        let chartSeriesNodeDoubleClick: TFreezable<MockChartSeriesNodeDblClickListener<TDatum, TContext>>;
+        let chartSeriesNodeClick: TFreezable<MockSeriesNodeClickListener<TDatum, TContext>>;
+        let chartSeriesNodeDoubleClick: TFreezable<MockSeriesNodeDblClickListener<TDatum, TContext>>;
         let chartSeriesVisibilityChange: TFreezable<MockChartSeriesVisibilityChangeListener<TDatum, TContext>>;
         let seriesNodeClick: TFreezable<MockSeriesNodeClickListener<TDatum, TContext>>;
         let seriesNodeDoubleClick: TFreezable<MockSeriesNodeDblClickListener<TDatum, TContext>>;
