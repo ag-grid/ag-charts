@@ -97,5 +97,5 @@ export default {
             runner: 'jest-serial-runner',
             ...commonConfig,
         },
-    ],
+    ].filter((test) => test.testMatch.length > 0),
 };

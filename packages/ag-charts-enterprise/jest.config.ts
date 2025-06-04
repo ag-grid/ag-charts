@@ -18,7 +18,7 @@ if (swcJestConfig.swcrc === undefined) {
 
 const pathToGlob = ({ path }: { path: string }) => path.replace('./', '**/');
 
-const tests = glob.sync('packages/ag-charts-community/src/**/*.test.ts').map((path) => {
+const tests = glob.sync('packages/ag-charts-enterprise/src/**/*.test.ts').map((path) => {
     const fileContents = readFileSync(path).toString();
 
     let type = 'unit';
@@ -38,7 +38,7 @@ const e2eTests = tests.filter((test) => test.type === 'e2e').map(pathToGlob);
 const unitTests = tests.filter((test) => test.type === 'unit').map(pathToGlob);
 const flakyTests = tests.filter((test) => test.type === 'flaky').map(pathToGlob);
 const benchmarks = glob
-    .sync('packages/ag-charts-community/benchmarks/**/*.test.ts')
+    .sync('packages/ag-charts-enterprise/benchmarks/**/*.test.ts')
     .map((path) => ({ path }))
     .map(pathToGlob);
 
@@ -99,5 +99,5 @@ export default {
             runner: 'jest-serial-runner',
             ...commonConfig,
         },
-    ],
+    ].filter((test) => test.testMatch.length > 0),
 };
