@@ -53,9 +53,10 @@ export interface AgSeriesVisibilityChange {
     visible: boolean;
 }
 
-export interface AgAnnotationsEvent {
+export interface AgAnnotationsEvent<TContext = TContextDefault> {
     type: 'annotations';
     annotations?: AgAnnotation[];
+    context?: TContext;
 }
 
 export interface AgZoomEvent<TContext = TContextDefault> {
@@ -99,7 +100,7 @@ export interface AgBaseChartListeners<TDatum, TContext = TContextDefault> {
     /** The listener to call when the chart is double-clicked. */
     doubleClick?: Listener<AgChartDoubleClickEvent>;
     /** The listener to call when the annotations are changed. */
-    annotations?: Listener<AgAnnotationsEvent>;
+    annotations?: Listener<AgAnnotationsEvent<TContext>>;
     /** The listener to call when the zoom is changed. */
     zoom?: Listener<AgZoomEvent<TContext>>;
 }
