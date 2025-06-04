@@ -72,11 +72,11 @@ import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/ty
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
-import { Series, SeriesGroupingChangedEvent, SeriesNodeEvent } from './series/series';
+import { Series, SeriesNodeEvent } from './series/series';
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
-import type { ISeries } from './series/seriesTypes';
+import type { ISeries, SeriesEventsMap, SeriesGroupingChangeEvent } from './series/seriesTypes';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { Touch } from './touch';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
@@ -450,7 +450,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         return this.series.flatMap<TooltipContent>((s) => {
             if (s === series) return tooltipContent;
-            if (!s.isEnabled() || s.properties.tooltip.enabled === false) return [];
+            if (!s.visible || s.properties.tooltip.enabled === false) return [];
             const seriesDatumIndex = s.datumIndexForCategoryValue(categoryValue);
             const seriesTooltipContent =
                 seriesDatumIndex == null ? undefined : s.getTooltipContent(seriesDatumIndex, undefined);
@@ -894,9 +894,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     protected destroySeries(allSeries: Series<unknown, any, any>[]): void {
         allSeries?.forEach((series) => {
-            series.removeEventListener('seriesNodeClick', this.onSeriesNodeClick);
-            series.removeEventListener('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
-            series.removeEventListener('groupingChanged', this.seriesGroupingChanged);
+            series.events.off('seriesNodeClick', this.onSeriesNodeClick);
+            series.events.off('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
+            series.events.off('grouping:change', this.seriesGroupingChanged);
             series.destroy();
             this.seriesLayerManager.releaseGroup(series);
             series.detachSeries(undefined, this.seriesRoot, this.annotationRoot);
@@ -907,18 +907,18 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     private addSeriesListeners(series: Series<unknown, any, any>) {
         if (this.hasEventListener('seriesNodeClick')) {
-            series.addEventListener('seriesNodeClick', this.onSeriesNodeClick);
+            series.events.on('seriesNodeClick', this.onSeriesNodeClick);
         }
 
         if (this.hasEventListener('seriesNodeDoubleClick')) {
-            series.addEventListener('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
+            series.events.on('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
         }
 
         if (this.hasEventListener('seriesVisibilityChange')) {
-            series.addEventListener('seriesVisibilityChange', this.onSeriesVisibilityChange);
+            series.events.on('series-visibility:change', this.onSeriesVisibilityChange);
         }
 
-        series.addEventListener('groupingChanged', this.seriesGroupingChanged);
+        series.events.on('grouping:change', this.seriesGroupingChanged);
     }
 
     protected assignSeriesToAxes() {
@@ -1159,8 +1159,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.fireEvent(event);
     };
 
-    private readonly seriesGroupingChanged = (event: TypedEvent) => {
-        if (!(event instanceof SeriesGroupingChangedEvent)) return;
+    private readonly seriesGroupingChanged = (event: SeriesGroupingChangeEvent) => {
         const { series, seriesGrouping, oldGrouping } = event;
 
         // Short-circuit if series isn't already attached to the scene-graph yet.
@@ -1263,7 +1262,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
         if (deltaOptions.listeners) {
-            this.registerListeners(this, deltaOptions.listeners as Record<string, TypedEventListener>);
+            this.clearEventListeners();
+            for (const [property, listener] of entries(deltaOptions.listeners)) {
+                this.addEventListener(property, listener as TypedEventListener);
+            }
         }
 
         jsonApply<any, any>(this, deltaOptions, { skip });
@@ -1677,7 +1679,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (listeners) {
-            this.registerListeners(target, listeners as Record<string, TypedEventListener>);
+            target.events.clear();
+            for (const [eventName, listener] of entries(listeners)) {
+                target.events.on(eventName as keyof SeriesEventsMap, listener);
+            }
         }
 
         if ('seriesGrouping' in options) {
@@ -1723,13 +1728,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 moduleMap.removeModule(module);
                 delete (axis as any)[module.optionsKey]; // TODO remove
             }
-        }
-    }
-
-    private registerListeners(source: Observable, listeners: Record<string, TypedEventListener>) {
-        source.clearEventListeners();
-        for (const [property, listener] of entries(listeners)) {
-            source.addEventListener(property, listener);
         }
     }
 }

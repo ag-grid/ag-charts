@@ -1,3 +1,5 @@
+import type { AgSeriesVisibilityChange } from 'ag-charts-types';
+
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';
@@ -6,17 +8,30 @@ import type { TypedEvent } from '../../util/observable';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltipContent';
+import { Series, type SeriesDataEvent } from './series';
+import type { SeriesGrouping } from './seriesStateManager';
 
 // Breaks circular dependency between ISeries and ChartAxis.
 interface ChartAxisLike {
     id: string;
 }
 
-export type SeriesNodeEventTypes =
-    | 'nodeContextMenuAction'
-    | 'groupingChanged'
-    | 'seriesNodeClick'
-    | 'seriesNodeDoubleClick';
+export type SeriesNodeEventTypes = 'nodeContextMenuAction' | 'seriesNodeClick' | 'seriesNodeDoubleClick';
+
+export interface SeriesEventsMap {
+    'data-update': SeriesDataEvent;
+    'data-processed': SeriesDataEvent;
+    'grouping:change': SeriesGroupingChangeEvent;
+    'series-visibility:change': AgSeriesVisibilityChange;
+    seriesNodeClick: INodeEvent<'seriesNodeClick'>;
+    seriesNodeDoubleClick: INodeEvent<'seriesNodeDoubleClick'>;
+}
+
+export interface SeriesGroupingChangeEvent {
+    series: Series<unknown, any, any>;
+    seriesGrouping: SeriesGrouping | undefined;
+    oldGrouping: SeriesGrouping | undefined;
+}
 
 export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
     readonly type: TEvent;
@@ -25,6 +40,7 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     readonly datum: unknown;
     readonly seriesId: string;
     readonly defaultPrevented: boolean;
+    preventDefault(): void;
 }
 
 export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
@@ -32,7 +48,6 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     axes: { [K in ChartAxisDirection]?: ChartAxisLike };
     contentGroup: Group;
     properties: TProps;
-    hasEventListener(type: string): boolean;
     hasData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
@@ -58,7 +73,6 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     getNames(direction: ChartAxisDirection): (string | undefined)[];
     getFormatterContext(direction: ChartAxisDirection): Array<{ key: string; name: string | undefined }>;
     datumMidPoint?<T extends SeriesNodeDatum<unknown>>(datum: T): Point | undefined;
-    isEnabled(): boolean;
     type: string;
     visible: boolean;
     connectsToYAxis: boolean;
@@ -93,5 +107,11 @@ export interface ErrorBoundSeriesNodeDatum {
     yBar?: { lowerPoint: Point; upperPoint: Point };
 }
 
-export type NodeDataDependencies = { seriesRectWidth: number; seriesRectHeight: number };
-export type NodeDataDependant = { readonly nodeDataDependencies: NodeDataDependencies };
+export interface NodeDataDependencies {
+    seriesRectWidth: number;
+    seriesRectHeight: number;
+}
+
+export interface NodeDataDependant {
+    readonly nodeDataDependencies: NodeDataDependencies;
+}

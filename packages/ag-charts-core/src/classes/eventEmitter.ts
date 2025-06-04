@@ -35,6 +35,15 @@ export class EventEmitter<EventMap extends object> {
     }
 
     /**
+     * Checks if there are any listeners registered for a specific event.
+     * @param eventName The event name to check for listeners.
+     * @returns `true` if there are listeners registered for the event, otherwise `false`.
+     */
+    has<K extends keyof EventMap>(eventName: K): boolean {
+        return this.events.has(eventName);
+    }
+
+    /**
      * Emits an event to all registered listeners.
      * @param eventName The name of the event to emit.
      * @param event The event payload.

@@ -66,8 +66,8 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.selection = _ModuleSupport.Selection.select(this.groupNode, () => this.errorBarFactory());
         annotationSelections.add(this.selection);
 
-        series.addEventListener('seriesVisibilityChange', (e: AgSeriesVisibilityChange) => this.onToggleSeriesItem(e));
         this.cleanup.register(
+            series.events.on('series-visibility:change', (e: AgSeriesVisibilityChange) => this.onToggleSeriesItem(e)),
             series.events.on('data-processed', (e) => this.onDataProcessed(e)),
             series.events.on('data-update', (e) => this.onDataUpdate(e)),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),

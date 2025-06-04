@@ -426,7 +426,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     processData() {
         const { includeInvisibleDomains, boundSeries, direction } = this;
-        const visibleSeries = includeInvisibleDomains ? boundSeries : boundSeries.filter((s) => s.isEnabled());
+        const visibleSeries = includeInvisibleDomains ? boundSeries : boundSeries.filter((s) => s.visible);
         const domains = visibleSeries.map((series) => series.getDomain(direction) as D[]);
         this.setDomains(...domains);
     }
@@ -746,7 +746,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected isAnySeriesActive() {
-        return this.boundSeries.some((s) => this.includeInvisibleDomains || s.isEnabled());
+        return this.boundSeries.some((s) => this.includeInvisibleDomains || s.visible);
     }
 
     clipTickLines(x: number, y: number, width: number, height: number) {

@@ -2,6 +2,7 @@ import {
     type AnyFn,
     CleanupRegistry,
     EventEmitter,
+    type EventListener,
     Logger,
     type RequireOptional,
     type RequiredInternalAgGradientColor,
@@ -14,7 +15,6 @@ import type {
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesTooltipRendererParams,
-    AgSeriesVisibilityChange,
     FormatterParams,
     FormatterPropertyType,
     ISeriesMarker,
@@ -36,8 +36,6 @@ import { jsonDiff } from '../../util/json';
 import { LRUCache } from '../../util/lruCache';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
 import { mergeDefaults } from '../../util/object';
-import type { TypedEvent, TypedEventListener } from '../../util/observable';
-import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis } from '../chartAxis';
@@ -51,7 +49,14 @@ import type { TooltipContent, TooltipStructuredContent } from '../tooltip/toolti
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
-import type { INodeEvent, ISeries, NodeDataDependencies, SeriesNodeDatum, SeriesNodeEventTypes } from './seriesTypes';
+import type {
+    INodeEvent,
+    ISeries,
+    NodeDataDependencies,
+    SeriesEventsMap,
+    SeriesNodeDatum,
+    SeriesNodeEventTypes,
+} from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
 import { type ShapeFillBBox, applyShapeStyle, getShapeStyle } from './shapeUtil';
 
@@ -147,16 +152,6 @@ export type SeriesDirectionKeysMapping<P extends SeriesProperties<any>> = {
     [key in ChartAxisDirection | FormatterPropertyType]?: (keyof P & string)[];
 };
 
-export class SeriesGroupingChangedEvent implements TypedEvent {
-    type = 'groupingChanged';
-
-    constructor(
-        public series: Series<unknown, any, any>,
-        public seriesGrouping: SeriesGrouping | undefined,
-        public oldGrouping: SeriesGrouping | undefined
-    ) {}
-}
-
 export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     moduleCtx: ModuleContext;
     pickModes: SeriesNodePickMode[];
@@ -193,18 +188,16 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
 }
 
 export abstract class Series<
+    TDatumIndex,
+    TDatum extends SeriesNodeDatum<TDatumIndex>,
+    TProps extends SeriesProperties<any>,
+    TLabel = TDatum,
+    TContext extends SeriesNodeDataContext<TDatumIndex, TDatum, TLabel> = SeriesNodeDataContext<
         TDatumIndex,
-        TDatum extends SeriesNodeDatum<TDatumIndex>,
-        TProps extends SeriesProperties<any>,
-        TLabel = TDatum,
-        TContext extends SeriesNodeDataContext<TDatumIndex, TDatum, TLabel> = SeriesNodeDataContext<
-            TDatumIndex,
-            TDatum,
-            TLabel
-        >,
-    >
-    extends Observable
-    implements ISeries<TDatumIndex, TDatum, TProps, TLabel>
+        TDatum,
+        TLabel
+    >,
+> implements ISeries<TDatumIndex, TDatum, TProps, TLabel>
 {
     protected cleanup = new CleanupRegistry();
     abstract readonly properties: TProps;
@@ -337,15 +330,13 @@ export abstract class Series<
 
     private onSeriesGroupingChange(prev?: SeriesGrouping, next?: SeriesGrouping) {
         const { internalId, type, visible } = this;
-
         if (prev) {
             this.ctx.seriesStateManager.deregisterSeries(this);
         }
         if (next) {
             this.ctx.seriesStateManager.registerSeries({ internalId, type, visible, seriesGrouping: next });
         }
-
-        this.fireEvent(new SeriesGroupingChangedEvent(this, next, prev));
+        this.events.emit('grouping:change', { series: this, seriesGrouping: next, oldGrouping: prev });
     }
 
     getBandScalePadding() {
@@ -355,8 +346,6 @@ export abstract class Series<
     protected readonly ctx: ModuleContext;
 
     constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
-        super();
-
         const {
             moduleCtx,
             pickModes,
@@ -413,30 +402,10 @@ export abstract class Series<
         return false;
     }
 
-    readonly events = new EventEmitter<{ 'data-update': SeriesDataEvent; 'data-processed': SeriesDataEvent }>();
+    readonly events = new EventEmitter<SeriesEventsMap>();
 
-    override addEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
-    override addEventListener(type: 'seriesNodeClick', listener: (e: SeriesNodeEvent<any>) => void): void;
-    override addEventListener(type: 'seriesNodeDoubleClick', listener: (e: SeriesNodeEvent<any>) => void): void;
-    override addEventListener(type: string, listener: TypedEventListener): void;
-    override addEventListener(type: string, listener: TypedEventListener | ((e: unknown) => void)): void {
-        return super.addEventListener(type, listener);
-    }
-
-    override removeEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
-    override removeEventListener(type: 'seriesNodeClick', listener: (e: SeriesNodeEvent<any>) => void): void;
-    override removeEventListener(type: 'seriesNodeDoubleClick', listener: (e: SeriesNodeEvent<any>) => void): void;
-    override removeEventListener(type: string, listener: TypedEventListener): void;
-    override removeEventListener(type: string, listener: TypedEventListener | ((e: unknown) => void)): void {
-        return super.removeEventListener(type, listener);
-    }
-
-    override hasEventListener(type: 'seriesVisibilityChange'): boolean;
-    override hasEventListener(type: 'seriesNodeClick'): boolean;
-    override hasEventListener(type: 'seriesNodeDoubleClick'): boolean;
-    override hasEventListener(type: string): boolean;
-    override hasEventListener(type: string): boolean {
-        return super.hasEventListener(type);
+    addEventListener<K extends keyof SeriesEventsMap>(eventName: K, listener: EventListener<SeriesEventsMap[K]>): void {
+        this.events.on(eventName, listener);
     }
 
     addChartEventListeners(): void {
@@ -612,7 +581,7 @@ export abstract class Series<
     }
 
     protected isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined) {
-        return highlightedDatum?.series === this;
+        return (highlightedDatum?.series as unknown) === this;
     }
 
     protected getModuleTooltipParams() {
@@ -737,13 +706,13 @@ export abstract class Series<
 
     fireNodeClickEvent(event: Event, datum: TDatum): boolean {
         const clickEvent = new this.NodeEvent('seriesNodeClick', event, datum, this);
-        this.fireEvent(clickEvent);
+        this.events.emit('seriesNodeClick', clickEvent);
         return !clickEvent.defaultPrevented;
     }
 
     fireNodeDoubleClickEvent(event: Event, datum: TDatum): boolean {
         const clickEvent = new this.NodeEvent('seriesNodeDoubleClick', event, datum, this);
-        this.fireEvent(clickEvent);
+        this.events.emit('seriesNodeDoubleClick', clickEvent);
         return !clickEvent.defaultPrevented;
     }
 
@@ -804,20 +773,15 @@ export abstract class Series<
         this.nodeDataRefresh = true;
         this._pickNodeCache.clear();
 
-        const event: AgSeriesVisibilityChange = {
+        this.events.emit('series-visibility:change', {
             type: 'seriesVisibilityChange',
             seriesId,
             itemId,
             legendItemName: legendEvent?.legendItemName ?? legendItemName,
             visible: enabled,
-        };
-        this.fireEvent(event);
+        });
 
         this.ctx.legendManager.toggleItem(enabled, seriesId, itemId, legendItemName);
-    }
-
-    isEnabled() {
-        return this.visible;
     }
 
     getModuleMap(): SeriesModuleMap {
