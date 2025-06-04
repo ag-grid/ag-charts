@@ -107,7 +107,7 @@ const options: AgCartesianChartOptions = {
             },
         },
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             min: new Date(1974, 0, 0),
             max: new Date(2024, 12, 0),

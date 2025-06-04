@@ -27,9 +27,9 @@ export enum CARTESIAN_AXIS_TYPE {
     CATEGORY = 'category',
     GROUPED_CATEGORY = 'grouped-category',
     ORDINAL_TIME = 'ordinal-time',
-    CONTINUOUS_TIME = 'continuous-time',
-    NUMBER = 'number',
+    UNIT_TIME = 'unit-time',
     TIME = 'time',
+    NUMBER = 'number',
     LOG = 'log',
 }
 

@@ -226,7 +226,7 @@ describe('RangeAreaSeries', () => {
         await compare();
     });
 
-    it(`should render a range-area chart with a time x-axis`, async () => {
+    it(`should render a range-area chart with a unit time x-axis`, async () => {
         const options: AgChartOptions = {
             ...RANGE_AREA_OPTIONS,
             data: CONTINUOUS_DATA,
@@ -237,7 +237,7 @@ describe('RangeAreaSeries', () => {
                 },
                 {
                     position: 'bottom',
-                    type: 'time',
+                    type: 'unit-time',
                 },
             ],
         };
@@ -247,7 +247,7 @@ describe('RangeAreaSeries', () => {
         await compare();
     });
 
-    it(`should render a range-area chart with reversed time x-axis`, async () => {
+    it(`should render a range-area chart with reversed unit time x-axis`, async () => {
         const options: AgChartOptions = {
             ...RANGE_AREA_OPTIONS,
             data: CONTINUOUS_DATA,
@@ -258,7 +258,7 @@ describe('RangeAreaSeries', () => {
                 },
                 {
                     position: 'bottom',
-                    type: 'time',
+                    type: 'unit-time',
                     reverse: true,
                 },
             ],
@@ -347,7 +347,7 @@ describe('RangeAreaSeries', () => {
                 },
                 {
                     position: 'bottom',
-                    type: 'time',
+                    type: 'unit-time',
                 },
             ],
         };

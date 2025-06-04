@@ -7,7 +7,7 @@ export const BandHighlightModule: _ModuleSupport.AxisOptionModule = {
     optionsKey: 'bandHighlight',
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
-    axisTypes: ['category', 'ordinal-time', 'time', 'grouped-category'],
+    axisTypes: ['category', 'ordinal-time', 'unit-time', 'grouped-category'],
     moduleFactory: (ctx) => new BandHighlight(ctx),
     themeTemplate: {
         bandHighlight: {

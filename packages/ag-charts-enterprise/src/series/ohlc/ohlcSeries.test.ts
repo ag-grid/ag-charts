@@ -49,7 +49,7 @@ describe('OhlcSeries', () => {
         await compareSnapshot(AgCharts.create(options));
     });
 
-    it(`should render a ohlc chart with a time x-axis`, async () => {
+    it(`should render a ohlc chart with a unit time x-axis`, async () => {
         const options: AgChartOptions = {
             ...OHLC_OPTIONS,
             axes: [
@@ -59,7 +59,7 @@ describe('OhlcSeries', () => {
                 },
                 {
                     position: 'bottom',
-                    type: 'time',
+                    type: 'unit-time',
                 },
             ],
         };
@@ -87,6 +87,44 @@ describe('OhlcSeries', () => {
         await compareSnapshot(AgCharts.create(options));
     });
 
+    it(`should render a ohlc chart with a reversed unit time x-axis`, async () => {
+        const options: AgChartOptions = {
+            ...OHLC_OPTIONS,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'unit-time',
+                    reverse: true,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+        await compareSnapshot(AgCharts.create(options));
+    });
+
+    it(`should render a ohlc chart with a time x-axis`, async () => {
+        const options: AgChartOptions = {
+            ...OHLC_OPTIONS,
+            axes: [
+                {
+                    position: 'left',
+                    type: 'number',
+                },
+                {
+                    position: 'bottom',
+                    type: 'time',
+                    nice: false,
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+        await compareSnapshot(AgCharts.create(options));
+    });
+
     it(`should render a ohlc chart with a reversed time x-axis`, async () => {
         const options: AgChartOptions = {
             ...OHLC_OPTIONS,
@@ -98,44 +136,6 @@ describe('OhlcSeries', () => {
                 {
                     position: 'bottom',
                     type: 'time',
-                    reverse: true,
-                },
-            ],
-        };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
-    });
-
-    it(`should render a ohlc chart with a continuous-time x-axis`, async () => {
-        const options: AgChartOptions = {
-            ...OHLC_OPTIONS,
-            axes: [
-                {
-                    position: 'left',
-                    type: 'number',
-                },
-                {
-                    position: 'bottom',
-                    type: 'continuous-time',
-                    nice: false,
-                },
-            ],
-        };
-        prepareEnterpriseTestOptions(options as any);
-        await compareSnapshot(AgCharts.create(options));
-    });
-
-    it(`should render a ohlc chart with a reversed continuous-time x-axis`, async () => {
-        const options: AgChartOptions = {
-            ...OHLC_OPTIONS,
-            axes: [
-                {
-                    position: 'left',
-                    type: 'number',
-                },
-                {
-                    position: 'bottom',
-                    type: 'continuous-time',
                     nice: false,
                     reverse: true,
                 },

@@ -54,7 +54,7 @@ const baseChartOptions: AgCartesianChartOptions = {
     axes: [
         {
             position: 'bottom',
-            type: 'time',
+            type: 'unit-time',
             title: {
                 text: 'Date',
             },
