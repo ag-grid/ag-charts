@@ -9,8 +9,6 @@ import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from './scale
 const MAX_BANDS = 50e6; // Max array length is ~4bn
 
 export class UnitTimeScale extends DiscreteTimeScale {
-    static readonly defaultTickCount = 12;
-
     static override is(value: unknown): value is UnitTimeScale {
         return value instanceof UnitTimeScale;
     }
