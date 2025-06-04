@@ -91,8 +91,7 @@ describe('AG-14631 context enterprise', () => {
         zoomListener.expect().toHaveBeenCalledTimes(2).withContext(context);
     });
 
-    // Skip unit test (not yet implemented)
-    xtest('annotations', async () => {
+    test('annotations', async () => {
         type TDatum = Readonly<{ x: string; y: number }>;
         type TContext = Readonly<{ name: string }>;
         type TMock = MockAnnotationsListener<TDatum, TContext>;

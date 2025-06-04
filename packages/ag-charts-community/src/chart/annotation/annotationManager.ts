@@ -1,8 +1,9 @@
 import { isArray } from 'ag-charts-core';
-import type { AgAnnotation, AgAnnotationsThemeableOptions } from 'ag-charts-types';
+import type { AgAnnotation, AgAnnotationsEvent, AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
 import type { EventsHub } from '../../core/eventsHub';
+import { callWithContext } from '../../module-support';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { deepClone } from '../../util/json';
@@ -20,6 +21,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     constructor(
         private readonly eventsHub: EventsHub,
         private readonly annotationRoot: Group,
+        private readonly caller: { readonly context?: unknown },
         private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
     ) {}
 
@@ -47,7 +49,8 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     }
 
     public fireChangedEvent() {
-        this.fireChartEvent({ type: 'annotations', annotations: deepClone([...this.annotations]) });
+        const event: AgAnnotationsEvent = { type: 'annotations', annotations: deepClone([...this.annotations]) };
+        callWithContext(this.caller, this.fireChartEvent<AgAnnotationsEvent>, event);
     }
 
     public attachNode(node: Node) {
