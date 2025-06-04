@@ -21,9 +21,7 @@ export interface PolarAxisPathPoint {
 export abstract class PolarAxis<
     S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
     D = any,
-    TickDatum = any,
-    TickLabelDatum = TickDatum,
-> extends Axis<S, D, TickDatum, TickLabelDatum> {
+> extends Axis<S, D> {
     gridAngles: number[] | undefined;
     gridRange: number[] | undefined;
 
@@ -72,7 +70,7 @@ export abstract class PolarAxis<
         this.crossLineLabelGroup.translationX = translationX;
         this.crossLineLabelGroup.translationY = translationY;
 
-        this.tickLabelGroupSelection.each(resetAxisLabelSelectionFn() as any);
+        this.tickLabelGroupSelection.each(resetAxisLabelSelectionFn());
     }
 
     computeLabelsBBox(_options: { hideWhenNecessary: boolean }, _seriesRect: BBox): BBox | null {

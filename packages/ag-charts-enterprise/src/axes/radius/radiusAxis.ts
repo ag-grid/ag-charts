@@ -36,7 +36,7 @@ class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
 export abstract class RadiusAxis<
     S extends _ModuleSupport.Scale<D, number, _ModuleSupport.TickInterval<S>> = _ModuleSupport.Scale<any, number, any>,
     D = any,
-> extends _ModuleSupport.PolarAxis<S, D, _ModuleSupport.TickDatum, _ModuleSupport.LabelNodeDatum> {
+> extends _ModuleSupport.PolarAxis<S, D> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
 
     @Property
@@ -375,9 +375,9 @@ export abstract class RadiusAxis<
             textBaseline,
             visible,
             x: labelX,
-            y: datum.translationY,
+            y: datum.translation,
             rotationCenterX: labelX,
-            rotationCenterY: datum.translationY,
+            rotationCenterY: datum.translation,
             range,
         };
     }

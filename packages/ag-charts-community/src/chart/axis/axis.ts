@@ -108,12 +108,8 @@ export type AxisTickFormatParams =
  * The generic `D` parameter is the type of the domain of the axis' scale.
  * The output range of the axis' scale is always numeric (screen coordinates).
  */
-export abstract class Axis<
-    S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
-    D = any,
-    TickDatum = any,
-    TickLabelDatum = TickDatum,
-> implements ChartAxis
+export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>, D = any>
+    implements ChartAxis
 {
     static readonly defaultTickMinSpacing = 50;
 
@@ -224,7 +220,7 @@ export abstract class Axis<
         zIndex: ZIndexMap.SERIES_LABEL,
     });
 
-    protected tickLabelGroupSelection = Selection.select<TransformableText, TickLabelDatum>(
+    protected tickLabelGroupSelection = Selection.select<TransformableText, LabelNodeDatum>(
         this.tickLabelGroup,
         TransformableText,
         false

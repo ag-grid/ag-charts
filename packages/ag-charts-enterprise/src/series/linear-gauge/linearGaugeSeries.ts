@@ -1143,8 +1143,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 return;
             }
 
-            const x = textX ?? datum.translationY;
-            const y = textY ?? datum.translationY;
+            const x = textX ?? datum.translation;
+            const y = textY ?? datum.translation;
             label.visible = true;
 
             label.text = datum.tickLabel;

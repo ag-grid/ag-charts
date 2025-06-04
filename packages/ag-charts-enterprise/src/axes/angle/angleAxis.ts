@@ -169,7 +169,7 @@ export abstract class AngleAxis<
 
         this.gridLineGroupSelection.update(this.gridLength && this.gridLine.enabled ? data : []);
         this.tickLineGroupSelection.update(this.tick.enabled ? data : []);
-        this.tickLabelGroupSelection.update(this.label.enabled ? data : []);
+        this.tickLabelGroupSelection.update(this.label.enabled ? (data as any) : []);
 
         this.gridLineGroupSelection.cleanup();
         this.tickLineGroupSelection.cleanup();

@@ -125,9 +125,9 @@ function ticksSpacing(ticks: TickDatum[]) {
     if (ticks.length < 2) return Infinity;
 
     let spacing = 0;
-    let y0 = ticks[0].translationY;
+    let y0 = ticks[0].translation;
     for (let i = 1; i < ticks.length; i++) {
-        const y1 = ticks[i].translationY;
+        const y1 = ticks[i].translation;
         const delta = Math.abs(y1 - y0);
         spacing = Math.max(spacing, delta);
         y0 = y1;
@@ -311,12 +311,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             if (
                 lastTick != null &&
                 lastLabel != null &&
-                lastTick.translationY + lastLabel.label.width / 2 > range[1] + removeOverflowThreshold
+                lastTick.translation + lastLabel.label.width / 2 > range[1] + removeOverflowThreshold
             ) {
                 lastTick.tickLabel = undefined;
 
                 const firstTick = tickData.ticks[0];
-                if (firstTick.translationY === 0 && visibleRange[0] === 0 && visibleRange[1] === 1) {
+                if (firstTick.translation === 0 && visibleRange[0] === 0 && visibleRange[1] === 1) {
                     firstTick.tickLabel = undefined;
                 }
             }
@@ -421,16 +421,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         return strategies;
     }
 
-    private ticksEqual(a: any[], b: any[]) {
-        if (a.length !== b.length) return false;
-
-        for (let i = 0; i < a.length; i += 1) {
-            if (a[i]?.valueOf() !== b[i]?.valueOf()) return false;
-        }
-
-        return true;
-    }
-
     private createTickData(
         domain: D[],
         range: [number, number],
@@ -486,7 +476,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         getTickParams.tickCount = countTicks(index);
         tickData = this.getTicks(getTickParams);
 
-        if (regenerateTicks && this.ticksEqual(tickData.rawTicks, previousTicks)) {
+        if (regenerateTicks && ticksEqual(tickData.rawTicks, previousTicks)) {
             // Ticks didn't change
             // Use binary search to find the index, as there could be a lot of ticks in some cases
             let lowerBound = index;
@@ -496,7 +486,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 getTickParams.tickCount = countTicks(index);
                 tickData = this.getTicks(getTickParams);
 
-                if (this.ticksEqual(tickData.rawTicks, previousTicks)) {
+                if (ticksEqual(tickData.rawTicks, previousTicks)) {
                     lowerBound = index + 1;
                 } else {
                     upperBound = index - 1;
@@ -549,7 +539,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 ...tickParams,
                 interval: timeInterval,
             };
-            const timeScaleTicks = !TimeScale.is(scale) || interpolate;
+            const isTimeScaleTicks = !TimeScale.is(scale) || interpolate;
             for (let i = 0; i < primaryTicks.length - 1; i += 1) {
                 const p0 = primaryTicks[i];
                 const p1 = primaryTicks[i + 1];
@@ -562,15 +552,15 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     Math.min((dv1 - p0.valueOf()) / dp, 1),
                 ];
 
-                const intervalTicks = timeScaleTicks
-                    ? this.timeScaleTicks(intervalTickParams, [p0, p1], pVisibleRange, true)
+                const intervalTicks = isTimeScaleTicks
+                    ? createTimeScaleTicks(intervalTickParams.interval, [p0, p1], pVisibleRange, true)
                     : scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, true)?.ticks ?? [];
 
                 dropFirstWhile(intervalTicks, (firstTick) => firstTick.valueOf() < p0.valueOf());
 
                 if (!last) {
                     dropLastWhile(intervalTicks, (lastTick) =>
-                        timeScaleTicks
+                        isTimeScaleTicks
                             ? lastTick.valueOf() + milliseconds > p1.valueOf()
                             : lastTick.valueOf() >= p1.valueOf()
                     );
@@ -580,7 +570,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
                 const firstTick = intervalTicks[0];
                 const firstTickDiff = compareDates(firstTick, p0);
-                const firstPrimary = timeScaleTicks ? firstTickDiff === 0 : firstTickDiff <= milliseconds;
+                const firstPrimary = isTimeScaleTicks ? firstTickDiff === 0 : firstTickDiff <= milliseconds;
 
                 if (firstPrimary) {
                     primaryTicksIndices.add(ticks.length);
@@ -619,34 +609,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         }
 
         return { ticks, tickCount: undefined, primaryTicksIndices, interpolate };
-    }
-
-    private timeScaleTicks(
-        params: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
-        domain: [Date, Date],
-        visibleRange?: [number, number],
-        extend?: boolean
-    ) {
-        const { interval } = params;
-        if (interval == null) return domain;
-
-        const d0 = domain[0].valueOf();
-        const d1 = domain[1].valueOf();
-
-        if (typeof interval !== 'number') {
-            const epoch = domain[0];
-            const alignedInterval: TimeInterval =
-                typeof interval === 'string' ? { unit: interval, epoch } : { ...interval, epoch };
-            return intervalRange(alignedInterval, domain[0], domain[1], { visibleRange, extend });
-        }
-
-        const ticks: Date[] = [];
-        for (let intervalTickTime = d0; intervalTickTime <= d1; intervalTickTime += interval) {
-            const intervalTick = new Date(intervalTickTime);
-            ticks.push(intervalTick);
-        }
-
-        return ticks;
     }
 
     private getTicks({
@@ -812,12 +774,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const idGenerator = createIdsGenerator();
         for (let i = 0; i < rawTicks.length; i++) {
             const tick = rawTicks[i];
-            const translationY = scale.convert(tick, { interpolate }) + halfBandwidth;
+            const translation = scale.convert(tick, { interpolate }) + halfBandwidth;
             const primary = primaryTicksIndices?.has(i) ?? false;
 
             // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
             // instead hide ticks based on their translation.
-            if (range.length > 0 && !axis.inRange(translationY, 0.001)) continue;
+            if (range.length > 0 && !axis.inRange(translation, 0.001)) continue;
 
             const tickLabel = primary ? axisPrimaryTickFormatter?.(tick, i) : axisTickFormatter?.(tick, i);
 
@@ -834,7 +796,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 tick,
                 tickId,
                 tickLabel,
-                translationY: Math.floor(translationY),
+                translation: Math.floor(translation),
                 primary,
             });
         }
@@ -875,4 +837,44 @@ function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding: number = 
     }
 
     return false;
+}
+
+function createTimeScaleTicks(
+    interval: TimeInterval | TimeIntervalUnit | number,
+    domain: [Date, Date],
+    visibleRange?: [number, number],
+    extend?: boolean
+) {
+    if (interval == null) {
+        return domain;
+    }
+
+    const d0 = domain[0].valueOf();
+    const d1 = domain[1].valueOf();
+
+    if (typeof interval !== 'number') {
+        const epoch = domain[0];
+        const alignedInterval: TimeInterval =
+            typeof interval === 'string' ? { unit: interval, epoch } : { ...interval, epoch };
+        return intervalRange(alignedInterval, domain[0], domain[1], { visibleRange, extend });
+    }
+
+    const ticks: Date[] = [];
+    for (let intervalTickTime = d0; intervalTickTime <= d1; intervalTickTime += interval) {
+        ticks.push(new Date(intervalTickTime));
+    }
+
+    return ticks;
+}
+
+function ticksEqual(a: unknown[], b: unknown[]) {
+    if (a.length !== b.length) {
+        return false;
+    }
+    for (let i = 0; i < a.length; i += 1) {
+        if (a[i]?.valueOf() !== b[i]?.valueOf()) {
+            return false;
+        }
+    }
+    return true;
 }

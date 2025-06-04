@@ -85,8 +85,8 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
             node.textAlign = textAlign;
 
             node.text = datum.tickLabel;
-            node.x = horizontal ? datum.translationY : 0;
-            node.y = horizontal ? 0 : datum.translationY;
+            node.x = horizontal ? datum.translation : 0;
+            node.y = horizontal ? 0 : datum.translation;
 
             boxes.push(node.getBBox());
         });
