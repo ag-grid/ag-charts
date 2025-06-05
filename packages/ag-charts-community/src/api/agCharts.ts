@@ -9,6 +9,7 @@ import type {
 
 import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
+import type { DataServiceRestoredData } from '../chart/data/dataService';
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
 import { AllCommunityModules } from '../main-modules';
@@ -129,12 +130,13 @@ class AgChartsInternal {
 
     private static readonly callbackApi: FactoryApi = {
         caretaker: AgChartsInternal.caretaker,
-        create(userOptions, processedOverrides, specialOverrides, optionsMetadata) {
+        create(userOptions, processedOverrides, specialOverrides, optionsMetadata, data) {
             return AgChartsInternal.createOrUpdate({
                 userOptions,
                 processedOverrides,
                 specialOverrides,
                 optionsMetadata,
+                data,
             });
         },
         update(opts, chart) {
@@ -153,6 +155,7 @@ class AgChartsInternal {
         licenseManager?: LicenseManager;
         specialOverrides?: Partial<ChartSpecialOverrides>;
         optionsMetadata?: ChartInternalOptionMetadata;
+        data?: DataServiceRestoredData;
         stripSymbols?: boolean;
     }) {
         let { proxy } = opts;
@@ -163,6 +166,7 @@ class AgChartsInternal {
             specialOverrides = proxy?.chart?.chartOptions.specialOverrides ?? {},
             optionsMetadata = proxy?.chart?.chartOptions.optionMetadata ?? {},
             deltaOptions,
+            data,
             stripSymbols = false,
         } = opts;
         const styles = enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : [];
@@ -227,6 +231,10 @@ class AgChartsInternal {
         });
 
         chart.ctx.fontManager.updateFonts(chartOptions.googleFonts);
+
+        if (data != null) {
+            chart.ctx.dataService.restoreData(data);
+        }
 
         if (proxy == null) {
             proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi, licenseManager);
