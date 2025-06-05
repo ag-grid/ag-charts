@@ -1,10 +1,8 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { DataType, getData } from './data';
+import { DataNumberKey, DataType, getData } from './data';
 
 const data = getData();
-
-type ValueKey = keyof Omit<DataType, 'department'>;
 
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
@@ -28,7 +26,7 @@ const options: AgCartesianChartOptions<DataType> = {
             cornerRadius: 5,
             itemStyler: ({ datum, yHighKey }) => {
                 return {
-                    fillOpacity: getOpacity(datum[yHighKey], yHighKey as ValueKey, 0.4, 1),
+                    fillOpacity: getOpacity(datum, yHighKey as DataNumberKey, 0.4, 1),
                 };
             },
             label: {
@@ -72,13 +70,14 @@ const options: AgCartesianChartOptions<DataType> = {
     },
 };
 
-function getOpacity(value: number, key: ValueKey, minOpacity: number, maxOpacity: number) {
+function getOpacity(datum: DataType, key: DataNumberKey, minOpacity: number, maxOpacity: number) {
     const [min, max] = getDomain(key);
+    const value = datum[key];
     let alpha = Math.round(((value - min) / (max - min)) * 10) / 10;
     return map(alpha, 0, 1, minOpacity, maxOpacity);
 }
 
-function getDomain(key: ValueKey) {
+function getDomain(key: DataNumberKey) {
     const min = Math.min(...data.map((d) => d[key]));
     const max = Math.max(...data.map((d) => d[key]));
     return [min, max];

@@ -1,8 +1,6 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { DataType, getData } from './data';
-
-type YKey = keyof Omit<DataType, 'type'>;
+import { DataNumberKey, DataType, getData } from './data';
 
 const data = getData();
 const options: AgChartOptions<DataType> = {
@@ -29,7 +27,7 @@ const options: AgChartOptions<DataType> = {
                 enabled: true,
             },
             itemStyler: ({ datum, yKey }) => ({
-                fillOpacity: getOpacity(datum[yKey], yKey as YKey, 0.4, 1),
+                fillOpacity: getOpacity(datum, yKey as DataNumberKey, 0.4, 1),
             }),
         },
     ],
@@ -52,13 +50,14 @@ const options: AgChartOptions<DataType> = {
     },
 };
 
-function getOpacity(value: number, key: YKey, minOpacity: number, maxOpacity: number) {
+function getOpacity(datum: DataType, key: DataNumberKey, minOpacity: number, maxOpacity: number) {
     const [min, max] = getDomain(key);
+    const value = datum[key];
     let alpha = Math.round(((value - min) / (max - min)) * 10) / 10;
     return map(alpha, 0, 1, minOpacity, maxOpacity);
 }
 
-function getDomain(key: YKey) {
+function getDomain(key: DataNumberKey) {
     const min = Math.min(...data.map((d) => d[key]));
     const max = Math.max(...data.map((d) => d[key]));
     return [min, max];

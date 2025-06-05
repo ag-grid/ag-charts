@@ -4,6 +4,8 @@ export interface DataType {
     high: number;
 }
 
+export type DataNumberKey = keyof Omit<DataType, 'department'>;
+
 export function getData(): DataType[] {
     return [
         { department: 'Finance', low: 75000, high: 110000 },
