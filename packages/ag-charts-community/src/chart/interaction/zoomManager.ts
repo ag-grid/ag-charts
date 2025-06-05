@@ -681,6 +681,8 @@ export class ZoomManager extends BaseManager {
         let max = 0;
         let maxPadding = false;
         for (const series of yAxis.boundSeries) {
+            if (!series.visible) continue;
+
             const { connectsToYAxis } = series;
             const yValues = series.getRange(ChartAxisDirection.Y, [zoom.min, zoom.max]);
 

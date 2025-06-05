@@ -99,6 +99,16 @@ export type AxisTickFormatParams =
           type: 'category';
       };
 
+interface TickLayout<D> {
+    niceDomain: D[];
+    tickDomain: D[];
+    ticks: D[];
+    rawTickCount: number | undefined;
+    fractionDigits: number;
+    timeInterval: AnyTimeInterval | undefined;
+    bbox?: BBox;
+}
+
 /**
  * A general purpose linear axis with no notion of orientation.
  * The axis is always rendered vertically, with horizontal labels positioned to the left
@@ -455,9 +465,37 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     protected chartPadding?: Padding;
 
-    _cachedUnzoomedInputDomain: D[] | undefined = undefined;
-    _cachedUnzoomedRangeExtent: number = NaN;
-    _cachedUnzoomedTickCount: number = 0;
+    private unzoomedInputDomain: D[] | undefined = undefined;
+    private unzoomedInputRangeExtent: number = NaN;
+    private unzoomedTickLayout: TickLayout<D> | undefined;
+    calculateDomain() {
+        const {
+            nice,
+            dataDomain: { domain },
+            range,
+            scale,
+            unzoomedInputDomain,
+            unzoomedInputRangeExtent,
+        } = this;
+        let { unzoomedTickLayout } = this;
+        const rangeExtent = findRangeExtent(range);
+
+        this.updateScale();
+
+        if (unzoomedTickLayout == null || unzoomedInputDomain !== domain || unzoomedInputRangeExtent !== rangeExtent) {
+            const niceMode = nice ? NiceMode.TickAndDomain : NiceMode.Off;
+            unzoomedTickLayout = this.calculateTickLayout(domain, niceMode, [0, 1]);
+
+            this.unzoomedInputDomain = domain;
+            this.unzoomedInputRangeExtent = rangeExtent;
+            this.unzoomedTickLayout = unzoomedTickLayout;
+        }
+
+        scale.domain = unzoomedTickLayout.niceDomain;
+
+        return { unzoomedTickLayout, domain: scale.domain };
+    }
+
     calculateLayout(
         initialPrimaryTickCount?: AxisPrimaryTickCount,
         chartPadding?: Padding
@@ -466,57 +504,25 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         bbox?: BBox;
     } {
         const { visibleRange, nice } = this;
+        const { unzoomedTickLayout, domain } = this.calculateDomain();
 
         this.chartPadding = chartPadding;
-        this.updateScale();
 
-        const rangeExtent = findRangeExtent(this.range);
-
-        const domain = this.dataDomain.domain;
-        let tickLayoutDomain: D[] | undefined;
-        let unzoomedTickCount: number | undefined;
+        let tickLayout: TickLayout<D>;
         if (visibleRange[0] === 0 && visibleRange[1] === 1) {
-            tickLayoutDomain = undefined;
-            unzoomedTickCount = undefined;
-        } else if (this._cachedUnzoomedInputDomain === domain && this._cachedUnzoomedRangeExtent === rangeExtent) {
-            tickLayoutDomain = this.scale.domain;
-            unzoomedTickCount = this._cachedUnzoomedTickCount;
+            tickLayout = unzoomedTickLayout;
         } else {
-            const unzoomedTickLayout = this.calculateTickLayout(
-                domain,
-                nice ? NiceMode.TickAndDomain : NiceMode.Off,
-                [0, 1]
-            );
-            tickLayoutDomain = unzoomedTickLayout.niceDomain;
-            unzoomedTickCount = unzoomedTickLayout.rawTickCount ?? 0;
+            const niceMode = nice ? NiceMode.TicksOnly : NiceMode.Off;
+            tickLayout = this.calculateTickLayout(domain, niceMode, visibleRange, initialPrimaryTickCount);
         }
 
-        let niceMode: NiceMode;
-        if (!nice) {
-            niceMode = NiceMode.Off;
-        } else if (tickLayoutDomain == null) {
-            niceMode = NiceMode.TickAndDomain;
-        } else {
-            niceMode = NiceMode.TicksOnly;
-        }
-        const {
-            niceDomain,
-            rawTickCount = 0,
-            fractionDigits,
-            bbox,
-        } = this.calculateTickLayout(tickLayoutDomain ?? domain, niceMode, visibleRange, initialPrimaryTickCount);
-        unzoomedTickCount ??= rawTickCount;
+        const { rawTickCount = 0, fractionDigits, bbox } = tickLayout;
+        const unzoomedTickCount = unzoomedTickLayout.rawTickCount ?? 0;
 
         const primaryTickCount: AxisPrimaryTickCount | undefined =
             rawTickCount !== 0 && unzoomedTickCount !== 0
                 ? { zoomed: rawTickCount, unzoomed: unzoomedTickCount }
                 : undefined;
-
-        this.scale.domain = niceDomain;
-
-        this._cachedUnzoomedInputDomain = domain;
-        this._cachedUnzoomedRangeExtent = rangeExtent;
-        this._cachedUnzoomedTickCount = unzoomedTickCount;
 
         this.layout.label = {
             fractionDigits: fractionDigits,
