@@ -2,8 +2,13 @@ import { Caster } from 'ag-charts-test';
 import type {
     AgBarSeriesOptions,
     AgBarSeriesThemeableOptions,
+    AgBaseChartListeners,
+    AgBaseChartOptions,
+    AgBaseSeriesOptions,
+    AgBaseThemeableChartOptions,
     AgCartesianAxisOptions,
     AgChartLabelOptions,
+    AgContextMenuItem,
 } from 'ag-charts-types';
 
 export type MockItemStyler = NonNullable<AgBarSeriesThemeableOptions['itemStyler']>;
@@ -12,16 +17,51 @@ export type MockSeriesLabelFormatter = NonNullable<NonNullable<AgBarSeriesThemea
 export type MockTooltipRenderer = NonNullable<NonNullable<AgBarSeriesThemeableOptions['tooltip']>['renderer']>;
 export type MockErrorBarStyler = NonNullable<NonNullable<AgBarSeriesOptions['errorBar']>['itemStyler']>;
 export type MockChartLabelFormatter = NonNullable<NonNullable<AgChartLabelOptions<unknown, unknown>['formatter']>>;
+export type MockAnnotationsListener = NonNullable<AgBaseChartListeners<unknown>['annotations']>;
+export type MockZoomListener = NonNullable<AgBaseChartListeners<unknown>['zoom']>;
+export type MockGetDataCallback = NonNullable<AgBaseThemeableChartOptions<unknown>['dataSource']>['getData'];
+export type MockChartClickListener = NonNullable<AgBaseChartListeners<unknown>['click']>;
+export type MockChartDblClickListener = NonNullable<AgBaseChartListeners<unknown>['doubleClick']>;
+export type MockChartSeriesNodeClickListener = NonNullable<AgBaseChartListeners<unknown>['seriesNodeClick']>;
+export type MockChartSeriesNodeDblClickListener = NonNullable<AgBaseChartListeners<unknown>['seriesNodeDoubleClick']>;
+export type MockChartSeriesVisibilityChangeListener = NonNullable<
+    AgBaseChartListeners<unknown>['seriesVisibilityChange']
+>;
+export type MockSeriesNodeClickListener = NonNullable<NonNullable<AgBaseSeriesOptions['listeners']>['seriesNodeClick']>;
+export type MockSeriesNodeDblClickListener = NonNullable<
+    NonNullable<AgBaseSeriesOptions['listeners']>['seriesNodeDoubleClick']
+>;
+export type MockLegendItemClickListener = NonNullable<
+    NonNullable<NonNullable<AgBaseChartOptions['legend']>['listeners']>['legendItemClick']
+>;
+export type MockLegendItemDblClickListener = NonNullable<
+    NonNullable<NonNullable<AgBaseChartOptions['legend']>['listeners']>['legendItemDoubleClick']
+>;
+export type MockContextMenuAction = NonNullable<Extract<AgContextMenuItem, object>['action']>;
 
-type APICallback =
+export type MockAPICallback =
     | MockItemStyler
     | MockAxisLabelFormatter
     | MockSeriesLabelFormatter
     | MockTooltipRenderer
-    | MockErrorBarStyler;
+    | MockErrorBarStyler
+    | MockChartLabelFormatter
+    | MockAnnotationsListener
+    | MockZoomListener
+    | MockGetDataCallback
+    | MockChartClickListener
+    | MockChartDblClickListener
+    | MockChartSeriesNodeClickListener
+    | MockChartSeriesNodeDblClickListener
+    | MockChartSeriesVisibilityChangeListener
+    | MockSeriesNodeClickListener
+    | MockSeriesNodeDblClickListener
+    | MockLegendItemClickListener
+    | MockLegendItemDblClickListener
+    | MockContextMenuAction;
 
 // AG Charts calls Object.freeze on theme options, so we must create intermediate functions to circumvent that.
-export function newFreezableMock<F extends APICallback>(mockImp?: F) {
+export function newFreezableMock<F extends MockAPICallback>(mockImp?: F) {
     type Rtn = ReturnType<F>;
     type Arg = Parameters<F>[0];
 
@@ -36,6 +76,10 @@ export function newFreezableMock<F extends APICallback>(mockImp?: F) {
         frozen: Object.freeze((params: Arg): Rtn => mock(params)),
         expect() {
             return {
+                mockClear() {
+                    mock.mockClear();
+                    return this;
+                },
                 toHaveBeenCalledTimes(expected: number) {
                     expect(mock).toHaveBeenCalledTimes(expected);
                     return this;
@@ -43,6 +87,13 @@ export function newFreezableMock<F extends APICallback>(mockImp?: F) {
                 nthCalledWithContext(nthCall: number, expected: unknown) {
                     const actual = getCallContext(mock.mock.calls[nthCall]);
                     expect(actual).toBe(expected); // `toBe` is intentional. The `context` must not be cloned
+                    return this;
+                },
+                nthCalledWithoutContext(nthCall: number) {
+                    const args = mock.mock.calls[nthCall];
+                    expect(args).toBeDefined();
+                    expect(args[0]).toBeDefined();
+                    expect(args[0]).not.toHaveProperty('context');
                     return this;
                 },
                 withContext(expected: unknown) {
