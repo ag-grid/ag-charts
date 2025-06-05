@@ -565,7 +565,7 @@ export class ZoomManager extends BaseManager {
         this.eventsHub.emit('zoom:change', { ...this.getZoom(), axes, callerId });
 
         const zoomEvent: AgZoomEvent = { type: 'zoom', ...this.getMementoRanges() };
-        callWithContext(this.caller, this.fireChartEvent<AgZoomEvent>, [zoomEvent]);
+        callWithContext(this.caller, this.fireChartEvent<AgZoomEvent>, zoomEvent);
     }
 
     private getRangeDirection(ratio: ZoomState, direction: ChartAxisDirection): AgZoomRange | undefined {

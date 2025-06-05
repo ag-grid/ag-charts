@@ -1030,7 +1030,7 @@ export abstract class Series<
     }
 
     public callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> {
-        return callWithContext([this.properties, this.ctx.chartService], fn, params);
+        return callWithContext([this.properties, this.ctx.chartService], fn, ...params);
     }
 
     protected formatTooltipWithContext<P extends AgSeriesTooltipRendererParams<any>, Tooltip extends SeriesTooltip<P>>(
