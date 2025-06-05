@@ -257,6 +257,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
         const axisTotalRadius = axisOuterRadius + axisInnerRadius;
 
+        const angleDomain = this.getSeriesDomain(ChartAxisDirection.Angle);
+
         const { angleKey, radiusKey, angleName, radiusName, label } = this.properties;
 
         const getLabelNodeDatum = (
@@ -270,6 +272,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 datum,
                 angleKey,
                 'angle',
+                angleDomain,
                 label,
                 { value: angleDatum, datum, angleKey, radiusKey, angleName, radiusName }
             );

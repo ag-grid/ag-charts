@@ -13,7 +13,7 @@ export type FormatterPropertyType =
     | 'sectorLabel';
 
 export type SeriesFormatterSource = 'tooltip' | 'series-label';
-export type ChartFormatterSource = 'axis' | 'crosshair';
+export type ChartFormatterSource = 'axis' | 'gradient-legend' | 'crosshair' | 'annotation';
 export type AnyFormatterSource = SeriesFormatterSource | ChartFormatterSource;
 
 interface FormatterBoundSeries {
@@ -45,6 +45,7 @@ interface BaseFormatterParams<TDatum, Value> {
     key: string | undefined;
     source: AnyFormatterSource;
     property: FormatterPropertyType;
+    domain: any[];
     boundSeries: FormatterBoundSeries[];
 }
 
@@ -63,7 +64,8 @@ export interface DateFormatterParams<TDatum> extends BaseFormatterParams<TDatum,
     style: DateFormatterStyle;
 }
 
-export interface CategoryFormatterParams<TDatum> extends BaseFormatterParams<TDatum, string | number | Date> {
+export interface CategoryFormatterParams<TDatum>
+    extends BaseFormatterParams<TDatum, string | number | Date | string[]> {
     type: 'category';
 }
 

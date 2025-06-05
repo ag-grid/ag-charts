@@ -223,6 +223,7 @@ export class MapLineSeries extends TopologySeries<
             datum,
             labelKey,
             'label',
+            [],
             label,
             {
                 value: labelValue,
@@ -660,6 +661,7 @@ export class MapLineSeries extends TopologySeries<
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
         if (sizeValue != null && sizeKey != null) {
+            const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
             const content = formatManager.format({
                 type: 'number',
                 value: sizeValue,
@@ -667,12 +669,14 @@ export class MapLineSeries extends TopologySeries<
                 key: sizeKey,
                 source: 'tooltip',
                 property: 'size',
+                domain,
                 boundSeries: this.getFormatterContext('size'),
                 fractionDigits: undefined,
             });
             data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(sizeValue) });
         }
         if (colorValue != null && colorKey != null) {
+            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
             const content = formatManager.format({
                 type: 'number',
                 value: colorValue,
@@ -680,6 +684,7 @@ export class MapLineSeries extends TopologySeries<
                 key: colorKey,
                 source: 'tooltip',
                 property: 'color',
+                domain,
                 boundSeries: this.getFormatterContext('color'),
                 fractionDigits: undefined,
             });
@@ -694,6 +699,7 @@ export class MapLineSeries extends TopologySeries<
                 key: labelKey,
                 source: 'tooltip',
                 property: 'label',
+                domain: [],
                 boundSeries: this.getFormatterContext('label'),
             });
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });

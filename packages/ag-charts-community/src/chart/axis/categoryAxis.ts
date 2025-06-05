@@ -84,12 +84,21 @@ export class CategoryAxis<
     override datumFormatParams(
         value: any,
         params: FormatDatumParams,
-
         _fractionDigits: number | undefined,
         _timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         _style: DateFormatterStyle
     ): FormatterParams<any> {
-        const { datum, key, source, property, boundSeries } = params;
-        return { type: 'category', value, datum, key, source, property, boundSeries };
+        const { datum, key, source, property, domain, boundSeries } = params;
+        if (Array.isArray(value) && value.some((v) => typeof v !== 'string')) {
+            value = value.map(String);
+        } else if (
+            !Array.isArray(value) &&
+            typeof value !== 'string' &&
+            typeof value !== 'number' &&
+            !(value instanceof Date)
+        ) {
+            value = String(value);
+        }
+        return { type: 'category', value, datum, key, source, property, domain, boundSeries };
     }
 }

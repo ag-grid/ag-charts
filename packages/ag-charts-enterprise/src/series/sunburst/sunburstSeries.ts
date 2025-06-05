@@ -267,6 +267,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     datum,
                     labelKey,
                     'label',
+                    [],
                     this.properties.label,
                     {
                         depth,
@@ -294,6 +295,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     datum,
                     secondaryLabelKey,
                     'secondaryLabel',
+                    [],
                     this.properties.secondaryLabel,
                     {
                         depth,

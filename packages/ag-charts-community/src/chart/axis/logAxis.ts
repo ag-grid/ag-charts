@@ -38,8 +38,4 @@ export class LogAxis extends NumberAxis {
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new LogScale());
     }
-
-    protected override defaultFormatter(datum: any, _fractionDigits: number): string {
-        return String(datum);
-    }
 }

@@ -380,6 +380,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 ? -1
                 : 1;
 
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+
         return {
             x: point.x,
             y: point.y + padding * direction,
@@ -392,6 +394,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 datum,
                 itemId === 'high' ? yHighKey : yLowKey,
                 'y',
+                yDomain,
                 label,
                 { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName }
             ),

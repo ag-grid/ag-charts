@@ -40,7 +40,7 @@ export class AxisLabelScene extends _ModuleSupport.Group {
 
     private updateLabel({ value, styles, context }: UpdateOpts) {
         const { fontWeight, fontSize, fontStyle, fontFamily, textAlign, color = 'white', formatter } = styles;
-        const text = formatter ? formatter({ value }) : context.formatScaleValue(value, 'crosshair');
+        const text = formatter ? formatter({ value }) : context.formatScaleValue(value, 'annotation');
 
         this.label.setProperties({
             fontWeight,

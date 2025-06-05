@@ -31,7 +31,6 @@ import type { Point } from '../../scene/point';
 import { Selection } from '../../scene/selection';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { formatValue } from '../../util/format.util';
 import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import type { Padding } from '../../util/padding';
@@ -352,10 +351,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return 0;
     }
 
-    protected defaultFormatter(datum: unknown, fractionDigits: number): string {
-        return formatValue(datum, fractionDigits);
-    }
-
     protected createDatumFormatter(_domain: D[], _ticks: D[]): ((value: any) => string | undefined) | undefined {
         return;
     }
@@ -633,6 +628,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 key: undefined,
                 source: 'axis',
                 property: this.direction,
+                domain,
                 boundSeries,
             };
 
@@ -641,24 +637,25 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
             datumFormatParams.value = value;
 
+            const mergedSpecifier = FormatManager.mergeSpecifiers(primaryLabel?.format, label.format);
+            const options = { includeYear };
+
             return (
-                formatManager.format(
-                    datumFormatParams,
-                    FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
-                    { includeYear }
-                ) ?? this.defaultFormatter(value, fractionDigits ?? 0)
+                formatManager.format(datumFormatParams, mergedSpecifier, options) ??
+                formatManager.defaultFormat(datumFormatParams, mergedSpecifier, options)
             );
         };
     }
 
     // For formatting arbitrary values between the ticks.
-    formatDatum(value: any, source: 'crosshair'): string;
+    formatDatum(value: any, source: 'crosshair' | 'annotation'): string;
     formatDatum(value: any, source: 'tooltip' | 'series-label', datum: any, key: string): string;
     formatDatum<Params extends object>(
         value: any,
-        source: 'crosshair',
+        source: 'crosshair' | 'annotation',
         datum: undefined,
         key: undefined,
+        domain: undefined,
         label: AxisFormattableLabel<Params>,
         labelParams: Params
     ): string;
@@ -667,14 +664,16 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         source: 'tooltip' | 'series-label',
         datum: any,
         key: string,
+        domain: any[],
         label: AxisFormattableLabel<Params>,
         labelParams: Params
     ): string;
     formatDatum(
         input: any,
-        source: Exclude<AnyFormatterSource, 'axis'>,
+        source: Exclude<AnyFormatterSource, 'axis' | 'gradient-legend'>,
         datum?: any,
         key?: string,
+        domain?: any[],
         label?: AxisFormattableLabel<any>,
         params?: any,
         formatInContext: (
@@ -684,17 +683,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     ): string {
         if (input == null) return '';
 
-        const {
-            moduleCtx,
-            direction,
-            dataDomain: { domain },
-        } = this;
+        const { moduleCtx, direction, dataDomain } = this;
+        domain ??= dataDomain.domain;
         const { formatManager } = moduleCtx;
         const boundSeries = this.getFormatterBoundSeries();
 
         let inputFractionDigits: number;
         switch (source) {
             case 'crosshair':
+            case 'annotation':
                 inputFractionDigits = this.layout.label.fractionDigits + 1;
                 break;
             case 'series-label':
@@ -707,7 +704,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         const formatParams = this.datumFormatParams(
             input,
-            { source, datum, key, property: direction, boundSeries },
+            { source, datum, key, property: direction, domain, boundSeries },
             inputFractionDigits,
             undefined,
             'long'
@@ -721,17 +718,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         const f = formatInContext;
-        let result = label?.formatValue(f, type, value, params);
-
-        if (source === 'crosshair') {
-            result ??= this.label.formatValue(f, type, value, NaN, domain, boundSeries, fractionDigits, timeInterval);
-            result ??= formatManager.format(formatParams);
-        } else {
-            result ??= formatManager.format(formatParams);
-            result ??= this.label.formatValue(f, type, value, NaN, domain, boundSeries, fractionDigits, timeInterval);
-        }
-
-        result ??= this.defaultFormatter(value, fractionDigits ?? 0);
+        const result =
+            label?.formatValue(f, type, value, params) ??
+            formatManager.format(formatParams) ??
+            this.label.formatValue(f, type, value, NaN, domain, boundSeries, fractionDigits, timeInterval) ??
+            formatManager.defaultFormat(formatParams);
 
         return String(result);
     }
@@ -817,7 +808,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             scaleInvert: (val) => scale.invert(val, true),
             scaleInvertNearest: (val) => scale.invert(val, true),
             formatScaleValue: (value, source, label) =>
-                this.formatDatum(value, source, undefined, undefined, label!, undefined!),
+                this.formatDatum(value, source, undefined, undefined, undefined, label!, undefined!),
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),

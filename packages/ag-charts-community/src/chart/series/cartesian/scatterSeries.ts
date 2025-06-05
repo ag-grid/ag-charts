@@ -173,6 +173,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const nodeData: ScatterNodeDatum[] = [];
 
+        const labelDomain = labelKey == null ? [] : this.getSeriesDomain(ChartAxisDirection.Y);
+
         const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font: label });
         const rawData = processedData.dataSources.get(this.id) ?? [];
         rawData.forEach((datum, datumIndex) => {
@@ -191,6 +193,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 datum,
                 labelKey ?? yKey,
                 labelKey != null ? 'label' : 'y',
+                labelDomain,
                 label,
                 { value: labelValue, datum, xKey, yKey, labelKey, xName, yName, labelName }
             );
@@ -343,6 +346,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 key: labelKey,
                 source: 'tooltip',
                 property: 'label',
+                domain: [],
                 boundSeries: this.getFormatterContext('label'),
             });
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });

@@ -487,8 +487,4 @@ export class GroupedCategoryAxis extends CategoryAxis {
             return true;
         });
     }
-
-    protected override defaultFormatter(datum: unknown): string {
-        return Array.isArray(datum) ? datum.filter(Boolean).join(' - ') : String(datum);
-    }
 }

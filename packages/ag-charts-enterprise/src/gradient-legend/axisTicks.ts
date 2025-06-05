@@ -120,8 +120,9 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
                 value,
                 datum: 'undefined',
                 key: 'undefined',
-                source: 'axis',
+                source: 'gradient-legend',
                 property: 'color',
+                domain,
                 boundSeries,
                 fractionDigits,
             });
