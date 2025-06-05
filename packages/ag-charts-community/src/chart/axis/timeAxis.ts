@@ -136,7 +136,7 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
         if (typeof value === 'number') value = new Date(value);
         timeInterval ??= interval;
 
-        const { datum, key, source, property, boundSeries } = params;
+        const { datum, key, source, property, domain, boundSeries } = params;
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
         const epoch = intervalEpoch(timeInterval);
@@ -148,6 +148,7 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
             key,
             source,
             property,
+            domain,
             boundSeries,
             unit,
             step,

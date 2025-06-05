@@ -232,6 +232,7 @@ export class MapShapeSeries
             datum,
             labelKey,
             'label',
+            [],
             label,
             {
                 value: labelValue,
@@ -702,6 +703,7 @@ export class MapShapeSeries
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
         if (colorValue != null) {
+            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
             const content = formatManager.format({
                 type: 'number',
                 value: colorValue,
@@ -709,6 +711,7 @@ export class MapShapeSeries
                 key: colorKey!,
                 source: 'tooltip',
                 property: 'color',
+                domain,
                 boundSeries: this.getFormatterContext('color'),
                 fractionDigits: undefined,
             });
@@ -723,6 +726,7 @@ export class MapShapeSeries
                 key: labelKey,
                 source: 'tooltip',
                 property: 'label',
+                domain: [],
                 boundSeries: this.getFormatterContext('label'),
             });
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });

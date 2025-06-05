@@ -6,6 +6,7 @@ import {
     type TimeIntervalUnit,
 } from 'ag-charts-types';
 
+import { formatValue } from '../../util/format.util';
 import { Listeners } from '../../util/listeners';
 import { simpleMemorize2 } from '../../util/memo';
 import { buildDateFormatter } from '../../util/timeFormat';
@@ -88,10 +89,6 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         }
     }
 
-    get hasGlobalFormatter(): boolean {
-        return this.formatter != null;
-    }
-
     format(
         params: FormatterParams<any>,
         specifier?: Record<string, string> | string,
@@ -100,12 +97,14 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         if (params.value == null) return;
 
         const { formatter } = this;
+        if (formatter == null) return;
         if (typeof formatter === 'function') {
             const value = formatter(params);
             return value != null ? String(value) : undefined;
         }
 
-        const propertyFormatter = formatter?.[params.property];
+        const propertyFormatter = formatter[params.property];
+        if (propertyFormatter == null) return;
 
         if (typeof propertyFormatter === 'function') {
             const value = propertyFormatter(params);
@@ -125,5 +124,40 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
             this.formats.set(valueSpecifier, valueFormatter);
         }
         return valueFormatter?.(params.value, params.type === 'number' ? params.fractionDigits : undefined);
+    }
+
+    defaultFormat(
+        params: FormatterParams<any>,
+        specifier?: Record<string, string> | string,
+        { includeYear = true } = {}
+    ): string {
+        const { formatter } = this;
+        const propertyFormatter = typeof formatter === 'function' ? undefined : formatter?.[params.property];
+
+        switch (params.type) {
+            case 'date': {
+                const { unit, style } = params;
+                const propertySpecifier =
+                    propertyFormatter != null && typeof propertyFormatter !== 'function'
+                        ? propertyFormatter
+                        : undefined;
+                const dateFormatter = this.dateFormatter(propertySpecifier, specifier, unit, style, includeYear);
+                return dateFormatter?.(params.value) ?? String(params.value);
+            }
+
+            case 'number':
+                return formatValue(params.value, params.fractionDigits);
+
+            case 'category':
+                if (Array.isArray(params.value)) {
+                    return params.value.join(' - ');
+                } else if (typeof params.value === 'string') {
+                    return params.value;
+                } else if (typeof params.value === 'number') {
+                    return formatValue(params.value);
+                } else {
+                    return String(params.value);
+                }
+        }
     }
 }

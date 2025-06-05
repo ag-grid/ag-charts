@@ -325,6 +325,7 @@ export class AreaSeries extends CartesianSeries<
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
 
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
         const { isContinuousY } = this.getScaleInformation({ xScale, yScale });
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -409,6 +410,7 @@ export class AreaSeries extends CartesianSeries<
                     seriesDatum,
                     yKey,
                     'y',
+                    yDomain,
                     label,
                     { value: yDatum, datum: seriesDatum, xKey, yKey, xName, yName }
                 );

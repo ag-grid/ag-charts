@@ -10,7 +10,7 @@ import {
 import { ConeFunnelProperties } from './coneFunnelProperties';
 import { resetLineSelectionsFn } from './coneFunnelUtil';
 
-const { Line } = _ModuleSupport;
+const { Line, ChartAxisDirection } = _ModuleSupport;
 
 export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
     static readonly className = 'ConeFunnelSeries';
@@ -145,18 +145,23 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
             }
         }
 
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const text = this.getLabelText<AgConeFunnelSeriesLabelFormatterParams>(
+            yDatum,
+            datum,
+            valueKey,
+            'y',
+            yDomain,
+            label,
+            { itemId: valueKey, value: yDatum, datum, stageKey, valueKey }
+        );
+
         return {
             x,
             y,
             textAlign,
             textBaseline,
-            text: this.getLabelText<AgConeFunnelSeriesLabelFormatterParams>(yDatum, datum, valueKey, 'y', label, {
-                itemId: valueKey,
-                value: yDatum,
-                datum,
-                stageKey,
-                valueKey,
-            }),
+            text,
             itemId: valueKey,
             datum,
             datumIndex,

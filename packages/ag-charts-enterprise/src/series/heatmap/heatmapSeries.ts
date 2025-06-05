@@ -208,6 +208,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)
             : undefined;
 
+        const colorDomain = dataModel.getDomain(this, 'colorValue', 'value', processedData);
+
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -240,6 +242,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                           datum,
                           colorKey!,
                           'color',
+                          colorDomain,
                           label,
                           { value: colorValue, datum, colorKey, colorName, xKey, yKey, xName, yName }
                       );
@@ -473,6 +476,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             fill = colorRange[0];
         } else {
             fill = colorScale.convert(colorValue);
+            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
             const content = formatManager.format({
                 type: 'number',
                 value: colorValue,
@@ -480,6 +484,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 key: colorKey!,
                 source: 'tooltip',
                 property: 'color',
+                domain,
                 boundSeries: this.getFormatterContext('color'),
                 fractionDigits: undefined,
             });

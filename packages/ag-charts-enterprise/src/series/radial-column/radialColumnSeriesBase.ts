@@ -262,6 +262,8 @@ export abstract class RadialColumnSeriesBase<
 
         const { angleKey, radiusKey, angleName, radiusName, label } = this.properties;
 
+        const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius);
+
         const getLabelNodeDatum = (
             datum: RadialColumnNodeDatum,
             radiusDatum: number,
@@ -273,6 +275,7 @@ export abstract class RadialColumnSeriesBase<
                 datum,
                 radiusKey,
                 'radius',
+                radiusDomain,
                 label,
                 { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName }
             );

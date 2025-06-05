@@ -323,6 +323,7 @@ export class MapMarkerSeries
             datum,
             labelKey,
             'label',
+            [],
             label,
             {
                 value: labelValue,
@@ -846,6 +847,7 @@ export class MapMarkerSeries
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
         if (sizeKey != null && sizeValue != null) {
+            const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
             const content = formatManager.format({
                 type: 'number',
                 value: sizeValue,
@@ -853,12 +855,14 @@ export class MapMarkerSeries
                 key: sizeKey,
                 source: 'tooltip',
                 property: 'size',
+                domain,
                 boundSeries: this.getFormatterContext('size'),
                 fractionDigits: undefined,
             });
             data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(sizeValue) });
         }
         if (colorKey != null && colorValue != null) {
+            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
             const content = formatManager.format({
                 type: 'number',
                 value: colorValue,
@@ -866,6 +870,7 @@ export class MapMarkerSeries
                 key: colorKey,
                 source: 'tooltip',
                 property: 'color',
+                domain,
                 boundSeries: this.getFormatterContext('color'),
                 fractionDigits: undefined,
             });
@@ -880,6 +885,7 @@ export class MapMarkerSeries
                 key: labelKey,
                 source: 'tooltip',
                 property: 'label',
+                domain: [],
                 boundSeries: this.getFormatterContext('label'),
             });
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });

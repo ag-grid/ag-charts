@@ -155,6 +155,7 @@ export class ChordSeries extends FlowProportionSeries<
                     node.datum,
                     labelKey!,
                     'label',
+                    [],
                     this.properties.label,
                     { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size: node.size }
                 );
@@ -686,6 +687,7 @@ export class ChordSeries extends FlowProportionSeries<
                 key: sizeKey,
                 source: 'tooltip',
                 property: 'size',
+                domain: [],
                 boundSeries: this.getFormatterContext('size'),
                 fractionDigits: undefined,
             });

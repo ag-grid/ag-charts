@@ -526,6 +526,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                     datum,
                     calloutLabelKey,
                     'calloutLabel',
+                    [],
                     calloutLabel,
                     { ...labelFormatterParams, value: calloutLabelValue }
                 ),
@@ -543,6 +544,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                     datum,
                     sectorLabelKey,
                     'sectorLabel',
+                    [],
                     sectorLabel,
                     { ...labelFormatterParams, value: sectorLabelValue }
                 ),
@@ -1410,6 +1412,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             (sectorLabelKey === angleKey ? undefined : sectorLabelValues?.[datumIndex]) ??
             angleName;
 
+        const domain = dataModel.getDomain(this, `angleRaw`, 'value', processedData);
         const angleContent =
             formatManager.format({
                 type: 'number',
@@ -1418,6 +1421,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 key: angleKey,
                 source: 'tooltip',
                 property: 'angle',
+                domain,
                 boundSeries: this.getFormatterContext('angle'),
                 fractionDigits: undefined,
             }) ?? formatValue(angleRawValue, 3);

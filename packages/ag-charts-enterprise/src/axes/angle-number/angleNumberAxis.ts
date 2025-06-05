@@ -144,7 +144,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         params: _ModuleSupport.FormatDatumParams,
         fractionDigits?: number
     ): FormatterParams<any> {
-        const { datum, key, source, property, boundSeries } = params;
+        const { datum, key, source, property, domain, boundSeries } = params;
         return {
             type: 'number',
             value,
@@ -152,6 +152,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
             key,
             source,
             property,
+            domain,
             boundSeries,
             fractionDigits,
         };
