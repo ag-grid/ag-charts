@@ -1,3 +1,4 @@
+import { findMinIndex } from 'ag-charts-core';
 import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import { datesSortOrder, sortAndUniqueDates } from '../util/date';
@@ -96,6 +97,12 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             ticks,
             count: undefined,
         };
+    }
+
+    override findIndex(value: Date): number | undefined {
+        const { bands } = this;
+        const target = value.valueOf();
+        return findMinIndex(0, bands.length - 1, (index) => bands[index].valueOf() >= target);
     }
 }
 

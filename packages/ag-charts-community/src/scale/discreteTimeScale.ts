@@ -1,4 +1,4 @@
-import { findMaxIndex, findMinIndex } from 'ag-charts-core';
+import { findMinIndex } from 'ag-charts-core';
 import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import { BandScale } from './bandScale';
@@ -77,11 +77,5 @@ export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | T
         }
 
         return bands[reversed ? bands.length - 1 - index : index];
-    }
-
-    findIndex(value: Date): number | undefined {
-        const { bands } = this;
-        const target = value.valueOf();
-        return findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= target);
     }
 }

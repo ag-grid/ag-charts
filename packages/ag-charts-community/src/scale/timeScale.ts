@@ -164,4 +164,10 @@ export class TimeScale extends DiscreteTimeScale {
             count: ticks.length,
         };
     }
+
+    findIndex(value: Date): number | undefined {
+        const { bands } = this;
+        const target = value.valueOf();
+        return findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= target);
+    }
 }
