@@ -14,4 +14,5 @@ export interface AgBaseFlowProportionChartOptions<TDatum = TDatumDefault, TConte
     nodes?: any[];
 }
 
-export interface AgBaseFlowProportionThemeOptions<TDatum = TDatumDefault> extends AgBaseThemeableChartOptions<TDatum> {}
+export interface AgBaseFlowProportionThemeOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseThemeableChartOptions<TDatum, TContext> {}

@@ -858,9 +858,12 @@ describe('ErrorBars', () => {
     });
 
     describe('context', () => {
+        type TDatum = Readonly<{ quarter: string; sales: number; salesLower: number; salesUpper: number }>;
+        type TContext = object;
+        type TMock = MockErrorBarStyler<TDatum, TContext>;
         let options: AgCartesianChartOptionsWithContext;
         let seriesContext: object;
-        const itemStyler = newFreezableMock<MockErrorBarStyler>();
+        const itemStyler = newFreezableMock<TDatum, TContext, TMock>();
 
         beforeEach(async () => {
             seriesContext = {};
