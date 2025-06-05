@@ -99,7 +99,7 @@ export type AxisTickFormatParams =
           type: 'category';
       };
 
-interface TickLayout<D> {
+interface TickLayout<D, TickLayoutMeta> {
     niceDomain: D[];
     tickDomain: D[];
     ticks: D[];
@@ -107,6 +107,7 @@ interface TickLayout<D> {
     fractionDigits: number;
     timeInterval: AnyTimeInterval | undefined;
     bbox?: BBox;
+    layout?: TickLayoutMeta;
 }
 
 /**
@@ -118,8 +119,11 @@ interface TickLayout<D> {
  * The generic `D` parameter is the type of the domain of the axis' scale.
  * The output range of the axis' scale is always numeric (screen coordinates).
  */
-export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>, D = any>
-    implements ChartAxis
+export abstract class Axis<
+    S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
+    D = any,
+    TickLayoutMeta = any,
+> implements ChartAxis
 {
     static readonly defaultTickMinSpacing = 50;
 
@@ -294,15 +298,23 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.cleanup.flush();
     }
 
-    protected updateScale() {
-        const { range: rr, visibleRange: vr, scale } = this;
-        const span = (rr[1] - rr[0]) / (vr[1] - vr[0]);
-        const shift = span * vr[0];
+    private setScaleRange(visibleRange: [number, number]) {
+        const { range: rr, scale } = this;
+        const span = (rr[1] - rr[0]) / (visibleRange[1] - visibleRange[0]);
+        const shift = span * visibleRange[0];
         const start = rr[0] - shift;
 
         scale.range = [start, start + span];
+    }
+
+    protected updateScale() {
+        const {
+            range: [r0, r1],
+        } = this;
+
+        this.setScaleRange(this.visibleRange);
         this.crossLines.forEach((crossLine) => {
-            crossLine.clippedRange = [rr[0], rr[1]];
+            crossLine.clippedRange = [r0, r1];
         });
     }
 
@@ -467,34 +479,57 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     private unzoomedInputDomain: D[] | undefined = undefined;
     private unzoomedInputRangeExtent: number = NaN;
-    private unzoomedTickLayout: TickLayout<D> | undefined;
-    calculateDomain() {
+    private unzoomedInputGridLength: number = NaN;
+    private unzoomedInputInitialPrimaryTickCount: AxisPrimaryTickCount | undefined = undefined;
+    private unzoomedTickLayout: TickLayout<D, TickLayoutMeta> | undefined;
+    calculateDomain(initialPrimaryTickCount?: AxisPrimaryTickCount) {
         const {
             nice,
             dataDomain: { domain },
             range,
             scale,
+            gridLength,
             unzoomedInputDomain,
             unzoomedInputRangeExtent,
+            unzoomedInputGridLength,
+            unzoomedInputInitialPrimaryTickCount,
         } = this;
         let { unzoomedTickLayout } = this;
         const rangeExtent = findRangeExtent(range);
 
         this.updateScale();
 
-        if (unzoomedTickLayout == null || unzoomedInputDomain !== domain || unzoomedInputRangeExtent !== rangeExtent) {
+        if (
+            unzoomedTickLayout == null ||
+            unzoomedInputDomain !== domain ||
+            unzoomedInputRangeExtent !== rangeExtent ||
+            unzoomedInputGridLength !== gridLength ||
+            unzoomedInputInitialPrimaryTickCount?.unzoomed !== initialPrimaryTickCount?.unzoomed ||
+            unzoomedInputInitialPrimaryTickCount?.zoomed !== initialPrimaryTickCount?.zoomed
+        ) {
+            const scaleRange = scale.range;
+            this.setScaleRange([0, 1]);
+
             const niceMode = nice ? NiceMode.TickAndDomain : NiceMode.Off;
-            unzoomedTickLayout = this.calculateTickLayout(domain, niceMode, [0, 1]);
+            unzoomedTickLayout = this.calculateTickLayout(domain, niceMode, [0, 1], initialPrimaryTickCount);
+
+            scale.range = scaleRange;
 
             this.unzoomedInputDomain = domain;
             this.unzoomedInputRangeExtent = rangeExtent;
+            this.unzoomedInputGridLength = gridLength;
             this.unzoomedTickLayout = unzoomedTickLayout;
+            this.unzoomedInputInitialPrimaryTickCount = initialPrimaryTickCount;
         }
+
+        this.updateScale();
 
         scale.domain = unzoomedTickLayout.niceDomain;
 
         return { unzoomedTickLayout, domain: scale.domain };
     }
+
+    protected tickLayout: TickLayoutMeta | undefined;
 
     calculateLayout(
         initialPrimaryTickCount?: AxisPrimaryTickCount,
@@ -503,27 +538,29 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         primaryTickCount?: AxisPrimaryTickCount;
         bbox?: BBox;
     } {
-        const { visibleRange, nice } = this;
-        const { unzoomedTickLayout, domain } = this.calculateDomain();
-
         this.chartPadding = chartPadding;
 
-        let tickLayout: TickLayout<D>;
-        if (visibleRange[0] === 0 && visibleRange[1] === 1) {
+        const { visibleRange, nice } = this;
+        const unzoomed = visibleRange[0] === 0 && visibleRange[1] === 1;
+        const { unzoomedTickLayout, domain } = this.calculateDomain(initialPrimaryTickCount);
+
+        let tickLayout: TickLayout<D, TickLayoutMeta>;
+        if (unzoomed) {
             tickLayout = unzoomedTickLayout;
         } else {
             const niceMode = nice ? NiceMode.TicksOnly : NiceMode.Off;
             tickLayout = this.calculateTickLayout(domain, niceMode, visibleRange, initialPrimaryTickCount);
         }
 
-        const { rawTickCount = 0, fractionDigits, bbox } = tickLayout;
+        const { rawTickCount: zoomedTickCount = 0, fractionDigits, bbox } = tickLayout;
         const unzoomedTickCount = unzoomedTickLayout.rawTickCount ?? 0;
 
         const primaryTickCount: AxisPrimaryTickCount | undefined =
-            rawTickCount !== 0 && unzoomedTickCount !== 0
-                ? { zoomed: rawTickCount, unzoomed: unzoomedTickCount }
+            zoomedTickCount !== 0 && unzoomedTickCount !== 0
+                ? { zoomed: zoomedTickCount, unzoomed: unzoomedTickCount }
                 : undefined;
 
+        this.tickLayout = tickLayout.layout;
         this.layout.label = {
             fractionDigits: fractionDigits,
             spacing: this.label.spacing,
