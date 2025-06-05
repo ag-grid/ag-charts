@@ -111,7 +111,7 @@ export function prepareFinancialTestOptions(options: AgFinancialChartOptions, co
     return options;
 }
 
-export function prepareTestOptions<T extends AgChartOptions | AgSparklineOptions>(
+export function prepareTestOptions<T extends AgChartOptions<any, any> | AgSparklineOptions<any>>(
     options: T,
     container = getDocument('body')
 ) {

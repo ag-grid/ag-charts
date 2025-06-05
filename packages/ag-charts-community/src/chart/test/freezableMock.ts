@@ -11,57 +11,73 @@ import type {
     AgContextMenuItem,
 } from 'ag-charts-types';
 
-export type MockItemStyler = NonNullable<AgBarSeriesThemeableOptions['itemStyler']>;
-export type MockAxisLabelFormatter = NonNullable<NonNullable<AgCartesianAxisOptions['label']>['formatter']>;
-export type MockSeriesLabelFormatter = NonNullable<NonNullable<AgBarSeriesThemeableOptions['label']>['formatter']>;
-export type MockTooltipRenderer = NonNullable<NonNullable<AgBarSeriesThemeableOptions['tooltip']>['renderer']>;
-export type MockErrorBarStyler = NonNullable<NonNullable<AgBarSeriesOptions['errorBar']>['itemStyler']>;
-export type MockChartLabelFormatter = NonNullable<NonNullable<AgChartLabelOptions<unknown, unknown>['formatter']>>;
-export type MockAnnotationsListener = NonNullable<AgBaseChartListeners<unknown>['annotations']>;
-export type MockZoomListener = NonNullable<AgBaseChartListeners<unknown>['zoom']>;
-export type MockGetDataCallback = NonNullable<AgBaseThemeableChartOptions<unknown>['dataSource']>['getData'];
-export type MockChartClickListener = NonNullable<AgBaseChartListeners<unknown>['click']>;
-export type MockChartDblClickListener = NonNullable<AgBaseChartListeners<unknown>['doubleClick']>;
-export type MockChartSeriesNodeClickListener = NonNullable<AgBaseChartListeners<unknown>['seriesNodeClick']>;
-export type MockChartSeriesNodeDblClickListener = NonNullable<AgBaseChartListeners<unknown>['seriesNodeDoubleClick']>;
-export type MockChartSeriesVisibilityChangeListener = NonNullable<
-    AgBaseChartListeners<unknown>['seriesVisibilityChange']
+export type MockItemStyler<TDatum, _TContext> = NonNullable<AgBarSeriesThemeableOptions<TDatum>['itemStyler']>;
+export type MockAxisLabelFormatter<_TDatum, TContext> = NonNullable<
+    NonNullable<AgCartesianAxisOptions<TContext>['label']>['formatter']
 >;
-export type MockSeriesNodeClickListener = NonNullable<NonNullable<AgBaseSeriesOptions['listeners']>['seriesNodeClick']>;
-export type MockSeriesNodeDblClickListener = NonNullable<
-    NonNullable<AgBaseSeriesOptions['listeners']>['seriesNodeDoubleClick']
+export type MockSeriesLabelFormatter<TDatum, _TContext> = NonNullable<
+    NonNullable<AgBarSeriesThemeableOptions<TDatum>['label']>['formatter']
 >;
-export type MockLegendItemClickListener = NonNullable<
-    NonNullable<NonNullable<AgBaseChartOptions['legend']>['listeners']>['legendItemClick']
+export type MockTooltipRenderer<TDatum, _TContext> = NonNullable<
+    NonNullable<AgBarSeriesThemeableOptions<TDatum>['tooltip']>['renderer']
 >;
-export type MockLegendItemDblClickListener = NonNullable<
-    NonNullable<NonNullable<AgBaseChartOptions['legend']>['listeners']>['legendItemDoubleClick']
+export type MockErrorBarStyler<TDatum, TContext> = NonNullable<
+    NonNullable<AgBarSeriesOptions<TDatum, TContext>['errorBar']>['itemStyler']
 >;
-export type MockContextMenuAction = NonNullable<Extract<AgContextMenuItem, object>['action']>;
+export type MockChartLabelFormatter<TDatum, TContext> = NonNullable<
+    NonNullable<AgChartLabelOptions<TDatum, TContext>['formatter']>
+>;
+export type MockAnnotationsListener<TDatum, TContext> = NonNullable<
+    AgBaseChartListeners<TDatum, TContext>['annotations']
+>;
+export type MockZoomListener<TDatum, TContext> = NonNullable<AgBaseChartListeners<TDatum, TContext>['zoom']>;
+export type MockGetDataCallback<TDatum, TContext> = NonNullable<
+    AgBaseThemeableChartOptions<TDatum, TContext>['dataSource']
+>['getData'];
+export type MockChartClickListener<TDatum, TContext> = NonNullable<AgBaseChartListeners<TDatum, TContext>['click']>;
+export type MockChartDblClickListener<TDatum, TContext> = NonNullable<
+    AgBaseChartListeners<TDatum, TContext>['doubleClick']
+>;
+export type MockChartSeriesVisibilityChangeListener<TDatum, TContext> = NonNullable<
+    AgBaseChartListeners<TDatum, TContext>['seriesVisibilityChange']
+>;
+export type MockSeriesNodeClickListener<TDatum, TContext> = NonNullable<
+    NonNullable<AgBaseSeriesOptions<TDatum, TContext>['listeners']>['seriesNodeClick']
+>;
+export type MockSeriesNodeDblClickListener<TDatum, TContext> = NonNullable<
+    NonNullable<AgBaseSeriesOptions<TDatum, TContext>['listeners']>['seriesNodeDoubleClick']
+>;
+export type MockLegendItemClickListener<TDatum, TContext> = NonNullable<
+    NonNullable<NonNullable<AgBaseChartOptions<TDatum, TContext>['legend']>['listeners']>['legendItemClick']
+>;
+export type MockLegendItemDblClickListener<TDatum, TContext> = NonNullable<
+    NonNullable<NonNullable<AgBaseChartOptions<TDatum, TContext>['legend']>['listeners']>['legendItemDoubleClick']
+>;
+export type MockContextMenuAction<TDatum, _TContext> = NonNullable<
+    Extract<AgContextMenuItem<TDatum>, object>['action']
+>;
 
-export type MockAPICallback =
-    | MockItemStyler
-    | MockAxisLabelFormatter
-    | MockSeriesLabelFormatter
-    | MockTooltipRenderer
-    | MockErrorBarStyler
-    | MockChartLabelFormatter
-    | MockAnnotationsListener
-    | MockZoomListener
-    | MockGetDataCallback
-    | MockChartClickListener
-    | MockChartDblClickListener
-    | MockChartSeriesNodeClickListener
-    | MockChartSeriesNodeDblClickListener
-    | MockChartSeriesVisibilityChangeListener
-    | MockSeriesNodeClickListener
-    | MockSeriesNodeDblClickListener
-    | MockLegendItemClickListener
-    | MockLegendItemDblClickListener
-    | MockContextMenuAction;
+export type MockAPICallback<TDatum, TContext> =
+    | MockItemStyler<TDatum, TContext>
+    | MockAxisLabelFormatter<TDatum, TContext>
+    | MockSeriesLabelFormatter<TDatum, TContext>
+    | MockTooltipRenderer<TDatum, TContext>
+    | MockErrorBarStyler<TDatum, TContext>
+    | MockChartLabelFormatter<TDatum, TContext>
+    | MockAnnotationsListener<TDatum, TContext>
+    | MockZoomListener<TDatum, TContext>
+    | MockGetDataCallback<TDatum, TContext>
+    | MockChartClickListener<TDatum, TContext>
+    | MockChartDblClickListener<TDatum, TContext>
+    | MockChartSeriesVisibilityChangeListener<TDatum, TContext>
+    | MockSeriesNodeClickListener<TDatum, TContext>
+    | MockSeriesNodeDblClickListener<TDatum, TContext>
+    | MockLegendItemClickListener<TDatum, TContext>
+    | MockLegendItemDblClickListener<TDatum, TContext>
+    | MockContextMenuAction<TDatum, TContext>;
 
 // AG Charts calls Object.freeze on theme options, so we must create intermediate functions to circumvent that.
-export function newFreezableMock<F extends MockAPICallback>(mockImp?: F) {
+export function newFreezableMock<D, C, F extends MockAPICallback<D, C>>(mockImp?: F) {
     type Rtn = ReturnType<F>;
     type Arg = Parameters<F>[0];
 

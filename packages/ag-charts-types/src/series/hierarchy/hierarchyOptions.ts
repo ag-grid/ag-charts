@@ -12,4 +12,5 @@ export interface AgBaseHierarchyChartOptions<TDatum = TDatumDefault, TContext = 
     series?: AgHierarchySeriesOptions<TDatum, TContext>[];
 }
 
-export interface AgBaseHierarchyThemeOptions<TDatum = TDatumDefault> extends AgBaseThemeableChartOptions<TDatum> {}
+export interface AgBaseHierarchyThemeOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseThemeableChartOptions<TDatum, TContext> {}

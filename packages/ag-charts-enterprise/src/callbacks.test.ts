@@ -29,8 +29,6 @@ import {
     MockChartClickListener,
     MockChartDblClickListener,
     MockChartLabelFormatter,
-    MockChartSeriesNodeClickListener,
-    MockChartSeriesNodeDblClickListener,
     MockChartSeriesVisibilityChangeListener,
     MockContextMenuAction,
     MockGetDataCallback,
@@ -51,8 +49,7 @@ import {
 
 import { prepareEnterpriseTestOptions } from './test/utils';
 
-// Skip unit test (not yet implemented)
-xdescribe('AG-14631 context enterprise', () => {
+describe('AG-14631 context enterprise', () => {
     setupMockConsole();
     setupMockCanvas();
     let chart: AgChartInstance;
@@ -61,7 +58,7 @@ xdescribe('AG-14631 context enterprise', () => {
         (chart as unknown) = undefined;
     });
 
-    async function createChart(options: AgChartOptions): Promise<AgChartInstance> {
+    async function createChart(options: AgChartOptions<any, any>): Promise<AgChartInstance> {
         prepareEnterpriseTestOptions(options);
         chart = AgCharts.create(options);
         await waitForChartStability(chart);
@@ -69,9 +66,12 @@ xdescribe('AG-14631 context enterprise', () => {
     }
 
     test('zoom', async () => {
-        const zoomListener = newFreezableMock<MockZoomListener>((_params: AgZoomEvent) => {});
-        const context = { name: 'chart context' } as const;
-        const opts: AgChartOptions<{ x: number; y: number }, typeof context> = {
+        type TDatum = Readonly<{ x: number; y: number }>;
+        type TContext = Readonly<{ name: string }>;
+        type TMock = MockZoomListener<TDatum, TContext>;
+        const zoomListener = newFreezableMock<TDatum, TContext, TMock>((_params: AgZoomEvent) => {});
+        const context: TContext = { name: 'chart context' } as const;
+        const opts: AgChartOptions<TDatum, TContext> = {
             data: [
                 { x: 0, y: 0 },
                 { x: 1, y: 1 },
@@ -91,10 +91,14 @@ xdescribe('AG-14631 context enterprise', () => {
         zoomListener.expect().toHaveBeenCalledTimes(2).withContext(context);
     });
 
-    test('annotations', async () => {
-        const annotationsListener = newFreezableMock<MockAnnotationsListener>((_params: AgAnnotationsEvent) => {});
-        const context = { name: 'chart context' };
-        const opts: AgChartOptions<{ x: string; y: number }, { name: string }> = {
+    // Skip unit test (not yet implemented)
+    xtest('annotations', async () => {
+        type TDatum = Readonly<{ x: string; y: number }>;
+        type TContext = Readonly<{ name: string }>;
+        type TMock = MockAnnotationsListener<TDatum, TContext>;
+        const annotationsListener = newFreezableMock<TDatum, TContext, TMock>((_params: AgAnnotationsEvent) => {});
+        const context: TContext = { name: 'chart context' };
+        const opts: AgChartOptions<TDatum, TContext> = {
             data: [
                 { x: 'Jan', y: 62 },
                 { x: 'Feb', y: 45 },
@@ -112,11 +116,15 @@ xdescribe('AG-14631 context enterprise', () => {
         annotationsListener.expect().toHaveBeenCalledTimes(1).withContext(context);
     });
 
-    test('dataSource', async () => {
+    // Skip unit test (not yet implemented)
+    xtest('dataSource', async () => {
+        type TDatum = unknown;
+        type TContext = Readonly<{ name: string }>;
+        type TMock = MockGetDataCallback<TDatum, TContext>;
         const imp = (_params: AgDataSourceCallbackParams): Promise<unknown[]> => new Promise((_resolve) => []);
-        const getDataCallback = newFreezableMock<MockGetDataCallback>(imp);
-        const chartContext = { name: 'chart context' };
-        const seriesContext = { name: 'series context' };
+        const getDataCallback = newFreezableMock<TDatum, TContext, TMock>(imp);
+        const chartContext: TContext = { name: 'chart context' };
+        const seriesContext: TContext = { name: 'series context' };
         const opts: AgChartOptions<unknown, { name: string }> = {
             dataSource: { getData: getDataCallback.frozen },
             context: chartContext,
@@ -130,36 +138,38 @@ xdescribe('AG-14631 context enterprise', () => {
         getDataCallback.expect().toHaveBeenCalledTimes(1).withContext(chartContext);
     });
 
-    describe('clicks', () => {
+    // Skip unit test (not yet implemented)
+    xdescribe('clicks', () => {
         type TDatum = Readonly<{ x: number; a: number; b: number; c: number }>;
         type TContext = Readonly<{ readonly name: string }>;
+        type TFreezable<TMock extends MockAPICallback<TDatum, TContext>> = ReturnType<typeof newFreezable<TMock>>;
 
-        let click: ReturnType<typeof newFreezableMock<MockChartClickListener>>;
-        let doubleClick: ReturnType<typeof newFreezableMock<MockChartDblClickListener>>;
-        let chartSeriesNodeClick: ReturnType<typeof newFreezableMock<MockChartSeriesNodeClickListener>>;
-        let chartSeriesNodeDoubleClick: ReturnType<typeof newFreezableMock<MockChartSeriesNodeDblClickListener>>;
-        let chartSeriesVisibilityChange: ReturnType<typeof newFreezableMock<MockChartSeriesVisibilityChangeListener>>;
-        let seriesNodeClick: ReturnType<typeof newFreezableMock<MockSeriesNodeClickListener>>;
-        let seriesNodeDoubleClick: ReturnType<typeof newFreezableMock<MockSeriesNodeDblClickListener>>;
-        let legendItemClick: ReturnType<typeof newFreezableMock<MockLegendItemClickListener>>;
-        let legendItemDoubleClick: ReturnType<typeof newFreezableMock<MockLegendItemDblClickListener>>;
+        let click: TFreezable<MockChartClickListener<TDatum, TContext>>;
+        let doubleClick: TFreezable<MockChartDblClickListener<TDatum, TContext>>;
+        let chartSeriesNodeClick: TFreezable<MockSeriesNodeClickListener<TDatum, TContext>>;
+        let chartSeriesNodeDoubleClick: TFreezable<MockSeriesNodeDblClickListener<TDatum, TContext>>;
+        let chartSeriesVisibilityChange: TFreezable<MockChartSeriesVisibilityChangeListener<TDatum, TContext>>;
+        let seriesNodeClick: TFreezable<MockSeriesNodeClickListener<TDatum, TContext>>;
+        let seriesNodeDoubleClick: TFreezable<MockSeriesNodeDblClickListener<TDatum, TContext>>;
+        let legendItemClick: TFreezable<MockLegendItemClickListener<TDatum, TContext>>;
+        let legendItemDoubleClick: TFreezable<MockLegendItemDblClickListener<TDatum, TContext>>;
 
         let chartContext: TContext;
         let series0Context: TContext;
         let series1Context: TContext;
 
-        function newFreezable<T extends MockAPICallback>(fn: T) {
-            return newFreezableMock<T>(fn);
+        function newFreezable<TMock extends MockAPICallback<TDatum, TContext>>(fn: TMock) {
+            return newFreezableMock<TDatum, TContext, TMock>(fn);
         }
 
         beforeEach(async () => {
             click = newFreezable((_p: AgChartClickEvent) => {});
             doubleClick = newFreezable((_p: AgChartDoubleClickEvent) => {});
-            chartSeriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', unknown>) => {});
-            chartSeriesNodeDoubleClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeDoubleClick', unknown>) => {});
+            chartSeriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', TDatum>) => {});
+            chartSeriesNodeDoubleClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeDoubleClick', TDatum>) => {});
             chartSeriesVisibilityChange = newFreezable((_p: AgSeriesVisibilityChange) => {});
-            seriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', unknown>) => {});
-            seriesNodeDoubleClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeDoubleClick', unknown>) => {});
+            seriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', TDatum>) => {});
+            seriesNodeDoubleClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeDoubleClick', TDatum>) => {});
             legendItemClick = newFreezable((_p: AgChartLegendClickEvent) => {});
             legendItemDoubleClick = newFreezable((_p: AgChartLegendDoubleClickEvent) => {});
 
@@ -278,20 +288,24 @@ xdescribe('AG-14631 context enterprise', () => {
         });
     });
 
-    describe('contextMenu', () => {
+    // Skip unit test (not yet implemented)
+    xdescribe('contextMenu', () => {
         type TDatum = Readonly<{ x: number; a: number; b: number; c: number }>;
-        type TContext = Readonly<{ readonly name: string }>;
+        type TContext = Readonly<{ name: string }>;
+        type TFreezable<TEvent> = ReturnType<typeof newFreezable<TEvent, MockContextMenuAction<TDatum, TContext>>>;
 
-        let alwaysAction: ReturnType<typeof newFreezableMock<MockContextMenuAction>>;
-        let seriesAreaAction: ReturnType<typeof newFreezableMock<MockContextMenuAction>>;
-        let seriesNodeAction: ReturnType<typeof newFreezableMock<MockContextMenuAction>>;
-        let legendItemAction: ReturnType<typeof newFreezableMock<MockContextMenuAction>>;
+        let alwaysAction: TFreezable<AgChartContextMenuEvent>;
+        let seriesAreaAction: TFreezable<AgSeriesAreaContextMenuActionEvent>;
+        let seriesNodeAction: TFreezable<AgNodeContextMenuActionEvent<TDatum>>;
+        let legendItemAction: TFreezable<AgChartLegendContextMenuEvent>;
         let chartContext: TContext;
         let series0Context: TContext;
         let series1Context: TContext;
 
-        function newFreezable<T extends MockContextMenuAction>(fn: T) {
-            return newFreezableMock<MockContextMenuAction>(fn);
+        function newFreezable<TEvent, TMock extends MockContextMenuAction<TDatum, TContext>>(
+            fn: TMock & ((e: TEvent) => any)
+        ) {
+            return newFreezableMock<TDatum, TContext, TMock & ((e: TEvent) => any)>(fn);
         }
 
         async function clickMenuItem(label: AgContextMenuItemShowOn) {
@@ -409,9 +423,12 @@ describe('AG-13024 API context gauges', () => {
     setupMockConsole();
     setupMockCanvas();
 
+    type TDatum = unknown;
+    type TContext = object;
+    type TMock = MockChartLabelFormatter<TDatum, TContext>;
     let chart: AgChartInstance;
     let rootContext: object;
-    const chartLabelFormatter = newFreezableMock<MockChartLabelFormatter>((_params) => undefined);
+    const chartLabelFormatter = newFreezableMock<TDatum, TContext, TMock>((_params) => undefined);
 
     async function createChart(options: AgRadialGaugeOptions | AgLinearGaugeOptions): Promise<AgChartInstance> {
         prepareEnterpriseTestOptions(options);

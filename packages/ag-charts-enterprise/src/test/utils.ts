@@ -5,7 +5,10 @@ import { setupEnterpriseModules } from '../setup';
 
 setupEnterpriseModules();
 
-export function prepareEnterpriseTestOptions<T extends AgChartOptions>(options: T, container = document.body) {
+export function prepareEnterpriseTestOptions<T extends AgChartOptions<any, any>>(
+    options: T,
+    container = document.body
+) {
     if (!options.animation) {
         // Default to animation off.
         options.animation ??= { enabled: false };
@@ -13,7 +16,7 @@ export function prepareEnterpriseTestOptions<T extends AgChartOptions>(options: 
     return prepareTestOptions(options, container);
 }
 
-export async function createEnterpriseChart<T extends AgChartOptions>(options: T): Promise<Chart> {
+export async function createEnterpriseChart<T extends AgChartOptions<any, any>>(options: T): Promise<Chart> {
     options = prepareEnterpriseTestOptions({ ...options });
     const chart = deproxy(AgCharts.create(options as any));
     await waitForChartStability(chart);

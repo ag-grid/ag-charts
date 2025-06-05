@@ -2,6 +2,7 @@ import { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import type {
+    MockAPICallback,
     MockAxisLabelFormatter,
     MockItemStyler,
     MockSeriesLabelFormatter,
@@ -26,17 +27,25 @@ describe('AG-13024 API context', () => {
     setupMockConsole();
     setupMockCanvas();
 
+    type TDatum = { quarter: 'q1' | 'q2' | 'q3' | 'q4'; Toyota: number; Ford: number; BMW: number };
+    type TContext = object;
+    type TFreezable<TMock extends MockAPICallback<TDatum, TContext>> = ReturnType<typeof newFreezable<TMock>>;
+
     let chart: Chart;
     let options: AgCartesianChartOptionsWithContext;
-    let seriesContext0: object;
-    let seriesContext1: object;
-    let seriesContext2: object;
-    let axisContext: object;
-    let rootContext: object;
-    let itemStyler: ReturnType<typeof newFreezableMock<MockItemStyler>>;
-    let axisLabelFormatter: ReturnType<typeof newFreezableMock<MockAxisLabelFormatter>>;
-    let seriesLabelFormatter: ReturnType<typeof newFreezableMock<MockSeriesLabelFormatter>>;
-    let tooltipRenderer: ReturnType<typeof newFreezableMock<MockTooltipRenderer>>;
+    let seriesContext0: TContext;
+    let seriesContext1: TContext;
+    let seriesContext2: TContext;
+    let axisContext: TContext;
+    let rootContext: TContext;
+    let itemStyler: TFreezable<MockItemStyler<TDatum, TContext>>;
+    let axisLabelFormatter: TFreezable<MockAxisLabelFormatter<TDatum, TContext>>;
+    let seriesLabelFormatter: TFreezable<MockSeriesLabelFormatter<TDatum, TContext>>;
+    let tooltipRenderer: TFreezable<MockTooltipRenderer<TDatum, TContext>>;
+
+    function newFreezable<TMock extends MockAPICallback<TDatum, TContext>>(fn: TMock) {
+        return newFreezableMock<TDatum, TContext, TMock>(fn);
+    }
 
     async function oneTooltipCallback() {
         await hoverAction(130, 363)(chart); // datum 1, series 1
@@ -58,10 +67,10 @@ describe('AG-13024 API context', () => {
         seriesContext2 = { name: '[2]: bmw' };
         axisContext = { name: 'X axis context' };
         rootContext = { name: 'root context' };
-        itemStyler = newFreezableMock<MockItemStyler>((_params) => undefined);
-        axisLabelFormatter = newFreezableMock<MockAxisLabelFormatter>((_params: any) => undefined);
-        seriesLabelFormatter = newFreezableMock<MockSeriesLabelFormatter>((_params) => undefined);
-        tooltipRenderer = newFreezableMock<MockTooltipRenderer>((_params) => '');
+        itemStyler = newFreezable<MockItemStyler<TDatum, TContext>>((_params) => undefined);
+        axisLabelFormatter = newFreezable<MockAxisLabelFormatter<TDatum, TContext>>((_params: any) => undefined);
+        seriesLabelFormatter = newFreezable<MockSeriesLabelFormatter<TDatum, TContext>>((_params) => undefined);
+        tooltipRenderer = newFreezable<MockTooltipRenderer<TDatum, TContext>>((_params) => '');
         options = {
             theme: {
                 overrides: {

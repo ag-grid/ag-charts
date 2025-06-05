@@ -20,4 +20,5 @@ export interface AgBaseTopologyChartOptions<TDatum = TDatumDefault, TContext = T
     topology?: GeoJSON;
 }
 
-export interface AgBaseTopologyThemeOptions<TDatum = TDatumDefault> extends AgBaseThemeableChartOptions<TDatum> {}
+export interface AgBaseTopologyThemeOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseThemeableChartOptions<TDatum, TContext> {}
