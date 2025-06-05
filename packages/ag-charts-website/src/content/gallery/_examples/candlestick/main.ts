@@ -1,9 +1,4 @@
-import {
-    AgCandlestickSeriesTooltipRendererParams,
-    AgChartOptions,
-    AgCharts,
-    AgTooltipRendererResult,
-} from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
@@ -45,30 +40,24 @@ const options: AgChartOptions<DataType> = {
             closeName: 'Close',
             tooltip: {
                 renderer({ datum }) {
-                    return {
-                        data: [
-                            {
-                                label: 'O',
-                                value: numberFormatter.format(datum.open),
-                            },
-                            {
-                                label: 'L',
-                                value: numberFormatter.format(datum.low),
-                            },
-                            {
-                                label: 'H',
-                                value: numberFormatter.format(datum.high),
-                            },
-                            {
-                                label: 'C',
-                                value: numberFormatter.format(datum.close),
-                            },
-                            {
-                                label: 'Volume',
-                                value: volumeNumberFormatter.format(datum.volume),
-                            },
-                        ],
-                    };
+                    return [
+                        `<div class="status-bar">`,
+                        `<div class="status-bar-row">`,
+                        `<span class="label">O</span>`,
+                        `<span class="value">${numberFormatter.format(datum.open)}</span>`,
+                        `<span class="label">H</span>`,
+                        `<span class="value">${numberFormatter.format(datum.high)}</span>`,
+                        `<span class="label">L</span>`,
+                        `<span class="value">${numberFormatter.format(datum.low)}</span>`,
+                        `<span class="label">C</span>`,
+                        `<span class="value">${numberFormatter.format(datum.close)}</span>`,
+                        `</div>`,
+                        `<div class="status-bar-row">`,
+                        `<span class="label">Volume</span>`,
+                        `<span class="value">${volumeNumberFormatter.format(datum.volume)}</span>`,
+                        `</div>`,
+                        `</div>`,
+                    ].join('');
                 },
             },
         },
