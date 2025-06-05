@@ -51,7 +51,8 @@ interface GeneratedTicks {
 
 export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any, number, any>, D = any> extends Axis<
     S,
-    D
+    D,
+    GeneratedTicks
 > {
     static is(value: unknown): value is CartesianAxis<any> {
         return value instanceof CartesianAxis;
@@ -84,7 +85,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     private readonly tempCaption = new Caption();
 
     private readonly tickGenerator = new AxisTickGenerator<S, D>(this as any);
-    private generatedTicks: GeneratedTicks | undefined = undefined;
 
     protected readonly animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
 
@@ -201,6 +201,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         fractionDigits: number;
         timeInterval: TimeInterval | TimeIntervalUnit | undefined;
         bbox: BBox;
+        layout: GeneratedTicks;
     } {
         const sideFlag = this.label.getSideFlag();
         const rotation = this.horizontal ? -0.5 * Math.PI : 0;
@@ -226,7 +227,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         ) {
             const { bbox, spacing } = this.tickBBox(domain, [], []);
             // Performance optimization: if ticks have no effect, don't generate them
-            this.generatedTicks = { ticks: [], tickLines: [], gridLines: [], labels: [], spacing };
+            const layout: GeneratedTicks = { ticks: [], tickLines: [], gridLines: [], labels: [], spacing };
             return {
                 ticks: [],
                 rawTickCount: 0,
@@ -235,6 +236,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
                 fractionDigits: 0,
                 timeInterval: undefined,
                 bbox,
+                layout,
             };
         }
 
@@ -294,9 +296,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         const { bbox, spacing } = this.tickBBox(tickDomain, ticks, labels);
 
-        this.generatedTicks = { ticks, gridLines, tickLines, labels, spacing };
+        const layout: GeneratedTicks = { ticks, gridLines, tickLines, labels, spacing };
 
-        return { ticks: rawTicks, rawTickCount, tickDomain, niceDomain, fractionDigits, timeInterval, bbox };
+        return { ticks: rawTicks, rawTickCount, tickDomain, niceDomain, fractionDigits, timeInterval, bbox, layout };
     }
 
     override update() {
@@ -309,15 +311,15 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         this.tickLineGroup.visible = this.tick.enabled || (this.primaryTick?.enabled ?? false);
         this.tickLabelGroup.visible = this.label.enabled || (this.primaryTick?.enabled ?? false);
 
-        const { generatedTicks } = this;
-        this.updateTitle(this.scale.domain, generatedTicks?.spacing ?? 0);
+        const { tickLayout } = this;
+        this.updateTitle(this.scale.domain, tickLayout?.spacing ?? 0);
 
         if (!this.animatable) {
             this.moduleCtx.animationManager.skipCurrentBatch();
         }
 
-        if (this.generatedTicks) {
-            const { ticks } = this.generatedTicks;
+        if (tickLayout) {
+            const { ticks } = tickLayout;
 
             if (this.animationManager.isSkipped()) {
                 this.resetSelectionNodes();
@@ -573,10 +575,10 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected updateSelections() {
-        if (!this.generatedTicks) return;
+        if (!this.tickLayout) return;
 
         const lineData = this.getAxisLineCoordinates();
-        const { tickLines, gridLines, labels } = this.generatedTicks;
+        const { tickLines, gridLines, labels } = this.tickLayout;
 
         const getDatumId = (datum: AxisLabelDatum | AxisLineDatum) => datum.tickId;
 
