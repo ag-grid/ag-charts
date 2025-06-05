@@ -29,9 +29,8 @@ import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group'
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import { Selection } from '../../scene/selection';
-import { Line } from '../../scene/shape/line';
 import { TransformableText } from '../../scene/shape/text';
-import { Transformable, Translatable } from '../../scene/transformable';
+import { Transformable } from '../../scene/transformable';
 import { formatValue } from '../../util/format.util';
 import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
@@ -77,16 +76,12 @@ export interface LabelNodeDatum {
 
 type AxisModuleMap = ModuleMap<AxisOptionModule, ModuleInstance, ModuleContextWithParent<AxisContext>>;
 
-export class TranslatableLine extends Translatable(Line) {}
-
 export enum AxisGroupZIndexMap {
     TickLines,
     // eslint-disable-next-line @typescript-eslint/no-shadow
     AxisLine,
     TickLabels,
 }
-
-export type CrosslineFormatterParams<D> = { domain: D[]; ticks: D[]; fractionDigits: number } | undefined;
 
 export type AxisTickFormatParams =
     | {
@@ -113,12 +108,8 @@ export type AxisTickFormatParams =
  * The generic `D` parameter is the type of the domain of the axis' scale.
  * The output range of the axis' scale is always numeric (screen coordinates).
  */
-export abstract class Axis<
-    S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
-    D = any,
-    TickDatum = any,
-    TickLabelDatum = TickDatum,
-> implements ChartAxis
+export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>, D = any>
+    implements ChartAxis
 {
     static readonly defaultTickMinSpacing = 50;
 
@@ -229,15 +220,11 @@ export abstract class Axis<
         zIndex: ZIndexMap.SERIES_LABEL,
     });
 
-    protected tickLabelGroupSelection = Selection.select<TransformableText, TickLabelDatum>(
+    protected tickLabelGroupSelection = Selection.select<TransformableText, LabelNodeDatum>(
         this.tickLabelGroup,
         TransformableText,
         false
     );
-
-    get labelNodes() {
-        return this.tickLabelGroupSelection.nodes();
-    }
 
     readonly line = new AxisLine();
     readonly tick = new AxisTick();

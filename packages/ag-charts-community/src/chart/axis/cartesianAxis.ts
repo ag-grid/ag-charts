@@ -51,9 +51,7 @@ interface GeneratedTicks {
 
 export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any, number, any>, D = any> extends Axis<
     S,
-    D,
-    TickDatum,
-    LabelNodeDatum
+    D
 > {
     static is(value: unknown): value is CartesianAxis<any> {
         return value instanceof CartesianAxis;
@@ -277,7 +275,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const p2 = direction * gridLength - gridPadding;
 
         const { gridLine } = this;
-        const gridLines = ticks.map(({ tickId, translationY: offset }, index): AxisLineDatum => {
+        const gridLines = ticks.map(({ tickId, translation: offset }, index): AxisLineDatum => {
             const [x1, y1, x2, y2] = horizontal ? [offset, p1, offset, p2] : [p1, offset, p2, offset];
             const { style, width: strokeWidth } = gridLine;
             const { stroke, lineDash } = style[index % style.length] ?? {};
@@ -285,7 +283,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         });
 
         const { tick, primaryTick } = this;
-        const tickLines = ticks.map(({ primary, tickId, translationY: offset }): AxisLineDatum => {
+        const tickLines = ticks.map(({ primary, tickId, translation: offset }): AxisLineDatum => {
             const datumTick = primary && primaryTick?.enabled ? primaryTick : tick;
             const h = -direction * this.getTickSize(datumTick);
             const [x1, y1, x2, y2] = horizontal ? [offset, 0, offset, h] : [0, offset, h, offset];
@@ -363,18 +361,21 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     private getTickLineBBox(datum: TickDatum) {
+        const { translation } = datum;
         const { position, primaryTick } = this;
-        const tickSize = Math.max(this.getTickSize(), primaryTick?.enabled ? this.getTickSize(primaryTick) : 0);
-        const { translationY } = datum;
+        let tickSize = this.getTickSize();
+        if (primaryTick?.enabled) {
+            tickSize = Math.max(tickSize, this.getTickSize(primaryTick));
+        }
         switch (position) {
             case 'top':
-                return new BBox(translationY, -tickSize, translationY, tickSize);
+                return new BBox(translation, -tickSize, translation, tickSize);
             case 'bottom':
-                return new BBox(translationY, 0, translationY, tickSize);
+                return new BBox(translation, 0, translation, tickSize);
             case 'left':
-                return new BBox(-tickSize, translationY, tickSize, translationY);
+                return new BBox(-tickSize, translation, tickSize, translation);
             case 'right':
-                return new BBox(0, translationY, tickSize, translationY);
+                return new BBox(0, translation, tickSize, translation);
         }
     }
 
@@ -543,7 +544,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
-        const { tickId, tickLabel: text = '', translationY, primary } = datum;
+        const { tickId, tickLabel: text = '', translation, primary } = datum;
         const label = primary && primaryLabel?.enabled ? primaryLabel : this.label;
         const tick = primary && primaryTick?.enabled ? primaryTick : this.tick;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
@@ -552,8 +553,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + seriesAreaPadding);
         const visible = text !== '';
 
-        const x = horizontal ? translationY : labelOffset;
-        const y = horizontal ? -labelOffset : translationY;
+        const x = horizontal ? translation : labelOffset;
+        const y = horizontal ? -labelOffset : translation;
 
         return {
             ...this.getLabelStyles({ value: text }, undefined, label),
