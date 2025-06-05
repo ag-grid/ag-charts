@@ -1,4 +1,4 @@
-import { Logger, findMaxIndex, findMinIndex, isPlainObject } from 'ag-charts-core';
+import { findMaxIndex, findMinIndex, isPlainObject } from 'ag-charts-core';
 import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import { intervalFloor, intervalMilliseconds, intervalRange, intervalRangeCount } from '../util/time';
@@ -13,6 +13,10 @@ export class TimeScale extends DiscreteTimeScale {
 
     static override is(value: unknown): value is TimeScale {
         return value instanceof TimeScale;
+    }
+
+    static supportsInterval(domain: Date[], interval: TimeInterval | TimeIntervalUnit) {
+        return supportsInterval(domain, interval);
     }
 
     override readonly type = 'time';
@@ -58,19 +62,13 @@ export class TimeScale extends DiscreteTimeScale {
         if (domain.length < 2) return NaN;
         if (options?.clamp !== true && interval != null) {
             const t = value.valueOf();
-            const [start, stop] = this.calculateBandRange(domain, interval);
+            const [start, stop] = calculateBandRange(domain, interval);
             const d0 = Math.min(start.valueOf(), stop.valueOf());
             const d1 = Math.max(start.valueOf(), stop.valueOf());
             if (t < d0 || t >= d1 + intervalMilliseconds(interval)) return NaN;
         }
 
         return super.convert(value, options);
-    }
-
-    private calculateBandRange(domain: Date[], interval: TimeInterval | TimeIntervalUnit): [Date, Date] {
-        const start = intervalFloor(interval, domain[0]);
-        const stop = intervalFloor(interval, domain[1]);
-        return [start, stop];
     }
 
     private calculateBands(domain: Date[], visibleRange: [number, number], extend: boolean = false): Date[] {
@@ -90,13 +88,9 @@ export class TimeScale extends DiscreteTimeScale {
         if (interval == null) return [];
 
         const rangeParams = { visibleRange, extend };
+        if (!supportsInterval(domain, interval, rangeParams)) return [];
 
-        const [start, stop] = this.calculateBandRange(domain, interval);
-        if (intervalRangeCount(interval, start, stop, rangeParams) > MAX_BANDS) {
-            Logger.warnOnce(`the configured unit results in too many bands, ignoring. Supply a larger unit.`);
-            return [];
-        }
-
+        const [start, stop] = calculateBandRange(domain, interval);
         return intervalRange(interval, start, stop, rangeParams);
     }
 
@@ -144,7 +138,7 @@ export class TimeScale extends DiscreteTimeScale {
         let bandStart: number;
         let bandEnd: number;
         if (this.interval) {
-            const bandRange = this.calculateBandRange([new Date(d0), new Date(d1)], this.interval);
+            const bandRange = calculateBandRange([new Date(d0), new Date(d1)], this.interval);
             bandStart = bandRange[0].valueOf();
             bandEnd = bandRange[1].valueOf();
         } else {
@@ -170,4 +164,19 @@ export class TimeScale extends DiscreteTimeScale {
         const target = value.valueOf();
         return findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= target);
     }
+}
+
+function supportsInterval(
+    domain: Date[],
+    interval: TimeInterval | TimeIntervalUnit,
+    rangeParams?: { visibleRange?: [number, number]; extend?: boolean }
+): boolean {
+    const [start, stop] = calculateBandRange(domain, interval);
+    return intervalRangeCount(interval, start, stop, rangeParams) <= MAX_BANDS;
+}
+
+function calculateBandRange(domain: Date[], interval: TimeInterval | TimeIntervalUnit): [Date, Date] {
+    const start = intervalFloor(interval, domain[0]);
+    const stop = intervalFloor(interval, domain[1]);
+    return [start, stop];
 }

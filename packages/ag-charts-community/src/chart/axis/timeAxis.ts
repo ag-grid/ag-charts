@@ -1,3 +1,4 @@
+import { Logger } from 'ag-charts-core';
 import type { DateFormatterStyle, FormatterParams, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -85,9 +86,22 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
     }
 
     protected override updateScale(): void {
+        const {
+            scale,
+            unit,
+            defaultUnit,
+            dataDomain: { domain },
+        } = this;
         super.updateScale();
 
-        this.scale.interval = this.unit ?? this.defaultUnit;
+        if (unit == null) {
+            scale.interval = defaultUnit;
+        } else if (TimeScale.supportsInterval(domain, unit)) {
+            scale.interval = unit;
+        } else {
+            Logger.warnOnce(`the configured unit results in too many bands, ignoring. Supply a larger unit.`);
+            scale.interval = defaultUnit;
+        }
     }
 
     override normaliseDataDomain(domain: Date[]) {
@@ -130,7 +144,7 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
-        const interval = this.unit ?? this.defaultUnit ?? 'millisecond';
+        const interval = this.scale.interval ?? 'millisecond';
 
         value = intervalFloor(interval, value); // Align to scale
         if (typeof value === 'number') value = new Date(value);
