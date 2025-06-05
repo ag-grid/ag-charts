@@ -1,11 +1,11 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-type YKey = keyof Omit<(typeof data)[number], 'type'>;
+type YKey = keyof Omit<DataType, 'type'>;
 
 const data = getData();
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data,
     title: {
@@ -64,8 +64,8 @@ function getDomain(key: YKey) {
     return [min, max];
 }
 
-const map = (value: number, start1: number, end1: number, start2: number, end2: number) => {
-    return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
-};
+function map(value: number, inMin: number, inMax: number, outMin: number, outMax: number) {
+    return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+}
 
 AgCharts.create(options);

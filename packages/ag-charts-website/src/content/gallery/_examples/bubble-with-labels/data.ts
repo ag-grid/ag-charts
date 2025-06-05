@@ -1,4 +1,18 @@
-export function getData() {
+export interface DataType {
+    title: string;
+    yearOfRelease: number;
+    duration: number;
+    rating: number;
+    genre: string;
+    boxOffice: number;
+    ranking: number;
+}
+
+export type MovieData = {
+    [genre: string]: DataType[];
+};
+
+export function getData(): MovieData {
     return {
         drama: [
             {

@@ -1,6 +1,6 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 type GradeBoundaries = {
     U: [number, number];
@@ -22,7 +22,7 @@ const gradeBoundaries: GradeBoundaries = {
     'A*': [258, 370],
 };
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Student Performance Report',

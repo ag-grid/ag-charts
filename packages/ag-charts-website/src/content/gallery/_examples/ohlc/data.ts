@@ -1,4 +1,13 @@
-export function getData() {
+export interface DataType {
+    date: Date;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    adjClose: number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             date: new Date('2023-04-25'),

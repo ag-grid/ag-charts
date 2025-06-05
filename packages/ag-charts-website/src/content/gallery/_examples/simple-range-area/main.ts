@@ -1,10 +1,10 @@
-import { AgChartOptions, AgCharts, AgRangeAreaSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AgRangeAreaSeriesLabelFormatterParams } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 const dateFormatter = Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short' });
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -23,11 +23,11 @@ const options: AgChartOptions = {
             strokeWidth: 0,
             fillOpacity: 1,
             label: {
-                formatter: ({ value, datum, xKey }) => {
+                formatter: ({ value, datum }) => {
                     return value === 9.1
-                        ? `${datum['magnitudeHighRegion']}, ${String(datum[xKey]).substring(0, 15)}`
+                        ? `${datum.magnitudeHighRegion}, ${String(datum.year).substring(0, 15)}`
                         : value === 4.6
-                          ? `${datum['magnitudeLowRegion']}, ${String(datum[xKey]).substring(0, 15)}`
+                          ? `${datum.magnitudeLowRegion}, ${String(datum.year).substring(0, 15)}`
                           : '';
                 },
             },

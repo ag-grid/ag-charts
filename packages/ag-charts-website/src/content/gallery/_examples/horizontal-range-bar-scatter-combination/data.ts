@@ -1,4 +1,13 @@
-export function getData() {
+export interface DataType {
+    smartphone: string;
+    lowCost: number;
+    highCost: number;
+    lowRetail: number;
+    highRetail: number;
+    profitMargin: number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             smartphone: 'Apple iPhone',

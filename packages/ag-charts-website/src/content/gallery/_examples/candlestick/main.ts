@@ -1,6 +1,11 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCandlestickSeriesTooltipRendererParams,
+    AgChartOptions,
+    AgCharts,
+    AgTooltipRendererResult,
+} from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 const numberFormatter = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
@@ -12,7 +17,7 @@ const volumeNumberFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 0,
 });
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -39,23 +44,31 @@ const options: AgChartOptions = {
             closeKey: 'close',
             closeName: 'Close',
             tooltip: {
-                renderer({ openKey, lowKey, highKey, closeKey, datum }) {
-                    return [
-                        `<div class="status-bar">`,
-                        `<div class="status-bar-row">`,
-                        ...[openKey, lowKey, highKey, closeKey].map((key) => {
-                            return [
-                                `<span class="label">${key.slice(0, 1).toUpperCase()}</span>`,
-                                `<span class="value">${numberFormatter.format(datum[key])}</span>`,
-                            ].join('');
-                        }),
-                        `</div>`,
-                        `<div class="status-bar-row">`,
-                        `<span class="label">Volume</span>`,
-                        `<span class="value">${volumeNumberFormatter.format(datum.volume)}</span>`,
-                        `</div>`,
-                        `</div>`,
-                    ].join('');
+                renderer({ datum }) {
+                    return {
+                        data: [
+                            {
+                                label: 'O',
+                                value: numberFormatter.format(datum.open),
+                            },
+                            {
+                                label: 'L',
+                                value: numberFormatter.format(datum.low),
+                            },
+                            {
+                                label: 'H',
+                                value: numberFormatter.format(datum.high),
+                            },
+                            {
+                                label: 'C',
+                                value: numberFormatter.format(datum.close),
+                            },
+                            {
+                                label: 'Volume',
+                                value: volumeNumberFormatter.format(datum.volume),
+                            },
+                        ],
+                    };
                 },
             },
         },

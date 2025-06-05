@@ -1,4 +1,12 @@
-export function getData() {
+export interface DataType {
+    category: string;
+    sales2022: number;
+    sales2023: number;
+}
+
+export type DataNumberKey = keyof Omit<DataType, 'category'>;
+
+export function getData(): DataType[] {
     return [
         {
             category: 'Fresh Produce',

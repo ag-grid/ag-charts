@@ -1,4 +1,13 @@
-export const data = [
+export interface DataType {
+    name: string;
+    description?: string;
+    color?: string;
+    valuation?: number;
+    change?: number;
+    children?: DataType[];
+}
+
+export const data: DataType[] = [
     {
         name: 'Security Software & Services',
         children: [

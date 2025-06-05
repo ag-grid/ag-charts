@@ -1,6 +1,6 @@
 import { AgChartOptions, AgCharts, AgRangeBarSeriesTooltipRendererParams, AgSeriesTooltip } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataNumberKey, DataType, getData } from './data';
 
 const numberFormatOptions: Intl.NumberFormatOptions = {
     notation: 'compact',
@@ -9,7 +9,7 @@ const numberFormatOptions: Intl.NumberFormatOptions = {
     currency: 'GBP',
 };
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Belsize Road Tesco Annual Sales',
@@ -40,13 +40,13 @@ const options: AgChartOptions = {
             label: {
                 placement: 'outside',
                 color: 'rgb(118,118,118)',
-                formatter: ({ itemId, datum, yHighKey, yLowKey }) => {
-                    const increase = datum[yHighKey] - datum[yLowKey];
+                formatter: ({ itemId, datum }) => {
+                    const increase = datum.sales2023 - datum.sales2022;
                     return itemId === 'high' ? `↑£${increase / 1000}K` : '';
                 },
             },
-            itemStyler: ({ datum, yHighKey, yLowKey }) => ({
-                fillOpacity: (datum[yHighKey] - datum[yLowKey]) / 100000,
+            itemStyler: ({ datum }) => ({
+                fillOpacity: (datum.sales2023 - datum.sales2022) / 100000,
             }),
             cornerRadius: 4,
             strokeWidth: 1,

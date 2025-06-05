@@ -1,8 +1,8 @@
 import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-function tooltipRenderer(params: AgBarSeriesTooltipRendererParams) {
+function tooltipRenderer(params: AgBarSeriesTooltipRendererParams<DataType>) {
     var formatThousands = function (value: number) {
         return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     };
@@ -17,7 +17,7 @@ function tooltipRenderer(params: AgBarSeriesTooltipRendererParams) {
     return tooltipHtml.join('\n');
 }
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     theme: {

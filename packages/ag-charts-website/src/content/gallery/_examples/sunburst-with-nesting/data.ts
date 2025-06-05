@@ -1,4 +1,10 @@
-export const data = [
+export interface DataType {
+    name: string;
+    size?: number;
+    children?: DataType[];
+}
+
+export const data: DataType[] = [
     {
         name: 'terser',
         children: [

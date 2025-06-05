@@ -1,4 +1,8 @@
-export function getData() {
+export interface DataType {
+    score: number;
+}
+
+export function getData(): Record<string, DataType[]> {
     return {
         'A*': [
             {

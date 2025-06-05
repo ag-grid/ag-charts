@@ -1,8 +1,8 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { data } from './data';
+import { DataType, data } from './data';
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data,
     series: [

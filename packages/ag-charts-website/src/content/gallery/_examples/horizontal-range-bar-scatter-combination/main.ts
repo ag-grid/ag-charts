@@ -1,8 +1,13 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-const options: AgChartOptions = {
+const numberFormatter = new Intl.NumberFormat('en-US', {
+    style: 'percent',
+    maximumFractionDigits: 0,
+});
+
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -50,17 +55,13 @@ const options: AgChartOptions = {
             sizeKey: 'profitMargin',
             labelKey: 'profitMargin',
             tooltip: {
-                renderer({ datum, xKey, xName, yKey }) {
-                    const numberFormatter = new Intl.NumberFormat('en-US', {
-                        style: 'percent',
-                        maximumFractionDigits: 0,
-                    });
+                renderer({ datum }) {
                     return {
-                        title: datum[yKey],
+                        title: datum.smartphone,
                         data: [
                             {
-                                label: xName!,
-                                value: numberFormatter.format(datum[xKey] / 100),
+                                label: 'Profit Margin',
+                                value: numberFormatter.format(datum.profitMargin / 100),
                             },
                         ],
                     };
