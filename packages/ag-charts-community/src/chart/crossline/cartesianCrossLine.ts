@@ -259,6 +259,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const step = scale.step ?? 0;
         const rangePadding = (reversedAxis ? -1 : 1) * (scale instanceof BandScale ? (step - bandwidth) / 2 : 0);
 
+        const [clippedRange0, clippedRange1] = findMinMax(clippedRange);
+
         let yStart: number;
         let yEnd: number;
         let clampedYStart: number;
@@ -269,6 +271,10 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             yEnd = NaN;
             clampedYStart = scale.convert(value as any, { clamp: true }) + offset;
             clampedYEnd = NaN;
+
+            if (clampedYStart >= clippedRange1 || clampedYStart <= clippedRange0) {
+                return;
+            }
         } else if (range) {
             const [r0, r1] = range;
             yStart = scale.convert(r0 as any);
@@ -281,7 +287,6 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
                 [yStart, yEnd] = [yEnd, yStart];
             }
 
-            const [clippedRange0, clippedRange1] = findMinMax(clippedRange);
             if (clampedYStart >= clippedRange1 || clampedYEnd <= clippedRange0) {
                 return;
             }
