@@ -805,7 +805,7 @@ describe('ErrorBars', () => {
         const errorBarItemStyler = jest.fn((_p: AgErrorBarItemStylerParams<TDatum>): AgErrorBarThemeableOptions => {
             return {};
         });
-        const opts: AgCartesianChartOptions = {
+        const opts: AgCartesianChartOptions<TDatum> = {
             data: [
                 { x: 'Jan', y: 2.5, yLower: 1.5, yUpper: 3.5 },
                 { x: 'Feb', y: 3.0, yLower: 2.3, yUpper: 3.7 },
@@ -861,7 +861,7 @@ describe('ErrorBars', () => {
         type TDatum = Readonly<{ quarter: string; sales: number; salesLower: number; salesUpper: number }>;
         type TContext = object;
         type TMock = MockErrorBarStyler<TDatum, TContext>;
-        let options: AgCartesianChartOptionsWithContext;
+        let options: AgCartesianChartOptionsWithContext<TDatum, TContext>;
         let seriesContext: object;
         const itemStyler = newFreezableMock<TDatum, TContext, TMock>();
 
@@ -881,7 +881,11 @@ describe('ErrorBars', () => {
                         type: 'bar',
                         xKey: 'quarter',
                         yKey: 'sales',
-                        errorBar: { yLowerKey: 'salesLower', yUpperKey: 'salesUpper', itemStyler: itemStyler.frozen },
+                        errorBar: {
+                            yLowerKey: 'salesLower',
+                            yUpperKey: 'salesUpper',
+                            itemStyler: itemStyler.frozen as any,
+                        },
                         context: seriesContext,
                     },
                 ],

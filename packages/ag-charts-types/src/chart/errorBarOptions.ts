@@ -60,7 +60,7 @@ export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
 
 export const AgErrorBarSupportedSeriesTypes = ['bar', 'line', 'scatter'] as const;
 
-export interface AgErrorBarOptions<TDatum>
+export interface AgErrorBarOptions<TDatum = TDatumDefault>
     extends ErrorBarKeyOptions<TDatum>,
         ErrorBarNameOptions,
         ErrorBarFormatterOption<TDatum>,
