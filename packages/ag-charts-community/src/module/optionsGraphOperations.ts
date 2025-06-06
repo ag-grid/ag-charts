@@ -12,7 +12,6 @@ import {
 import { chartTypes } from '../chart/factory/chartTypes';
 import { isGradientFill, isImageFill, isPatternFill } from '../scene/util/fill';
 import { Color } from '../util/color';
-import { deepClone } from '../util/json';
 import { without } from '../util/object';
 import {
     DEFAULTS_EDGE,
@@ -416,8 +415,12 @@ function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
         return graph.palette.sequentialColors; // TODO: `gradients` as a $ref to sequentialColors within palette
     }
 
+    const value = getPathSafe(graph.palette, key.split('.'));
+
     // TODO: what is mutating the palette? see integratedChartsCrossFiltering.test.ts
-    return deepClone(getPathSafe(graph.palette, key.split('.')));
+    if (Array.isArray(value)) return [...value];
+    if (typeof value === 'object') return { ...value };
+    return value;
 }
 
 function pathOperationDependenciesFactory(

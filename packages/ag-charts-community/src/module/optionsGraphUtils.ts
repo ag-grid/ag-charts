@@ -64,8 +64,14 @@ export function isRatio(value: unknown): value is number {
 export function getPathSafe(object: PlainObject, path: string[]) {
     let result = object;
     for (const part of path) {
-        if (!isObjectLike(result) || !isKey(part, result)) return;
-        result = result[part];
+        // Since this is called so often on large multi series charts, inline the check for `isKey`
+        const isPartKey =
+            typeof part === 'string' &&
+            result != null &&
+            (typeof result === 'object' || Array.isArray(result)) &&
+            part in result;
+        if (!isPartKey) return;
+        result = result[part as any];
     }
     return result as unknown;
 }
