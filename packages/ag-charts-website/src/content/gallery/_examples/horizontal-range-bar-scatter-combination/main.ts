@@ -55,12 +55,12 @@ const options: AgChartOptions<DataType> = {
             sizeKey: 'profitMargin',
             labelKey: 'profitMargin',
             tooltip: {
-                renderer({ datum }) {
+                renderer({ datum, xName }) {
                     return {
                         title: datum.smartphone,
                         data: [
                             {
-                                label: 'Profit Margin',
+                                label: xName!,
                                 value: numberFormatter.format(datum.profitMargin / 100),
                             },
                         ],
