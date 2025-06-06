@@ -77,6 +77,8 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private value$1: PlainObject = {};
 
+    private readonly cachedPathVertices = new Map();
+
     constructor(
         config: PlainObject = {},
         userOptions: PlainObject = {},
@@ -85,6 +87,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         overrides: PlainObject = {}
     ) {
         super();
+
+        this.cachedNeighboursEdge = PATH_EDGE;
+        this.processedEdge = OPERATION_EDGE;
 
         this.root = this.addVertex('root');
         this.params = this.addVertex('params');
@@ -184,6 +189,11 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.buildDependencyGraph();
     }
 
+    override clear() {
+        super.clear();
+        this.cachedPathVertices.clear();
+    }
+
     resolve() {
         this.resolved = {};
         this.resolvedParams = {};
@@ -206,7 +216,13 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     }
 
     findVertexAtPath(path: Array<string>) {
-        return this.findVertexAlongEdge(this.root, path, PATH_EDGE);
+        const key = path.join('.');
+        if (this.cachedPathVertices.has(key)) {
+            return this.cachedPathVertices.get(key);
+        }
+        const vertex = this.findVertexAlongEdge(this.root, path, PATH_EDGE);
+        this.cachedPathVertices.set(key, vertex);
+        return vertex;
     }
 
     getParamValue(path: string) {
@@ -304,7 +320,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             }
         }
 
-        // TODO: is this efficient enough?
         this.buildDependencyGraph();
     }
 
@@ -323,7 +338,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             }
         }
 
-        // TODO: is this too inefficient?
         this.buildDependencyGraph();
     }
 
@@ -339,7 +353,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         // TODO: use the correct edgeValue?
         this.buildGraphFromValue(target, pathVertex, DEFAULTS_EDGE, pathArray, operation);
 
-        // TODO: is this too inefficient?
         this.buildDependencyGraph();
     }
 
@@ -532,7 +545,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     }
 
     private buildDependencyGraph() {
-        for (const [valueVertex, operationKeyVertex] of this.edges(OPERATION_EDGE)) {
+        for (const [valueVertex, operationKeyVertex] of this.pendingProcessingEdges) {
             const operation = this.getVertexValue(operationKeyVertex);
             if (!isKey(operation, operations)) continue;
 
@@ -541,6 +554,8 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             const dependenciesFn = typeof operator === 'function' ? undefined : operator.dependencies;
             dependenciesFn?.(this, valueVertex, operationValues);
         }
+
+        this.pendingProcessingEdges.clear();
     }
 
     private resolveVertex(vertex: Vertex<unknown>, object: PlainObject = this.resolved!) {

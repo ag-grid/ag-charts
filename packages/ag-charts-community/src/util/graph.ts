@@ -5,15 +5,30 @@ import { isObject } from 'ag-charts-core';
  */
 export class AdjacencyListGraph<V, E = undefined> {
     // Store vertices as a flat set to optimise vertex lookup.
-    private _vertices: Set<Vertex<V>> = new Set();
+    private readonly _vertices: Set<Vertex<V>> = new Set();
 
     // Stores edges in a way to optimise lookup of vertices adjacent by edge value to a vertex. This is less optimal
     // for iteration of all edges and deletion of vertices & edges, however this is less useful for our case.
-    private _edges: Map<Vertex<V>, Map<E, Set<Vertex<V>>>> = new Map();
+    private readonly _edges: Map<Vertex<V>, Map<E, Set<Vertex<V>>>> = new Map();
+
+    // Stores edges in a way to optimise lookup of pairs of adjacent vertices grouped by edge value.
+    private readonly _edgesByEdge: Map<E, Set<[Vertex<V>, Vertex<V>]>> = new Map();
+
+    // Caches neighbours on a given edge value, optimised for lookup by the `to` vertex value.
+    protected cachedNeighboursEdge?: E;
+    private readonly _cachedNeighbours: Map<Vertex<V>, Map<V, Vertex<V>>> = new Map();
+
+    // Stores edges that are pending processing on a given edge value, optimised for iteration of pairs of adjacent
+    // vertices. Should call `.clear()` once the edges have been processed.
+    protected processedEdge?: E;
+    protected readonly pendingProcessingEdges: Set<[Vertex<V>, Vertex<V>]> = new Set();
 
     clear() {
-        this._vertices = new Set();
-        this._edges = new Map();
+        this._vertices.clear();
+        this._edges.clear();
+        this._edgesByEdge.clear();
+        this._cachedNeighbours.clear();
+        this.pendingProcessingEdges.clear();
     }
 
     addVertex(value: V): Vertex<V> {
@@ -23,6 +38,26 @@ export class AdjacencyListGraph<V, E = undefined> {
     }
 
     addEdge(from: Vertex<V>, to: Vertex<V>, edge: E): void {
+        const edgeByEdge = this._edgesByEdge.get(edge);
+        if (edgeByEdge) {
+            edgeByEdge.add([from, to]);
+        } else {
+            this._edgesByEdge.set(edge, new Set([[from, to]]));
+        }
+
+        if (edge === this.cachedNeighboursEdge) {
+            const cache = this._cachedNeighbours.get(from);
+            if (cache) {
+                cache.set(to.value, to);
+            } else {
+                this._cachedNeighbours.set(from, new Map([[to.value, to]]));
+            }
+        }
+
+        if (edge === this.processedEdge) {
+            this.pendingProcessingEdges.add([from, to]);
+        }
+
         if (!this._edges.has(from)) {
             this._edges.set(from, new Map([[edge, new Set([to])]]));
             return;
@@ -73,24 +108,9 @@ export class AdjacencyListGraph<V, E = undefined> {
         return vertex.value;
     }
 
-    // Iterate the edges as a tuple of the 'from' vertex, 'to' vertex and edge value. Optionally constrained to a
-    // single edge value.
-    *edges(edgeValue?: E): Generator<[Vertex<V>, Vertex<V>, E], void, unknown> {
-        for (const [fromVertex, fromVertexEdges] of this._edges) {
-            if (edgeValue) {
-                const edges = fromVertexEdges.get(edgeValue);
-                if (!edges) continue;
-                for (const toVertex of edges) {
-                    yield [fromVertex, toVertex, edgeValue];
-                }
-            } else {
-                for (const [edgeV, toVertices] of fromVertexEdges) {
-                    for (const toVertex of toVertices) {
-                        yield [fromVertex, toVertex, edgeV];
-                    }
-                }
-            }
-        }
+    // Iterate the edges as a tuple of the 'from' vertex and 'to' vertex for a given edge.
+    edges(edgeValue: E): Set<[Vertex<V>, Vertex<V>]> {
+        return this._edgesByEdge.get(edgeValue) ?? new Set();
     }
 
     // Iterate all the neighbours of a given vertex.
@@ -147,6 +167,15 @@ export class AdjacencyListGraph<V, E = undefined> {
 
     // Find a vertex by iterating an array of vertex values along a given edge.
     findVertexAlongEdge(from: Vertex<V>, findValues: Array<V>, edgeValue: E): Vertex<V> | undefined {
+        if (edgeValue === this.cachedNeighboursEdge) {
+            let found;
+            for (const value of findValues) {
+                found = this._cachedNeighbours.get(found ?? from)?.get(value);
+                if (!found) return;
+            }
+            return found;
+        }
+
         let vertex = from;
         let found;
         for (const value of findValues) {
