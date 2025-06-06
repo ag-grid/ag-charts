@@ -12,6 +12,7 @@ import {
 import { chartTypes } from '../chart/factory/chartTypes';
 import { isGradientFill, isImageFill, isPatternFill } from '../scene/util/fill';
 import { Color } from '../util/color';
+import { Debug } from '../util/debug';
 import { without } from '../util/object';
 import {
     DEFAULTS_EDGE,
@@ -139,9 +140,12 @@ function foregroundBackgroundMixOperation(
             backgroundRatio
         ).toString();
     }
-    // Logger.warnOnce(
-    //     `\`$foregroundBackgroundMix\` json operation failed on [${String(background)}}}] at [${path.join('.')}], expecting a number between 0 and 1.`
-    // );
+
+    Debug.inDevelopmentMode(() =>
+        Logger.warnOnce(
+            `\`$foregroundBackgroundMix\` json operation failed on [${String(backgroundColor)}}}] at [${graph.getPathArray(vertex).join('.')}], expecting a number between 0 and 1.`
+        )
+    );
 }
 
 function foregroundBackgroundAccentMixOperation(
@@ -169,9 +173,12 @@ function foregroundBackgroundAccentMixOperation(
             accentRatio
         ).toString();
     }
-    // Logger.warnOnce(
-    //     `\`$foregroundBackgroundAccentMix\` json operation failed on [${String(background)}, ${String(accent)}}] at [${path.join('.')}], expecting two numbers between 0 and 1.`
-    // );
+
+    Debug.inDevelopmentMode(() =>
+        Logger.warnOnce(
+            `\`$foregroundBackgroundAccentMix\` json operation failed on [${String(backgroundColor)}, ${String(accentColor)}}] at [${graph.getPathArray(vertex).join('.')}], expecting two numbers between 0 and 1.`
+        )
+    );
 }
 
 function interpolateOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
@@ -216,7 +223,7 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     const warningMessage = `${warningPrefix} two colors and a number between 0 and 1.`;
 
     if (typeof colorB !== 'string' || !isRatio(ratio)) {
-        Logger.warnOnce(warningMessage);
+        Debug.inDevelopmentMode(() => Logger.warnOnce(warningMessage));
         return;
     }
 
@@ -224,13 +231,13 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
         try {
             return Color.mix(Color.fromString(colorA), Color.fromString(colorB), ratio).toString();
         } catch {
-            Logger.warnOnce(warningMessage);
+            Debug.inDevelopmentMode(() => Logger.warnOnce(warningMessage));
             return;
         }
     }
 
     if (!isGradientFill(colorA)) {
-        Logger.warnOnce(warningMessage);
+        Debug.inDevelopmentMode(() => Logger.warnOnce(warningMessage));
         return;
     }
 
@@ -244,7 +251,9 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
             return { ...value, color };
         });
     } catch {
-        Logger.warnOnce(`${warningPrefix} a gradient, a color and a number between 0 and 1.`);
+        Debug.inDevelopmentMode(() =>
+            Logger.warnOnce(`${warningPrefix} a gradient, a color and a number between 0 and 1.`)
+        );
         return;
     }
 
@@ -261,7 +270,7 @@ const fontOperations: Record<FontOperation, OperationFns> = {
     $rem: remOperation,
 };
 
-function remOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, values: Set<VertexInterface>) {
+function remOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
     const [valueVertex] = values;
     const value = graph.getVertexValue(valueVertex);
     const fontSize = graph.getParamValue('fontSize');
@@ -269,7 +278,12 @@ function remOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, va
     if (typeof fontSize === 'number' && typeof value === 'number') {
         return Math.round(value * fontSize);
     }
-    // Logger.warnOnce(`\`$rem\` json operation failed on [${String(a)}] at [${path.join('.')}], expecting a number.`);
+
+    Debug.inDevelopmentMode(() =>
+        Logger.warnOnce(
+            `\`$rem\` json operation failed on [${String(value)}] at [${graph.getPathArray(vertex).join('.')}], expecting a number.`
+        )
+    );
 }
 
 // --- LOGIC ---
