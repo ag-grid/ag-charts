@@ -13,6 +13,7 @@ import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
+import { ShapeOutlineGroup } from '../../../scene/shapeOutlineGroup';
 import { isGradientFill, isStringFillArray } from '../../../scene/util/fill';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
@@ -126,6 +127,11 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         zIndex: PolarZIndexMap.BACKGROUND,
     });
 
+    readonly overlayGroup = new TranslatableGroup({
+        name: `${this.id}-overlay`,
+        zIndex: PolarZIndexMap.LABEL + 1,
+    });
+
     private noVisibleData: boolean = false;
 
     private readonly previousRadiusScale: LinearScale = new LinearScale();
@@ -146,6 +152,13 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     readonly zerosumRingsGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-zerosumRings` }));
     readonly zerosumOuterRing = this.zerosumRingsGroup.appendChild(new Marker({ shape: 'circle' }));
     readonly zerosumInnerRing = this.zerosumRingsGroup.appendChild(new Marker({ shape: 'circle' }));
+
+    readonly highlightOutlineGroup = this.overlayGroup.appendChild(new ShapeOutlineGroup());
+    readonly highlightOutlineGroupSelection = Selection.select(
+        this.highlightOutlineGroup,
+        () => this.nodeFactory(),
+        true
+    );
 
     readonly innerLabelsGroup = this.contentGroup.appendChild(new Group({ name: 'innerLabels' }));
     readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
@@ -186,12 +199,14 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.angleScale.range = [-Math.PI, Math.PI].map((angle) => angle + Math.PI / 2);
 
         this.phantomGroup.opacity = 0.2;
+        this.highlightOutlineGroup.opacity = 0.6;
     }
 
     override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {
         super.attachSeries(seriesContentNode, seriesNode, annotationNode);
 
         seriesContentNode?.appendChild(this.backgroundGroup);
+        seriesContentNode?.appendChild(this.overlayGroup);
     }
 
     override detachSeries(
@@ -202,12 +217,14 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         super.detachSeries(seriesContentNode, seriesNode, annotationNode);
 
         seriesContentNode?.removeChild(this.backgroundGroup);
+        seriesContentNode?.removeChild(this.overlayGroup);
     }
 
     override setSeriesIndex(index: number) {
         if (!super.setSeriesIndex(index)) return false;
 
         this.backgroundGroup.zIndex = [PolarZIndexMap.BACKGROUND, index];
+        this.overlayGroup.zIndex = [PolarZIndexMap.LABEL + 1, index];
 
         return true;
     }
@@ -777,6 +794,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.highlightGroup.translationY = this.centerY;
         this.backgroundGroup.translationX = this.centerX;
         this.backgroundGroup.translationY = this.centerY;
+        this.overlayGroup.translationX = this.centerX;
+        this.overlayGroup.translationY = this.centerY;
         if (this.labelGroup) {
             this.labelGroup.translationX = this.centerX;
             this.labelGroup.translationY = this.centerY;
@@ -866,6 +885,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         update(highlightSelection, highlightedNodeData);
         update(phantomSelection, this.phantomNodeData ?? []);
 
+        update(this.highlightOutlineGroupSelection, this.nodeData);
+
         calloutLabelSelection.update(this.calloutNodeData, (group) => {
             const line = new Line();
             line.tag = DonutNodeTag.Callout;
@@ -911,7 +932,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const { legendItemValues } = this.getProcessedDataValues(dataModel, processedData);
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
-        this.highlightGroup.visible = visible && seriesHighlighted;
+        this.highlightGroup.visible = false;
         this.highlightLabel.visible = visible && seriesHighlighted;
         this.labelGroup.visible = visible;
 
@@ -973,6 +994,11 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             node.visible = datum.itemId === highlightedDatum?.itemId;
         });
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
+        this.highlightOutlineGroupSelection.each((node, datum, index) => {
+            updateSectorFn(node, datum, index, false);
+
+            node.visible = datum.itemId === highlightedDatum?.itemId;
+        });
 
         this.updateCalloutLineNodes();
         this.updateCalloutLabelNodes(seriesRect);

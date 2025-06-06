@@ -279,6 +279,11 @@ export class Group<D = any> extends Node<D> {
         const dirty = this.isDirty(renderCtx);
         this.dirty = false;
 
+        if (this.dirtyZIndex) {
+            this.sortChildren(Group.compareChildren);
+            this.dirtyZIndex = false;
+        }
+
         if (!renderToOffscreenCanvas) {
             this.renderInContext(childRenderCtx);
             super.render(childRenderCtx); // Calls markClean().
@@ -358,13 +363,8 @@ export class Group<D = any> extends Node<D> {
         ctx.clip();
     }
 
-    private renderInContext(childRenderCtx: RenderContext) {
+    protected renderInContext(childRenderCtx: RenderContext) {
         const { ctx, stats } = childRenderCtx;
-
-        if (this.dirtyZIndex) {
-            this.sortChildren(Group.compareChildren);
-            this.dirtyZIndex = false;
-        }
 
         ctx.save();
 
