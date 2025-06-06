@@ -1,4 +1,4 @@
-import { entries, isArray } from 'ag-charts-core';
+import { entries } from 'ag-charts-core';
 import type {
     AgChartTheme,
     AgChartThemeOptions,
@@ -15,7 +15,7 @@ import type {
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
 import { Color } from '../../util/color';
-import { deepClone, jsonWalk } from '../../util/json';
+import { deepClone } from '../../util/json';
 import { deepFreeze, mergeDefaults } from '../../util/object';
 import { axisRegistry } from '../factory/axisRegistry';
 import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
@@ -531,7 +531,7 @@ export class ChartTheme {
 
         this.params = mergeDefaults(params, this.getPublicParameters());
 
-        this.config = deepFreeze(this.templateTheme(defaults));
+        this.config = deepFreeze(deepClone(defaults));
         this.overrides = deepFreeze(overrides);
         this.presets = deepFreeze(presets);
     }
@@ -600,33 +600,6 @@ export class ChartTheme {
             getOverridesByType('standalone', chartTypes.standaloneTypes),
             getOverridesByType('gauge', chartTypes.gaugeTypes)
         );
-    }
-
-    private static applyTemplateTheme(this: void, node: any, _other: any, params?: Map<any, any>) {
-        if (isArray(node)) {
-            for (let i = 0; i < node.length; i++) {
-                const symbol = node[i];
-                if (typeof symbol === 'symbol' && params?.has(symbol)) {
-                    node[i] = params.get(symbol);
-                }
-            }
-        } else {
-            for (const name of Object.keys(node)) {
-                const value = node[name];
-                if (typeof value === 'symbol' && params?.has(value)) {
-                    node[name] = params.get(value);
-                }
-            }
-        }
-    }
-
-    templateTheme<T>(themeTemplate: T, clone = true): T {
-        const themeInstance = clone ? deepClone(themeTemplate) : themeTemplate;
-        const params = this.getTemplateParameters();
-
-        jsonWalk(themeInstance, ChartTheme.applyTemplateTheme, undefined, undefined, params);
-
-        return themeInstance;
     }
 
     protected getDefaultColors(): DefaultColors {

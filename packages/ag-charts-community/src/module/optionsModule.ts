@@ -258,10 +258,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         const activeTheme = getChartTheme(options.theme);
 
-        if (presetType != null) {
-            activeTheme.templateTheme(options, false);
-        }
-
         // Must run before chart validation to cleanup invalid types.
         this.validateSeriesOptions(options);
 
@@ -296,8 +292,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // TODO: move into options graph?
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
-
-        activeTheme.templateTheme(processedOptions, false);
 
         removeUnusedEnterpriseOptions(processedOptions);
         if (!enterpriseModule.isEnterprise) {

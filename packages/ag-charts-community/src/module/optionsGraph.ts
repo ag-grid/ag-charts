@@ -29,7 +29,14 @@ import {
 
 export const createOptionsGraph = simpleMemorize(createOptionsGraphFn);
 export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject) {
-    return new OptionsGraph(theme.config, options, theme.params, theme.palette, theme.overrides);
+    return new OptionsGraph(
+        theme.config,
+        options,
+        theme.params,
+        theme.palette,
+        theme.overrides,
+        theme.getTemplateParameters()
+    );
 }
 
 /**
@@ -62,6 +69,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
     private readonly config: PlainObject;
     private readonly overrides: PlainObject | undefined;
+    private readonly internalParams: Map<any, any>;
 
     // The initial vertices for different branches of the graph that are resolved separately.
     private readonly root: Vertex<unknown>;
@@ -84,7 +92,8 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         userOptions: PlainObject = {},
         params: PlainObject = {},
         palette: PlainObject = {},
-        overrides: PlainObject = {}
+        overrides: PlainObject = {},
+        internalParams: Map<any, any> = new Map()
     ) {
         super();
 
@@ -97,6 +106,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
         this.config = config;
         this.overrides = overrides;
+        this.internalParams = internalParams;
 
         // TODO: Remove `deepClone()` which is just used to workaround the freezing.
         this.palette = deepClone(palette);
@@ -270,7 +280,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             value = getPathSafe(object, this.getPathArray(vertex));
         }
 
-        return value;
+        return this.resolveValueOrSymbol(value);
     }
 
     // Resolve the value currently referenced by `$1`
@@ -608,7 +618,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             return resolved === RESOLVED_TO_BRANCH ? undefined : resolved;
         }
 
-        return this.getVertexValue(valueVertex);
+        return this.resolveValueOrSymbol(this.getVertexValue(valueVertex));
     }
 
     private resolveVertexAutoEnable(vertex: Vertex<unknown>, object: PlainObject, pathArray: Array<string>) {
@@ -707,5 +717,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
                 childOrphanPathArray
             );
         }
+    }
+
+    private resolveValueOrSymbol(value: unknown) {
+        return typeof value === 'symbol' && this.internalParams?.has(value) ? this.internalParams.get(value) : value;
     }
 }
