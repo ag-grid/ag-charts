@@ -43,9 +43,11 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = TCon
     radiusKey?: string;
 }
 
-export interface AgSeriesVisibilityChange {
+export interface AgSeriesVisibilityChange<TContext = TContextDefault> {
     /** Event type. */
     type: 'seriesVisibilityChange';
+    /** Callback context for this event. */
+    context?: TContext;
     /** Series id */
     seriesId: string;
     /** Legend item id - usually yKey value for cartesian series. */
@@ -104,7 +106,7 @@ export interface AgBaseChartListeners<TDatum, TContext = TContextDefault> {
      * Useful for a chart containing multiple series.*/
     seriesNodeDoubleClick?: Listener<AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>>;
     /** The listener to call when a series visibility is changed. */
-    seriesVisibilityChange?: Listener<AgSeriesVisibilityChange>;
+    seriesVisibilityChange?: Listener<AgSeriesVisibilityChange<TContext>>;
     /** The listener to call when the chart is clicked. */
     click?: Listener<AgChartClickEvent<TContext>>;
     /** The listener to call when the chart is double-clicked. */
