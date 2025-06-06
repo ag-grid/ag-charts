@@ -116,22 +116,34 @@ describe('AG-14631 context enterprise', () => {
     });
 
     // Skip unit test (not yet implemented)
-    xtest('dataSource', async () => {
-        type TDatum = unknown;
+    test('dataSource', async () => {
+        type TDatum = Readonly<{ x: string; y: number }>;
         type TContext = Readonly<{ name: string }>;
         type TMock = MockGetDataCallback<TDatum, TContext>;
-        const imp = (_params: AgDataSourceCallbackParams): Promise<unknown[]> => new Promise((_resolve) => []);
+        const promise = new Promise<TDatum[]>((_resolve) => [
+            { x: 'Jan', y: 62 },
+            { x: 'Feb', y: 45 },
+            { x: 'Mar', y: 38 },
+        ]);
+        const imp = (_params: AgDataSourceCallbackParams<TContext>): Promise<TDatum[]> => promise;
         const getDataCallback = newFreezableMock<TDatum, TContext, TMock>(imp);
         const chartContext: TContext = { name: 'chart context' };
         const seriesContext: TContext = { name: 'series context' };
         const opts: AgChartOptions<unknown, { name: string }> = {
-            dataSource: { getData: getDataCallback.frozen },
+            dataSource: {
+                // @ts-expect-error Set undocumented options to instantly resolve for tests
+                requestThrottle: 0,
+                updateThrottle: 0,
+                updateDuringInteraction: true,
+                getData: getDataCallback.frozen,
+            },
             context: chartContext,
             series: [{ type: 'line', xKey: 'x', yKey: 'y', context: seriesContext }],
             zoom: { enabled: true },
         };
 
         chart = await createChart(opts);
+        await clickAction(400, 300)(chart);
         expect(Object.isFrozen(chartContext)).toBe(false);
         expect(Object.isFrozen(seriesContext)).toBe(false);
         getDataCallback.expect().toHaveBeenCalledTimes(1).withContext(chartContext);
