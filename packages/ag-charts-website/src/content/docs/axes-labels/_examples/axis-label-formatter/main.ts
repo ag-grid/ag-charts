@@ -20,18 +20,14 @@ const options: AgChartOptions<DataType> = {
             type: 'category',
             position: 'bottom',
             label: {
-                formatter: ({ value }) => {
-                    return value == 'Windows' ? '== Windows ==' : value;
-                },
+                formatter: ({ value }) => (value === 'Windows' ? '== Windows ==' : value),
             },
         },
         {
             type: 'number',
             position: 'left',
             label: {
-                formatter: (params) => {
-                    return params.value * 100 + '%';
-                },
+                formatter: ({ value }) => `${value * 100}%`,
             },
         },
     ],

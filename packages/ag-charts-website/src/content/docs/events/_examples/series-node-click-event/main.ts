@@ -1,4 +1,5 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
+
 interface DataType {
     month: string;
     low: number;
@@ -44,14 +45,14 @@ const options: AgChartOptions<DataType> = {
         enabled: false,
     },
     listeners: {
-        seriesNodeClick: ({ datum, xKey, yKey, seriesId }) => {
-            console.log(`[click]\nTemperature in ${datum[xKey!]}: ${String(datum[yKey!])}°C\nSeries: ${seriesId}`);
+        seriesNodeClick: ({ datum, yKey, seriesId }) => {
+            console.log(`[click]\nTemperature in ${datum.month}: ${String(datum[yKey!])}°C\nSeries: ${seriesId}`);
         },
-        seriesNodeDoubleClick: ({ datum, xKey, yKey, seriesId }) => {
+        seriesNodeDoubleClick: ({ datum, yKey, seriesId }) => {
             const celsius = Number(datum[yKey!]);
             const fahrenheit = (celsius * 9) / 5 + 32;
             console.log(
-                `[double click]\nTemperature in ${datum[xKey!]}: ${fahrenheit.toFixed(2)}°F\nSeries: ${seriesId}`
+                `[double click]\nTemperature in ${datum.month}: ${fahrenheit.toFixed(2)}°F\nSeries: ${seriesId}`
             );
         },
     },

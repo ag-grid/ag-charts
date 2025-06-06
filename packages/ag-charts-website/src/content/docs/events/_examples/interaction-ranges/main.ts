@@ -37,7 +37,7 @@ let options: AgCartesianChartOptions<DataType> = {
             yKey: 'petrol',
             nodeClickRange: 'exact',
             listeners: {
-                seriesNodeClick: (event) => console.log(`${event.yKey} - ${event.datum.petrol}`),
+                seriesNodeClick: ({ datum }) => console.log(`petrol - ${datum.petrol}`),
             },
         },
         {
@@ -46,7 +46,7 @@ let options: AgCartesianChartOptions<DataType> = {
             yKey: 'diesel',
             nodeClickRange: 'exact',
             listeners: {
-                seriesNodeClick: (event) => console.log(`${event.yKey} - ${event.datum.diesel}`),
+                seriesNodeClick: ({ datum }) => console.log(`diesel - ${datum.diesel}`),
             },
         },
     ],

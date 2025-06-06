@@ -41,18 +41,12 @@ const options: AgChartOptions<DataType> = {
     ],
 };
 
-function customTooltipRenderer(params: AgLineSeriesTooltipRendererParams<DataType>) {
-    const { datum, xUpperKey, xLowerKey, yUpperKey, yLowerKey } = params;
-    const expiryUpper = datum[xUpperKey!];
-    const expiryLower = datum[xLowerKey!];
-    const priceUpper = datum[yUpperKey!];
-    const priceLower = datum[yLowerKey!];
-
+function customTooltipRenderer({ datum }: AgLineSeriesTooltipRendererParams<DataType>) {
     return {
         heading: undefined,
         data: [
-            { label: 'Expiry', value: `${expiryLower} to ${expiryUpper} months` },
-            { label: 'Price', value: `${priceLower} to ${priceUpper} pounds` },
+            { label: 'Expiry', value: `${datum.expiryLo} to ${datum.expiryHi} months` },
+            { label: 'Price', value: `${datum.priceLo} to ${datum.priceHi} pounds` },
         ],
     };
 }

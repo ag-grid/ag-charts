@@ -34,9 +34,9 @@ const options: AgChartOptions<DataType> = {
             xKey: 'country',
             yKey: 'gdp',
             showInLegend: false,
-            itemStyler: (params) => {
+            itemStyler: ({ datum: { country }, fill, highlighted }) => {
                 return {
-                    fill: params.datum[params.xKey] === 'UK' ? (params.highlighted ? 'lime' : 'red') : params.fill,
+                    fill: country === 'UK' ? (highlighted ? 'lime' : 'red') : fill,
                 };
             },
         },

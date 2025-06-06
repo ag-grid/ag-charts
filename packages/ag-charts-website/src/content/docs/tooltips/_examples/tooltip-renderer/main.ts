@@ -3,13 +3,14 @@ import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-c
 import { DataType, getData } from './data';
 
 function renderer(params: AgBarSeriesTooltipRendererParams<DataType>) {
+    const { datum, fill, yKey } = params;
     return (
         '<div class="my-tooltip" style="--color:' +
-        params.fill +
+        fill +
         '">' +
-        params.datum[params.xKey] +
+        datum.month +
         '&nbsp;&#10172;&nbsp;' +
-        params.datum[params.yKey].toFixed(0) +
+        datum[yKey].toFixed(0) +
         '</div>'
     );
 }
@@ -21,7 +22,7 @@ const options: AgChartOptions<DataType> = {
         {
             type: 'bar',
             xKey: 'month',
-            tooltip: { renderer: renderer },
+            tooltip: { renderer },
             yKey: 'sweaters',
             yName: 'Sweaters made',
             stacked: true,
@@ -29,7 +30,7 @@ const options: AgChartOptions<DataType> = {
         {
             type: 'bar',
             xKey: 'month',
-            tooltip: { renderer: renderer },
+            tooltip: { renderer },
             yKey: 'hats',
             yName: 'Hats made',
             stacked: true,

@@ -18,9 +18,8 @@ const options: AgChartOptions<DataType> = {
             yKey: 'coal',
             yName: 'Coal',
             marker: {
-                itemStyler: (params) => {
-                    if (params.datum.coal > params.datum.nuclear) return { fill: 'red', size: 15 };
-                    else return { fill: params.fill, size: params.size };
+                itemStyler: ({ datum: { coal, nuclear }, fill, size }) => {
+                    return coal > nuclear ? { fill: 'red', size: 15 } : { fill, size };
                 },
             },
         },
@@ -35,9 +34,9 @@ const options: AgChartOptions<DataType> = {
             xKey: 'month',
             yKey: 'imported',
             yName: 'Imported',
-            itemStyler: ({ datum, xKey, fill, highlighted }) => {
+            itemStyler: ({ datum, fill, highlighted }) => {
                 return {
-                    fill: datum[xKey] === 'Jul' ? (highlighted ? 'lime' : 'red') : fill,
+                    fill: datum.month === 'Jul' ? (highlighted ? 'lime' : 'red') : fill,
                 };
             },
         },

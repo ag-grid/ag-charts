@@ -2,14 +2,16 @@ import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from
 
 import { DataType, getData } from './data';
 
-function renderer({ datum, xKey, yKey, yName }: AgCartesianSeriesTooltipRendererParams<DataType>) {
+function renderer({ datum, yKey, yName }: AgCartesianSeriesTooltipRendererParams<DataType>) {
+    const { month } = datum;
+    const value = datum[yKey].toFixed(1);
     return {
         heading: 'Clothing Production',
         title: yName?.toUpperCase(),
         data: [
             {
-                label: datum[xKey],
-                value: datum[yKey].toFixed(1),
+                label: month,
+                value,
             },
         ],
     };
@@ -22,7 +24,7 @@ const options: AgChartOptions<DataType> = {
         {
             type: 'bar',
             xKey: 'month',
-            tooltip: { renderer: renderer },
+            tooltip: { renderer },
             yKey: 'sweaters',
             yName: 'Sweaters made',
             stacked: true,
@@ -30,7 +32,7 @@ const options: AgChartOptions<DataType> = {
         {
             type: 'bar',
             xKey: 'month',
-            tooltip: { renderer: renderer },
+            tooltip: { renderer },
             yKey: 'hats',
             yName: 'Hats made',
             stacked: true,
