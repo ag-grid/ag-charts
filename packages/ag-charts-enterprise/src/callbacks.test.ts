@@ -180,8 +180,8 @@ describe('AG-14631 context enterprise', () => {
             chartSeriesVisibilityChange = newFreezable((_p: AgSeriesVisibilityChange) => {});
             seriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', TDatum>) => {});
             seriesNodeDoubleClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeDoubleClick', TDatum>) => {});
-            legendItemClick = newFreezable((_p: AgChartLegendClickEvent) => {});
-            legendItemDoubleClick = newFreezable((_p: AgChartLegendDoubleClickEvent) => {});
+            legendItemClick = newFreezable((_p: AgChartLegendClickEvent<TContext>) => {});
+            legendItemDoubleClick = newFreezable((_p: AgChartLegendDoubleClickEvent<TContext>) => {});
 
             chartContext = { name: 'chart context' } as const;
             series0Context = { name: 'series 0 context' } as const;

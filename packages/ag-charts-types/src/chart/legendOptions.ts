@@ -10,6 +10,7 @@ import type {
     FontWeight,
     Opacity,
     PixelSize,
+    TContextDefault,
 } from './types';
 
 export type AgChartLegendPosition = 'top' | 'right' | 'bottom' | 'left';
@@ -75,7 +76,7 @@ export interface AgChartLegendItemOptions {
     showSeriesStroke?: boolean;
 }
 
-export interface AgChartLegendEvent<T extends string> {
+export interface AgChartLegendEvent<T extends string, TContext = TContextDefault> {
     type: T;
     /** Series id */
     seriesId: string;
@@ -85,22 +86,29 @@ export interface AgChartLegendEvent<T extends string> {
     text: string;
     /** The browser event that triggered the legend event. */
     event: Event;
+    /** Callback context for this event. */
+    context?: TContext;
 }
 
-export interface AgChartLegendClickEvent extends AgChartLegendEvent<'click'>, AgPreventableEvent {}
+export interface AgChartLegendClickEvent<TContext = TContextDefault>
+    extends AgChartLegendEvent<'click', TContext>,
+        AgPreventableEvent {}
 
-export interface AgChartLegendDoubleClickEvent extends AgChartLegendEvent<'dblclick'>, AgPreventableEvent {}
+export interface AgChartLegendDoubleClickEvent<TContext = TContextDefault>
+    extends AgChartLegendEvent<'dblclick', TContext>,
+        AgPreventableEvent {}
 
-export interface AgChartLegendContextMenuEvent extends AgChartLegendEvent<'contextmenu'> {}
+export interface AgChartLegendContextMenuEvent<TContext = TContextDefault>
+    extends AgChartLegendEvent<'contextmenu', TContext> {}
 
-export interface AgChartLegendListeners {
+export interface AgChartLegendListeners<TContext = TContextDefault> {
     /** The listener to call when a legend item is clicked. */
-    legendItemClick?: (event: AgChartLegendClickEvent) => void;
+    legendItemClick?: (event: AgChartLegendClickEvent<TContext>) => void;
     /** The listener to call when a legend item is double-clicked. */
-    legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent) => void;
+    legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent<TContext>) => void;
 }
 
-export interface AgChartLegendOptions {
+export interface AgChartLegendOptions<TContext = TContextDefault> {
     /** Whether to show the legend. By default, the chart displays a legend when there is more than one series present. */
     enabled?: boolean;
     /** Where the legend should show in relation to the chart. */
@@ -118,7 +126,7 @@ export interface AgChartLegendOptions {
     /** Reverse the display order of legend items if `true`. */
     reverseOrder?: boolean;
     /** Optional callbacks for specific legend-related events. */
-    listeners?: AgChartLegendListeners;
+    listeners?: AgChartLegendListeners<TContext>;
     /** Configuration for the pagination controls. */
     pagination?: AgChartLegendPaginationOptions;
     /** Set to `true` to prevent the last visible series from being toggled hidden. */
