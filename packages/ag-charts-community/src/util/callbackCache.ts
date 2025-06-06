@@ -1,12 +1,12 @@
 import { type AnyFn, Logger } from 'ag-charts-core';
 
-type Caller = { context?: unknown };
+type Caller = { context?: unknown } | undefined;
 
-function needsContext<I>(caller: Caller, _params: I[]): _params is (I & { context: unknown })[] {
+function needsContext<I>(caller: NonNullable<Caller>, _params: I[]): _params is (I & { context: unknown })[] {
     return 'context' in caller;
 }
 function maybeSetContext<I>(caller: Caller, params: I[]): boolean {
-    if (needsContext(caller, params)) {
+    if (caller != null && needsContext(caller, params)) {
         if (params[0] != null && typeof params[0] === 'object' && params[0].context === undefined) {
             params[0].context = caller.context;
             return true;
