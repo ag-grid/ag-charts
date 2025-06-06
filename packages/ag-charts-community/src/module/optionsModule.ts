@@ -258,6 +258,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         const activeTheme = getChartTheme(options.theme);
 
+        // TODO: Remove as this is only required to pass the series validation, it is handled by the OptionsGraph.
+        if (presetType != null) {
+            activeTheme.templateTheme(options, false);
+        }
+
         // Must run before chart validation to cleanup invalid types.
         this.validateSeriesOptions(options);
 
