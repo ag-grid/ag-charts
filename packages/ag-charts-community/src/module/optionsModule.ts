@@ -53,7 +53,6 @@ import { enterpriseModule } from './enterpriseModule';
 export interface ChartSpecialOverrides {
     document: Document;
     window: Window;
-    sceneMode?: 'simple';
     styleContainer?: HTMLElement;
 }
 

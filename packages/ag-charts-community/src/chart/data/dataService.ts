@@ -11,6 +11,11 @@ interface DataSourceCallbackParams {
 }
 type DataSourceCallback = (params: DataSourceCallbackParams) => Promise<unknown>;
 
+export interface DataServiceRestoredData {
+    params: DataSourceCallbackParams;
+    data: unknown;
+}
+
 export class DataService<D extends object> {
     public dispatchOnlyLatest = true;
 
@@ -31,8 +36,11 @@ export class DataService<D extends object> {
     private dataSourceCallback?: DataSourceCallback;
     private isLoadingInitialData = false;
     private isLoadingData = false;
-    private freshRequests: Array<number> = [];
+    private latestRequest: { params: DataSourceCallbackParams; fetchRequest: Promise<unknown> } | undefined = undefined;
+    private freshRequests: Promise<unknown>[] = [];
     private requestCounter = 0;
+
+    private pendingData: DataServiceRestoredData | undefined = undefined;
 
     private readonly debug = Debug.create(true, 'data-model', 'data-source');
 
@@ -62,6 +70,21 @@ export class DataService<D extends object> {
     }
 
     public load(params: DataSourceCallbackParams) {
+        const { pendingData } = this;
+
+        if (
+            pendingData != null &&
+            pendingData.params.windowStart?.valueOf() === params.windowStart?.valueOf() &&
+            pendingData.params.windowEnd?.valueOf() === params.windowEnd?.valueOf()
+        ) {
+            const id = this.requestCounter++;
+
+            this.isLoadingInitialData = false;
+
+            this.dispatch(id, pendingData.data as D[]);
+            return;
+        }
+
         this.isLoadingData = true;
         this.throttledFetch(params);
     }
@@ -74,6 +97,19 @@ export class DataService<D extends object> {
         return this.isLazy() && (this.isLoadingInitialData || this.isLoadingData);
     }
 
+    public async getData(): Promise<DataServiceRestoredData | undefined> {
+        const { latestRequest } = this;
+        if (!latestRequest) return;
+
+        const { params, fetchRequest } = latestRequest;
+        const data = await fetchRequest;
+        return { params, data };
+    }
+
+    public restoreData(data: DataServiceRestoredData) {
+        this.pendingData = data;
+    }
+
     private createThrottledFetch(requestThrottle: number) {
         return throttle(
             (params: DataSourceCallbackParams) => this.fetch(params).catch((e) => Logger.error('callback failed', e)),
@@ -83,57 +119,65 @@ export class DataService<D extends object> {
     }
 
     private createThrottledDispatch(dispatchThrottle: number) {
-        return throttle(
-            (id: number, data: D[]) => {
-                this.debug(`DataService - dispatching 'data-load' | ${id}`);
-                this.eventsHub.emit('data:load', { data });
-            },
-            dispatchThrottle,
-            { leading: true, trailing: true }
-        );
+        return throttle((id: number, data: D[]) => this.dispatch(id, data), dispatchThrottle, {
+            leading: true,
+            trailing: true,
+        });
+    }
+
+    private dispatch(id: number, data: D[]) {
+        this.debug(`DataService - dispatching 'data-load' | ${id}`);
+        this.eventsHub.emit('data:load', { data });
     }
 
     private async fetch(params: DataSourceCallbackParams) {
-        if (!this.dataSourceCallback) {
-            throw new Error('DataService - [dataSource.getData] callback not initialised');
-        }
+        const fetchRequest = Promise.resolve().then(async () => {
+            if (!this.dataSourceCallback) {
+                throw new Error('DataService - [dataSource.getData] callback not initialised');
+            }
 
-        const start = performance.now();
+            const start = performance.now();
 
-        const id = this.requestCounter++;
-        this.debug(`DataService - requesting | ${id}`);
+            const id = this.requestCounter++;
+            this.debug(`DataService - requesting | ${id}`);
 
-        this.freshRequests.push(id);
+            let response;
+            try {
+                response = await this.dataSourceCallback(params);
+                this.debug(`DataService - response | ${performance.now() - start}ms | ${id}`);
+            } catch (error: any) {
+                this.debug(`DataService - request failed | ${id}`);
+                Logger.errorOnce(`DataService - request failed | [${error}]`);
+                // Ignore errors in callback and keep chart alive
+            }
 
-        let response;
-        try {
-            response = await this.dataSourceCallback(params);
-            this.debug(`DataService - response | ${performance.now() - start}ms | ${id}`);
-        } catch (error: any) {
-            this.debug(`DataService - request failed | ${id}`);
-            Logger.errorOnce(`DataService - request failed | [${error}]`);
-            // Ignore errors in callback and keep chart alive
-        }
+            this.isLoadingInitialData = false;
 
-        this.isLoadingInitialData = false;
+            const requestIndex = this.freshRequests.indexOf(fetchRequest);
+            if (requestIndex === -1 || (this.dispatchOnlyLatest && requestIndex !== this.freshRequests.length - 1)) {
+                this.debug(`DataService - discarding stale request | ${id}`);
+                return response;
+            }
 
-        const requestIndex = this.freshRequests.findIndex((rid) => rid === id);
-        if (requestIndex === -1 || (this.dispatchOnlyLatest && requestIndex !== this.freshRequests.length - 1)) {
-            this.debug(`DataService - discarding stale request | ${id}`);
-            return;
-        }
+            this.freshRequests = this.freshRequests.slice(requestIndex + 1);
 
-        this.freshRequests = this.freshRequests.slice(requestIndex + 1);
+            if (this.freshRequests.length === 0) {
+                this.isLoadingData = false;
+            }
 
-        if (this.freshRequests.length === 0) {
-            this.isLoadingData = false;
-        }
+            // Dispatch response if no failure.
+            if (Array.isArray(response)) {
+                this.throttledDispatch(id, response);
+            } else {
+                this.eventsHub.emit('data:error', null);
+            }
 
-        // Dispatch response if no failure.
-        if (Array.isArray(response)) {
-            this.throttledDispatch(id, response);
-        } else {
-            this.eventsHub.emit('data:error', null);
-        }
+            return response;
+        });
+
+        this.latestRequest = { params, fetchRequest };
+        this.freshRequests.push(fetchRequest);
+
+        await fetchRequest;
     }
 }

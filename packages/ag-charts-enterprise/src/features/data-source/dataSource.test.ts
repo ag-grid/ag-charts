@@ -39,7 +39,7 @@ describe('DataSource', () => {
                 crosshair: { enabled: false },
             },
             {
-                type: 'time',
+                type: 'continuous-time',
                 position: 'bottom',
                 min: new Date('2024-01-01 00:00:00'),
                 max: new Date('2024-01-07 00:00:00'),
