@@ -6,10 +6,9 @@ const data = getData();
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB');
 const tooltip = {
-    renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams<DataType>) => {
-        return {
-            data: [{ label: dateFormatter.format(datum[xKey]), value: `${Math.round(datum[yKey] / 100) / 10 + 'k'}` }],
-        };
+    renderer: ({ datum, yKey }: AgCartesianSeriesTooltipRendererParams<DataType>) => {
+        const value = `${Math.round(Number(datum[yKey]) / 100) / 10 + 'k'}`;
+        return { data: [{ label: dateFormatter.format(datum.date), value }] };
     },
 };
 

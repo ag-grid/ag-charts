@@ -27,8 +27,8 @@ const options: AgChartOptions<DataType> = {
             xKey: 'month',
             yKey: 'units',
             listeners: {
-                seriesNodeClick: (event) => console.log(makeMessage('[click]', event, event.datum)),
-                seriesNodeDoubleClick: (event) => console.log(makeMessage('[double click]', event, event.datum)),
+                seriesNodeClick: (event) => console.log(makeMessage('[click]', event.datum)),
+                seriesNodeDoubleClick: (event) => console.log(makeMessage('[double click]', event.datum)),
             },
         },
     ],
@@ -46,7 +46,7 @@ const options: AgChartOptions<DataType> = {
 
 const chart = AgCharts.create(options);
 
-function makeMessage(header: string, event: { datum: DataType }, datum: DataType) {
+function makeMessage(header: string, datum: DataType) {
     const { brands, month, units } = datum;
     const buffer: string[] = [header, '\nCars sold in ', month, ': ', String(units), '\n'];
     for (const key in brands) {

@@ -1,10 +1,10 @@
 export interface DataType {
     volume: number;
-    volumeLower?: number;
-    volumeUpper?: number;
+    volumeLower: number;
+    volumeUpper: number;
     pressure: number;
-    pressureLower?: number;
-    pressureUpper?: number;
+    pressureLower: number;
+    pressureUpper: number;
 }
 
 export function getHelium(): DataType[] {

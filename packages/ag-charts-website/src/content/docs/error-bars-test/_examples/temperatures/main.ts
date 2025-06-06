@@ -16,7 +16,7 @@ const itemStyler = (param: AgErrorBarItemStylerParams<DataType>) => {
     }
 };
 
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Monthly Average Temperatures with Error Bars (Celsius)',

@@ -4,7 +4,7 @@ import { DataType, getData } from './data';
 
 function renderer({ datum, yKey, yName }: AgCartesianSeriesTooltipRendererParams<DataType>) {
     const { month } = datum;
-    const value = datum[yKey].toFixed(1);
+    const value = Number(datum[yKey]).toFixed(1);
     return {
         heading: 'Clothing Production',
         title: yName?.toUpperCase(),

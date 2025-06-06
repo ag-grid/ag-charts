@@ -10,7 +10,7 @@ function renderer(params: AgBarSeriesTooltipRendererParams<DataType>) {
         '">' +
         datum.month +
         '&nbsp;&#10172;&nbsp;' +
-        datum[yKey].toFixed(0) +
+        Number(datum[yKey]).toFixed(0) +
         '</div>'
     );
 }
