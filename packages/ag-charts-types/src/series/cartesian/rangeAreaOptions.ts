@@ -10,7 +10,7 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 
 export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends Omit<AgCartesianSeriesTooltipRendererParams<TDatum>, 'xKey' | 'xName' | 'yKey' | 'yName'>,
-        AgRangeAreaSeriesOptionsKeys,
+        AgRangeAreaSeriesOptionsKeys<TDatum>,
         AgRangeAreaSeriesOptionsNames,
         Omit<AgSeriesMarkerStyle, 'shape'> {
     /** Hovered marker */
@@ -26,7 +26,8 @@ export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams> extends AgChartL
 
 export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';
 
-export type AgRangeAreaSeriesLabelFormatterParams = AgRangeAreaSeriesOptionsKeys & AgRangeAreaSeriesOptionsNames;
+export type AgRangeAreaSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgRangeAreaSeriesOptionsKeys<TDatum> &
+    AgRangeAreaSeriesOptionsNames;
 
 export interface AgRangeAreaSeriesThemeableOptions<TDatum = TDatumDefault>
     extends StrokeOptions,
@@ -34,13 +35,13 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = TDatumDefault>
         LineDashOptions,
         AgBaseCartesianThemeableOptions<TDatum> {
     /** Configuration for the markers used in the series.  */
-    marker?: AgSeriesMarkerOptions<TDatum, AgRangeAreaSeriesOptionsKeys>;
+    marker?: AgSeriesMarkerOptions<TDatum, AgRangeAreaSeriesOptionsKeys<TDatum>>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
     /** Configuration for the range series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgRangeAreaSeriesLabelOptions<TDatum, AgRangeAreaSeriesLabelFormatterParams>;
+    label?: AgRangeAreaSeriesLabelOptions<TDatum, AgRangeAreaSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
@@ -49,13 +50,13 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = TDatumDefault>
     connectMissingData?: boolean;
 }
 
-export interface AgRangeAreaSeriesOptionsKeys {
+export interface AgRangeAreaSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve y-low-values from the data. */
-    yLowKey: string;
+    yLowKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve y-high-values from the data. */
-    yHighKey: string;
+    yHighKey: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgRangeAreaSeriesOptionsNames {
@@ -71,7 +72,7 @@ export interface AgRangeAreaSeriesOptionsNames {
 
 export interface AgRangeAreaSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgRangeAreaSeriesOptionsKeys,
+        AgRangeAreaSeriesOptionsKeys<TDatum>,
         AgRangeAreaSeriesOptionsNames,
         AgRangeAreaSeriesThemeableOptions<TDatum> {
     /** Configuration for the Range Area Series. */

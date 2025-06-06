@@ -17,15 +17,16 @@ export interface AgPyramidSeriesStageLabelOptions<TDatum, TParams> extends AgCha
 
 export interface AgPyramidSeriesItemStylerParams<TDatum>
     extends DatumCallbackParams<TDatum>,
-        AgPyramidSeriesOptionsKeys,
+        AgPyramidSeriesOptionsKeys<TDatum>,
         Required<AgPyramidSeriesStyle> {}
 
 export interface AgPyramidSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgPyramidSeriesLabelFormatterParams extends AgPyramidSeriesOptionsKeys {}
+export interface AgPyramidSeriesLabelFormatterParams<TDatum = TDatumDefault>
+    extends AgPyramidSeriesOptionsKeys<TDatum> {}
 
 export interface AgPyramidSeriesTooltipRendererParams<TDatum = TDatumDefault>
-    extends AgPyramidSeriesOptionsKeys,
+    extends AgPyramidSeriesOptionsKeys<TDatum>,
         AgPyramidSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum>,
         AgPyramidSeriesStyle {}
@@ -50,9 +51,9 @@ export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault> extends
     /** Ratio of the triangle width to its height. When unset, the triangle will fill the available space. */
     aspectRatio?: number;
     /** Configuration for the labels shown on stages. */
-    label?: AgPyramidSeriesLabelOptions<TDatum, AgPyramidSeriesLabelFormatterParams>;
+    label?: AgPyramidSeriesLabelOptions<TDatum, AgPyramidSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the stage labels. */
-    stageLabel?: AgPyramidSeriesStageLabelOptions<TDatum, AgPyramidSeriesLabelFormatterParams>;
+    stageLabel?: AgPyramidSeriesStageLabelOptions<TDatum, AgPyramidSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
@@ -61,18 +62,18 @@ export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault> extends
     itemStyler?: Styler<AgPyramidSeriesItemStylerParams<TDatum>, AgPyramidSeriesStyle>;
 }
 
-export interface AgPyramidSeriesOptionsKeys {
+export interface AgPyramidSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve stage values from the data. */
-    stageKey: string;
+    stageKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve values from the data. */
-    valueKey: string;
+    valueKey: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgPyramidSeriesOptionsNames {}
 
 export interface AgPyramidSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgPyramidSeriesOptionsKeys,
+        AgPyramidSeriesOptionsKeys<TDatum>,
         AgPyramidSeriesOptionsNames,
         AgPyramidSeriesThemeableOptions<TDatum> {
     /** Configuration for the Funnel Series. */

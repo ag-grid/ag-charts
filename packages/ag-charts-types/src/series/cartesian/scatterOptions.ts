@@ -10,19 +10,21 @@ import type { FillOptions, StrokeOptions } from './commonOptions';
 
 export interface AgScatterSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends AgSeriesTooltipRendererParams<TDatum>,
-        AgScatterSeriesOptionsKeys,
+        AgScatterSeriesOptionsKeys<TDatum>,
         AgScatterSeriesOptionsNames,
-        AgErrorBoundSeriesTooltipRendererParams,
+        AgErrorBoundSeriesTooltipRendererParams<TDatum>,
         FillOptions,
         StrokeOptions {}
 
-export type AgScatterSeriesLabelFormatterParams = AgScatterSeriesOptionsKeys & AgScatterSeriesOptionsNames;
+export type AgScatterSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgScatterSeriesOptionsKeys<TDatum> &
+    AgScatterSeriesOptionsNames;
 
-export type AgScatterSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
-    AgScatterSeriesOptionsKeys &
+export type AgScatterSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+    AgScatterSeriesOptionsKeys<TDatum> &
     Required<AgSeriesMarkerStyle>;
 
-export interface AgScatterSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams> {
+export interface AgScatterSeriesLabel<TDatum>
+    extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams<TDatum>> {
     /**
      * Placement of label in relation to the marker.
      *
@@ -46,13 +48,13 @@ export interface AgScatterSeriesThemeableOptions<TDatum = TDatumDefault>
     errorBar?: AgErrorBarThemeableOptions;
 }
 
-export interface AgScatterSeriesOptionsKeys {
+export interface AgScatterSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve y-values from the data. */
-    yKey: string;
+    yKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
-    labelKey?: string;
+    labelKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgScatterSeriesOptionsNames {
@@ -66,7 +68,7 @@ export interface AgScatterSeriesOptionsNames {
 
 export interface AgScatterSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgScatterSeriesOptionsKeys,
+        AgScatterSeriesOptionsKeys<TDatum>,
         AgScatterSeriesOptionsNames,
         AgScatterSeriesThemeableOptions<TDatum> {
     /** Configuration for the Scatter Series. */
