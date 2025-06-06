@@ -148,8 +148,7 @@ describe('AG-14631 context enterprise', () => {
         getDataCallback.expect().toHaveBeenCalledTimes(1).withContext(chartContext);
     });
 
-    // Skip unit test (not yet implemented)
-    xdescribe('clicks', () => {
+    describe('clicks', () => {
         type TDatum = Readonly<{ x: number; a: number; b: number; c: number }>;
         type TContext = Readonly<{ readonly name: string }>;
         type TFreezable<TMock extends MockAPICallback<TDatum, TContext>> = ReturnType<typeof newFreezable<TMock>>;
