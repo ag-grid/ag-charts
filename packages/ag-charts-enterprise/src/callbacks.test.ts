@@ -115,7 +115,6 @@ describe('AG-14631 context enterprise', () => {
         annotationsListener.expect().toHaveBeenCalledTimes(1).withContext(context);
     });
 
-    // Skip unit test (not yet implemented)
     test('dataSource', async () => {
         type TDatum = Readonly<{ x: string; y: number }>;
         type TContext = Readonly<{ name: string }>;
