@@ -11,10 +11,25 @@ const isHorizontal = { $eq: [{ $path: ['/series/0/direction', undefined] }, 'hor
 // TODO: Fix OptionsGraph to allow `label: { $path: ['/series/0/stageLabel' ]}` to merge with the defaults correctly.
 // Perhaps a type of `$apply` operator.
 const labelOptions = {
+    autoRotate: { $path: '/series/0/stageLabel/autoRotate' },
+    autoRotateAngle: { $path: '/series/0/stageLabel/autoRotateAngle' },
+    avoidCollisions: { $path: ['/series/0/stageLabel/avoidCollisions', true] },
     color: { $path: ['/series/0/stageLabel/color', { $ref: 'textColor' }] },
+    enabled: {
+        $if: [
+            { $eq: [{ $path: '/series/0/stageLabel/enabled' }, undefined] },
+            true,
+            { $path: '/series/0/stageLabel/enabled' },
+        ],
+    },
     fontSize: { $path: ['/series/0/stageLabel/fontSize', { $ref: 'fontSize' }] },
     fontStyle: { $path: ['/series/0/stageLabel/fontStyle', { $ref: 'fontStyle' }] },
     fontWeight: { $path: ['/series/0/stageLabel/fontWeight', { $ref: 'fontWeight' }] },
+    format: { $path: '/series/0/stageLabel/format' },
+    formatter: { $path: '/series/0/stageLabel/formatter' },
+    itemStyler: { $path: '/series/0/stageLabel/itemStyler' },
+    minSpacing: { $path: '/series/0/stageLabel/minSpacing' },
+    rotation: { $path: ['/series/0/stageLabel/rotation', 0] },
 };
 
 export const FUNNEL_SERIES_AXES: any = [
