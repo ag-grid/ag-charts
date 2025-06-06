@@ -10,8 +10,7 @@ import { deproxy, prepareTestOptions, setupMockCanvas, setupMockConsole, waitFor
 // eslint-disable-next-line sonarjs/stable-tests
 jest.retryTimes(5);
 
-// TODO: Investigate why this test is flaky.
-describe.skip('Chart Heap Memory', () => {
+describe('Chart Heap Memory', () => {
     setupMockConsole();
 
     let chart: Chart;
@@ -81,6 +80,10 @@ describe.skip('Chart Heap Memory', () => {
         series: genSeries('area'),
     };
 
+    beforeEach(() => {
+        global.gc?.();
+    });
+
     afterEach(() => {
         if (chart) {
             chart.destroy();
@@ -106,6 +109,7 @@ describe.skip('Chart Heap Memory', () => {
         }
 
         it('should not leak memory after many updates', async () => {
+            global.gc?.();
             const startingHeap = memoryUsage().heapUsed;
 
             const options = [options1, options2, options1, options2];
@@ -118,6 +122,7 @@ describe.skip('Chart Heap Memory', () => {
             }
 
             chartProxy.destroy();
+            global.gc?.();
             const endingHeap = memoryUsage().heapUsed;
             const heapProportionChange = Math.abs(endingHeap - startingHeap) / startingHeap;
 
@@ -126,7 +131,7 @@ describe.skip('Chart Heap Memory', () => {
         }, 20_000);
 
         // Reason: Need to add --expose-gc to node instance, couldn't figure out how to do it yet...
-        it.skip('should free modules from memory', async () => {
+        it('should free modules from memory', async () => {
             let chartProxy: AgChartProxy | null = (await createChart({})).chartProxy;
 
             const instantiatedSeries = new Set<string>();
@@ -142,7 +147,7 @@ describe.skip('Chart Heap Memory', () => {
 
             chartProxy = null;
 
-            global.gc!();
+            global.gc?.();
 
             expect(instantiatedSeries).toEqual(new Set());
         });
