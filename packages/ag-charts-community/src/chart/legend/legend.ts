@@ -28,6 +28,7 @@ import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
 import { isImageFill, isPatternFill } from '../../scene/util/fill';
+import { callWithContext } from '../../util/callbackCache';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties, Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
@@ -913,7 +914,9 @@ export class Legend extends BaseProperties {
 
         let newEnabled = enabled;
         const clickEvent = makeLegendItemEvent('click', datum, event);
-        legendItemClick?.(clickEvent.apiEvent);
+        if (legendItemClick) {
+            callWithContext([series.properties, this.ctx.chartService], legendItemClick, clickEvent.apiEvent);
+        }
 
         if (clickEvent.defaultPrevented) return true;
 
@@ -981,7 +984,13 @@ export class Legend extends BaseProperties {
         }
 
         const doubleClickEvent = makeLegendItemEvent('dblclick', datum, event);
-        legendItemDoubleClick?.(doubleClickEvent.apiEvent);
+        if (legendItemDoubleClick) {
+            callWithContext(
+                [series.properties, this.ctx.chartService],
+                legendItemDoubleClick,
+                doubleClickEvent.apiEvent
+            );
+        }
 
         if (doubleClickEvent.defaultPrevented) return true;
 

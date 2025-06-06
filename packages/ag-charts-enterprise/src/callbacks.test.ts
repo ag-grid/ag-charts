@@ -295,9 +295,10 @@ describe('AG-14631 context enterprise', () => {
             legendItemDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(series1Context).mockClear();
 
             await doubleClickAction(451, 572)(chart);
-            legendItemClick.expect().toHaveBeenCalledTimes(2).withoutContext().mockClear();
-            legendItemDoubleClick.expect().toHaveBeenCalledTimes(1).withoutContext().mockClear();
+            legendItemClick.expect().toHaveBeenCalledTimes(2).withContext(chartContext).mockClear();
+            legendItemDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(chartContext).mockClear();
 
+            chartSeriesVisibilityChange.expect().toHaveBeenCalledTimes(15).mockClear();
             expectNothingCalled();
         });
     });
