@@ -1,10 +1,11 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
+import { DataType } from './data';
 import { getData } from './data';
 
 const customItems = ['Jun', 'Jul', 'Aug', 'Sep'];
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     series: [

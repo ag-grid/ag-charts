@@ -1,16 +1,10 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
+import { DataType, getData } from './data';
+
 const selectedMonths = new Set<string>();
 
-function getData() {
-    return [
-        { month: 'March', units: 25, brands: { BMW: 10, Toyota: 15 }, selected: selectedMonths.has('March') },
-        { month: 'April', units: 27, brands: { Ford: 17, BMW: 10 }, selected: selectedMonths.has('April') },
-        { month: 'May', units: 42, brands: { Nissan: 20, Toyota: 22 }, selected: selectedMonths.has('May') },
-    ];
-}
-
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Number of Cars Sold',
@@ -25,8 +19,8 @@ const options: AgCartesianChartOptions = {
             xKey: 'month',
             yKey: 'units',
             listeners: {
-                seriesNodeClick: (event: any) => {
-                    toggleDatum(event, event.datum);
+                seriesNodeClick: (event) => {
+                    toggleDatum(event.datum);
                 },
             },
             marker: {
@@ -58,7 +52,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function toggleDatum(_event: any, datum?: any) {
+function toggleDatum(datum?: DataType) {
     if (datum == null) {
         selectedMonths.clear();
     } else if (selectedMonths.has(datum.month)) {

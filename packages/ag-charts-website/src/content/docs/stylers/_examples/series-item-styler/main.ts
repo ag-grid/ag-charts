@@ -1,6 +1,11 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-const options: AgChartOptions = {
+interface DataType {
+    country: string;
+    gdp: number;
+}
+
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'GDP by country in billions of USD (2018)',

@@ -1,6 +1,11 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
+interface DataType {
+    month: string;
+    low: number;
+    high: number;
+}
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Average low/high temperatures in London',

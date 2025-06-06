@@ -1,19 +1,19 @@
 import { AgCartesianChartOptions, AgCartesianSeriesTooltipRendererParams, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 const data = getData();
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB');
 const tooltip = {
-    renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
+    renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams<DataType>) => {
         return {
             data: [{ label: dateFormatter.format(datum[xKey]), value: `${Math.round(datum[yKey] / 100) / 10 + 'k'}` }],
         };
     },
 };
 
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Total Visitors to Tate Galleries',

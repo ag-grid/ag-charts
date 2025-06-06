@@ -1,9 +1,9 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 const data = getData();
-const series: NonNullable<AgChartOptions['series']> = [
+const series: NonNullable<AgChartOptions<DataType>['series']> = [
     {
         type: 'area',
         xKey: 'date',
@@ -23,7 +23,7 @@ const series: NonNullable<AgChartOptions['series']> = [
         stacked: true,
     },
 ];
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     animation: {
         enabled: true,
@@ -49,7 +49,7 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgCharts.create(options as AgChartOptions);
+const chart = AgCharts.create(options as AgChartOptions<DataType>);
 
 function genDataPoint(ref: Date | { date: Date; petrol: number; diesel: number }, offsetDays: number) {
     const { date, petrol = 120, diesel = 125 } = ref instanceof Date ? { date: ref } : ref;

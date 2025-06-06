@@ -1,20 +1,13 @@
 import { AgCartesianChartOptions, AgCharts, AgErrorBarItemStylerParams } from 'ag-charts-enterprise';
 
-import { getData, getData2 } from './data';
-
-interface Datum {
-    month: string;
-    temperature: number;
-    temperatureLower?: number;
-    temperatureUpper?: number;
-}
+import { DataType, getData, getData2 } from './data';
 
 const highlightStyle = {
     item: { stroke: 'red' },
     series: { dimOpacity: 0.3 },
 };
 
-const itemStyler = (param: AgErrorBarItemStylerParams<any>) => {
+const itemStyler = (param: AgErrorBarItemStylerParams<DataType>) => {
     const errorBarStyle = { strokeWidth: 3 };
     if (param.highlighted) {
         return { ...errorBarStyle, ...highlightStyle.item };
@@ -88,7 +81,7 @@ function resetData() {
 
 function removeOdds() {
     if (options.series !== undefined) {
-        const fn = (_value: Datum, index: number): boolean => {
+        const fn = (_value: DataType, index: number): boolean => {
             return index % 2 === 0;
         };
         options.series[0].data = getData().filter(fn);
@@ -99,7 +92,7 @@ function removeOdds() {
 
 function removeOddsErrors() {
     if (options.series !== undefined) {
-        const fn = (value: Datum, index: number): Datum => {
+        const fn = (value: DataType, index: number): DataType => {
             if (index % 2 === 1) {
                 const { month, temperature } = value;
                 return { month, temperature };
@@ -119,7 +112,7 @@ function randomDelta(min: number, max: number) {
 
 function randomiseData() {
     if (options.series !== undefined) {
-        const fn = (value: Datum): Datum => {
+        const fn = (value: DataType): DataType => {
             const delta = randomDelta(-4, 4);
             const { month, temperature, temperatureLower, temperatureUpper } = value;
             if (temperatureLower === undefined || temperatureUpper === undefined) {
@@ -144,7 +137,7 @@ function randomiseData() {
 
 function randomiseErrors() {
     if (options.series !== undefined) {
-        const fn = (value: Datum): Datum => {
+        const fn = (value: DataType): DataType => {
             const { month, temperature, temperatureLower, temperatureUpper } = value;
             if (temperatureLower === undefined || temperatureUpper === undefined) {
                 return { month, temperature };

@@ -1,4 +1,9 @@
-export function getData() {
+export interface DataType {
+    month: string;
+    sweaters: number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             month: 'Jun',

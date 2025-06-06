@@ -1,4 +1,13 @@
-export function getHelium() {
+export interface DataType {
+    volume: number;
+    volumeLower?: number;
+    volumeUpper?: number;
+    pressure: number;
+    pressureLower?: number;
+    pressureUpper?: number;
+}
+
+export function getHelium(): DataType[] {
     return [
         {
             volume: 0.5,
@@ -67,7 +76,7 @@ export function getHelium() {
     ];
 }
 
-export function getOxygen() {
+export function getOxygen(): DataType[] {
     return [
         {
             volume: 0.5,
@@ -112,7 +121,7 @@ export function getOxygen() {
     ];
 }
 
-export function getArgon() {
+export function getArgon(): DataType[] {
     return [
         {
             volume: 0.5,

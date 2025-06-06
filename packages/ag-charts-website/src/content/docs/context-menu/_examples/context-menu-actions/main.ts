@@ -1,6 +1,12 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgNodeContextMenuActionEvent } from 'ag-charts-enterprise';
 
-const options: AgCartesianChartOptions = {
+interface DataType {
+    month: string;
+    sweaters: number;
+    hats: number;
+}
+
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Sweaters made',

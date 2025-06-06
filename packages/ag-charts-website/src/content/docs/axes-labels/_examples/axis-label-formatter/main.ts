@@ -1,12 +1,10 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-const options: AgChartOptions = {
+import { DataType, getData } from './data';
+
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
-    data: [
-        { os: 'Windows', share: 0.88 },
-        { os: 'macOS', share: 0.094 },
-        { os: 'Linux', share: 0.187 },
-    ],
+    data: getData(),
     title: {
         text: 'Desktop Operating Systems',
     },

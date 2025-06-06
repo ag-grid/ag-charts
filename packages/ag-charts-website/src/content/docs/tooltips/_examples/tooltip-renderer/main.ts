@@ -1,8 +1,8 @@
 import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-community';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-function renderer(params: AgBarSeriesTooltipRendererParams) {
+function renderer(params: AgBarSeriesTooltipRendererParams<DataType>) {
     return (
         '<div class="my-tooltip" style="--color:' +
         params.fill +
@@ -14,7 +14,7 @@ function renderer(params: AgBarSeriesTooltipRendererParams) {
     );
 }
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     series: [

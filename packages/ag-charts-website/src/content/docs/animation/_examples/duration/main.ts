@@ -7,16 +7,16 @@ import {
     AgTooltipRendererResult,
 } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 const numFormatter = new Intl.NumberFormat('en-US');
 const tooltip = {
-    renderer: ({ datum, yKey, yName }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
+    renderer: ({ datum, yKey, yName }: AgCartesianSeriesTooltipRendererParams<DataType>): AgTooltipRendererResult => ({
         data: [{ label: yName!, value: numFormatter.format(datum[yKey]) }],
     }),
 };
 
-const barOptions: AgCartesianChartOptions = {
+const barOptions: AgCartesianChartOptions<DataType> = {
     series: [
         {
             type: 'bar',
@@ -76,7 +76,7 @@ const barOptions: AgCartesianChartOptions = {
     ],
 };
 
-const lineOptions: AgCartesianChartOptions = {
+const lineOptions: AgCartesianChartOptions<DataType> = {
     series: [
         {
             type: 'line',
@@ -131,7 +131,7 @@ const lineOptions: AgCartesianChartOptions = {
     ],
 };
 
-const areaOptions: AgCartesianChartOptions = {
+const areaOptions: AgCartesianChartOptions<DataType> = {
     series: [
         {
             type: 'area',
@@ -191,7 +191,7 @@ const areaOptions: AgCartesianChartOptions = {
     ],
 };
 
-const donutOptions: AgPolarChartOptions = {
+const donutOptions: AgPolarChartOptions<DataType> = {
     series: [
         {
             type: 'pie',
@@ -216,7 +216,7 @@ const donutOptions: AgPolarChartOptions = {
     ],
 };
 
-let options: AgCartesianChartOptions | AgPolarChartOptions = {
+let options: AgCartesianChartOptions<DataType> | AgPolarChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     animation: {

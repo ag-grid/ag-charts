@@ -1,8 +1,9 @@
 import { AgChartOptions, AgCharts, AgLineSeriesTooltipRendererParams } from 'ag-charts-enterprise';
 
+import { DataType } from './data';
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -40,7 +41,7 @@ const options: AgChartOptions = {
     ],
 };
 
-function customTooltipRenderer(params: AgLineSeriesTooltipRendererParams) {
+function customTooltipRenderer(params: AgLineSeriesTooltipRendererParams<DataType>) {
     const { datum, xUpperKey, xLowerKey, yUpperKey, yLowerKey } = params;
     const expiryUpper = datum[xUpperKey!];
     const expiryLower = datum[xLowerKey!];

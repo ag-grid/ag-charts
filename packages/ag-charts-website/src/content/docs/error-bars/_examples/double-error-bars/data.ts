@@ -1,4 +1,13 @@
-export function getData(): any[] {
+export interface DataType {
+    expiry: number;
+    price: number;
+    expiryLo: number;
+    expiryHi: number;
+    priceLo: number;
+    priceHi: number;
+}
+
+export function getData(): DataType[] {
     return [
         { expiry: 1, price: 15, expiryLo: 0.75, expiryHi: 1.25, priceLo: 12, priceHi: 18 },
         { expiry: 3, price: 25, expiryLo: 2.5, expiryHi: 3.5, priceLo: 22, priceHi: 28 },

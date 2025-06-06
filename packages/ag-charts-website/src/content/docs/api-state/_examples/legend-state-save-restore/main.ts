@@ -5,11 +5,11 @@ import {
     AgCharts,
 } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB');
 const tooltip = {
-    renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
+    renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams<DataType>) => {
         return {
             data: [
                 {
@@ -21,7 +21,7 @@ const tooltip = {
     },
 };
 
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Total Visitors to Tate Galleries',

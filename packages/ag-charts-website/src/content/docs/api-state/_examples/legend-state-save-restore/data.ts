@@ -1,4 +1,12 @@
-export function getData() {
+export interface DataType {
+    date: Date;
+    'Tate Britain': number;
+    'Tate Modern': number;
+    'Tate Liverpool': number;
+    'Tate St Ives': number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             date: new Date(2015, 0, 1),

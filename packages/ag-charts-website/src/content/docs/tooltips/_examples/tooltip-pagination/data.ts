@@ -1,5 +1,12 @@
 // Source: https://simplemaps.com/data/world-cities
-export function getData(): any[] {
+export interface DataType {
+    city: string;
+    lat: number;
+    lon: number;
+    population: number;
+}
+
+export function getData(): DataType[] {
     return [
         { city: 'Tokyo, Japan', lat: 35.685, lon: 139.7514, population: 35676000 },
         { city: 'New York, United States', lat: 40.6943, lon: -73.9249, population: 19354922 },
@@ -79,7 +86,7 @@ export function getData(): any[] {
         { city: 'Porto Alegre, Brazil', lat: -30.05, lon: -51.2, population: 3917000 },
         { city: 'Surat, India', lat: 21.2, lon: 72.84, population: 3842000 },
         { city: 'Hechi, China', lat: 23.0965, lon: 109.6091, population: 3830000 },
-        { city: 'Abidjan, Côte D’Ivoire', lat: 5.32, lon: -4.04, population: 3802000 },
+        { city: 'Abidjan, Côte D'Ivoire', lat: 5.32, lon: -4.04, population: 3802000 },
         { city: 'Brasilia, Brazil', lat: -15.7833, lon: -47.9161, population: 3716996 },
         { city: 'Ankara, Turkey', lat: 39.9272, lon: 32.8644, population: 3716000 },
         { city: 'Monterrey, Mexico', lat: 25.67, lon: -100.33, population: 3712000 },

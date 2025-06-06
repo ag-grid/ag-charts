@@ -1,8 +1,8 @@
 import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-community';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-function renderer({ datum, xKey, yKey, yName }: AgCartesianSeriesTooltipRendererParams) {
+function renderer({ datum, xKey, yKey, yName }: AgCartesianSeriesTooltipRendererParams<DataType>) {
     return {
         heading: 'Clothing Production',
         title: yName?.toUpperCase(),
@@ -15,7 +15,7 @@ function renderer({ datum, xKey, yKey, yName }: AgCartesianSeriesTooltipRenderer
     };
 }
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     series: [

@@ -1,6 +1,14 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-const options: AgChartOptions = {
+interface DataType {
+    month: string;
+    units: number;
+    brands: {
+        [key: string]: number;
+    };
+}
+
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Number of Cars Sold',
@@ -38,8 +46,8 @@ const options: AgChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function makeMessage(header: string, event: any, datum: any) {
-    const brands = datum['brands'];
+function makeMessage(header: string, event: any, datum: DataType) {
+    const brands = datum.brands;
     const buffer: string[] = [header, '\nCars sold in ', datum[event.xKey], ': ', String(datum[event.yKey]), '\n'];
     for (var key in brands) {
         buffer.push(key, ': ', String(brands[key]), '\n');
