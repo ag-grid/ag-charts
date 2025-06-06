@@ -173,8 +173,8 @@ describe('AG-14631 context enterprise', () => {
         }
 
         beforeEach(async () => {
-            click = newFreezable((_p: AgChartClickEvent) => {});
-            doubleClick = newFreezable((_p: AgChartDoubleClickEvent) => {});
+            click = newFreezable((_p: AgChartClickEvent<TContext>) => {});
+            doubleClick = newFreezable((_p: AgChartDoubleClickEvent<TContext>) => {});
             chartSeriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', TDatum, TContext>) => {});
             chartSeriesNodeDoubleClick = newFreezable(
                 (_p: AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>) => {}

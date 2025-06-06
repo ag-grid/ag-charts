@@ -53,7 +53,7 @@ export interface AgContextMenuItemAlways<TDatum = TDatumDefault, TContext = TCon
      */
     showOn?: 'always';
     /** Function called when clicking on this menu item. */
-    action?: (event: AgChartContextMenuEvent) => void;
+    action?: (event: AgChartContextMenuEvent<TContext>) => void;
 }
 
 export interface AgContextMenuItemSeriesArea<TDatum = TDatumDefault, TContext = TContextDefault>
@@ -63,7 +63,7 @@ export interface AgContextMenuItemSeriesArea<TDatum = TDatumDefault, TContext = 
      */
     showOn: 'series-area';
     /** Function called when clicking on this menu item. */
-    action?: (event: AgSeriesAreaContextMenuActionEvent) => void;
+    action?: (event: AgSeriesAreaContextMenuActionEvent<TContext>) => void;
 }
 
 export interface AgContextMenuItemSeriesNode<TDatum = TDatumDefault, TContext = TContextDefault>
