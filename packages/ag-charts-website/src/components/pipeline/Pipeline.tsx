@@ -10,6 +10,8 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+const issueTypeValueFormatter = (params: any) => (params.value === 'Bug' ? 'Defect' : 'Feature Request');
+
 const COLUMN_DEFS = [
     {
         field: 'key',
@@ -32,12 +34,16 @@ const COLUMN_DEFS = [
         width: 300,
         minWidth: 200,
         flex: 1,
+        filter: 'agTextColumnFilter',
     },
     {
         field: 'issueType',
         width: 180,
-        valueFormatter: (params: any) => (params.value === 'Bug' ? 'Defect' : 'Feature Request'),
         cellRenderer: 'issueTypeCellRenderer',
+        valueFormatter: issueTypeValueFormatter,
+        filterParams: {
+            valueFormatter: issueTypeValueFormatter,
+        },
     },
     {
         field: 'status',
@@ -66,6 +72,7 @@ const COLUMN_DEFS = [
 ];
 
 const defaultColDef = {
+    filter: true,
     resizable: true,
     sortable: true,
     suppressHeaderMenuButton: true,
