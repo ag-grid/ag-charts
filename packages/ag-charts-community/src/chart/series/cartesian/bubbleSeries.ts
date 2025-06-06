@@ -409,10 +409,27 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const nodeDatum = this.contextNodeData?.nodeData[datumIndex];
         if (xValue == null || nodeDatum == null) return;
 
-        const data: TooltipContentDataRow[] = [
+        const data: TooltipContentDataRow[] = [];
+
+        if (this.isLabelEnabled() && labelKey != null) {
+            const value = dataModel.resolveColumnById<number>(this, `labelValue`, processedData)[datumIndex];
+            const content = formatManager.format({
+                type: 'category',
+                value,
+                datum,
+                key: labelKey,
+                source: 'tooltip',
+                property: 'label',
+                domain: [],
+                boundSeries: this.getFormatterContext('label'),
+            });
+            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
+        }
+
+        data.push(
             { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue, 'tooltip', datum, xKey) },
-            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey) },
-        ];
+            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey) }
+        );
 
         if (sizeKey != null) {
             const value = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
@@ -429,21 +446,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 fractionDigits: undefined,
             });
             data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? formatValue(value) });
-        }
-
-        if (labelKey != null) {
-            const value = dataModel.resolveColumnById<number>(this, `labelValue`, processedData)[datumIndex];
-            const content = formatManager.format({
-                type: 'category',
-                value,
-                datum,
-                key: labelKey,
-                source: 'tooltip',
-                property: 'label',
-                domain: [],
-                boundSeries: this.getFormatterContext('label'),
-            });
-            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
         }
 
         const style = marker.getStyle();

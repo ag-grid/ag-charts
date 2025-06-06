@@ -332,12 +332,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const nodeDatum = this.contextNodeData?.nodeData[datumIndex];
         if (xValue == null || nodeDatum == null) return;
 
-        const data: TooltipContentDataRow[] = [
-            { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue, 'tooltip', datum, xKey) },
-            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey) },
-        ];
+        const data: TooltipContentDataRow[] = [];
 
-        if (labelKey != null) {
+        if (this.isLabelEnabled() && labelKey != null) {
             const value = dataModel.resolveColumnById<number>(this, `labelValue`, processedData)[datumIndex];
             const content = formatManager.format({
                 type: 'category',
@@ -351,6 +348,11 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             });
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
         }
+
+        data.push(
+            { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue, 'tooltip', datum, xKey) },
+            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey) }
+        );
 
         const activeStyle = this.getMarkerStyle(marker, nodeDatum.datum, {
             xKey,

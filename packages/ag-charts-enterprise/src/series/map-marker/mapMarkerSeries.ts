@@ -846,6 +846,20 @@ export class MapMarkerSeries
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
+        if (this.isLabelEnabled() && labelKey != null && labelKey !== idKey) {
+            const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
+            const content = formatManager.format({
+                type: 'category',
+                value: labelValue,
+                datum,
+                key: labelKey,
+                source: 'tooltip',
+                property: 'label',
+                domain: [],
+                boundSeries: this.getFormatterContext('label'),
+            });
+            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
+        }
         if (sizeKey != null && sizeValue != null) {
             const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
             const content = formatManager.format({
@@ -875,20 +889,6 @@ export class MapMarkerSeries
                 fractionDigits: undefined,
             });
             data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? String(colorValue) });
-        }
-        if (labelKey != null && labelKey !== idKey) {
-            const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
-            const content = formatManager.format({
-                type: 'category',
-                value: labelValue,
-                datum,
-                key: labelKey,
-                source: 'tooltip',
-                property: 'label',
-                domain: [],
-                boundSeries: this.getFormatterContext('label'),
-            });
-            data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
         }
 
         let heading: string | undefined;
