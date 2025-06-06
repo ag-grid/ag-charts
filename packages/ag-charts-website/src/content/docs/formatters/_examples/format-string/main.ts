@@ -1,7 +1,10 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
+import { getData } from './data';
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
+    data: getData(),
     series: [
         {
             type: 'line',
@@ -13,26 +16,17 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'left',
-            label: {
-                format: '$#{0>6.2f}',
-            },
         },
         {
             type: 'time',
             position: 'bottom',
             interval: { step: 'month' },
-            label: {
-                format: '%b %Y',
-            },
         },
     ],
-    data: [
-        { date: new Date('2019-01-01'), temp: 82.0 },
-        { date: new Date('2019-02-01'), temp: 75.0 },
-        { date: new Date('2019-03-01'), temp: 62.0 },
-        { date: new Date('2019-04-01'), temp: 99.0 },
-        { date: new Date('2019-05-01'), temp: 82.0 },
-    ],
+    formatter: {
+        x: '%b %Y',
+        y: '$#{0>6.2f}',
+    },
 };
 
 AgCharts.create(options);
