@@ -1,4 +1,15 @@
-export function getData() {
+export interface DataType {
+    player: string;
+    age: number;
+    marketValue: number;
+    nationality: string;
+    joined?: string;
+    left?: string;
+    fee: number;
+    date: Date;
+}
+
+export function getData(): DataType[] {
     return [
         {
             player: 'Zidane\nIqbal',

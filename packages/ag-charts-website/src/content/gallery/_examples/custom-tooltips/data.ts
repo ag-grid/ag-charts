@@ -1,5 +1,25 @@
+export interface DataType {
+    quarter: string;
+    largeHousehold: number;
+    smallHousehold: number;
+    itTelecomms: number;
+    consumer: number;
+    lighting: number;
+    tools: number;
+    leisure: number;
+    medical: number;
+    monitoringControl: number;
+    dispensers: number;
+    displays: number;
+    cooling: number;
+    gasLampsLed: number;
+    photovoltaic: number;
+}
+
+export type DataNumberKey = keyof Omit<DataType, 'quarter'>;
+
 // Source: https://www.gov.uk/government/statistical-data-sets/waste-electrical-and-electronic-equipment-weee-in-the-uk
-export function getData(): any[] {
+export function getData(): DataType[] {
     return [
         {
             quarter: 'Q1',

@@ -1,10 +1,10 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataNumberKey, DataType, getData } from './data';
 
-const data: any[] = getData();
+const data = getData();
 
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data,
     title: {
@@ -26,7 +26,7 @@ const options: AgCartesianChartOptions = {
             cornerRadius: 5,
             itemStyler: ({ datum, yHighKey }) => {
                 return {
-                    fillOpacity: getOpacity(datum[yHighKey], yHighKey, 0.4, 1),
+                    fillOpacity: getOpacity(datum, yHighKey as DataNumberKey, 0.4, 1),
                 };
             },
             label: {
@@ -70,20 +70,21 @@ const options: AgCartesianChartOptions = {
     },
 };
 
-function getOpacity(value: number, key: string, minOpacity: number, maxOpacity: number) {
+function getOpacity(datum: DataType, key: DataNumberKey, minOpacity: number, maxOpacity: number) {
     const [min, max] = getDomain(key);
+    const value = datum[key];
     let alpha = Math.round(((value - min) / (max - min)) * 10) / 10;
     return map(alpha, 0, 1, minOpacity, maxOpacity);
 }
 
-function getDomain(key: string) {
+function getDomain(key: DataNumberKey) {
     const min = Math.min(...data.map((d) => d[key]));
     const max = Math.max(...data.map((d) => d[key]));
     return [min, max];
 }
 
-const map = (value: number, start1: number, end1: number, start2: number, end2: number) => {
-    return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
-};
+function map(value: number, inMin: number, inMax: number, outMin: number, outMax: number) {
+    return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+}
 
 AgCharts.create(options);

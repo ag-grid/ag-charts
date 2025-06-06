@@ -1,4 +1,9 @@
-export function getData() {
+export interface DataType {
+    x: number;
+    y: number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             x: 1,

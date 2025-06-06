@@ -1,4 +1,11 @@
-export function getData() {
+export interface DataType {
+    date: Date;
+    activeUsers: number;
+    newSignups: number;
+    revenue: number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             date: new Date('2025-05-01'),

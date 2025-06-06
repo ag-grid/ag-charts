@@ -1,4 +1,13 @@
-export function getData() {
+export interface DataType {
+    type: string;
+    earnings: number;
+    earningsLower: number;
+    earningsUpper: number;
+}
+
+export type DataNumberKey = keyof Omit<DataType, 'type'>;
+
+export function getData(): DataType[] {
     return [
         {
             type: 'Manager',

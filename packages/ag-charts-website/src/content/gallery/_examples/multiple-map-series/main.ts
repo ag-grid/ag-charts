@@ -1,6 +1,7 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { backgroundTopology } from './backgroundTopology';
+import { DataType, FerryDataType } from './data';
 import { ferryData } from './ferryData';
 import { ferryTopology } from './ferryTopology';
 import { flightData } from './flightData';
@@ -10,7 +11,11 @@ import { islandTopology } from './islandTopology';
 
 const sizeDomain = [500, 0];
 
-const options: AgChartOptions = {
+function isFerryData(datum: DataType): datum is FerryDataType {
+    return '@id' in datum;
+}
+
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Traveling to Greek Islands',
@@ -45,7 +50,7 @@ const options: AgChartOptions = {
             sizeDomain,
             tooltip: {
                 renderer: ({ datum }) => ({
-                    heading: datum.int_name,
+                    heading: isFerryData(datum) ? datum.int_name : undefined,
                 }),
             },
         },

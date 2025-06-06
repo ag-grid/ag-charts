@@ -1,4 +1,9 @@
-export function getData() {
+export interface DataType {
+    year: string;
+    visitors: number;
+}
+
+export function getData(): DataType[] {
     return [
         { year: '2016', visitors: 46636720 },
         { year: '2017', visitors: 48772922 },
