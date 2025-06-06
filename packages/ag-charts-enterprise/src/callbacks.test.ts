@@ -263,10 +263,10 @@ describe('AG-14631 context enterprise', () => {
             seriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(series1Context).mockClear();
 
             await doubleClickAction(234, 400)(chart);
-            chartSeriesNodeClick.expect().toHaveBeenCalledTimes(2).withoutContext().mockClear();
-            chartSeriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withoutContext().mockClear();
-            seriesNodeClick.expect().toHaveBeenCalledTimes(2).withoutContext().mockClear();
-            seriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withoutContext().mockClear();
+            chartSeriesNodeClick.expect().toHaveBeenCalledTimes(2).withContext(chartContext).mockClear();
+            chartSeriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(chartContext).mockClear();
+            seriesNodeClick.expect().toHaveBeenCalledTimes(2).withContext(chartContext).mockClear();
+            seriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(chartContext).mockClear();
 
             expectNothingCalled();
         });
@@ -279,8 +279,9 @@ describe('AG-14631 context enterprise', () => {
             chartSeriesVisibilityChange.expect().toHaveBeenCalledTimes(1).withContext(series1Context).mockClear();
 
             await clickAction(451, 572)(chart);
-            chartSeriesVisibilityChange.expect().toHaveBeenCalledTimes(1).withoutContext().mockClear();
+            chartSeriesVisibilityChange.expect().toHaveBeenCalledTimes(1).withContext(chartContext).mockClear();
 
+            legendItemClick.expect().toHaveBeenCalledTimes(3).mockClear();
             expectNothingCalled();
         });
 
