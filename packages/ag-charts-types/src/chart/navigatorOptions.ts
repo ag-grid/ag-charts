@@ -25,6 +25,7 @@ import type {
     FontWeight,
     Opacity,
     PixelSize,
+    TContextDefault,
     TDatumDefault,
 } from './types';
 
@@ -177,20 +178,23 @@ export type AgMiniChartSeriesOptions<TDatum = TDatumDefault> =
     | AgCandlestickMiniChartSeriesOptions<TDatum>
     | AgOhlcMiniChartSeriesOptions<TDatum>;
 
-export type AgMiniChartSeriesThemeableOptions<TDatum = TDatumDefault> =
-    | SharedProperties<AgLineMiniChartSeriesOptions<TDatum>, AgLineSeriesThemeableOptions<TDatum>>
-    | SharedProperties<AgScatterMiniChartSeriesOptions<TDatum>, AgScatterSeriesThemeableOptions<TDatum>>
-    | SharedProperties<AgBubbleMiniChartSeriesOptions<TDatum>, AgBubbleSeriesThemeableOptions<TDatum>>
-    | SharedProperties<AgAreaMiniChartSeriesOptions<TDatum>, AgAreaSeriesThemeableOptions<TDatum>>
-    | SharedProperties<AgBarMiniChartSeriesOptions<TDatum>, AgBarSeriesThemeableOptions<TDatum>>
-    | SharedProperties<AgBoxPlotMiniChartSeriesOptions<TDatum>, AgBoxPlotSeriesThemeableOptions<TDatum>>
-    | SharedProperties<AgHistogramMiniChartSeriesOptions<TDatum>, AgHistogramSeriesThemeableOptions<TDatum>>
-    | SharedProperties<AgHeatmapMiniChartSeriesOptions<TDatum>, AgHeatmapSeriesThemeableOptions<TDatum>>
-    | SharedProperties<AgWaterfallMiniChartSeriesOptions<TDatum>, AgWaterfallSeriesThemeableOptions<TDatum>>
-    | SharedProperties<AgRangeBarMiniChartSeriesOptions<TDatum>, AgRangeBarSeriesThemeableOptions<TDatum>>
-    | SharedProperties<AgRangeAreaMiniChartSeriesOptions<TDatum>, AgRangeAreaSeriesThemeableOptions<TDatum>>
-    | SharedProperties<AgCandlestickMiniChartSeriesOptions<TDatum>, AgCandlestickSeriesThemeableOptions<TDatum>>
-    | SharedProperties<AgOhlcMiniChartSeriesOptions<TDatum>, AgOhlcSeriesThemeableOptions<TDatum>>;
+export type AgMiniChartSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault> =
+    | SharedProperties<AgLineMiniChartSeriesOptions<TDatum>, AgLineSeriesThemeableOptions<TDatum, TContext>>
+    | SharedProperties<AgScatterMiniChartSeriesOptions<TDatum>, AgScatterSeriesThemeableOptions<TDatum, TContext>>
+    | SharedProperties<AgBubbleMiniChartSeriesOptions<TDatum>, AgBubbleSeriesThemeableOptions<TDatum, TContext>>
+    | SharedProperties<AgAreaMiniChartSeriesOptions<TDatum>, AgAreaSeriesThemeableOptions<TDatum, TContext>>
+    | SharedProperties<AgBarMiniChartSeriesOptions<TDatum>, AgBarSeriesThemeableOptions<TDatum, TContext>>
+    | SharedProperties<AgBoxPlotMiniChartSeriesOptions<TDatum>, AgBoxPlotSeriesThemeableOptions<TDatum, TContext>>
+    | SharedProperties<AgHistogramMiniChartSeriesOptions<TDatum>, AgHistogramSeriesThemeableOptions<TDatum, TContext>>
+    | SharedProperties<AgHeatmapMiniChartSeriesOptions<TDatum>, AgHeatmapSeriesThemeableOptions<TDatum, TContext>>
+    | SharedProperties<AgWaterfallMiniChartSeriesOptions<TDatum>, AgWaterfallSeriesThemeableOptions<TDatum, TContext>>
+    | SharedProperties<AgRangeBarMiniChartSeriesOptions<TDatum>, AgRangeBarSeriesThemeableOptions<TDatum, TContext>>
+    | SharedProperties<AgRangeAreaMiniChartSeriesOptions<TDatum>, AgRangeAreaSeriesThemeableOptions<TDatum, TContext>>
+    | SharedProperties<
+          AgCandlestickMiniChartSeriesOptions<TDatum>,
+          AgCandlestickSeriesThemeableOptions<TDatum, TContext>
+      >
+    | SharedProperties<AgOhlcMiniChartSeriesOptions<TDatum>, AgOhlcSeriesThemeableOptions<TDatum, TContext>>;
 
 type IgnoredMiniChartSeries = 'funnel' | 'cone-funnel';
 
@@ -217,11 +221,11 @@ export interface AgNavigatorMiniChartOptions<TDatum = TDatumDefault> {
     padding?: AgNavigatorMiniChartPadding;
 }
 
-export interface AgNavigatorMiniChartThemeableOptions<TDatum = TDatumDefault> {
+export interface AgNavigatorMiniChartThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault> {
     /** Whether to show a Mini Chart in the Navigator. */
     enabled?: boolean;
     /** Override series used in Mini Chart. */
-    series?: AgMiniChartSeriesThemeableOptions<TDatum>;
+    series?: AgMiniChartSeriesThemeableOptions<TDatum, TContext>;
     /** Configuration for the Mini Chart's axis labels. */
     label?: AgNavigatorMiniChartLabelOptions;
     /** Configuration for the padding inside the Mini Chart. */
@@ -275,8 +279,8 @@ export interface AgNavigatorOptions<TDatum = TDatumDefault> {
     miniChart?: AgNavigatorMiniChartOptions<TDatum>;
 }
 
-export interface AgNavigatorThemeableOptions<TDatum = TDatumDefault>
+export interface AgNavigatorThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends Omit<AgNavigatorOptions<TDatum>, 'miniChart'> {
     /** Mini Chart options. */
-    miniChart?: AgNavigatorMiniChartThemeableOptions<TDatum>;
+    miniChart?: AgNavigatorMiniChartThemeableOptions<TDatum, TContext>;
 }

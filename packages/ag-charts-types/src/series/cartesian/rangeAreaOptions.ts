@@ -28,11 +28,11 @@ export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';
 
 export type AgRangeAreaSeriesLabelFormatterParams = AgRangeAreaSeriesOptionsKeys & AgRangeAreaSeriesOptionsNames;
 
-export interface AgRangeAreaSeriesThemeableOptions<TDatum = TDatumDefault>
+export interface AgRangeAreaSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends StrokeOptions,
         FillOptions,
         LineDashOptions,
-        AgBaseCartesianThemeableOptions<TDatum> {
+        AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series.  */
     marker?: AgSeriesMarkerOptions<TDatum, AgRangeAreaSeriesOptionsKeys>;
     /** Configuration for the line used in the series. */
@@ -73,7 +73,7 @@ export interface AgRangeAreaSeriesOptions<TDatum = TDatumDefault, TContext = TCo
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgRangeAreaSeriesOptionsKeys,
         AgRangeAreaSeriesOptionsNames,
-        AgRangeAreaSeriesThemeableOptions<TDatum> {
+        AgRangeAreaSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Range Area Series. */
     type: 'range-area';
 }

@@ -31,8 +31,8 @@ export interface AgScatterSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum
     placement?: LabelPlacement;
 }
 
-export interface AgScatterSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum>,
+export interface AgScatterSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
         AgSeriesMarkerStyle {
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
@@ -68,7 +68,7 @@ export interface AgScatterSeriesOptions<TDatum = TDatumDefault, TContext = TCont
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgScatterSeriesOptionsKeys,
         AgScatterSeriesOptionsNames,
-        AgScatterSeriesThemeableOptions<TDatum> {
+        AgScatterSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Scatter Series. */
     type: 'scatter';
     /** Configuration for the Error Bars. */

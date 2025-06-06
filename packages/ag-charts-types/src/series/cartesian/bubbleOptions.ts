@@ -30,9 +30,9 @@ export type BubbleSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgBubbleSeriesOptionsKeys &
     Required<AgBubbleSeriesStyle>;
 
-export interface AgBubbleSeriesThemeableOptions<TDatum = TDatumDefault>
+export interface AgBubbleSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBubbleSeriesStyle,
-        AgBaseCartesianThemeableOptions<TDatum> {
+        AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
     domain?: [number, number];
     /** Determines the smallest size a marker can be in pixels. */
@@ -73,7 +73,7 @@ export interface AgBubbleSeriesOptionsNames {
 
 export interface AgBubbleSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgBubbleSeriesThemeableOptions<TDatum>,
+        AgBubbleSeriesThemeableOptions<TDatum, TContext>,
         AgBubbleSeriesOptionsKeys,
         AgBubbleSeriesOptionsNames {
     /** Configuration for Bubble Series. */

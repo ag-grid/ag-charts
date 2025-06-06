@@ -72,8 +72,8 @@ export interface AgDonutInnerCircle {
     fillOpacity?: Opacity;
 }
 
-export interface AgDonutSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum>,
+export interface AgDonutSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
         LineDashOptions {
     /** Configuration for the series title. */
     title?: AgDonutTitleOptions;
@@ -130,7 +130,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = TDatumDefault>
 }
 
 export interface AgDonutSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgDonutSeriesThemeableOptions<TDatum>, 'innerLabels'>,
+    extends Omit<AgDonutSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
         AgDonutSeriesOptionsKeys,
         AgDonutSeriesOptionsNames,
         AgBaseSeriesOptions<TDatum, TContext> {

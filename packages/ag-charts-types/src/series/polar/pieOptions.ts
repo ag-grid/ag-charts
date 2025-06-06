@@ -56,8 +56,8 @@ export interface AgPieSeriesCalloutOptions {
     strokeWidth?: PixelSize;
 }
 
-export interface AgPieSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum>,
+export interface AgPieSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
         LineDashOptions {
     /** Configuration for the series title. */
     title?: AgPieTitleOptions;
@@ -102,7 +102,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = TDatumDefault>
 }
 
 export interface AgPieSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgPieSeriesThemeableOptions<TDatum>, 'innerLabels'>,
+    extends Omit<AgPieSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
         AgPieSeriesOptionsKeys,
         AgPieSeriesOptionsNames,
         AgBaseSeriesOptions<TDatum, TContext> {

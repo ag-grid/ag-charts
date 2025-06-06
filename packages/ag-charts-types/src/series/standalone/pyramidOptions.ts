@@ -30,7 +30,8 @@ export interface AgPyramidSeriesTooltipRendererParams<TDatum = TDatumDefault>
         AgSeriesTooltipRendererParams<TDatum>,
         AgPyramidSeriesStyle {}
 
-export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault> extends LineDashOptions {
+export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault, _TContext = TContextDefault>
+    extends LineDashOptions {
     /** The colours to cycle through for the fills of the stages. */
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the stages. */
@@ -74,7 +75,7 @@ export interface AgPyramidSeriesOptions<TDatum = TDatumDefault, TContext = TCont
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgPyramidSeriesOptionsKeys,
         AgPyramidSeriesOptionsNames,
-        AgPyramidSeriesThemeableOptions<TDatum> {
+        AgPyramidSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Funnel Series. */
     type: 'pyramid';
 }

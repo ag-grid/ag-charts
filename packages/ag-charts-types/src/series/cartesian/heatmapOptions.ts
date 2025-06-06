@@ -18,9 +18,9 @@ export type AgHeatmapSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRender
     AgHeatmapSeriesOptionsNames &
     AgHeatmapSeriesStyle;
 
-export interface AgHeatmapSeriesThemeableOptions<TDatum = TDatumDefault>
+export interface AgHeatmapSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends StrokeOptions,
-        AgBaseCartesianThemeableOptions<TDatum> {
+        AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Options for the label in each cell. */
     label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams>;
     /** Minimum distance between the label text and the edges of the cell. */
@@ -59,7 +59,7 @@ export interface AgHeatmapSeriesOptions<TDatum = TDatumDefault, TContext = TCont
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgHeatmapSeriesOptionsKeys,
         AgHeatmapSeriesOptionsNames,
-        AgHeatmapSeriesThemeableOptions<TDatum> {
+        AgHeatmapSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Heatmap Series. */
     type: 'heatmap';
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. For example, if the colour domain is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' colour, `5` - 'green' colour and `0` a blend of 'red' and 'green'. */

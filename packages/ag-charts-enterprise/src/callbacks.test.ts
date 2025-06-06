@@ -175,11 +175,15 @@ describe('AG-14631 context enterprise', () => {
         beforeEach(async () => {
             click = newFreezable((_p: AgChartClickEvent) => {});
             doubleClick = newFreezable((_p: AgChartDoubleClickEvent) => {});
-            chartSeriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', TDatum>) => {});
-            chartSeriesNodeDoubleClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeDoubleClick', TDatum>) => {});
+            chartSeriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', TDatum, TContext>) => {});
+            chartSeriesNodeDoubleClick = newFreezable(
+                (_p: AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>) => {}
+            );
             chartSeriesVisibilityChange = newFreezable((_p: AgSeriesVisibilityChange) => {});
-            seriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', TDatum>) => {});
-            seriesNodeDoubleClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeDoubleClick', TDatum>) => {});
+            seriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', TDatum, TContext>) => {});
+            seriesNodeDoubleClick = newFreezable(
+                (_p: AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>) => {}
+            );
             legendItemClick = newFreezable((_p: AgChartLegendClickEvent<TContext>) => {});
             legendItemDoubleClick = newFreezable((_p: AgChartLegendDoubleClickEvent<TContext>) => {});
 

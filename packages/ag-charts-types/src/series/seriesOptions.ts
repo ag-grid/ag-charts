@@ -19,7 +19,7 @@ export interface AgSeriesHighlightStyle {
     series?: AgSeriesHighlightSeriesStyle;
 }
 
-export interface AgBaseSeriesThemeableOptions<TDatum> {
+export interface AgBaseSeriesThemeableOptions<TDatum, TContext = TContextDefault> {
     /** The cursor to use for hovered markers. This config is identical to the CSS `cursor` property. */
     cursor?: string;
     /** Configuration for marker and series highlighting when a series or legend item is hovered over. */
@@ -29,16 +29,17 @@ export interface AgBaseSeriesThemeableOptions<TDatum> {
     /** Whether to include the series in the legend. */
     showInLegend?: boolean;
     /** A map of event names to event listeners. */
-    listeners?: AgSeriesListeners<TDatum>;
+    listeners?: AgSeriesListeners<TDatum, TContext>;
 }
 
-export interface AgBaseCartesianThemeableOptions<TDatum> extends AgBaseSeriesThemeableOptions<TDatum> {
+export interface AgBaseCartesianThemeableOptions<TDatum, TContext = TContextDefault>
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Whether to include the series in the Mini Chart. */
     showInMiniChart?: boolean;
 }
 
 export interface AgBaseSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum> {
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /**
      * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series. Auto-generated ids are subject to future change without warning, if your callbacks need to vary behaviour by series please supply your own unique `id` value.
      *

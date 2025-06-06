@@ -6,13 +6,16 @@ import type {
     AgRadialSeriesOptionsNames,
 } from './radialOptions';
 
-export type AgRadialBarSeriesThemeableOptions<TDatum = TDatumDefault> = AgBaseRadialSeriesThemeableOptions<TDatum>;
+export type AgRadialBarSeriesThemeableOptions<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = AgBaseRadialSeriesThemeableOptions<TDatum, TContext>;
 
 export interface AgRadialBarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgRadialSeriesOptionsKeys,
         AgRadialSeriesOptionsNames,
-        AgBaseRadialSeriesThemeableOptions<TDatum> {
+        AgBaseRadialSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for Radial Bar Series. */
     type: 'radial-bar';
     /** The number to normalise the bar stacks to. Has no effect unless series are stacked. */

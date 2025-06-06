@@ -73,7 +73,7 @@ export interface AgContextMenuItemSeriesNode<TDatum = TDatumDefault, TContext = 
      */
     showOn: 'series-node';
     /** Function called when clicking on this menu item. */
-    action?: (event: AgNodeContextMenuActionEvent<TDatum>) => void;
+    action?: (event: AgNodeContextMenuActionEvent<TDatum, TContext>) => void;
 }
 
 export interface AgContextMenuItemLegendItem<TDatum = TDatumDefault, TContext = TContextDefault>
