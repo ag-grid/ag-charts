@@ -3,9 +3,9 @@ import type { AgAnnotation, AgAnnotationsEvent, AgAnnotationsThemeableOptions } 
 
 import type { MementoOriginator } from '../../api/state/memento';
 import type { EventsHub } from '../../core/eventsHub';
-import { callWithContext } from '../../module-support';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
+import { callWithContext } from '../../util/callbackCache';
 import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
