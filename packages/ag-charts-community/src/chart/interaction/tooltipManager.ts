@@ -86,7 +86,10 @@ export class TooltipManager {
         const canvasRect = this.domManager.getBoundingClientRect();
         const boundingRect = this.tooltip.bounds === 'extended' ? this.domManager.getOverlayClientRect() : canvasRect;
 
-        if (objectsEqual(this.appliedState?.content, state?.content)) {
+        if (
+            objectsEqual(this.appliedState?.content, state?.content) &&
+            objectsEqual(this.appliedState?.pagination, state?.pagination)
+        ) {
             const renderInstantly = this.tooltip.isVisible();
             this.tooltip.show(boundingRect, canvasRect, state?.meta, null, undefined, renderInstantly);
         } else {
