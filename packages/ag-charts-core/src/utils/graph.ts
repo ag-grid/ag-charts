@@ -1,4 +1,4 @@
-import { isObject } from 'ag-charts-core';
+import { isObject } from './typeGuards';
 
 /**
  * A graph that is optimised for vertex lookup and adjacency by edge value.

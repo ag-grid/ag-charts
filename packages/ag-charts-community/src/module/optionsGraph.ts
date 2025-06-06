@@ -1,9 +1,8 @@
-import { type PlainObject, isObject, isObjectLike, isPlainObject } from 'ag-charts-core';
+import { AdjacencyListGraph, type PlainObject, Vertex, isObject, isObjectLike, isPlainObject } from 'ag-charts-core';
 
 import { chartTypes } from '../chart/factory/chartTypes';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import type { ChartTheme } from '../chart/themes/chartTheme';
-import { AdjacencyListGraph, Vertex } from '../util/graph';
 import { deepClone } from '../util/json';
 import { simpleMemorize } from '../util/memo';
 import { pick, without } from '../util/object';
