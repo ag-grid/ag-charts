@@ -2,65 +2,87 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+const magnitudeFormatter = new Intl.NumberFormat('en-US', {
+    style: 'decimal',
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
+});
+
+const deathsFormatter = new Intl.NumberFormat('en-US', {
+    style: 'decimal',
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+});
+
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+});
+
+const yearFormatter = new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+});
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Most Populous Cities',
-    },
-    footnote: {
-        text: 'Source: Simple Maps',
+        text: 'Earthquakes in the 21st Century',
     },
     series: [
         {
             type: 'bubble',
-            title: 'Most populous cities',
-            xKey: 'lon',
-            xName: 'Longitude',
-            yKey: 'lat',
-            yName: 'Latitude',
-            sizeKey: 'population',
-            sizeName: 'Population',
-            labelKey: 'city',
-            labelName: 'City',
+            title: 'Earthquakes',
+            xKey: 'date',
+            xName: 'Date',
+            yKey: 'magnitude',
+            yName: 'Magnitude',
+            sizeKey: 'deaths',
+            sizeName: 'Deaths',
+            labelKey: 'location',
+            labelName: 'Location',
             size: 5,
             maxSize: 100,
+            label: {
+                enabled: true,
+                placement: 'right',
+            },
         },
     ],
     axes: [
         {
             position: 'bottom',
-            type: 'number',
-            min: -180,
-            max: 180,
-            interval: { step: 60 },
-            nice: false,
+            type: 'continuous-time',
+            title: {
+                text: 'Date',
+            },
         },
         {
             position: 'left',
             type: 'number',
-            min: -90,
-            max: 90,
-            interval: { step: 45 },
-            nice: false,
+            title: {
+                text: 'Magnitude',
+            },
         },
     ],
     formatter: {
         x: (params) => {
-            if (params.type !== 'number') return;
-            const degrees = Math.trunc(params.value);
-            const orientation = degrees > 0 ? 'E' : degrees < 0 ? 'W' : '';
-            return `${Math.abs(degrees)}° ${orientation}`;
+            if (params.type !== 'date') return;
+            const formatter = params.unit === 'year' ? yearFormatter : dateFormatter;
+            return formatter.format(params.value);
         },
         y: (params) => {
             if (params.type !== 'number') return;
-            const degrees = Math.trunc(params.value);
-            const orientation = degrees > 0 ? 'N' : degrees < 0 ? 'S' : '';
-            return `${Math.abs(degrees)}° ${orientation}`;
+            return `${magnitudeFormatter.format(params.value)} Mw`;
         },
         size: (params) => {
             if (params.type !== 'number') return;
-            return params.value.toLocaleString('en-US', { style: 'decimal', maximumFractionDigits: 0 });
+            return deathsFormatter.format(params.value);
+        },
+        label: (params) => {
+            if (params.source === 'series-label') return params.datum.flag;
         },
     },
 };

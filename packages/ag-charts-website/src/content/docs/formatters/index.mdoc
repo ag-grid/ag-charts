@@ -4,30 +4,176 @@ title: 'Formatters'
 
 Formatters allow customisation of the representation of numbers and dates.
 
+## Property Formatters
+
+The `formatter` property on the chart can be specified to customise formatting throughout the chart. It can be an
+object keyed by the property to format.
+
 {% chartExampleRunner title="Formatter" name="formatter" type="generated" /%}
 
 ```js
-formatter: {
-    x: (params) => {
-        const degrees = Math.trunc(params.value);
-        const orientation = degrees > 0 ? 'E' : degrees < 0 ? 'W' : '';
-        return `${Math.abs(degrees)}° ${orientation}`;
-    },
-    y: (params) => {
-        const degrees = Math.trunc(params.value);
-        const orientation = degrees > 0 ? 'N' : degrees < 0 ? 'S' : '';
-        return `${Math.abs(degrees)}° ${orientation}`;
-    },
-    size: (params) => {
-        return params.value.toLocaleString('en-US', { style: 'decimal', maximumFractionDigits: 0 })
-    },
+{
+    formatter: {
+        x: (params) => {
+            const formatter = params.unit === 'year' ? yearFormatter : dateFormatter;
+            return formatter.format(params.value);
+        },
+        y: (params) => {
+            return `${magnitudeFormatter.format(params.value)} Mw`;
+        },
+        size: (params) => {
+            return deathsFormatter.format(params.value);
+        },
+        label: (params) => {
+            if (params.source === 'series-label') return params.datum.flag;
+        },
+    }
 }
 ```
 
 In this configuration:
 
--   `x` formats the x-axis values as degrees with a longitude direction of East or West.
--   `y` formats the y-axis values as degrees with a latitude direction of North or South.
+-   `x` formats the x-axis values as a either a full date, or a year; depending on the granularity requested.
+-   `y` formats the y-axis values as values on the Richter scale, with one decimal place of precision.
 -   `size` formats the size values as a decimal number with no fractional digits.
+-   `label` formats the label values removing additional information when it is a series label, otherwise returns the value as-is.
 
 The available properties are `x`, `y`, `angle`, `radius`, `size`, `color`, `label`, `secondaryLabel`, `calloutLabel`, and `sectorLabel`.
+
+Each function will either be called with [Number Formatter Parameters](#reference-NumberFormatterParams),
+[Date Formatter Parameters](#reference-DateFormatterParams), or
+[Category Formatter Parameters](#reference-CategoryFormatterParams) depending on the configuration of the axis, and
+property being formatted.
+
+Label formatters take precedence over the chart's formatter. For example, `axis.crosshair.label.format` will take precedence.
+
+Returning `undefined` from a formatter function will result in value being provided by the relevant axis formatter; or
+a default format being used if no axis exists (e.g. for `size`), or no axis formatter is defined.
+
+## Format Strings
+
+A formatter can also be specified as a format string, which is a static string that represents a time or number format. This has less flexibility than the formatter function, but can be serialised.
+
+{% chartExampleRunner title="Format String" name="format-string" type="generated" /%}
+
+```js
+{
+    formatter: {
+        x: "%b %Y",
+        y: "$#{0>6.2f}",
+    },
+}
+```
+
+{% tabs %}
+
+{% tabItem id="TimeFormats" label="Time Formats" %}
+
+The format string for `time` axis labels may contain the following directives, which reflect {% link href="https://strftime.org/" isExternal=true %}Python's strftime specification{% /link %}.
+
+-   `%a` - Abbreviated weekday name.\*
+-   `%A` - Full weekday name.\*
+-   `%b` - Abbreviated month name.\*
+-   `%B` - Full month name.\*
+-   `%c` - Locale's date and time, such as `%x`, `%X`.\*
+-   `%d` - Zero-padded day of the month as a decimal number `[01,31]`.
+-   `%e` - Space-padded day of the month as a decimal number `[ 1,31]`; equivalent to `%_d`.
+-   `%f` - Microseconds as a decimal number `[000000,999999]`.
+-   `%H` - Hour (24-hour clock) as a decimal number `[00,23]`.
+-   `%I` - Hour (12-hour clock) as a decimal number `[01,12]`.
+-   `%j` - Day of the year as a decimal number `[001,366]`.
+-   `%m` - Month as a decimal number `[01,12]`.
+-   `%M` - Minute as a decimal number `[00,59]`.
+-   `%L` - Milliseconds as a decimal number `[000,999]`.
+-   `%p` - AM or PM.\*
+-   `%Q` - Milliseconds since UNIX epoch.
+-   `%s` - Seconds since UNIX epoch.
+-   `%S` - Second as a decimal number `[00,61]`.
+-   `%u` - Monday-based (ISO) weekday as a decimal number `[1,7]`.
+-   `%U` - Sunday-based week of the year as a decimal number `[00,53]`. Days preceding the first Sunday in the year in week 0
+-   `%V` - ISO 8601 week number of the year as a decimal number `[01, 53]`. Week 1 is the first week where four or more days fall within the new year.
+-   `%w` - Sunday-based weekday as a decimal number `[0,6]`.
+-   `%W` - Monday-based week of the year as a decimal number `[00,53]`. Days preceding the first Monday in the year are in week 0.
+-   `%x` - Locale's date, such as `%-m/%-d/%Y`.\*
+-   `%X` - Locale's time, such as `%-I:%M:%S %p`.\*
+-   `%y` - Two-digit year as a decimal number `[00,99]`.
+-   `%Y` - Full year as a decimal number.
+-   `%Z` - Time zone offset, such as `-0700`, `-07:00`, `-07`, or `Z`.
+-   `%%` - A literal percent sign (%).
+
+Directives marked with an asterisk (\*) may be affected by the locale definition.
+
+The `%` sign indicating a directive may be immediately followed by a padding modifier, otherwise no padding will be applied.
+
+-   `0` - zero-padding.
+-   `_` - space-padding.
+
+{% /tabItem %}
+
+{% tabItem id="NumberFormats" label="Number Formats" %}
+
+The format string for `number` and `log` axis labels contain the following directives, which reflect {% link href="https://docs.python.org/3/library/string.html#formatspec/" isExternal=true %}Python's format specification{% /link %}.
+
+`[[fill]align][sign][#][0][width][grouping_option][.precision][type]`
+
+Where:
+
+-   `fill` - Can be any character.
+-   `align`:
+    -   `>` - Forces the field to be right-aligned within the available space (default).
+    -   `<>` - Forces the field to be left-aligned within the available space.
+    -   `^` - Forces the field to be centred within the available space.
+    -   `=` - Like >, but with any sign and symbol to the left of any padding.
+-   `sign`:
+    -   `-` - Nothing for zero or positive, and a minus sign for negative (default).
+    -   `+` - A plus sign for zero or positive and a minus sign for negative.
+    -   `(` - Nothing for zero or positive and parentheses for negative.
+    -   ` ` - A space for zero or positive and a minus sign for negative.
+-   `symbol`:
+    -   `$` - The `$` currency symbol.
+    -   `#` - For binary, octal, or hexadecimal notation, prefix by `0b`, `0o`, or `0x`, respectively.
+-   `zero` - The `0` option enables zero-padding. Implicitly sets `fill` to `0` and `align` to `=`.
+-   `width` - The minimum field width. If not specified, this will be determined by the content.
+-   `comma` - The group separator, such as a comma for thousands.
+-   `precision` - For types `f` and `%` determines the number of digits after the decimal point, otherwise determines the number of significant digits. Defaults to 6 for all types, or 12 if no type is supplied. Ignored for integer types.
+-   `~` - Trims insignificant trailing zeros across all format types.
+-   `type` - Determines how the data should be presented:
+    -   `%` - Multiply by 100, and display in decimal notation with a percent sign.
+    -   `b` - Binary notation, rounded to integer.
+    -   `c` - Display the integer as the corresponding unicode character.
+    -   `d` - Decimal notation, rounded to integer.
+    -   `e` - Exponent notation.
+    -   `f` - Fixed point notation.
+    -   `g` - Either decimal or exponent notation, rounded to significant digits.
+    -   `o` - Octal notation, rounded to integer.
+    -   `p` - Multiply by 100, round to significant digits, and then decimal notation with a percent sign.
+    -   `r` - Decimal notation, rounded to significant digits.
+    -   `s` - Decimal notation with a SI prefix, rounded to significant digits.
+    -   `x` - Hexadecimal notation, using lower-case letters, rounded to integer.
+    -   `X` - Hexadecimal notation, using upper-case letters, rounded to integer.
+
+{% note %}
+Formats should be wrapped with `#{}` if included within a string
+so that it's clear where the number format begins and ends. For example: `I'm #{0>2.0f} years old`.
+{% /note %}
+
+{% /tabItem %}
+{% /tabs %}
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="NumberFormatterParams" label="Number Formatter Parameters" %}
+{% apiReference id="NumberFormatterParams" /%}
+{% /tabItem %}
+
+{% tabItem id="DateFormatterParams" label="Date Formatter Parameters" %}
+{% apiReference id="DateFormatterParams" /%}
+{% /tabItem %}
+
+{% tabItem id="CategoryFormatterParams" label="Category Formatter Parameters" %}
+{% apiReference id="CategoryFormatterParams" /%}
+{% /tabItem %}
+
+{% /tabs %}

@@ -47,29 +47,38 @@ For example, a `step` of `2` will display values at `10^0`, `10^2`, `10^4`.
 ### Time Axes
 
 For [Time Axes](./axes-types/#time) and [Ordinal Time Axes](./axes-types/#ordinal-time) the `step` should be a
-`TimeInterval`.
-For example, a `step` of `time.month` will display values for every month.
-You can also use `every` to specify a `step` as a multiplier of a `TimeInterval`. For example, `time.month.every(2)`,
-will display values for every second month.
+`TimeInterval` or `TimeIntervalUnit`.
 
-```js
-{
-    interval: { step: time.month },
-}
-```
+The `TimeInterval` object form requires a `unit`, for example `day`. The `step` property can be used for be for a
+multiple of the unit. For example, `{ unit: 'day', step: 7 }` will display values for every week. The `epoch` property
+can also be used to specify the starting point for the interval. For example,
+`{ unit: 'day', step: 7, epoch: new Date('2025-01-01') }` will display values every Wednesday.
+
+If `step` and `epoch` are unused, the interval can be specified as the `unit` alone.
 
 {% chartExampleRunner title="Time Axis Interval" name="time-axis-label-format" type="generated" /%}
 
-Available `TimeIntervals` are:
+```js
+{
+    interval: {
+        step: { unit: 'day', step: 7, new Date('2025-01-01') },
+    },
+}
+```
 
--   `year`, `utcYear`
--   `month`, `utcMonth`
--   `day`, `utcDay`
--   `hour`, `utcHour`
--   `minute`
--   `second`
--   `millisecond`
--   `sunday`, `monday`, `tuesday`, `wednesday`, `thursday`, `friday`, `saturday`
+```js
+{
+    interval: {
+        step: 'month',
+    },
+}
+```
+
+In this configuration:
+
+-   `unit` must be one of `millisecond`, `second`, `minute`, `hour`, `day`, `week`, `month`, or `year`.
+-   `step` is an optional number that specifies the multiple of the unit to use.
+-   `epoch` is an optional `Date` that specifies the starting point for the interval.
 
 If the `step` property of a time axis is set to a `number`, this will be interpreted as milliseconds.
 
