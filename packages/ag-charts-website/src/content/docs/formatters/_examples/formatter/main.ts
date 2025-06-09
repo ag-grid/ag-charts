@@ -54,7 +54,7 @@ const options: AgCartesianChartOptions = {
     axes: [
         {
             position: 'bottom',
-            type: 'continuous-time',
+            type: 'time',
             title: {
                 text: 'Date',
             },
