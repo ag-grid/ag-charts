@@ -470,6 +470,16 @@ describe('ChartOptions', () => {
       "type": "pattern",
       "width": 10,
     },
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -552,6 +562,16 @@ describe('ChartOptions', () => {
       "strokeWidth": 4,
       "type": "pattern",
       "width": 10,
+    },
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -636,6 +656,16 @@ describe('ChartOptions', () => {
       "type": "pattern",
       "width": 10,
     },
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -719,6 +749,16 @@ describe('ChartOptions', () => {
       "type": "pattern",
       "width": 10,
     },
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -763,6 +803,16 @@ describe('ChartOptions', () => {
     "yName": "Services",
   },
   {
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "interpolation": {
       "type": "linear",
     },
@@ -838,6 +888,16 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "interpolation": {
       "type": "linear",
     },
@@ -963,6 +1023,16 @@ describe('ChartOptions', () => {
       "type": "pattern",
       "width": 10,
     },
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -1045,6 +1115,16 @@ describe('ChartOptions', () => {
       "strokeWidth": 4,
       "type": "pattern",
       "width": 10,
+    },
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -1129,6 +1209,16 @@ describe('ChartOptions', () => {
       "type": "pattern",
       "width": 10,
     },
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -1212,6 +1302,16 @@ describe('ChartOptions', () => {
       "type": "pattern",
       "width": 10,
     },
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -1256,6 +1356,16 @@ describe('ChartOptions', () => {
     "yName": "Services",
   },
   {
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "interpolation": {
       "type": "linear",
     },
@@ -1331,6 +1441,16 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "interpolation": {
       "type": "linear",
     },
@@ -1456,6 +1576,16 @@ describe('ChartOptions', () => {
       "type": "pattern",
       "width": 10,
     },
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -1538,6 +1668,16 @@ describe('ChartOptions', () => {
       "strokeWidth": 4,
       "type": "pattern",
       "width": 10,
+    },
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -1622,6 +1762,16 @@ describe('ChartOptions', () => {
       "type": "pattern",
       "width": 10,
     },
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -1705,6 +1855,16 @@ describe('ChartOptions', () => {
       "type": "pattern",
       "width": 10,
     },
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "label": {
       "color": "white",
       "enabled": false,
@@ -1749,6 +1909,16 @@ describe('ChartOptions', () => {
     "yName": "Services",
   },
   {
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "interpolation": {
       "type": "linear",
     },
@@ -1824,6 +1994,16 @@ describe('ChartOptions', () => {
     "yName": "Mac",
   },
   {
+    "highlight": {
+      "highlightedItem": {
+        "fill": "rgba(255,255,255, 0.33)",
+        "opacity": 1,
+        "stroke": "rgba(0, 0, 0, 0.4)",
+        "strokeWidth": 2,
+      },
+      "highlightedSeries": {},
+      "unHighlightedSeries": {},
+    },
     "interpolation": {
       "type": "linear",
     },
