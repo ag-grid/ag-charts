@@ -429,7 +429,6 @@ export class LineSeries extends CartesianSeries<
     }
 
     protected override updatePathNodes(opts: {
-        seriesHighlighted?: boolean;
         paths: Path[];
         opacity: number;
         visible: boolean;
@@ -443,17 +442,21 @@ export class LineSeries extends CartesianSeries<
         } = opts;
         const crossFiltering = this.contextNodeData?.crossFiltering === true;
 
+        const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset } = mergeDefaults(
+            this.getHighlightStyle(),
+            this.properties
+        );
+
         lineNode.setProperties({
             fill: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             opacity,
-            stroke: this.properties.stroke,
-            strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
-            strokeOpacity:
-                this.properties.strokeOpacity * (crossFiltering ? CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR : 1),
-            lineDash: this.properties.lineDash,
-            lineDashOffset: this.properties.lineDashOffset,
+            stroke,
+            strokeWidth,
+            strokeOpacity: strokeOpacity * (crossFiltering ? CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR : 1),
+            lineDash,
+            lineDashOffset,
         });
 
         if (!animationEnabled) {
@@ -467,7 +470,7 @@ export class LineSeries extends CartesianSeries<
         const { properties } = this;
 
         const { marker } = properties;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const highlightStyle = this.getHighlightStyle(highlighted);
         return getShapeStyle(
             {
                 size: marker.size,
@@ -534,34 +537,37 @@ export class LineSeries extends CartesianSeries<
         markerSelection: Selection<Marker, LineNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight: highlighted } = opts;
-        const { xKey, yKey, stroke, strokeWidth, strokeOpacity, marker, highlightStyle } = this.properties;
+        const { markerSelection, isHighlight } = opts;
+        const { xKey, yKey, stroke, strokeWidth, strokeOpacity, marker } = this.properties;
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-        const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle(), {
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-        });
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
         const fillBBox = this.getShapeFillBBox();
+        const markerStyle = marker.getStyle();
 
         markerSelection.each((node, datum) => {
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+            const baseStyle = mergeDefaults(highlightStyle, markerStyle, {
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            });
+
             this.updateMarkerStyle(
                 marker,
                 node,
                 datum.datum,
                 datum.point,
                 datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
-                highlighted,
+                isHighlight,
                 baseStyle,
                 fillBBox,
                 { applyTranslation, selected: datum.selected }
             );
         });
 
-        if (!highlighted) {
+        if (!isHighlight) {
             marker.markClean();
         }
     }

@@ -19,11 +19,43 @@ export interface AgSeriesHighlightStyle {
     series?: AgSeriesHighlightSeriesStyle;
 }
 
+export interface AgMultiSeriesHighlightOptions<
+    ItemHighlightStyleOptions,
+    SeriesHighlightStyleOptions = ItemHighlightStyleOptions,
+> extends AgHighlightOptions<ItemHighlightStyleOptions>,
+        AgSeriesHighlightOptions<SeriesHighlightStyleOptions> {}
+
+export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyleOptions> {
+    /** Set to `false` to disable highlighting. */
+    enabled?: boolean;
+    /** By default, nodes will be highlighted when the cursor is within the `tooltip.range`. Set this to `'node'` to highlight nodes when within the `series[].nodeClickRange`. */
+    range?: 'tooltip' | 'node';
+    /** Options for the highlighted item.  */
+    highlightedItem?: ItemHighlightStyleOptions;
+    /** Options for the un-highlighted items when there is an active highlight. */
+    unHighlightedItem?: ItemHighlightStyleOptions;
+}
+
+export interface AgSeriesHighlightOptions<SeriesHighlightStyleOptions> {
+    /** Options for the highlighted series. */
+    highlightedSeries?: SeriesHighlightStyleOptions;
+    /** Options for the un-highlighted series when there is an active highlight. */
+    unHighlightedSeries?: SeriesHighlightStyleOptions;
+}
+
+export interface AgHighlightStyleOptions extends AgBaseHighlightStyleOptions, FillOptions {}
+
+export interface AgBaseHighlightStyleOptions extends StrokeOptions {
+    /** The opacity of the whole series (area line, area fill, labels and markers, if any) */
+    opacity?: Opacity;
+}
+
 export interface AgBaseSeriesThemeableOptions<TDatum, TContext = TContextDefault> {
     /** The cursor to use for hovered markers. This config is identical to the CSS `cursor` property. */
     cursor?: string;
-    /** Configuration for marker and series highlighting when a series or legend item is hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgHighlightOptions<AgHighlightStyleOptions>;
     /** Range from a node that a click triggers the listener. */
     nodeClickRange?: InteractionRange;
     /** Whether to include the series in the legend. */

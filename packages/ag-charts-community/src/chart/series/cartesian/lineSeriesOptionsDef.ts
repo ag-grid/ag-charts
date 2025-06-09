@@ -3,8 +3,11 @@ import {
     boolean,
     constant,
     lineDashOptionsDef,
+    lineHighlightOptionsDef,
+    multiSeriesHighlightOptionsDef,
     number,
     required,
+    shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
     undocumented,
@@ -22,6 +25,8 @@ import {
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
+const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef);
+
 export const lineSeriesThemeableOptionsDef: OptionsDefs<AgLineSeriesThemeableOptions> = {
     title: string,
     showInMiniChart: boolean,
@@ -34,6 +39,7 @@ export const lineSeriesThemeableOptionsDef: OptionsDefs<AgLineSeriesThemeableOpt
     ...commonSeriesThemeableOptionsDefs,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    highlight,
 };
 
 // @ts-expect-error undocumented option
@@ -42,6 +48,7 @@ lineSeriesThemeableOptionsDef.sparklineMode = undocumented(boolean);
 export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
     ...lineSeriesThemeableOptionsDef,
     ...commonSeriesOptionsDefs,
+    highlight,
     type: constant('line'),
     xKey: required(string),
     yKey: required(string),
