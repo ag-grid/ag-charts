@@ -16,8 +16,6 @@ export interface DataType {
     photovoltaic: number;
 }
 
-export type DataNumberKey = keyof Omit<DataType, 'quarter'>;
-
 // Source: https://www.gov.uk/government/statistical-data-sets/waste-electrical-and-electronic-equipment-weee-in-the-uk
 export function getData(): DataType[] {
     return [
