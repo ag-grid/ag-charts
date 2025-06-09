@@ -1,11 +1,14 @@
 import type {
+    AgBarHighlightStyleOptions,
     AgColorType,
     AgGradientColor,
     AgGradientColorBounds,
     AgGradientColorStop,
     AgGradientColorStrict,
     AgGradientType,
+    AgHighlightStyleOptions,
     AgImageFill,
+    AgLineHighlightStyleOptions,
     AgPatternColor,
     CssColor,
     FillOptions,
@@ -232,6 +235,47 @@ export const lineDashOptionsDef: OptionsDefs<LineDashOptions> = {
     lineDash: arrayOf(positiveNumber),
     lineDashOffset: number,
 };
+
+export const barHighlightOptionsDef: OptionsDefs<AgBarHighlightStyleOptions> = {
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    opacity: ratio,
+    cornerRadius: positiveNumber,
+};
+
+export const lineHighlightOptionsDef: OptionsDefs<AgLineHighlightStyleOptions> = {
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    opacity: ratio,
+};
+
+export const shapeHighlightOptionsDef: OptionsDefs<AgHighlightStyleOptions> = {
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    opacity: ratio,
+};
+
+export function highlightOptionsDef<T>(itemHighlightOptionsDef: T) {
+    return {
+        enabled: boolean,
+        range: union('tooltip', 'node'),
+        highlightedItem: itemHighlightOptionsDef,
+        unHighlightedItem: itemHighlightOptionsDef,
+    };
+}
+
+export function multiSeriesHighlightOptionsDef<I, S>(itemHighlightOptionsDef: I, seriesHighlightOptionsDef: S) {
+    return {
+        enabled: boolean,
+        range: union('tooltip', 'node'),
+        highlightedItem: itemHighlightOptionsDef,
+        unHighlightedItem: itemHighlightOptionsDef,
+        highlightedSeries: seriesHighlightOptionsDef,
+        unHighlightedSeries: seriesHighlightOptionsDef,
+    };
+}
 
 export const googleFont = optionsDefs<GoogleFontFamily>({ googleFont: string }, 'google font');
 export const fontFamilyFull = or(string, themeOperator, googleFont, arrayOf(or(string, googleFont)));

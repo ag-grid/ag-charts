@@ -47,7 +47,7 @@ export interface AgMapLineSeriesOptionsNames {
 
 export interface AgMapLineSeriesThemeableOptions<TDatum = TDatumDefault>
     extends AgMapLineSeriesStyle,
-        Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
+        Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle' | 'highlight'> {
     /** Determines the largest width a stroke can be in pixels. */
     maxStrokeWidth?: PixelSize;
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
