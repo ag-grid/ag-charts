@@ -9,11 +9,11 @@ import type {
     AgOhlcSeriesBaseTooltipRendererParams,
 } from './ohlcBaseOptions';
 
-export type AgOhlcSeriesItemStylerParams<TDatum> = AgOhlcSeriesBaseItemStylerParams<TDatum>;
+export type AgOhlcSeriesItemStylerParams<TDatum = TDatumDefault> = AgOhlcSeriesBaseItemStylerParams<TDatum>;
 
 export interface AgOhlcSeriesTooltipRendererParams<TDatum>
     extends AgOhlcSeriesBaseTooltipRendererParams<TDatum>,
-        AgOhlcSeriesBaseOptions,
+        AgOhlcSeriesBaseOptions<TDatum>,
         AgOhlcSeriesItemOptions {}
 
 export type AgOhlcSeriesItemOptions = StrokeOptions & LineDashOptions;
@@ -42,8 +42,8 @@ export interface AgOhlcSeriesThemeableOptions<TDatum = TDatumDefault>
 export interface AgOhlcSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgOhlcSeriesThemeableOptions<TDatum>,
         AgBaseSeriesOptions<TDatum, TContext>,
-        AgOhlcSeriesBaseOptions,
-        Omit<AxisOptions, 'yKey'> {
+        AgOhlcSeriesBaseOptions<TDatum>,
+        Omit<AxisOptions<TDatum>, 'yKey'> {
     /** Configuration for the OHLC Series. */
     type: 'ohlc';
 }

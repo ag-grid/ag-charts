@@ -1,6 +1,6 @@
 import { AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 const series: NonNullable<AgChartOptions['series']> = [
     {
@@ -18,7 +18,7 @@ const series: NonNullable<AgChartOptions['series']> = [
         label: {},
     },
 ];
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     animation: {
         enabled: true,
@@ -43,7 +43,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function genDataPoint(ref: Date | { date: Date; petrol: number; diesel: number }, offsetDays: number) {
+function genDataPoint(ref: Date | DataType, offsetDays: number): DataType {
     const { date, petrol = 120, diesel = 125 } = ref instanceof Date ? { date: ref } : ref;
 
     return {
@@ -147,7 +147,7 @@ function actionAddDouble() {
 }
 
 function actionUpdatePoints() {
-    options.data = (options.data ?? []).map((d: any) => ({
+    options.data = (options.data ?? []).map((d: DataType) => ({
         ...d,
         petrol: d.petrol + Math.random() * 4 - 2,
         diesel: d.diesel + Math.random() * 4 - 2,
@@ -156,11 +156,14 @@ function actionUpdatePoints() {
 }
 
 function actionUpdatePointUndefined() {
-    options.data = (options.data ?? []).map((d: any) => ({
-        ...d,
-        petrol: Math.random() > 0.9 ? undefined : d.petrol,
-        diesel: Math.random() > 0.9 ? undefined : d.diesel,
-    }));
+    options.data = (options.data ?? []).map(
+        (d: DataType) =>
+            ({
+                ...d,
+                petrol: Math.random() > 0.9 ? undefined : d.petrol,
+                diesel: Math.random() > 0.9 ? undefined : d.diesel,
+            }) as DataType
+    );
     chart.update(options);
 }
 

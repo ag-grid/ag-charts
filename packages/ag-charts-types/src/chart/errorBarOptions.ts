@@ -1,10 +1,10 @@
 import type { LineDashOptions, StrokeOptions } from '../series/cartesian/commonOptions';
 import type { DatumCallbackParams, Styler } from './callbackOptions';
-import type { PixelSize, Ratio } from './types';
+import type { PixelSize, Ratio, TDatumDefault } from './types';
 
-export type AgErrorBarItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
-    SeriesKeyOptions &
-    ErrorBarKeyOptions &
+export type AgErrorBarItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+    SeriesKeyOptions<TDatum> &
+    ErrorBarKeyOptions<TDatum> &
     Required<AgErrorBarThemeableOptions>;
 
 interface ErrorBarStylingOptions extends StrokeOptions, LineDashOptions {
@@ -12,22 +12,22 @@ interface ErrorBarStylingOptions extends StrokeOptions, LineDashOptions {
     visible?: boolean;
 }
 
-interface SeriesKeyOptions {
+interface SeriesKeyOptions<TDatum> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve y-values from the data. */
-    yKey?: string;
+    yKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
-interface ErrorBarKeyOptions {
+interface ErrorBarKeyOptions<TDatum> {
     /** The key to use to retrieve lower bound error values from the x-axis data. */
-    xLowerKey?: string;
+    xLowerKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve upper bound error values from the x-axis data. */
-    xUpperKey?: string;
+    xUpperKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve lower bound error values from the y-axis data. */
-    yLowerKey?: string;
+    yLowerKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve upper bound error values from the y-axis data. */
-    yUpperKey?: string;
+    yUpperKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
 interface ErrorBarNameOptions {
@@ -60,8 +60,8 @@ export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
 
 export const AgErrorBarSupportedSeriesTypes = ['bar', 'line', 'scatter'] as const;
 
-export interface AgErrorBarOptions<TDatum>
-    extends ErrorBarKeyOptions,
+export interface AgErrorBarOptions<TDatum = TDatumDefault>
+    extends ErrorBarKeyOptions<TDatum>,
         ErrorBarNameOptions,
         ErrorBarFormatterOption<TDatum>,
         AgErrorBarThemeableOptions {}

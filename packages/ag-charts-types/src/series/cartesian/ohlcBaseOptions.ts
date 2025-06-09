@@ -1,22 +1,24 @@
 import type { DatumItemCallbackParams } from '../../chart/callbackOptions';
 import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
+import type { TDatumDefault } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgOhlcSeriesItemType = 'up' | 'down';
 
-export type AgOhlcSeriesBaseOptions = AgOhlcSeriesOptionsKeys & AgOhlcSeriesOptionsNames;
+export type AgOhlcSeriesBaseOptions<TDatum = TDatumDefault> = AgOhlcSeriesOptionsKeys<TDatum> &
+    AgOhlcSeriesOptionsNames;
 
-export interface AgOhlcSeriesOptionsKeys {
+export interface AgOhlcSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** xKey as specified on series options. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve open values from the data. */
-    openKey: string;
+    openKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve close values from the data. */
-    closeKey: string;
+    closeKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve high values from the data. */
-    highKey: string;
+    highKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve low values from the data. */
-    lowKey: string;
+    lowKey: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgOhlcSeriesOptionsNames {
@@ -34,16 +36,16 @@ export interface AgOhlcSeriesOptionsNames {
     lowName?: string;
 }
 
-type OhlcItemCallbackParams<TDatum> = DatumItemCallbackParams<AgOhlcSeriesItemType, TDatum>;
+type OhlcItemCallbackParams<TDatum = TDatumDefault> = DatumItemCallbackParams<AgOhlcSeriesItemType, TDatum>;
 
-export type AgOhlcSeriesBaseItemStylerParams<TDatum> = OhlcItemCallbackParams<TDatum> &
-    AgOhlcSeriesOptionsKeys &
+export type AgOhlcSeriesBaseItemStylerParams<TDatum = TDatumDefault> = OhlcItemCallbackParams<TDatum> &
+    AgOhlcSeriesOptionsKeys<TDatum> &
     StrokeOptions &
     LineDashOptions;
 
 export interface AgOhlcSeriesBaseTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
-        AgOhlcSeriesOptionsKeys,
+        AgOhlcSeriesOptionsKeys<TDatum>,
         AgOhlcSeriesOptionsNames,
         StrokeOptions,
         LineDashOptions {

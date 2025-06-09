@@ -1,6 +1,8 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-const options: AgChartOptions = {
+import { DataType } from './data';
+
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Number of Cars Sold',
@@ -19,13 +21,12 @@ const options: AgChartOptions = {
             xKey: 'month',
             yKey: 'units',
             listeners: {
-                seriesNodeDoubleClick: (event: any) => {
-                    var datum = event.datum;
+                seriesNodeDoubleClick: ({ datum }) => {
                     console.log(
                         'Cars sold in ' +
-                            datum[event.xKey] +
+                            datum.month +
                             ': ' +
-                            String(datum[event.yKey]) +
+                            String(datum.units) +
                             '\n' +
                             listUnitsSoldByBrand(datum['brands'])
                     );

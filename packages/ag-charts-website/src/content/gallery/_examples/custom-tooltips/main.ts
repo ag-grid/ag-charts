@@ -1,17 +1,16 @@
 import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { DataNumberKey, DataType, getData } from './data';
+import { DataType, getData } from './data';
 
-function tooltipRenderer(params: AgBarSeriesTooltipRendererParams<DataType>) {
+function tooltipRenderer({ fill, yName, datum, yKey }: AgBarSeriesTooltipRendererParams<DataType>) {
     var formatThousands = function (value: number) {
         return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     };
 
-    const yKey = params.yKey as DataNumberKey;
     var tooltipHtml = [
         '<div class="my-tooltip">',
-        '<span class="my-tooltip__title" style="color: ' + params.fill + '">' + params.yName,
-        '(' + params.datum.quarter + '):</span> ' + formatThousands(params.datum[yKey]) + ' tonnes',
+        '<span class="my-tooltip__title" style="color: ' + fill + '">' + yName,
+        '(' + datum.quarter + '):</span> ' + formatThousands(Number(datum[yKey])) + ' tonnes',
         '</div>',
     ];
 

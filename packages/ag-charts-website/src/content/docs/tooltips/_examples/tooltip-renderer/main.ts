@@ -1,27 +1,28 @@
 import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-community';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-function renderer(params: AgBarSeriesTooltipRendererParams) {
+function renderer(params: AgBarSeriesTooltipRendererParams<DataType>) {
+    const { datum, fill, yKey } = params;
     return (
         '<div class="my-tooltip" style="--color:' +
-        params.fill +
+        fill +
         '">' +
-        params.datum[params.xKey] +
+        datum.month +
         '&nbsp;&#10172;&nbsp;' +
-        params.datum[params.yKey].toFixed(0) +
+        Number(datum[yKey]).toFixed(0) +
         '</div>'
     );
 }
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     series: [
         {
             type: 'bar',
             xKey: 'month',
-            tooltip: { renderer: renderer },
+            tooltip: { renderer },
             yKey: 'sweaters',
             yName: 'Sweaters made',
             stacked: true,
@@ -29,7 +30,7 @@ const options: AgChartOptions = {
         {
             type: 'bar',
             xKey: 'month',
-            tooltip: { renderer: renderer },
+            tooltip: { renderer },
             yKey: 'hats',
             yName: 'Hats made',
             stacked: true,

@@ -8,7 +8,8 @@ import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../se
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export type AgAreaSeriesLabelFormatterParams = AgAreaSeriesOptionsKeys & AgAreaSeriesOptionsNames;
+export type AgAreaSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgAreaSeriesOptionsKeys<TDatum> &
+    AgAreaSeriesOptionsNames;
 
 export interface AgAreaSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends AgCartesianSeriesTooltipRendererParams<TDatum>,
@@ -21,27 +22,27 @@ export interface AgAreaSeriesThemeableOptions<TDatum = TDatumDefault>
         LineDashOptions,
         AgBaseCartesianThemeableOptions<TDatum> {
     /** Configuration for the markers used in the series. */
-    marker?: AgSeriesMarkerOptions<TDatum, AgAreaSeriesMarkerItemStylerParams>;
+    marker?: AgSeriesMarkerOptions<TDatum, AgAreaSeriesMarkerItemStylerParams<TDatum>>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgChartLabelOptions<TDatum, AgAreaSeriesLabelFormatterParams>;
+    label?: AgChartLabelOptions<TDatum, AgAreaSeriesLabelFormatterParams<TDatum>>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgAreaSeriesTooltipRendererParams<TDatum>>;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
 }
 
-export interface AgAreaSeriesOptionsKeys {
+export interface AgAreaSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve y-values from the data. */
-    yKey: string;
+    yKey: TDatum extends object ? keyof TDatum & string : string;
 }
 
-export interface AgAreaSeriesMarkerItemStylerParams extends AgAreaSeriesOptionsKeys {
+export interface AgAreaSeriesMarkerItemStylerParams<TDatum = TDatumDefault> extends AgAreaSeriesOptionsKeys<TDatum> {
     /** The x value of the datum. */
     xValue: any;
     /** The y value of the datum. */
@@ -65,7 +66,7 @@ export interface AgAreaSeriesOptionsNames {
 
 export interface AgAreaSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgAreaSeriesOptionsKeys,
+        AgAreaSeriesOptionsKeys<TDatum>,
         AgAreaSeriesOptionsNames,
         AgAreaSeriesThemeableOptions<TDatum> {
     /** Configuration for the Area Series. */

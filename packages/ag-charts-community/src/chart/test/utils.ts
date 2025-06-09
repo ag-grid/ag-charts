@@ -59,7 +59,10 @@ export interface PolarTestCase extends TestCase {
     options: AgPolarChartOptions;
 }
 
-export type AgCartesianChartOptionsWithContext = Omit<AgCartesianChartOptions, 'series' | 'axes'> & {
+export type AgCartesianChartOptionsWithContext<TDatum, TContext> = Omit<
+    AgCartesianChartOptions<TDatum, TContext>,
+    'series' | 'axes'
+> & {
     context?: unknown;
     series?: (NonNullable<AgCartesianChartOptions['series']>[number] & { context?: unknown })[];
     axes?: (NonNullable<AgCartesianChartOptions['axes']>[number] & { context?: unknown })[];

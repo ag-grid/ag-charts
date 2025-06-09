@@ -1,10 +1,8 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getArgon, getHelium, getOxygen } from './data';
+import { DataType, getArgon, getHelium, getOxygen } from './data';
 
-type Datum = ReturnType<typeof getArgon>[number];
-
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Volume-Pressure Relationship with Confidence Intervals',
@@ -97,7 +95,7 @@ function randomIndex(length: number) {
 
 function randomiseData() {
     if (options.series !== undefined) {
-        const fn = (datum: Datum): Datum => {
+        const fn = (datum: DataType): DataType => {
             const volumeDelta = randomDelta(-0.1, 0.1);
             const pressureDelta = randomDelta(-1, 1);
             return {
@@ -118,7 +116,7 @@ function randomiseData() {
 
 function randomiseErrors() {
     if (options.series !== undefined) {
-        const fn = (datum: Datum): Datum => {
+        const fn = (datum: DataType): DataType => {
             return {
                 volume: datum.volume,
                 volumeLower: datum.volume - randomDelta(0.05, 0.1),

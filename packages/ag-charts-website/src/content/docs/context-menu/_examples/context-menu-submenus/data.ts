@@ -1,4 +1,12 @@
-export function getData() {
+export interface DataType {
+    year: number;
+    USA: number;
+    EU: number;
+    China: number;
+    India: number;
+}
+
+export function getData(): DataType[] {
     return [
         { year: 1995, USA: 7.6, EU: 7.2, China: 0.7, India: 0.4 },
         { year: 1996, USA: 8.0, EU: 7.5, China: 0.8, India: 0.42 },

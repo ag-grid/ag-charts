@@ -1,8 +1,8 @@
 import type { DatumCallbackParams, Styler } from '../chart/callbackOptions';
-import type { AgMarkerShape, PixelSize } from '../chart/types';
+import type { AgMarkerShape, PixelSize, TDatumDefault } from '../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './cartesian/commonOptions';
 
-export type AgSeriesMarkerStylerParams<TDatum> = DatumCallbackParams<TDatum> & AgSeriesMarkerStyle;
+export type AgSeriesMarkerStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> & AgSeriesMarkerStyle;
 
 export interface AgSeriesMarkerStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** The size in pixels of the markers. */

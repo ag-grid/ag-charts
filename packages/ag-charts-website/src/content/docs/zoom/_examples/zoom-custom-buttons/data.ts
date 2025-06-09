@@ -1,3 +1,8 @@
+export interface DataType {
+    time: number;
+    price: number;
+}
+
 const day = 1000 * 60 * 60 * 24;
 
 export const dataStart = new Date('2024-01-01 00:00:00').getTime();
@@ -9,8 +14,8 @@ function random() {
     return (seed - 1) / 2147483646;
 }
 
-export function getData() {
-    const data: Array<Datum> = [];
+export function getData(): DataType[] {
+    const data: DataType[] = [];
     seed = 1;
     for (let time = dataStart; time <= dataEnd; time += day) {
         let price;
@@ -24,5 +29,3 @@ export function getData() {
 
     return data;
 }
-
-type Datum = { time: number; price: number };

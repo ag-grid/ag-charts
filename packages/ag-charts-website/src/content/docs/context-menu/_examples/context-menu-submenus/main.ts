@@ -1,8 +1,9 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
+import { DataType } from './data';
 import { getData } from './data';
 
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: { text: 'GDP Growth (1995–2024)' },
     subtitle: { text: 'Trillions USD' },

@@ -1,8 +1,8 @@
 import { AgBarSeriesTooltipRendererParams, AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     series: [
@@ -23,7 +23,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function renderer(params: AgBarSeriesTooltipRendererParams) {
+function renderer(params: AgBarSeriesTooltipRendererParams<DataType>) {
     return `<div class="tooltip">
         <div class="tooltip-title">
             ${params.datum[params.xKey]}: ${params.datum[params.yKey]}
