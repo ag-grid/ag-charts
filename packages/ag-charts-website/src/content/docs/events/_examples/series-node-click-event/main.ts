@@ -1,10 +1,6 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-interface DataType {
-    month: string;
-    low: number;
-    high: number;
-}
+import { DataType } from './data';
 
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),

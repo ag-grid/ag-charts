@@ -1,10 +1,6 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
-interface DataType {
-    quarter: string;
-    petrol: number;
-    diesel: number;
-}
+import { DataType } from './data';
 
 let options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),

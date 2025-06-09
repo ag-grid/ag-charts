@@ -1,12 +1,6 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-interface DataType {
-    month: string;
-    units: number;
-    brands: {
-        [key: string]: number;
-    };
-}
+import { DataType } from './data';
 
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),

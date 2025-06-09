@@ -1,9 +1,6 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-interface DataType {
-    country: string;
-    gdp: number;
-}
+import { DataType } from './data';
 
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
