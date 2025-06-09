@@ -190,7 +190,7 @@ describe('RangeBarSeries', () => {
             },
         ],
         axes: [
-            { type: 'continuous-time', position: 'left' },
+            { type: 'time', position: 'left' },
             { type: 'category', position: 'bottom' },
         ],
     };
@@ -362,7 +362,7 @@ describe('RangeBarSeries', () => {
         await compare();
     });
 
-    it(`should render a range-bar chart with a time x-axis`, async () => {
+    it(`should render a range-bar chart with a unit time x-axis`, async () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
@@ -373,7 +373,7 @@ describe('RangeBarSeries', () => {
                 },
                 {
                     position: 'bottom',
-                    type: 'time',
+                    type: 'unit-time',
                 },
             ],
         };
@@ -383,7 +383,7 @@ describe('RangeBarSeries', () => {
         await compare();
     });
 
-    it(`should render a range-bar chart with a reversed time x-axis`, async () => {
+    it(`should render a range-bar chart with a reversed unit time x-axis`, async () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
@@ -394,7 +394,7 @@ describe('RangeBarSeries', () => {
                 },
                 {
                     position: 'bottom',
-                    type: 'time',
+                    type: 'unit-time',
                     reverse: true,
                 },
             ],
@@ -405,7 +405,7 @@ describe('RangeBarSeries', () => {
         await compare();
     });
 
-    it(`should render a horizontal range-bar chart with a time y-axis`, async () => {
+    it(`should render a horizontal range-bar chart with a unit time y-axis`, async () => {
         const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal');
         const options: AgChartOptions = {
             ...RANGE_BAR_OPTIONS,
@@ -413,7 +413,7 @@ describe('RangeBarSeries', () => {
             axes: [
                 {
                     position: 'left',
-                    type: 'time',
+                    type: 'unit-time',
                 },
                 {
                     position: 'bottom',
@@ -427,7 +427,7 @@ describe('RangeBarSeries', () => {
         await compare();
     });
 
-    it(`should render a horizontal range-bar chart with a reversed time y-axis`, async () => {
+    it(`should render a horizontal range-bar chart with a reversed unit time y-axis`, async () => {
         const RANGE_BAR_OPTIONS = switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal');
         const options: AgChartOptions = {
             ...RANGE_BAR_OPTIONS,
@@ -435,7 +435,7 @@ describe('RangeBarSeries', () => {
             axes: [
                 {
                     position: 'left',
-                    type: 'time',
+                    type: 'unit-time',
                     reverse: true,
                 },
                 {

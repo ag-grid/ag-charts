@@ -81,7 +81,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "spacing": 25,
         "text": "Axis Title",
       },
-      "type": "time",
+      "type": "unit-time",
     },
     {
       "gridLine": {
@@ -2930,7 +2930,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "spacing": 25,
         "text": "Axis Title",
       },
-      "type": "continuous-time",
+      "type": "time",
     },
     {
       "gridLine": {
@@ -10964,7 +10964,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "spacing": 25,
         "text": "Axis Title",
       },
-      "type": "time",
+      "type": "unit-time",
     },
     {
       "gridLine": {
@@ -12209,7 +12209,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "spacing": 25,
         "text": "Date",
       },
-      "type": "time",
+      "type": "unit-time",
     },
     {
       "gridLine": {
@@ -13073,7 +13073,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "spacing": 25,
         "text": "Axis Title",
       },
-      "type": "time",
+      "type": "unit-time",
     },
     {
       "gridLine": {

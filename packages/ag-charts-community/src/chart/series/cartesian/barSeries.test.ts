@@ -46,7 +46,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         },
         COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['bar'] }),
         },
         STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
@@ -68,7 +68,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         },
         BAR_TIME_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.BAR_TIME_X_AXIS_NUMBER_Y_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['bar'] }),
         },
         STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
@@ -139,7 +139,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         },
         COLUMN_SINGLE_DATE_TIME_AXIS: {
             options: examples.COLUMN_SINGLE_DATE_TIME_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['bar'] }),
         },
         GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES: {
             options: examples.GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES,

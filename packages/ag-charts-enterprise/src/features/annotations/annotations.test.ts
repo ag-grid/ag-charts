@@ -16,7 +16,7 @@ describe('Annotations', () => {
             { x: new Date('2024-12-25'), y: 95 },
         ],
         series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
-        axes: [{ type: 'number' }, { type: 'continuous-time' }],
+        axes: [{ type: 'number' }, { type: 'time' }],
         annotations: {
             enabled: true,
             toolbar: {

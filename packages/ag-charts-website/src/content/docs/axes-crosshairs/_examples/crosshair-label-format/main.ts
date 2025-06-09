@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, AgTimeAxisOptions } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgUnitTimeAxisOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -81,7 +81,7 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function crosshairLabelFormat() {
-    const crosshair = options.axes![0].crosshair! as AgTimeAxisOptions;
+    const crosshair = options.axes![0].crosshair! as AgUnitTimeAxisOptions;
     crosshair.label = {
         format: `%d %b '%y`,
     };
@@ -89,7 +89,7 @@ function crosshairLabelFormat() {
 }
 
 function axisLabelFormat() {
-    const axes0 = options.axes![0] as AgTimeAxisOptions;
+    const axes0 = options.axes![0] as AgUnitTimeAxisOptions;
     const crosshair = axes0.crosshair!;
     if (crosshair.label && crosshair.label.format) {
         delete crosshair.label.format;
@@ -99,7 +99,7 @@ function axisLabelFormat() {
 }
 
 function defaultFormat() {
-    const axes0 = options.axes![0] as AgTimeAxisOptions;
+    const axes0 = options.axes![0] as AgUnitTimeAxisOptions;
     const crosshair = axes0.crosshair!;
     if (crosshair.label && crosshair.label.format) {
         delete crosshair.label.format;

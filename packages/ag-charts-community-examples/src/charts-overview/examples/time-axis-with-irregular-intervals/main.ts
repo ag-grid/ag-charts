@@ -65,7 +65,7 @@ const options: AgChartOptions = {
   axes: [
     {
       position: "bottom",
-      type: "continuous-time",
+      type: "time",
       label: {
         format: "%d/%m",
       },

@@ -49,7 +49,7 @@ const options: AgCartesianChartOptions = {
             },
         },
         {
-            type: 'continuous-time',
+            type: 'time',
             position: 'bottom',
             crosshair: {
                 label: {

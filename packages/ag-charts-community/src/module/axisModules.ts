@@ -18,12 +18,12 @@ import {
 } from 'ag-charts-core';
 import type {
     AgCategoryAxisOptions,
-    AgContinuousTimeAxisOptions,
     AgGroupedCategoryAxisOptions,
     AgGroupedCategoryDepthOptions,
     AgLogAxisOptions,
     AgNumberAxisOptions,
     AgTimeAxisOptions,
+    AgUnitTimeAxisOptions,
 } from 'ag-charts-types';
 
 import {
@@ -39,11 +39,11 @@ import {
     timeIntervalUnit,
 } from '../chart/axesOptionsDefs';
 import { CategoryAxis } from '../chart/axis/categoryAxis';
-import { ContinuousTimeAxis } from '../chart/axis/continuousTimeAxis';
 import { GroupedCategoryAxis } from '../chart/axis/groupedCategoryAxis';
 import { LogAxis } from '../chart/axis/logAxis';
 import { NumberAxis } from '../chart/axis/numberAxis';
 import { TimeAxis } from '../chart/axis/timeAxis';
+import { UnitTimeAxis } from '../chart/axis/unitTimeAxis';
 import type { ModuleContext } from './moduleContext';
 
 export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
@@ -66,10 +66,10 @@ export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
     crosshair: cartesianAxisCrosshairOptions(true),
 };
 
-export const continuousTimeAxisOptionsDefs: OptionsDefs<AgContinuousTimeAxisOptions> = {
+export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     ...continuousAxisOptions(or(number, date), true),
-    type: required(constant('continuous-time')),
+    type: required(constant('time')),
     label: cartesianTimeAxisLabel,
     parentLevel: cartesianTimeAxisParentLevel,
     crosshair: cartesianAxisCrosshairOptions(true),
@@ -113,12 +113,12 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
     ),
 };
 
-export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
+export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
     // @todo(AG-14472) - Remove nice
     // ...without(continuousAxisOptions(or(number, date), true), ['nice']),
     ...continuousAxisOptions(or(number, date), true),
-    type: required(constant('time')),
+    type: required(constant('unit-time')),
     unit: or(timeInterval, timeIntervalUnit),
     label: cartesianTimeAxisLabel,
     parentLevel: cartesianTimeAxisParentLevel,
@@ -149,15 +149,15 @@ export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions> = {
     create: (ctx: ModuleContext) => new LogAxis(ctx),
 };
 
-export const ContinuousTimeAxisModule: AxisModuleDefinition<AgContinuousTimeAxisOptions> = {
+export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions> = {
     type: 'axis',
-    name: 'continuous-time',
+    name: 'time',
     chartType: 'cartesian',
 
     // @todo(AG-14472) - Replace with timeAxisOptionsDefs,
-    options: continuousTimeAxisOptionsDefs,
+    options: timeAxisOptionsDefs,
 
-    create: (ctx: ModuleContext) => new ContinuousTimeAxis(ctx),
+    create: (ctx: ModuleContext) => new TimeAxis(ctx),
 };
 
 export const CategoryAxisModule: AxisModuleDefinition<AgCategoryAxisOptions> = {
@@ -180,12 +180,12 @@ export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAx
     create: (ctx: ModuleContext) => new GroupedCategoryAxis(ctx),
 };
 
-export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions> = {
+export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions> = {
     type: 'axis',
-    name: 'time',
+    name: 'unit-time',
     chartType: 'cartesian',
 
-    options: timeAxisOptionsDefs,
+    options: unitTimeAxisOptionsDefs,
 
-    create: (ctx: ModuleContext) => new TimeAxis(ctx),
+    create: (ctx: ModuleContext) => new UnitTimeAxis(ctx),
 };

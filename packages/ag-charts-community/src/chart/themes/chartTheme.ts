@@ -451,6 +451,14 @@ export class ChartTheme {
         [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults(
             {
                 keys: [],
+                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+                crosshair: { enabled: true },
+            },
+            { title: true, time: true }
+        ),
+        [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults(
+            {
+                keys: [],
                 groupPaddingInner: 0.1,
                 label: { autoRotate: false },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
@@ -464,14 +472,6 @@ export class ChartTheme {
                 keys: [],
                 groupPaddingInner: 0,
                 label: { autoRotate: false },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                crosshair: { enabled: true },
-            },
-            { title: true, time: true }
-        ),
-        [CARTESIAN_AXIS_TYPE.CONTINUOUS_TIME]: ChartTheme.getAxisDefaults(
-            {
-                keys: [],
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: true },
             },

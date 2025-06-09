@@ -59,7 +59,7 @@ describe('Scene', () => {
                         title: { text: 'Price in Pence' },
                     },
                     {
-                        type: 'continuous-time',
+                        type: 'time',
                         position: 'bottom',
                         title: { text: 'Date' },
                         label: { format: '%B %Y', autoRotate: true },

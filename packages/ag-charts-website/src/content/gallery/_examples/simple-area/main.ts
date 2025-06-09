@@ -44,7 +44,7 @@ const options: AgChartOptions<DataType> = {
     ],
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
         },
         {

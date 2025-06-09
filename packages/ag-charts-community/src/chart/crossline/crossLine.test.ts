@@ -114,29 +114,29 @@ const mixinLabelPositionCases = (example: CartesianTestCase): Record<string, Car
 
 const CROSSLINES_LABEL_POSITION_EXAMPLES: Record<string, CartesianTestCase> = mixinLabelPositionCases({
     options: examples.DEFAULT_LABEL_POSITION_CROSSLINES,
-    assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+    assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
 });
 
 const CROSSLINES_RANGE_EXAMPLES: Record<string, CartesianTestCase> = mixinFlippedRangeCases({
     VALID_RANGE_CROSSLINES: {
         options: examples.VALID_RANGE_CROSSLINES,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     RANGE_OUTSIDE_DOMAIN_MAX_CROSSLINES: {
         options: examples.RANGE_OUTSIDE_DOMAIN_MAX_CROSSLINES,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     RANGE_OUTSIDE_DOMAIN_MIN_CROSSLINES: {
         options: examples.RANGE_OUTSIDE_DOMAIN_MIN_CROSSLINES,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     RANGE_OUTSIDE_DOMAIN_MIN_MAX_CROSSLINES: {
         options: examples.RANGE_OUTSIDE_DOMAIN_MIN_MAX_CROSSLINES,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     RANGE_OUTSIDE_DOMAIN_CROSSLINES: {
         options: examples.RANGE_OUTSIDE_DOMAIN_CROSSLINES,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
     },
 });
 
@@ -180,21 +180,21 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
 const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: string[] }> = {
     INVALID_RANGE_CROSSLINES: {
         options: examples.INVALID_RANGE_VALUE_CROSSLINE,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
         warningMessages: [
             "AG Charts - Option `axes[1].crossLines[0].range` cannot be set to `[null,134]`; expecting crossLine type to be 'range' and a defined value array and an array of exactly 2 items, ignoring.",
         ],
     },
     INVALID_RANGE_LENGTH_CROSSLINE: {
         options: examples.INVALID_RANGE_LENGTH_CROSSLINE,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
         warningMessages: [
             "AG Charts - Option `axes[1].crossLines[0].range` cannot be set to `[128,134,135]`; expecting crossLine type to be 'range' and a defined value array and an array of exactly 2 items, ignoring.",
         ],
     },
     INVALID_RANGE_WITHOUT_TYPE_CROSSLINE: {
         options: examples.INVALID_RANGE_WITHOUT_TYPE_CROSSLINE,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
         warningMessages: [
             "AG Charts - Option `axes[1].crossLines[0].type` is required and has not been provided; expecting a keyword such as 'line' or 'range', ignoring.",
             "AG Charts - Option `axes[1].crossLines[0].range` cannot be set to `[128,134]`; expecting crossLine type to be 'range' and a defined value array and an array of exactly 2 items, ignoring.",
@@ -202,19 +202,19 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
     },
     INVALID_LINE_VALUE_CROSSLINES: {
         options: examples.INVALID_LINE_VALUE_CROSSLINES,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
         warningMessages: [],
     },
     INVALID_RANGE_WITH_LINE_TYPE_CROSSLINE: {
         options: examples.INVALID_RANGE_WITH_LINE_TYPE_CROSSLINE,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
         warningMessages: [
             "AG Charts - Option `axes[1].crossLines[0].range` cannot be set to `[128,134]`; expecting crossLine type to be 'range' and a defined value array and an array of exactly 2 items, ignoring.",
         ],
     },
     INVALID_LINE_WITHOUT_TYPE_CROSSLINE: {
         options: examples.INVALID_LINE_WITHOUT_TYPE_CROSSLINE,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
         warningMessages: [
             "AG Charts - Option `axes[1].crossLines[0].type` is required and has not been provided; expecting a keyword such as 'line' or 'range', ignoring.",
             "AG Charts - Option `axes[1].crossLines[0].value` cannot be set to `128`; expecting crossLine type to be 'line' and a defined value, ignoring.",
@@ -222,7 +222,7 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
     },
     INVALID_LINE_WITH_RANGE_TYPE_CROSSLINE: {
         options: examples.INVALID_LINE_WITH_RANGE_TYPE_CROSSLINE,
-        assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
         warningMessages: [
             "AG Charts - Option `axes[1].crossLines[0].value` cannot be set to `128`; expecting crossLine type to be 'line' and a defined value, ignoring.",
         ],
