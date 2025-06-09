@@ -9,7 +9,7 @@
     "typescript": "^5.4.5",
     "@nx/devkit": "^18.3.4",
     "ag-charts-community": "11.3.1-beta.20250611",
-    "jsdom": "~22.1.0",
+    "jsdom": "~26.1.0",
     "sharp": "0.33.5",
     "ag-charts-enterprise": "11.3.1-beta.20250611",
     "ag-charts-test": "11.3.1-beta.20250611",
