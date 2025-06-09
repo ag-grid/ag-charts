@@ -1,8 +1,6 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
-import { DataType, getData } from './data';
-
-const selectedMonths = new Set<string>();
+import { DataType, getData, selectedMonths } from './data';
 
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),

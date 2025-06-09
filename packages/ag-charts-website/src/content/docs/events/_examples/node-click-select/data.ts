@@ -7,7 +7,7 @@ export interface DataType {
     selected: boolean;
 }
 
-const selectedMonths = new Set<string>();
+export const selectedMonths = new Set<string>();
 
 export function getData(): DataType[] {
     return [
