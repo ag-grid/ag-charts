@@ -67,7 +67,7 @@ describe('AG-13024 API context', () => {
         axisContext = { name: 'X axis context' };
         rootContext = { name: 'root context' };
         itemStyler = newFreezable<MockItemStyler<TDatum, TContext>>((_params) => undefined);
-        axisLabelFormatter = newFreezable<MockAxisLabelFormatter<TDatum, TContext>>((_params: any) => undefined);
+        axisLabelFormatter = newFreezable<MockAxisLabelFormatter<TDatum, TContext>>((_params) => undefined);
         seriesLabelFormatter = newFreezable<MockSeriesLabelFormatter<TDatum, TContext>>((_params) => undefined);
         tooltipRenderer = newFreezable<MockTooltipRenderer<TDatum, TContext>>((_params) => '');
         options = {
