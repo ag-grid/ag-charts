@@ -687,12 +687,13 @@ export class AreaSeries extends CartesianSeries<
         const fillBBox = this.getShapeFillBBox();
 
         markerSelection.each((node, datum) => {
+            const stylerProps = { ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain) };
             this.updateMarkerStyle(
                 marker,
                 node,
                 datum.datum,
                 datum.point,
-                datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
+                stylerProps,
                 highlighted,
                 baseStyle,
                 fillBBox,

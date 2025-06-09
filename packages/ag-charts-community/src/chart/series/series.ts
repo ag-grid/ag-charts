@@ -946,7 +946,7 @@ export abstract class Series<
     }
 
     protected updateMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams> & {
+        marker: ISeriesMarker<TParams & { context?: never }> & {
             fillGradientDefaults: RequiredInternalAgGradientColor;
             fillPatternDefaults: RequiredInternalAgPatternColor;
             fillImageDefaults: RequiredInternalAgImageFill;
@@ -954,7 +954,7 @@ export abstract class Series<
         markerNode: Marker,
         datum: any,
         point: { x: number; y: number; size?: number; focusSize?: number } | undefined,
-        params: TParams,
+        params: TParams & { context?: never },
         highlighted: boolean,
         defaultStyle: AgSeriesMarkerStyle,
         fillBBox?: ShapeFillBBox,

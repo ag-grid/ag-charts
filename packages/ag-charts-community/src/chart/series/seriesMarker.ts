@@ -67,7 +67,7 @@ export class SeriesMarker<TParams = never>
 
     @Property
     @SceneObjectChangeDetection({ equals: TRIPLE_EQ })
-    itemStyler?: Styler<AgSeriesMarkerStylerParams<unknown> & RequireOptional<TParams>, AgSeriesMarkerStyle>;
+    itemStyler?: Styler<AgSeriesMarkerStylerParams<unknown, unknown> & RequireOptional<TParams>, AgSeriesMarkerStyle>;
 
     getStyle(): AgSeriesMarkerStyle {
         const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
