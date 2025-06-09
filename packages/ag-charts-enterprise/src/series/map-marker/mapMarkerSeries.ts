@@ -510,7 +510,10 @@ export class MapMarkerSeries
 
         let highlightedDatum: MapMarkerNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
         const { legendItemName } = this.properties;
-        const matchingLegendItemName = legendItemName != null && legendItemName === highlightedDatum?.legendItemName;
+        const matchingLegendItemName =
+            legendItemName != null &&
+            highlightedDatum?.datum == null &&
+            legendItemName === highlightedDatum?.legendItemName;
 
         if (
             highlightedDatum != null &&
