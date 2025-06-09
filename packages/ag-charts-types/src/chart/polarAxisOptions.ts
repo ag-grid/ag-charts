@@ -10,7 +10,7 @@ import type { Degree, Ratio, TContextDefault } from './types';
 export type AgPolarAxisShape = 'polygon' | 'circle';
 
 export interface AgAngleCategoryAxisOptions<TContext = TContextDefault>
-    extends AgBaseAxisOptions<AgAngleAxisLabelOptions, TContext> {
+    extends AgBaseAxisOptions<AgAngleAxisLabelOptions<TContext>, TContext> {
     type: 'angle-category';
     /** Shape of axis. Default: `polygon` */
     shape?: AgPolarAxisShape;
@@ -37,7 +37,7 @@ export interface AgAngleAxesCrossLineThemeOptions {
 }
 
 export interface AgAngleNumberAxisOptions<TContext = TContextDefault>
-    extends Omit<AgBaseAxisOptions<AgAngleAxisFormattableLabelOptions, TContext>, 'interval'>,
+    extends Omit<AgBaseAxisOptions<AgAngleAxisFormattableLabelOptions<TContext>, TContext>, 'interval'>,
         AgContinuousAxisOptions<number, number> {
     type: 'angle-number';
     /** Angle in degrees to start ticks positioning from. */
@@ -62,8 +62,13 @@ interface OrientableLabel {
     orientation?: AgAngleAxisLabelOrientation;
 }
 
-export interface AgAngleAxisFormattableLabelOptions extends AgFormattableLabelOptions, OrientableLabel {}
-export interface AgAngleAxisLabelOptions extends AgBaseAxisLabelOptions, OrientableLabel {}
+export interface AgAngleAxisFormattableLabelOptions<TContext = TContextDefault>
+    extends AgFormattableLabelOptions<TContext>,
+        OrientableLabel {}
+
+export interface AgAngleAxisLabelOptions<TContext = TContextDefault>
+    extends AgBaseAxisLabelOptions<TContext>,
+        OrientableLabel {}
 
 export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions<AgBaseCrossLineLabelOptions> {}
 export interface AgAngleCrossLineThemeOptions extends AgCrossLineThemeOptions<AgBaseCrossLineLabelOptions> {}

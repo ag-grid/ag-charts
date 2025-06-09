@@ -141,7 +141,7 @@ export interface AgBaseAxisLabelStyleOptions {
     color?: CssColor;
 }
 
-export interface AgAxisLabelFormatterParams {
+export interface AgAxisLabelFormatterParams<TContext = TContextDefault> {
     readonly value: any;
     readonly index: number;
     readonly fractionDigits?: number;
@@ -149,14 +149,18 @@ export interface AgAxisLabelFormatterParams {
     readonly step?: number;
     readonly boundSeries: AgAxisBoundSeries[];
     readonly domain: any[];
+    /** Context for this callback. */
+    readonly context?: TContext;
 }
 
-export interface AgAxisLabelStylerParams extends AgBaseAxisLabelStyleOptions {
+export interface AgAxisLabelStylerParams<TContext = TContextDefault> extends AgBaseAxisLabelStyleOptions {
     /** The label value that would be used, after applying formating. */
     readonly value: any;
+    /** Context for this callback. */
+    readonly context?: TContext;
 }
 
-export interface AgBaseAxisLabelOptions extends AgBaseAxisLabelStyleOptions {
+export interface AgBaseAxisLabelOptions<TContext = TContextDefault> extends AgBaseAxisLabelStyleOptions {
     /** Set to `false` to hide the axis labels. */
     enabled?: boolean;
     /** The rotation of the axis labels in degrees. Note: for integrated charts the default is 335 degrees, unless the axis shows grouped or default categories (indexes). The first row of labels in a grouped category axis is rotated perpendicular to the axis line. */
@@ -166,12 +170,13 @@ export interface AgBaseAxisLabelOptions extends AgBaseAxisLabelStyleOptions {
     /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */
     minSpacing?: PixelSize;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
-    formatter?: Formatter<AgAxisLabelFormatterParams>;
+    formatter?: Formatter<AgAxisLabelFormatterParams<TContext>>;
     /** Function used to style axis labels. */
-    itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
+    itemStyler?: Styler<AgAxisLabelStylerParams<TContext>, AgBaseAxisLabelStyleOptions>;
 }
 
-export interface AgNumericAxisFormattableLabelOptions extends AgBaseAxisLabelOptions {
+export interface AgNumericAxisFormattableLabelOptions<TContext = TContextDefault>
+    extends AgBaseAxisLabelOptions<TContext> {
     /** Format string used when rendering labels. */
     format?: string;
 }
@@ -187,12 +192,14 @@ export interface AgTimeAxisFormattableLabelUnitFormat {
 
 export type AgTimeAxisFormattableLabelFormat = string | AgTimeAxisFormattableLabelUnitFormat;
 
-export interface AgTimeAxisFormattableLabelOptions extends AgBaseAxisLabelOptions {
+export interface AgTimeAxisFormattableLabelOptions<TContext = TContextDefault>
+    extends AgBaseAxisLabelOptions<TContext> {
     /** Format string used when rendering labels. */
     format?: AgTimeAxisFormattableLabelFormat;
 }
 
-export type AgFormattableLabelOptions = AgNumericAxisFormattableLabelOptions & AgTimeAxisFormattableLabelOptions;
+export type AgFormattableLabelOptions<TContext = TContextDefault> = AgNumericAxisFormattableLabelOptions<TContext> &
+    AgTimeAxisFormattableLabelOptions<TContext>;
 
 export interface AgAxisGridStyle {
     /** The colour of the grid line. */

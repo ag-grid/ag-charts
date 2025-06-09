@@ -281,7 +281,7 @@ export type AgBaseGaugePresetThemeOptions<TDatum = TDatumDefault, TContext = TCo
 
 // Interface needed for docs generation, but listeners conflicts using the extends clause
 type AgRadialGaugeTheme<TDatum, TContext> = AgBaseGaugePresetThemeOptions<TDatum, TContext> &
-    AgRadialGaugeThemeableOptions;
+    AgRadialGaugeThemeableOptions<TContext>;
 export interface AgRadialGaugeTargetTheme extends Omit<AgRadialGaugeTarget, 'value' | 'text'> {}
 export interface AgRadialGaugeThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgRadialGaugeTheme<TDatum, TContext> {

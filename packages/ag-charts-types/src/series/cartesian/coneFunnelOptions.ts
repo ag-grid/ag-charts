@@ -13,7 +13,8 @@ export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams> extends AgChart
     placement?: 'before' | 'middle' | 'after';
 }
 
-export interface AgConeFunnelSeriesStageLabelOptions extends AgFormattableLabelOptions {
+export interface AgConeFunnelSeriesStageLabelOptions<TContext = TContextDefault>
+    extends AgFormattableLabelOptions<TContext> {
     /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
 }
@@ -52,7 +53,7 @@ export interface AgConeFunnelSeriesThemeableOptions<TDatum = TDatumDefault, TCon
     /** Configuration for the labels shown on between drop-offs. */
     label?: AgConeFunnelSeriesLabelOptions<TDatum, AgConeFunnelSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the stage labels. */
-    stageLabel?: AgConeFunnelSeriesStageLabelOptions;
+    stageLabel?: AgConeFunnelSeriesStageLabelOptions<TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgConeFunnelSeriesTooltipRendererParams<TDatum>>;
 }

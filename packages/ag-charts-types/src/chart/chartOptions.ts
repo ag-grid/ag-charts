@@ -221,7 +221,7 @@ export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault, TContext = 
     /** Configuration for the chart legend. */
     legend?: AgChartLegendOptions<TContext>;
     /** Configuration for the gradient legend. */
-    gradientLegend?: AgGradientLegendOptions;
+    gradientLegend?: AgGradientLegendOptions<TContext>;
     /** Configuration for chart animations. */
     animation?: AgAnimationOptions;
     /** Configuration for asynchronously loaded data. */
@@ -264,7 +264,7 @@ export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault, TContext = 
 
     // Cartesian-specific options - special care required.
     /** Configuration for the Navigator. */
-    navigator?: AgNavigatorOptions<TDatum>;
+    navigator?: AgNavigatorOptions<TDatum, TContext>;
     /** Configuration for synchronizing multiple charts. */
     sync?: AgChartSyncOptions;
     /** Configuration for the zoom options. */

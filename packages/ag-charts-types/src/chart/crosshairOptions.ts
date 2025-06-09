@@ -1,8 +1,8 @@
 import type { AgFormattableLabelOptions } from './axisOptions';
 import type { Renderer } from './callbackOptions';
-import type { CssColor, Opacity, PixelSize } from './types';
+import type { CssColor, Opacity, PixelSize, TContextDefault } from './types';
 
-export interface AgCrosshairOptions<LabelType = AgCrosshairLabel> {
+export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<TContextDefault>> {
     /** Whether to show the crosshair. */
     enabled?: boolean;
     /** When true, the crosshair snaps to the highlighted data point. By default this property is true. */
@@ -21,7 +21,9 @@ export interface AgCrosshairOptions<LabelType = AgCrosshairLabel> {
     label?: LabelType;
 }
 
-export interface AgCrosshairLabel extends AgBaseCrosshairLabel, AgFormattableLabelOptions {}
+export interface AgCrosshairLabel<TContext = TContextDefault>
+    extends AgBaseCrosshairLabel,
+        AgFormattableLabelOptions<TContext> {}
 
 export interface AgBaseCrosshairLabel {
     /** Whether to show label when the crosshair is visible. */

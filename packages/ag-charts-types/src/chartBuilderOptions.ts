@@ -121,17 +121,17 @@ export type AgLinearGaugeOptions<TDatum = TDatumDefault, TContext = TContextDefa
     TDatum,
     TContext
 > &
-    AgLinearGaugePreset;
+    AgLinearGaugePreset<TContext>;
 export type AgRadialGaugeOptions<TDatum = TDatumDefault, TContext = TContextDefault> = AgBaseGaugePresetOptions<
     TDatum,
     TContext
 > &
-    AgRadialGaugePreset;
+    AgRadialGaugePreset<TContext>;
 export type AgGaugeOptions<TDatum = TDatumDefault, TContext = TContextDefault> = AgBaseGaugePresetOptions<
     TDatum,
     TContext
 > &
-    AgGaugePresets;
+    AgGaugePresets<TContext>;
 
 export interface AgBaseSparklinePresetOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSparklinePresetThemeOptions<TDatum> {

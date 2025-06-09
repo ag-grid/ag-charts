@@ -9,7 +9,7 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 
 export interface AgFunnelSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {}
 
-export interface AgFunnelSeriesStageLabelOptions extends AgFormattableLabelOptions {
+export interface AgFunnelSeriesStageLabelOptions<TContext> extends AgFormattableLabelOptions<TContext> {
     /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
 }
@@ -58,7 +58,7 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = TDatumDefault, TContext
     /** Configuration for the labels shown on bars. */
     label?: AgFunnelSeriesLabelOptions<TDatum, AgFunnelSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the stage labels. */
-    stageLabel?: AgFunnelSeriesStageLabelOptions;
+    stageLabel?: AgFunnelSeriesStageLabelOptions<TContext>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */

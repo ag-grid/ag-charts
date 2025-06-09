@@ -44,7 +44,7 @@ export interface AgNavigatorMiniChartIntervalOptions {
     step?: number;
 }
 
-export interface AgNavigatorMiniChartLabelOptions {
+export interface AgNavigatorMiniChartLabelOptions<TContext = TContextDefault> {
     /** Configuration for interval between the Mini Chart's axis labels. */
     interval?: AgNavigatorMiniChartIntervalOptions;
     /** Set to `false` to hide the axis labels. */
@@ -66,7 +66,7 @@ export interface AgNavigatorMiniChartLabelOptions {
     /** Format string used when rendering labels. */
     format?: string;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between intervals; for example, a tick step of `0.0005` would have `fractionDigits` set to `4`. */
-    formatter?: Formatter<AgAxisLabelFormatterParams>;
+    formatter?: Formatter<AgAxisLabelFormatterParams<TContext>>;
 }
 
 export interface AgNavigatorMiniChartPadding {
@@ -210,13 +210,13 @@ let __VERIFY_MINI_CHART_SERIES_OPTIONS: Record<
 > = undefined as any;
 __VERIFY_MINI_CHART_SERIES_OPTIONS = __MINI_CHART_SERIES_OPTIONS;
 
-export interface AgNavigatorMiniChartOptions<TDatum = TDatumDefault> {
+export interface AgNavigatorMiniChartOptions<TDatum = TDatumDefault, TContext = TContextDefault> {
     /** Whether to show a Mini Chart in the Navigator. */
     enabled?: boolean;
     /** Override series used in Mini Chart. */
     series?: AgMiniChartSeriesOptions<TDatum>[];
     /** Configuration for the Mini Chart's axis labels. */
-    label?: AgNavigatorMiniChartLabelOptions;
+    label?: AgNavigatorMiniChartLabelOptions<TContext>;
     /** Configuration for the padding inside the Mini Chart. */
     padding?: AgNavigatorMiniChartPadding;
 }
@@ -227,7 +227,7 @@ export interface AgNavigatorMiniChartThemeableOptions<TDatum = TDatumDefault, TC
     /** Override series used in Mini Chart. */
     series?: AgMiniChartSeriesThemeableOptions<TDatum, TContext>;
     /** Configuration for the Mini Chart's axis labels. */
-    label?: AgNavigatorMiniChartLabelOptions;
+    label?: AgNavigatorMiniChartLabelOptions<TContext>;
     /** Configuration for the padding inside the Mini Chart. */
     padding?: AgNavigatorMiniChartPadding;
 }
@@ -260,7 +260,7 @@ export interface AgNavigatorHandleOptions {
     grip?: boolean;
 }
 
-export interface AgNavigatorOptions<TDatum = TDatumDefault> {
+export interface AgNavigatorOptions<TDatum = TDatumDefault, TContext = TContextDefault> {
     /** Whether to show the Navigator. */
     enabled?: boolean;
     /** The height of the Navigator. */
@@ -276,11 +276,11 @@ export interface AgNavigatorOptions<TDatum = TDatumDefault> {
     /** Configuration for the Navigator's right handle. */
     maxHandle?: AgNavigatorHandleOptions;
     /** Mini Chart options. */
-    miniChart?: AgNavigatorMiniChartOptions<TDatum>;
+    miniChart?: AgNavigatorMiniChartOptions<TDatum, TContext>;
 }
 
 export interface AgNavigatorThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgNavigatorOptions<TDatum>, 'miniChart'> {
+    extends Omit<AgNavigatorOptions<TDatum, TContext>, 'miniChart'> {
     /** Mini Chart options. */
     miniChart?: AgNavigatorMiniChartThemeableOptions<TDatum, TContext>;
 }
