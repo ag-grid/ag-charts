@@ -53,8 +53,8 @@ export type MockLegendItemClickListener<TDatum, TContext> = NonNullable<
 export type MockLegendItemDblClickListener<TDatum, TContext> = NonNullable<
     NonNullable<NonNullable<AgBaseChartOptions<TDatum, TContext>['legend']>['listeners']>['legendItemDoubleClick']
 >;
-export type MockContextMenuAction<TDatum, _TContext> = NonNullable<
-    Extract<AgContextMenuItem<TDatum>, object>['action']
+export type MockContextMenuAction<TDatum, TContext> = NonNullable<
+    Extract<AgContextMenuItem<TDatum, TContext>, object>['action']
 >;
 
 export type MockAPICallback<TDatum, TContext> =

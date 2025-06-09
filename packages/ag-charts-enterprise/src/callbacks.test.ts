@@ -303,16 +303,15 @@ describe('AG-14631 context enterprise', () => {
         });
     });
 
-    // Skip unit test (not yet implemented)
-    xdescribe('contextMenu', () => {
+    describe('contextMenu', () => {
         type TDatum = Readonly<{ x: number; a: number; b: number; c: number }>;
         type TContext = Readonly<{ name: string }>;
         type TFreezable<TEvent> = ReturnType<typeof newFreezable<TEvent, MockContextMenuAction<TDatum, TContext>>>;
 
-        let alwaysAction: TFreezable<AgChartContextMenuEvent>;
-        let seriesAreaAction: TFreezable<AgSeriesAreaContextMenuActionEvent>;
-        let seriesNodeAction: TFreezable<AgNodeContextMenuActionEvent<TDatum>>;
-        let legendItemAction: TFreezable<AgChartLegendContextMenuEvent>;
+        let alwaysAction: TFreezable<AgChartContextMenuEvent<TContext>>;
+        let seriesAreaAction: TFreezable<AgSeriesAreaContextMenuActionEvent<TContext>>;
+        let seriesNodeAction: TFreezable<AgNodeContextMenuActionEvent<TDatum, TContext>>;
+        let legendItemAction: TFreezable<AgChartLegendContextMenuEvent<TContext>>;
         let chartContext: TContext;
         let series0Context: TContext;
         let series1Context: TContext;
@@ -337,10 +336,10 @@ describe('AG-14631 context enterprise', () => {
         }
 
         beforeEach(async () => {
-            alwaysAction = newFreezable((_params: AgChartContextMenuEvent) => {});
-            seriesAreaAction = newFreezable((_params: AgSeriesAreaContextMenuActionEvent) => {});
-            seriesNodeAction = newFreezable((_params: AgNodeContextMenuActionEvent<TDatum>) => {});
-            legendItemAction = newFreezable((_params: AgChartLegendContextMenuEvent) => {});
+            alwaysAction = newFreezable((_params: AgChartContextMenuEvent<TContext>) => {});
+            seriesAreaAction = newFreezable((_params: AgSeriesAreaContextMenuActionEvent<TContext>) => {});
+            seriesNodeAction = newFreezable((_params: AgNodeContextMenuActionEvent<TDatum, TContext>) => {});
+            legendItemAction = newFreezable((_params: AgChartLegendContextMenuEvent<TContext>) => {});
             chartContext = { name: 'chart context' } as const;
             series0Context = { name: 'series 0 context' } as const;
             series1Context = { name: 'series 1 context' } as const;
@@ -411,7 +410,7 @@ describe('AG-14631 context enterprise', () => {
             seriesNodeAction.expect().toHaveBeenCalledTimes(3);
             seriesNodeAction.expect().nthCalledWithContext(0, series0Context);
             seriesNodeAction.expect().nthCalledWithContext(1, series1Context);
-            seriesNodeAction.expect().nthCalledWithoutContext(2);
+            seriesNodeAction.expect().nthCalledWithContext(2, chartContext);
         });
 
         test('legend-item', async () => {
@@ -429,7 +428,7 @@ describe('AG-14631 context enterprise', () => {
             legendItemAction.expect().toHaveBeenCalledTimes(3);
             legendItemAction.expect().nthCalledWithContext(0, series0Context);
             legendItemAction.expect().nthCalledWithContext(1, series1Context);
-            legendItemAction.expect().nthCalledWithoutContext(2);
+            legendItemAction.expect().nthCalledWithContext(2, chartContext);
         });
     });
 });
