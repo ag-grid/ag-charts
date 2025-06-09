@@ -12,7 +12,17 @@ import { simpleMemorize2 } from '../../util/memo';
 import { buildDateFormatter } from '../../util/timeFormat';
 import { defaultTimeFormats, deriveTimeSpecifier } from '../axis/timeFormatUtil';
 
+export type ContextFormatter = (
+    fn: (params: FormatterParams<any>) => string | undefined,
+    params: FormatterParams<any>
+) => string | undefined;
+
 type Specifier = Record<TimeIntervalUnit, string> | string;
+
+interface FormatParams {
+    specifier?: Record<string, string> | string;
+    includeYear?: boolean;
+}
 
 export class FormatManager extends Listeners<'format-changed', () => void> {
     private readonly formats = new Map<string, ((value: any, _params?: any) => string) | undefined>();
@@ -90,16 +100,16 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
     }
 
     format(
+        formatInContext: ContextFormatter,
         params: FormatterParams<any>,
-        specifier?: Record<string, string> | string,
-        { includeYear = true } = {}
+        { specifier, includeYear = true }: FormatParams = {}
     ): string | undefined {
         if (params.value == null) return;
 
         const { formatter } = this;
         if (formatter == null) return;
         if (typeof formatter === 'function') {
-            const value = formatter(params);
+            const value = formatInContext(formatter, params);
             return value != null ? String(value) : undefined;
         }
 
@@ -107,7 +117,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         if (propertyFormatter == null) return;
 
         if (typeof propertyFormatter === 'function') {
-            const value = propertyFormatter(params);
+            const value = formatInContext(propertyFormatter, params);
             return value != null ? String(value) : undefined;
         } else if (params.type === 'date') {
             const { unit, style } = params;
@@ -126,11 +136,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         return valueFormatter?.(params.value, params.type === 'number' ? params.fractionDigits : undefined);
     }
 
-    defaultFormat(
-        params: FormatterParams<any>,
-        specifier?: Record<string, string> | string,
-        { includeYear = true } = {}
-    ): string {
+    defaultFormat(params: FormatterParams<any>, { specifier, includeYear = true }: FormatParams = {}): string {
         const { formatter } = this;
         const propertyFormatter = typeof formatter === 'function' ? undefined : formatter?.[params.property];
 

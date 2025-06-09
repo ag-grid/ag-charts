@@ -704,10 +704,11 @@ export class MapShapeSeries
 
         if (this.isLabelEnabled() && labelKey != null && labelKey !== idKey) {
             const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
-            const content = formatManager.format({
+            const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'category',
                 value: labelValue,
                 datum,
+                seriesId,
                 key: labelKey,
                 source: 'tooltip',
                 property: 'label',
@@ -718,10 +719,11 @@ export class MapShapeSeries
         }
         if (colorValue != null) {
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
-            const content = formatManager.format({
+            const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: colorValue,
                 datum,
+                seriesId,
                 key: colorKey!,
                 source: 'tooltip',
                 property: 'color',

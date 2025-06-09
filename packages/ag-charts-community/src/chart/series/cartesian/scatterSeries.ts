@@ -336,10 +336,11 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
         if (this.isLabelEnabled() && labelKey != null) {
             const value = dataModel.resolveColumnById<number>(this, `labelValue`, processedData)[datumIndex];
-            const content = formatManager.format({
+            const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'category',
                 value,
                 datum,
+                seriesId,
                 key: labelKey,
                 source: 'tooltip',
                 property: 'label',

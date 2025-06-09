@@ -115,11 +115,12 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
                 fractionDigits,
                 undefined
             );
-            result ??= formatManager.format({
+            result ??= formatManager.format((fn, params) => formatWithContext(ctx, fn, params), {
                 type: 'number',
                 value,
-                datum: 'undefined',
-                key: 'undefined',
+                datum: undefined,
+                seriesId: undefined,
+                key: undefined,
                 source: 'gradient-legend',
                 property: 'color',
                 domain,

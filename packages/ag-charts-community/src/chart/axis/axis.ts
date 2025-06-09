@@ -649,10 +649,11 @@ export abstract class Axis<
                 includeYear = formatParams.includeYear ?? false;
             }
 
+            const f = this.callWithContext.bind(this);
             const currentLabel = primaryLabel ?? label;
             const specifier = primary ? label.format : undefined;
             const labelValue = currentLabel.formatValue(
-                this.callWithContext.bind(this),
+                f,
                 formatParams.type,
                 value,
                 index,
@@ -668,6 +669,7 @@ export abstract class Axis<
 
             const params: FormatDatumParams = {
                 datum: undefined,
+                seriesId: undefined,
                 key: undefined,
                 source: 'axis',
                 property: this.direction,
@@ -675,17 +677,18 @@ export abstract class Axis<
                 boundSeries,
             };
 
-            const unit = timeInterval?.unit;
-            const datumFormatParams = this.datumFormatParams(value, params, fractionDigits, unit, dateStyle);
+            const datumFormatParams = this.datumFormatParams(value, params, fractionDigits, timeInterval, dateStyle);
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
             datumFormatParams.value = value;
 
-            const mergedSpecifier = FormatManager.mergeSpecifiers(primaryLabel?.format, label.format);
-            const options = { includeYear };
+            const options = {
+                specifier: FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
+                includeYear,
+            };
 
             return (
-                formatManager.format(datumFormatParams, mergedSpecifier, options) ??
-                formatManager.defaultFormat(datumFormatParams, mergedSpecifier, options)
+                formatManager.format(f, datumFormatParams, options) ??
+                formatManager.defaultFormat(datumFormatParams, options)
             );
         };
     }
@@ -747,7 +750,7 @@ export abstract class Axis<
 
         const formatParams = this.datumFormatParams(
             input,
-            { source, datum, key, property: direction, domain, boundSeries },
+            { source, datum, seriesId: undefined, key, property: direction, domain, boundSeries },
             inputFractionDigits,
             undefined,
             'long'
@@ -763,7 +766,7 @@ export abstract class Axis<
         const f = formatInContext;
         const result =
             label?.formatValue(f, type, value, params) ??
-            formatManager.format(formatParams) ??
+            formatManager.format(f, formatParams) ??
             this.label.formatValue(f, type, value, NaN, domain, boundSeries, fractionDigits, timeInterval) ??
             formatManager.defaultFormat(formatParams);
 

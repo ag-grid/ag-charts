@@ -477,10 +477,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         } else {
             fill = colorScale.convert(colorValue);
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
-            const content = formatManager.format({
+            const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: colorValue,
                 datum,
+                seriesId,
                 key: colorKey!,
                 source: 'tooltip',
                 property: 'color',

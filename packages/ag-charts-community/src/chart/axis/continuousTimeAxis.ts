@@ -93,7 +93,7 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
             }
         }
 
-        const { datum, key, source, property, domain, boundSeries } = params;
+        const { datum, seriesId, key, source, property, domain, boundSeries } = params;
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
         const epoch = intervalEpoch(timeInterval);
@@ -101,6 +101,7 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
             type: 'date',
             value,
             datum,
+            seriesId,
             key,
             source,
             property,

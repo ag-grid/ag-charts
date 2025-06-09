@@ -413,10 +413,11 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
         if (this.isLabelEnabled() && labelKey != null) {
             const value = dataModel.resolveColumnById<number>(this, `labelValue`, processedData)[datumIndex];
-            const content = formatManager.format({
+            const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'category',
                 value,
                 datum,
+                seriesId,
                 key: labelKey,
                 source: 'tooltip',
                 property: 'label',
@@ -434,10 +435,11 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         if (sizeKey != null) {
             const value = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
             const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
-            const content = formatManager.format({
+            const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value,
                 datum,
+                seriesId,
                 key: sizeKey,
                 source: 'tooltip',
                 property: 'size',

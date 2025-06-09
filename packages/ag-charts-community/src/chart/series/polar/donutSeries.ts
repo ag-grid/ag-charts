@@ -1504,10 +1504,11 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         const domain = dataModel.getDomain(this, `angleRaw`, 'value', processedData);
         const angleContent =
-            formatManager.format({
+            formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: angleRawValue,
                 datum,
+                seriesId,
                 key: angleKey,
                 source: 'tooltip',
                 property: 'angle',
