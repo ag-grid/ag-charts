@@ -1,11 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { AgDataSourceCallbackParams } from 'ag-charts-types';
 
 const { ActionOnSet, Property } = _ModuleSupport;
-
-interface DataSourceGetDataCallbackParams {
-    windowStart?: Date;
-    windowEnd?: Date;
-}
 
 export class DataSource extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ActionOnSet<DataSource>({
@@ -22,7 +18,7 @@ export class DataSource extends _ModuleSupport.BaseModuleInstance implements _Mo
         },
     })
     @Property
-    public getData: (params: DataSourceGetDataCallbackParams) => Promise<unknown> = () => Promise.resolve();
+    public getData: (params: AgDataSourceCallbackParams) => Promise<unknown> = () => Promise.resolve();
 
     @ActionOnSet<DataSource>({
         newValue(requestThrottle) {
@@ -52,7 +48,7 @@ export class DataSource extends _ModuleSupport.BaseModuleInstance implements _Mo
         this.dataService = ctx.dataService;
     }
 
-    private updateCallback(enabled: boolean, getData: (params: DataSourceGetDataCallbackParams) => Promise<unknown>) {
+    private updateCallback(enabled: boolean, getData: (params: AgDataSourceCallbackParams) => Promise<unknown>) {
         if (!this.dataService) return;
 
         if (enabled && getData != null) {

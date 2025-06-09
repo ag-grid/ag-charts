@@ -1,4 +1,15 @@
-export function getData() {
+export interface DataType {
+    year: Date;
+    magnitudeLow: number;
+    magnitudeHigh: number;
+    magnitudeLowRegion: string;
+    magnitudeHighRegion: string;
+    depthLow: number;
+    depthHigh: number;
+    deathTotal: number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             year: new Date('1958-01-01T00:00:00.000Z'),

@@ -25,19 +25,17 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
         super(moduleCtx, new CategoryScale());
     }
 
-    protected generateAngleTicks() {
+    protected generateAngleTicks(domain: string[]) {
         const { scale, gridLength: radius } = this;
         const { values, minSpacing } = this.interval;
-        const ticks =
-            values ??
-            scale.ticks({
-                nice: this.nice,
-                interval: undefined,
-                tickCount: undefined,
-                minTickCount: 0,
-                maxTickCount: Infinity,
-            })?.ticks ??
-            [];
+        const tickParams: _ModuleSupport.ScaleTickParams<number> = {
+            nice: this.nice,
+            interval: undefined,
+            tickCount: undefined,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        };
+        const ticks = values ?? scale.ticks(tickParams, domain)?.ticks ?? [];
         if (ticks.length < 2 || minSpacing == null) {
             return ticks.map((value) => {
                 return { value, visible: true };
@@ -121,7 +119,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
     }
 
     override datumFormatParams(value: any, params: _ModuleSupport.FormatDatumParams): FormatterParams<any> {
-        const { datum, key, source, property, boundSeries } = params;
-        return { type: 'category', value, datum, key, source, property, boundSeries };
+        const { datum, key, source, property, domain, boundSeries } = params;
+        return { type: 'category', value, datum, key, source, property, domain, boundSeries };
     }
 }

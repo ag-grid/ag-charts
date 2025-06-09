@@ -833,6 +833,7 @@ export abstract class Series<
         datum: any,
         key: string,
         property: FormatterPropertyType,
+        domain: any[],
         label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
         baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>
     ): string {
@@ -861,6 +862,7 @@ export abstract class Series<
                 source,
                 datum,
                 key,
+                domain,
                 label,
                 params,
                 formatInContext
@@ -873,7 +875,17 @@ export abstract class Series<
             case 'color':
             case 'size':
                 const fractionDigits = undefined;
-                return format({ type: 'number', value, datum, key, source, property, boundSeries, fractionDigits });
+                return format({
+                    type: 'number',
+                    value,
+                    datum,
+                    key,
+                    source,
+                    property,
+                    domain,
+                    boundSeries,
+                    fractionDigits,
+                });
 
             case 'x':
             case 'radius':
@@ -882,7 +894,7 @@ export abstract class Series<
             case 'secondaryLabel':
             case 'calloutLabel':
             case 'sectorLabel':
-                return format({ type: 'category', value, datum, key, source, property, boundSeries });
+                return format({ type: 'category', value, datum, key, source, property, domain, boundSeries });
         }
     }
 
@@ -1030,7 +1042,7 @@ export abstract class Series<
     }
 
     public callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> {
-        return callWithContext([this.properties, this.ctx.chartService], fn, params);
+        return callWithContext([this.properties, this.ctx.chartService], fn, ...params);
     }
 
     protected formatTooltipWithContext<P extends AgSeriesTooltipRendererParams<any>, Tooltip extends SeriesTooltip<P>>(

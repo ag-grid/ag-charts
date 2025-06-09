@@ -39,7 +39,7 @@ export interface AxisContext {
     seriesIds(): string[];
     scaleInvert(position: number): any;
     scaleInvertNearest(position: number): any;
-    formatScaleValue(value: unknown, source: 'crosshair', label?: AxisFormattableLabel<never>): string;
+    formatScaleValue(value: unknown, source: 'annotation' | 'crosshair', label?: AxisFormattableLabel<never>): string;
     attachLabel(node: Node): void;
     inRange(value: number, tolerance?: number): boolean;
     getRangeOverflow(value: number): number;

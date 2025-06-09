@@ -12,11 +12,11 @@ import type {
 /**
  * Represents configuration options for X and Y axes in a chart.
  */
-export interface AxisOptions {
+export interface AxisOptions<TDatum> {
     /** The key used to retrieve x-values (categories) from the data. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key used to retrieve y-values from the data. */
-    yKey: string;
+    yKey: TDatum extends object ? keyof TDatum & string : string;
     /** A descriptive label for x-values. */
     xName?: string;
     /** A descriptive label for y-values. */

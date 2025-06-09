@@ -16,6 +16,7 @@ import { deepClone } from '../util/json';
 import { ActionOnSet } from '../util/proxy';
 import type { Chart } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
+import type { DataServiceRestoredData } from './data/dataService';
 
 const debug = Debug.create(true, 'opts');
 const DESTROYED_ERROR = 'AG Charts - Chart was destroyed, cannot perform request.';
@@ -31,7 +32,8 @@ export interface FactoryApi {
         userOptions: AgChartOptions,
         processedOverrides?: Partial<AgChartOptions>,
         specialOverrides?: ChartSpecialOverrides,
-        optionsMetadata?: ChartInternalOptionMetadata
+        optionsMetadata?: ChartInternalOptionMetadata,
+        data?: DataServiceRestoredData
     ): AgChartProxy;
     update(opts: AgChartOptions, chart?: AgChartInstance, specialOverrides?: ChartSpecialOverrides): AgChartProxy;
     updateUserDelta(chart: AgChartInstance, deltaOptions: DeepPartial<AgChartOptions>): void;
@@ -226,7 +228,15 @@ export class AgChartInstanceProxy implements AgChartProxy {
         const specialOverrides = { ...chart.chartOptions.specialOverrides };
         const optionsMetadata = { ...chart.chartOptions.optionMetadata };
 
-        const cloneProxy = this.factoryApi.create(userOptions, processedOverrides, specialOverrides, optionsMetadata);
+        const data = await this.chart?.ctx.dataService.getData();
+
+        const cloneProxy = this.factoryApi.create(
+            userOptions,
+            processedOverrides,
+            specialOverrides,
+            optionsMetadata,
+            data
+        );
         await cloneProxy.setState(state);
 
         // sync zoom

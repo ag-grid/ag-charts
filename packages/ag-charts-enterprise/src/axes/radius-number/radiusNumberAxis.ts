@@ -4,12 +4,12 @@ import { RadiusAxis } from '../radius/radiusAxis';
 
 const { Property, normalisedExtentWithMetadata, LinearScale } = _ModuleSupport;
 
-type TickDatum = {
+interface TickDatum {
     tickLabel: string | undefined;
     tick: any;
     tickId: string;
-    translationY: number;
-};
+    translation: number;
+}
 
 export class RadiusNumberAxis extends RadiusAxis {
     static readonly className = 'RadiusNumberAxis';
@@ -39,7 +39,7 @@ export class RadiusNumberAxis extends RadiusAxis {
         const { scale } = this;
         const maxRadius = scale.range[0];
         const minRadius = maxRadius * this.innerRadiusRatio;
-        return maxRadius - tickDatum.translationY + minRadius;
+        return maxRadius - tickDatum.translation + minRadius;
     }
 
     override normaliseDataDomain(d: number[]) {
@@ -62,7 +62,7 @@ export class RadiusNumberAxis extends RadiusAxis {
         params: _ModuleSupport.FormatDatumParams,
         fractionDigits?: number
     ): FormatterParams<any> {
-        const { datum, key, source, property, boundSeries } = params;
+        const { datum, key, source, property, domain, boundSeries } = params;
         return {
             type: 'number',
             value,
@@ -70,6 +70,7 @@ export class RadiusNumberAxis extends RadiusAxis {
             key,
             source,
             property,
+            domain,
             boundSeries,
             fractionDigits,
         };

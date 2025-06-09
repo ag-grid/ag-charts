@@ -29,10 +29,8 @@ import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group'
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import { Selection } from '../../scene/selection';
-import { Line } from '../../scene/shape/line';
 import { TransformableText } from '../../scene/shape/text';
-import { Transformable, Translatable } from '../../scene/transformable';
-import { formatValue } from '../../util/format.util';
+import { Transformable } from '../../scene/transformable';
 import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import type { Padding } from '../../util/padding';
@@ -77,16 +75,12 @@ export interface LabelNodeDatum {
 
 type AxisModuleMap = ModuleMap<AxisOptionModule, ModuleInstance, ModuleContextWithParent<AxisContext>>;
 
-export class TranslatableLine extends Translatable(Line) {}
-
 export enum AxisGroupZIndexMap {
     TickLines,
     // eslint-disable-next-line @typescript-eslint/no-shadow
     AxisLine,
     TickLabels,
 }
-
-export type CrosslineFormatterParams<D> = { domain: D[]; ticks: D[]; fractionDigits: number } | undefined;
 
 export type AxisTickFormatParams =
     | {
@@ -104,6 +98,17 @@ export type AxisTickFormatParams =
           type: 'category';
       };
 
+interface TickLayout<D, TickLayoutMeta> {
+    niceDomain: D[];
+    tickDomain: D[];
+    ticks: D[];
+    rawTickCount: number | undefined;
+    fractionDigits: number;
+    timeInterval: AnyTimeInterval | undefined;
+    bbox?: BBox;
+    layout?: TickLayoutMeta;
+}
+
 /**
  * A general purpose linear axis with no notion of orientation.
  * The axis is always rendered vertically, with horizontal labels positioned to the left
@@ -116,8 +121,7 @@ export type AxisTickFormatParams =
 export abstract class Axis<
     S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
     D = any,
-    TickDatum = any,
-    TickLabelDatum = TickDatum,
+    TickLayoutMeta = any,
 > implements ChartAxis
 {
     static readonly defaultTickMinSpacing = 50;
@@ -229,15 +233,11 @@ export abstract class Axis<
         zIndex: ZIndexMap.SERIES_LABEL,
     });
 
-    protected tickLabelGroupSelection = Selection.select<TransformableText, TickLabelDatum>(
+    protected tickLabelGroupSelection = Selection.select<TransformableText, LabelNodeDatum>(
         this.tickLabelGroup,
         TransformableText,
         false
     );
-
-    get labelNodes() {
-        return this.tickLabelGroupSelection.nodes();
-    }
 
     readonly line = new AxisLine();
     readonly tick = new AxisTick();
@@ -297,15 +297,23 @@ export abstract class Axis<
         this.cleanup.flush();
     }
 
-    protected updateScale() {
-        const { range: rr, visibleRange: vr, scale } = this;
-        const span = (rr[1] - rr[0]) / (vr[1] - vr[0]);
-        const shift = span * vr[0];
+    private setScaleRange(visibleRange: [number, number]) {
+        const { range: rr, scale } = this;
+        const span = (rr[1] - rr[0]) / (visibleRange[1] - visibleRange[0]);
+        const shift = span * visibleRange[0];
         const start = rr[0] - shift;
 
         scale.range = [start, start + span];
+    }
+
+    protected updateScale() {
+        const {
+            range: [r0, r1],
+        } = this;
+
+        this.setScaleRange(this.visibleRange);
         this.crossLines.forEach((crossLine) => {
-            crossLine.clippedRange = [rr[0], rr[1]];
+            crossLine.clippedRange = [r0, r1];
         });
     }
 
@@ -363,10 +371,6 @@ export abstract class Axis<
         if (value < min) return value - min;
         if (value > max) return value - max;
         return 0;
-    }
-
-    protected defaultFormatter(datum: unknown, fractionDigits: number): string {
-        return formatValue(datum, fractionDigits);
     }
 
     protected createDatumFormatter(_domain: D[], _ticks: D[]): ((value: any) => string | undefined) | undefined {
@@ -468,9 +472,60 @@ export abstract class Axis<
 
     protected chartPadding?: Padding;
 
-    _cachedUnzoomedInputDomain: D[] | undefined = undefined;
-    _cachedUnzoomedRangeExtent: number = NaN;
-    _cachedUnzoomedTickCount: number = 0;
+    private unzoomedInputDomain: D[] | undefined = undefined;
+    private unzoomedInputRangeExtent: number = NaN;
+    private unzoomedInputGridLength: number = NaN;
+    private unzoomedInputInitialPrimaryTickCount: AxisPrimaryTickCount | undefined = undefined;
+    private unzoomedTickLayout: TickLayout<D, TickLayoutMeta> | undefined;
+    calculateDomain(initialPrimaryTickCount?: AxisPrimaryTickCount) {
+        const {
+            nice,
+            dataDomain: { domain },
+            range,
+            scale,
+            gridLength,
+            unzoomedInputDomain,
+            unzoomedInputRangeExtent,
+            unzoomedInputGridLength,
+            unzoomedInputInitialPrimaryTickCount,
+        } = this;
+        let { unzoomedTickLayout } = this;
+        const rangeExtent = findRangeExtent(range);
+
+        this.updateScale();
+
+        if (
+            unzoomedTickLayout == null ||
+            unzoomedInputDomain !== domain ||
+            unzoomedInputRangeExtent !== rangeExtent ||
+            unzoomedInputGridLength !== gridLength ||
+            unzoomedInputInitialPrimaryTickCount?.unzoomed !== initialPrimaryTickCount?.unzoomed ||
+            unzoomedInputInitialPrimaryTickCount?.zoomed !== initialPrimaryTickCount?.zoomed
+        ) {
+            const scaleRange = scale.range;
+            this.setScaleRange([0, 1]);
+
+            const niceMode = nice ? NiceMode.TickAndDomain : NiceMode.Off;
+            unzoomedTickLayout = this.calculateTickLayout(domain, niceMode, [0, 1], initialPrimaryTickCount);
+
+            scale.range = scaleRange;
+
+            this.unzoomedInputDomain = domain;
+            this.unzoomedInputRangeExtent = rangeExtent;
+            this.unzoomedInputGridLength = gridLength;
+            this.unzoomedTickLayout = unzoomedTickLayout;
+            this.unzoomedInputInitialPrimaryTickCount = initialPrimaryTickCount;
+        }
+
+        this.updateScale();
+
+        scale.domain = unzoomedTickLayout.niceDomain;
+
+        return { unzoomedTickLayout, domain: scale.domain };
+    }
+
+    protected tickLayout: TickLayoutMeta | undefined;
+
     calculateLayout(
         initialPrimaryTickCount?: AxisPrimaryTickCount,
         chartPadding?: Padding
@@ -478,59 +533,29 @@ export abstract class Axis<
         primaryTickCount?: AxisPrimaryTickCount;
         bbox?: BBox;
     } {
-        const { visibleRange, nice } = this;
-
         this.chartPadding = chartPadding;
-        this.updateScale();
 
-        const rangeExtent = findRangeExtent(this.range);
+        const { visibleRange, nice } = this;
+        const unzoomed = visibleRange[0] === 0 && visibleRange[1] === 1;
+        const { unzoomedTickLayout, domain } = this.calculateDomain(initialPrimaryTickCount);
 
-        const domain = this.dataDomain.domain;
-        let tickLayoutDomain: D[] | undefined;
-        let unzoomedTickCount: number | undefined;
-        if (visibleRange[0] === 0 && visibleRange[1] === 1) {
-            tickLayoutDomain = undefined;
-            unzoomedTickCount = undefined;
-        } else if (this._cachedUnzoomedInputDomain === domain && this._cachedUnzoomedRangeExtent === rangeExtent) {
-            tickLayoutDomain = this.scale.domain;
-            unzoomedTickCount = this._cachedUnzoomedTickCount;
+        let tickLayout: TickLayout<D, TickLayoutMeta>;
+        if (unzoomed) {
+            tickLayout = unzoomedTickLayout;
         } else {
-            const unzoomedTickLayout = this.calculateTickLayout(
-                domain,
-                nice ? NiceMode.TickAndDomain : NiceMode.Off,
-                [0, 1]
-            );
-            tickLayoutDomain = unzoomedTickLayout.niceDomain;
-            unzoomedTickCount = unzoomedTickLayout.rawTickCount ?? 0;
+            const niceMode = nice ? NiceMode.TicksOnly : NiceMode.Off;
+            tickLayout = this.calculateTickLayout(domain, niceMode, visibleRange, initialPrimaryTickCount);
         }
 
-        let niceMode: NiceMode;
-        if (!nice) {
-            niceMode = NiceMode.Off;
-        } else if (tickLayoutDomain == null) {
-            niceMode = NiceMode.TickAndDomain;
-        } else {
-            niceMode = NiceMode.TicksOnly;
-        }
-        const {
-            niceDomain,
-            rawTickCount = 0,
-            fractionDigits,
-            bbox,
-        } = this.calculateTickLayout(tickLayoutDomain ?? domain, niceMode, visibleRange, initialPrimaryTickCount);
-        unzoomedTickCount ??= rawTickCount;
+        const { rawTickCount: zoomedTickCount = 0, fractionDigits, bbox } = tickLayout;
+        const unzoomedTickCount = unzoomedTickLayout.rawTickCount ?? 0;
 
         const primaryTickCount: AxisPrimaryTickCount | undefined =
-            rawTickCount !== 0 && unzoomedTickCount !== 0
-                ? { zoomed: rawTickCount, unzoomed: unzoomedTickCount }
+            zoomedTickCount !== 0 && unzoomedTickCount !== 0
+                ? { zoomed: zoomedTickCount, unzoomed: unzoomedTickCount }
                 : undefined;
 
-        this.scale.domain = niceDomain;
-
-        this._cachedUnzoomedInputDomain = domain;
-        this._cachedUnzoomedRangeExtent = rangeExtent;
-        this._cachedUnzoomedTickCount = unzoomedTickCount;
-
+        this.tickLayout = tickLayout.layout;
         this.layout.label = {
             fractionDigits: fractionDigits,
             spacing: this.label.spacing,
@@ -646,6 +671,7 @@ export abstract class Axis<
                 key: undefined,
                 source: 'axis',
                 property: this.direction,
+                domain,
                 boundSeries,
             };
 
@@ -654,24 +680,25 @@ export abstract class Axis<
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
             datumFormatParams.value = value;
 
+            const mergedSpecifier = FormatManager.mergeSpecifiers(primaryLabel?.format, label.format);
+            const options = { includeYear };
+
             return (
-                formatManager.format(
-                    datumFormatParams,
-                    FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
-                    { includeYear }
-                ) ?? this.defaultFormatter(value, fractionDigits ?? 0)
+                formatManager.format(datumFormatParams, mergedSpecifier, options) ??
+                formatManager.defaultFormat(datumFormatParams, mergedSpecifier, options)
             );
         };
     }
 
     // For formatting arbitrary values between the ticks.
-    formatDatum(value: any, source: 'crosshair'): string;
+    formatDatum(value: any, source: 'crosshair' | 'annotation'): string;
     formatDatum(value: any, source: 'tooltip' | 'series-label', datum: any, key: string): string;
     formatDatum<Params extends object>(
         value: any,
-        source: 'crosshair',
+        source: 'crosshair' | 'annotation',
         datum: undefined,
         key: undefined,
+        domain: undefined,
         label: AxisFormattableLabel<Params>,
         labelParams: Params
     ): string;
@@ -680,14 +707,16 @@ export abstract class Axis<
         source: 'tooltip' | 'series-label',
         datum: any,
         key: string,
+        domain: any[],
         label: AxisFormattableLabel<Params>,
         labelParams: Params
     ): string;
     formatDatum(
         input: any,
-        source: Exclude<AnyFormatterSource, 'axis'>,
+        source: Exclude<AnyFormatterSource, 'axis' | 'gradient-legend'>,
         datum?: any,
         key?: string,
+        domain?: any[],
         label?: AxisFormattableLabel<any>,
         params?: any,
         formatInContext: (
@@ -697,17 +726,15 @@ export abstract class Axis<
     ): string {
         if (input == null) return '';
 
-        const {
-            moduleCtx,
-            direction,
-            dataDomain: { domain },
-        } = this;
+        const { moduleCtx, direction, dataDomain } = this;
+        domain ??= dataDomain.domain;
         const { formatManager } = moduleCtx;
         const boundSeries = this.getFormatterBoundSeries();
 
         let inputFractionDigits: number;
         switch (source) {
             case 'crosshair':
+            case 'annotation':
                 inputFractionDigits = this.layout.label.fractionDigits + 1;
                 break;
             case 'series-label':
@@ -720,7 +747,7 @@ export abstract class Axis<
 
         const formatParams = this.datumFormatParams(
             input,
-            { source, datum, key, property: direction, boundSeries },
+            { source, datum, key, property: direction, domain, boundSeries },
             inputFractionDigits,
             undefined,
             'long'
@@ -734,17 +761,11 @@ export abstract class Axis<
         }
 
         const f = formatInContext;
-        let result = label?.formatValue(f, type, value, params);
-
-        if (source === 'crosshair') {
-            result ??= this.label.formatValue(f, type, value, NaN, domain, boundSeries, fractionDigits, timeInterval);
-            result ??= formatManager.format(formatParams);
-        } else {
-            result ??= formatManager.format(formatParams);
-            result ??= this.label.formatValue(f, type, value, NaN, domain, boundSeries, fractionDigits, timeInterval);
-        }
-
-        result ??= this.defaultFormatter(value, fractionDigits ?? 0);
+        const result =
+            label?.formatValue(f, type, value, params) ??
+            formatManager.format(formatParams) ??
+            this.label.formatValue(f, type, value, NaN, domain, boundSeries, fractionDigits, timeInterval) ??
+            formatManager.defaultFormat(formatParams);
 
         return String(result);
     }
@@ -830,7 +851,7 @@ export abstract class Axis<
             scaleInvert: (val) => scale.invert(val, true),
             scaleInvertNearest: (val) => scale.invert(val, true),
             formatScaleValue: (value, source, label) =>
-                this.formatDatum(value, source, undefined, undefined, label!, undefined!),
+                this.formatDatum(value, source, undefined, undefined, undefined, label!, undefined!),
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),

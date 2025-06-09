@@ -1,4 +1,10 @@
-export function getData() {
+export interface DataType {
+    year: number;
+    lifeExpectancy: number;
+    numberOfDeaths?: number;
+}
+
+export function getData(): DataType[] {
     return [
         { year: 1765, lifeExpectancy: 38.8814597811288 },
         { year: 1766, lifeExpectancy: 35.3549911739909 },

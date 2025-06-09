@@ -11,6 +11,7 @@ export * from './chart/contextMenuOptions';
 export * from './chart/crossLineOptions';
 export * from './chart/crosshairOptions';
 export * from './chart/bandHighlightOptions';
+export * from './chart/dataSourceOptions';
 export * from './chart/dropShadowOptions';
 export * from './chart/errorBarOptions';
 export * from './chart/formatterOptions';

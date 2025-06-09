@@ -1,6 +1,6 @@
 import { AgChartOptions, AgCharts, AgMarkerShapeFnParams } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 const data = getData();
 const seasons = ['Spring', 'Summer', 'Autumn', 'Winter'];
@@ -25,7 +25,7 @@ const formatNumber = (value: number) => {
     return `${Math.round(value)}mm`;
 };
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Rainfall',

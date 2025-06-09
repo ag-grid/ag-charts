@@ -1,6 +1,6 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 const labelDates = [
     new Date(2008, 9, 11).valueOf(),
@@ -10,7 +10,7 @@ const labelDates = [
     new Date(2023, 0, 1).valueOf(),
 ];
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -51,7 +51,7 @@ const options: AgChartOptions = {
     ],
     formatter: {
         y(params) {
-            if (params.source === 'series-label' && !labelDates.includes(params.datum.date.valueOf())) {
+            if (params.source === 'series-label' && !labelDates.includes(params.datum?.date.valueOf() ?? 0)) {
                 return '';
             }
             return `$${Math.floor(params.value as number)}B`;

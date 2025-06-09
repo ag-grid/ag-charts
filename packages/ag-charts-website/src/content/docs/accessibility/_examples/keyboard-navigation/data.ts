@@ -1,5 +1,15 @@
 // Source: https://www.gov.uk/government/statistics/renewable-sources-of-energy-chapter-6-digest-of-united-kingdom-energy-statistics-dukes
-export function getData() {
+export interface DataType {
+    year: string;
+    'Onshore wind': number;
+    'Offshore wind': number;
+    'Solar photovoltaics': number;
+    'Small scale Hydro': number;
+    'Large scale Hydro': number;
+    'Landfill gas': number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             year: '2017',

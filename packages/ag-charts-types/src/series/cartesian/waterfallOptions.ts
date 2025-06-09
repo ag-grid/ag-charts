@@ -9,11 +9,14 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 
 export type AgWaterfallSeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
 
-export type AgWaterfallSeriesItemStylerParams<TDatum> = DatumItemCallbackParams<AgWaterfallSeriesItemType, TDatum> &
-    AgWaterfallSeriesOptionsKeys &
+export type AgWaterfallSeriesItemStylerParams<TDatum = TDatumDefault> = DatumItemCallbackParams<
+    AgWaterfallSeriesItemType,
+    TDatum
+> &
+    AgWaterfallSeriesOptionsKeys<TDatum> &
     Required<AgWaterfallSeriesStyle>;
 
-export type AgWaterfallSeriesLabelFormatterParams = AgWaterfallSeriesOptionsKeys &
+export type AgWaterfallSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgWaterfallSeriesOptionsKeys<TDatum> &
     AgWaterfallSeriesOptionsNames & { itemId: AgWaterfallSeriesItemType };
 
 export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
@@ -65,11 +68,11 @@ export interface AgWaterfallSeriesThemeableOptions<TDatum = TDatumDefault>
     highlightStyle?: AgSeriesHighlightStyle;
 }
 
-export interface AgWaterfallSeriesOptionsKeys {
+export interface AgWaterfallSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve y-values from the data. */
-    yKey: string;
+    yKey: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgWaterfallSeriesOptionsNames {
@@ -81,7 +84,7 @@ export interface AgWaterfallSeriesOptionsNames {
 
 export interface AgWaterfallSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgWaterfallSeriesOptionsKeys,
+        AgWaterfallSeriesOptionsKeys<TDatum>,
         AgWaterfallSeriesOptionsNames,
         AgWaterfallSeriesThemeableOptions<TDatum> {
     /** Configuration for the Waterfall Series. */
@@ -113,7 +116,7 @@ export interface AgWaterfallSeriesItemOptions<TDatum> extends AgWaterfallSeriesS
     /** A human-readable description of the y-values. If supplied, this will be shown in the legend and default tooltip and passed to the tooltip renderer as one of the parameters. */
     name?: string;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgWaterfallSeriesLabelOptions<TDatum, AgWaterfallSeriesLabelFormatterParams>;
+    label?: AgWaterfallSeriesLabelOptions<TDatum, AgWaterfallSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual Waterfall series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */

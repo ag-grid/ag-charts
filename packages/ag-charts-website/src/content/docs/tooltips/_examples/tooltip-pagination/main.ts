@@ -1,8 +1,8 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -25,11 +25,7 @@ const options: AgCartesianChartOptions = {
             labelName: 'City',
             maxSize: 50,
             tooltip: {
-                renderer({ datum, labelKey }) {
-                    return {
-                        title: datum[labelKey!],
-                    };
-                },
+                renderer: ({ datum }) => ({ title: datum.city }),
             },
         },
     ],

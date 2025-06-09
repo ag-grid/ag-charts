@@ -1,4 +1,9 @@
-export function getData() {
+export interface DataType {
+    ingredient: string;
+    weight: number;
+}
+
+export function getData(): DataType[] {
     return [
         { ingredient: 'Bramley Apples', weight: 1000 },
         { ingredient: 'Caster Sugar', weight: 140 },

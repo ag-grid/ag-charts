@@ -431,17 +431,23 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const paddingDirection = placement === 'outside' ? 1 : -1;
         const labelPadding = padding * paddingDirection;
 
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+
         const yLowLabel: RangeBarNodeLabelDatum = {
             datumIndex,
             x: rect.x + (barAlongX ? -labelPadding : rect.width / 2),
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yLowValue, datum, yLowKey, 'y', label, {
-                itemId: 'low',
-                value: yLowValue,
-                ...labelParams,
-            }),
+            text: this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(
+                yLowValue,
+                datum,
+                yLowKey,
+                'y',
+                yDomain,
+                label,
+                { itemId: 'low', value: yLowValue, ...labelParams }
+            ),
             itemId: 'low',
             datum,
             series,
@@ -452,11 +458,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',
             textBaseline: barAlongX ? 'middle' : 'top',
-            text: this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yHighValue, datum, yHighKey, 'y', label, {
-                itemId: 'high',
-                value: yHighValue,
-                ...labelParams,
-            }),
+            text: this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(
+                yHighValue,
+                datum,
+                yHighKey,
+                'y',
+                yDomain,
+                label,
+                { itemId: 'high', value: yHighValue, ...labelParams }
+            ),
             itemId: 'high',
             datum,
             series,

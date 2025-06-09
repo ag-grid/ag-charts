@@ -1,4 +1,10 @@
-export const data = [
+export interface DataType {
+    name: string;
+    code: string;
+    gdp: number;
+}
+
+export const data: DataType[] = [
     { name: 'Alabama', code: 'AL', gdp: 302289 },
     { name: 'Arizona', code: 'AZ', gdp: 512504 },
     { name: 'Arkansas', code: 'AR', gdp: 176878 },

@@ -40,7 +40,7 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends
         content: TooltipStructuredContent,
         params: RequireOptional<P>
     ): TooltipContent {
-        const overrides = this.renderer == null ? undefined : callWithContext(callers, this.renderer, [params]);
+        const overrides = this.renderer == null ? undefined : callWithContext(callers, this.renderer, params);
         if (typeof overrides === 'string') return { type: 'raw', rawHtmlString: overrides };
         if (overrides != null) return { type: 'structured', ...content, ...overrides };
         return { type: 'structured', ...content };

@@ -258,6 +258,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const yPrevValues = dataModel.resolveColumnById<number>(this, 'yPrevious', processedData);
         const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
 
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+
         const crisp = checkCrisp(
             categoryAxis?.scale,
             categoryAxis?.visibleRange,
@@ -389,15 +391,23 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             pointData.push(pathPoint);
 
             const itemId = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
-            const labelText = this.getLabelText<AgWaterfallSeriesLabelFormatterParams>(value, datum, yKey, 'y', label, {
-                itemId,
+            const labelText = this.getLabelText<AgWaterfallSeriesLabelFormatterParams>(
                 value,
                 datum,
-                xKey,
                 yKey,
-                xName,
-                yName,
-            });
+                'y',
+                yDomain,
+                label,
+                {
+                    itemId,
+                    value,
+                    datum,
+                    xKey,
+                    yKey,
+                    xName,
+                    yName,
+                }
+            );
 
             const nodeDatum: WaterfallNodeDatum = {
                 index: datumIndex,

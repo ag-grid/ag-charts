@@ -1,8 +1,8 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -23,9 +23,8 @@ const options: AgChartOptions = {
             yName: 'Life Expectancy',
             size: 4,
             label: {
-                formatter: ({ xKey, datum }) => {
-                    const year = datum[xKey];
-                    return year === 2023 || year === 1768 ? `${year}` : '';
+                formatter: ({ datum }) => {
+                    return datum.year === 2023 || datum.year === 1768 ? `${datum.year}` : '';
                 },
             },
         },

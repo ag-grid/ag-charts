@@ -1,8 +1,8 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     series: [
@@ -14,12 +14,15 @@ const options: AgChartOptions = {
             fillOpacity: 1,
             aspectRatio: 1.2,
             label: {
-                formatter: ({ value, datum }) =>
-                    datum.group === 'Lower Middle Class' || datum.group === 'Bottom 50%'
-                        ? `${datum.percentage}\n${value.toLocaleString()}`
-                        : datum.group === 'Upper Middle Class'
-                          ? `${datum.percentage}`
-                          : ``,
+                formatter: ({ value, datum }) => {
+                    if (datum.group === 'Lower Middle Class' || datum.group === 'Bottom 50%') {
+                        return `${datum.percentage}\n${value.toLocaleString()}`;
+                    }
+                    if (datum.group === 'Upper Middle Class') {
+                        return datum.percentage;
+                    }
+                    return '';
+                },
             },
         },
     ],

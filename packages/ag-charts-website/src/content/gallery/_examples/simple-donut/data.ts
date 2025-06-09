@@ -1,4 +1,9 @@
-export function getData() {
+export interface DataType {
+    type: string;
+    count: number;
+}
+
+export function getData(): DataType[] {
     return [
         { type: 'House', count: 15349 },
         { type: 'Bungalow', count: 1656 },

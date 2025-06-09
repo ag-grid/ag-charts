@@ -1,4 +1,10 @@
-export function getData() {
+export interface DataType {
+    category: string;
+    sales2022: number;
+    sales2023: number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             category: 'Fresh Produce',

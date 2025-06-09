@@ -16,7 +16,6 @@ import type { ModuleMap } from '../module/moduleMap';
 import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
-import type { TransformableText } from '../scene/shape/text';
 import type { Padding } from '../util/padding';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import type { AxisGridLine } from './axis/axisGridLine';
@@ -66,13 +65,14 @@ export interface ChartAxis {
     createModuleContext(): ModuleContextWithParent<AxisContext>;
     destroy(): void;
     detachAxis(opts: AxisGroups): void;
-    formatDatum(value: any, source: 'crosshair'): string;
+    formatDatum(value: any, source: 'crosshair' | 'annotation'): string;
     formatDatum(value: any, source: 'tooltip' | 'series-label', datum: any, key: string): string;
     formatDatum<Params extends object>(
         value: any,
-        source: 'crosshair',
+        source: 'crosshair' | 'annotation',
         datum: undefined,
         key: undefined,
+        domain: undefined,
         label: AxisFormattableLabel<Params>,
         params: Params,
         formatInContext: ContextFormatter<Params>
@@ -82,6 +82,7 @@ export interface ChartAxis {
         source: 'tooltip' | 'series-label',
         datum: any,
         key: string,
+        domain: any[],
         label: AxisFormattableLabel<Params>,
         params: Params,
         formatInContext: ContextFormatter<Params>
@@ -122,7 +123,6 @@ export interface ChartAxis {
     translation: { x: number; y: number };
     type: string;
     visibleRange: [number, number];
-    labelNodes: TransformableText[];
 }
 
 export interface ChartAxisLabel extends FontOptions {

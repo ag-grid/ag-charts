@@ -1,9 +1,6 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgTooltipAnchorTo, AgTooltipPlacement } from 'ag-charts-types';
 
-import {
-    AgTooltipAnchorTo,
-    AgTooltipPlacement,
-} from '../../../../../../../ag-charts-types/dist/types/src/chart/tooltipOptions';
 import { getData } from './data';
 
 const options: AgCartesianChartOptions = {

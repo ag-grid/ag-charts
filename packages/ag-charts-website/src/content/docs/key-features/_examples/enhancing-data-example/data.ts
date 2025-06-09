@@ -1,4 +1,10 @@
-export function getData() {
+export interface DataType {
+    month: string;
+    temp: number;
+    rain: number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             month: 'Jan',

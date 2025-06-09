@@ -1,6 +1,7 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import type { AgWaterfallSeriesItemStylerParams } from 'ag-charts-types';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 const formatter = new Intl.NumberFormat(undefined, {
     style: 'currency',
@@ -9,7 +10,7 @@ const formatter = new Intl.NumberFormat(undefined, {
     maximumFractionDigits: 1,
 });
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -32,15 +33,15 @@ const options: AgChartOptions = {
                 positive: {
                     name: 'Outs',
                     label: { enabled: true },
-                    itemStyler: ({ datum, yKey }) => ({
-                        fillOpacity: Math.max(0.5, datum[yKey] / 17.5),
+                    itemStyler: ({ datum }) => ({
+                        fillOpacity: Math.max(0.5, datum.fee / 17.5),
                     }),
                 },
                 negative: {
                     name: 'Ins',
                     label: { enabled: true },
-                    itemStyler: ({ datum, yKey }) => ({
-                        fillOpacity: Math.max(0.5, Math.abs(datum[yKey]) / 75),
+                    itemStyler: ({ datum }) => ({
+                        fillOpacity: Math.max(0.5, Math.abs(datum.fee) / 75),
                     }),
                 },
             },

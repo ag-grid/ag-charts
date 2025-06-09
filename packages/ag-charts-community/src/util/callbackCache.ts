@@ -17,7 +17,7 @@ function maybeSetContext<I>(caller: Caller, params: I[]): boolean {
 export function callWithContext<F extends AnyFn>(
     callers: Caller | Caller[],
     fn: F,
-    params: Parameters<F>
+    ...params: Parameters<F>
 ): ReturnType<F> {
     if (Array.isArray(callers)) {
         for (const caller of callers) {
@@ -44,7 +44,7 @@ export class CallbackCache {
             // Unable to serialise params!
             // No caching possible.
 
-            return this.invoke(callers, fn, params, paramCache);
+            return this.invoke(callers, fn, paramCache, undefined, ...params);
         }
 
         if (paramCache == null) {
@@ -53,7 +53,7 @@ export class CallbackCache {
         }
 
         if (!paramCache.has(serialisedParams)) {
-            return this.invoke(callers, fn, params, paramCache, serialisedParams);
+            return this.invoke(callers, fn, paramCache, serialisedParams, ...params);
         }
 
         return paramCache.get(serialisedParams);
@@ -62,12 +62,12 @@ export class CallbackCache {
     private invoke<F extends AnyFn>(
         callers: Caller | Caller[],
         fn: F,
-        params: Parameters<F>,
-        paramCache?: Map<string, any>,
-        serialisedParams?: string
+        paramCache: Map<string, any> | undefined,
+        serialisedParams: string | undefined,
+        ...params: Parameters<F>
     ) {
         try {
-            const result = callWithContext(callers, fn, params);
+            const result = callWithContext(callers, fn, ...params);
             if (paramCache && serialisedParams != null) {
                 paramCache.set(serialisedParams, result);
             }

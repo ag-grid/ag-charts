@@ -1,4 +1,5 @@
 import type { TimeIntervalUnit } from './axisOptions';
+import type { TDatumDefault } from './types';
 
 export type FormatterPropertyType =
     | 'x'
@@ -13,7 +14,7 @@ export type FormatterPropertyType =
     | 'sectorLabel';
 
 export type SeriesFormatterSource = 'tooltip' | 'series-label';
-export type ChartFormatterSource = 'axis' | 'crosshair';
+export type ChartFormatterSource = 'axis' | 'gradient-legend' | 'crosshair' | 'annotation';
 export type AnyFormatterSource = SeriesFormatterSource | ChartFormatterSource;
 
 interface FormatterBoundSeries {
@@ -26,7 +27,7 @@ interface FormatterBoundSeries {
 export interface SeriesFormatterParams<TDatum, Property, Value> {
     value: Value;
     datum: TDatum | undefined;
-    key: string | undefined;
+    key: TDatum extends object ? keyof TDatum & string : string | undefined;
     source: SeriesFormatterSource;
     property: Property;
 }
@@ -42,9 +43,10 @@ export interface ChartFormatterParams<Property, Value> {
 interface BaseFormatterParams<TDatum, Value> {
     value: Value;
     datum: TDatum | undefined;
-    key: string | undefined;
+    key: TDatum extends object ? keyof TDatum & string : string | undefined;
     source: AnyFormatterSource;
     property: FormatterPropertyType;
+    domain: any[];
     boundSeries: FormatterBoundSeries[];
 }
 
@@ -63,11 +65,12 @@ export interface DateFormatterParams<TDatum> extends BaseFormatterParams<TDatum,
     style: DateFormatterStyle;
 }
 
-export interface CategoryFormatterParams<TDatum> extends BaseFormatterParams<TDatum, string | number | Date> {
+export interface CategoryFormatterParams<TDatum>
+    extends BaseFormatterParams<TDatum, string | number | Date | string[]> {
     type: 'category';
 }
 
-export type FormatterParams<TDatum> =
+export type FormatterParams<TDatum = TDatumDefault> =
     | NumberFormatterParams<TDatum>
     | DateFormatterParams<TDatum>
     | CategoryFormatterParams<TDatum>;

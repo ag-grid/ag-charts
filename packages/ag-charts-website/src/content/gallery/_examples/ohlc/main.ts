@@ -1,6 +1,6 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 const numberFormatter = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 4,
@@ -12,7 +12,7 @@ const volumeNumberFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 0,
 });
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -39,16 +39,14 @@ const options: AgChartOptions = {
             closeKey: 'close',
             closeName: 'Close',
             tooltip: {
-                renderer({ openKey, lowKey, highKey, closeKey, datum }) {
+                renderer({ datum }) {
                     return [
                         `<div class="status-bar">`,
                         `<div class="status-bar-row">`,
-                        ...[openKey, lowKey, highKey, closeKey].map((key) => {
-                            return [
-                                `<span class="label">${key.slice(0, 1).toUpperCase()}</span>`,
-                                `<span class="value">${numberFormatter.format(datum[key])}</span>`,
-                            ].join('');
-                        }),
+                        `<span class="label">O</span><span class="value">${numberFormatter.format(datum.open)}</span>`,
+                        `<span class="label">L</span><span class="value">${numberFormatter.format(datum.low)}</span>`,
+                        `<span class="label">H</span><span class="value">${numberFormatter.format(datum.high)}</span>`,
+                        `<span class="label">C</span><span class="value">${numberFormatter.format(datum.close)}</span>`,
                         `</div>`,
                         `</div>`,
                     ].join('');

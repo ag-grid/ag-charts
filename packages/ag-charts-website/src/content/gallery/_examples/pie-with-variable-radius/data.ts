@@ -1,5 +1,11 @@
 // Source: https://datatopics.worldbank.org/world-development-indicators/
-export function getData() {
+export interface DataType {
+    country: string;
+    population: number;
+    gdpPerCapita: number;
+}
+
+export function getData(): DataType[] {
     return [
         { country: 'Latvia', population: 1902000, gdpPerCapita: 17600 },
         { country: 'Lithuania', population: 2795000, gdpPerCapita: 20000 },

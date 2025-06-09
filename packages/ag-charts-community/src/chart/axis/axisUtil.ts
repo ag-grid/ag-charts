@@ -15,7 +15,7 @@ export interface TickDatum {
     tickLabel: string | undefined;
     tick: any;
     tickId: string;
-    translationY: number;
+    translation: number;
     primary: boolean;
 }
 
@@ -90,7 +90,6 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
                 opacity = 0;
             }
 
-            // Animate translationY so we don't constantly regenerate the line path data
             return {
                 x1,
                 x2,
@@ -108,13 +107,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
                 opacity = 0;
             }
 
-            return {
-                x1,
-                x2,
-                y1,
-                y2,
-                opacity,
-            };
+            return { x1, x2, y1, y2, opacity };
         },
         applyFn(node, props) {
             node.setProperties(props);
@@ -200,10 +193,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
         },
         toFn(_node, datum) {
             const { translationX, translationY } = datum;
-            return {
-                translationX,
-                translationY,
-            };
+            return { translationX, translationY };
         },
     };
 

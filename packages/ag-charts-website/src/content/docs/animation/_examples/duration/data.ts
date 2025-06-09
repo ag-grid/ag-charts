@@ -1,4 +1,13 @@
-export function getData() {
+export interface DataType {
+    station: string;
+    early: number;
+    morningPeak: number;
+    interPeak: number;
+    afternoonPeak: number;
+    evening: number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             station: 'Finsbury\nPark',

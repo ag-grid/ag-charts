@@ -10,7 +10,7 @@ export type AgRadialBarSeriesThemeableOptions<TDatum = TDatumDefault> = AgBaseRa
 
 export interface AgRadialBarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgRadialSeriesOptionsKeys,
+        AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgBaseRadialSeriesThemeableOptions<TDatum> {
     /** Configuration for Radial Bar Series. */

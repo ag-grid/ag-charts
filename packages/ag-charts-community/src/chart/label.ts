@@ -234,17 +234,17 @@ export function timeIntervalMaxLabelSize(
 }
 
 export function createLabelData(
-    tickData: { tickLabel: string | undefined; translationY: number }[],
+    tickData: { tickLabel: string | undefined; translation: number }[],
     labelX: number,
     labelMatrix: Matrix,
     textMeasurer: TextMeasurer
 ) {
     const labelData: PlacedLabelDatum[] = [];
 
-    for (const { tickLabel: text, translationY } of tickData) {
+    for (const { tickLabel: text, translation } of tickData) {
         if (!text) continue;
 
-        const { x, y } = labelMatrix.transformBBox(new BBox(labelX, translationY, 0, 0));
+        const { x, y } = labelMatrix.transformBBox(new BBox(labelX, translation, 0, 0));
         const { width, height } = textMeasurer.measureLines(text);
         labelData.push({
             point: { x, y },

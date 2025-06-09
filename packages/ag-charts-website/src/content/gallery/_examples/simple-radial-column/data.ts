@@ -1,4 +1,9 @@
-export function getData() {
+export interface DataType {
+    quarter: string;
+    product: number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             quarter: `1 Jan`,

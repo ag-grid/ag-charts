@@ -1,4 +1,11 @@
-export function getData() {
+export interface DataType {
+    type: string;
+    earnings: number;
+    earningsLower: number;
+    earningsUpper: number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             type: 'Manager',

@@ -1,4 +1,10 @@
-export function getData() {
+export interface DataType {
+    department: string;
+    low: number;
+    high: number;
+}
+
+export function getData(): DataType[] {
     return [
         { department: 'Finance', low: 75000, high: 110000 },
         { department: 'Engineering', low: 75000, high: 125000 },

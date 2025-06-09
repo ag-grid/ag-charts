@@ -197,6 +197,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const xValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
         const yValues = dataModel.resolveColumnById<number>(this, `yValue`, processedData);
 
+        const xDomain = dataModel.getDomain(this, 'xValue', 'value', processedData);
+        const yDomain = dataModel.getDomain(this, 'yValue', 'value', processedData);
+
         const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font: stageLabel });
 
         let textAlign: CanvasTextAlign;
@@ -229,6 +232,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 datum,
                 stageKey,
                 'x',
+                xDomain,
                 this.properties.stageLabel,
                 { datum, value: yValue, stageKey, valueKey }
             );
@@ -353,12 +357,20 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 bottom = reverse ? bounds.width - x1 : x1;
             }
 
-            const text = this.getLabelText<AgPyramidSeriesLabelFormatterParams>(yValue, datum, valueKey, 'y', label, {
+            const text = this.getLabelText<AgPyramidSeriesLabelFormatterParams>(
+                yValue,
                 datum,
-                value: yValue,
-                stageKey,
                 valueKey,
-            });
+                'y',
+                yDomain,
+                label,
+                {
+                    datum,
+                    value: yValue,
+                    stageKey,
+                    valueKey,
+                }
+            );
             const labelDatum: PyramidNodeLabelDatum = {
                 x,
                 y,
@@ -617,6 +629,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             datum,
             stageKey,
             'x',
+            dataModel.getDomain(this, 'xValue', 'value', processedData),
             this.properties.stageLabel,
             { datum, value: xValue, stageKey, valueKey }
         );
@@ -625,6 +638,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             datum,
             valueKey,
             'y',
+            dataModel.getDomain(this, 'yValue', 'value', processedData),
             this.properties.stageLabel,
             { datum, value: yValue, stageKey, valueKey }
         );

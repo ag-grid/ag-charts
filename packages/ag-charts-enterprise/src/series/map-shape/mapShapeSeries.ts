@@ -232,6 +232,7 @@ export class MapShapeSeries
             datum,
             labelKey,
             'label',
+            [],
             label,
             {
                 value: labelValue,
@@ -701,20 +702,7 @@ export class MapShapeSeries
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        if (colorValue != null) {
-            const content = formatManager.format({
-                type: 'number',
-                value: colorValue,
-                datum,
-                key: colorKey!,
-                source: 'tooltip',
-                property: 'color',
-                boundSeries: this.getFormatterContext('color'),
-                fractionDigits: undefined,
-            });
-            data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? String(colorValue) });
-        }
-        if (labelKey != null && labelKey !== idKey) {
+        if (this.isLabelEnabled() && labelKey != null && labelKey !== idKey) {
             const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
             const content = formatManager.format({
                 type: 'category',
@@ -723,9 +711,25 @@ export class MapShapeSeries
                 key: labelKey,
                 source: 'tooltip',
                 property: 'label',
+                domain: [],
                 boundSeries: this.getFormatterContext('label'),
             });
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
+        }
+        if (colorValue != null) {
+            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
+            const content = formatManager.format({
+                type: 'number',
+                value: colorValue,
+                datum,
+                key: colorKey!,
+                source: 'tooltip',
+                property: 'color',
+                domain,
+                boundSeries: this.getFormatterContext('color'),
+                fractionDigits: undefined,
+            });
+            data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? String(colorValue) });
         }
 
         const format = this.getItemBaseStyle(false);

@@ -1,4 +1,14 @@
-export function getData() {
+export interface DataType {
+    date: Date;
+    petrol: number;
+    diesel: number;
+    lowerPetrol: number;
+    upperPetrol: number;
+    lowerDiesel: number;
+    upperDiesel: number;
+}
+
+export function getData(): DataType[] {
     const data = [
         {
             date: new Date(2019, 0, 7),

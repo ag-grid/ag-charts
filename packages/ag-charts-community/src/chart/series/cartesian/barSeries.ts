@@ -313,6 +313,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
         const yScale = yAxis.scale;
         const { xKey, yKey, xName, yName, legendItemName, label } = this.properties;
 
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
         const yReversed = yAxis.isReversed();
 
         const { barWidth, groupIndex: groupScaleIndex } = this.updateGroupScale(xAxis);
@@ -473,6 +474,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
                           datum,
                           yKey,
                           'y',
+                          yDomain,
                           label,
                           { datum, value: yFilterValue ?? yRawValue, xKey, yKey, xName, yName, legendItemName }
                       )

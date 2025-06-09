@@ -182,7 +182,7 @@ export interface AgTouchOptions {
     dragAction?: 'none' | 'drag' | 'hover';
 }
 
-export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault> {
+export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault, TContext = TContextDefault> {
     /** The width of the chart in pixels. */
     width?: PixelSize;
     /** The height of the chart in pixels. */
@@ -225,7 +225,7 @@ export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault> {
     /** Configuration for chart animations. */
     animation?: AgAnimationOptions;
     /** Configuration for asynchronously loaded data. */
-    dataSource?: AgDataSourceOptions<TDatum>;
+    dataSource?: AgDataSourceOptions<TDatum, TContext>;
     /** Configuration for the context menu. */
     contextMenu?: AgContextMenuOptions<TDatum>;
     /** Configuration for localisation. */
@@ -252,7 +252,7 @@ export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault> {
      */
     styleNonce?: string;
     /** A map of event names to event listeners. */
-    listeners?: AgBaseChartListeners<TDatum>;
+    listeners?: AgBaseChartListeners<TDatum, TContext>;
     /**
      * Load fonts automatically from Google's CDN.
      *
@@ -273,7 +273,7 @@ export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault> {
 
 /** Configuration common to all charts.  */
 export interface AgBaseChartOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseThemeableChartOptions<TDatum> {
+    extends AgBaseThemeableChartOptions<TDatum, TContext> {
     /** Context object to use in callbacks */
     context?: TContext;
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */

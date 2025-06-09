@@ -5,16 +5,16 @@ import {
     AgTooltipRendererResult,
 } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 const dateFormatter = new Intl.DateTimeFormat('en-US');
 const tooltip = {
-    renderer: ({ datum, xKey }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
-        heading: dateFormatter.format(datum[xKey]),
+    renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<DataType>) => ({
+        heading: dateFormatter.format(datum.date),
     }),
 };
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {

@@ -303,6 +303,8 @@ export class LineSeries extends CartesianSeries<
         const selectionValues =
             yFilterKey != null ? dataModel.resolveColumnById(this, `yFilterRaw`, processedData) : undefined;
 
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+
         const xPosition = (index: number) => xScale.convert(xValues[index]) + xOffset;
         const yPosition = (index: number) => yScale.convert(yCumulativeValues[index]) + yOffset;
 
@@ -327,7 +329,7 @@ export class LineSeries extends CartesianSeries<
 
             if (yDatum != null) {
                 const labelText = label.enabled
-                    ? this.getLabelText<AgLineSeriesLabelFormatterParams>(yDatum, datum, yKey, 'y', label, {
+                    ? this.getLabelText<AgLineSeriesLabelFormatterParams>(yDatum, datum, yKey, 'y', yDomain, label, {
                           value: yDatum,
                           datum,
                           xKey,

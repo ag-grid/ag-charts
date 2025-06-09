@@ -323,6 +323,7 @@ export class MapMarkerSeries
             datum,
             labelKey,
             'label',
+            [],
             label,
             {
                 value: labelValue,
@@ -845,33 +846,7 @@ export class MapMarkerSeries
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        if (sizeKey != null && sizeValue != null) {
-            const content = formatManager.format({
-                type: 'number',
-                value: sizeValue,
-                datum,
-                key: sizeKey,
-                source: 'tooltip',
-                property: 'size',
-                boundSeries: this.getFormatterContext('size'),
-                fractionDigits: undefined,
-            });
-            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(sizeValue) });
-        }
-        if (colorKey != null && colorValue != null) {
-            const content = formatManager.format({
-                type: 'number',
-                value: colorValue,
-                datum,
-                key: colorKey,
-                source: 'tooltip',
-                property: 'color',
-                boundSeries: this.getFormatterContext('color'),
-                fractionDigits: undefined,
-            });
-            data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? String(colorValue) });
-        }
-        if (labelKey != null && labelKey !== idKey) {
+        if (this.isLabelEnabled() && labelKey != null && labelKey !== idKey) {
             const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
             const content = formatManager.format({
                 type: 'category',
@@ -880,9 +855,40 @@ export class MapMarkerSeries
                 key: labelKey,
                 source: 'tooltip',
                 property: 'label',
+                domain: [],
                 boundSeries: this.getFormatterContext('label'),
             });
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
+        }
+        if (sizeKey != null && sizeValue != null) {
+            const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
+            const content = formatManager.format({
+                type: 'number',
+                value: sizeValue,
+                datum,
+                key: sizeKey,
+                source: 'tooltip',
+                property: 'size',
+                domain,
+                boundSeries: this.getFormatterContext('size'),
+                fractionDigits: undefined,
+            });
+            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(sizeValue) });
+        }
+        if (colorKey != null && colorValue != null) {
+            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
+            const content = formatManager.format({
+                type: 'number',
+                value: colorValue,
+                datum,
+                key: colorKey,
+                source: 'tooltip',
+                property: 'color',
+                domain,
+                boundSeries: this.getFormatterContext('color'),
+                fractionDigits: undefined,
+            });
+            data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? String(colorValue) });
         }
 
         let heading: string | undefined;

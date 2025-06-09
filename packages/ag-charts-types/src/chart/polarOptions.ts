@@ -68,7 +68,8 @@ export interface AgPolarAxesTheme {
     'radius-number'?: AgRadiusNumberAxisThemeOptions;
 }
 
-export interface AgBasePolarThemeOptions<TDatum = TDatumDefault> extends AgBaseThemeableChartOptions<TDatum> {
+export interface AgBasePolarThemeOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseThemeableChartOptions<TDatum, TContext> {
     /** Axis configurations. */
     axes?: AgPolarAxesTheme;
 }

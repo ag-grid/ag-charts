@@ -27,26 +27,11 @@ const options: AgChartOptions = {
         },
     ],
     data: [
-        {
-            date: new Date('01 Jan 2019 00:00:00 GMT'),
-            temp: 82.0,
-        },
-        {
-            date: new Date('01 Feb 2019 00:00:00 GMT'),
-            temp: 75.0,
-        },
-        {
-            date: new Date('01 Mar 2019 00:00:00 GMT'),
-            temp: 62.0,
-        },
-        {
-            date: new Date('01 Apr 2019 00:00:00 GMT'),
-            temp: 99.0,
-        },
-        {
-            date: new Date('01 May 2019 00:00:00 GMT'),
-            temp: 82.0,
-        },
+        { date: new Date('2019-01-01'), temp: 82.0 },
+        { date: new Date('2019-02-01'), temp: 75.0 },
+        { date: new Date('2019-03-01'), temp: 62.0 },
+        { date: new Date('2019-04-01'), temp: 99.0 },
+        { date: new Date('2019-05-01'), temp: 82.0 },
     ],
 };
 

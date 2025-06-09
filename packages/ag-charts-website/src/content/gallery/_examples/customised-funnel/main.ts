@@ -1,11 +1,9 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
-
-type ValueKey = keyof Omit<(typeof data)[number], 'group'>;
+import { DataType, getData } from './data';
 
 const data = getData();
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data,
     title: {
@@ -26,7 +24,7 @@ const options: AgChartOptions = {
             strokeOpacity: 0,
             itemStyler: ({ datum, valueKey, stroke }) => ({
                 fill: stroke,
-                fillOpacity: getOpacity(datum[valueKey], valueKey as ValueKey, 0.4, 1),
+                fillOpacity: getOpacity(datum, valueKey, 0.4, 1),
             }),
             stageLabel: {
                 placement: 'before',
@@ -38,20 +36,21 @@ const options: AgChartOptions = {
     },
 };
 
-function getOpacity(value: number, key: ValueKey, minOpacity: number, maxOpacity: number) {
+function getOpacity(datum: DataType, key: keyof DataType, minOpacity: number, maxOpacity: number) {
     const [min, max] = getDomain(key);
+    const value = Number(datum[key]);
     let alpha = Math.round(((value - min) / (max - min)) * 10) / 10;
     return map(alpha, 0, 1, minOpacity, maxOpacity);
 }
 
-function getDomain(key: ValueKey) {
-    const min = Math.min(...data.map((d) => d[key]));
-    const max = Math.max(...data.map((d) => d[key]));
+function getDomain(key: keyof DataType) {
+    const min = Math.min(...data.map((d) => Number(d[key])));
+    const max = Math.max(...data.map((d) => Number(d[key])));
     return [min, max];
 }
 
-const map = (value: number, start1: number, end1: number, start2: number, end2: number) => {
-    return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
-};
+function map(value: number, inMin: number, inMax: number, outMin: number, outMax: number) {
+    return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+}
 
 AgCharts.create(options);

@@ -2,6 +2,7 @@ import { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import type {
+    MockAPICallback,
     MockAxisLabelFormatter,
     MockItemStyler,
     MockSeriesLabelFormatter,
@@ -26,17 +27,25 @@ describe('AG-13024 API context', () => {
     setupMockConsole();
     setupMockCanvas();
 
+    type TDatum = { quarter: 'q1' | 'q2' | 'q3' | 'q4'; Toyota: number; Ford: number; BMW: number };
+    type TContext = object;
+    type TFreezable<TMock extends MockAPICallback<TDatum, TContext>> = ReturnType<typeof newFreezable<TMock>>;
+
     let chart: Chart;
-    let options: AgCartesianChartOptionsWithContext;
-    let seriesContext0: object;
-    let seriesContext1: object;
-    let seriesContext2: object;
-    let axisContext: object;
-    let rootContext: object;
-    let itemStyler: ReturnType<typeof newFreezableMock<MockItemStyler>>;
-    let axisLabelFormatter: ReturnType<typeof newFreezableMock<MockAxisLabelFormatter>>;
-    let seriesLabelFormatter: ReturnType<typeof newFreezableMock<MockSeriesLabelFormatter>>;
-    let tooltipRenderer: ReturnType<typeof newFreezableMock<MockTooltipRenderer>>;
+    let options: AgCartesianChartOptionsWithContext<TDatum, unknown>;
+    let seriesContext0: TContext;
+    let seriesContext1: TContext;
+    let seriesContext2: TContext;
+    let axisContext: TContext;
+    let rootContext: TContext;
+    let itemStyler: TFreezable<MockItemStyler<TDatum, TContext>>;
+    let axisLabelFormatter: TFreezable<MockAxisLabelFormatter<TDatum, TContext>>;
+    let seriesLabelFormatter: TFreezable<MockSeriesLabelFormatter<TDatum, TContext>>;
+    let tooltipRenderer: TFreezable<MockTooltipRenderer<TDatum, TContext>>;
+
+    function newFreezable<TMock extends MockAPICallback<TDatum, TContext>>(fn: TMock) {
+        return newFreezableMock<TDatum, TContext, TMock>(fn);
+    }
 
     async function oneTooltipCallback() {
         await hoverAction(130, 363)(chart); // datum 1, series 1
@@ -58,10 +67,10 @@ describe('AG-13024 API context', () => {
         seriesContext2 = { name: '[2]: bmw' };
         axisContext = { name: 'X axis context' };
         rootContext = { name: 'root context' };
-        itemStyler = newFreezableMock<MockItemStyler>((_params) => undefined);
-        axisLabelFormatter = newFreezableMock<MockAxisLabelFormatter>((_params: any) => undefined);
-        seriesLabelFormatter = newFreezableMock<MockSeriesLabelFormatter>((_params) => undefined);
-        tooltipRenderer = newFreezableMock<MockTooltipRenderer>((_params) => '');
+        itemStyler = newFreezable<MockItemStyler<TDatum, TContext>>((_params) => undefined);
+        axisLabelFormatter = newFreezable<MockAxisLabelFormatter<TDatum, TContext>>((_params: any) => undefined);
+        seriesLabelFormatter = newFreezable<MockSeriesLabelFormatter<TDatum, TContext>>((_params) => undefined);
+        tooltipRenderer = newFreezable<MockTooltipRenderer<TDatum, TContext>>((_params) => '');
         options = {
             theme: {
                 overrides: {
@@ -149,13 +158,10 @@ describe('AG-13024 API context', () => {
         test('tooltipRenderer', async () => {
             tooltipRenderer.expect().toHaveBeenCalledTimes(0);
             await threeTooltipCallback();
-            tooltipRenderer.expect().toHaveBeenCalledTimes(6);
+            tooltipRenderer.expect().toHaveBeenCalledTimes(3);
             tooltipRenderer.expect().nthCalledWithContext(0, seriesContext0);
-            tooltipRenderer.expect().nthCalledWithContext(1, seriesContext0);
-            tooltipRenderer.expect().nthCalledWithContext(2, seriesContext1);
-            tooltipRenderer.expect().nthCalledWithContext(3, seriesContext1);
-            tooltipRenderer.expect().nthCalledWithContext(4, seriesContext2);
-            tooltipRenderer.expect().nthCalledWithContext(5, seriesContext2);
+            tooltipRenderer.expect().nthCalledWithContext(1, seriesContext1);
+            tooltipRenderer.expect().nthCalledWithContext(2, seriesContext2);
         });
     });
 
@@ -193,9 +199,8 @@ describe('AG-13024 API context', () => {
             seriesLabelFormatter.expect().nthCalledWithContext(11, seriesContext2);
             axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(axisContext);
             await oneTooltipCallback();
-            tooltipRenderer.expect().toHaveBeenCalledTimes(2);
+            tooltipRenderer.expect().toHaveBeenCalledTimes(1);
             tooltipRenderer.expect().nthCalledWithContext(0, seriesContext0);
-            tooltipRenderer.expect().nthCalledWithContext(1, seriesContext0);
         });
         test('with pass-through', async () => {
             delete options.series![0].context;
@@ -207,7 +212,7 @@ describe('AG-13024 API context', () => {
             seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
             axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(rootContext);
             await oneTooltipCallback();
-            tooltipRenderer.expect().toHaveBeenCalledTimes(2).withContext(rootContext);
+            tooltipRenderer.expect().toHaveBeenCalledTimes(1).withContext(rootContext);
         });
     });
 
@@ -226,7 +231,7 @@ describe('AG-13024 API context', () => {
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withoutContext();
                 axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withoutContext();
                 await oneTooltipCallback();
-                tooltipRenderer.expect().toHaveBeenCalledTimes(2).withoutContext();
+                tooltipRenderer.expect().toHaveBeenCalledTimes(1).withoutContext();
             });
             test('defined to undefined', async () => {
                 options.series![0].context = undefined;
@@ -238,7 +243,7 @@ describe('AG-13024 API context', () => {
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withoutContext();
                 axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withoutContext();
                 await oneTooltipCallback();
-                tooltipRenderer.expect().toHaveBeenCalledTimes(2).withoutContext();
+                tooltipRenderer.expect().toHaveBeenCalledTimes(1).withoutContext();
             });
             test('defined to null', async () => {
                 options.series![0].context = null;
@@ -250,7 +255,7 @@ describe('AG-13024 API context', () => {
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(null);
                 axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(null);
                 await oneTooltipCallback();
-                tooltipRenderer.expect().toHaveBeenCalledTimes(2).withContext(null);
+                tooltipRenderer.expect().toHaveBeenCalledTimes(1).withContext(null);
             });
         });
         describe('with root context', () => {
@@ -267,7 +272,7 @@ describe('AG-13024 API context', () => {
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
                 axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(rootContext);
                 await oneTooltipCallback();
-                tooltipRenderer.expect().toHaveBeenCalledTimes(2).withContext(rootContext);
+                tooltipRenderer.expect().toHaveBeenCalledTimes(1).withContext(rootContext);
             });
             test('defined to null', async () => {
                 options.series![0].context = null;
@@ -279,7 +284,7 @@ describe('AG-13024 API context', () => {
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(null);
                 axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(null);
                 await oneTooltipCallback();
-                tooltipRenderer.expect().toHaveBeenCalledTimes(2).withContext(null);
+                tooltipRenderer.expect().toHaveBeenCalledTimes(1).withContext(null);
             });
         });
     });

@@ -45,7 +45,7 @@ export class RadiusCategoryAxis extends RadiusAxis {
             return index === 0 ? minRadius : scale.inset + scale.step * (index - 0.5) + scale.bandwidth / 2;
         } else {
             const tickRange = (maxRadius - minRadius) / scale.domain.length;
-            return maxRadius - tickDatum.translationY + minRadius - tickRange / 2;
+            return maxRadius - tickDatum.translation + minRadius - tickRange / 2;
         }
     }
 
@@ -54,7 +54,7 @@ export class RadiusCategoryAxis extends RadiusAxis {
     }
 
     override datumFormatParams(value: any, params: _ModuleSupport.FormatDatumParams): FormatterParams<any> {
-        const { datum, key, source, property, boundSeries } = params;
-        return { type: 'category', value, datum, key, source, property, boundSeries };
+        const { datum, key, source, property, domain, boundSeries } = params;
+        return { type: 'category', value, datum, key, source, property, domain, boundSeries };
     }
 }

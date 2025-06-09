@@ -1,4 +1,9 @@
-export function getData() {
+export interface DataType {
+    date: Date;
+    sales: number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             date: new Date('2007-01-01T00:00:00.000Z'),

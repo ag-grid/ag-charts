@@ -178,6 +178,7 @@ export class SankeySeries extends FlowProportionSeries<
                 node.datum,
                 labelKey!,
                 'label',
+                [],
                 this.properties.label,
                 { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size }
             );
@@ -701,6 +702,7 @@ export class SankeySeries extends FlowProportionSeries<
                 key: sizeKey,
                 source: 'tooltip',
                 property: 'size',
+                domain: [],
                 boundSeries: this.getFormatterContext('size'),
                 fractionDigits: undefined,
             });

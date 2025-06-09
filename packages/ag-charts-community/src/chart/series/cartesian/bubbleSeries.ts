@@ -227,6 +227,15 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 ? dataModel.resolveColumnById<number>(this, `sizeFilterValue`, processedData)
                 : undefined;
 
+        let labelDomain: any[];
+        if (labelKey) {
+            labelDomain = [];
+        } else if (sizeKey) {
+            labelDomain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
+        } else {
+            labelDomain = [];
+        }
+
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -258,6 +267,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 datum,
                 labelKey ?? sizeKey,
                 labelKey != null ? 'label' : 'size',
+                labelDomain,
                 label,
                 { value: labelValue, datum, xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName }
             );
@@ -399,27 +409,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const nodeDatum = this.contextNodeData?.nodeData[datumIndex];
         if (xValue == null || nodeDatum == null) return;
 
-        const data: TooltipContentDataRow[] = [
-            { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue, 'tooltip', datum, xKey) },
-            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey) },
-        ];
+        const data: TooltipContentDataRow[] = [];
 
-        if (sizeKey != null) {
-            const value = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
-            const content = formatManager.format({
-                type: 'number',
-                value,
-                datum,
-                key: sizeKey,
-                source: 'tooltip',
-                property: 'size',
-                boundSeries: this.getFormatterContext('size'),
-                fractionDigits: undefined,
-            });
-            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? formatValue(value) });
-        }
-
-        if (labelKey != null) {
+        if (this.isLabelEnabled() && labelKey != null) {
             const value = dataModel.resolveColumnById<number>(this, `labelValue`, processedData)[datumIndex];
             const content = formatManager.format({
                 type: 'category',
@@ -428,9 +420,32 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 key: labelKey,
                 source: 'tooltip',
                 property: 'label',
+                domain: [],
                 boundSeries: this.getFormatterContext('label'),
             });
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? formatValue(value) });
+        }
+
+        data.push(
+            { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue, 'tooltip', datum, xKey) },
+            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey) }
+        );
+
+        if (sizeKey != null) {
+            const value = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
+            const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
+            const content = formatManager.format({
+                type: 'number',
+                value,
+                datum,
+                key: sizeKey,
+                source: 'tooltip',
+                property: 'size',
+                boundSeries: this.getFormatterContext('size'),
+                domain,
+                fractionDigits: undefined,
+            });
+            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? formatValue(value) });
         }
 
         const style = marker.getStyle();

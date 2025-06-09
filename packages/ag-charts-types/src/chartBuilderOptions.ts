@@ -203,7 +203,7 @@ export interface AgChartInstance<
 
 // @ts-expect-error Expected to be unused in code, simplified typings to enable rendering for API docs.
 interface _AgChartInstanceInterface<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgChartInstance<AgChartOptions<TDatum, TContext>> {
+    extends AgTypedChartInstance<TDatum, TContext, AgChartOptions<TDatum, TContext>> {
     update(options: AgChartOptions<TDatum, TContext>): Promise<void>;
     updateDelta(deltaOptions: AgChartOptions<TDatum, TContext>): Promise<void>;
     getOptions(): AgChartOptions<TDatum, TContext>;

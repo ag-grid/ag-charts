@@ -1,4 +1,11 @@
-export function getData() {
+export interface DataType {
+    group: string;
+    adults: number;
+    percentage: string;
+    incomeBracket: string;
+}
+
+export function getData(): DataType[] {
     return [
         { group: 'Top 1%', adults: 99_000_000, percentage: '1%', incomeBracket: '' },
         { group: 'High Net Worth', adults: 200_000_000, percentage: '4%', incomeBracket: '$100,000 - $1,000,000 →' },

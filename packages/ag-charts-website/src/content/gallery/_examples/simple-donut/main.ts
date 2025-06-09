@@ -1,12 +1,12 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 const data = getData();
 const numFormatter = new Intl.NumberFormat('en-US');
-const total = data.reduce((sum, d) => sum + d['count'], 0);
+const total = data.reduce((sum, d) => sum + d.count, 0);
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data,
     title: {
@@ -41,7 +41,7 @@ const options: AgChartOptions = {
             sectorSpacing: 3,
         },
     ],
-    formatter: (params) => (typeof params.value === 'number' ? numFormatter.format(params.value as number) : undefined),
+    formatter: (params) => (typeof params.value === 'number' ? numFormatter.format(params.value) : undefined),
 };
 
 AgCharts.create(options);
