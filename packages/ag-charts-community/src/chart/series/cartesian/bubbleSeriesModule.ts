@@ -4,7 +4,7 @@ import type { AgBubbleSeriesOptions, WithThemeParams } from 'ag-charts-types';
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
-import { FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS } from '../../themes/util';
+import { FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS, MULTI_SERIES_HIGHLIGHT_STYLE } from '../../themes/util';
 import { BubbleSeries } from './bubbleSeries';
 import { bubbleSeriesOptionsDef } from './bubbleSeriesOptionsDef';
 
@@ -58,6 +58,7 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
                     anchorTo: { $path: ['/tooltip/anchorTo', 'node'] },
                 },
             },
+            highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
         },
     },
 };

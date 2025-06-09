@@ -3003,6 +3003,14 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "type": "pattern",
         "width": 10,
       },
+      "highlight": {
+        "highlightedItem": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "opacity": 1,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
+      },
       "itemStyler": [Function],
       "label": {
         "color": "#464646",
@@ -5210,6 +5218,14 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "type": "pattern",
         "width": 10,
       },
+      "highlight": {
+        "highlightedItem": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "opacity": 1,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
+      },
       "label": {
         "color": "#464646",
         "enabled": false,
@@ -5450,6 +5466,14 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "strokeWidth": 4,
         "type": "pattern",
         "width": 10,
+      },
+      "highlight": {
+        "highlightedItem": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "opacity": 1,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
       },
       "label": {
         "color": "#464646",
