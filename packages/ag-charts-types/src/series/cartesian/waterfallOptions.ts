@@ -50,8 +50,8 @@ export type AgWaterfallSeriesLabelPlacement =
     | 'outside-start'
     | 'outside-end';
 
-export interface AgWaterfallSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum> {
+export interface AgWaterfallSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /**
      * Bar rendering direction.
      *
@@ -86,7 +86,7 @@ export interface AgWaterfallSeriesOptions<TDatum = TDatumDefault, TContext = TCo
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgWaterfallSeriesOptionsKeys<TDatum>,
         AgWaterfallSeriesOptionsNames,
-        AgWaterfallSeriesThemeableOptions<TDatum> {
+        AgWaterfallSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Waterfall Series. */
     type: 'waterfall';
     /** Configuration of total and subtotal values. */

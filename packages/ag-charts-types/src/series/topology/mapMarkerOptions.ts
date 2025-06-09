@@ -75,9 +75,9 @@ export interface AgMapMarkerSeriesLabel<TDatum>
     placement?: LabelPlacement;
 }
 
-export interface AgMapMarkerSeriesThemeableOptions<TDatum = TDatumDefault>
+export interface AgMapMarkerSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgMapMarkerSeriesStyle,
-        Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
+        Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle'> {
     /** Determines the largest size a marker can be in pixels. */
     maxSize?: PixelSize;
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
@@ -98,7 +98,7 @@ export interface AgMapMarkerSeriesOptions<TDatum = TDatumDefault, TContext = TCo
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
         AgMapMarkerSeriesOptionsKeys<TDatum>,
         AgMapMarkerSeriesOptionsNames,
-        AgMapMarkerSeriesThemeableOptions<TDatum> {
+        AgMapMarkerSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Map Marker Series. */
     type: 'map-marker';
     /** GeoJSON data. */

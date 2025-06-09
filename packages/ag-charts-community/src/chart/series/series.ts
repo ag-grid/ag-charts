@@ -735,6 +735,12 @@ export abstract class Series<
         return;
     }
 
+    // Use a wrapper to comply with the @typescript-eslint/unbound-method rule.
+    private readonly fireEventWrapper = (event: TypedEvent): void => super.fireEvent(event);
+    protected override fireEvent<TEvent extends TypedEvent>(event: TEvent): void {
+        callWithContext(this.properties, this.fireEventWrapper, event);
+    }
+
     fireNodeClickEvent(event: Event, datum: TDatum): boolean {
         const clickEvent = new this.NodeEvent('seriesNodeClick', event, datum, this);
         this.fireEvent(clickEvent);

@@ -19,10 +19,10 @@ export interface AgLineSeriesTooltipRendererParams<TDatum = TDatumDefault>
 export type AgLineSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgLineSeriesOptionsKeys<TDatum> &
     AgLineSeriesOptionsNames;
 
-export interface AgLineSeriesThemeableOptions<TDatum = TDatumDefault>
+export interface AgLineSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends StrokeOptions,
         LineDashOptions,
-        AgBaseCartesianThemeableOptions<TDatum> {
+        AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<TDatum, AgLineSeriesMarkerItemStylerParams<TDatum>>;
     /** Configuration for the line used in the series. */
@@ -74,7 +74,7 @@ export interface AgLineSeriesOptions<TDatum = TDatumDefault, TContext = TContext
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgLineSeriesOptionsKeys<TDatum>,
         AgLineSeriesOptionsNames,
-        AgLineSeriesThemeableOptions<TDatum> {
+        AgLineSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Line Series. */
     type: 'line';
     /** Configuration for the Error Bars. */

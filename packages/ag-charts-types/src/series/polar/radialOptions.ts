@@ -1,12 +1,12 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { PixelSize, TDatumDefault } from '../../chart/types';
+import type { PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
-export interface AgBaseRadialSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum>,
+export interface AgBaseRadialSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
         AgRadialSeriesStyle {
     /** Configuration for the labels shown on top of data points. */
     label?: AgChartLabelOptions<TDatum, AgRadialSeriesLabelFormatterParams<TDatum>>;

@@ -3,9 +3,11 @@ import type { Listener } from './callbackOptions';
 import type { Ratio, TContextDefault, TDatumDefault } from './types';
 import type { AgAutoScaledAxes } from './zoomOptions';
 
-interface AgChartEvent<T extends string> {
+interface AgChartEvent<T extends string, TContext = TContextDefault> {
     type: T;
     event: Event;
+    /** Callback context for this event. */
+    context?: TContext;
 }
 
 export interface AgPreventableEvent {
@@ -13,7 +15,8 @@ export interface AgPreventableEvent {
     preventDefault(): void;
 }
 
-export interface AgNodeClickEvent<TEvent extends string, TDatum> extends AgChartEvent<TEvent> {
+export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = TContextDefault>
+    extends AgChartEvent<TEvent, TContext> {
     /** Event type. */
     type: TEvent;
     /** Series ID, as specified in `series.id` (or generated if not specified) */
@@ -40,9 +43,11 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum> extends AgChart
     radiusKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
-export interface AgSeriesVisibilityChange {
+export interface AgSeriesVisibilityChange<TContext = TContextDefault> {
     /** Event type. */
     type: 'seriesVisibilityChange';
+    /** Callback context for this event. */
+    context?: TContext;
     /** Series id */
     seriesId: string;
     /** Legend item id - usually yKey value for cartesian series. */
@@ -79,35 +84,42 @@ export interface AgZoomEventRatio {
     end: Ratio;
 }
 
-export type AgChartClickEvent = AgChartEvent<'click'>;
-export type AgChartDoubleClickEvent = AgChartEvent<'doubleClick'>;
-export type AgChartContextMenuEvent = AgChartEvent<'contextMenuEvent'>;
-export type AgSeriesAreaContextMenuActionEvent = AgChartEvent<'seriesContextMenuAction'>;
-export type AgNodeContextMenuActionEvent<TDatum = TDatumDefault> = AgNodeClickEvent<'nodeContextMenuAction', TDatum>;
+export type AgChartClickEvent<TContext = TContextDefault> = AgChartEvent<'click', TContext>;
+export type AgChartDoubleClickEvent<TContext = TContextDefault> = AgChartEvent<'doubleClick', TContext>;
+export type AgChartContextMenuEvent<TContext = TContextDefault> = AgChartEvent<'contextMenuEvent', TContext>;
+export type AgSeriesAreaContextMenuActionEvent<TContext = TContextDefault> = AgChartEvent<
+    'seriesContextMenuAction',
+    TContext
+>;
+export type AgNodeContextMenuActionEvent<TDatum = TDatumDefault, TContext = TContextDefault> = AgNodeClickEvent<
+    'nodeContextMenuAction',
+    TDatum,
+    TContext
+>;
 
 export interface AgBaseChartListeners<TDatum, TContext = TContextDefault> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is clicked.
      *  Useful for a chart containing multiple series.
      */
-    seriesNodeClick?: Listener<AgNodeClickEvent<'seriesNodeClick', TDatum>>;
+    seriesNodeClick?: Listener<AgNodeClickEvent<'seriesNodeClick', TDatum, TContext>>;
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is double-clicked.
      * Useful for a chart containing multiple series.*/
-    seriesNodeDoubleClick?: Listener<AgNodeClickEvent<'seriesNodeDoubleClick', TDatum>>;
+    seriesNodeDoubleClick?: Listener<AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>>;
     /** The listener to call when a series visibility is changed. */
-    seriesVisibilityChange?: Listener<AgSeriesVisibilityChange>;
+    seriesVisibilityChange?: Listener<AgSeriesVisibilityChange<TContext>>;
     /** The listener to call when the chart is clicked. */
-    click?: Listener<AgChartClickEvent>;
+    click?: Listener<AgChartClickEvent<TContext>>;
     /** The listener to call when the chart is double-clicked. */
-    doubleClick?: Listener<AgChartDoubleClickEvent>;
+    doubleClick?: Listener<AgChartDoubleClickEvent<TContext>>;
     /** The listener to call when the annotations are changed. */
     annotations?: Listener<AgAnnotationsEvent<TContext>>;
     /** The listener to call when the zoom is changed. */
     zoom?: Listener<AgZoomEvent<TContext>>;
 }
 
-export interface AgSeriesListeners<TDatum> {
+export interface AgSeriesListeners<TDatum, TContext = TContextDefault> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in the series is clicked. */
-    seriesNodeClick?: Listener<AgNodeClickEvent<'seriesNodeClick', TDatum>>;
+    seriesNodeClick?: Listener<AgNodeClickEvent<'seriesNodeClick', TDatum, TContext>>;
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in the series is double-clicked. */
-    seriesNodeDoubleClick?: Listener<AgNodeClickEvent<'seriesNodeDoubleClick', TDatum>>;
+    seriesNodeDoubleClick?: Listener<AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>>;
 }

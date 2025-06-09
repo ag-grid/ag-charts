@@ -124,7 +124,7 @@ export class ChartContext implements ModuleContext {
 
         this.axisManager = new AxisManager(this.eventsHub, root);
         this.legendManager = new LegendManager(this.eventsHub);
-        this.annotationManager = new AnnotationManager(this.eventsHub, chart.annotationRoot, chart, fireEvent);
+        this.annotationManager = new AnnotationManager(this.eventsHub, chart.annotationRoot, fireEvent);
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.interactionManager = new InteractionManager();
         this.contextMenuRegistry = new ContextMenuRegistry(this.eventsHub);
@@ -135,7 +135,7 @@ export class ChartContext implements ModuleContext {
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.eventsHub, chart, this.animationManager);
         this.tooltipManager = new TooltipManager(this.eventsHub, this.localeManager, this.domManager, chart.tooltip);
-        this.zoomManager = new ZoomManager(this.eventsHub, chart, fireEvent);
+        this.zoomManager = new ZoomManager(this.eventsHub, fireEvent);
 
         for (const module of moduleRegistry.byType<ContextModule>('context')) {
             if (!module.chartTypes.includes(chartType)) continue;

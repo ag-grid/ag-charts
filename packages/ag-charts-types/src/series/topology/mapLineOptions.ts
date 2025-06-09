@@ -45,9 +45,9 @@ export interface AgMapLineSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgMapLineSeriesThemeableOptions<TDatum = TDatumDefault>
+export interface AgMapLineSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgMapLineSeriesStyle,
-        Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
+        Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle'> {
     /** Determines the largest width a stroke can be in pixels. */
     maxStrokeWidth?: PixelSize;
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
@@ -66,7 +66,7 @@ export interface AgMapLineSeriesOptions<TDatum = TDatumDefault, TContext = TCont
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
         AgMapLineSeriesOptionsKeys<TDatum>,
         AgMapLineSeriesOptionsNames,
-        AgMapLineSeriesThemeableOptions<TDatum> {
+        AgMapLineSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Map Line Series. */
     type: 'map-line';
     /** GeoJSON data. */

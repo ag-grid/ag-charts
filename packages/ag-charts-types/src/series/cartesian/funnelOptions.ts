@@ -34,8 +34,8 @@ export interface AgFunnelSeriesDropOff extends FillOptions, StrokeOptions, LineD
     enabled?: boolean;
 }
 
-export interface AgFunnelSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
+export interface AgFunnelSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>,
         LineDashOptions {
     /** The colours to cycle through for the fills of the bars. */
     fills?: CssColor[];
@@ -80,7 +80,7 @@ export interface AgFunnelSeriesOptions<TDatum = TDatumDefault, TContext = TConte
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgFunnelSeriesOptionsKeys<TDatum>,
         AgFunnelSeriesOptionsNames,
-        AgFunnelSeriesThemeableOptions<TDatum> {
+        AgFunnelSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Funnel Series. */
     type: 'funnel';
 }

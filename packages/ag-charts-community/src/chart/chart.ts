@@ -31,6 +31,7 @@ import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
+import { callWithContext } from '../util/callbackCache';
 import { Debug } from '../util/debug';
 import { isInputPending } from '../util/dom';
 import { jsonApply, jsonDiff } from '../util/json';
@@ -399,6 +400,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     overrideFocusVisible(visible: boolean | undefined): void {
         this.seriesAreaManager.focusIndicator?.overrideFocusVisible(visible);
+    }
+
+    // Use a wrapper to comply with the @typescript-eslint/unbound-method rule.
+    private readonly fireEventWrapper = (event: TypedEvent): void => super.fireEvent(event);
+    protected override fireEvent<TEvent extends TypedEvent>(event: TEvent): void {
+        callWithContext(this, this.fireEventWrapper, event);
     }
 
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {

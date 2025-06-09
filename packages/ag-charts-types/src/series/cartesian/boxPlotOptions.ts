@@ -61,8 +61,8 @@ export interface AgBoxPlotSeriesStyle extends FillOptions, StrokeOptions, LineDa
     whisker?: AgBoxPlotWhiskerOptions;
 }
 
-export interface AgBoxPlotSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum>,
+export interface AgBoxPlotSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
         AgBoxPlotSeriesStyle {
     /**
      * Bar rendering direction.
@@ -76,7 +76,7 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = TDatumDefault>
 }
 
 export interface AgBoxPlotSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBoxPlotSeriesThemeableOptions<TDatum>,
+    extends AgBoxPlotSeriesThemeableOptions<TDatum, TContext>,
         AgBaseSeriesOptions<TDatum, TContext>,
         BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNames {

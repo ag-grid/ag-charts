@@ -58,9 +58,9 @@ export interface AgBarSeriesTooltipRendererParams<TDatum = TDatumDefault>
     readonly stackGroup?: string;
 }
 
-export interface AgBarSeriesThemeableOptions<TDatum = TDatumDefault>
+export interface AgBarSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBarSeriesStyle,
-        AgBaseCartesianThemeableOptions<TDatum> {
+        AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /**
      * Bar rendering direction.
      *
@@ -101,7 +101,7 @@ export interface AgBarSeriesOptions<TDatum = TDatumDefault, TContext = TContextD
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgBarSeriesOptionsKeys<TDatum>,
         AgBarSeriesOptionsNames,
-        AgBarSeriesThemeableOptions<TDatum> {
+        AgBarSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Bar Series. */
     type: 'bar';
     /** Whether to group together (adjacently) separate bars. */

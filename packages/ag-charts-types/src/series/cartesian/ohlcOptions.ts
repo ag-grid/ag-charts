@@ -30,8 +30,8 @@ export interface AgOhlcSeriesStyles {
     item?: AgOhlcSeriesItem;
 }
 
-export interface AgOhlcSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
+export interface AgOhlcSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>,
         AgOhlcSeriesStyles {
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgOhlcSeriesTooltipRendererParams<TDatum>>;
@@ -40,7 +40,7 @@ export interface AgOhlcSeriesThemeableOptions<TDatum = TDatumDefault>
 }
 
 export interface AgOhlcSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgOhlcSeriesThemeableOptions<TDatum>,
+    extends AgOhlcSeriesThemeableOptions<TDatum, TContext>,
         AgBaseSeriesOptions<TDatum, TContext>,
         AgOhlcSeriesBaseOptions<TDatum>,
         Omit<AxisOptions<TDatum>, 'yKey'> {

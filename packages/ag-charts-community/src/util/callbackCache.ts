@@ -7,7 +7,7 @@ function needsContext<I>(caller: Caller, _params: I[]): _params is (I & { contex
 }
 function maybeSetContext<I>(caller: Caller, params: I[]): boolean {
     if (needsContext(caller, params)) {
-        if (params[0] != null && typeof params[0] === 'object') {
+        if (params[0] != null && typeof params[0] === 'object' && params[0].context === undefined) {
             params[0].context = caller.context;
             return true;
         }

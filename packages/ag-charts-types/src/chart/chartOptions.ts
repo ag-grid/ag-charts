@@ -219,7 +219,7 @@ export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault, TContext = 
     /** Global configuration that applies to all tooltips in the chart. */
     tooltip?: AgChartTooltipOptions;
     /** Configuration for the chart legend. */
-    legend?: AgChartLegendOptions;
+    legend?: AgChartLegendOptions<TContext>;
     /** Configuration for the gradient legend. */
     gradientLegend?: AgGradientLegendOptions;
     /** Configuration for chart animations. */
@@ -227,7 +227,7 @@ export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault, TContext = 
     /** Configuration for asynchronously loaded data. */
     dataSource?: AgDataSourceOptions<TDatum, TContext>;
     /** Configuration for the context menu. */
-    contextMenu?: AgContextMenuOptions<TDatum>;
+    contextMenu?: AgContextMenuOptions<TDatum, TContext>;
     /** Configuration for localisation. */
     locale?: AgLocaleOptions;
     /** Configuration for the ranges buttons. */

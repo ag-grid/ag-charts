@@ -7,10 +7,10 @@ import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOption
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgRadialSeriesOptionsKeys, AgRadialSeriesOptionsNames } from './radialOptions';
 
-export interface AgRadarSeriesThemeableOptions<TDatum = TDatumDefault>
+export interface AgRadarSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends StrokeOptions,
         LineDashOptions,
-        AgBaseSeriesThemeableOptions<TDatum> {
+        AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<TDatum, AgRadialSeriesOptionsKeys<TDatum>>;
     /** Configuration for the labels shown on top of data points. */
@@ -25,7 +25,7 @@ export interface AgBaseRadarSeriesOptions<TDatum = TDatumDefault, TContext = TCo
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
-        AgRadarSeriesThemeableOptions<TDatum> {
+        AgRadarSeriesThemeableOptions<TDatum, TContext> {
     type: 'radar-line' | 'radar-area';
 }
 

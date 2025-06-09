@@ -30,8 +30,8 @@ export interface AgRangeBarSeriesLabelOptions<TDatum>
 
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 
-export interface AgRangeBarSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum>,
+export interface AgRangeBarSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
         AgRangeBarSeriesStyle {
     /**
      * Bar rendering direction.
@@ -77,7 +77,7 @@ export interface AgRangeBarSeriesOptionsNames {
 export interface AgRangeBarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgRangeBarSeriesOptionsKeys<TDatum>,
         AgRangeBarSeriesOptionsNames,
-        AgRangeBarSeriesThemeableOptions<TDatum>,
+        AgRangeBarSeriesThemeableOptions<TDatum, TContext>,
         AgBaseSeriesOptions<TDatum, TContext> {
     /** Configuration for the Range Bar Series. */
     type: 'range-bar';

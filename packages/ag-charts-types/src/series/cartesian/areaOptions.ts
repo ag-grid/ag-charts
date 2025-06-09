@@ -16,11 +16,11 @@ export interface AgAreaSeriesTooltipRendererParams<TDatum = TDatumDefault>
         FillOptions,
         StrokeOptions {}
 
-export interface AgAreaSeriesThemeableOptions<TDatum = TDatumDefault>
+export interface AgAreaSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends StrokeOptions,
         FillOptions,
         LineDashOptions,
-        AgBaseCartesianThemeableOptions<TDatum> {
+        AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<TDatum, AgAreaSeriesMarkerItemStylerParams<TDatum>>;
     /** Configuration for the line used in the series. */
@@ -68,7 +68,7 @@ export interface AgAreaSeriesOptions<TDatum = TDatumDefault, TContext = TContext
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgAreaSeriesOptionsKeys<TDatum>,
         AgAreaSeriesOptionsNames,
-        AgAreaSeriesThemeableOptions<TDatum> {
+        AgAreaSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Area Series. */
     type: 'area';
     /** The number to normalise the area stacks to. For example, if `normalizedTo` is set to `100`, the stacks will all be scaled proportionally so that their total height is always 100. */

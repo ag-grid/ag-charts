@@ -40,9 +40,9 @@ export interface AgMapShapeSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgMapShapeSeriesThemeableOptions<TDatum = TDatumDefault>
+export interface AgMapShapeSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgMapShapeSeriesStyle,
-        Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
+        Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle'> {
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
     /** Configuration for the labels shown inside the shape. */
@@ -61,7 +61,7 @@ export interface AgMapShapeSeriesOptions<TDatum = TDatumDefault, TContext = TCon
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
         AgMapShapeSeriesOptionsKeys<TDatum>,
         AgMapShapeSeriesOptionsNames,
-        AgMapShapeSeriesThemeableOptions<TDatum> {
+        AgMapShapeSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Map Shape Series. */
     type: 'map-shape';
     /** GeoJSON data. */
