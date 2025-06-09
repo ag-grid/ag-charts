@@ -12,7 +12,6 @@ import type { LineSeries } from '../series/cartesian/lineSeries';
 import type { PieSeries } from '../series/polar/pieSeries';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 import type { ChartOrProxy } from '../test/utils';
-import { ChartTheme } from './chartTheme';
 
 const data = [
     { label: 'Android', v1: 5.67, v2: 8.63, v3: 8.14, v4: 6.45, v5: 1.37 },
@@ -528,14 +527,6 @@ describe('ChartTheme', () => {
             },
         };
 
-        let defaultTheme: ChartTheme;
-        beforeEach(() => {
-            defaultTheme = new ChartTheme();
-        });
-        afterEach(() => {
-            (defaultTheme as any) = null;
-        });
-
         test('Themed bottom category, unthemed left number', async () => {
             chart = deproxy(
                 AgCharts.create({
@@ -576,11 +567,8 @@ describe('ChartTheme', () => {
             const axis0 = chart.axes[0] as any;
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('left');
-
-            // TODO: theme config values are { $ref: 'something' } as this is the unresolved value. This is not a bug
-            // with the real output and we are likely going to remove position specific axis theming.
-            // expect(axis0.line.stroke).toBe(defaultTheme.config.area.axes.number.line.stroke);
-            // expect(axis0.label.fontSize).toBe(defaultTheme.config.area.axes.number.label.fontSize);
+            expect(axis0.line.stroke).toBe('#c3c3c3');
+            expect(axis0.label.fontSize).toBe(12);
 
             const axis1 = chart.axes[1] as any;
             expect(axis1.type).toBe('category');
@@ -629,11 +617,8 @@ describe('ChartTheme', () => {
             const axis0 = chart.axes[0] as any;
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('left');
-
-            // TODO: theme config values are `{ $ref: 'something' }` as this is the unresolved value. This is not a bug
-            // with the real output and we are likely going to remove position specific axis theming.
-            // expect(axis0.line.stroke).toBe(defaultTheme.config.area.axes.number.line.stroke);
-            // expect(axis0.label.fontSize).toBe(defaultTheme.config.area.axes.number.label.fontSize);
+            expect(axis0.line.stroke).toBe('#c3c3c3');
+            expect(axis0.label.fontSize).toBe(12);
 
             const axis1 = chart.axes[1] as any;
             expect(axis1.type).toBe('category');
@@ -773,10 +758,9 @@ describe('ChartTheme', () => {
             expect(axis0.label.fontSize).toBe(18);
             expect(axis0.label.fontStyle).toBe('italic');
             expect(axis0.label.fontFamily).toBe('Tahoma');
-            // TODO: theme config fontWeight is `{ $ref: 'fontWeight' }` as this is the unresolved value. This is not a bug
-            // expect(axis0.label.fontWeight).toBe(defaultTheme.config.area.axes.number.label.fontWeight);
-            expect(axis0.label.padding).toBe(defaultTheme.config.area.axes.number.label.padding);
-            expect(axis0.label.rotation).toBe(defaultTheme.config.area.axes.number.label.rotation);
+            expect(axis0.label.fontWeight).toBe(400);
+            expect(axis0.label.padding).toBe(undefined);
+            expect(axis0.label.rotation).toBe(undefined);
 
             const axis1 = chart.axes[1] as any;
             expect(axis1.type).toBe('category');
@@ -784,11 +768,8 @@ describe('ChartTheme', () => {
             expect(axis1.line.stroke).toBe('blue');
             expect(axis1.line.width).toBe(5);
             expect(axis1.label.fontSize).toBe(18);
-            expect(axis1.label.fontStyle).toBe(defaultTheme.config.area.axes.category.label.fontStyle);
-
-            // TODO: theme config fontFamily is `{ $ref: 'fontFamily' }` as this is the unresolved value. This is not a bug
-            // with the real output and we are likely going to remove position specific axis theming.
-            // expect(axis1.label.fontFamily).toBe(defaultTheme.config.area.axes.category.label.fontFamily);
+            expect(axis1.label.fontStyle).toBe(undefined);
+            expect(axis1.label.fontFamily).toBe('Verdana, sans-serif');
 
             expect(axis1.label.fontWeight).toBe('bold');
             expect(axis1.label.rotation).toBe(45);

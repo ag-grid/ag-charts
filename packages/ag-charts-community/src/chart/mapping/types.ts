@@ -77,8 +77,3 @@ export function isAgGaugeChartOptions(input: any): input is AgGaugeChartOptions 
     const specifiedType = optionsType(input);
     return chartTypes.isGauge(specifiedType) || isEnterpriseGauge(specifiedType);
 }
-
-export function isAgPolarChartOptionsWithSeriesBasedLegend(input: AgChartOptions): input is AgPolarChartOptions {
-    const specifiedType = optionsType(input);
-    return isAgPolarChartOptions(input) && specifiedType !== 'pie' && specifiedType !== 'donut';
-}

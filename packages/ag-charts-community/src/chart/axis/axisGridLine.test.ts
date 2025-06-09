@@ -37,8 +37,11 @@ describe('AxisGridLine', () => {
     test('use theme default stroke', async () => {
         chart = AgCharts.create({
             ...opts,
-            data: [{ x: 0, y: 0 }],
-            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            data: [
+                { x: 0, y: 0 },
+                { x: 1, y: 1 },
+            ],
+            series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
             axes: [
                 {
                     type: 'number',
@@ -59,8 +62,11 @@ describe('AxisGridLine', () => {
     test('do not draw empty styles', async () => {
         chart = AgCharts.create({
             ...opts,
-            data: [{ x: 0, y: 0 }],
-            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            data: [
+                { x: 0, y: 0 },
+                { x: 1, y: 1 },
+            ],
+            series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
             axes: [
                 {
                     type: 'number',

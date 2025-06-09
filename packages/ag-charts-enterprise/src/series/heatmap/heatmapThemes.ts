@@ -6,7 +6,7 @@ export const HEATMAP_SERIES_THEME: _ModuleSupport.SeriesModule<'heatmap'>['theme
             $if: [
                 { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                 { $ref: 'backgroundColor' },
-                { $path: ['./0', { $palette: 'stroke' }, { $palette: 'strokes' }] },
+                { $path: ['/0', { $palette: 'stroke' }, { $palette: 'strokes' }] },
             ],
         },
         // @ts-expect-error undocumented option

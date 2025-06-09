@@ -108,6 +108,19 @@ export function without(object: object | undefined, keys: readonly string[]) {
     return clone;
 }
 
+export function pick<T, K extends keyof T>(object: T | undefined, keys: readonly K[]): Pick<T, K>;
+export function pick(object: object | undefined, keys: readonly string[]): object;
+export function pick(object: object | undefined, keys: readonly string[]) {
+    if (object == null) return;
+    const picked = {};
+    for (const key of keys) {
+        if (Object.hasOwn(object, key)) {
+            picked[key as keyof object] = object[key as keyof object];
+        }
+    }
+    return picked;
+}
+
 export function getPath(object: object, path: string | string[]) {
     const pathArray = isArray(path) ? path : path.split('.');
     return pathArray.reduce<any>((value, pathKey) => value[pathKey], object);
