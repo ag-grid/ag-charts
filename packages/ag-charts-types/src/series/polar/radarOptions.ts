@@ -12,9 +12,9 @@ export interface AgRadarSeriesThemeableOptions<TDatum = TDatumDefault, TContext 
         LineDashOptions,
         AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series. */
-    marker?: AgSeriesMarkerOptions<TDatum, AgRadialSeriesOptionsKeys>;
+    marker?: AgSeriesMarkerOptions<TDatum, AgRadialSeriesOptionsKeys<TDatum>>;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgChartLabelOptions<TDatum, AgRadarSeriesLabelFormatterParams>;
+    label?: AgChartLabelOptions<TDatum, AgRadarSeriesLabelFormatterParams<TDatum>>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRadarSeriesTooltipRendererParams<TDatum>>;
     /** Set to `true` to connect across missing data points. */
@@ -23,20 +23,21 @@ export interface AgRadarSeriesThemeableOptions<TDatum = TDatumDefault, TContext 
 
 export interface AgBaseRadarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgRadialSeriesOptionsKeys,
+        AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgRadarSeriesThemeableOptions<TDatum, TContext> {
     type: 'radar-line' | 'radar-area';
 }
 
-export type AgRadarSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
-    AgRadialSeriesOptionsKeys &
+export type AgRadarSeriesTooltipRendererParams<TDatum = TDatumDefault> = AgSeriesTooltipRendererParams<TDatum> &
+    AgRadialSeriesOptionsKeys<TDatum> &
     AgRadialSeriesOptionsNames &
     Omit<AgSeriesMarkerStyle, 'shape'>;
 
-export type AgRadarSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
-    AgRadialSeriesOptionsKeys &
+export type AgRadarSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+    AgRadialSeriesOptionsKeys<TDatum> &
     StrokeOptions &
     LineDashOptions;
 
-export type AgRadarSeriesLabelFormatterParams = AgRadialSeriesOptionsKeys & AgRadialSeriesOptionsNames;
+export type AgRadarSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgRadialSeriesOptionsKeys<TDatum> &
+    AgRadialSeriesOptionsNames;

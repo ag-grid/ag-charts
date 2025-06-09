@@ -1,10 +1,11 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
+import { DataType } from './data';
 import { getData } from './data';
 
 const customItems = ['Jun', 'Jul', 'Aug', 'Sep'];
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     series: [
@@ -17,9 +18,9 @@ const options: AgChartOptions = {
                 shape: 'diamond',
                 size: 12,
                 fill: 'green',
-                itemStyler: ({ datum, xKey, fill, highlighted }) => {
+                itemStyler: ({ datum, fill, highlighted }) => {
                     return {
-                        fill: customItems.includes(datum[xKey]) ? (highlighted ? 'yellow' : 'red') : fill,
+                        fill: customItems.includes(datum.month) ? (highlighted ? 'yellow' : 'red') : fill,
                     };
                 },
             },

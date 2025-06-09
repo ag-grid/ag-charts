@@ -8,14 +8,16 @@ import type { FillOptions, StrokeOptions } from './commonOptions';
 
 export interface AgBubbleSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends AgSeriesTooltipRendererParams<TDatum>,
-        AgBubbleSeriesOptionsKeys,
+        AgBubbleSeriesOptionsKeys<TDatum>,
         AgBubbleSeriesOptionsNames,
         FillOptions,
         StrokeOptions {}
 
-export type AgBubbleSeriesLabelFormatterParams = AgBubbleSeriesOptionsKeys & AgBubbleSeriesOptionsNames;
+export type AgBubbleSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgBubbleSeriesOptionsKeys<TDatum> &
+    AgBubbleSeriesOptionsNames;
 
-export interface AgBubbleSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum, AgBubbleSeriesLabelFormatterParams> {
+export interface AgBubbleSeriesLabel<TDatum>
+    extends AgChartLabelOptions<TDatum, AgBubbleSeriesLabelFormatterParams<TDatum>> {
     /**
      * Placement of label in relation to the marker.
      *
@@ -26,8 +28,8 @@ export interface AgBubbleSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum,
 
 export interface AgBubbleSeriesStyle extends AgSeriesMarkerStyle {}
 
-export type BubbleSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
-    AgBubbleSeriesOptionsKeys &
+export type BubbleSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+    AgBubbleSeriesOptionsKeys<TDatum> &
     Required<AgBubbleSeriesStyle>;
 
 export interface AgBubbleSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
@@ -49,15 +51,15 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = TDatumDefault, TContext
     itemStyler?: Styler<BubbleSeriesItemStylerParams<TDatum>, AgBubbleSeriesStyle>;
 }
 
-export interface AgBubbleSeriesOptionsKeys {
+export interface AgBubbleSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve y-values from the data. */
-    yKey: string;
+    yKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve size values from the data, used to control the size of the markers. */
-    sizeKey: string;
+    sizeKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
-    labelKey?: string;
+    labelKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgBubbleSeriesOptionsNames {
@@ -74,7 +76,7 @@ export interface AgBubbleSeriesOptionsNames {
 export interface AgBubbleSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgBubbleSeriesThemeableOptions<TDatum, TContext>,
-        AgBubbleSeriesOptionsKeys,
+        AgBubbleSeriesOptionsKeys<TDatum>,
         AgBubbleSeriesOptionsNames {
     /** Configuration for Bubble Series. */
     type: 'bubble';

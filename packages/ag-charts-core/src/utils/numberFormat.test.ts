@@ -45,6 +45,9 @@ describe('number format', () => {
     test('grouped thousands with fixed point', () => {
         expect(createNumberFormatter(',.5f')!(123456789.9876543)).toBe('123,456,789.98765');
     });
+    test('remove trailing zeros', () => {
+        expect(createNumberFormatter('.3~f')!(-0.87)).toBe('−0.87');
+    });
     test('number of significant digits', () => {
         const f = createNumberFormatter(',.3r')!;
         expect(f(0.077)).toBe('0.0770');

@@ -565,9 +565,9 @@ export class HistogramSeries extends CartesianSeries<
                 seriesId,
                 datum,
                 title: yName,
-                xKey,
+                xKey: xKey as any, // HistogramSeries is an outlier since it's callbacks don't use TDatum.
                 xName,
-                yKey,
+                yKey: yKey as any, // HistogramSeries is an outlier since it's callbacks don't use TDatum.
                 yName,
                 xRange: [rangeMin, rangeMax] satisfies [number, number],
                 frequency,

@@ -1,5 +1,16 @@
+export interface DataType {
+    month: string;
+    coal: number;
+    petroleum: number;
+    naturalGas: number;
+    bioenergyWaste: number;
+    nuclear: number;
+    windSolarHydro: number;
+    imported: number;
+}
+
 // Source: https://www.gov.uk/government/statistics/total-energy-section-1-energy-trends
-export const data = [
+export const data: DataType[] = [
     {
         month: 'Jan',
         coal: 0.8,

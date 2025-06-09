@@ -1,5 +1,11 @@
 // Source: http://www.sheffieldweather.co.uk/Averages/MONTHLYAIRAVERAGE.htm
-export function getData() {
+export interface DataType {
+    year: string;
+    month: string;
+    temperature: number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             year: '2010',

@@ -18,7 +18,7 @@ export interface AgCandlestickSeriesItemStylerParams<TDatum>
 
 export interface AgCandlestickSeriesTooltipRendererParams<TDatum>
     extends AgOhlcSeriesBaseTooltipRendererParams<TDatum>,
-        AgOhlcSeriesBaseOptions,
+        AgOhlcSeriesBaseOptions<TDatum>,
         FillOptions {}
 
 export interface AgCandlestickSeriesItemOptions extends AgBarSeriesStyle {
@@ -50,8 +50,8 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum = TDatumDefault, TCo
 export interface AgCandlestickSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgCandlestickSeriesThemeableOptions<TDatum, TContext>,
         AgBaseSeriesOptions<TDatum, TContext>,
-        AgOhlcSeriesBaseOptions,
-        Omit<AxisOptions, 'yKey'> {
+        AgOhlcSeriesBaseOptions<TDatum>,
+        Omit<AxisOptions<TDatum>, 'yKey'> {
     /** Configuration for the Candlestick Series. */
     type: 'candlestick';
 }

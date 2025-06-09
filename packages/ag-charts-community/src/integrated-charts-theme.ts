@@ -2,7 +2,7 @@ import type { Operation } from 'ag-charts-types';
 
 import { themes } from './chart/mapping/themes';
 import { ChartTheme } from './chart/themes/chartTheme';
-import { jsonResolveOperations } from './util/json';
+import { OptionsGraph } from './module/optionsGraph';
 
 // Only these imports are used by ag-grid.
 // DO NOT ADD EXPORTS UNLESS REQUIRED BY INTEGRATED CHARTS.
@@ -15,10 +15,11 @@ export { ChartTheme } from './chart/themes/chartTheme';
 export { themes } from './chart/mapping/themes';
 export * from './chart/themes/symbols';
 
+// TODO: ?
 export function resolveOperation(operation: Operation): any {
     const params = ChartTheme.getDefaultPublicParameters();
-    (params as any).__palette = ChartTheme.getDefaultColors();
-    const source = { operation };
-    jsonResolveOperations(source, params);
-    return source.operation as any;
+    const palette = ChartTheme.getDefaultColors();
+    const graph = new OptionsGraph({ operation }, {}, params, palette);
+    const resolved = graph.resolve();
+    return resolved.operation;
 }

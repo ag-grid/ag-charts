@@ -79,14 +79,14 @@ type LogicOperation =
     | { $and: AnyLeaf[] }
     | { $eq: [AnyLeaf, AnyLeaf] }
     | { $not: [AnyLeaf] }
-    | { $switch: [AnyLeaf] }
-    | { $isOperation: string };
+    | { $switch: [AnyLeaf] };
 
 type NumericOperation = { $even: [Leaf<number>] } | { $mul: [Leaf<number>, Leaf<number>] } | { $round: [Leaf<number>] };
 
 type TransformOperation =
     | { $map: [AnyLeaf, AnyLeaf] }
     | { $find: [AnyLeaf, AnyLeaf] }
+    | { $findFirstSiblingNotOperation: [AnyLeaf] }
     | { $merge: Leaf<object>[] }
     | { $omit: [Leaf<Array<string>>, Leaf<object>] }
     | { $value: '$1' | '$index' };

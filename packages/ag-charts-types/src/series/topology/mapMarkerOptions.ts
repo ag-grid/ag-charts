@@ -15,31 +15,32 @@ import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlig
 
 export interface AgMapMarkerSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
-        AgMapMarkerSeriesOptionsKeys,
+        AgMapMarkerSeriesOptionsKeys<TDatum>,
         AgMapMarkerSeriesOptionsNames,
         AgMapMarkerSeriesStyle {}
 
 export type AgMapMarkerSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & FillOptions & StrokeOptions;
 
-export type AgMapMarkerSeriesLabelFormatterParams = AgMapMarkerSeriesOptionsKeys & AgMapMarkerSeriesOptionsNames;
+export type AgMapMarkerSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgMapMarkerSeriesOptionsKeys<TDatum> &
+    AgMapMarkerSeriesOptionsNames;
 
 export type AgMapMarkerSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
-    AgMapMarkerSeriesOptionsKeys &
+    AgMapMarkerSeriesOptionsKeys<TDatum> &
     Required<AgMapMarkerSeriesStyle>;
 
-export interface AgMapMarkerSeriesOptionsKeys {
+export interface AgMapMarkerSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The name of the node key containing the id value. */
-    idKey?: string;
+    idKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve latitude values from the data, used to control the position of the markers. */
-    latitudeKey?: string;
+    latitudeKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve longitude values from the data, used to control the position of the markers. */
-    longitudeKey?: string;
+    longitudeKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve size values from the data, used to control the size of the markers. */
-    sizeKey?: string;
+    sizeKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the colour of the markers. */
-    colorKey?: string;
+    colorKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
-    labelKey?: string;
+    labelKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgMapMarkerSeriesOptionsNames {
@@ -65,7 +66,7 @@ export interface AgMapMarkerSeriesStyle extends FillOptions, StrokeOptions, Line
 }
 
 export interface AgMapMarkerSeriesLabel<TDatum>
-    extends AgChartLabelOptions<TDatum, AgMapMarkerSeriesLabelFormatterParams> {
+    extends AgChartLabelOptions<TDatum, AgMapMarkerSeriesLabelFormatterParams<TDatum>> {
     /**
      * Placement of label in relation to the marker.
      *
@@ -95,7 +96,7 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = TDatumDefault, TCont
 
 export interface AgMapMarkerSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
-        AgMapMarkerSeriesOptionsKeys,
+        AgMapMarkerSeriesOptionsKeys<TDatum>,
         AgMapMarkerSeriesOptionsNames,
         AgMapMarkerSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Map Marker Series. */

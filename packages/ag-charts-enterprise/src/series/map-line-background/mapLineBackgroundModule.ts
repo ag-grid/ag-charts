@@ -16,7 +16,7 @@ export const MapLineBackgroundModule: _ModuleSupport.SeriesModule<'map-line-back
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
-            stroke: { $path: ['./1', { $palette: 'stroke' }, { $palette: 'secondHierarchyColors' }] },
+            stroke: { $path: ['/1', { $palette: 'stroke' }, { $palette: 'secondHierarchyColors' }] },
             strokeWidth: 1,
             lineDash: [0],
             lineDashOffset: 0,

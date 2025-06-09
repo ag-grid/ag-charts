@@ -5,16 +5,17 @@ import type { PixelSize, TContextDefault, TDatumDefault, TextAlign, VerticalAlig
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
 
-export type AgHeatmapSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
-    AgHeatmapSeriesOptionsKeys &
+export type AgHeatmapSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+    AgHeatmapSeriesOptionsKeys<TDatum> &
     Required<AgHeatmapSeriesStyle>;
 
 export type AgHeatmapSeriesStyle = FillOptions & StrokeOptions;
 
-export type AgHeatmapSeriesLabelFormatterParams = AgHeatmapSeriesOptionsKeys & AgHeatmapSeriesOptionsNames;
+export type AgHeatmapSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgHeatmapSeriesOptionsKeys<TDatum> &
+    AgHeatmapSeriesOptionsNames;
 
-export type AgHeatmapSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
-    AgHeatmapSeriesOptionsKeys &
+export type AgHeatmapSeriesTooltipRendererParams<TDatum = TDatumDefault> = AgSeriesTooltipRendererParams<TDatum> &
+    AgHeatmapSeriesOptionsKeys<TDatum> &
     AgHeatmapSeriesOptionsNames &
     AgHeatmapSeriesStyle;
 
@@ -22,7 +23,7 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     extends StrokeOptions,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Options for the label in each cell. */
-    label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams>;
+    label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams<TDatum>>;
     /** Minimum distance between the label text and the edges of the cell. */
     itemPadding?: PixelSize;
     /** Horizontal position of the label. */
@@ -37,13 +38,13 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     tooltip?: AgSeriesTooltip<AgHeatmapSeriesTooltipRendererParams<TDatum>>;
 }
 
-export interface AgHeatmapSeriesOptionsKeys {
+export interface AgHeatmapSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve y-values from the data. */
-    yKey: string;
+    yKey: TDatum extends object ? keyof TDatum & string : string;
     /** The name of the node key containing the colour value. This value (along with `colorRange` configs) will be used to determine the cell colour. */
-    colorKey?: string;
+    colorKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgHeatmapSeriesOptionsNames {
@@ -57,7 +58,7 @@ export interface AgHeatmapSeriesOptionsNames {
 
 export interface AgHeatmapSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgHeatmapSeriesOptionsKeys,
+        AgHeatmapSeriesOptionsKeys<TDatum>,
         AgHeatmapSeriesOptionsNames,
         AgHeatmapSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Heatmap Series. */

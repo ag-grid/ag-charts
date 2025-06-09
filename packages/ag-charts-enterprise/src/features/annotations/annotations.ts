@@ -40,9 +40,9 @@ const {
     PropertiesArray,
     Property,
     ChartAxisDirection,
-    Vec2,
     keyProperty,
     valueProperty,
+    Vec2,
     Selection,
     BBox,
 } = _ModuleSupport;
@@ -559,9 +559,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             valueProperty(this.volumeKey, 'number', { id: 'volume' }),
         ];
 
-        const { dataModel, processedData } = await dataController.request('annotations', this.data, {
-            props,
-        });
+        // TODO: While the below should hold true, we instead need to clone the data array to ensure it is a separate
+        // data model and we don't have missing props of `date` and `volume`.
+        // Request a data model with no extra props, we expect the required keys of `date` and `volume` will already
+        // be provided by the series, so we can skip duplicate processing.
+        const { dataModel, processedData } = await dataController.request('annotations', [...this.data], { props });
         this.dataModel = dataModel;
         this.processedData = processedData;
     }

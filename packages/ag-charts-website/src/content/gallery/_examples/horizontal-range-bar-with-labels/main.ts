@@ -1,6 +1,6 @@
 import { AgChartOptions, AgCharts, AgRangeBarSeriesTooltipRendererParams, AgSeriesTooltip } from 'ag-charts-enterprise';
 
-import { DataNumberKey, DataType, getData } from './data';
+import { DataType, getData } from './data';
 
 const numberFormatOptions: Intl.NumberFormatOptions = {
     notation: 'compact',

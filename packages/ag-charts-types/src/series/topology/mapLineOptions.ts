@@ -5,8 +5,8 @@ import type { GeoJSON, PixelSize, TContextDefault, TDatumDefault } from '../../c
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
-export type AgMapLineSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
-    AgMapLineSeriesOptionsKeys &
+export type AgMapLineSeriesTooltipRendererParams<TDatum = TDatumDefault> = AgSeriesTooltipRendererParams<TDatum> &
+    AgMapLineSeriesOptionsKeys<TDatum> &
     AgMapLineSeriesOptionsNames &
     AgMapLineSeriesStyle;
 
@@ -14,23 +14,24 @@ export type AgMapLineSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & St
 
 export type AgMapLineSeriesStyle = StrokeOptions & LineDashOptions;
 
-export type AgMapLineSeriesLabel<TDatum> = AgChartLabelOptions<TDatum, AgMapLineSeriesLabelFormatterParams>;
+export type AgMapLineSeriesLabel<TDatum> = AgChartLabelOptions<TDatum, AgMapLineSeriesLabelFormatterParams<TDatum>>;
 
-export type AgMapLineSeriesLabelFormatterParams = AgMapLineSeriesOptionsKeys & AgMapLineSeriesOptionsNames;
+export type AgMapLineSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgMapLineSeriesOptionsKeys<TDatum> &
+    AgMapLineSeriesOptionsNames;
 
 export type AgMapLineSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
-    AgMapLineSeriesOptionsKeys &
+    AgMapLineSeriesOptionsKeys<TDatum> &
     Required<AgMapLineSeriesStyle>;
 
-export interface AgMapLineSeriesOptionsKeys {
+export interface AgMapLineSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The name of the node key containing the id value. */
-    idKey?: string;
+    idKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve size values from the data, used to control the width of the stroke. */
-    sizeKey?: string;
+    sizeKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the colour of the stroke. */
-    colorKey?: string;
+    colorKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve values from the data to use as labels on top of lines. */
-    labelKey?: string;
+    labelKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgMapLineSeriesOptionsNames {
@@ -63,7 +64,7 @@ export interface AgMapLineSeriesThemeableOptions<TDatum = TDatumDefault, TContex
 
 export interface AgMapLineSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
-        AgMapLineSeriesOptionsKeys,
+        AgMapLineSeriesOptionsKeys<TDatum>,
         AgMapLineSeriesOptionsNames,
         AgMapLineSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Map Line Series. */

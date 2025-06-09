@@ -24,23 +24,23 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = TCon
     /** Datum from the chart or series data array. */
     datum: TDatum;
     /** xKey as specified on series options */
-    xKey?: string;
+    xKey?: TDatum extends object ? keyof TDatum & string : string;
     /** yKey as specified on series options */
-    yKey?: string;
+    yKey?: TDatum extends object ? keyof TDatum & string : string;
     /** sizeKey as specified on series options */
-    sizeKey?: string;
+    sizeKey?: TDatum extends object ? keyof TDatum & string : string;
     /** labelKey as specified on series options */
-    labelKey?: string;
+    labelKey?: TDatum extends object ? keyof TDatum & string : string;
     /** colorKey as specified on series options */
-    colorKey?: string;
+    colorKey?: TDatum extends object ? keyof TDatum & string : string;
     /** angleKey as specified on series options */
-    angleKey?: string;
+    angleKey?: TDatum extends object ? keyof TDatum & string : string;
     /** calloutLabelKey as specified on series options */
-    calloutLabelKey?: string;
+    calloutLabelKey?: TDatum extends object ? keyof TDatum & string : string;
     /** sectorLabelKey as specified on series options */
-    sectorLabelKey?: string;
+    sectorLabelKey?: TDatum extends object ? keyof TDatum & string : string;
     /** radiusKey as specified on series options */
-    radiusKey?: string;
+    radiusKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgSeriesVisibilityChange<TContext = TContextDefault> {

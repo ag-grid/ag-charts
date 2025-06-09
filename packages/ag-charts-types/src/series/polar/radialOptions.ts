@@ -9,18 +9,18 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = TDatumDefault, TCon
     extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
         AgRadialSeriesStyle {
     /** Configuration for the labels shown on top of data points. */
-    label?: AgChartLabelOptions<TDatum, AgRadialSeriesLabelFormatterParams>;
+    label?: AgChartLabelOptions<TDatum, AgRadialSeriesLabelFormatterParams<TDatum>>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRadialSeriesTooltipRendererParams<TDatum>>;
     /** A styler function for adjusting the styling of the radial columns. */
     itemStyler?: Styler<AgRadialSeriesItemStylerParams<TDatum>, AgRadialSeriesStyle>;
 }
 
-export interface AgRadialSeriesOptionsKeys {
+export interface AgRadialSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve angle values from the data. */
-    angleKey: string;
+    angleKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve radius values from the data. */
-    radiusKey: string;
+    radiusKey: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgRadialSeriesOptionsNames {
@@ -30,16 +30,17 @@ export interface AgRadialSeriesOptionsNames {
     radiusName?: string;
 }
 
-export type AgRadialSeriesLabelFormatterParams = AgRadialSeriesOptionsKeys & AgRadialSeriesOptionsNames;
+export type AgRadialSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgRadialSeriesOptionsKeys<TDatum> &
+    AgRadialSeriesOptionsNames;
 
 export interface AgRadialSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
-        AgRadialSeriesOptionsKeys,
+        AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgRadialSeriesStyle {}
 
-export type AgRadialSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
-    AgRadialSeriesOptionsKeys &
+export type AgRadialSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+    AgRadialSeriesOptionsKeys<TDatum> &
     Required<AgRadialSeriesStyle>;
 
 export interface AgRadialSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {

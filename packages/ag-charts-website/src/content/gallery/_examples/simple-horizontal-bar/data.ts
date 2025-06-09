@@ -5,8 +5,6 @@ export interface DataType {
     earningsUpper: number;
 }
 
-export type DataNumberKey = keyof Omit<DataType, 'type'>;
-
 export function getData(): DataType[] {
     return [
         {

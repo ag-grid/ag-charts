@@ -1,8 +1,8 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: `Renewable sources used to generate electricity for transport fuels`,

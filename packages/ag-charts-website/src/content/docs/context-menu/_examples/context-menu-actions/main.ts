@@ -1,6 +1,8 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-const options: AgCartesianChartOptions = {
+import { DataType } from './data';
+
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Sweaters made',

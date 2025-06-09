@@ -1,6 +1,15 @@
 const icon = '${baseWWWUrl}/example-assets/docs-images/ag-charts-logo.png';
 
-export function getData() {
+export interface DataType {
+    instrument: string;
+    popularity: number;
+    musicians_millions: number;
+    icon: string;
+    year_of_invention: number;
+    difficulty: number;
+}
+
+export function getData(): DataType[] {
     return [
         {
             instrument: 'Guitar',

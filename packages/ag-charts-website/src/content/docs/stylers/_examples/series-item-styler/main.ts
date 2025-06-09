@@ -1,6 +1,8 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-const options: AgChartOptions = {
+import { DataType } from './data';
+
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'GDP by country in billions of USD (2018)',
@@ -29,9 +31,9 @@ const options: AgChartOptions = {
             xKey: 'country',
             yKey: 'gdp',
             showInLegend: false,
-            itemStyler: (params) => {
+            itemStyler: ({ datum: { country }, fill, highlighted }) => {
                 return {
-                    fill: params.datum[params.xKey] === 'UK' ? (params.highlighted ? 'lime' : 'red') : params.fill,
+                    fill: country === 'UK' ? (highlighted ? 'lime' : 'red') : fill,
                 };
             },
         },

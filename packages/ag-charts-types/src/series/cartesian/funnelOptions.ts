@@ -16,15 +16,15 @@ export interface AgFunnelSeriesStageLabelOptions extends AgFormattableLabelOptio
 
 export interface AgFunnelSeriesItemStylerParams<TDatum>
     extends DatumCallbackParams<TDatum>,
-        AgFunnelSeriesOptionsKeys,
+        AgFunnelSeriesOptionsKeys<TDatum>,
         Required<AgFunnelSeriesStyle> {}
 
 export interface AgFunnelSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgFunnelSeriesLabelFormatterParams extends AgFunnelSeriesOptionsKeys {}
+export interface AgFunnelSeriesLabelFormatterParams<TDatum = TDatumDefault> extends AgFunnelSeriesOptionsKeys<TDatum> {}
 
 export interface AgFunnelSeriesTooltipRendererParams<TDatum = TDatumDefault>
-    extends AgFunnelSeriesOptionsKeys,
+    extends AgFunnelSeriesOptionsKeys<TDatum>,
         AgFunnelSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum>,
         AgFunnelSeriesStyle {}
@@ -56,7 +56,7 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = TDatumDefault, TContext
     /** Align bars to whole pixel values to remove anti-aliasing. */
     crisp?: boolean;
     /** Configuration for the labels shown on bars. */
-    label?: AgFunnelSeriesLabelOptions<TDatum, AgFunnelSeriesLabelFormatterParams>;
+    label?: AgFunnelSeriesLabelOptions<TDatum, AgFunnelSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the stage labels. */
     stageLabel?: AgFunnelSeriesStageLabelOptions;
     /** Configuration for the shadow used behind the series items. */
@@ -67,18 +67,18 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = TDatumDefault, TContext
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<TDatum>, AgFunnelSeriesStyle>;
 }
 
-export interface AgFunnelSeriesOptionsKeys {
+export interface AgFunnelSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve stage values from the data. */
-    stageKey: string;
+    stageKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve values from the data. */
-    valueKey: string;
+    valueKey: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgFunnelSeriesOptionsNames {}
 
 export interface AgFunnelSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgFunnelSeriesOptionsKeys,
+        AgFunnelSeriesOptionsKeys<TDatum>,
         AgFunnelSeriesOptionsNames,
         AgFunnelSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Funnel Series. */

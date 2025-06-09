@@ -8,7 +8,7 @@ import type {
 
 export interface AgBaseRadialColumnSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgRadialSeriesOptionsKeys,
+        AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgBaseRadialSeriesThemeableOptions<TDatum, TContext> {
     /** Base configuration for Radial Column series. */
