@@ -32,7 +32,7 @@ export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSunburstSeries
 }
 
 export interface AgSunburstSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
+    extends Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle' | 'highlight'> {
     /** Options for the label in a sector. */
     label?: AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>;
     /** Options for a secondary, smaller label in a sector - displayed under the primary label. */

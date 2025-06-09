@@ -5,7 +5,12 @@ import type { AgBarSeriesOptions, WithThemeParams } from 'ag-charts-types';
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { DIRECTION_SWAP_AXES, FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS } from '../../themes/util';
+import {
+    DIRECTION_SWAP_AXES,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    MULTI_SERIES_HIGHLIGHT_STYLE,
+} from '../../themes/util';
 import { BarSeries } from './barSeries';
 import { barSeriesOptionsDef } from './barSeriesOptionsDef';
 
@@ -71,6 +76,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
                     lengthRatio: 0.3,
                 },
             },
+            highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
         },
     },
 };

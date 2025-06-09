@@ -16,10 +16,18 @@ import type {
     PixelSize,
 } from 'ag-charts-types';
 
+import { mergeDefaults } from '../../util/object';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
 import type { SeriesTooltip } from './seriesTooltip';
 
+export enum HighlightState {
+    None,
+    Item,
+    Series,
+    OtherSeries,
+    OtherItem,
+}
 export class SeriesItemHighlightStyle extends BaseProperties {
     @Property
     fill?: string = 'rgba(255,255,255, 0.33)';
@@ -43,6 +51,78 @@ export class SeriesItemHighlightStyle extends BaseProperties {
     lineDashOffset?: number;
 }
 
+export class HighlightOptions extends BaseProperties {
+    @Property
+    fill?: string;
+
+    @Property
+    fillOpacity?: number;
+
+    @Property
+    stroke?: string;
+
+    @Property
+    strokeWidth?: number;
+
+    @Property
+    strokeOpacity?: number;
+
+    @Property
+    lineDash?: number[];
+
+    @Property
+    lineDashOffset?: number;
+
+    @Property
+    opacity?: number;
+}
+
+export class HighlightProperties<T> extends BaseProperties {
+    @Property
+    enabled = true;
+
+    @Property
+    public range: 'tooltip' | 'node' = 'tooltip';
+
+    @Property
+    readonly highlightedItem: Partial<T> = {};
+
+    @Property
+    readonly unHighlightedItem: Partial<T> = {};
+
+    @Property
+    readonly highlightedSeries: Partial<T> = {};
+
+    @Property
+    readonly unHighlightedSeries: Partial<T> = {};
+
+    private getItemHighlightStyle(highlightState: HighlightState) {
+        switch (highlightState) {
+            case HighlightState.Item:
+                return this.highlightedItem;
+            case HighlightState.OtherItem:
+                return this.unHighlightedItem;
+            case HighlightState.Series:
+                return this.highlightedSeries;
+            case HighlightState.OtherSeries:
+                return this.unHighlightedSeries;
+        }
+    }
+
+    private getSeriesHighlightStyle(highlightState: HighlightState) {
+        switch (highlightState) {
+            case HighlightState.Series:
+                return this.highlightedSeries;
+            case HighlightState.OtherSeries:
+                return this.unHighlightedSeries;
+        }
+    }
+
+    getStyle(highlightState: HighlightState) {
+        return mergeDefaults(this.getItemHighlightStyle(highlightState), this.getSeriesHighlightStyle(highlightState));
+    }
+}
+
 class SeriesHighlightStyle extends BaseProperties {
     @Property
     strokeWidth?: number;
@@ -57,11 +137,6 @@ class SeriesHighlightStyle extends BaseProperties {
 class TextHighlightStyle extends BaseProperties {
     @Property
     color?: string = 'black';
-}
-
-export class HighlightProperties extends BaseProperties {
-    @Property
-    enabled = true;
 }
 
 export class FillGradientDefaults
@@ -210,7 +285,7 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     nodeClickRange: InteractionRange = 'exact';
 
     @Property
-    readonly highlight = new HighlightProperties();
+    readonly highlight: HighlightProperties<T> = new HighlightProperties();
 
     @Property
     readonly highlightStyle = new HighlightStyle();

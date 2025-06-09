@@ -12,7 +12,10 @@ import type { Shape, ShapeColor } from '../../scene/shape/shape';
 import { isGradientFill, isImageFill, isPatternFill } from '../../scene/util/fill';
 
 export type ShapeStyle = Partial<
-    Pick<Shape, 'fill' | 'fillOpacity' | 'stroke' | 'strokeOpacity' | 'strokeWidth' | 'lineDash' | 'lineDashOffset'>
+    Pick<
+        Shape,
+        'fill' | 'fillOpacity' | 'stroke' | 'strokeOpacity' | 'strokeWidth' | 'lineDash' | 'lineDashOffset' | 'opacity'
+    >
 >;
 
 export interface ShapeFillBBox {
@@ -154,6 +157,7 @@ export function applyShapeStyle(
     shape.fill = fill;
     applyShapeFillBBox(shape, overrides?.fill ?? style.fill, fillBBox, fillParams);
     shape.fillOpacity = overrides?.fillOpacity ?? style.fillOpacity ?? 1;
+    shape.opacity = overrides?.opacity ?? style.opacity ?? 1;
     shape.stroke = overrides?.stroke ?? style.stroke;
     shape.strokeOpacity = overrides?.strokeOpacity ?? style.strokeOpacity ?? 1;
     shape.strokeWidth = overrides?.strokeWidth ?? style.strokeWidth ?? 0;
