@@ -215,8 +215,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "interpolation": {
         "type": "linear",
@@ -301,8 +299,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "interpolation": {
         "type": "linear",
@@ -387,8 +383,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "interpolation": {
         "type": "linear",
@@ -773,8 +767,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "label": {
         "color": "white",
@@ -865,8 +857,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "label": {
         "color": "white",
@@ -918,8 +908,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "interpolation": {
         "type": "linear",
@@ -2129,8 +2117,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "label": {
         "color": "white",
@@ -2222,8 +2208,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "label": {
         "color": "white",
@@ -2315,8 +2299,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "label": {
         "color": "white",
@@ -2408,8 +2390,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "label": {
         "color": "white",
@@ -2501,8 +2481,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "label": {
         "color": "white",
@@ -2594,8 +2572,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "label": {
         "color": "white",
@@ -2687,8 +2663,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "label": {
         "color": "white",
@@ -2780,8 +2754,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "label": {
         "color": "white",
@@ -3297,8 +3269,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "interpolation": {
         "type": "linear",
@@ -3383,8 +3353,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "interpolation": {
         "type": "linear",
@@ -3469,8 +3437,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "interpolation": {
         "type": "linear",
@@ -3555,8 +3521,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "interpolation": {
         "type": "linear",
@@ -4727,8 +4691,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "label": {
         "color": "white",
@@ -4987,8 +4949,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "highlightStyle": {
         "item": {
@@ -5779,7 +5739,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -5878,7 +5837,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -9206,8 +9164,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "interpolation": {
         "type": "linear",
@@ -11263,7 +11219,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -11363,7 +11318,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -11463,7 +11417,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -11563,7 +11516,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -11663,7 +11615,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -11763,7 +11714,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -12096,8 +12046,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "interpolation": {
         "type": "linear",
@@ -12220,8 +12168,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "interpolation": {
         "type": "linear",
@@ -12344,8 +12290,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "interpolation": {
         "type": "linear",
@@ -12468,8 +12412,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "interpolation": {
         "type": "linear",
@@ -12762,8 +12704,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
-        "unHighlightedSeries": {},
       },
       "label": {
         "color": "#eeeeee",
@@ -13980,6 +13920,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "type": "pattern",
         "width": 10,
       },
+      "highlight": {
+        "highlightedItem": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "opacity": 1,
+          "stroke": "rgba(0, 0, 0, 0.4)",
+          "strokeWidth": 2,
+        },
+      },
       "label": {
         "color": "#464646",
         "enabled": false,
@@ -14283,7 +14231,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -14421,7 +14368,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -14559,7 +14505,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -14697,7 +14642,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -14835,7 +14779,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -14973,7 +14916,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "stroke": "rgba(0, 0, 0, 0.4)",
           "strokeWidth": 2,
         },
-        "highlightedSeries": {},
         "unHighlightedSeries": {
           "opacity": 0.2,
         },

@@ -477,8 +477,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -570,8 +568,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -663,8 +659,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -756,8 +750,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -810,8 +802,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "interpolation": {
       "type": "linear",
@@ -895,8 +885,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "interpolation": {
       "type": "linear",
@@ -1030,8 +1018,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -1123,8 +1109,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -1216,8 +1200,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -1309,8 +1291,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -1363,8 +1343,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "interpolation": {
       "type": "linear",
@@ -1448,8 +1426,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "interpolation": {
       "type": "linear",
@@ -1583,8 +1559,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -1676,8 +1650,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -1769,8 +1741,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -1862,8 +1832,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "label": {
       "color": "white",
@@ -1916,8 +1884,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "interpolation": {
       "type": "linear",
@@ -2001,8 +1967,6 @@ describe('ChartOptions', () => {
         "stroke": "rgba(0, 0, 0, 0.4)",
         "strokeWidth": 2,
       },
-      "highlightedSeries": {},
-      "unHighlightedSeries": {},
     },
     "interpolation": {
       "type": "linear",
