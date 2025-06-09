@@ -47,7 +47,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     private static readonly EDGE_PRIORITY = [USER_OPTIONS_EDGE, OVERRIDES_EDGE, DEFAULTS_EDGE];
 
     // These keys must be stored as shallow objects in the graph and not manipulated.
-    private static readonly SHALLOW_KEYS = new Set(['context', 'data']);
+    private static readonly SHALLOW_KEYS = new Set(['context', 'data', 'topology']);
 
     // These keys must be excluded when building the graph, they are instead resolved separately since they are objects
     // that must be applied to arrays.
