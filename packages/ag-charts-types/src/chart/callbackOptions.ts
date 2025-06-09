@@ -25,6 +25,11 @@ export interface DatumCallbackParams<TDatum> {
     highlighted: boolean;
 }
 
+export interface ContextCallbackParams<TContext> {
+    /** Context for this callback. */
+    context?: TContext;
+}
+
 export interface DatumItemCallbackParams<ItemType extends string, TDatum> extends DatumCallbackParams<TDatum> {
     /** The unique identifier of the item. */
     itemId: ItemType;

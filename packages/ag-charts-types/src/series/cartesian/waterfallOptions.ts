@@ -1,4 +1,4 @@
-import type { DatumItemCallbackParams, Renderer, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumItemCallbackParams, Renderer, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
@@ -9,10 +9,11 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 
 export type AgWaterfallSeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
 
-export type AgWaterfallSeriesItemStylerParams<TDatum = TDatumDefault> = DatumItemCallbackParams<
-    AgWaterfallSeriesItemType,
-    TDatum
-> &
+export type AgWaterfallSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumItemCallbackParams<AgWaterfallSeriesItemType, TDatum> &
+    ContextCallbackParams<TContext> &
     AgWaterfallSeriesOptionsKeys<TDatum> &
     Required<AgWaterfallSeriesStyle>;
 
@@ -59,7 +60,7 @@ export interface AgWaterfallSeriesThemeableOptions<TDatum = TDatumDefault, TCont
      */
     direction?: 'horizontal' | 'vertical';
     /** Configuration used for the waterfall series item types. */
-    item?: AgWaterfallSeriesItem<TDatum>;
+    item?: AgWaterfallSeriesItem<TDatum, TContext>;
     /** Configuration for the connector lines. */
     line?: AgWaterfallSeriesLineOptions;
     /** Series-specific tooltip configuration. */
@@ -93,13 +94,13 @@ export interface AgWaterfallSeriesOptions<TDatum = TDatumDefault, TContext = TCo
     totals?: WaterfallSeriesTotalMeta[];
 }
 
-export interface AgWaterfallSeriesItem<TDatum> {
+export interface AgWaterfallSeriesItem<TDatum, TContext = TContextDefault> {
     /** Configuration for the negative series items. */
-    negative?: AgWaterfallSeriesItemOptions<TDatum>;
+    negative?: AgWaterfallSeriesItemOptions<TDatum, TContext>;
     /** Configuration for the positive series items. */
-    positive?: AgWaterfallSeriesItemOptions<TDatum>;
+    positive?: AgWaterfallSeriesItemOptions<TDatum, TContext>;
     /** Configuration for the total and subtotal series items. */
-    total?: AgWaterfallSeriesItemOptions<TDatum>;
+    total?: AgWaterfallSeriesItemOptions<TDatum, TContext>;
 }
 
 export interface WaterfallSeriesTotalMeta {
@@ -112,7 +113,7 @@ export interface WaterfallSeriesTotalMeta {
     axisLabel: string;
 }
 
-export interface AgWaterfallSeriesItemOptions<TDatum> extends AgWaterfallSeriesStyle {
+export interface AgWaterfallSeriesItemOptions<TDatum, TContext = TContextDefault> extends AgWaterfallSeriesStyle {
     /** A human-readable description of the y-values. If supplied, this will be shown in the legend and default tooltip and passed to the tooltip renderer as one of the parameters. */
     name?: string;
     /** Configuration for the labels shown on top of data points. */
@@ -120,7 +121,7 @@ export interface AgWaterfallSeriesItemOptions<TDatum> extends AgWaterfallSeriesS
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual Waterfall series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgWaterfallSeriesItemStylerParams<TDatum>, AgWaterfallSeriesStyle>;
+    itemStyler?: Styler<AgWaterfallSeriesItemStylerParams<TDatum, TContext>, AgWaterfallSeriesStyle>;
     /** Series item specific tooltip configuration. */
     tooltip?: AgWaterfallSeriesItemTooltip<TDatum>;
 }

@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -15,8 +15,9 @@ export interface AgPyramidSeriesStageLabelOptions<TDatum, TParams> extends AgCha
     spacing?: number;
 }
 
-export interface AgPyramidSeriesItemStylerParams<TDatum>
+export interface AgPyramidSeriesItemStylerParams<TDatum, TContext = TContextDefault>
     extends DatumCallbackParams<TDatum>,
+        ContextCallbackParams<TContext>,
         AgPyramidSeriesOptionsKeys<TDatum>,
         Required<AgPyramidSeriesStyle> {}
 
@@ -31,7 +32,7 @@ export interface AgPyramidSeriesTooltipRendererParams<TDatum = TDatumDefault>
         AgSeriesTooltipRendererParams<TDatum>,
         AgPyramidSeriesStyle {}
 
-export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault, _TContext = TContextDefault>
+export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends LineDashOptions {
     /** The colours to cycle through for the fills of the stages. */
     fills?: CssColor[];
@@ -60,7 +61,7 @@ export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault, _TConte
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgPyramidSeriesTooltipRendererParams<TDatum>>;
     /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgPyramidSeriesItemStylerParams<TDatum>, AgPyramidSeriesStyle>;
+    itemStyler?: Styler<AgPyramidSeriesItemStylerParams<TDatum, TContext>, AgPyramidSeriesStyle>;
 }
 
 export interface AgPyramidSeriesOptionsKeys<TDatum = TDatumDefault> {

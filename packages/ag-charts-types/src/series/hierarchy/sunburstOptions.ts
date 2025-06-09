@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -58,7 +58,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = TDatumDefault, TConte
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSunburstSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Sunburst sector based on the input parameters. */
-    itemStyler?: Styler<AgSunburstSeriesItemStylerParams<TDatum>, AgSunburstSeriesStyle>;
+    itemStyler?: Styler<AgSunburstSeriesItemStylerParams<TDatum, TContext>, AgSunburstSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum>;
 }
@@ -93,8 +93,9 @@ export interface AgSunburstSeriesOptionsNames {
 }
 
 /** The parameters of the Sunburst series formatter function */
-export interface AgSunburstSeriesItemStylerParams<TDatum>
+export interface AgSunburstSeriesItemStylerParams<TDatum, TContext = TContextDefault>
     extends DatumCallbackParams<TDatum>,
+        ContextCallbackParams<TContext>,
         AgSunburstSeriesOptionsKeys,
         Required<AgSunburstSeriesStyle> {
     /** The depth of the datum in the hierarchy. */

@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -6,7 +6,11 @@ import type { PixelSize, TContextDefault, TDatumDefault } from '../../chart/type
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export type AgRangeBarSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type AgRangeBarSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     AgRangeBarSeriesOptionsKeys<TDatum> &
     Required<AgRangeBarSeriesStyle>;
 
@@ -48,7 +52,7 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = TDatumDefault, TConte
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum>, AgRangeBarSeriesStyle>;
+    itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle>;
 }
 
 export type AgRangeBarSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgRangeBarSeriesOptionsKeys<TDatum> &

@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { LabelPlacement, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
@@ -28,7 +28,11 @@ export interface AgBubbleSeriesLabel<TDatum>
 
 export interface AgBubbleSeriesStyle extends AgSeriesMarkerStyle {}
 
-export type BubbleSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type BubbleSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     AgBubbleSeriesOptionsKeys<TDatum> &
     Required<AgBubbleSeriesStyle>;
 
@@ -48,7 +52,7 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = TDatumDefault, TContext
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgBubbleSeriesTooltipRendererParams<TDatum>>;
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<BubbleSeriesItemStylerParams<TDatum>, AgBubbleSeriesStyle>;
+    itemStyler?: Styler<BubbleSeriesItemStylerParams<TDatum, TContext>, AgBubbleSeriesStyle>;
 }
 
 export interface AgBubbleSeriesOptionsKeys<TDatum = TDatumDefault> {

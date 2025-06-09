@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -29,7 +29,11 @@ export interface AgDonutSeriesSectorLabelOptions<TDatum, TParams> extends AgChar
     positionRatio?: Ratio;
 }
 
-export type AgDonutSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type AgDonutSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     AgDonutSeriesOptionsKeys<TDatum> &
     Required<AgDonutSeriesStyle>;
 
@@ -126,7 +130,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = TDatumDefault, TContext 
     /** Whether items with a value of 0 should be hidden in the legend. */
     hideZeroValueSectorsInLegend?: boolean;
     /** A styler function for adjusting the styling of the Donut sectors. */
-    itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum>, AgDonutSeriesStyle>;
+    itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum, TContext>, AgDonutSeriesStyle>;
 }
 
 export interface AgDonutSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>

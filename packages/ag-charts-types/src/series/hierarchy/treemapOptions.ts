@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -111,7 +111,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgTreemapSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular tile based on the input parameters. */
-    itemStyler?: Styler<AgTreemapSeriesItemStylerParams<TDatum>, AgTreemapSeriesStyle>;
+    itemStyler?: Styler<AgTreemapSeriesItemStylerParams<TDatum, TContext>, AgTreemapSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgTreemapSeriesHighlightStyle<TDatum>;
 }
@@ -146,8 +146,9 @@ export interface AgTreemapSeriesOptionsNames {
 }
 
 /** The parameters of the Treemap series formatter function. */
-export interface AgTreemapSeriesItemStylerParams<TDatum>
+export interface AgTreemapSeriesItemStylerParams<TDatum, TContext = TContextDefault>
     extends DatumCallbackParams<TDatum>,
+        ContextCallbackParams<TContext>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesStyle {
     /** The depth of the datum in the hierarchy. */

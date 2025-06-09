@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
@@ -14,13 +14,15 @@ export interface AgChordSeriesOptions<TDatum = TDatumDefault, TContext = TContex
     type: 'chord';
 }
 
-export interface AgChordSeriesLinkItemStylerParams<TDatum>
+export interface AgChordSeriesLinkItemStylerParams<TDatum, TContext = TContextDefault>
     extends DatumCallbackParams<TDatum>,
+        ContextCallbackParams<TContext>,
         AgChordSeriesOptionsKeys,
         Required<AgChordSeriesLinkStyle> {}
 
-export interface AgChordSeriesNodeItemStylerParams<TDatum>
+export interface AgChordSeriesNodeItemStylerParams<TDatum, TContext = TContextDefault>
     extends DatumCallbackParams<TDatum>,
+        ContextCallbackParams<TContext>,
         AgChordSeriesOptionsKeys,
         Required<AgChordSeriesNodeStyle> {
     /** Label of the node */
@@ -38,9 +40,9 @@ export interface AgChordSeriesThemeableOptions<TDatum = TDatumDefault, TContext 
     /** The colours to cycle through for the strokes of the nodes and links. */
     strokes?: CssColor[];
     /** Options for the links. */
-    link?: AgChordSeriesLinkOptions<TDatum>;
+    link?: AgChordSeriesLinkOptions<TDatum, TContext>;
     /** Options for the nodes. */
-    node?: AgChordSeriesNodeOptions<TDatum>;
+    node?: AgChordSeriesNodeOptions<TDatum, TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams<TDatum>>;
 }
@@ -58,20 +60,20 @@ export interface AgChordSeriesLinkStyle extends FillOptions, StrokeOptions, Line
     tension?: Ratio;
 }
 
-export interface AgChordSeriesLinkOptions<TDatum> extends AgChordSeriesLinkStyle {
+export interface AgChordSeriesLinkOptions<TDatum, TContext = TContextDefault> extends AgChordSeriesLinkStyle {
     /** Function used to return formatting for individual links, based on the given parameters. If the current link is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<TDatum>, AgChordSeriesLinkStyle>;
+    itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<TDatum, TContext>, AgChordSeriesLinkStyle>;
 }
 
 export interface AgChordSeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgChordSeriesNodeOptions<TDatum> extends AgChordSeriesNodeStyle {
+export interface AgChordSeriesNodeOptions<TDatum, TContext = TContextDefault> extends AgChordSeriesNodeStyle {
     /** Minimum spacing between the nodes. */
     spacing?: PixelSize;
     /** Width of the nodes. */
     width?: PixelSize;
     /** Function used to return formatting for individual nodes, based on the given parameters. If the current node is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<TDatum>, AgChordSeriesNodeStyle>;
+    itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<TDatum, TContext>, AgChordSeriesNodeStyle>;
 }
 
 export interface AgChordSeriesOptionsKeys {

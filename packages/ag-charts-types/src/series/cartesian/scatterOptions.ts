@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -19,7 +19,11 @@ export interface AgScatterSeriesTooltipRendererParams<TDatum = TDatumDefault>
 export type AgScatterSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgScatterSeriesOptionsKeys<TDatum> &
     AgScatterSeriesOptionsNames;
 
-export type AgScatterSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type AgScatterSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     AgScatterSeriesOptionsKeys<TDatum> &
     Required<AgSeriesMarkerStyle>;
 
@@ -43,7 +47,7 @@ export interface AgScatterSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgScatterSeriesTooltipRendererParams<TDatum>>;
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgScatterSeriesItemStylerParams<TDatum>, AgSeriesMarkerStyle>;
+    itemStyler?: Styler<AgScatterSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle>;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
 }
@@ -74,5 +78,5 @@ export interface AgScatterSeriesOptions<TDatum = TDatumDefault, TContext = TCont
     /** Configuration for the Scatter Series. */
     type: 'scatter';
     /** Configuration for the Error Bars. */
-    errorBar?: AgErrorBarOptions<TDatum>;
+    errorBar?: AgErrorBarOptions<TDatum, TContext>;
 }

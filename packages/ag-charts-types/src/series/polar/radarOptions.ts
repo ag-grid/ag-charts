@@ -1,4 +1,4 @@
-import type { DatumCallbackParams } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { TContextDefault, TDatumDefault } from '../../chart/types';
@@ -34,7 +34,11 @@ export type AgRadarSeriesTooltipRendererParams<TDatum = TDatumDefault> = AgSerie
     AgRadialSeriesOptionsNames &
     Omit<AgSeriesMarkerStyle, 'shape'>;
 
-export type AgRadarSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type AgRadarSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     AgRadialSeriesOptionsKeys<TDatum> &
     StrokeOptions &
     LineDashOptions;

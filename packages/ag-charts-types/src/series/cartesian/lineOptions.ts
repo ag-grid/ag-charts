@@ -1,3 +1,4 @@
+import type { ContextCallbackParams } from '../../chart/callbackOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -24,7 +25,7 @@ export interface AgLineSeriesThemeableOptions<TDatum = TDatumDefault, TContext =
         LineDashOptions,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series. */
-    marker?: AgSeriesMarkerOptions<TDatum, AgLineSeriesMarkerItemStylerParams<TDatum>>;
+    marker?: AgSeriesMarkerOptions<TDatum, AgLineSeriesMarkerItemStylerParams<TDatum, TContext>>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
@@ -46,7 +47,9 @@ export interface AgLineSeriesOptionsKeys<TDatum = TDatumDefault> {
     yKey: TDatum extends object ? keyof TDatum & string : string;
 }
 
-export interface AgLineSeriesMarkerItemStylerParams<TDatum = TDatumDefault> extends AgLineSeriesOptionsKeys<TDatum> {
+export interface AgLineSeriesMarkerItemStylerParams<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgLineSeriesOptionsKeys<TDatum>,
+        ContextCallbackParams<TContext> {
     /** The x value of the datum. */
     xValue: any;
     /** The y value of the datum. */
@@ -78,7 +81,7 @@ export interface AgLineSeriesOptions<TDatum = TDatumDefault, TContext = TContext
     /** Configuration for the Line Series. */
     type: 'line';
     /** Configuration for the Error Bars. */
-    errorBar?: AgErrorBarOptions<TDatum>;
+    errorBar?: AgErrorBarOptions<TDatum, TContext>;
     /** The number to normalise the line stacks to. For example, if `normalizedTo` is set to `100`, the stacks will all be scaled proportionally so that their total height is always 100. */
     normalizedTo?: number;
     /** An option indicating if the lines should be stacked. */

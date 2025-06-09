@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -29,7 +29,11 @@ export interface AgPieSeriesSectorLabelOptions<TDatum, TParams> extends AgChartL
     positionRatio?: Ratio;
 }
 
-export type AgPieSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type AgPieSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     AgPieSeriesOptionsKeys<TDatum> &
     Required<AgPieSeriesStyle>;
 
@@ -98,7 +102,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = TDatumDefault, TContext = 
     /** Whether items with a value of 0 should be hidden in the legend. */
     hideZeroValueSectorsInLegend?: boolean;
     /** A styler function for adjusting the styling of the pie sectors. */
-    itemStyler?: Styler<AgPieSeriesItemStylerParams<TDatum>, AgPieSeriesStyle>;
+    itemStyler?: Styler<AgPieSeriesItemStylerParams<TDatum, TContext>, AgPieSeriesStyle>;
 }
 
 export interface AgPieSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>

@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { GeoJSON, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
@@ -19,7 +19,11 @@ export type AgMapLineSeriesLabel<TDatum> = AgChartLabelOptions<TDatum, AgMapLine
 export type AgMapLineSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgMapLineSeriesOptionsKeys<TDatum> &
     AgMapLineSeriesOptionsNames;
 
-export type AgMapLineSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type AgMapLineSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     AgMapLineSeriesOptionsKeys<TDatum> &
     Required<AgMapLineSeriesStyle>;
 
@@ -57,7 +61,7 @@ export interface AgMapLineSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapLineSeriesTooltipRendererParams<TDatum>>;
     /** A callback function for adjusting the styles of a particular Map line based on the input parameters. */
-    itemStyler?: Styler<AgMapLineSeriesItemStylerParams<TDatum>, AgMapLineSeriesStyle>;
+    itemStyler?: Styler<AgMapLineSeriesItemStylerParams<TDatum, TContext>, AgMapLineSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapLineSeriesHighlightStyle<TDatum>;
 }

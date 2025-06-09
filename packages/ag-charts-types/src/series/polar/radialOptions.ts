@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
@@ -13,7 +13,7 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = TDatumDefault, TCon
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRadialSeriesTooltipRendererParams<TDatum>>;
     /** A styler function for adjusting the styling of the radial columns. */
-    itemStyler?: Styler<AgRadialSeriesItemStylerParams<TDatum>, AgRadialSeriesStyle>;
+    itemStyler?: Styler<AgRadialSeriesItemStylerParams<TDatum, TContext>, AgRadialSeriesStyle>;
 }
 
 export interface AgRadialSeriesOptionsKeys<TDatum = TDatumDefault> {
@@ -39,7 +39,11 @@ export interface AgRadialSeriesTooltipRendererParams<TDatum>
         AgRadialSeriesOptionsNames,
         AgRadialSeriesStyle {}
 
-export type AgRadialSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type AgRadialSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     AgRadialSeriesOptionsKeys<TDatum> &
     Required<AgRadialSeriesStyle>;
 

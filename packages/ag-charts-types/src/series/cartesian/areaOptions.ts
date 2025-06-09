@@ -1,3 +1,4 @@
+import type { ContextCallbackParams } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -22,7 +23,7 @@ export interface AgAreaSeriesThemeableOptions<TDatum = TDatumDefault, TContext =
         LineDashOptions,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series. */
-    marker?: AgSeriesMarkerOptions<TDatum, AgAreaSeriesMarkerItemStylerParams<TDatum>>;
+    marker?: AgSeriesMarkerOptions<TDatum, AgAreaSeriesMarkerItemStylerParams<TDatum, TContext>>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
     /** Configuration for the shadow used behind the chart series. */
@@ -42,7 +43,9 @@ export interface AgAreaSeriesOptionsKeys<TDatum = TDatumDefault> {
     yKey: TDatum extends object ? keyof TDatum & string : string;
 }
 
-export interface AgAreaSeriesMarkerItemStylerParams<TDatum = TDatumDefault> extends AgAreaSeriesOptionsKeys<TDatum> {
+export interface AgAreaSeriesMarkerItemStylerParams<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgAreaSeriesOptionsKeys<TDatum>,
+        ContextCallbackParams<TContext> {
     /** The x value of the datum. */
     xValue: any;
     /** The y value of the datum. */
