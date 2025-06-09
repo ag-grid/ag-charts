@@ -10,7 +10,6 @@ import type {
 } from './test/freezableMock';
 import { newFreezableMock } from './test/freezableMock';
 import {
-    AgCartesianChartOptionsWithContext,
     Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
@@ -28,11 +27,11 @@ describe('AG-13024 API context', () => {
     setupMockCanvas();
 
     type TDatum = { quarter: 'q1' | 'q2' | 'q3' | 'q4'; Toyota: number; Ford: number; BMW: number };
-    type TContext = object;
+    type TContext = unknown;
     type TFreezable<TMock extends MockAPICallback<TDatum, TContext>> = ReturnType<typeof newFreezable<TMock>>;
 
     let chart: Chart;
-    let options: AgCartesianChartOptionsWithContext<TDatum, unknown>;
+    let options: AgCartesianChartOptions<TDatum, TContext>;
     let seriesContext0: TContext;
     let seriesContext1: TContext;
     let seriesContext2: TContext;

@@ -12,7 +12,6 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
-    AgCartesianChartOptionsWithContext,
     Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     MockErrorBarStyler,
@@ -861,7 +860,7 @@ describe('ErrorBars', () => {
         type TDatum = Readonly<{ quarter: string; sales: number; salesLower: number; salesUpper: number }>;
         type TContext = object;
         type TMock = MockErrorBarStyler<TDatum, TContext>;
-        let options: AgCartesianChartOptionsWithContext<TDatum, TContext>;
+        let options: AgCartesianChartOptions<TDatum, TContext>;
         let seriesContext: object;
         const itemStyler = newFreezableMock<TDatum, TContext, TMock>();
 
