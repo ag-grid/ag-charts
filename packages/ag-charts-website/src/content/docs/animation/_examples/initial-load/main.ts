@@ -12,9 +12,7 @@ import { DataType, getData } from './data';
 const numFormatter = new Intl.NumberFormat('en-US');
 const tooltip = {
     renderer: ({ datum, yKey, yName }: AgCartesianSeriesTooltipRendererParams<DataType>): AgTooltipRendererResult => {
-        let value = datum[yKey];
-        value = typeof value === 'number' ? numFormatter.format(value) : value;
-        return { data: [{ label: yName!, value }] };
+        return { data: [{ label: yName!, value: numFormatter.format(Number(datum[yKey])) }] };
     },
 };
 

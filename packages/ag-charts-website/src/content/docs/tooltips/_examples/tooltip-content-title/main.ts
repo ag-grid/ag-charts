@@ -3,15 +3,13 @@ import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from
 import { DataType, getData } from './data';
 
 function renderer({ datum, yKey, yName }: AgCartesianSeriesTooltipRendererParams<DataType>) {
-    const { month } = datum;
-    const value = Number(datum[yKey]).toFixed(1);
     return {
         heading: 'Clothing Production',
         title: yName?.toUpperCase(),
         data: [
             {
-                label: month,
-                value,
+                label: datum.month,
+                value: Number(datum[yKey]).toFixed(1),
             },
         ],
     };
