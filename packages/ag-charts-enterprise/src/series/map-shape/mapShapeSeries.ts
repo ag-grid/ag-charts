@@ -650,7 +650,7 @@ export class MapShapeSeries
 
         const { id: seriesId, visible } = this;
 
-        const { title, legendItemName, idKey, idName, colorKey, colorName, colorRange, showInLegend } = this.properties;
+        const { title, legendItemName, idKey, idName, colorKey, colorRange, showInLegend } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
             const colorDomain =
@@ -659,7 +659,7 @@ export class MapShapeSeries
                 legendType: 'gradient',
                 enabled: visible,
                 seriesId,
-                colorName,
+                series: this.getFormatterContext('color'),
                 colorRange,
                 colorDomain,
             };

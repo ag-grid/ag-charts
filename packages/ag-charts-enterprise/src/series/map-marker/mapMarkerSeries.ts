@@ -775,7 +775,7 @@ export class MapMarkerSeries
 
         const { id: seriesId, visible } = this;
 
-        const { title, legendItemName, idName, idKey, colorKey, colorName, colorRange, showInLegend } = this.properties;
+        const { title, legendItemName, idName, idKey, colorKey, colorRange, showInLegend } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
             const colorDomain =
@@ -784,7 +784,7 @@ export class MapMarkerSeries
                 legendType: 'gradient',
                 enabled: visible,
                 seriesId,
-                colorName,
+                series: this.getFormatterContext('color'),
                 colorRange,
                 colorDomain,
             };
