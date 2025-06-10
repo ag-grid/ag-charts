@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { isArray, isNumberEqual } from 'ag-charts-core';
+import { isNumberEqual } from 'ag-charts-core';
 
 import { PolarCrossLine } from './polarCrossLine';
 
@@ -45,7 +45,7 @@ export class AngleCrossLine extends PolarCrossLine {
         const [d0, d1] = this.scale.domain;
         const value: any = getCrossLineValue(this);
 
-        if (isArray(value)) {
+        if (this.type === 'range') {
             const [start, end] = value;
             return start >= d0 && start <= d1 && end >= start && end <= d1;
         } else {
@@ -57,7 +57,7 @@ export class AngleCrossLine extends PolarCrossLine {
         const { scale } = this;
 
         // TODO support clipping if only end is out-of-bounds
-        if (!scale || !validateCrossLineValue(getCrossLineValue(this), scale) || !this.visibilityCheck()) {
+        if (!scale || !validateCrossLineValue(this, scale) || !this.visibilityCheck()) {
             this.rangeGroup.visible = false;
             this.lineGroup.visible = false;
             this.labelGroup.visible = false;

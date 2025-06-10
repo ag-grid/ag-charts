@@ -1,4 +1,3 @@
-import { isArray } from 'ag-charts-core';
 import type {
     AgBaseCrossLineLabelOptions,
     AgCrossLineLabelPosition,
@@ -15,11 +14,13 @@ import type { ChartAxisDirection } from '../chartAxisDirection';
 
 export type CrossLineType = 'line' | 'range';
 
-export function getCrossLineValue(crossLine: {
+interface ICrossLine {
     type: CrossLineType;
-    value?: unknown;
     range?: [unknown, unknown];
-}): unknown {
+    value?: unknown;
+}
+
+export function getCrossLineValue(crossLine: ICrossLine) {
     switch (crossLine.type) {
         case 'line':
             return crossLine.value;
@@ -28,7 +29,9 @@ export function getCrossLineValue(crossLine: {
     }
 }
 
-export function validateCrossLineValue(value: unknown, scale: Scale<any, number>): boolean {
+export function validateCrossLineValue(crossLine: ICrossLine, scale: Scale<any, number>): boolean {
+    const value = getCrossLineValue(crossLine);
+
     if (value == null) {
         return false;
     }
@@ -36,8 +39,8 @@ export function validateCrossLineValue(value: unknown, scale: Scale<any, number>
     const isContinuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
     const validValue = (val: unknown) => checkDatum(val, isContinuous) && !isNaN(scale.convert(val, { clamp: true }));
 
-    if (isArray(value)) {
-        const [start, end] = value;
+    if (crossLine.type === 'range') {
+        const [start, end] = value as [unknown, unknown];
         return validValue(start) && validValue(end);
     } else {
         return validValue(value);
