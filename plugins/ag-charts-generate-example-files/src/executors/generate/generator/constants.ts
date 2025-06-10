@@ -14,10 +14,10 @@ export const ANGULAR_GENERATED_MAIN_FILE_NAME = 'app.component.ts';
 
 export const INTERNAL_FRAMEWORK_DEPENDENCIES: Partial<Record<InternalFramework, Record<string, string>>> = {
     angular: {
-        '@angular/core': '^19.0.0',
-        '@angular/common': '^19.0.0',
-        '@angular/forms': '^19.0.0',
-        '@angular/platform-browser': '^19.0.0',
+        '@angular/core': '^20.0.0',
+        '@angular/common': '^20.0.0',
+        '@angular/forms': '^20.0.0',
+        '@angular/platform-browser': '^20.0.0',
     },
     reactFunctional: {
         react: '^19.0.0',
