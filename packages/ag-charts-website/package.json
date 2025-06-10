@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {},
   "dependencies": {
-    "@angular/platform-browser": "^16.0.0",
+    "@angular/platform-browser": "^18.0.0",
     "@astrojs/check": "^0.9.4",
     "@astrojs/markdoc": "^0.12.10",
     "@astrojs/prism": "^3.2.0",
