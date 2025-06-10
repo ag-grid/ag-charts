@@ -150,7 +150,6 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
         const { formatter, format } = this;
         const { type, value, domain, boundSeries } = params;
         const fractionDigits = params.type === 'number' ? params.fractionDigits : undefined;
-
         const unit = params.type === 'date' ? params.unit : undefined;
 
         let result: string | undefined;

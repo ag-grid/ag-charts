@@ -690,8 +690,7 @@ export abstract class Axis<
         datum: undefined,
         key: undefined,
         domain: undefined,
-        label: AxisFormattableLabel<Params>,
-        labelParams: Params
+        label?: AxisFormattableLabel<Params, FormatterParams<any>>
     ): string;
     formatDatum<Params extends object>(
         value: any,
@@ -747,7 +746,7 @@ export abstract class Axis<
 
         const f = formatInContext;
         const result =
-            label?.formatValue(f, type, value, params) ??
+            label?.formatValue(f, type, value, params ?? formatParams) ??
             formatManager.format(f, formatParams) ??
             this.label.formatValue(f, formatParams, NaN) ??
             formatManager.defaultFormat(formatParams);
@@ -836,7 +835,7 @@ export abstract class Axis<
             scaleInvert: (val) => scale.invert(val, true),
             scaleInvertNearest: (val) => scale.invert(val, true),
             formatScaleValue: (value, source, label) =>
-                this.formatDatum(value, source, undefined, undefined, undefined, label!, undefined!),
+                this.formatDatum(value, source, undefined, undefined, undefined, label),
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),

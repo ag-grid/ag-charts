@@ -1,4 +1,5 @@
-import type { Renderer } from './callbackOptions';
+import type { AgAxisBoundSeries, TimeIntervalUnit } from './axisOptions';
+import type { Formatter, Renderer } from './callbackOptions';
 import type { CssColor, Opacity, PixelSize } from './types';
 
 export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string>> {
@@ -20,7 +21,18 @@ export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string>> {
     label?: LabelType;
 }
 
+export interface AgCrosshairLabelFormatterParams {
+    readonly value: any;
+    readonly fractionDigits?: number;
+    readonly unit?: TimeIntervalUnit;
+    readonly step?: number;
+    readonly boundSeries: AgAxisBoundSeries[];
+    readonly domain: any[];
+}
+
 export interface AgCrosshairLabel<TFormat> extends AgBaseCrosshairLabel {
+    /** Function used to render crosshair labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
+    formatter?: Formatter<AgCrosshairLabelFormatterParams>;
     /** Format string used when rendering labels. */
     format?: TFormat;
 }
