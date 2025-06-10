@@ -145,7 +145,7 @@ export * from './motion/pathMotion';
 export * from './dom/domManager';
 export * from './dom/elements';
 export * from './dom/proxyInteractionService';
-export { FONT_SIZE_RATIO } from './chart/themes/constants';
+export { BASE_FONT_SIZE, FONT_SIZE, FONT_SIZE_RATIO } from './chart/themes/constants';
 export { type DefaultColors } from './chart/themes/defaultColors';
 export { ChartUpdateType } from './chart/chartUpdateType';
 export { type MementoOriginator } from './api/state/memento';

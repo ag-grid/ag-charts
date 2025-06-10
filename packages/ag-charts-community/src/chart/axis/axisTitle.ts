@@ -10,6 +10,7 @@ import type {
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
 import { Caption } from '../caption';
+import { FONT_SIZE } from '../themes/constants';
 
 export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     readonly caption = new Caption();
@@ -30,7 +31,7 @@ export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     fontWeight?: FontWeight;
 
     @Property
-    fontSize: number = 10;
+    fontSize: number = FONT_SIZE.SMALLER;
 
     @Property
     fontFamily: string = 'sans-serif';

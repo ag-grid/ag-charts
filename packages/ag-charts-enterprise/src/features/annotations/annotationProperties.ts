@@ -18,7 +18,7 @@ import type {
 } from './annotationTypes';
 import type { PointType } from './utils/scale';
 
-const { BaseProperties, Property } = _ModuleSupport;
+const { BaseProperties, FONT_SIZE, Property } = _ModuleSupport;
 
 /**************
  * Components *
@@ -258,7 +258,7 @@ export function Font<T extends Constructor>(Parent: T) {
         fontWeight?: FontWeight;
 
         @Property
-        fontSize: number = 12;
+        fontSize: number = FONT_SIZE.SMALL;
 
         @Property
         fontFamily: string = 'Verdana, sans-serif';

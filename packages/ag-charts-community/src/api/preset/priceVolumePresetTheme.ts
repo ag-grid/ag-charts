@@ -122,9 +122,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         label: {
             ...font,
             color: undefined,
-            fontSize: {
-                $round: [{ $mul: [{ $ref: 'fontSize' }, 10 / 12] }],
-            },
+            fontSize: { $rem: [FONT_SIZE_RATIO.SMALLER] },
         },
     },
 
@@ -137,9 +135,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         label: {
             ...font,
             color: undefined,
-            fontSize: {
-                $round: [{ $mul: [{ $ref: 'fontSize' }, 10 / 12] }],
-            },
+            fontSize: { $rem: [FONT_SIZE_RATIO.SMALLER] },
         },
     },
 
