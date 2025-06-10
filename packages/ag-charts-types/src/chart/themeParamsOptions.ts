@@ -88,6 +88,8 @@ export interface AgBaseChartThemeParams {
 export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /** Default colour for axis lines and ticks. */
     axisColor?: CssColor;
+    /** Background colour of the chart. */
+    chartBackgroundColor?: CssColor;
     /**
      * Background colour of tooltips, menus, dialogs, toolbars and buttons.
      *

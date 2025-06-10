@@ -17,7 +17,7 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
         ...MAP_THEME_DEFAULTS,
         series: {
             fill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
-            stroke: { $ref: 'backgroundColor' },
+            stroke: { $ref: 'chartBackgroundColor' },
             strokeWidth: 1,
             // @ts-expect-error undocumented-option
             fillGradientDefaults: {

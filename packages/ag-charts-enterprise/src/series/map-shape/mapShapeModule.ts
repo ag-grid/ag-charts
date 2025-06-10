@@ -17,7 +17,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
         ...MAP_THEME_DEFAULTS,
         series: {
             fill: { $palette: 'fill' },
-            stroke: { $ref: 'backgroundColor' },
+            stroke: { $ref: 'chartBackgroundColor' },
             colorRange: {
                 $if: [
                     { $eq: [{ $palette: 'type' }, 'inbuilt'] },
@@ -42,7 +42,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
             lineDashOffset: 0,
             padding: 2,
             label: {
-                color: { $ref: 'backgroundColor' },
+                color: { $ref: 'chartBackgroundColor' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: 'bold',

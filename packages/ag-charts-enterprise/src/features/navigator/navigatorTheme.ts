@@ -13,7 +13,7 @@ export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
         strokeWidth: 1,
     },
     minHandle: {
-        fill: { $ref: 'backgroundColor' },
+        fill: { $ref: 'chartBackgroundColor' },
         stroke: { $ref: 'borderColor' },
         strokeWidth: 1,
         width: 12,
@@ -21,7 +21,7 @@ export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
         cornerRadius: 4,
     },
     maxHandle: {
-        fill: { $ref: 'backgroundColor' },
+        fill: { $ref: 'chartBackgroundColor' },
         stroke: { $ref: 'borderColor' },
         strokeWidth: 1,
         width: 12,

@@ -9,7 +9,7 @@ export const NIGHTINGALE_SERIES_THEME: _ModuleSupport.SeriesModule<'nightingale'
     series: {
         fill: { $palette: 'fill' },
         stroke: {
-            $if: [{ $eq: [{ $palette: 'type' }, 'inbuilt'] }, { $ref: 'backgroundColor' }, { $palette: 'stroke' }],
+            $if: [{ $eq: [{ $palette: 'type' }, 'inbuilt'] }, { $ref: 'chartBackgroundColor' }, { $palette: 'stroke' }],
         },
         // @ts-expect-error undocumented option
         fillGradientDefaults: {

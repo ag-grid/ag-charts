@@ -152,6 +152,7 @@ export class ChartTheme {
             backgroundColor: DEFAULT_BACKGROUND_FILL,
             borderColor: { $foregroundBackgroundMix: [0.818] },
             borderRadius: 4,
+            chartBackgroundColor: { $ref: 'backgroundColor' },
             focusShadow: '0 0 0 3px var(--ag-charts-accent-color)',
             foregroundColor: '#464646',
             fontFamily: 'Verdana, sans-serif',
@@ -160,7 +161,7 @@ export class ChartTheme {
             gridLineColor: { $foregroundBackgroundAccentMix: [0.93, 0.085] },
             padding: 20,
             popupShadow: '0 2px 8px 0 color-mix(in srgb, black 8%, transparent)',
-            subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'backgroundColor' }, 0.38] },
+            subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.38] },
             textColor: { $ref: 'foregroundColor' },
 
             chromeBackgroundColor: { $foregroundBackgroundMix: [0.975] },
@@ -192,7 +193,7 @@ export class ChartTheme {
             tooltipSubtleTextColor: { $ref: 'chromeSubtleTextColor' },
 
             crosshairLabelBackgroundColor: { $ref: 'foregroundColor' },
-            crosshairLabelTextColor: { $ref: 'backgroundColor' },
+            crosshairLabelTextColor: { $ref: 'chartBackgroundColor' },
         };
     }
 
@@ -300,7 +301,7 @@ export class ChartTheme {
         return {
             minHeight: 300,
             minWidth: 300,
-            background: { visible: true, fill: { $ref: 'backgroundColor' } },
+            background: { visible: true, fill: { $ref: 'chartBackgroundColor' } },
             padding: {
                 top: { $ref: 'padding' },
                 right: { $ref: 'padding' },
