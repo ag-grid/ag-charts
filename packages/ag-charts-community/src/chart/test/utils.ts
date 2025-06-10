@@ -744,7 +744,7 @@ export function twoFingerEnd(
 
 export { setupMockCanvas, toMatchImage, CANVAS_TO_BUFFER_DEFAULTS, extractImageData };
 
-export async function createChart(options: AgChartOptions<any, unknown>) {
+export async function createChart(options: AgChartOptions<any, any>) {
     options = prepareTestOptions({ ...options });
     const chart = deproxy(AgCharts.create(options) as AgChartProxy);
     await waitForChartStability(chart);

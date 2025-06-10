@@ -1,4 +1,11 @@
-import { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
+import {
+    AgAxisLabelFormatterParams,
+    AgBarSeriesItemStylerParams,
+    AgBarSeriesLabelFormatterParams,
+    AgBarSeriesTooltipRendererParams,
+    AgCartesianChartOptions,
+    AgChartInstance,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import type {
@@ -27,7 +34,7 @@ describe('AG-13024 API context', () => {
     setupMockCanvas();
 
     type TDatum = { quarter: 'q1' | 'q2' | 'q3' | 'q4'; Toyota: number; Ford: number; BMW: number };
-    type TContext = unknown;
+    type TContext = { name: string };
     type TFreezable<TMock extends MockAPICallback<TDatum, TContext>> = ReturnType<typeof newFreezable<TMock>>;
 
     let chart: Chart;
@@ -66,10 +73,26 @@ describe('AG-13024 API context', () => {
         seriesContext2 = { name: '[2]: bmw' };
         axisContext = { name: 'X axis context' };
         rootContext = { name: 'root context' };
-        itemStyler = newFreezable<MockItemStyler<TDatum, TContext>>((_params) => undefined);
-        axisLabelFormatter = newFreezable<MockAxisLabelFormatter<TDatum, TContext>>((_params) => undefined);
-        seriesLabelFormatter = newFreezable<MockSeriesLabelFormatter<TDatum, TContext>>((_params) => undefined);
-        tooltipRenderer = newFreezable<MockTooltipRenderer<TDatum, TContext>>((_params) => '');
+        itemStyler = newFreezable<MockItemStyler<TDatum, TContext>>(
+            (params: AgBarSeriesItemStylerParams<TDatum, TContext>) => {
+                params.context satisfies TContext | undefined;
+                return undefined;
+            }
+        );
+        axisLabelFormatter = newFreezable<MockAxisLabelFormatter<TDatum, TContext>>(
+            (params: AgAxisLabelFormatterParams<TContext>) => {
+                params.context satisfies TContext | undefined;
+                return undefined;
+            }
+        );
+        seriesLabelFormatter = newFreezable<MockSeriesLabelFormatter<TDatum, TContext>>((params) => {
+            params.context satisfies TContext | undefined;
+            return undefined;
+        });
+        tooltipRenderer = newFreezable<MockTooltipRenderer<TDatum, TContext>>((params) => {
+            params.context satisfies TContext | undefined;
+            return '';
+        });
         options = {
             theme: {
                 overrides: {
