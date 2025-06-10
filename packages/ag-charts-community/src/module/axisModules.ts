@@ -44,6 +44,7 @@ import { LogAxis } from '../chart/axis/logAxis';
 import { NumberAxis } from '../chart/axis/numberAxis';
 import { TimeAxis } from '../chart/axis/timeAxis';
 import { UnitTimeAxis } from '../chart/axis/unitTimeAxis';
+import { without } from '../util/object';
 import type { ModuleContext } from './moduleContext';
 
 export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
@@ -72,7 +73,7 @@ export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
     type: required(constant('time')),
     label: cartesianTimeAxisLabel,
     parentLevel: cartesianTimeAxisParentLevel,
-    crosshair: cartesianAxisCrosshairOptions(true),
+    crosshair: cartesianAxisCrosshairOptions(true, true),
 };
 
 export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
@@ -115,9 +116,7 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
 
 export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
-    // @todo(AG-14472) - Remove nice
-    // ...without(continuousAxisOptions(or(number, date), true), ['nice']),
-    ...continuousAxisOptions(or(number, date), true),
+    ...without(continuousAxisOptions(or(number, date), true), ['nice']),
     type: required(constant('unit-time')),
     unit: or(timeInterval, timeIntervalUnit),
     label: cartesianTimeAxisLabel,
@@ -125,7 +124,7 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     paddingInner: ratio,
     paddingOuter: ratio,
     groupPaddingInner: ratio,
-    crosshair: cartesianAxisCrosshairOptions(true),
+    crosshair: cartesianAxisCrosshairOptions(true, true),
     bandHighlight: cartesianAxisBandHighlightOptions,
 };
 
