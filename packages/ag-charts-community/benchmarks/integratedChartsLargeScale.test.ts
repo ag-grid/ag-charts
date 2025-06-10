@@ -16,19 +16,14 @@ describe('integrated charts large scale benchmark', () => {
         });
 
         benchmark('1x legend toggle', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 38 }, async () => {
-            ctx.options.series![0].visible = false;
-            await ctx.update();
-
-            ctx.options.series![0].visible = true;
-            await ctx.update();
+            await ctx.legendToggle();
+            await ctx.legendToggle();
         });
 
         benchmark('4x legend toggle', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 38 }, async () => {
             for (let i = 0; i < 2; i++) {
-                for (const visible of [false, true]) {
-                    ctx.options.series![i].visible = visible;
-                    await ctx.update();
-                }
+                await ctx.legendToggle(i);
+                await ctx.legendToggle(i);
             }
         });
     });
