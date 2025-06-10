@@ -1,31 +1,10 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
-import { DataType } from './data';
+import { DataType, getData } from './data';
 
 let options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
-    data: [
-        {
-            quarter: 'Q1',
-            petrol: 200,
-            diesel: 100,
-        },
-        {
-            quarter: 'Q2',
-            petrol: 300,
-            diesel: 130,
-        },
-        {
-            quarter: 'Q3',
-            petrol: 350,
-            diesel: 160,
-        },
-        {
-            quarter: 'Q4',
-            petrol: 400,
-            diesel: 200,
-        },
-    ],
+    data: getData(),
     series: [
         {
             type: 'line',

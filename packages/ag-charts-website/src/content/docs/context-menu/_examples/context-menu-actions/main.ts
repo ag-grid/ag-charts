@@ -1,6 +1,6 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { DataType } from './data';
+import { DataType, getData } from './data';
 
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
@@ -44,23 +44,7 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         ],
     },
-    data: [
-        {
-            month: 'Jun',
-            sweaters: 50,
-            hats: 40,
-        },
-        {
-            month: 'Jul',
-            sweaters: 70,
-            hats: 50,
-        },
-        {
-            month: 'Aug',
-            sweaters: 60,
-            hats: 30,
-        },
-    ],
+    data: getData(),
     series: [
         {
             type: 'bar',
