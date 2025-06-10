@@ -22,8 +22,8 @@ describe('integrated charts large scale benchmark', () => {
 
         benchmark('4x legend toggle', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 38 }, async () => {
             for (let i = 0; i < 2; i++) {
-                await ctx.legendToggle();
-                await ctx.legendToggle();
+                await ctx.legendToggle(i);
+                await ctx.legendToggle(i);
             }
         });
     });
