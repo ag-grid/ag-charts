@@ -2,8 +2,6 @@ import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } f
 import { _ModuleSupport } from 'ag-charts-community';
 import { createId, setAttribute } from 'ag-charts-core';
 
-import type { AxisFormattableLabel } from '../../../../ag-charts-community/src/module/axisContext';
-
 const { FormatManager, BaseProperties, Property } = _ModuleSupport;
 
 const DEFAULT_LABEL_CLASS = 'ag-charts-crosshair-label';
@@ -15,7 +13,7 @@ interface FormatterCache {
     formatter: ((value: any, fractionDigits?: number) => string) | undefined;
 }
 
-export class CrosshairLabelProperties extends BaseProperties implements AxisFormattableLabel<any> {
+export class CrosshairLabelProperties extends BaseProperties implements _ModuleSupport.AxisFormattableLabel<any> {
     @Property
     enabled: boolean = true;
 
