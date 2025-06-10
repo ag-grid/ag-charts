@@ -288,7 +288,7 @@ export abstract class HierarchySeries<
     }
 
     override getLegendData(legendType: ChartLegendType): GradientLegendDatum[] {
-        const { colorKey, colorName, colorRange } = this.properties;
+        const { colorKey, colorRange } = this.properties;
         const {
             id: seriesId,
             ctx: { legendManager },
@@ -301,7 +301,7 @@ export abstract class HierarchySeries<
                       legendType: 'gradient',
                       enabled: visible && legendManager.getItemEnabled({ seriesId }),
                       seriesId,
-                      colorName,
+                      series: this.getFormatterContext('color'),
                       colorRange,
                       colorDomain: this.colorDomain,
                   },

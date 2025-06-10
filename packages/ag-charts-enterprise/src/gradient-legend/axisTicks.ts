@@ -2,6 +2,8 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { countFractionDigits, createId } from 'ag-charts-core';
 import type { AgChartLegendPosition, FormatterParams } from 'ag-charts-types';
 
+import { formatWithContext } from '../utils/formatter';
+
 const {
     AxisInterval,
     AxisLabel,
@@ -25,7 +27,11 @@ interface TickDatum {
     translation: number;
 }
 
-export class AxisTicks {
+interface DataProvider {
+    data: _ModuleSupport.GradientLegendDatum[];
+}
+
+export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
     static readonly DefaultTickCount = 5;
     static readonly DefaultMinSpacing = 10;
 
@@ -42,7 +48,10 @@ export class AxisTicks {
     translationX: number = 0;
     translationY: number = 0;
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {}
+    constructor(
+        private readonly ctx: _ModuleSupport.ModuleContext,
+        private readonly dataProvider: DataProvider
+    ) {}
 
     private get horizontal(): boolean {
         return this.position === 'top' || this.position === 'bottom';
@@ -113,7 +122,47 @@ export class AxisTicks {
         return boxes.length > 0 ? BBox.merge(boxes).translate(translationX, translationY) : undefined;
     }
 
-    private inRange(x: number, tolerance = 0.001): boolean {
+    tickFormatter(
+        domain: number[],
+        _ticks: number[],
+        _primary: boolean,
+        fractionDigits?: number
+    ): (value: any, index: number) => string | undefined {
+        const { ctx } = this;
+        const { formatManager } = ctx;
+        const boundSeries = this.dataProvider.data.flatMap((d) => d.series);
+
+        return (value, index) => {
+            const formatParams: FormatterParams<any> = {
+                type: 'number',
+                value,
+                datum: undefined,
+                seriesId: undefined,
+                key: undefined,
+                source: 'gradient-legend',
+                property: 'color',
+                domain,
+                boundSeries,
+                fractionDigits,
+            };
+            let result: string | undefined;
+            result ??= this.label.formatValue(
+                (fn, params) => formatWithContext(ctx, fn, params),
+                'number',
+                value,
+                index,
+                domain,
+                boundSeries,
+                fractionDigits,
+                undefined
+            );
+            result ??= formatManager.format((fn, params) => formatWithContext(ctx, fn, params), formatParams);
+            result ??= formatManager.defaultFormat(formatParams);
+            return result;
+        };
+    }
+
+    inRange(x: number, tolerance = 0.001): boolean {
         const [min, max] = findMinMax(this.scale.range);
         return x >= min - tolerance && x <= max + tolerance;
     }
@@ -157,13 +206,13 @@ export class AxisTicks {
     }
 
     private getTicksData(tickParams: _ModuleSupport.ScaleTickParams<any>) {
-        const { formatManager } = this.ctx;
         const ticks: TickDatum[] = [];
         const domain = tickParams.nice ? this.scale.niceDomain(tickParams) : this.scale.domain;
         const rawTicks = this.scale.ticks(tickParams, domain)?.ticks ?? [];
         const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
-        const boundSeries: never[] = [];
         const idGenerator = createIdsGenerator();
+
+        const tickFormatter = this.tickFormatter(domain, rawTicks, false, fractionDigits);
 
         for (let index = 0; index < rawTicks.length; index++) {
             const tick = rawTicks[index];
@@ -171,31 +220,9 @@ export class AxisTicks {
 
             if (!this.inRange(translation)) continue;
 
-            const formatParams: FormatterParams<any> = {
-                type: 'number',
-                value: tick,
-                datum: undefined,
-                key: undefined,
-                source: 'gradient-legend',
-                property: 'color',
-                domain,
-                boundSeries,
-                fractionDigits,
-            };
+            const tickLabel = tickFormatter(tick, index);
+            if (tickLabel == null || tickLabel === '') continue;
 
-            const tickLabel =
-                this.label.formatValue(
-                    (formatter, value) => formatter(value),
-                    'number',
-                    tick,
-                    index,
-                    domain,
-                    boundSeries,
-                    fractionDigits,
-                    undefined
-                ) ??
-                formatManager.format(formatParams) ??
-                formatManager.defaultFormat(formatParams);
             const tickId = idGenerator(tickLabel);
 
             ticks.push({ tick, tickId, tickLabel, translation });

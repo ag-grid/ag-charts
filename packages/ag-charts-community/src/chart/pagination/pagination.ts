@@ -9,6 +9,7 @@ import { Property } from '../../util/properties';
 import { ActionOnSet } from '../../util/proxy';
 import { ChartUpdateType } from '../chartUpdateType';
 import { Marker } from '../marker/marker';
+import { FONT_SIZE } from '../themes/constants';
 
 class PaginationLabel extends BaseProperties {
     @Property
@@ -21,7 +22,7 @@ class PaginationLabel extends BaseProperties {
     fontWeight?: FontWeight = undefined;
 
     @Property
-    fontSize: number = 12;
+    fontSize: number = FONT_SIZE.SMALL;
 
     @Property
     fontFamily: string = 'Verdana, sans-serif';
@@ -103,7 +104,7 @@ export class Pagination extends BaseProperties {
 
         this.labelNode.setProperties({
             textBaseline: 'middle',
-            fontSize: 12,
+            fontSize: FONT_SIZE.SMALL,
             fontFamily: 'Verdana, sans-serif',
             fill: 'black',
             y: 1,

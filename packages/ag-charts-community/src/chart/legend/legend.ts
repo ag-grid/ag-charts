@@ -44,6 +44,7 @@ import { LayoutElement } from '../layout/layoutManager';
 import { Marker } from '../marker/marker';
 import { Pagination } from '../pagination/pagination';
 import { applyShapeStyle, getShapeStyle } from '../series/shapeUtil';
+import { FONT_SIZE } from '../themes/constants';
 import { type TooltipMeta } from '../tooltip/tooltip';
 import { ZIndexMap } from '../zIndexMap';
 import { LegendDOMProxy } from './legendDOMProxy';
@@ -66,7 +67,7 @@ class LegendLabel extends BaseProperties {
     fontWeight?: FontWeight = undefined;
 
     @Property
-    fontSize: number = 12;
+    fontSize: number = FONT_SIZE.SMALL;
 
     @Property
     fontFamily: string = 'Verdana, sans-serif';

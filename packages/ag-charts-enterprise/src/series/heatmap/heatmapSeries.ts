@@ -88,8 +88,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
-            propertyNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
+            propertyKeys: {
+                ...DEFAULT_CARTESIAN_DIRECTION_KEYS,
+                color: ['colorKey'],
+            },
+            propertyNames: {
+                ...DEFAULT_CARTESIAN_DIRECTION_NAMES,
+                color: ['colorName'],
+            },
             categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: [],
@@ -477,10 +483,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         } else {
             fill = colorScale.convert(colorValue);
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
-            const content = formatManager.format({
+            const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: colorValue,
                 datum,
+                seriesId,
                 key: colorKey!,
                 source: 'tooltip',
                 property: 'color',
@@ -547,7 +554,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 legendType: 'gradient',
                 enabled: this.visible,
                 seriesId: this.id,
-                colorName: this.properties.colorName,
+                series: this.getFormatterContext('color'),
                 colorDomain:
                     this.processedData!.domain.values[this.dataModel.resolveProcessedDataIndexById(this, 'colorValue')],
                 colorRange: this.properties.colorRange,

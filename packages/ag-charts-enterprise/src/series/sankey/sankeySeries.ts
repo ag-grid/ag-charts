@@ -695,10 +695,11 @@ export class SankeySeries extends FlowProportionSeries<
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
         if (sizeKey != null) {
-            const content = formatManager.format({
+            const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: size,
                 datum,
+                seriesId,
                 key: sizeKey,
                 source: 'tooltip',
                 property: 'size',

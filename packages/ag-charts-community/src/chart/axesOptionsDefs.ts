@@ -214,7 +214,7 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
     crossLines: arrayOfDefs(cartesianCrossLineOptionsDefs, 'a cross-line options array'),
     position: union('top', 'right', 'bottom', 'left'),
     thickness: positiveNumber,
-    maxThickness: ratio,
+    maxThicknessRatio: ratio,
     title: {
         enabled: boolean,
         text: string,
