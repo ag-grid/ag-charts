@@ -14,7 +14,7 @@
     align-items: center;
     background: var(--ag-charts-chrome-background-color);
     border: var(--ag-charts-button-border);
-    color: var(--ag-charts-chrome-text-color);
+    color: var(--ag-charts-button-text-color);
     cursor: pointer;
     display: flex;
     font-family: var(--ag-charts-chrome-font-family);

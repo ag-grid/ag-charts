@@ -50,7 +50,7 @@ export class FinancialLight extends ChartTheme {
     override getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
         return {
             ...super.getPublicParameters(),
-            gridLineColor: { $foregroundBackgroundAccentMix: [0.94, 0.01] },
+            gridLineColor: { $foregroundBackgroundMix: [0.06] },
             padding: 0,
         };
     }
