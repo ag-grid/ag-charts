@@ -261,7 +261,7 @@ export class CartesianChart extends Chart {
             if (axis.thickness == null) {
                 const { scene } = this.ctx;
                 const size = (isVertical ? bbox?.width : bbox?.height) ?? 0;
-                axisWidth = Math.min(size, (isVertical ? scene.width : scene.height) * (axis.maxThickness ?? 1));
+                axisWidth = Math.min(size, (isVertical ? scene.width : scene.height) * (axis.maxThicknessRatio ?? 1));
             } else {
                 axisWidth = axis.thickness;
             }
