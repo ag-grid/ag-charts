@@ -130,8 +130,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         maxSpacing?: number
     ) {
         const { scale } = this.axis;
-        const defaultTickCount = UnitTimeScale.is(scale)
-            ? UnitTimeScale.defaultTickCount
+        const defaultTickCount = DiscreteTimeScale.is(scale)
+            ? DiscreteTimeScale.defaultTickCount
             : ContinuousScale.defaultTickCount;
         return estimateTickCount(
             findRangeExtent(range),
@@ -505,14 +505,15 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const interpolate =
             UnitTimeScale.is(scale) && scale.interval != null && intervalMilliseconds(scale.interval) < milliseconds;
 
+        const intervalTickParams = {
+            ...tickParams,
+            interval: timeInterval,
+        };
+
         let ticks: Date[];
         let primaryTicksIndices: Set<number> | undefined = new Set<number>();
         if (TimeScale.is(scale) || UnitTimeScale.is(scale)) {
             ticks = [];
-            const intervalTickParams = {
-                ...tickParams,
-                interval: timeInterval,
-            };
             const isTimeScaleTicks = !UnitTimeScale.is(scale) || interpolate;
             for (let i = 0; i < primaryTicks.length - 1; i += 1) {
                 const p0 = primaryTicks[i];
@@ -553,7 +554,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 ticks.push(...intervalTicks);
             }
         } else if (OrdinalTimeScale.is(scale)) {
-            ticks = scale.ticks(tickParams, undefined, visibleRange, true)?.ticks ?? [];
+            ticks = scale.ticks(intervalTickParams, undefined, visibleRange, true)?.ticks ?? [];
 
             let primaryTickIndex = 0;
             for (let i = 0; i < ticks.length; i++) {
