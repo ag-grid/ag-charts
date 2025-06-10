@@ -14,7 +14,7 @@ const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } 
     ],
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             nice: false,
             position: 'bottom',
             interval: {

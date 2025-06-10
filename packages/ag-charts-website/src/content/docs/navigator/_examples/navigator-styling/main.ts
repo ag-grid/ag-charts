@@ -45,7 +45,7 @@ const options: AgChartOptions = {
     ],
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             interval: {
                 maxSpacing: 200,

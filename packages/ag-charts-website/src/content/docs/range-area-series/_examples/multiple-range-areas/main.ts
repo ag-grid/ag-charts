@@ -46,7 +46,7 @@ const options: AgChartOptions = {
         },
         {
             position: 'bottom',
-            type: 'time',
+            type: 'unit-time',
         },
     ],
 };

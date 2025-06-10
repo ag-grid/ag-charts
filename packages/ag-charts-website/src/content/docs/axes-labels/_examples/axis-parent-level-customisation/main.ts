@@ -21,7 +21,7 @@ const options: AgChartOptions = {
             position: 'left',
         },
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             label: {
                 format: {

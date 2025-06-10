@@ -22,7 +22,7 @@ const options: AgChartOptions = {
     axes: [
         {
             position: 'bottom',
-            type: 'time',
+            type: 'unit-time',
             title: {
                 text: 'Date',
             },

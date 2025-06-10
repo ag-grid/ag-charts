@@ -18,7 +18,7 @@ const options: AgChartOptions = {
             },
         },
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             interval: { step: 'month' },
             label: {
