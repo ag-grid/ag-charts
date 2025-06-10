@@ -1206,6 +1206,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "highlightedSeries": {
           "strokeWidth": 3,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 3,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -1299,6 +1302,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 3,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 3,
         },
         "unHighlightedSeries": {
@@ -1396,6 +1402,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "highlightedSeries": {
           "strokeWidth": 3,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 3,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -1489,6 +1498,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 3,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 3,
         },
         "unHighlightedSeries": {
@@ -1586,6 +1598,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "highlightedSeries": {
           "strokeWidth": 3,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 3,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -1681,6 +1696,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "highlightedSeries": {
           "strokeWidth": 3,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 3,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -1774,6 +1792,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 3,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 3,
         },
         "unHighlightedSeries": {
@@ -3863,6 +3884,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "highlightedSeries": {
           "strokeWidth": 3,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 3,
+        },
         "unHighlightedSeries": {
           "opacity": 0.1,
         },
@@ -3995,6 +4019,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 3,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 3,
         },
         "unHighlightedSeries": {
@@ -4131,6 +4158,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "highlightedSeries": {
           "strokeWidth": 3,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 3,
+        },
         "unHighlightedSeries": {
           "opacity": 0.1,
         },
@@ -4265,6 +4295,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "highlightedSeries": {
           "strokeWidth": 3,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 3,
+        },
         "unHighlightedSeries": {
           "opacity": 0.1,
         },
@@ -4397,6 +4430,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 3,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 3,
         },
         "unHighlightedSeries": {
@@ -6171,6 +6207,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "highlightedSeries": {
           "strokeWidth": 1,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 1,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -6271,6 +6310,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 1,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 1,
         },
         "unHighlightedSeries": {
@@ -6585,6 +6627,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "highlightedSeries": {
           "strokeWidth": 1,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 1,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -6687,6 +6732,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
           "strokeWidth": 1,
         },
         "highlightedSeries": {
+          "strokeWidth": 1,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 1,
         },
         "unHighlightedSeries": {
@@ -6793,6 +6841,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "highlightedSeries": {
           "strokeWidth": 1,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 1,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -6895,6 +6946,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
           "strokeWidth": 1,
         },
         "highlightedSeries": {
+          "strokeWidth": 1,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 1,
         },
         "unHighlightedSeries": {
@@ -7001,6 +7055,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "highlightedSeries": {
           "strokeWidth": 1,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 1,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -7105,6 +7162,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "highlightedSeries": {
           "strokeWidth": 1,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 1,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -7207,6 +7267,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
           "strokeWidth": 1,
         },
         "highlightedSeries": {
+          "strokeWidth": 1,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 1,
         },
         "unHighlightedSeries": {
@@ -7487,6 +7550,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "highlightedSeries": {
           "strokeWidth": 4,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 4,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -7581,6 +7647,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 4,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 4,
         },
         "unHighlightedSeries": {
@@ -7679,6 +7748,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "highlightedSeries": {
           "strokeWidth": 4,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 4,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -7773,6 +7845,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 4,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 4,
         },
         "unHighlightedSeries": {
@@ -7871,6 +7946,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "highlightedSeries": {
           "strokeWidth": 4,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 4,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -7965,6 +8043,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 4,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 4,
         },
         "unHighlightedSeries": {
@@ -8063,6 +8144,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "highlightedSeries": {
           "strokeWidth": 4,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 4,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -8157,6 +8241,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 4,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 4,
         },
         "unHighlightedSeries": {
@@ -8255,6 +8342,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "highlightedSeries": {
           "strokeWidth": 4,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 4,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -8349,6 +8439,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 4,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 4,
         },
         "unHighlightedSeries": {
@@ -8447,6 +8540,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "highlightedSeries": {
           "strokeWidth": 4,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 4,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -8541,6 +8637,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 4,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 4,
         },
         "unHighlightedSeries": {
@@ -8639,6 +8738,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "highlightedSeries": {
           "strokeWidth": 4,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 4,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -8733,6 +8835,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 4,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 4,
         },
         "unHighlightedSeries": {
@@ -8831,6 +8936,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "highlightedSeries": {
           "strokeWidth": 4,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 4,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -8925,6 +9033,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 4,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 4,
         },
         "unHighlightedSeries": {
@@ -9521,6 +9632,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "highlightedSeries": {
           "strokeWidth": 4,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 4,
+        },
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -9661,6 +9775,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 4,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 4,
         },
         "unHighlightedSeries": {
@@ -9805,6 +9922,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "highlightedSeries": {
           "strokeWidth": 4,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 4,
+        },
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -9945,6 +10065,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 4,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 4,
         },
         "unHighlightedSeries": {
@@ -10089,6 +10212,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "highlightedSeries": {
           "strokeWidth": 4,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 4,
+        },
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -10231,6 +10357,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "highlightedSeries": {
           "strokeWidth": 4,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 4,
+        },
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -10371,6 +10500,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 4,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 4,
         },
         "unHighlightedSeries": {
@@ -10727,6 +10859,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "highlightedSeries": {
           "strokeWidth": 1,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 1,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -10830,6 +10965,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "highlightedSeries": {
           "strokeWidth": 1,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 1,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -10931,6 +11069,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 1,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 1,
         },
         "unHighlightedSeries": {
@@ -12991,6 +13132,15 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
         "#b499b5",
         "#b7b5ba",
       ],
+      "highlight": {
+        "highlightedItem": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "fillOpacity": 0,
+          "opacity": 1,
+          "stroke": "#535455",
+          "strokeWidth": 1,
+        },
+      },
       "highlightStyle": {
         "item": {
           "fillOpacity": 0,
@@ -13320,6 +13470,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "highlightedSeries": {
           "strokeWidth": 3,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 3,
+        },
         "unHighlightedSeries": {
           "opacity": 0.2,
         },
@@ -13412,6 +13565,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 3,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 3,
         },
         "unHighlightedSeries": {
@@ -13675,6 +13831,15 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
         "#72508c",
         "#b7b5ba",
       ],
+      "highlight": {
+        "highlightedItem": {
+          "fill": "rgba(255,255,255, 0.33)",
+          "fillOpacity": 0,
+          "opacity": 1,
+          "stroke": "#535455",
+          "strokeWidth": 1,
+        },
+      },
       "highlightStyle": {
         "item": {
           "fillOpacity": 0,
@@ -15291,6 +15456,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "highlightedSeries": {
           "strokeWidth": 1,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 1,
+        },
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -15391,6 +15559,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 1,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 1,
         },
         "unHighlightedSeries": {
@@ -15495,6 +15666,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "highlightedSeries": {
           "strokeWidth": 1,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 1,
+        },
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -15595,6 +15769,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 1,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 1,
         },
         "unHighlightedSeries": {
@@ -15910,6 +16087,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "highlightedSeries": {
           "strokeWidth": 1,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 1,
+        },
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -16010,6 +16190,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 1,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 1,
         },
         "unHighlightedSeries": {
@@ -16114,6 +16297,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "highlightedSeries": {
           "strokeWidth": 1,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 1,
+        },
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -16216,6 +16402,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "highlightedSeries": {
           "strokeWidth": 1,
         },
+        "unHighlightedItem": {
+          "strokeWidth": 1,
+        },
         "unHighlightedSeries": {
           "opacity": 0.3,
         },
@@ -16316,6 +16505,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
           "strokeWidth": 2,
         },
         "highlightedSeries": {
+          "strokeWidth": 1,
+        },
+        "unHighlightedItem": {
           "strokeWidth": 1,
         },
         "unHighlightedSeries": {

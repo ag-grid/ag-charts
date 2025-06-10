@@ -706,8 +706,6 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
                 opts.isHighlight
             );
 
-            rect.opacity = datum.opacity ?? 0;
-
             applyShapeStyle(rect, style, overrides, fillBBox);
 
             const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;

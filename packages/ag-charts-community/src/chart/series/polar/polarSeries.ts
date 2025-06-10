@@ -17,7 +17,7 @@ import {
     type DataModelSeriesNodeDatum,
 } from '../dataModelSeries';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
-import type { SeriesProperties } from '../seriesProperties';
+import { type SeriesProperties } from '../seriesProperties';
 import type { ShapeFillBBox } from '../shapeUtil';
 import { PolarZIndexMap } from './polarZIndexMap';
 
@@ -52,7 +52,7 @@ export const DEFAULT_POLAR_DIRECTION_NAMES = {
 };
 
 export abstract class PolarSeries<
-    TDatum extends DataModelSeriesNodeDatum,
+    TDatum extends DataModelSeriesNodeDatum & { legendItemValue?: string },
     TProps extends SeriesProperties<any> & PolarSeriesProperties,
     TNode extends Node,
 > extends DataModelSeries<TDatum, TProps> {
@@ -297,5 +297,11 @@ export abstract class PolarSeries<
         const legendItemName = legendItemValues?.[itemId];
 
         return series === this || (legendItemName != null && legendItemName === activeLegendItemName);
+    }
+
+    protected override isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datum?: TDatum) {
+        // If this function is being invoked, we have already determined that the series is highlighted.
+        if (highlightedDatum?.itemId == null || datum?.itemId == null) return;
+        return highlightedDatum.itemId === datum.itemId;
     }
 }
