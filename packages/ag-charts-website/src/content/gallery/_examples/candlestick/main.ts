@@ -69,11 +69,9 @@ const options: AgChartOptions<DataType> = {
         {
             type: 'ordinal-time',
             position: 'bottom',
+            interval: { step: 'month' },
             line: {
                 enabled: false,
-            },
-            parentLevel: {
-                enabled: true,
             },
             crossLines: [
                 {
@@ -111,6 +109,11 @@ const options: AgChartOptions<DataType> = {
         },
     },
     formatter: {
+        x: (params) => {
+            if (params.type !== 'date') return;
+            if (params.value.getMonth() === 0) return params.value.toLocaleString('en-US', { year: 'numeric' });
+            return params.value.toLocaleString('en-US', { month: 'short' });
+        },
         y: '#{,.0f}',
     },
 };
