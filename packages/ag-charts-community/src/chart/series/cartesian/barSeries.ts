@@ -633,15 +633,16 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemBaseStyle(highlighted: boolean): Required<AgBarSeriesStyle> {
+    private getItemBaseStyle(isHighlight: boolean, datum?: BarNodeDatum): Required<AgBarSeriesStyle> {
         const { properties } = this;
         const { cornerRadius, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
 
         return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? properties.fill,
                 fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+                opacity: highlightStyle?.opacity ?? 1,
                 stroke: highlightStyle?.stroke ?? properties.stroke,
                 strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
                 strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
@@ -691,10 +692,11 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
     protected override updateDatumNodes(opts: { datumSelection: Selection<Rect, BarNodeDatum>; isHighlight: boolean }) {
         const { shadow } = this.properties;
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
-        const style = this.getItemBaseStyle(opts.isHighlight);
         const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
+            const style = this.getItemBaseStyle(opts.isHighlight, datum);
+
             const overrides = this.getItemStyleOverrides(
                 String(datum.datumIndex),
                 datum.datum,

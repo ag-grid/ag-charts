@@ -1,10 +1,15 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { TContextDefault, TDatumDefault } from '../../chart/types';
+import type { Opacity, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions } from '../markerOptions';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
+import type {
+    AgBaseCartesianThemeableOptions,
+    AgBaseSeriesOptions,
+    AgHighlightStyleOptions,
+    AgMultiSeriesHighlightOptions,
+} from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -33,6 +38,13 @@ export interface AgAreaSeriesThemeableOptions<TDatum = TDatumDefault, TContext =
     tooltip?: AgSeriesTooltip<AgAreaSeriesTooltipRendererParams<TDatum>>;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgAreaHighlightStyleOptions>;
+}
+
+export interface AgAreaHighlightStyleOptions extends FillOptions, StrokeOptions {
+    /** The opacity of the whole series (area line, area fill, labels and markers, if any) */
+    opacity?: Opacity;
 }
 
 export interface AgAreaSeriesOptionsKeys<TDatum = TDatumDefault> {
@@ -65,7 +77,7 @@ export interface AgAreaSeriesOptionsNames {
 }
 
 export interface AgAreaSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgAreaSeriesOptionsKeys<TDatum>,
         AgAreaSeriesOptionsNames,
         AgAreaSeriesThemeableOptions<TDatum, TContext> {

@@ -3,8 +3,12 @@ import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
+import type { Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type {
+    AgBaseCartesianThemeableOptions,
+    AgBaseSeriesOptions,
+    AgMultiSeriesHighlightOptions,
+} from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -60,7 +64,7 @@ export interface AgBarSeriesTooltipRendererParams<TDatum = TDatumDefault>
 
 export interface AgBarSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBarSeriesStyle,
-        AgBaseCartesianThemeableOptions<TDatum, TContext> {
+        Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
     /**
      * Bar rendering direction.
      *
@@ -79,6 +83,13 @@ export interface AgBarSeriesThemeableOptions<TDatum = TDatumDefault, TContext = 
     itemStyler?: Styler<AgBarSeriesItemStylerParams<TDatum>, AgBarSeriesStyle>;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgBarHighlightStyleOptions>;
+}
+
+export interface AgBarHighlightStyleOptions extends AgBarSeriesStyle {
+    /** The opacity of the whole series (area line, area fill, labels and markers, if any) */
+    opacity?: Opacity;
 }
 
 export interface AgBarSeriesOptionsKeys<TDatum = TDatumDefault> {
@@ -98,7 +109,7 @@ export interface AgBarSeriesOptionsNames {
 }
 
 export interface AgBarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgBarSeriesOptionsKeys<TDatum>,
         AgBarSeriesOptionsNames,
         AgBarSeriesThemeableOptions<TDatum, TContext> {

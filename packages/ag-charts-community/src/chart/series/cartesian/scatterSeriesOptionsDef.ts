@@ -1,4 +1,13 @@
-import { type OptionsDefs, boolean, constant, required, string, union } from 'ag-charts-core';
+import {
+    type OptionsDefs,
+    boolean,
+    constant,
+    multiSeriesHighlightOptionsDef,
+    required,
+    shapeHighlightOptionsDef,
+    string,
+    union,
+} from 'ag-charts-core';
 import type { AgScatterSeriesOptions, AgScatterSeriesThemeableOptions } from 'ag-charts-types';
 
 import { without } from '../../../util/object';
@@ -23,6 +32,7 @@ export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemea
     errorBar: errorBarThemeableOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
@@ -36,4 +46,5 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     yName: string,
     labelName: string,
     errorBar: errorBarOptionsDefs,
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };

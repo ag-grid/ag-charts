@@ -1,10 +1,12 @@
 import {
     type OptionsDefs,
+    barHighlightOptionsDef,
     boolean,
     callbackDefs,
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
+    multiSeriesHighlightOptionsDef,
     number,
     positiveNumber,
     required,
@@ -24,6 +26,8 @@ import {
     shadowOptionsDefs,
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
+
+const highlight = multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef);
 
 export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
@@ -45,6 +49,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     shadow: shadowOptionsDefs,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
+    highlight,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
@@ -56,6 +61,7 @@ barSeriesThemeableOptionsDef.sparklineMode = undocumented(boolean);
 export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     ...barSeriesThemeableOptionsDef,
     ...commonSeriesOptionsDefs,
+    highlight,
     type: required(constant('bar')),
     xKey: required(string),
     yKey: required(string),
