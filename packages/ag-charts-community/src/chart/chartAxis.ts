@@ -7,6 +7,7 @@ import type {
     Formatter,
     FormatterParams,
     Styler,
+    TextWrap,
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../core/eventsHub';
@@ -146,4 +147,5 @@ export interface ChartAxisLabel extends FontOptions {
     spacing: number;
     parallel: boolean;
     rotation?: number;
+    wrapping?: TextWrap;
 }

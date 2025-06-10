@@ -1,6 +1,7 @@
 import { boxCollides, countFractionDigits, dropFirstWhile, dropLastWhile } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
 
+import { BandScale } from '../../scale/bandScale';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
@@ -15,6 +16,7 @@ import { findMinMax, findRangeExtent } from '../../util/number';
 import { type AxisPrimaryTickCount, calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { CachedTextMeasurerPool } from '../../util/textMeasurer';
+import { TextWrapper, type WrapOptions } from '../../util/textWrapper';
 import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
 import {
     intervalCeil,
@@ -27,6 +29,7 @@ import {
     intervalRange,
 } from '../../util/time';
 import type { ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
+import { ChartAxisDirection } from '../chartAxisDirection';
 import {
     calculateLabelRotation,
     createFixedLabelData,
@@ -107,6 +110,7 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
     readonly primaryLabel?: ChartAxis['label'];
     readonly interval: AxisInterval<S>;
     readonly inRange: ChartAxis['inRange'];
+    readonly direction?: ChartAxis['direction'];
     tickFormatter(
         domain: D[],
         ticks: D[],
@@ -163,7 +167,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         sideFlag,
         removeOverflowLabels,
         removeOverflowThreshold = 0,
-        sizeLimit: _sizeLimit,
+        sizeLimit,
     }: TickGenerationParams<D>): TickGenerationResult<D> {
         const {
             scale,
@@ -257,7 +261,15 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         while (!terminate && labelOverlap && index <= maxIterations) {
             autoRotation = 0;
 
-            for (const strategy of this.getTickStrategies({ domain, range, reverse, niceMode, secondaryAxis, index })) {
+            for (const strategy of this.getTickStrategies({
+                domain,
+                range,
+                reverse,
+                niceMode,
+                secondaryAxis,
+                index,
+                sizeLimit,
+            })) {
                 ({ tickData, index, autoRotation, terminate } = strategy({
                     index,
                     tickData,
@@ -305,6 +317,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         niceMode,
         index: iteration,
         secondaryAxis,
+        sizeLimit,
     }: {
         domain: D[];
         range: [number, number];
@@ -312,6 +325,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         niceMode: NiceMode;
         index: number;
         secondaryAxis: boolean;
+        sizeLimit?: number;
     }): TickStrategy[] {
         const { scale, label, interval } = this.axis;
         const { minSpacing } = interval;
@@ -351,7 +365,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 tickGenerationType,
                 index,
                 tickData,
-                terminate
+                terminate,
+                sizeLimit
             );
 
         strategies.push(tickGenerationStrategy);
@@ -376,7 +391,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     TickGenerationType.FILTER,
                     index,
                     tickData,
-                    terminate
+                    terminate,
+                    sizeLimit
                 );
             strategies.push(tickFilterStrategy);
         }
@@ -405,7 +421,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         tickGenerationType: TickGenerationType,
         index: number,
         tickData: TickData,
-        terminate: boolean
+        terminate: boolean,
+        sizeLimit?: number
     ): TickStrategyResult {
         // Find the next tick data where the tick data is different from the previous tick data - and return the index of this data
         const { scale, interval } = this.axis;
@@ -443,6 +460,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             minTickCount,
             maxTickCount,
             tickCount: 0,
+            sizeLimit,
         };
 
         // First guess - generate ticks at current index
@@ -596,6 +614,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         minTickCount,
         maxTickCount,
         primaryTickCount,
+        sizeLimit = Infinity,
     }: {
         domain: D[];
         range: [number, number];
@@ -608,6 +627,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         tickCount: number;
         minTickCount: number;
         maxTickCount: number;
+        sizeLimit?: number;
     }): TickData {
         const { axis } = this;
         const { label, primaryLabel, scale, interval } = axis;
@@ -641,6 +661,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 : domain;
         let tickDomain: D[] = niceDomain;
         let rawTicks: any[] | undefined;
+        let enrichedTicks: any[] | undefined;
         let rawTickCount: number | undefined;
         let timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined;
         let primaryTicksIndices: Set<number> | undefined;
@@ -717,6 +738,22 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                             ? { ...tickParams, interval: timeInterval }
                             : tickParams;
                     const tickGeneration = scale.ticks(intervalTickParams, niceDomain, visibleRange);
+
+                    if (tickGeneration) {
+                        const isVertical = this.axis.direction === ChartAxisDirection.Y;
+                        const maxBand = (BandScale.is(scale) ? scale.bandwidth : null) ?? Infinity;
+                        const { fontFamily, fontSize, fontStyle, fontWeight } = label;
+                        const wrapOptions: WrapOptions = {
+                            maxWidth: isVertical ? sizeLimit : maxBand,
+                            maxHeight: isVertical ? maxBand : sizeLimit,
+                            font: { fontFamily, fontSize, fontStyle, fontWeight },
+                            textWrap: label.wrapping,
+                        };
+                        enrichedTicks = tickGeneration.ticks.map((tick) =>
+                            isString(tick) ? TextWrapper.wrapText(tick, wrapOptions) : tick
+                        );
+                    }
+
                     rawTicks = tickGeneration?.ticks ?? [];
                     rawTickCount = tickGeneration?.count;
                     if (TimeScale.is(scale) || DiscreteTimeScale.is(scale)) {
@@ -749,8 +786,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const continuous = TimeScale.is(scale) || DiscreteTimeScale.is(scale);
         const idGenerator = createIdsGenerator();
         for (let i = 0; i < rawTicks.length; i++) {
-            const tick = rawTicks[i];
-            const translation = scale.convert(tick, { interpolate }) + halfBandwidth;
+            const tick = enrichedTicks?.[i] ?? rawTicks[i];
+            const translation = scale.convert(rawTicks[i], { interpolate }) + halfBandwidth;
             const primary = primaryTicksIndices?.has(i) ?? false;
 
             // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so

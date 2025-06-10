@@ -1,3 +1,5 @@
+import type { TextWrap } from 'ag-charts-types';
+
 import { Property } from '../../util/properties';
 import { AxisLabel } from './axisLabel';
 
@@ -14,4 +16,7 @@ export class CartesianAxisLabel extends AxisLabel {
      */
     @Property
     autoRotateAngle: number = 335;
+
+    @Property
+    wrapping: TextWrap = 'on-space';
 }
