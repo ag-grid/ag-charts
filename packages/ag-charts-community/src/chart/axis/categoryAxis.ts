@@ -88,7 +88,7 @@ export class CategoryAxis<
         _timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         _style: DateFormatterStyle
     ): FormatterParams<any> {
-        const { datum, key, source, property, domain, boundSeries } = params;
+        const { datum, seriesId, key, source, property, domain, boundSeries } = params;
         if (Array.isArray(value) && value.some((v) => typeof v !== 'string')) {
             value = value.map(String);
         } else if (
@@ -99,6 +99,6 @@ export class CategoryAxis<
         ) {
             value = String(value);
         }
-        return { type: 'category', value, datum, key, source, property, domain, boundSeries };
+        return { type: 'category', value, datum, seriesId, key, source, property, domain, boundSeries };
     }
 }

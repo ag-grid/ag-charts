@@ -89,6 +89,7 @@ export function priceVolume(
         sync = false,
         theme,
         data,
+        formatter,
         ...unusedOpts
     } = opts;
 
@@ -309,6 +310,7 @@ export function priceVolume(
         ],
         tooltip: { enabled: false },
         data,
+        formatter,
         ...annotationOpts,
         ...navigatorOpts,
         ...statusBarOpts,

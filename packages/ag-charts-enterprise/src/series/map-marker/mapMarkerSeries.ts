@@ -778,7 +778,7 @@ export class MapMarkerSeries
 
         const { id: seriesId, visible } = this;
 
-        const { title, legendItemName, idName, idKey, colorKey, colorName, colorRange, showInLegend } = this.properties;
+        const { title, legendItemName, idName, idKey, colorKey, colorRange, showInLegend } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
             const colorDomain =
@@ -787,7 +787,7 @@ export class MapMarkerSeries
                 legendType: 'gradient',
                 enabled: visible,
                 seriesId,
-                colorName,
+                series: this.getFormatterContext('color'),
                 colorRange,
                 colorDomain,
             };
@@ -851,10 +851,11 @@ export class MapMarkerSeries
 
         if (this.isLabelEnabled() && labelKey != null && labelKey !== idKey) {
             const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
-            const content = formatManager.format({
+            const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'category',
                 value: labelValue,
                 datum,
+                seriesId,
                 key: labelKey,
                 source: 'tooltip',
                 property: 'label',
@@ -865,10 +866,11 @@ export class MapMarkerSeries
         }
         if (sizeKey != null && sizeValue != null) {
             const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
-            const content = formatManager.format({
+            const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: sizeValue,
                 datum,
+                seriesId,
                 key: sizeKey,
                 source: 'tooltip',
                 property: 'size',
@@ -880,10 +882,11 @@ export class MapMarkerSeries
         }
         if (colorKey != null && colorValue != null) {
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
-            const content = formatManager.format({
+            const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: colorValue,
                 datum,
+                seriesId,
                 key: colorKey,
                 source: 'tooltip',
                 property: 'color',

@@ -860,7 +860,7 @@ export abstract class Series<
 
         const format = (formatParams: FormatterParams<any>) =>
             label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
-            formatManager.format(formatParams) ??
+            formatManager.format(formatInContext, formatParams) ??
             String(value);
 
         const direction = canHaveAxes ? propertyAxisDirection(property) : undefined;
@@ -879,6 +879,7 @@ export abstract class Series<
         }
 
         const boundSeries = this.getFormatterContext(property);
+        const seriesId = this.id;
         switch (property) {
             case 'y':
             case 'color':
@@ -888,6 +889,7 @@ export abstract class Series<
                     type: 'number',
                     value,
                     datum,
+                    seriesId,
                     key,
                     source,
                     property,
@@ -903,7 +905,7 @@ export abstract class Series<
             case 'secondaryLabel':
             case 'calloutLabel':
             case 'sectorLabel':
-                return format({ type: 'category', value, datum, key, source, property, domain, boundSeries });
+                return format({ type: 'category', value, datum, seriesId, key, source, property, domain, boundSeries });
         }
     }
 

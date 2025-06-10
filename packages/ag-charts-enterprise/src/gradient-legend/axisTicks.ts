@@ -20,6 +20,10 @@ const {
     normalizeAngle360,
 } = _ModuleSupport;
 
+interface DataProvider {
+    data: _ModuleSupport.GradientLegendDatum[];
+}
+
 export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
     readonly id = createId(this);
 
@@ -39,7 +43,10 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
     translationX: number = 0;
     translationY: number = 0;
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {}
+    constructor(
+        private readonly ctx: _ModuleSupport.ModuleContext,
+        private readonly dataProvider: DataProvider
+    ) {}
 
     private get horizontal(): boolean {
         return this.position === 'top' || this.position === 'bottom';
@@ -103,7 +110,7 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
         return (value, index) => {
             const { ctx } = this;
             const { formatManager } = ctx;
-            const boundSeries: any[] = [];
+            const boundSeries = this.dataProvider.data.flatMap((d) => d.series);
             let result: string | undefined;
             result ??= this.label.formatValue(
                 (fn, params) => formatWithContext(ctx, fn, params),
@@ -115,11 +122,12 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
                 fractionDigits,
                 undefined
             );
-            result ??= formatManager.format({
+            result ??= formatManager.format((fn, params) => formatWithContext(ctx, fn, params), {
                 type: 'number',
                 value,
-                datum: 'undefined',
-                key: 'undefined',
+                datum: undefined,
+                seriesId: undefined,
+                key: undefined,
                 source: 'gradient-legend',
                 property: 'color',
                 domain,

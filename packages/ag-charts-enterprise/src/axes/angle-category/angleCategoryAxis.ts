@@ -119,7 +119,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
     }
 
     override datumFormatParams(value: any, params: _ModuleSupport.FormatDatumParams): FormatterParams<any> {
-        const { datum, key, source, property, domain, boundSeries } = params;
-        return { type: 'category', value, datum, key, source, property, domain, boundSeries };
+        const { datum, seriesId, key, source, property, domain, boundSeries } = params;
+        return { type: 'category', value, datum, seriesId, key, source, property, domain, boundSeries };
     }
 }

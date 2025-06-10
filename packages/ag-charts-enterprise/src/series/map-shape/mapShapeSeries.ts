@@ -653,7 +653,7 @@ export class MapShapeSeries
 
         const { id: seriesId, visible } = this;
 
-        const { title, legendItemName, idKey, idName, colorKey, colorName, colorRange, showInLegend } = this.properties;
+        const { title, legendItemName, idKey, idName, colorKey, colorRange, showInLegend } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
             const colorDomain =
@@ -662,7 +662,7 @@ export class MapShapeSeries
                 legendType: 'gradient',
                 enabled: visible,
                 seriesId,
-                colorName,
+                series: this.getFormatterContext('color'),
                 colorRange,
                 colorDomain,
             };
@@ -707,10 +707,11 @@ export class MapShapeSeries
 
         if (this.isLabelEnabled() && labelKey != null && labelKey !== idKey) {
             const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
-            const content = formatManager.format({
+            const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'category',
                 value: labelValue,
                 datum,
+                seriesId,
                 key: labelKey,
                 source: 'tooltip',
                 property: 'label',
@@ -721,10 +722,11 @@ export class MapShapeSeries
         }
         if (colorValue != null) {
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
-            const content = formatManager.format({
+            const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: colorValue,
                 datum,
+                seriesId,
                 key: colorKey!,
                 source: 'tooltip',
                 property: 'color',
