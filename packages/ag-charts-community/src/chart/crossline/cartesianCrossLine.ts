@@ -18,6 +18,7 @@ import { toRadians } from '../../util/angle';
 import { clampArray, findMinMax } from '../../util/number';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
+import { FONT_SIZE } from '../themes/constants';
 import { type CrossLine, type CrossLineType, getCrossLineValue, validateCrossLineValue } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
 
@@ -124,7 +125,7 @@ class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCross
     fontWeight?: FontWeight;
 
     @Property
-    fontSize: number = 14;
+    fontSize: number = FONT_SIZE.LARGE;
 
     @Property
     fontFamily: string = 'Verdana, sans-serif';

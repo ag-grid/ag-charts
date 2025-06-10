@@ -21,7 +21,7 @@ import { axisRegistry } from '../factory/axisRegistry';
 import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
 import { legendRegistry } from '../factory/legendRegistry';
 import { seriesRegistry } from '../factory/seriesRegistry';
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE, FONT_SIZE_RATIO, POLAR_AXIS_TYPE } from './constants';
+import { BASE_FONT_SIZE, CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE_RATIO, POLAR_AXIS_TYPE } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_HANDLE_FILL,
@@ -153,7 +153,7 @@ export class ChartTheme {
             borderColor: { $foregroundBackgroundMix: [0.818] },
             foregroundColor: '#464646',
             fontFamily: 'Verdana, sans-serif',
-            fontSize: FONT_SIZE.SMALL,
+            fontSize: BASE_FONT_SIZE,
             fontWeight: 400,
             gridLineColor: { $foregroundBackgroundAccentMix: [0.93, 0.085] },
             padding: 20,
@@ -373,7 +373,7 @@ export class ChartTheme {
                     showSeriesStroke: true,
                     label: {
                         color: { $ref: 'textColor' },
-                        fontSize: { $ref: 'fontSize' },
+                        fontSize: { $rem: [FONT_SIZE_RATIO.SMALL] },
                         fontFamily: { $ref: 'fontFamily' },
                         fontWeight: { $ref: 'fontWeight' },
                     },

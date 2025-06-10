@@ -2,7 +2,7 @@ import type { AgBaseCrossLineLabelOptions, FontStyle, FontWeight } from 'ag-char
 import { _ModuleSupport } from 'ag-charts-community';
 import { createId } from 'ag-charts-core';
 
-const { BaseProperties, ChartAxisDirection, Property, Group } = _ModuleSupport;
+const { BaseProperties, ChartAxisDirection, Property, Group, FONT_SIZE } = _ModuleSupport;
 
 export class PolarCrossLineLabel extends BaseProperties implements AgBaseCrossLineLabelOptions {
     @Property
@@ -18,7 +18,7 @@ export class PolarCrossLineLabel extends BaseProperties implements AgBaseCrossLi
     fontWeight?: FontWeight;
 
     @Property
-    fontSize: number = 14;
+    fontSize: number = FONT_SIZE.LARGE;
 
     @Property
     fontFamily: string = 'Verdana, sans-serif';

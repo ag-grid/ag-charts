@@ -4,7 +4,7 @@ import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag
 import { SunburstSeries } from './sunburstSeries';
 import { sunburstSeriesOptionsDef } from './sunburstSeriesOptionsDef';
 
-const { FONT_SIZE_RATIO } = _ModuleSupport;
+const { BASE_FONT_SIZE, FONT_SIZE_RATIO } = _ModuleSupport;
 
 export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     type: 'series',
@@ -34,7 +34,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             label: {
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
-                minimumFontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 9 / 12] }] },
+                minimumFontSize: { $rem: [9 / BASE_FONT_SIZE] },
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'backgroundColor' },
                 overflowStrategy: 'ellipsis',
@@ -44,7 +44,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             secondaryLabel: {
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $rem: [FONT_SIZE_RATIO.SMALLEST] },
-                minimumFontSize: { $round: [{ $mul: [{ $ref: 'fontSize' }, 7 / 12] }] },
+                minimumFontSize: { $rem: [7 / BASE_FONT_SIZE] },
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'backgroundColor' },
                 overflowStrategy: 'ellipsis',
