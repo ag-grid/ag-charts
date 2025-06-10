@@ -575,7 +575,7 @@ export abstract class Series<
         return strokeWidth;
     }
 
-    protected getHighlightState(isHighlight?: boolean, datum?: TDatum): HighlightState {
+    protected getHighlightState(isHighlight?: boolean, datum?: TDatum, legendItemValues?: string[]): HighlightState {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
 
         if (isHighlight) {
@@ -586,35 +586,32 @@ export abstract class Series<
             return HighlightState.None;
         }
 
-        if (this.isSeriesHighlighted(highlightedDatum)) {
-            if (this.isItemHighlighted(highlightedDatum, datum)) {
+        if (this.isSeriesHighlighted(highlightedDatum, legendItemValues)) {
+            const itemHighlighted = this.isItemHighlighted(highlightedDatum, datum);
+            if (itemHighlighted == null) {
+                return HighlightState.Series;
+            }
+            if (itemHighlighted) {
                 return HighlightState.Series; // TODO: should be HighlightState.Item but we do that in the highlight layer
             }
-
-            if (datum?.datumIndex != null && highlightedDatum?.datumIndex != null) {
-                return HighlightState.OtherItem;
-            }
-
-            return HighlightState.Series;
+            return HighlightState.OtherItem;
         }
 
         return HighlightState.OtherSeries;
     }
 
-    protected isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined) {
+    protected isSeriesHighlighted(highlightedDatum?: HighlightNodeDatum, _legendItemValues?: string[]) {
         return highlightedDatum?.series === this;
     }
 
-    protected isItemHighlighted(highlightedDatum: HighlightNodeDatum | undefined, datum?: TDatum) {
-        return (
-            highlightedDatum?.datumIndex != null &&
-            datum?.datumIndex != null &&
-            highlightedDatum?.datumIndex === datum?.datumIndex
-        );
+    protected isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datum?: TDatum) {
+        // If this function is being invoked, we have already determined that the series is highlighted.
+        if (highlightedDatum?.datumIndex == null || datum?.datumIndex == null) return;
+        return highlightedDatum.datumIndex === datum.datumIndex;
     }
 
-    protected getHighlightStyle(isHighlight?: boolean, datum?: TDatum) {
-        const highlightState = this.getHighlightState(isHighlight, datum);
+    protected getHighlightStyle(isHighlight?: boolean, datum?: TDatum, legendItemValues?: string[]) {
+        const highlightState = this.getHighlightState(isHighlight, datum, legendItemValues);
         return this.properties.highlight.getStyle(highlightState);
     }
 

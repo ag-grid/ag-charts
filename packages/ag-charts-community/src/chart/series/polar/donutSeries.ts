@@ -40,7 +40,7 @@ import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { SeriesNodeEvent, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeEventTypes } from '../seriesTypes';
-import { applyShapeFillBBox, getShapeFill } from '../shapeUtil';
+import { applyShapeStyle, getShapeFill } from '../shapeUtil';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
 import { DonutSeriesProperties } from './donutSeriesProperties';
 import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
@@ -641,7 +641,13 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         };
     }
 
-    private getSectorFormat(datum: any, datumIndex: number, highlighted: boolean) {
+    private getSectorFormat(
+        datum: any,
+        datumIndex: number,
+        isHighlight: boolean,
+        nodeDatum?: DonutNodeDatum,
+        legendItemValues?: string[]
+    ) {
         const {
             angleKey,
             radiusKey,
@@ -655,19 +661,26 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             itemStyler,
         } = this.properties;
 
-        const defaultStroke: string | undefined = strokes[datumIndex % strokes.length];
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } =
-            mergeDefaults(
-                highlighted && this.properties.highlightStyle.item,
-                {
-                    fill: fills.length > 0 ? fills[datumIndex % fills.length] : undefined,
-                    stroke: defaultStroke,
-                    strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
-                    strokeOpacity: this.getOpacity(),
-                },
-                this.properties
-            );
-
+        const defaultStroke = strokes[datumIndex % strokes.length];
+        const defaultFill = fills[datumIndex % fills.length];
+        const {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            opacity,
+        } = mergeDefaults(
+            this.getHighlightStyle(isHighlight, nodeDatum, legendItemValues),
+            {
+                fill: defaultFill,
+                stroke: defaultStroke,
+            },
+            this.properties
+        );
         const defaultColors = defaultColorRange[datumIndex % defaultColorRange.length];
         const defaultPatternFill = defaultPatternFills[datumIndex % defaultPatternFills.length];
 
@@ -676,7 +689,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         let format: AgDonutSeriesStyle | undefined;
         if (itemStyler) {
             format = this.cachedDatumCallback(
-                this.getDatumId(datumIndex) + (highlighted ? '-highlight' : '-hide'),
+                this.getDatumId(datumIndex) + (isHighlight ? '-highlight' : '-hide'),
                 () =>
                     this.callWithContext(itemStyler, {
                         datum,
@@ -693,7 +706,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                         lineDash,
                         lineDashOffset,
                         cornerRadius,
-                        highlighted,
+                        highlighted: isHighlight,
                         seriesId: this.id,
                     })
             );
@@ -708,6 +721,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             lineDash: format?.lineDash ?? lineDash,
             lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
             cornerRadius: format?.cornerRadius ?? cornerRadius,
+            opacity,
         };
     }
 
@@ -915,8 +929,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.highlightLabel.visible = visible && seriesHighlighted;
         this.labelGroup.visible = visible;
 
-        this.contentGroup.opacity = this.getOpacity();
-
         this.innerCircleSelection.each((node, { radius }) => {
             node.setProperties({
                 fill: this.getNodeFill(this.properties.innerCircle?.fill, ['black'], 'black'),
@@ -932,7 +944,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         const animationDisabled = this.ctx.animationManager.isSkipped();
         const updateSectorFn = (sector: Sector, datum: DonutNodeDatum, _index: number, isDatumHighlighted: boolean) => {
-            const format = this.getSectorFormat(datum.datum, datum.itemId, isDatumHighlighted);
+            const format = this.getSectorFormat(datum.datum, datum.itemId, isDatumHighlighted, datum, legendItemValues);
 
             datum.sectorFormat.fill = format.fill;
             datum.sectorFormat.stroke = format.stroke;
@@ -949,13 +961,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             }
 
             const fillParams = this.getFillParams(format.fill, innerRadius, outerRadius);
-            applyShapeFillBBox(sector, format.fill, fillBBox, fillParams);
+            applyShapeStyle(sector, format, undefined, fillBBox, fillParams);
 
-            sector.strokeWidth = format.strokeWidth;
-            sector.fillOpacity = format.fillOpacity;
-            sector.strokeOpacity = format.strokeOpacity;
-            sector.lineDash = format.lineDash;
-            sector.lineDashOffset = format.lineDashOffset;
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
             const inset = Math.max(
