@@ -37,13 +37,15 @@ export interface AgBaseCartesianAxisOptions<
     keys?: string[];
     /** The position on the chart where the axis should be rendered. */
     position?: AgCartesianAxisPosition;
-    /** Add cross lines or regions corresponding to data values. */
+    /** Add cross-lines or regions corresponding to data values. */
     crossLines?: AgCartesianCrossLineOptions[];
-    /** If set to a non-zero value, the axis will have the specified thickness regardless of label size. */
+    /** Sets the axis thickness regardless of its content. */
     thickness?: PixelSize;
     /**
      * The maximum thickness of the axis, as a ratio of the chart's width or height depending on axis direction.
      * Used to prevent the axis from growing too large when labels or content are oversized.
+     *
+     * Default: `0.3`
      */
     maxThicknessRatio?: Ratio;
     /** Configuration for the title shown next to the axis. */
