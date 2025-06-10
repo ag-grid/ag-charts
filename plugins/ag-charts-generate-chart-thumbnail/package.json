@@ -10,7 +10,7 @@
     "@nx/devkit": "^18.3.4",
     "ag-charts-community": "11.3.1-beta.20250608",
     "jsdom": "~22.1.0",
-    "sharp": "0.33.5",
+    "sharp": "0.34.1",
     "ag-charts-enterprise": "11.3.1-beta.20250608",
     "ag-charts-test": "11.3.1-beta.20250608",
     "@swc/helpers": "0.5.3",
