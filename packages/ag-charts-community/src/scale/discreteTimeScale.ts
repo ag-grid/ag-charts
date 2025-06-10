@@ -4,6 +4,8 @@ import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 import { BandScale } from './bandScale';
 
 export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | TimeIntervalUnit | number> {
+    static readonly defaultTickCount = 12;
+
     static override is(value: unknown): value is DiscreteTimeScale {
         return value instanceof DiscreteTimeScale;
     }

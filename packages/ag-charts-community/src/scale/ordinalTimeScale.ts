@@ -56,7 +56,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
     }
 
     override ticks(
-        { interval, maxTickCount }: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
+        { interval, maxTickCount, tickCount = maxTickCount }: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1],
         // Only used for OrdinalTimeScale
@@ -69,7 +69,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         const { isReversed } = this;
         if (interval == null) {
             return {
-                ticks: getDefaultTicks(domain, maxTickCount, isReversed, visibleRange, extend),
+                ticks: getDefaultTicks(domain, tickCount, isReversed, visibleRange, extend),
                 count: undefined,
             };
         }
@@ -82,7 +82,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 
         let ticks =
             getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange, extend }) ??
-            getDefaultTicks(domain, maxTickCount, isReversed, visibleRange, extend);
+            getDefaultTicks(domain, tickCount, isReversed, visibleRange, extend);
 
         let lastIndex = -1;
         ticks = ticks.filter((tick) => {
