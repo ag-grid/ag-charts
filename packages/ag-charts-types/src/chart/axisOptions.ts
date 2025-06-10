@@ -192,8 +192,6 @@ export interface AgTimeAxisFormattableLabelOptions extends AgBaseAxisLabelOption
     format?: AgTimeAxisFormattableLabelFormat;
 }
 
-export type AgFormattableLabelOptions = AgNumericAxisFormattableLabelOptions & AgTimeAxisFormattableLabelOptions;
-
 export interface AgAxisGridStyle {
     /** The colour of the grid line. */
     stroke?: CssColor;

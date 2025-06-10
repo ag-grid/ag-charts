@@ -1,4 +1,4 @@
-import type { AgFormattableLabelOptions } from '../../chart/axisOptions';
+import type { AgNumericAxisFormattableLabelOptions } from '../../chart/axisOptions';
 import type { DatumCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -13,7 +13,7 @@ export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams> extends AgChart
     placement?: 'before' | 'middle' | 'after';
 }
 
-export interface AgConeFunnelSeriesStageLabelOptions extends AgFormattableLabelOptions {
+export interface AgConeFunnelSeriesStageLabelOptions extends AgNumericAxisFormattableLabelOptions {
     /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
 }
