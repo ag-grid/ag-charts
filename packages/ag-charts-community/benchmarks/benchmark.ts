@@ -72,7 +72,7 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
     }
 
     async legendToggle(index = 0) {
-        if (isAtOrAfterVersion(11, 0, 0)) {
+        if (isAtOrAfterVersion(10, 0, 0)) {
             this.options.container
                 ?.querySelectorAll('.ag-charts-proxy-legend-toolbar button')
                 ?.[index].dispatchEvent(new Event('click'));
