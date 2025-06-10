@@ -5,7 +5,7 @@
   "dependencies": {
     "ag-shared": "0.0.1",
     "ag-charts-generate-example-files": "11.3.1-beta.20250608",
-    "glob": "8.0.3",
+    "glob": "8.1.0",
     "typescript": "^5.4.5",
     "@nx/devkit": "^18.3.4",
     "ag-charts-community": "11.3.1-beta.20250608",
