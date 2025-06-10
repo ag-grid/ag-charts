@@ -3,6 +3,7 @@ import type {
     AgAxisLabelStylerParams,
     AgBaseAxisLabelStyleOptions,
     AgCartesianAxisPosition,
+    AgLabelCollisionAvoidance,
     FontOptions,
     Formatter,
     FormatterParams,
@@ -138,6 +139,7 @@ export interface ChartAxisLabel extends FontOptions {
     autoRotate?: boolean;
     autoRotateAngle?: number;
     avoidCollisions: boolean;
+    collisionAvoidance: AgLabelCollisionAvoidance;
     enabled: boolean;
     format?: string | Record<string, string>;
     formatter?: Formatter<AgAxisLabelFormatterParams>;

@@ -70,6 +70,7 @@ import type {
 } from 'ag-charts-types';
 
 import { without } from '../../util/object';
+import { commonAxisLabelOptionsDefs, numberFormatValidator } from '../axesOptionsDefs';
 import {
     autoSizedLabelOptionsDefs,
     commonSeriesThemeableOptionsDefs,
@@ -205,16 +206,9 @@ export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeries
         ...seriesLabelOptionsDefs,
     },
     stageLabel: {
-        rotation: number,
-        spacing: positiveNumber,
-        minSpacing: positiveNumber,
         placement: union('before', 'after'),
-        avoidCollisions: boolean,
-        itemStyler: callbackDefs<AgBaseAxisLabelStyleOptions>({
-            ...fontOptionsDef,
-            spacing: number,
-        }),
-        ...seriesLabelOptionsDefs,
+        format: numberFormatValidator,
+        ...commonAxisLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -243,16 +237,9 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
         ...lineDashOptionsDef,
     },
     stageLabel: {
-        rotation: number,
-        spacing: positiveNumber,
-        minSpacing: positiveNumber,
         placement: union('before', 'after'),
-        avoidCollisions: boolean,
-        itemStyler: callbackDefs<AgBaseAxisLabelStyleOptions>({
-            ...fontOptionsDef,
-            spacing: number,
-        }),
-        ...seriesLabelOptionsDefs,
+        format: numberFormatValidator,
+        ...commonAxisLabelOptionsDefs,
     },
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,

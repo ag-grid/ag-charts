@@ -126,7 +126,7 @@ describe('RadarLineSeries', () => {
                 gradeB: 2 * (((i + 3) % 5) + 1),
             })),
             axes: [
-                { type: 'angle-category', label: { avoidCollisions: true, minSpacing: 2 } },
+                { type: 'angle-category', label: { collisionAvoidance: { enabled: true, minSpacing: 2 } } },
                 { type: 'radius-number' },
             ],
         };

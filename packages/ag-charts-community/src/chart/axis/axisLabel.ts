@@ -3,6 +3,7 @@ import type {
     AgAxisLabelStylerParams,
     AgBaseAxisLabelStyleOptions,
     AgTimeIntervalUnit,
+    AgLabelCollisionAvoidance,
     DateFormatterStyle,
     FontStyle,
     FontWeight,
@@ -14,6 +15,8 @@ import type {
 import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
+import { ProxyProperty } from '../../util/proxy';
+import { intervalStep, intervalUnit } from '../../util/time';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { FormatManager } from '../formatter/formatManager';
 
@@ -24,6 +27,17 @@ interface FormatterCache {
     mergedFormat: string | Record<string, string>;
     unit: AgTimeIntervalUnit | undefined;
     formatter: ((value: any, fractionDigits?: number) => string) | undefined;
+}
+
+export class CollisionAvoidanceProperties extends BaseProperties implements AgLabelCollisionAvoidance {
+    @Property
+    enabled?: boolean;
+
+    @Property
+    minSpacing?: number;
+
+    @Property
+    strategies?: any[];
 }
 
 export class AxisLabel extends BaseProperties implements ChartAxisLabel {
@@ -49,12 +63,6 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     spacing: number = 5;
 
     /**
-     * Minimum gap in pixels between the axis labels before being removed to avoid collisions.
-     */
-    @Property
-    minSpacing?: number;
-
-    /**
      * The color of the labels.
      * Use `undefined` rather than `rgba(0, 0, 0, 0)` to make labels invisible.
      */
@@ -71,11 +79,20 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     @Property
     rotation?: number;
 
+    @Property
+    collisionAvoidance = new CollisionAvoidanceProperties();
+
     /**
      * Avoid axis label collision by automatically reducing the number of ticks displayed. If set to `false`, axis labels may collide.
      */
-    @Property
+    @ProxyProperty('collisionAvoidance.enabled')
     avoidCollisions: boolean = true;
+
+    /**
+     * Minimum gap in pixels between the axis labels before being removed to avoid collisions.
+     */
+    @ProxyProperty('collisionAvoidance.minSpacing')
+    minSpacing?: number;
 
     /**
      * By default, labels and ticks are positioned to the left of the axis line.

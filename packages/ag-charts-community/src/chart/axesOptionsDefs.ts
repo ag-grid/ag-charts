@@ -131,8 +131,13 @@ export const cartesianCrossLineOptionsDefs: OptionsDefs<AgCartesianCrossLineOpti
 export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     enabled: boolean,
     rotation: number,
-    avoidCollisions: boolean,
-    minSpacing: positiveNumber,
+    avoidCollisions: undocumented(boolean),
+    minSpacing: undocumented(positiveNumber),
+    collisionAvoidance: {
+        enabled: boolean,
+        minSpacing: positiveNumber,
+        strategies: arrayOf(defined),
+    },
     spacing: positiveNumber,
     formatter: callback,
     itemStyler: callbackDefs<AgBaseAxisLabelStyleOptions>({

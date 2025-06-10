@@ -160,14 +160,39 @@ export interface AgAxisLabelStylerParams<TContext = TContextDefault> extends AgB
     readonly context?: TContext;
 }
 
+export interface AgLabelCollisionAvoidanceTextWrapStrategy {}
+
+export interface AgLabelCollisionAvoidanceAutoRotateStrategy {}
+
+export type AgLabelCollisionAvoidanceStrategy =
+    | AgLabelCollisionAvoidanceTextWrapStrategy
+    | AgLabelCollisionAvoidanceAutoRotateStrategy;
+
+export interface AgLabelCollisionAvoidance {
+    /** Set to `false` to disable axis labels collision detection. */
+    enabled?: boolean;
+    /** Collision avoidance strategies to apply in case labels collision was detected. */
+    strategies?: AgLabelCollisionAvoidanceStrategy[];
+    /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */
+    minSpacing?: PixelSize;
+}
+
 export interface AgBaseAxisLabelOptions<TContext = TContextDefault> extends AgBaseAxisLabelStyleOptions {
     /** Set to `false` to hide the axis labels. */
     enabled?: boolean;
     /** The rotation of the axis labels in degrees. Note: for integrated charts the default is 335 degrees, unless the axis shows grouped or default categories (indexes). The first row of labels in a grouped category axis is rotated perpendicular to the axis line. */
     rotation?: Degree;
-    /** Avoid axis label collision by automatically reducing the number of ticks displayed. If set to `false`, axis labels may collide. */
+    /** Options for avoiding axis label collision. */
+    collisionAvoidance?: AgLabelCollisionAvoidance;
+    /**
+     * Avoid axis label collision by automatically reducing the number of ticks displayed. If set to `false`, axis labels may collide.
+     * @deprecated
+     */
     avoidCollisions?: boolean;
-    /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */
+    /**
+     * Minimum gap in pixels between the axis labels before being removed to avoid collisions.
+     * @deprecated
+     */
     minSpacing?: PixelSize;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
     formatter?: Formatter<AgAxisLabelFormatterParams<TContext>>;

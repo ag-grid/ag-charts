@@ -200,7 +200,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
         const font = { fontFamily, fontSize, fontStyle, fontWeight };
         const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
-        const checkLabelOverlap = label.enabled && label.avoidCollisions;
+        const checkLabelOverlap = label.enabled && label.collisionAvoidance.enabled;
 
         const initialRotation = configuredRotation + defaultRotation;
         const labelMatrix = new Matrix();
@@ -330,7 +330,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const { scale, label, interval } = this.axis;
         const { minSpacing } = interval;
         const continuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
-        const avoidLabelCollisions = label.enabled && label.avoidCollisions;
+        const avoidLabelCollisions = label.enabled && label.collisionAvoidance.enabled;
         const filterTicks = !continuous && iteration !== 0 && avoidLabelCollisions;
         const autoRotate = label.autoRotate === true && label.rotation === undefined;
 
