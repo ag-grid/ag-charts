@@ -149,7 +149,7 @@ export { BASE_FONT_SIZE, FONT_SIZE, FONT_SIZE_RATIO } from './chart/themes/const
 export { type DefaultColors } from './chart/themes/defaultColors';
 export { ChartUpdateType } from './chart/chartUpdateType';
 export { type MementoOriginator } from './api/state/memento';
-export { isDenseInterval, range, tickFormat } from './util/ticks';
+export { isDenseInterval, range, tickFormat, estimateTickCount } from './util/ticks';
 export { Color } from './util/color';
 export { Debug } from './util/debug';
 export { isContinuous } from './util/value';

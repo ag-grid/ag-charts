@@ -634,61 +634,49 @@ export abstract class Axis<
         const { formatManager } = moduleCtx;
         const primaryLabel = primary ? this.primaryLabel : undefined;
 
-        const formatParams = this.tickFormatParams(domain, ticks, inputFractionDigits, inputTimeInterval);
+        const tickFormatParams = this.tickFormatParams(domain, ticks, inputFractionDigits, inputTimeInterval);
         const boundSeries = this.getFormatterBoundSeries();
 
+        let fractionDigits: number | undefined;
+        let timeInterval: TimeInterval | undefined;
+        let includeYear = false;
+        if (tickFormatParams.type === 'number') {
+            fractionDigits = tickFormatParams.fractionDigits;
+        } else if (tickFormatParams.type === 'date') {
+            const { unit, step, epoch } = tickFormatParams;
+            timeInterval = { unit, step, epoch };
+            includeYear = tickFormatParams.includeYear ?? false;
+        }
+
+        const f = this.callWithContext.bind(this);
+
+        const params: FormatDatumParams = {
+            datum: undefined,
+            seriesId: undefined,
+            key: undefined,
+            source: 'axis',
+            property: this.direction,
+            domain,
+            boundSeries,
+        };
+
+        const currentLabel = primaryLabel ?? label;
+        const specifier = primary ? label.format : undefined;
+
+        const options = {
+            specifier: FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
+            includeYear,
+        };
+
         return (value: any, index: number): string => {
-            let fractionDigits: number | undefined;
-            let timeInterval: TimeInterval | undefined;
-            let includeYear = false;
-            if (formatParams.type === 'number') {
-                fractionDigits = formatParams.fractionDigits;
-            } else if (formatParams.type === 'date') {
-                const { unit, step, epoch } = formatParams;
-                timeInterval = { unit, step, epoch };
-                includeYear = formatParams.includeYear ?? false;
-            }
-
-            const f = this.callWithContext.bind(this);
-            const currentLabel = primaryLabel ?? label;
-            const specifier = primary ? label.format : undefined;
-            const labelValue = currentLabel.formatValue(
-                f,
-                formatParams.type,
-                value,
-                index,
-                domain,
-                boundSeries,
-                fractionDigits,
-                timeInterval,
-                specifier,
-                dateStyle,
-                { includeYear }
-            );
-            if (labelValue != null) return labelValue;
-
-            const params: FormatDatumParams = {
-                datum: undefined,
-                seriesId: undefined,
-                key: undefined,
-                source: 'axis',
-                property: this.direction,
-                domain,
-                boundSeries,
-            };
-
-            const datumFormatParams = this.datumFormatParams(value, params, fractionDigits, timeInterval, dateStyle);
+            const formatParams = this.datumFormatParams(value, params, fractionDigits, timeInterval, dateStyle);
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
-            datumFormatParams.value = value;
-
-            const options = {
-                specifier: FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
-                includeYear,
-            };
+            formatParams.value = value;
 
             return (
-                formatManager.format(f, datumFormatParams, options) ??
-                formatManager.defaultFormat(datumFormatParams, options)
+                currentLabel.formatValue(f, formatParams, index, { specifier, dateStyle, includeYear }) ??
+                formatManager.format(f, formatParams, options) ??
+                formatManager.defaultFormat(formatParams, options)
             );
         };
     }
@@ -756,18 +744,12 @@ export abstract class Axis<
             'long'
         );
         const { type, value } = formatParams;
-        const fractionDigits = formatParams.type === 'number' ? formatParams.fractionDigits : undefined;
-        let timeInterval: TimeInterval | undefined;
-        if (formatParams.type === 'date') {
-            const { unit, step, epoch } = formatParams;
-            timeInterval = unit ? { unit, step, epoch } : undefined;
-        }
 
         const f = formatInContext;
         const result =
             label?.formatValue(f, type, value, params) ??
             formatManager.format(f, formatParams) ??
-            this.label.formatValue(f, type, value, NaN, domain, boundSeries, fractionDigits, timeInterval) ??
+            this.label.formatValue(f, formatParams, NaN) ??
             formatManager.defaultFormat(formatParams);
 
         return String(result);
