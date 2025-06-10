@@ -7,7 +7,7 @@ import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlig
 
 export interface AgMapShapeSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
-        AgMapShapeSeriesOptionsKeys,
+        AgMapShapeSeriesOptionsKeys<TDatum>,
         AgMapShapeSeriesOptionsNames,
         AgMapShapeSeriesStyle {}
 
@@ -15,19 +15,20 @@ export type AgMapShapeSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & F
 
 export type AgMapShapeSeriesStyle = FillOptions & StrokeOptions & LineDashOptions;
 
-export type AgMapShapeSeriesLabelFormatterParams = AgMapShapeSeriesOptionsKeys & AgMapShapeSeriesOptionsNames;
+export type AgMapShapeSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgMapShapeSeriesOptionsKeys<TDatum> &
+    AgMapShapeSeriesOptionsNames;
 
 export type AgMapShapeSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
-    AgMapShapeSeriesOptionsKeys &
+    AgMapShapeSeriesOptionsKeys<TDatum> &
     Required<AgMapShapeSeriesStyle>;
 
-export interface AgMapShapeSeriesOptionsKeys {
+export interface AgMapShapeSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The name of the node key containing the id value. */
-    idKey?: string;
+    idKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the segment colour. */
-    colorKey?: string;
+    colorKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve values from the data to use as labels inside shapes. */
-    labelKey?: string;
+    labelKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgMapShapeSeriesOptionsNames {
@@ -39,13 +40,13 @@ export interface AgMapShapeSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgMapShapeSeriesThemeableOptions<TDatum = TDatumDefault>
+export interface AgMapShapeSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgMapShapeSeriesStyle,
-        Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
+        Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
     /** Configuration for the labels shown inside the shape. */
-    label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams>;
+    label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams<TDatum>>;
     /** Distance between the shape edges and the text. */
     padding?: PixelSize;
     /** Series-specific tooltip configuration. */
@@ -58,9 +59,9 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = TDatumDefault>
 
 export interface AgMapShapeSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
-        AgMapShapeSeriesOptionsKeys,
+        AgMapShapeSeriesOptionsKeys<TDatum>,
         AgMapShapeSeriesOptionsNames,
-        AgMapShapeSeriesThemeableOptions<TDatum> {
+        AgMapShapeSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Map Shape Series. */
     type: 'map-shape';
     /** GeoJSON data. */

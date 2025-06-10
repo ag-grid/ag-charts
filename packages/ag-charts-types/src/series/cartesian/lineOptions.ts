@@ -1,10 +1,15 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { TContextDefault, TDatumDefault } from '../../chart/types';
+import type { Opacity, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
+import type {
+    AgBaseCartesianThemeableOptions,
+    AgBaseSeriesOptions,
+    AgHighlightStyleOptions,
+    AgMultiSeriesHighlightOptions,
+} from '../seriesOptions';
 import type {
     AgCartesianSeriesTooltipRendererParams,
     AgErrorBoundSeriesTooltipRendererParams,
@@ -13,39 +18,47 @@ import type { LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgLineSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends AgCartesianSeriesTooltipRendererParams<TDatum>,
-        AgErrorBoundSeriesTooltipRendererParams,
+        AgErrorBoundSeriesTooltipRendererParams<TDatum>,
         AgSeriesMarkerStyle {}
 
-export type AgLineSeriesLabelFormatterParams = AgLineSeriesOptionsKeys & AgLineSeriesOptionsNames;
+export type AgLineSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgLineSeriesOptionsKeys<TDatum> &
+    AgLineSeriesOptionsNames;
 
-export interface AgLineSeriesThemeableOptions<TDatum = TDatumDefault>
+export interface AgLineSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends StrokeOptions,
         LineDashOptions,
-        AgBaseCartesianThemeableOptions<TDatum> {
+        Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
     /** Configuration for the markers used in the series. */
-    marker?: AgSeriesMarkerOptions<TDatum, AgLineSeriesMarkerItemStylerParams>;
+    marker?: AgSeriesMarkerOptions<TDatum, AgLineSeriesMarkerItemStylerParams<TDatum>>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgChartLabelOptions<TDatum, AgLineSeriesLabelFormatterParams>;
+    label?: AgChartLabelOptions<TDatum, AgLineSeriesLabelFormatterParams<TDatum>>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgLineSeriesTooltipRendererParams<TDatum>>;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgLineHighlightStyleOptions>;
 }
 
-export interface AgLineSeriesOptionsKeys {
+export interface AgLineHighlightStyleOptions extends StrokeOptions {
+    /** The opacity of the whole series (area line, area fill, labels and markers, if any) */
+    opacity?: Opacity;
+}
+
+export interface AgLineSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve y-values from the data. */
-    yKey: string;
+    yKey: TDatum extends object ? keyof TDatum & string : string;
 }
 
-export interface AgLineSeriesMarkerItemStylerParams extends AgLineSeriesOptionsKeys {
+export interface AgLineSeriesMarkerItemStylerParams<TDatum = TDatumDefault> extends AgLineSeriesOptionsKeys<TDatum> {
     /** The x value of the datum. */
     xValue: any;
     /** The y value of the datum. */
@@ -70,10 +83,10 @@ export interface AgLineSeriesOptionsNames {
 }
 
 export interface AgLineSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgLineSeriesOptionsKeys,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgLineSeriesOptionsKeys<TDatum>,
         AgLineSeriesOptionsNames,
-        AgLineSeriesThemeableOptions<TDatum> {
+        AgLineSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Line Series. */
     type: 'line';
     /** Configuration for the Error Bars. */

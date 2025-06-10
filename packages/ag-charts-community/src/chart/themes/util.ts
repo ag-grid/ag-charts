@@ -1,5 +1,10 @@
 import type { RequiredInternalAgImageFill, RequiredInternalAgPatternColor } from 'ag-charts-core';
-import type { AgCartesianChartOptions, WithThemeParams } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgHighlightStyleOptions,
+    AgMultiSeriesHighlightOptions,
+    WithThemeParams,
+} from 'ag-charts-types';
 
 import { Color } from '../../util/color';
 import { mapValues } from '../../util/object';
@@ -12,7 +17,7 @@ export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]
         type: CARTESIAN_AXIS_TYPE.NUMBER,
         position: {
             $if: [
-                { $eq: [{ $path: ['/direction', undefined] }, 'horizontal'] },
+                { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] },
                 CARTESIAN_POSITION.BOTTOM,
                 CARTESIAN_POSITION.LEFT,
             ],
@@ -22,7 +27,7 @@ export const DIRECTION_SWAP_AXES: WithThemeParams<[CartesianAxis, CartesianAxis]
         type: CARTESIAN_AXIS_TYPE.CATEGORY,
         position: {
             $if: [
-                { $eq: [{ $path: ['/direction', undefined] }, 'horizontal'] },
+                { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] },
                 CARTESIAN_POSITION.LEFT,
                 CARTESIAN_POSITION.BOTTOM,
             ],
@@ -65,7 +70,7 @@ export const SAFE_STROKE_FILL_OPERATION: any = {
         {
             $if: [
                 { $isPattern: [{ $palette: 'fill' }] },
-                { $path: ['./stroke', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
+                { $path: ['/stroke', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
                 { $palette: 'fill' },
             ],
         },
@@ -99,7 +104,7 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
             {
                 $if: [
                     { $isPattern: [{ $palette: 'fill' }] },
-                    { $path: ['./fill', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
+                    { $path: ['/fill', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
                     { $palette: 'fill' },
                 ],
             },
@@ -130,3 +135,20 @@ export function getSequentialColors(colors: { [key: string]: string }) {
         return [Color.darken(color, 0.15).toString(), value, Color.lighten(color, 0.15).toString()];
     });
 }
+
+export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
+    highlightedItem: {
+        fill: { $path: ['../../highlightStyle/item/fill', `rgba(255,255,255, 0.33)`] },
+        stroke: { $path: ['../../highlightStyle/item/stroke', `rgba(0, 0, 0, 0.4)`] },
+        strokeWidth: { $path: ['../../highlightStyle/item/strokeWidth', 2] },
+        fillOpacity: { $path: ['../../highlightStyle/item/fillOpacity', undefined] },
+        strokeOpacity: { $path: ['../../highlightStyle/item/strokeOpacity', undefined] },
+        opacity: { $path: ['../../highlightStyle/item/opacity', 1] },
+    },
+    highlightedSeries: {
+        strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
+    },
+    unHighlightedSeries: {
+        opacity: { $path: ['../../highlightStyle/series/dimOpacity', undefined] },
+    },
+};

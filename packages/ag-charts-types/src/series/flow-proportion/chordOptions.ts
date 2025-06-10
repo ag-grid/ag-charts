@@ -9,7 +9,7 @@ export interface AgChordSeriesOptions<TDatum = TDatumDefault, TContext = TContex
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgChordSeriesOptionsKeys,
         AgChordSeriesOptionsNames,
-        AgChordSeriesThemeableOptions<TDatum> {
+        AgChordSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Chord Series. */
     type: 'chord';
 }
@@ -29,7 +29,8 @@ export interface AgChordSeriesNodeItemStylerParams<TDatum>
     size: number;
 }
 
-export interface AgChordSeriesThemeableOptions<TDatum = TDatumDefault> extends AgBaseSeriesThemeableOptions<TDatum> {
+export interface AgChordSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Options for the label for each node. */
     label?: AgChordSeriesLabelOptions<TDatum>;
     /** The colours to cycle through for the fills of the nodes and links. */

@@ -9,7 +9,7 @@ export interface AgSankeySeriesOptions<TDatum = TDatumDefault, TContext = TConte
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames,
-        AgSankeySeriesThemeableOptions<TDatum> {
+        AgSankeySeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Sankey Series. */
     type: 'sankey';
 }
@@ -29,7 +29,8 @@ export interface AgSankeySeriesNodeItemStylerParams<TDatum>
     size: number;
 }
 
-export interface AgSankeySeriesThemeableOptions<TDatum = TDatumDefault> extends AgBaseSeriesThemeableOptions<TDatum> {
+export interface AgSankeySeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Options for the label for each node. */
     label?: AgSankeySeriesLabelOptions<TDatum>;
     /** The colours to cycle through for the fills of the nodes and links. */

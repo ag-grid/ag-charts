@@ -1,4 +1,10 @@
-export function getData() {
+export interface DataType {
+    date: Date;
+    petrol: number;
+    diesel: number;
+}
+
+export function getData(): DataType[] {
     return [
         { date: new Date(2019, 0, 7), petrol: 120.27, diesel: 130.33 },
         { date: new Date(2019, 0, 14), petrol: 119.53, diesel: 129.47 },

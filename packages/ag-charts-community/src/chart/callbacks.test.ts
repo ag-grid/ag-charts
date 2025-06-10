@@ -32,7 +32,7 @@ describe('AG-13024 API context', () => {
     type TFreezable<TMock extends MockAPICallback<TDatum, TContext>> = ReturnType<typeof newFreezable<TMock>>;
 
     let chart: Chart;
-    let options: AgCartesianChartOptionsWithContext;
+    let options: AgCartesianChartOptionsWithContext<TDatum, unknown>;
     let seriesContext0: TContext;
     let seriesContext1: TContext;
     let seriesContext2: TContext;

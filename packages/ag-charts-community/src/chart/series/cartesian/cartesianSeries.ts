@@ -7,7 +7,7 @@ import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { LogScale } from '../../../scale/logScale';
 import type { Scale } from '../../../scale/scale';
-import { TimeScale } from '../../../scale/timeScale';
+import { UnitTimeScale } from '../../../scale/unitTimeScale';
 import { BBox } from '../../../scene/bbox';
 import { Group, TranslatableGroup } from '../../../scene/group';
 import type { Node, NodeWithOpacity } from '../../../scene/node';
@@ -21,8 +21,8 @@ import { findMinMax } from '../../../util/number';
 import { Property } from '../../../util/properties';
 import { StateMachine } from '../../../util/stateMachine';
 import { CategoryAxis } from '../../axis/categoryAxis';
-import { ContinuousTimeAxis } from '../../axis/continuousTimeAxis';
 import { NumberAxis } from '../../axis/numberAxis';
+import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -504,12 +504,10 @@ export abstract class CartesianSeries<
         const { dataNodeGroup, markerGroup, datumSelection, labelSelection, markerSelection, paths, labelGroup } = this;
         const { itemId } = this.contextNodeData ?? {};
 
-        dataNodeGroup.opacity = opacity;
         dataNodeGroup.visible = animationEnabled || visible;
         labelGroup.visible = visible;
 
         if (hasMarkers) {
-            markerGroup.opacity = opacity;
             markerGroup.visible = visible;
         }
 
@@ -531,7 +529,10 @@ export abstract class CartesianSeries<
         }
 
         const strokeWidthChangesOnHighlight = this.properties.highlightStyle.series.strokeWidth != null;
-        if (nodeRefresh || strokeWidthChangesOnHighlight) {
+        const { highlight: { unHighlightedItem, highlightedSeries, unHighlightedSeries } = {} } = this.properties;
+        const changesOnHighlight =
+            unHighlightedItem != null || highlightedSeries != null || unHighlightedSeries != null;
+        if (nodeRefresh || strokeWidthChangesOnHighlight || changesOnHighlight) {
             this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false });
             if (!this.usesPlacedLabels) {
                 this.updateLabelNodes({ labelSelection });
@@ -1181,7 +1182,7 @@ export abstract class CartesianSeries<
                 range: [range[0], range[1]],
             };
         } else if (scale instanceof BandScale) {
-            const domain = scale instanceof TimeScale ? scale.bands : scale.domain;
+            const domain = scale instanceof UnitTimeScale ? scale.bands : scale.domain;
 
             return {
                 type: 'category',
@@ -1213,7 +1214,7 @@ function axisExtent(axis: ChartAxis): [number | Date, number | Date] | undefined
     let min: number | Date | undefined;
     let max: number | Date | undefined;
 
-    if (axis instanceof NumberAxis || axis instanceof ContinuousTimeAxis) {
+    if (axis instanceof NumberAxis || axis instanceof TimeAxis) {
         ({ min, max } = axis);
     }
 

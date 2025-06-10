@@ -13,6 +13,7 @@ import { TextWrapper } from '../util/textWrapper';
 import type { BoundedTextWidget } from '../widget/boundedTextWidget';
 import type { MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
+import { FONT_SIZE } from './themes/constants';
 
 export class Caption extends BaseProperties implements CaptionLike {
     static readonly SMALL_PADDING = 10;
@@ -45,7 +46,7 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     @Property
     @ProxyPropertyOnWrite('node')
-    fontSize: number = 10;
+    fontSize: number = FONT_SIZE.SMALLER;
 
     @Property
     @ProxyPropertyOnWrite('node')

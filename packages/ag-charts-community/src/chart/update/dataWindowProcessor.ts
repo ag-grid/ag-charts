@@ -85,7 +85,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     }
 
     private getValidAxis() {
-        return this.chart.axes.find((axis) => axis.type === 'continuous-time');
+        return this.chart.axes.find((axis) => axis.type === 'time');
     }
 
     private shouldRefresh(event: UpdateCompleteEvent, axis: AxisLike, zoom: ZoomState) {

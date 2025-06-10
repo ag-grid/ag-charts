@@ -4,11 +4,9 @@ import type { DateFormatterStyle, FormatterParams, TimeInterval, TimeIntervalUni
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import { extent } from '../../util/extent';
-import { objectsEqual } from '../../util/object';
-import { Property } from '../../util/properties';
-import { BaseProperties } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
+import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { intervalEpoch, intervalFloor, intervalMilliseconds, intervalStep, intervalUnit } from '../../util/time';
-import { buildDateFormatter } from '../../util/timeFormat';
 import {
     domainSpansMultipleYears,
     lowestGranularityForInterval,
@@ -17,13 +15,11 @@ import {
 } from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
 import type { ChartAxisDirection } from '../chartAxisDirection';
-import { labelSpecifier } from '../label';
 import type { ISeries } from '../series/seriesTypes';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
-import { CategoryAxis } from './categoryAxis';
-import { deriveTimeSpecifier } from './timeFormatUtil';
+import { CartesianAxis } from './cartesianAxis';
 
 export class TimeAxisParentLevel extends BaseProperties {
     @Property
@@ -36,9 +32,9 @@ export class TimeAxisParentLevel extends BaseProperties {
     readonly tick = new AxisTick();
 }
 
-export class TimeAxis extends CategoryAxis<TimeScale> {
-    static override readonly className = 'TimeAxis' as const;
-    static override readonly type = 'time' as const;
+export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
+    static readonly className = 'TimeAxis';
+    static readonly type = 'time' as const;
 
     @Property
     readonly parentLevel = new TimeAxisParentLevel();
@@ -49,9 +45,23 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
     @Property
     max?: Date | number = undefined;
 
-    @Property
     // eslint-disable-next-line sonarjs/use-type-alias
-    unit: TimeInterval | TimeIntervalUnit | undefined = undefined;
+    get _unit(): TimeInterval | TimeIntervalUnit | undefined {
+        return undefined;
+    }
+    set _unit(_unit: TimeInterval | TimeIntervalUnit | undefined) {
+        Logger.warnOnce(`To use 'unit', use an axis with type 'unit-time' instead of 'time'.`);
+    }
+
+    @Property
+    @ProxyPropertyOnWrite('_unit')
+    unit: TimeInterval | TimeIntervalUnit | undefined;
+
+    private minGranularity: TimeIntervalUnit | undefined = undefined;
+
+    constructor(moduleCtx: ModuleContext) {
+        super(moduleCtx, new TimeScale());
+    }
 
     override get primaryLabel(): AxisLabel | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
@@ -61,66 +71,15 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
         return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
     }
 
-    constructor(moduleCtx: ModuleContext) {
-        super(moduleCtx, new TimeScale());
+    override normaliseDataDomain(d: Date[]) {
+        return normaliseTimeDataDomain(d, this.min, this.max);
     }
-
-    private defaultUnit: TimeInterval | TimeIntervalUnit | undefined = undefined;
 
     override processData(): void {
         super.processData();
 
-        let defaultUnit: TimeInterval | TimeIntervalUnit | undefined;
-
-        const { domain } = this.dataDomain;
-        if (domain.length === 2 && domain[0].valueOf() === domain[1].valueOf()) {
-            defaultUnit = lowestGranularityUnitForValue(domain[0]);
-        } else {
-            const { boundSeries, direction, min, max } = this;
-            defaultUnit = calculateDefaultUnit(boundSeries, direction, min, max);
-        }
-
-        if (!objectsEqual(this.defaultUnit, defaultUnit)) {
-            this.defaultUnit = defaultUnit;
-        }
-    }
-
-    protected override updateScale(): void {
-        const {
-            scale,
-            unit,
-            defaultUnit,
-            dataDomain: { domain },
-        } = this;
-        super.updateScale();
-
-        if (unit == null) {
-            scale.interval = defaultUnit;
-        } else if (TimeScale.supportsInterval(domain, unit)) {
-            scale.interval = unit;
-        } else {
-            Logger.warnOnce(`the configured unit results in too many bands, ignoring. Supply a larger unit.`);
-            scale.interval = defaultUnit;
-        }
-    }
-
-    override normaliseDataDomain(domain: Date[]) {
-        return normaliseTimeDataDomain(domain, this.min, this.max);
-    }
-
-    protected override createDatumFormatter(
-        _domain: any[],
-        _ticks: any[]
-    ): ((value: any) => string | undefined) | undefined {
-        const timeInterval = this.scale.interval;
-        const { format } = this.label;
-        if (format == null) return;
-        const specifier = labelSpecifier(
-            timeInterval != null ? deriveTimeSpecifier(format, intervalUnit(timeInterval)) : format,
-            timeInterval
-        );
-        if (specifier == null) return;
-        return buildDateFormatter(specifier);
+        const { boundSeries, direction, min, max } = this;
+        this.minGranularity = minimumTimeAxisDatumGranularity(boundSeries, direction, min, max);
     }
 
     override tickFormatParams(
@@ -138,23 +97,31 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
     }
 
     override datumFormatParams(
-        value: Date | number,
+        value: number | Date,
         params: FormatDatumParams,
         _fractionDigits: number | undefined,
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
-        const interval = this.scale.interval ?? 'millisecond';
-
-        value = intervalFloor(interval, value); // Align to scale
         if (typeof value === 'number') value = new Date(value);
-        timeInterval ??= interval;
+
+        if (timeInterval == null) {
+            const { minGranularity } = this;
+            const datumGranularity = lowestGranularityUnitForValue(value);
+            if (
+                minGranularity != null &&
+                intervalMilliseconds(minGranularity) < intervalMilliseconds(datumGranularity)
+            ) {
+                timeInterval = minGranularity;
+            } else {
+                timeInterval = datumGranularity;
+            }
+        }
 
         const { datum, seriesId, key, source, property, domain, boundSeries } = params;
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
         const epoch = intervalEpoch(timeInterval);
-
         return {
             type: 'date',
             value,
@@ -173,33 +140,22 @@ export class TimeAxis extends CategoryAxis<TimeScale> {
     }
 }
 
-// eslint-disable-next-line sonarjs/use-type-alias
-export function normaliseTimeDataDomain(d: Date[], min: Date | number | undefined, max: Date | number | undefined) {
-    let clipped = false;
+export function minimumTimeAxisDatumGranularity(
+    boundSeries: ISeries<unknown, unknown, unknown, unknown>[],
+    direction: ChartAxisDirection,
+    // eslint-disable-next-line sonarjs/use-type-alias
+    min: Date | number | undefined,
+    max: Date | number | undefined
+) {
+    const minTimeInterval = boundSeries.reduce((t, series) => {
+        return Math.min(series.minTimeInterval() ?? Infinity, t);
+    }, Infinity);
 
-    if (typeof min === 'number') {
-        min = new Date(min);
+    if (Number.isFinite(minTimeInterval)) {
+        return lowestGranularityForInterval(minTimeInterval);
+    } else {
+        return calculateDefaultUnit(boundSeries, direction, min, max)?.unit;
     }
-    if (typeof max === 'number') {
-        max = new Date(max);
-    }
-
-    if (d.length > 2) {
-        d = extent(d)?.map((x) => new Date(x)) ?? [];
-    }
-    if (min instanceof Date) {
-        clipped ||= min > d[0];
-        d = [min, d[1]];
-    }
-    if (max instanceof Date) {
-        clipped ||= max < d[1];
-        d = [d[0], max];
-    }
-    if (d[0] > d[1]) {
-        d = [];
-    }
-
-    return { domain: d, clipped };
 }
 
 export function calculateDefaultUnit(
@@ -274,4 +230,32 @@ function minNonZeroDifference(values: number[]): number {
     }
 
     return minDiff;
+}
+
+export function normaliseTimeDataDomain(d: Date[], min: Date | number | undefined, max: Date | number | undefined) {
+    let clipped = false;
+
+    if (typeof min === 'number') {
+        min = new Date(min);
+    }
+    if (typeof max === 'number') {
+        max = new Date(max);
+    }
+
+    if (d.length > 2) {
+        d = extent(d)?.map((x) => new Date(x)) ?? [];
+    }
+    if (min instanceof Date) {
+        clipped ||= min > d[0];
+        d = [min, d[1]];
+    }
+    if (max instanceof Date) {
+        clipped ||= max < d[1];
+        d = [d[0], max];
+    }
+    if (d[0] > d[1]) {
+        d = [];
+    }
+
+    return { domain: d, clipped };
 }

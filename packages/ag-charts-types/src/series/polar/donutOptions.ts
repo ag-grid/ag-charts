@@ -29,8 +29,8 @@ export interface AgDonutSeriesSectorLabelOptions<TDatum, TParams> extends AgChar
     positionRatio?: Ratio;
 }
 
-export type AgDonutSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
-    AgDonutSeriesOptionsKeys &
+export type AgDonutSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+    AgDonutSeriesOptionsKeys<TDatum> &
     Required<AgDonutSeriesStyle>;
 
 export interface AgDonutSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
@@ -72,15 +72,15 @@ export interface AgDonutInnerCircle {
     fillOpacity?: Opacity;
 }
 
-export interface AgDonutSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum>,
+export interface AgDonutSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
         LineDashOptions {
     /** Configuration for the series title. */
     title?: AgDonutTitleOptions;
     /** Configuration for the labels used outside the sectors. */
-    calloutLabel?: AgDonutSeriesLabelOptions<TDatum, AgDonutSeriesLabelFormatterParams>;
+    calloutLabel?: AgDonutSeriesLabelOptions<TDatum, AgDonutSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the labels used inside the sectors. */
-    sectorLabel?: AgDonutSeriesSectorLabelOptions<TDatum, AgDonutSeriesLabelFormatterParams>;
+    sectorLabel?: AgDonutSeriesSectorLabelOptions<TDatum, AgDonutSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the callout lines used with the labels for the sectors. */
     calloutLine?: AgDonutSeriesCalloutOptions;
     /** The colours to cycle through for the fills of the sectors. */
@@ -130,8 +130,8 @@ export interface AgDonutSeriesThemeableOptions<TDatum = TDatumDefault>
 }
 
 export interface AgDonutSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgDonutSeriesThemeableOptions<TDatum>, 'innerLabels'>,
-        AgDonutSeriesOptionsKeys,
+    extends Omit<AgDonutSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
+        AgDonutSeriesOptionsKeys<TDatum>,
         AgDonutSeriesOptionsNames,
         AgBaseSeriesOptions<TDatum, TContext> {
     /** Configuration for Donut Series. */
@@ -140,17 +140,17 @@ export interface AgDonutSeriesOptions<TDatum = TDatumDefault, TContext = TContex
     innerLabels?: AgDonutInnerLabel[];
 }
 
-export interface AgDonutSeriesOptionsKeys {
+export interface AgDonutSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve angle values from the data. */
-    angleKey: string;
+    angleKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve radius values from the data. */
-    radiusKey?: string;
+    radiusKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve label values from the data. */
-    calloutLabelKey?: string;
+    calloutLabelKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve sector label values from the data. */
-    sectorLabelKey?: string;
+    sectorLabelKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve legend item labels from the data. If multiple series share this key they will be merged in the legend. */
-    legendItemKey?: string;
+    legendItemKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgDonutSeriesOptionsNames {
@@ -166,10 +166,11 @@ export interface AgDonutSeriesOptionsNames {
 
 export interface AgDonutSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
-        AgDonutSeriesOptionsKeys,
+        AgDonutSeriesOptionsKeys<TDatum>,
         AgDonutSeriesOptionsNames,
         FillOptions,
         StrokeOptions,
         LineDashOptions {}
 
-export type AgDonutSeriesLabelFormatterParams = AgDonutSeriesOptionsKeys & AgDonutSeriesOptionsNames;
+export type AgDonutSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgDonutSeriesOptionsKeys<TDatum> &
+    AgDonutSeriesOptionsNames;

@@ -8,7 +8,10 @@ import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './c
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuCallback = _ModuleSupport.ContextMenuCallback<AgContextMenuItemShowOn>;
 
-const { Property, ContextMenuRegistry } = _ModuleSupport;
+const { Property, ContextMenuRegistry, callWithContext } = _ModuleSupport;
+
+type UnknownSeries = _ModuleSupport.ISeries<unknown, unknown, _ModuleSupport.SeriesProperties<object>, unknown>;
+type Caller = { context?: unknown } | undefined;
 
 const moduleId = 'context-menu';
 
@@ -234,7 +237,12 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 const event: Event = widgetEvent.sourceEvent;
                 if (this.pickedLegendItem) {
                     const { seriesId, itemId, label } = this.pickedLegendItem;
-                    callback({ type: 'contextmenu', seriesId, itemId, text: label.text, event });
+                    const { chartService: chart } = this.ctx;
+
+                    const series: UnknownSeries | undefined = chart.series.find((s) => s.id === seriesId);
+                    const callers: Caller[] = [series?.properties, chart];
+                    const apiEvent = { type: 'contextmenu', seriesId, itemId, text: label.text, event } as const;
+                    callWithContext(callers, callback, apiEvent);
                     this.hide();
                 } else {
                     Logger.error('legend item not found');
@@ -242,16 +250,21 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             };
         } else if (ContextMenuRegistry.checkCallback('series-area', showOn, callback)) {
             return () => {
-                callback({ type: 'seriesContextMenuAction', event: this.showEvent! });
+                const caller: Caller = this.ctx.chartService;
+                const apiEvent = { type: 'seriesContextMenuAction', event: this.showEvent! } as const;
+                callWithContext(caller, callback, apiEvent);
                 this.hide();
             };
         } else if (ContextMenuRegistry.checkCallback('series-node', showOn, callback)) {
             return () => {
-                const { pickedNode, showEvent } = this;
-                const event = pickedNode?.series.createNodeContextMenuActionEvent(showEvent!, pickedNode);
+                const { showEvent } = this;
+                const { chartService: chart } = this.ctx;
 
-                if (event) {
-                    callback(event);
+                const pickedNode: undefined | { series: UnknownSeries } = this.pickedNode;
+                const callers: Caller[] = [pickedNode?.series.properties, chart];
+                const apiEvent = pickedNode?.series.createNodeContextMenuActionEvent(showEvent!, pickedNode);
+                if (apiEvent) {
+                    callWithContext(callers, callback, apiEvent);
                 } else {
                     Logger.error('series node not found');
                 }
@@ -259,7 +272,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             };
         }
         return () => {
-            callback({ type: 'contextMenuEvent', event: this.showEvent! });
+            const caller: Caller = this.ctx.chartService;
+            const apiEvent = { type: 'contextMenuEvent', event: this.showEvent! } as const;
+            callWithContext(caller, callback, apiEvent);
             this.hide();
         };
     }

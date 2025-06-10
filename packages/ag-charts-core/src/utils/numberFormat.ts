@@ -195,7 +195,21 @@ function absFloor(n: number) {
 }
 
 function removeTrailingZeros(numString: string) {
-    return numString.replace(/\.0+$/, '').replace(/(\.[1-9])0+$/, '$1');
+    if (!numString.endsWith('0') || numString.indexOf('.') === -1) return numString;
+
+    let endIndex = numString.length - 1;
+    while (endIndex > 0) {
+        if (numString[endIndex] == '0') {
+            endIndex -= 1;
+        } else if (numString[endIndex] == '.') {
+            endIndex -= 1;
+            break;
+        } else {
+            break;
+        }
+    }
+
+    return numString.substring(0, endIndex + 1);
 }
 
 function insertSeparator(numString: string, separator: string) {

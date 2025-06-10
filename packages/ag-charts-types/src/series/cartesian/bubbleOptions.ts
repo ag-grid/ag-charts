@@ -3,19 +3,26 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { LabelPlacement, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
+import type {
+    AgBaseCartesianThemeableOptions,
+    AgBaseSeriesOptions,
+    AgHighlightStyleOptions,
+    AgMultiSeriesHighlightOptions,
+} from '../seriesOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
 
 export interface AgBubbleSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends AgSeriesTooltipRendererParams<TDatum>,
-        AgBubbleSeriesOptionsKeys,
+        AgBubbleSeriesOptionsKeys<TDatum>,
         AgBubbleSeriesOptionsNames,
         FillOptions,
         StrokeOptions {}
 
-export type AgBubbleSeriesLabelFormatterParams = AgBubbleSeriesOptionsKeys & AgBubbleSeriesOptionsNames;
+export type AgBubbleSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgBubbleSeriesOptionsKeys<TDatum> &
+    AgBubbleSeriesOptionsNames;
 
-export interface AgBubbleSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum, AgBubbleSeriesLabelFormatterParams> {
+export interface AgBubbleSeriesLabel<TDatum>
+    extends AgChartLabelOptions<TDatum, AgBubbleSeriesLabelFormatterParams<TDatum>> {
     /**
      * Placement of label in relation to the marker.
      *
@@ -26,13 +33,13 @@ export interface AgBubbleSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum,
 
 export interface AgBubbleSeriesStyle extends AgSeriesMarkerStyle {}
 
-export type BubbleSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
-    AgBubbleSeriesOptionsKeys &
+export type BubbleSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+    AgBubbleSeriesOptionsKeys<TDatum> &
     Required<AgBubbleSeriesStyle>;
 
-export interface AgBubbleSeriesThemeableOptions<TDatum = TDatumDefault>
+export interface AgBubbleSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBubbleSeriesStyle,
-        AgBaseCartesianThemeableOptions<TDatum> {
+        AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
     domain?: [number, number];
     /** Determines the smallest size a marker can be in pixels. */
@@ -47,17 +54,19 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = TDatumDefault>
     tooltip?: AgSeriesTooltip<AgBubbleSeriesTooltipRendererParams<TDatum>>;
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<BubbleSeriesItemStylerParams<TDatum>, AgBubbleSeriesStyle>;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
-export interface AgBubbleSeriesOptionsKeys {
+export interface AgBubbleSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve y-values from the data. */
-    yKey: string;
+    yKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve size values from the data, used to control the size of the markers. */
-    sizeKey: string;
+    sizeKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
-    labelKey?: string;
+    labelKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgBubbleSeriesOptionsNames {
@@ -72,9 +81,9 @@ export interface AgBubbleSeriesOptionsNames {
 }
 
 export interface AgBubbleSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgBubbleSeriesThemeableOptions<TDatum>,
-        AgBubbleSeriesOptionsKeys,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBubbleSeriesThemeableOptions<TDatum, TContext>,
+        AgBubbleSeriesOptionsKeys<TDatum>,
         AgBubbleSeriesOptionsNames {
     /** Configuration for Bubble Series. */
     type: 'bubble';

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ContinuousTimeScale should create ticks with configured milliseconds interval for every 2 days case 1`] = `
+exports[`TimeScale should create ticks with configured milliseconds interval for every 2 days case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -19,7 +19,7 @@ exports[`ContinuousTimeScale should create ticks with configured milliseconds in
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured milliseconds interval for every 3 weeks case 1`] = `
+exports[`TimeScale should create ticks with configured milliseconds interval for every 3 weeks case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -35,7 +35,7 @@ exports[`ContinuousTimeScale should create ticks with configured milliseconds in
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured milliseconds interval for every half day case 1`] = `
+exports[`TimeScale should create ticks with configured milliseconds interval for every half day case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -72,7 +72,7 @@ exports[`ContinuousTimeScale should create ticks with configured milliseconds in
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured milliseconds interval for every hour case 1`] = `
+exports[`TimeScale should create ticks with configured milliseconds interval for every hour case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -89,7 +89,7 @@ exports[`ContinuousTimeScale should create ticks with configured milliseconds in
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured milliseconds interval for every minute case 1`] = `
+exports[`TimeScale should create ticks with configured milliseconds interval for every minute case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -158,7 +158,7 @@ exports[`ContinuousTimeScale should create ticks with configured milliseconds in
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured milliseconds interval for every month case 1`] = `
+exports[`TimeScale should create ticks with configured milliseconds interval for every month case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -179,7 +179,7 @@ exports[`ContinuousTimeScale should create ticks with configured milliseconds in
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured milliseconds interval for every two months case 1`] = `
+exports[`TimeScale should create ticks with configured milliseconds interval for every two months case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -194,7 +194,7 @@ exports[`ContinuousTimeScale should create ticks with configured milliseconds in
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured milliseconds interval for every year case 1`] = `
+exports[`TimeScale should create ticks with configured milliseconds interval for every year case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -205,7 +205,7 @@ exports[`ContinuousTimeScale should create ticks with configured milliseconds in
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured milliseconds interval for every year, negative milliseconds case 1`] = `
+exports[`TimeScale should create ticks with configured milliseconds interval for every year, negative milliseconds case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -216,7 +216,7 @@ exports[`ContinuousTimeScale should create ticks with configured milliseconds in
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured time interval for every 3 days case 1`] = `
+exports[`TimeScale should create ticks with configured time interval for every 3 days case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -231,7 +231,7 @@ exports[`ContinuousTimeScale should create ticks with configured time interval f
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured time interval for every 6 months case 1`] = `
+exports[`TimeScale should create ticks with configured time interval for every 6 months case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -244,7 +244,7 @@ exports[`ContinuousTimeScale should create ticks with configured time interval f
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured time interval for every day case 1`] = `
+exports[`TimeScale should create ticks with configured time interval for every day case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -267,7 +267,7 @@ exports[`ContinuousTimeScale should create ticks with configured time interval f
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured time interval for every hour case 1`] = `
+exports[`TimeScale should create ticks with configured time interval for every hour case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -284,7 +284,7 @@ exports[`ContinuousTimeScale should create ticks with configured time interval f
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured time interval for every minute case 1`] = `
+exports[`TimeScale should create ticks with configured time interval for every minute case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -353,7 +353,7 @@ exports[`ContinuousTimeScale should create ticks with configured time interval f
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured time interval for every month case 1`] = `
+exports[`TimeScale should create ticks with configured time interval for every month case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -368,7 +368,7 @@ exports[`ContinuousTimeScale should create ticks with configured time interval f
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured time interval for every two months case 1`] = `
+exports[`TimeScale should create ticks with configured time interval for every two months case 1`] = `
 {
   "count": undefined,
   "ticks": [
@@ -383,7 +383,7 @@ exports[`ContinuousTimeScale should create ticks with configured time interval f
 }
 `;
 
-exports[`ContinuousTimeScale should create ticks with configured time interval for every year case 1`] = `
+exports[`TimeScale should create ticks with configured time interval for every year case 1`] = `
 {
   "count": undefined,
   "ticks": [

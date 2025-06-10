@@ -1,6 +1,8 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-const options: AgChartOptions = {
+import { DataType, getData } from './data';
+
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Average low/high temperatures in London',
@@ -8,11 +10,7 @@ const options: AgChartOptions = {
     subtitle: {
         text: '(click a data point for details)',
     },
-    data: [
-        { month: 'March', low: 3.9, high: 11.3 },
-        { month: 'April', low: 5.5, high: 14.2 },
-        { month: 'May', low: 8.7, high: 17.9 },
-    ],
+    data: getData(),
     series: [
         {
             type: 'line',
@@ -39,14 +37,14 @@ const options: AgChartOptions = {
         enabled: false,
     },
     listeners: {
-        seriesNodeClick: ({ datum, xKey, yKey, seriesId }) => {
-            console.log(`[click]\nTemperature in ${datum[xKey!]}: ${String(datum[yKey!])}°C\nSeries: ${seriesId}`);
+        seriesNodeClick: ({ datum, yKey, seriesId }) => {
+            console.log(`[click]\nTemperature in ${datum.month}: ${String(datum[yKey!])}°C\nSeries: ${seriesId}`);
         },
-        seriesNodeDoubleClick: ({ datum, xKey, yKey, seriesId }) => {
+        seriesNodeDoubleClick: ({ datum, yKey, seriesId }) => {
             const celsius = Number(datum[yKey!]);
             const fahrenheit = (celsius * 9) / 5 + 32;
             console.log(
-                `[double click]\nTemperature in ${datum[xKey!]}: ${fahrenheit.toFixed(2)}°F\nSeries: ${seriesId}`
+                `[double click]\nTemperature in ${datum.month}: ${fahrenheit.toFixed(2)}°F\nSeries: ${seriesId}`
             );
         },
     },

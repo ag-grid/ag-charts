@@ -1,6 +1,8 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-const options: AgChartOptions = {
+import { DataType, getData } from './data';
+
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Number of Cars Sold',
@@ -8,19 +10,15 @@ const options: AgChartOptions = {
     subtitle: {
         text: '(click a column for details)',
     },
-    data: [
-        { month: 'March', units: 25, brands: { BMW: 10, Toyota: 15 } },
-        { month: 'April', units: 27, brands: { Ford: 17, BMW: 10 } },
-        { month: 'May', units: 42, brands: { Nissan: 20, Toyota: 22 } },
-    ],
+    data: getData(),
     series: [
         {
             type: 'bar',
             xKey: 'month',
             yKey: 'units',
             listeners: {
-                seriesNodeClick: (event: any) => console.log(makeMessage('[click]', event, event.datum)),
-                seriesNodeDoubleClick: (event: any) => console.log(makeMessage('[double click]', event, event.datum)),
+                seriesNodeClick: (event) => console.log(makeMessage('[click]', event.datum)),
+                seriesNodeDoubleClick: (event) => console.log(makeMessage('[double click]', event.datum)),
             },
         },
     ],
@@ -38,10 +36,10 @@ const options: AgChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function makeMessage(header: string, event: any, datum: any) {
-    const brands = datum['brands'];
-    const buffer: string[] = [header, '\nCars sold in ', datum[event.xKey], ': ', String(datum[event.yKey]), '\n'];
-    for (var key in brands) {
+function makeMessage(header: string, datum: DataType) {
+    const { brands, month, units } = datum;
+    const buffer: string[] = [header, '\nCars sold in ', month, ': ', String(units), '\n'];
+    for (const key in brands) {
         buffer.push(key, ': ', String(brands[key]), '\n');
     }
     return buffer.join('');

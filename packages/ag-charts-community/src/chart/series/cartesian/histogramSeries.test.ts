@@ -32,7 +32,7 @@ const EXAMPLES: Record<string, TestCase> = {
     HISTOGRAM_DATE_BASED_BUCKETS: {
         options: HISTOGRAM_DATE_BASED_BUCKETS,
         enterprise: true,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'continuous-time'], seriesTypes: ['histogram'] }),
+        assertions: cartesianChartAssertions({ axisTypes: ['number', 'time'], seriesTypes: ['histogram'] }),
     },
 };
 

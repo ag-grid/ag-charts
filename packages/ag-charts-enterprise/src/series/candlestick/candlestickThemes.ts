@@ -35,9 +35,9 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
                     },
                     {
                         $map: [
-                            { $path: ['./color', undefined, { $value: '$1' }] },
+                            { $path: ['/color', undefined, { $value: '$1' }] },
                             {
-                                $path: ['./colorStops', undefined, { $palette: `${key}.fill` }],
+                                $path: ['/colorStops', undefined, { $palette: `${key}.fill` }],
                             },
                         ],
                     },

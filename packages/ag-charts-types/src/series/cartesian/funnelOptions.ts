@@ -1,4 +1,4 @@
-import type { AgFormattableLabelOptions } from '../../chart/axisOptions';
+import type { AgNumericAxisFormattableLabelOptions } from '../../chart/axisOptions';
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
@@ -9,22 +9,22 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 
 export interface AgFunnelSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {}
 
-export interface AgFunnelSeriesStageLabelOptions extends AgFormattableLabelOptions {
+export interface AgFunnelSeriesStageLabelOptions extends AgNumericAxisFormattableLabelOptions {
     /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
 }
 
 export interface AgFunnelSeriesItemStylerParams<TDatum>
     extends DatumCallbackParams<TDatum>,
-        AgFunnelSeriesOptionsKeys,
+        AgFunnelSeriesOptionsKeys<TDatum>,
         Required<AgFunnelSeriesStyle> {}
 
 export interface AgFunnelSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgFunnelSeriesLabelFormatterParams extends AgFunnelSeriesOptionsKeys {}
+export interface AgFunnelSeriesLabelFormatterParams<TDatum = TDatumDefault> extends AgFunnelSeriesOptionsKeys<TDatum> {}
 
 export interface AgFunnelSeriesTooltipRendererParams<TDatum = TDatumDefault>
-    extends AgFunnelSeriesOptionsKeys,
+    extends AgFunnelSeriesOptionsKeys<TDatum>,
         AgFunnelSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum>,
         AgFunnelSeriesStyle {}
@@ -34,8 +34,8 @@ export interface AgFunnelSeriesDropOff extends FillOptions, StrokeOptions, LineD
     enabled?: boolean;
 }
 
-export interface AgFunnelSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
+export interface AgFunnelSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>,
         LineDashOptions {
     /** The colours to cycle through for the fills of the bars. */
     fills?: CssColor[];
@@ -56,7 +56,7 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = TDatumDefault>
     /** Align bars to whole pixel values to remove anti-aliasing. */
     crisp?: boolean;
     /** Configuration for the labels shown on bars. */
-    label?: AgFunnelSeriesLabelOptions<TDatum, AgFunnelSeriesLabelFormatterParams>;
+    label?: AgFunnelSeriesLabelOptions<TDatum, AgFunnelSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the stage labels. */
     stageLabel?: AgFunnelSeriesStageLabelOptions;
     /** Configuration for the shadow used behind the series items. */
@@ -67,20 +67,20 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = TDatumDefault>
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<TDatum>, AgFunnelSeriesStyle>;
 }
 
-export interface AgFunnelSeriesOptionsKeys {
+export interface AgFunnelSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve stage values from the data. */
-    stageKey: string;
+    stageKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve values from the data. */
-    valueKey: string;
+    valueKey: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgFunnelSeriesOptionsNames {}
 
 export interface AgFunnelSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgFunnelSeriesOptionsKeys,
+        AgFunnelSeriesOptionsKeys<TDatum>,
         AgFunnelSeriesOptionsNames,
-        AgFunnelSeriesThemeableOptions<TDatum> {
+        AgFunnelSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Funnel Series. */
     type: 'funnel';
 }

@@ -13,7 +13,7 @@ interface FormatterCache {
     formatter: ((value: any, fractionDigits?: number) => string) | undefined;
 }
 
-export class CrosshairLabelProperties extends _ModuleSupport.ChangeDetectableProperties {
+export class CrosshairLabelProperties extends BaseProperties implements _ModuleSupport.AxisFormattableLabel<any> {
     @Property
     enabled: boolean = true;
 
@@ -52,24 +52,8 @@ export class CrosshairLabelProperties extends _ModuleSupport.ChangeDetectablePro
     }
 }
 
-export class CrosshairLabel extends BaseProperties {
+export class CrosshairLabel extends CrosshairLabelProperties {
     private readonly id = createId(this);
-
-    @Property
-    enabled: boolean = true;
-
-    @Property
-    xOffset: number = 0;
-
-    @Property
-    yOffset: number = 0;
-
-    @Property
-    format?: string;
-
-    @Property
-    renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult = undefined;
-
     private readonly element: HTMLElement;
 
     constructor(

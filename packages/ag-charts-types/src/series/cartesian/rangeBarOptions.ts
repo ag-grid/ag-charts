@@ -6,8 +6,8 @@ import type { PixelSize, TContextDefault, TDatumDefault } from '../../chart/type
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export type AgRangeBarSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
-    AgRangeBarSeriesOptionsKeys &
+export type AgRangeBarSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+    AgRangeBarSeriesOptionsKeys<TDatum> &
     Required<AgRangeBarSeriesStyle>;
 
 export interface AgRangeBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
@@ -15,13 +15,13 @@ export interface AgRangeBarSeriesStyle extends FillOptions, StrokeOptions, LineD
     cornerRadius?: PixelSize;
 }
 
-export type AgRangeBarSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
-    AgRangeBarSeriesOptionsKeys &
+export type AgRangeBarSeriesTooltipRendererParams<TDatum = TDatumDefault> = AgSeriesTooltipRendererParams<TDatum> &
+    AgRangeBarSeriesOptionsKeys<TDatum> &
     AgRangeBarSeriesOptionsNames &
     AgRangeBarSeriesStyle;
 
 export interface AgRangeBarSeriesLabelOptions<TDatum>
-    extends AgChartLabelOptions<TDatum, AgRangeBarSeriesLabelFormatterParams> {
+    extends AgChartLabelOptions<TDatum, AgRangeBarSeriesLabelFormatterParams<TDatum>> {
     /** Where to render series labels relative to the bars. */
     placement?: AgRangeBarSeriesLabelPlacement;
     /** Padding in pixels between the label and the edge of the bar. */
@@ -30,8 +30,8 @@ export interface AgRangeBarSeriesLabelOptions<TDatum>
 
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 
-export interface AgRangeBarSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum>,
+export interface AgRangeBarSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
         AgRangeBarSeriesStyle {
     /**
      * Bar rendering direction.
@@ -51,15 +51,16 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = TDatumDefault>
     itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum>, AgRangeBarSeriesStyle>;
 }
 
-export type AgRangeBarSeriesLabelFormatterParams = AgRangeBarSeriesOptionsKeys & AgRangeBarSeriesOptionsNames;
+export type AgRangeBarSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgRangeBarSeriesOptionsKeys<TDatum> &
+    AgRangeBarSeriesOptionsNames;
 
-export interface AgRangeBarSeriesOptionsKeys {
+export interface AgRangeBarSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve y-low-values from the data. */
-    yLowKey: string;
+    yLowKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve y-high-values from the data. */
-    yHighKey: string;
+    yHighKey: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgRangeBarSeriesOptionsNames {
@@ -74,9 +75,9 @@ export interface AgRangeBarSeriesOptionsNames {
 }
 
 export interface AgRangeBarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgRangeBarSeriesOptionsKeys,
+    extends AgRangeBarSeriesOptionsKeys<TDatum>,
         AgRangeBarSeriesOptionsNames,
-        AgRangeBarSeriesThemeableOptions<TDatum>,
+        AgRangeBarSeriesThemeableOptions<TDatum, TContext>,
         AgBaseSeriesOptions<TDatum, TContext> {
     /** Configuration for the Range Bar Series. */
     type: 'range-bar';

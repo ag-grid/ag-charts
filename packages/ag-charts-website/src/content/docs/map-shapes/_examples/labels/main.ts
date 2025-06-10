@@ -1,9 +1,9 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { data } from './data';
+import { DataType, data } from './data';
 import { topology } from './topology';
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'GDP by State',

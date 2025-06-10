@@ -42,7 +42,7 @@ const options: AgChartOptions<DataType> = {
     axes: [
         {
             position: 'bottom',
-            type: 'time',
+            type: 'unit-time',
             title: {
                 text: 'Date',
             },

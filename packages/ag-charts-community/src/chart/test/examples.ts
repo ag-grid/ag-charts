@@ -2139,7 +2139,7 @@ export const AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions 
 export const AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_TIME_MISSING_X,
     axes: [
-        { type: 'time', position: 'bottom' },
+        { type: 'unit-time', position: 'bottom' },
         { type: 'number', position: 'left' },
     ],
     series: [
@@ -2185,7 +2185,7 @@ export const STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChart
 export const STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_TIME_MISSING_X,
     axes: [
-        { type: 'time', position: 'bottom' },
+        { type: 'unit-time', position: 'bottom' },
         { type: 'number', position: 'left' },
     ],
     series: [
@@ -2507,7 +2507,7 @@ export const NORMALISED_STACKED_AREA: AgCartesianChartOptions = {
 export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
         },
         {
@@ -2543,7 +2543,7 @@ export const LINE_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions = {
             position: 'bottom',
         },
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'left',
         },
     ],
@@ -2614,7 +2614,7 @@ export const LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions 
 export const LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_TIME_MISSING_X,
     axes: [
-        { type: 'time', position: 'bottom' },
+        { type: 'unit-time', position: 'bottom' },
         { type: 'number', position: 'left' },
     ],
     series: [
@@ -2704,7 +2704,7 @@ export const LINE_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions = {
 export const AREA_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
         },
         {
@@ -2746,7 +2746,7 @@ export const AREA_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions = {
             position: 'bottom',
         },
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'left',
         },
     ],
@@ -2894,7 +2894,7 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_LABELS: AgCartesianChartOptions = {
     },
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             label: {
                 format: '%Y',
@@ -2926,7 +2926,7 @@ export const LINE_TIME_X_AXIS_POSITION_TOP_NUMBER_Y_AXIS_LABELS: AgCartesianChar
     },
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'top',
             label: {
                 format: '%Y',
@@ -2958,7 +2958,7 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_POSITION_RIGHT_LABELS: AgCartesianCh
     },
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             label: {
                 format: '%Y',
@@ -3080,7 +3080,7 @@ export const COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     ],
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
         },
         {
@@ -3942,7 +3942,7 @@ export const BAR_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
     ],
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'left',
         },
         {
@@ -3993,7 +3993,7 @@ export const COLUMN_SINGLE_DATE_CATEGORY_AXIS: AgCartesianChartOptions = {
 export const COLUMN_SINGLE_DATE_TIME_AXIS: AgCartesianChartOptions = {
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
         },
         {

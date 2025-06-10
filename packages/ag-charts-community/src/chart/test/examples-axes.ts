@@ -60,7 +60,7 @@ export const TIME_AXIS_BASIC_EXAMPLE: AgCartesianChartOptions = {
     data: data.DATA_YOUTUBE_VIDEOS_STATS_BY_DATE,
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             label: { format: '%b %d' },
             interval: { step: { unit: 'day', step: 7 } },
@@ -82,7 +82,7 @@ export const TIME_AXIS_MIN_MAX_DATE_EXAMPLE: AgCartesianChartOptions = {
     ...TIME_AXIS_BASIC_EXAMPLE,
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             min: new Date(2022, 1, 15, 0, 0, 0),
             max: new Date(2022, 2, 15, 0, 0, 0),
@@ -97,7 +97,7 @@ export const TIME_AXIS_MIN_MAX_NUMBER_EXAMPLE: AgCartesianChartOptions = {
     ...TIME_AXIS_MIN_MAX_DATE_EXAMPLE,
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             min: new Date(2022, 1, 15, 0, 0, 0).getTime(),
             max: new Date(2022, 2, 15, 0, 0, 0).getTime(),
@@ -194,7 +194,7 @@ export const TIME_AXIS_TICK_VALUES: AgCartesianChartOptions = {
     ...examples.ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS,
     axes: [
         {
-            type: 'continuous-time',
+            type: 'time',
             position: 'bottom',
             interval: {
                 values: [new Date(2020, 0, 1), new Date(2020, 0, 4), new Date(2020, 0, 17), new Date(2020, 0, 28)],
@@ -246,7 +246,7 @@ export const AXIS_TICK_MIN_SPACING: AgCartesianChartOptions = {
     ...examples.ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS,
     axes: [
         {
-            type: 'continuous-time',
+            type: 'time',
             position: 'bottom',
             interval: { minSpacing: 200 },
         },
@@ -297,7 +297,7 @@ export const TIME_AXIS_NO_SERIES_FIXED_DOMAIN: AgCartesianChartOptions = {
     axes: TIME_AXIS_NO_SERIES.axes?.map((a) => {
         if (a.position === 'left' && a.type === 'number') {
             return { ...a, min: 2.4, max: 4.7 };
-        } else if (a.position === 'bottom' && a.type === 'continuous-time') {
+        } else if (a.position === 'bottom' && (a.type === 'time' || a.type === 'unit-time')) {
             return {
                 ...a,
                 min: new Date('2020-01-01T00:25:35.920Z'),

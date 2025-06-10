@@ -4,25 +4,32 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { LabelPlacement, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
+import type {
+    AgBaseCartesianThemeableOptions,
+    AgBaseSeriesOptions,
+    AgHighlightStyleOptions,
+    AgMultiSeriesHighlightOptions,
+} from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
 
 export interface AgScatterSeriesTooltipRendererParams<TDatum = TDatumDefault>
     extends AgSeriesTooltipRendererParams<TDatum>,
-        AgScatterSeriesOptionsKeys,
+        AgScatterSeriesOptionsKeys<TDatum>,
         AgScatterSeriesOptionsNames,
-        AgErrorBoundSeriesTooltipRendererParams,
+        AgErrorBoundSeriesTooltipRendererParams<TDatum>,
         FillOptions,
         StrokeOptions {}
 
-export type AgScatterSeriesLabelFormatterParams = AgScatterSeriesOptionsKeys & AgScatterSeriesOptionsNames;
+export type AgScatterSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgScatterSeriesOptionsKeys<TDatum> &
+    AgScatterSeriesOptionsNames;
 
-export type AgScatterSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
-    AgScatterSeriesOptionsKeys &
+export type AgScatterSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+    AgScatterSeriesOptionsKeys<TDatum> &
     Required<AgSeriesMarkerStyle>;
 
-export interface AgScatterSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams> {
+export interface AgScatterSeriesLabel<TDatum>
+    extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams<TDatum>> {
     /**
      * Placement of label in relation to the marker.
      *
@@ -31,8 +38,8 @@ export interface AgScatterSeriesLabel<TDatum> extends AgChartLabelOptions<TDatum
     placement?: LabelPlacement;
 }
 
-export interface AgScatterSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum>,
+export interface AgScatterSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
         AgSeriesMarkerStyle {
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
@@ -44,15 +51,17 @@ export interface AgScatterSeriesThemeableOptions<TDatum = TDatumDefault>
     itemStyler?: Styler<AgScatterSeriesItemStylerParams<TDatum>, AgSeriesMarkerStyle>;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
-export interface AgScatterSeriesOptionsKeys {
+export interface AgScatterSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve y-values from the data. */
-    yKey: string;
+    yKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
-    labelKey?: string;
+    labelKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgScatterSeriesOptionsNames {
@@ -65,10 +74,10 @@ export interface AgScatterSeriesOptionsNames {
 }
 
 export interface AgScatterSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgScatterSeriesOptionsKeys,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgScatterSeriesOptionsKeys<TDatum>,
         AgScatterSeriesOptionsNames,
-        AgScatterSeriesThemeableOptions<TDatum> {
+        AgScatterSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Scatter Series. */
     type: 'scatter';
     /** Configuration for the Error Bars. */

@@ -4,21 +4,21 @@ import type { DateFormatterStyle, FormatterParams, TimeInterval, TimeIntervalUni
 import type { ModuleContext } from '../../module/moduleContext';
 import { CategoryScale } from '../../scale/categoryScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import type { TimeScale } from '../../scale/timeScale';
+import type { UnitTimeScale } from '../../scale/unitTimeScale';
 import { Property } from '../../util/properties';
 import type { FormatDatumParams } from '../chartAxis';
 import type { AxisTickFormatParams } from './axis';
 import { CartesianAxis } from './cartesianAxis';
 
 export class CategoryAxis<
-    S extends CategoryScale<string | object> | TimeScale | OrdinalTimeScale = CategoryScale<string | object>,
+    S extends CategoryScale<string | object> | UnitTimeScale | OrdinalTimeScale = CategoryScale<string | object>,
 > extends CartesianAxis<S> {
     static override is(this: void, value: unknown): value is CategoryAxis<any> {
         return value instanceof CategoryAxis;
     }
 
     static readonly className: string = 'CategoryAxis';
-    static readonly type: 'category' | 'grouped-category' | 'time' | 'ordinal-time' = 'category';
+    static readonly type: 'category' | 'grouped-category' | 'unit-time' | 'ordinal-time' = 'category';
 
     constructor(moduleCtx: ModuleContext, scale = new CategoryScale<string | object>() as S) {
         super(moduleCtx, scale);

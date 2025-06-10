@@ -1,5 +1,12 @@
 // Source: https://simplemaps.com/data/world-cities
-export function getData(): any[] {
+export interface DataType {
+    city: string;
+    lat: number;
+    lon: number;
+    population: number;
+}
+
+export function getData(): DataType[] {
     return [
         { city: 'Tokyo, Japan', lat: 35.685, lon: 139.7514, population: 35676000 },
         { city: 'New York, United States', lat: 40.6943, lon: -73.9249, population: 19354922 },

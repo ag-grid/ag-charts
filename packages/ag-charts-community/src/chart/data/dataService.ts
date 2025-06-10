@@ -1,18 +1,15 @@
 import { Logger, throttle } from 'ag-charts-core';
+import type { AgDataSourceCallbackParams } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
 import { Debug } from '../../util/debug';
 import { ActionOnSet } from '../../util/proxy';
 import type { AnimationManager } from '../interaction/animationManager';
 
-interface DataSourceCallbackParams {
-    windowStart?: Date;
-    windowEnd?: Date;
-}
-type DataSourceCallback = (params: DataSourceCallbackParams) => Promise<unknown>;
+type DataSourceCallback = (params: AgDataSourceCallbackParams<unknown>) => Promise<unknown>;
 
 export interface DataServiceRestoredData {
-    params: DataSourceCallbackParams;
+    params: AgDataSourceCallbackParams;
     data: unknown;
 }
 
@@ -36,7 +33,7 @@ export class DataService<D extends object> {
     private dataSourceCallback?: DataSourceCallback;
     private isLoadingInitialData = false;
     private isLoadingData = false;
-    private latestRequest: { params: DataSourceCallbackParams; fetchRequest: Promise<unknown> } | undefined = undefined;
+    private latestRequest?: { params: AgDataSourceCallbackParams; fetchRequest: Promise<unknown> };
     private freshRequests: Promise<unknown>[] = [];
     private requestCounter = 0;
 
@@ -49,6 +46,7 @@ export class DataService<D extends object> {
 
     constructor(
         private readonly eventsHub: EventsHub,
+        private readonly caller: { readonly context?: unknown },
         private readonly animationManager: AnimationManager
     ) {}
 
@@ -69,7 +67,7 @@ export class DataService<D extends object> {
         this.dataSourceCallback = undefined;
     }
 
-    public load(params: DataSourceCallbackParams) {
+    public load(params: AgDataSourceCallbackParams) {
         const { pendingData } = this;
 
         if (
@@ -112,7 +110,7 @@ export class DataService<D extends object> {
 
     private createThrottledFetch(requestThrottle: number) {
         return throttle(
-            (params: DataSourceCallbackParams) => this.fetch(params).catch((e) => Logger.error('callback failed', e)),
+            (params: AgDataSourceCallbackParams) => this.fetch(params).catch((e) => Logger.error('callback failed', e)),
             requestThrottle,
             { leading: false, trailing: true }
         );
@@ -130,7 +128,10 @@ export class DataService<D extends object> {
         this.eventsHub.emit('data:load', { data });
     }
 
-    private async fetch(params: DataSourceCallbackParams) {
+    private async fetch(params: AgDataSourceCallbackParams) {
+        if ('context' in this.caller) {
+            params.context = this.caller.context;
+        }
         const fetchRequest = Promise.resolve().then(async () => {
             if (!this.dataSourceCallback) {
                 throw new Error('DataService - [dataSource.getData] callback not initialised');

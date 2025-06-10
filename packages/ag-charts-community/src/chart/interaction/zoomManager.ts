@@ -25,7 +25,6 @@ import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
-import { callWithContext } from '../../util/callbackCache';
 import { deepClone } from '../../util/json';
 import { objectsEqual } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
@@ -104,7 +103,6 @@ export class ZoomManager extends BaseManager {
 
     constructor(
         private readonly eventsHub: EventsHub,
-        private readonly caller: { readonly context?: unknown },
         private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
     ) {
         super();
@@ -563,9 +561,7 @@ export class ZoomManager extends BaseManager {
         }
 
         this.eventsHub.emit('zoom:change', { ...this.getZoom(), axes, callerId });
-
-        const zoomEvent: AgZoomEvent = { type: 'zoom', ...this.getMementoRanges() };
-        callWithContext(this.caller, this.fireChartEvent<AgZoomEvent>, zoomEvent);
+        this.fireChartEvent<AgZoomEvent>({ type: 'zoom', ...this.getMementoRanges() });
     }
 
     private getRangeDirection(ratio: ZoomState, direction: ChartAxisDirection): AgZoomRange | undefined {

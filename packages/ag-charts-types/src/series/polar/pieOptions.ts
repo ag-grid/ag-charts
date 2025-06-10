@@ -29,8 +29,8 @@ export interface AgPieSeriesSectorLabelOptions<TDatum, TParams> extends AgChartL
     positionRatio?: Ratio;
 }
 
-export type AgPieSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
-    AgPieSeriesOptionsKeys &
+export type AgPieSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+    AgPieSeriesOptionsKeys<TDatum> &
     Required<AgPieSeriesStyle>;
 
 export interface AgPieSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
@@ -56,15 +56,15 @@ export interface AgPieSeriesCalloutOptions {
     strokeWidth?: PixelSize;
 }
 
-export interface AgPieSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum>,
+export interface AgPieSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
         LineDashOptions {
     /** Configuration for the series title. */
     title?: AgPieTitleOptions;
     /** Configuration for the labels used outside the sectors. */
-    calloutLabel?: AgPieSeriesLabelOptions<TDatum, AgPieSeriesLabelFormatterParams>;
+    calloutLabel?: AgPieSeriesLabelOptions<TDatum, AgPieSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the labels used inside the sectors. */
-    sectorLabel?: AgPieSeriesSectorLabelOptions<TDatum, AgPieSeriesLabelFormatterParams>;
+    sectorLabel?: AgPieSeriesSectorLabelOptions<TDatum, AgPieSeriesLabelFormatterParams<TDatum>>;
     /** Configuration for the callout lines used with the labels for the sectors. */
     calloutLine?: AgPieSeriesCalloutOptions;
     /** The colours to cycle through for the fills of the sectors. */
@@ -102,25 +102,25 @@ export interface AgPieSeriesThemeableOptions<TDatum = TDatumDefault>
 }
 
 export interface AgPieSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgPieSeriesThemeableOptions<TDatum>, 'innerLabels'>,
-        AgPieSeriesOptionsKeys,
+    extends Omit<AgPieSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
+        AgPieSeriesOptionsKeys<TDatum>,
         AgPieSeriesOptionsNames,
         AgBaseSeriesOptions<TDatum, TContext> {
     /** Configuration for Pie Series. */
     type: 'pie';
 }
 
-export interface AgPieSeriesOptionsKeys {
+export interface AgPieSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve angle values from the data. */
-    angleKey: string;
+    angleKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve radius values from the data. */
-    radiusKey?: string;
+    radiusKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve label values from the data. */
-    calloutLabelKey?: string;
+    calloutLabelKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve sector label values from the data. */
-    sectorLabelKey?: string;
+    sectorLabelKey?: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve legend item labels from the data. If multiple pie series share this key they will be merged in the legend. */
-    legendItemKey?: string;
+    legendItemKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgPieSeriesOptionsNames {
@@ -136,10 +136,11 @@ export interface AgPieSeriesOptionsNames {
 
 export interface AgPieSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
-        AgPieSeriesOptionsKeys,
+        AgPieSeriesOptionsKeys<TDatum>,
         AgPieSeriesOptionsNames,
         FillOptions,
         StrokeOptions,
         LineDashOptions {}
 
-export type AgPieSeriesLabelFormatterParams = AgPieSeriesOptionsKeys & AgPieSeriesOptionsNames;
+export type AgPieSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgPieSeriesOptionsKeys<TDatum> &
+    AgPieSeriesOptionsNames;

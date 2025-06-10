@@ -255,27 +255,30 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         markerSelection: Selection<Marker, ScatterNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight: highlighted } = opts;
-        const { xKey, yKey, labelKey, marker, highlightStyle } = this.properties;
-        const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle());
+        const { markerSelection, isHighlight } = opts;
+        const { xKey, yKey, labelKey, marker } = this.properties;
+        const markerStyle = marker.getStyle();
 
         const fillBBox = this.getShapeFillBBox();
 
         markerSelection.each((node, datum) => {
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+            const baseStyle = mergeDefaults(highlightStyle, markerStyle);
+
             this.updateMarkerStyle(
                 marker,
                 node,
                 datum.datum,
                 datum.point,
                 { xKey, yKey, labelKey },
-                highlighted,
+                isHighlight,
                 baseStyle,
                 fillBBox,
                 { selected: datum.selected }
             );
         });
 
-        if (!highlighted) {
+        if (!isHighlight) {
             marker.markClean();
         }
     }

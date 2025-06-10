@@ -20,8 +20,8 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/extent';
 import { mergeDefaults } from '../../../util/object';
 import { isContinuous } from '../../../util/value';
-import { ContinuousTimeAxis } from '../../axis/continuousTimeAxis';
 import { LogAxis } from '../../axis/logAxis';
+import { TimeAxis } from '../../axis/timeAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DatumPropertyDefinition } from '../../data/dataModel';
@@ -278,7 +278,7 @@ export class AreaSeries extends CartesianSeries<
 
         const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yValueCumulative'], 'xValue');
 
-        if (yAxis instanceof LogAxis || yAxis instanceof ContinuousTimeAxis) {
+        if (yAxis instanceof LogAxis || yAxis instanceof TimeAxis) {
             return fixNumericExtent(yExtent);
         } else {
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
@@ -569,24 +569,32 @@ export class AreaSeries extends CartesianSeries<
         const [fill, stroke] = opts.paths;
         const crossFiltering = this.contextNodeData?.crossFiltering === true;
 
-        const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
+        const {
+            strokeWidth,
+            stroke: strokeColor,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            fill: fillColor,
+            fillOpacity,
+        } = mergeDefaults(this.getHighlightStyle(), this.properties);
+
         stroke.setProperties({
             fill: undefined,
             lineCap: 'round',
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            stroke: this.properties.stroke,
+            stroke: strokeColor,
             strokeWidth,
-            strokeOpacity:
-                this.properties.strokeOpacity * (crossFiltering ? CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR : 1),
-            lineDash: this.properties.lineDash,
-            lineDashOffset: this.properties.lineDashOffset,
+            strokeOpacity: strokeOpacity * (crossFiltering ? CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR : 1),
+            lineDash,
+            lineDashOffset,
             opacity,
             visible: visible || animationEnabled,
         });
 
         const seriesFill = getShapeFill(
-            this.properties.fill,
+            fillColor,
             this.properties.fillGradientDefaults,
             this.properties.fillPatternDefaults,
             this.properties.fillImageDefaults
@@ -597,7 +605,7 @@ export class AreaSeries extends CartesianSeries<
             {
                 fill: seriesFill,
                 stroke: undefined,
-                fillOpacity: this.properties.fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
+                fillOpacity: fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
             },
             undefined,
             this.getShapeFillBBox()
@@ -671,36 +679,35 @@ export class AreaSeries extends CartesianSeries<
         markerSelection: Selection<Marker, MarkerSelectionDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight: highlighted } = opts;
-        const { xKey, yKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity, highlightStyle } =
-            this.properties;
+        const { markerSelection, isHighlight } = opts;
+        const { xKey, yKey, marker, stroke, strokeWidth, strokeOpacity } = this.properties;
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-        const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle(), {
-            fill,
-            stroke,
-            strokeWidth,
-            fillOpacity,
-            strokeOpacity,
-        });
 
         const fillBBox = this.getShapeFillBBox();
+        const markerStyle = marker.getStyle();
 
         markerSelection.each((node, datum) => {
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+            const baseStyle = mergeDefaults(highlightStyle, markerStyle, {
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            });
             this.updateMarkerStyle(
                 marker,
                 node,
                 datum.datum,
                 datum.point,
                 datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
-                highlighted,
+                isHighlight,
                 baseStyle,
                 fillBBox,
                 { selected: datum.selected }
             );
         });
 
-        if (!highlighted) {
+        if (!isHighlight) {
             this.properties.marker.markClean();
         }
     }

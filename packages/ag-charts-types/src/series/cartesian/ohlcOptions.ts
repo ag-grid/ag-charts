@@ -9,11 +9,11 @@ import type {
     AgOhlcSeriesBaseTooltipRendererParams,
 } from './ohlcBaseOptions';
 
-export type AgOhlcSeriesItemStylerParams<TDatum> = AgOhlcSeriesBaseItemStylerParams<TDatum>;
+export type AgOhlcSeriesItemStylerParams<TDatum = TDatumDefault> = AgOhlcSeriesBaseItemStylerParams<TDatum>;
 
 export interface AgOhlcSeriesTooltipRendererParams<TDatum>
     extends AgOhlcSeriesBaseTooltipRendererParams<TDatum>,
-        AgOhlcSeriesBaseOptions,
+        AgOhlcSeriesBaseOptions<TDatum>,
         AgOhlcSeriesItemOptions {}
 
 export type AgOhlcSeriesItemOptions = StrokeOptions & LineDashOptions;
@@ -30,8 +30,8 @@ export interface AgOhlcSeriesStyles {
     item?: AgOhlcSeriesItem;
 }
 
-export interface AgOhlcSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
+export interface AgOhlcSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>,
         AgOhlcSeriesStyles {
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgOhlcSeriesTooltipRendererParams<TDatum>>;
@@ -40,10 +40,10 @@ export interface AgOhlcSeriesThemeableOptions<TDatum = TDatumDefault>
 }
 
 export interface AgOhlcSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgOhlcSeriesThemeableOptions<TDatum>,
+    extends AgOhlcSeriesThemeableOptions<TDatum, TContext>,
         AgBaseSeriesOptions<TDatum, TContext>,
-        AgOhlcSeriesBaseOptions,
-        Omit<AxisOptions, 'yKey'> {
+        AgOhlcSeriesBaseOptions<TDatum>,
+        Omit<AxisOptions<TDatum>, 'yKey'> {
     /** Configuration for the OHLC Series. */
     type: 'ohlc';
 }

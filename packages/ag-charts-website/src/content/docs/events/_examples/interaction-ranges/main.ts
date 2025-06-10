@@ -1,29 +1,10 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
-let options: AgCartesianChartOptions = {
+import { DataType, getData } from './data';
+
+let options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
-    data: [
-        {
-            quarter: 'Q1',
-            petrol: 200,
-            diesel: 100,
-        },
-        {
-            quarter: 'Q2',
-            petrol: 300,
-            diesel: 130,
-        },
-        {
-            quarter: 'Q3',
-            petrol: 350,
-            diesel: 160,
-        },
-        {
-            quarter: 'Q4',
-            petrol: 400,
-            diesel: 200,
-        },
-    ],
+    data: getData(),
     series: [
         {
             type: 'line',
@@ -31,7 +12,7 @@ let options: AgCartesianChartOptions = {
             yKey: 'petrol',
             nodeClickRange: 'exact',
             listeners: {
-                seriesNodeClick: (event) => console.log(`${event.yKey} - ${event.datum.petrol}`),
+                seriesNodeClick: ({ datum }) => console.log(`petrol - ${datum.petrol}`),
             },
         },
         {
@@ -40,7 +21,7 @@ let options: AgCartesianChartOptions = {
             yKey: 'diesel',
             nodeClickRange: 'exact',
             listeners: {
-                seriesNodeClick: (event) => console.log(`${event.yKey} - ${event.datum.diesel}`),
+                seriesNodeClick: ({ datum }) => console.log(`diesel - ${datum.diesel}`),
             },
         },
     ],

@@ -3,8 +3,6 @@ export interface DataType {
     value: number;
 }
 
-export type DataNumberKey = keyof Omit<DataType, 'group'>;
-
 export function getData(): DataType[] {
     return [
         { group: 'Website Visitors', value: 15000 },

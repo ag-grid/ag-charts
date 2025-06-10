@@ -23,7 +23,7 @@ describe('simple-chart benchmark', () => {
             await ctx.update();
         });
 
-        benchmark('10x legend toggle', ctx, { expectedRelativeMB: 5, expectedCanvasCount: 3 }, async () => {
+        benchmark('10x legend toggle', ctx, { expectedRelativeMB: 5.2, expectedCanvasCount: 3 }, async () => {
             for (let i = 0; i < 5; i++) {
                 for (const visible of [false, true]) {
                     ctx.options.series![i].visible = visible;

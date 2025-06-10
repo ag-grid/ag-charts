@@ -1,6 +1,8 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-const options: AgChartOptions = {
+import { DataType, getData } from './data';
+
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Number of Cars Sold',
@@ -8,24 +10,19 @@ const options: AgChartOptions = {
     subtitle: {
         text: '(double click a column for details)',
     },
-    data: [
-        { month: 'March', units: 25, brands: { BMW: 10, Toyota: 15 } },
-        { month: 'April', units: 27, brands: { Ford: 17, BMW: 10 } },
-        { month: 'May', units: 42, brands: { Nissan: 20, Toyota: 22 } },
-    ],
+    data: getData(),
     series: [
         {
             type: 'bar',
             xKey: 'month',
             yKey: 'units',
             listeners: {
-                seriesNodeDoubleClick: (event: any) => {
-                    var datum = event.datum;
+                seriesNodeDoubleClick: ({ datum }) => {
                     console.log(
                         'Cars sold in ' +
-                            datum[event.xKey] +
+                            datum.month +
                             ': ' +
-                            String(datum[event.yKey]) +
+                            String(datum.units) +
                             '\n' +
                             listUnitsSoldByBrand(datum['brands'])
                     );

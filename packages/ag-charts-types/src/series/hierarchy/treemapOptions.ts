@@ -96,8 +96,8 @@ export interface AgTreemapSeriesHighlightStyle<TDatum> {
     tile?: AgTreemapSeriesTileHighlightStyle<TDatum>;
 }
 
-export interface AgTreemapSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
+export interface AgTreemapSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
     /** The colours to cycle through for the fills of the groups and tiles. */
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the groups and tiles. */
@@ -120,7 +120,7 @@ export interface AgTreemapSeriesOptions<TDatum = TDatumDefault, TContext = TCont
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesOptionsNames,
-        AgTreemapSeriesThemeableOptions<TDatum> {
+        AgTreemapSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Treemap Series. */
     type: 'treemap';
 }

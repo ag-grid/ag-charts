@@ -4,19 +4,19 @@ import type { PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../cha
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-interface BoxPlotOptionsKeys {
+interface BoxPlotOptionsKeys<TDatum = TDatumDefault> {
     /** The key used to retrieve x-values (categories) from the data. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve minimum values from the data. */
-    minKey: string;
+    minKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve lower quartile values from the data. */
-    q1Key: string;
+    q1Key: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve median values from the data. */
-    medianKey: string;
+    medianKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve upper quartile values from the data. */
-    q3Key: string;
+    q3Key: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve maximum values from the data. */
-    maxKey: string;
+    maxKey: TDatum extends object ? keyof TDatum & string : string;
 }
 
 interface BoxPlotOptionsNames {
@@ -42,12 +42,12 @@ export interface AgBoxPlotCapOptions {
 
 export type AgBoxPlotWhiskerOptions = StrokeOptions & LineDashOptions;
 
-export type AgBoxPlotSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
-    BoxPlotOptionsKeys &
+export type AgBoxPlotSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+    BoxPlotOptionsKeys<TDatum> &
     Required<AgBoxPlotSeriesStyle>;
 
 export interface AgBoxPlotSeriesTooltipRendererParams<TDatum>
-    extends BoxPlotOptionsKeys,
+    extends BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNames,
         AgSeriesTooltipRendererParams<TDatum>,
         AgBoxPlotSeriesStyle {}
@@ -61,8 +61,8 @@ export interface AgBoxPlotSeriesStyle extends FillOptions, StrokeOptions, LineDa
     whisker?: AgBoxPlotWhiskerOptions;
 }
 
-export interface AgBoxPlotSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum>,
+export interface AgBoxPlotSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
         AgBoxPlotSeriesStyle {
     /**
      * Bar rendering direction.
@@ -76,9 +76,9 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = TDatumDefault>
 }
 
 export interface AgBoxPlotSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBoxPlotSeriesThemeableOptions<TDatum>,
+    extends AgBoxPlotSeriesThemeableOptions<TDatum, TContext>,
         AgBaseSeriesOptions<TDatum, TContext>,
-        BoxPlotOptionsKeys,
+        BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNames {
     /** Configuration for the Box Plot Series. */
     type: 'box-plot';

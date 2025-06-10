@@ -115,30 +115,40 @@ describe('AG-14631 context enterprise', () => {
         annotationsListener.expect().toHaveBeenCalledTimes(1).withContext(context);
     });
 
-    // Skip unit test (not yet implemented)
-    xtest('dataSource', async () => {
-        type TDatum = unknown;
+    test('dataSource', async () => {
+        type TDatum = Readonly<{ x: string; y: number }>;
         type TContext = Readonly<{ name: string }>;
         type TMock = MockGetDataCallback<TDatum, TContext>;
-        const imp = (_params: AgDataSourceCallbackParams): Promise<unknown[]> => new Promise((_resolve) => []);
+        const promise = new Promise<TDatum[]>((_resolve) => [
+            { x: 'Jan', y: 62 },
+            { x: 'Feb', y: 45 },
+            { x: 'Mar', y: 38 },
+        ]);
+        const imp = (_params: AgDataSourceCallbackParams<TContext>): Promise<TDatum[]> => promise;
         const getDataCallback = newFreezableMock<TDatum, TContext, TMock>(imp);
         const chartContext: TContext = { name: 'chart context' };
         const seriesContext: TContext = { name: 'series context' };
         const opts: AgChartOptions<unknown, { name: string }> = {
-            dataSource: { getData: getDataCallback.frozen },
+            dataSource: {
+                // @ts-expect-error Set undocumented options to instantly resolve for tests
+                requestThrottle: 0,
+                updateThrottle: 0,
+                updateDuringInteraction: true,
+                getData: getDataCallback.frozen,
+            },
             context: chartContext,
             series: [{ type: 'line', xKey: 'x', yKey: 'y', context: seriesContext }],
             zoom: { enabled: true },
         };
 
         chart = await createChart(opts);
+        await clickAction(400, 300)(chart);
         expect(Object.isFrozen(chartContext)).toBe(false);
         expect(Object.isFrozen(seriesContext)).toBe(false);
         getDataCallback.expect().toHaveBeenCalledTimes(1).withContext(chartContext);
     });
 
-    // Skip unit test (not yet implemented)
-    xdescribe('clicks', () => {
+    describe('clicks', () => {
         type TDatum = Readonly<{ x: number; a: number; b: number; c: number }>;
         type TContext = Readonly<{ readonly name: string }>;
         type TFreezable<TMock extends MockAPICallback<TDatum, TContext>> = ReturnType<typeof newFreezable<TMock>>;
@@ -162,15 +172,19 @@ describe('AG-14631 context enterprise', () => {
         }
 
         beforeEach(async () => {
-            click = newFreezable((_p: AgChartClickEvent) => {});
-            doubleClick = newFreezable((_p: AgChartDoubleClickEvent) => {});
-            chartSeriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', TDatum>) => {});
-            chartSeriesNodeDoubleClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeDoubleClick', TDatum>) => {});
-            chartSeriesVisibilityChange = newFreezable((_p: AgSeriesVisibilityChange) => {});
-            seriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', TDatum>) => {});
-            seriesNodeDoubleClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeDoubleClick', TDatum>) => {});
-            legendItemClick = newFreezable((_p: AgChartLegendClickEvent) => {});
-            legendItemDoubleClick = newFreezable((_p: AgChartLegendDoubleClickEvent) => {});
+            click = newFreezable((_p: AgChartClickEvent<TContext>) => {});
+            doubleClick = newFreezable((_p: AgChartDoubleClickEvent<TContext>) => {});
+            chartSeriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', TDatum, TContext>) => {});
+            chartSeriesNodeDoubleClick = newFreezable(
+                (_p: AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>) => {}
+            );
+            chartSeriesVisibilityChange = newFreezable((_p: AgSeriesVisibilityChange<TContext>) => {});
+            seriesNodeClick = newFreezable((_p: AgNodeClickEvent<'seriesNodeClick', TDatum, TContext>) => {});
+            seriesNodeDoubleClick = newFreezable(
+                (_p: AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>) => {}
+            );
+            legendItemClick = newFreezable((_p: AgChartLegendClickEvent<TContext>) => {});
+            legendItemDoubleClick = newFreezable((_p: AgChartLegendDoubleClickEvent<TContext>) => {});
 
             chartContext = { name: 'chart context' } as const;
             series0Context = { name: 'series 0 context' } as const;
@@ -249,10 +263,10 @@ describe('AG-14631 context enterprise', () => {
             seriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(series1Context).mockClear();
 
             await doubleClickAction(234, 400)(chart);
-            chartSeriesNodeClick.expect().toHaveBeenCalledTimes(2).withoutContext().mockClear();
-            chartSeriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withoutContext().mockClear();
-            seriesNodeClick.expect().toHaveBeenCalledTimes(2).withoutContext().mockClear();
-            seriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withoutContext().mockClear();
+            chartSeriesNodeClick.expect().toHaveBeenCalledTimes(2).withContext(chartContext).mockClear();
+            chartSeriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(chartContext).mockClear();
+            seriesNodeClick.expect().toHaveBeenCalledTimes(2).withContext(chartContext).mockClear();
+            seriesNodeDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(chartContext).mockClear();
 
             expectNothingCalled();
         });
@@ -265,8 +279,9 @@ describe('AG-14631 context enterprise', () => {
             chartSeriesVisibilityChange.expect().toHaveBeenCalledTimes(1).withContext(series1Context).mockClear();
 
             await clickAction(451, 572)(chart);
-            chartSeriesVisibilityChange.expect().toHaveBeenCalledTimes(1).withoutContext().mockClear();
+            chartSeriesVisibilityChange.expect().toHaveBeenCalledTimes(1).withContext(chartContext).mockClear();
 
+            legendItemClick.expect().toHaveBeenCalledTimes(3).mockClear();
             expectNothingCalled();
         });
 
@@ -280,23 +295,23 @@ describe('AG-14631 context enterprise', () => {
             legendItemDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(series1Context).mockClear();
 
             await doubleClickAction(451, 572)(chart);
-            legendItemClick.expect().toHaveBeenCalledTimes(2).withoutContext().mockClear();
-            legendItemDoubleClick.expect().toHaveBeenCalledTimes(1).withoutContext().mockClear();
+            legendItemClick.expect().toHaveBeenCalledTimes(2).withContext(chartContext).mockClear();
+            legendItemDoubleClick.expect().toHaveBeenCalledTimes(1).withContext(chartContext).mockClear();
 
+            chartSeriesVisibilityChange.expect().toHaveBeenCalledTimes(15).mockClear();
             expectNothingCalled();
         });
     });
 
-    // Skip unit test (not yet implemented)
-    xdescribe('contextMenu', () => {
+    describe('contextMenu', () => {
         type TDatum = Readonly<{ x: number; a: number; b: number; c: number }>;
         type TContext = Readonly<{ name: string }>;
         type TFreezable<TEvent> = ReturnType<typeof newFreezable<TEvent, MockContextMenuAction<TDatum, TContext>>>;
 
-        let alwaysAction: TFreezable<AgChartContextMenuEvent>;
-        let seriesAreaAction: TFreezable<AgSeriesAreaContextMenuActionEvent>;
-        let seriesNodeAction: TFreezable<AgNodeContextMenuActionEvent<TDatum>>;
-        let legendItemAction: TFreezable<AgChartLegendContextMenuEvent>;
+        let alwaysAction: TFreezable<AgChartContextMenuEvent<TContext>>;
+        let seriesAreaAction: TFreezable<AgSeriesAreaContextMenuActionEvent<TContext>>;
+        let seriesNodeAction: TFreezable<AgNodeContextMenuActionEvent<TDatum, TContext>>;
+        let legendItemAction: TFreezable<AgChartLegendContextMenuEvent<TContext>>;
         let chartContext: TContext;
         let series0Context: TContext;
         let series1Context: TContext;
@@ -321,10 +336,10 @@ describe('AG-14631 context enterprise', () => {
         }
 
         beforeEach(async () => {
-            alwaysAction = newFreezable((_params: AgChartContextMenuEvent) => {});
-            seriesAreaAction = newFreezable((_params: AgSeriesAreaContextMenuActionEvent) => {});
-            seriesNodeAction = newFreezable((_params: AgNodeContextMenuActionEvent<TDatum>) => {});
-            legendItemAction = newFreezable((_params: AgChartLegendContextMenuEvent) => {});
+            alwaysAction = newFreezable((_params: AgChartContextMenuEvent<TContext>) => {});
+            seriesAreaAction = newFreezable((_params: AgSeriesAreaContextMenuActionEvent<TContext>) => {});
+            seriesNodeAction = newFreezable((_params: AgNodeContextMenuActionEvent<TDatum, TContext>) => {});
+            legendItemAction = newFreezable((_params: AgChartLegendContextMenuEvent<TContext>) => {});
             chartContext = { name: 'chart context' } as const;
             series0Context = { name: 'series 0 context' } as const;
             series1Context = { name: 'series 1 context' } as const;
@@ -395,7 +410,7 @@ describe('AG-14631 context enterprise', () => {
             seriesNodeAction.expect().toHaveBeenCalledTimes(3);
             seriesNodeAction.expect().nthCalledWithContext(0, series0Context);
             seriesNodeAction.expect().nthCalledWithContext(1, series1Context);
-            seriesNodeAction.expect().nthCalledWithoutContext(2);
+            seriesNodeAction.expect().nthCalledWithContext(2, chartContext);
         });
 
         test('legend-item', async () => {
@@ -413,7 +428,7 @@ describe('AG-14631 context enterprise', () => {
             legendItemAction.expect().toHaveBeenCalledTimes(3);
             legendItemAction.expect().nthCalledWithContext(0, series0Context);
             legendItemAction.expect().nthCalledWithContext(1, series1Context);
-            legendItemAction.expect().nthCalledWithoutContext(2);
+            legendItemAction.expect().nthCalledWithContext(2, chartContext);
         });
     });
 });

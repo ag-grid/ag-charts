@@ -4,8 +4,10 @@ import {
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
+    multiSeriesHighlightOptionsDef,
     number,
     required,
+    shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
 } from 'ag-charts-core';
@@ -21,6 +23,8 @@ import {
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
+const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
+
 export const areaSeriesThemeableOptionsDef: OptionsDefs<AgAreaSeriesThemeableOptions> = {
     showInMiniChart: boolean,
     connectMissingData: boolean,
@@ -33,11 +37,13 @@ export const areaSeriesThemeableOptionsDef: OptionsDefs<AgAreaSeriesThemeableOpt
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    highlight,
 };
 
 export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {
     ...areaSeriesThemeableOptionsDef,
     ...commonSeriesOptionsDefs,
+    highlight,
     type: required(constant('area')),
     xKey: required(string),
     yKey: required(string),

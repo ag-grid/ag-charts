@@ -1,27 +1,28 @@
 import type { DateFormatterStyle, FormatterParams, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
-import { ContinuousTimeScale } from '../../scale/continuousTimeScale';
+import { UnitTimeScale } from '../../scale/unitTimeScale';
+import { objectsEqual } from '../../util/object';
 import { Property } from '../../util/properties';
-import { intervalEpoch, intervalMilliseconds, intervalStep, intervalUnit } from '../../util/time';
+import { intervalEpoch, intervalFloor, intervalStep, intervalUnit } from '../../util/time';
+import { buildDateFormatter } from '../../util/timeFormat';
 import {
     domainSpansMultipleYears,
-    lowestGranularityForInterval,
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
 } from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
-import type { ChartAxisDirection } from '../chartAxisDirection';
-import type { ISeries } from '../series/seriesTypes';
+import { labelSpecifier } from '../label';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
-import { CartesianAxis } from './cartesianAxis';
+import { CategoryAxis } from './categoryAxis';
 import { TimeAxisParentLevel, calculateDefaultUnit, normaliseTimeDataDomain } from './timeAxis';
+import { deriveTimeSpecifier } from './timeFormatUtil';
 
-export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, number | Date> {
-    static readonly className = 'ContinuousTimeAxis';
-    static readonly type = 'continuous-time' as const;
+export class UnitTimeAxis extends CategoryAxis<UnitTimeScale> {
+    static override readonly className = 'UnitTimeAxis' as const;
+    static override readonly type = 'unit-time' as const;
 
     @Property
     readonly parentLevel = new TimeAxisParentLevel();
@@ -32,11 +33,9 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
     @Property
     max?: Date | number = undefined;
 
-    private minGranularity: TimeIntervalUnit | undefined = undefined;
-
-    constructor(moduleCtx: ModuleContext) {
-        super(moduleCtx, new ContinuousTimeScale());
-    }
+    @Property
+    // eslint-disable-next-line sonarjs/use-type-alias
+    unit: TimeInterval | TimeIntervalUnit | undefined = undefined;
 
     override get primaryLabel(): AxisLabel | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
@@ -46,15 +45,53 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
         return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
     }
 
-    override normaliseDataDomain(d: Date[]) {
-        return normaliseTimeDataDomain(d, this.min, this.max);
+    constructor(moduleCtx: ModuleContext) {
+        super(moduleCtx, new UnitTimeScale());
     }
+
+    private defaultUnit: TimeInterval | TimeIntervalUnit | undefined = undefined;
 
     override processData(): void {
         super.processData();
 
-        const { boundSeries, direction, min, max } = this;
-        this.minGranularity = minimumTimeAxisDatumGranularity(boundSeries, direction, min, max);
+        let defaultUnit: TimeInterval | TimeIntervalUnit | undefined;
+
+        const { domain } = this.dataDomain;
+        if (domain.length === 2 && domain[0].valueOf() === domain[1].valueOf()) {
+            defaultUnit = lowestGranularityUnitForValue(domain[0]);
+        } else {
+            const { boundSeries, direction, min, max } = this;
+            defaultUnit = calculateDefaultUnit(boundSeries, direction, min, max);
+        }
+
+        if (!objectsEqual(this.defaultUnit, defaultUnit)) {
+            this.defaultUnit = defaultUnit;
+        }
+    }
+
+    protected override updateScale(): void {
+        super.updateScale();
+
+        this.scale.interval = this.unit ?? this.defaultUnit;
+    }
+
+    override normaliseDataDomain(domain: Date[]) {
+        return normaliseTimeDataDomain(domain, this.min, this.max);
+    }
+
+    protected override createDatumFormatter(
+        _domain: any[],
+        _ticks: any[]
+    ): ((value: any) => string | undefined) | undefined {
+        const timeInterval = this.scale.interval;
+        const { format } = this.label;
+        if (format == null) return;
+        const specifier = labelSpecifier(
+            timeInterval != null ? deriveTimeSpecifier(format, intervalUnit(timeInterval)) : format,
+            timeInterval
+        );
+        if (specifier == null) return;
+        return buildDateFormatter(specifier);
     }
 
     override tickFormatParams(
@@ -72,31 +109,23 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
     }
 
     override datumFormatParams(
-        value: number | Date,
+        value: Date | number,
         params: FormatDatumParams,
         _fractionDigits: number | undefined,
         timeInterval: TimeInterval | TimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
-        if (typeof value === 'number') value = new Date(value);
+        const interval = this.unit ?? this.defaultUnit ?? 'millisecond';
 
-        if (timeInterval == null) {
-            const { minGranularity } = this;
-            const datumGranularity = lowestGranularityUnitForValue(value);
-            if (
-                minGranularity != null &&
-                intervalMilliseconds(minGranularity) < intervalMilliseconds(datumGranularity)
-            ) {
-                timeInterval = minGranularity;
-            } else {
-                timeInterval = datumGranularity;
-            }
-        }
+        value = intervalFloor(interval, value); // Align to scale
+        if (typeof value === 'number') value = new Date(value);
+        timeInterval ??= interval;
 
         const { datum, seriesId, key, source, property, domain, boundSeries } = params;
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
         const epoch = intervalEpoch(timeInterval);
+
         return {
             type: 'date',
             value,
@@ -112,22 +141,5 @@ export class ContinuousTimeAxis extends CartesianAxis<ContinuousTimeScale, numbe
             epoch,
             style,
         };
-    }
-}
-
-export function minimumTimeAxisDatumGranularity(
-    boundSeries: ISeries<unknown, unknown, unknown, unknown>[],
-    direction: ChartAxisDirection,
-    min: Date | number | undefined,
-    max: Date | number | undefined
-) {
-    const minTimeInterval = boundSeries.reduce((t, series) => {
-        return Math.min(series.minTimeInterval() ?? Infinity, t);
-    }, Infinity);
-
-    if (Number.isFinite(minTimeInterval)) {
-        return lowestGranularityForInterval(minTimeInterval);
-    } else {
-        return calculateDefaultUnit(boundSeries, direction, min, max)?.unit;
     }
 }

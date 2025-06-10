@@ -1,11 +1,11 @@
 import { LocaleModule } from '../../locale/localeModule';
 import { moduleRegistry } from '../../module/module';
 import { CategoryAxis } from '../axis/categoryAxis';
-import { ContinuousTimeAxis } from '../axis/continuousTimeAxis';
 import { GroupedCategoryAxis } from '../axis/groupedCategoryAxis';
 import { LogAxis } from '../axis/logAxis';
 import { NumberAxis } from '../axis/numberAxis';
 import { TimeAxis } from '../axis/timeAxis';
+import { UnitTimeAxis } from '../axis/unitTimeAxis';
 import { BackgroundModule } from '../background/backgroundModule';
 import { CommunityLegendModule } from '../legend/legendModule';
 import { AreaSeriesModule } from '../series/cartesian/areaSeriesModule';
@@ -33,14 +33,7 @@ export function registerInbuiltModules() {
         HistogramSeriesModule
     );
 
-    for (const AxisConstructor of [
-        NumberAxis,
-        CategoryAxis,
-        ContinuousTimeAxis,
-        GroupedCategoryAxis,
-        LogAxis,
-        TimeAxis,
-    ]) {
+    for (const AxisConstructor of [NumberAxis, CategoryAxis, TimeAxis, GroupedCategoryAxis, LogAxis, UnitTimeAxis]) {
         axisRegistry.register(AxisConstructor.type, {
             moduleFactory: (ctx) => new AxisConstructor(ctx),
         });

@@ -11,14 +11,15 @@ export interface AgHistogramSeriesTooltipRendererParams<TDatum>
         FillOptions,
         StrokeOptions {
     /** yKey as specified on series options. */
-    readonly yKey?: string;
+    readonly yKey?: TDatum extends object ? keyof TDatum & string : string;
     /** Range for x values. */
     readonly xRange: [number, number];
     /** Number of values within xRange. */
     readonly frequency: number;
 }
 
-export type AgHistogramSeriesLabelFormatterParams = AgHistogramSeriesOptionsKeys & AgHistogramSeriesOptionsNames;
+export type AgHistogramSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgHistogramSeriesOptionsKeys<TDatum> &
+    AgHistogramSeriesOptionsNames;
 
 export interface AgHistogramBinDatum<TDatum> {
     data: TDatum[];
@@ -27,26 +28,26 @@ export interface AgHistogramBinDatum<TDatum> {
     domain: [number, number];
 }
 
-export interface AgHistogramSeriesThemeableOptions<TDatum = TDatumDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum>,
+export interface AgHistogramSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
         FillOptions,
         StrokeOptions,
         LineDashOptions {
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on bars. */
-    label?: AgChartLabelOptions<TDatum, AgHistogramSeriesLabelFormatterParams>;
+    label?: AgChartLabelOptions<TDatum, AgHistogramSeriesLabelFormatterParams<TDatum>>;
     /** Apply rounded corners to each bar. */
     cornerRadius?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams<TDatum>>;
 }
 
-export interface AgHistogramSeriesOptionsKeys {
+export interface AgHistogramSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: string;
+    xKey: TDatum extends object ? keyof TDatum & string : string;
     /** The key to use to retrieve y-values from the data. */
-    yKey?: string;
+    yKey?: TDatum extends object ? keyof TDatum & string : string;
 }
 
 export interface AgHistogramSeriesOptionsNames {
@@ -58,9 +59,9 @@ export interface AgHistogramSeriesOptionsNames {
 
 export interface AgHistogramSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgHistogramSeriesOptionsKeys,
+        AgHistogramSeriesOptionsKeys<TDatum>,
         AgHistogramSeriesOptionsNames,
-        AgHistogramSeriesThemeableOptions<TDatum> {
+        AgHistogramSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for Histogram Series. */
     type: 'histogram';
     /**

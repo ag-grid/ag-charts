@@ -1,12 +1,14 @@
 // @ag-skip-fws
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
+import { DataType, data1, data2 } from './data';
+
 const action = () => console.log('Hello world!');
 const nodeAction = (event: any) => console.log(`Hello ${event.yKey} in ${event.datum.month}!`);
 const legendItemAction = (event: any) => console.log(`Hello ${event.itemId}!`);
 
 // Chart Options
-const options1: AgCartesianChartOptions = {
+const options1: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart1'),
     title: { text: 'Chart 1' },
     legend: {},
@@ -23,28 +25,20 @@ const options1: AgCartesianChartOptions = {
             { showOn: 'legend-item', label: 'Say hello to a legend item', action: legendItemAction },
         ],
     },
-    data: [
-        { month: 'Jun', sweaters: 50, hats: 40 },
-        { month: 'Jul', sweaters: 70, hats: 50 },
-        { month: 'Aug', sweaters: 60, hats: 30 },
-    ],
+    data: data1,
     series: [
         { type: 'bar', xKey: 'month', yKey: 'sweaters', yName: 'Sweaters Made' },
         { type: 'bar', xKey: 'month', yKey: 'hats', yName: 'Hats Made' },
     ],
 };
 
-const options2: AgCartesianChartOptions = {
+const options2: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart2'),
     title: { text: 'Chart 2' },
     contextMenu: { enabled: true },
     height: 600,
     width: 800,
-    data: [
-        { month: 'Jun', sweaters: 50 },
-        { month: 'Jul', sweaters: 70 },
-        { month: 'Aug', sweaters: 60 },
-    ],
+    data: data2,
     series: [{ type: 'bar', xKey: 'month', yKey: 'sweaters', yName: 'Sweaters Made' }],
 };
 
