@@ -50,6 +50,8 @@ import type {
     AgCrosshairLabel,
     AgCrosshairLabelRendererResult,
     AgCrosshairOptions,
+    AgTimeAxisFormattableLabelFormat,
+    AgTimeAxisFormattableLabelUnitFormat,
     AgTimeAxisParentLevel,
     TimeInterval,
 } from 'ag-charts-types';
@@ -232,8 +234,19 @@ export const cartesianAxisBandHighlightOptions: OptionsDefs<AgBandHighlightOptio
 // @ts-expect-error undocumented option
 cartesianAxisOptionsDefs.title._enabledFromTheme = undocumented(boolean);
 
-export function cartesianAxisCrosshairOptions<T extends boolean>(canFormat?: T) {
-    const crosshairLabel = {
+export function cartesianAxisCrosshairOptions(): OptionsDefs<AgCrosshairOptions<AgBaseCrosshairLabel>>;
+export function cartesianAxisCrosshairOptions(
+    canFormat: true
+): OptionsDefs<AgCrosshairOptions<AgCrosshairLabel<string>>>;
+export function cartesianAxisCrosshairOptions(
+    canFormat: true,
+    timeFormat: true
+): OptionsDefs<AgCrosshairOptions<AgCrosshairLabel<AgTimeAxisFormattableLabelFormat>>>;
+export function cartesianAxisCrosshairOptions(
+    canFormat?: boolean,
+    timeFormat?: boolean
+): OptionsDefs<AgCrosshairOptions<AgCrosshairLabel<any> | AgBaseCrosshairLabel>> {
+    const baseCrosshairLabel: OptionsDefs<AgBaseCrosshairLabel> = {
         enabled: boolean,
         xOffset: number,
         yOffset: number,
@@ -252,16 +265,32 @@ export function cartesianAxisCrosshairOptions<T extends boolean>(canFormat?: T) 
             )
         ),
     };
+    let crosshairLabel: OptionsDefs<AgCrosshairLabel<any>> | undefined;
     if (canFormat) {
-        (crosshairLabel as OptionsDefs<AgCrosshairLabel>).format = string;
+        crosshairLabel = {
+            ...baseCrosshairLabel,
+            format: timeFormat
+                ? or(
+                      string,
+                      optionsDefs<AgTimeAxisFormattableLabelUnitFormat>({
+                          millisecond: string,
+                          second: string,
+                          hour: string,
+                          day: string,
+                          month: string,
+                          year: string,
+                      })
+                  )
+                : string,
+        };
     }
     return {
         enabled: boolean,
         snap: boolean,
-        label: crosshairLabel,
+        label: crosshairLabel ?? baseCrosshairLabel,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
-    } as OptionsDefs<AgCrosshairOptions<T extends true ? AgCrosshairLabel : AgBaseCrosshairLabel>>;
+    };
 }
 
 export function continuousAxisOptions(
