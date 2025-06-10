@@ -16,19 +16,14 @@ describe('simple-chart benchmark', () => {
         });
 
         benchmark('1x legend toggle', ctx, { expectedRelativeMB: 5, expectedCanvasCount: 3 }, async () => {
-            ctx.options.series![0].visible = false;
-            await ctx.update();
-
-            ctx.options.series![0].visible = true;
-            await ctx.update();
+            await ctx.legendToggle();
+            await ctx.legendToggle();
         });
 
         benchmark('10x legend toggle', ctx, { expectedRelativeMB: 5.2, expectedCanvasCount: 3 }, async () => {
             for (let i = 0; i < 5; i++) {
-                for (const visible of [false, true]) {
-                    ctx.options.series![i].visible = visible;
-                    await ctx.update();
-                }
+                await ctx.legendToggle(i);
+                await ctx.legendToggle(i);
             }
         });
 
