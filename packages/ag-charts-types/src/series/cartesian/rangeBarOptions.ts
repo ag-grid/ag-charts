@@ -19,13 +19,16 @@ export interface AgRangeBarSeriesStyle extends FillOptions, StrokeOptions, LineD
     cornerRadius?: PixelSize;
 }
 
-export type AgRangeBarSeriesTooltipRendererParams<TDatum = TDatumDefault> = AgSeriesTooltipRendererParams<TDatum> &
+export type AgRangeBarSeriesTooltipRendererParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = AgSeriesTooltipRendererParams<TDatum, TContext> &
     AgRangeBarSeriesOptionsKeys<TDatum> &
     AgRangeBarSeriesOptionsNames &
     AgRangeBarSeriesStyle;
 
-export interface AgRangeBarSeriesLabelOptions<TDatum>
-    extends AgChartLabelOptions<TDatum, AgRangeBarSeriesLabelFormatterParams<TDatum>> {
+export interface AgRangeBarSeriesLabelOptions<TDatum, TContext=TContextDefault>
+    extends AgChartLabelOptions<TDatum, AgRangeBarSeriesLabelFormatterParams<TDatum>, TContext> {
     /** Where to render series labels relative to the bars. */
     placement?: AgRangeBarSeriesLabelPlacement;
     /** Padding in pixels between the label and the edge of the bar. */
@@ -44,11 +47,11 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = TDatumDefault, TConte
      */
     direction?: 'horizontal' | 'vertical';
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Configuration for the range series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgRangeBarSeriesLabelOptions<TDatum>;
+    label?: AgRangeBarSeriesLabelOptions<TDatum, TContext>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */

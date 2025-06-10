@@ -8,8 +8,8 @@ import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../se
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
 
-export interface AgScatterSeriesTooltipRendererParams<TDatum = TDatumDefault>
-    extends AgSeriesTooltipRendererParams<TDatum>,
+export interface AgScatterSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgScatterSeriesOptionsKeys<TDatum>,
         AgScatterSeriesOptionsNames,
         AgErrorBoundSeriesTooltipRendererParams<TDatum>,
@@ -27,8 +27,8 @@ export type AgScatterSeriesItemStylerParams<
     AgScatterSeriesOptionsKeys<TDatum> &
     Required<AgSeriesMarkerStyle>;
 
-export interface AgScatterSeriesLabel<TDatum>
-    extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams<TDatum>> {
+export interface AgScatterSeriesLabel<TDatum, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams<TDatum>, TContext> {
     /**
      * Placement of label in relation to the marker.
      *
@@ -43,9 +43,9 @@ export interface AgScatterSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgScatterSeriesLabel<TDatum>;
+    label?: AgScatterSeriesLabel<TDatum, TContext>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgScatterSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgScatterSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgScatterSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle>;
     /** Configuration for the Error Bars. */

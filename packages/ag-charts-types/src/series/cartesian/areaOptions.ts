@@ -12,8 +12,8 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 export type AgAreaSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgAreaSeriesOptionsKeys<TDatum> &
     AgAreaSeriesOptionsNames;
 
-export interface AgAreaSeriesTooltipRendererParams<TDatum = TDatumDefault>
-    extends AgCartesianSeriesTooltipRendererParams<TDatum>,
+export interface AgAreaSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
         FillOptions,
         StrokeOptions {}
 
@@ -29,9 +29,9 @@ export interface AgAreaSeriesThemeableOptions<TDatum = TDatumDefault, TContext =
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgChartLabelOptions<TDatum, AgAreaSeriesLabelFormatterParams<TDatum>>;
+    label?: AgChartLabelOptions<TDatum, AgAreaSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgAreaSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgAreaSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
 }

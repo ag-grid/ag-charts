@@ -7,7 +7,8 @@ import type { CssColor, Opacity, PixelSize, Ratio, TContextDefault, TDatumDefaul
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgFunnelSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {}
+export interface AgFunnelSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, TParams, TContext> {}
 
 export interface AgFunnelSeriesStageLabelOptions<TContext> extends AgFormattableLabelOptions<TContext> {
     /** Placement of the label in relation to the chart. */
@@ -24,10 +25,10 @@ export interface AgFunnelSeriesStyle extends FillOptions, StrokeOptions, LineDas
 
 export interface AgFunnelSeriesLabelFormatterParams<TDatum = TDatumDefault> extends AgFunnelSeriesOptionsKeys<TDatum> {}
 
-export interface AgFunnelSeriesTooltipRendererParams<TDatum = TDatumDefault>
+export interface AgFunnelSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgFunnelSeriesOptionsKeys<TDatum>,
         AgFunnelSeriesOptionsNames,
-        AgSeriesTooltipRendererParams<TDatum>,
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgFunnelSeriesStyle {}
 
 export interface AgFunnelSeriesDropOff extends FillOptions, StrokeOptions, LineDashOptions {
@@ -57,13 +58,13 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = TDatumDefault, TContext
     /** Align bars to whole pixel values to remove anti-aliasing. */
     crisp?: boolean;
     /** Configuration for the labels shown on bars. */
-    label?: AgFunnelSeriesLabelOptions<TDatum, AgFunnelSeriesLabelFormatterParams<TDatum>>;
+    label?: AgFunnelSeriesLabelOptions<TDatum, AgFunnelSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the stage labels. */
     stageLabel?: AgFunnelSeriesStageLabelOptions<TContext>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgFunnelSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgFunnelSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<TDatum, TContext>, AgFunnelSeriesStyle>;
 }

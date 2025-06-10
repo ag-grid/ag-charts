@@ -1,12 +1,14 @@
-import type { TDatumDefault } from './types';
+import type { TContextDefault, TDatumDefault } from './types';
 
-export interface AgChartCallbackParams<TDatum = TDatumDefault> {
+export interface AgChartCallbackParams<TDatum = TDatumDefault, TContext = TContextDefault> {
     /** The data point associated with the label. */
     datum: TDatum;
     /** The unique identifier of the item. */
     itemId?: string;
     /** The unique identifier of the series. */
     seriesId: string;
+    /** Context for this callback. */
+    context?: TContext;
 }
 
 export interface SeriesCallbackParams {

@@ -34,7 +34,7 @@ export interface AgChordSeriesNodeItemStylerParams<TDatum, TContext = TContextDe
 export interface AgChordSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Options for the label for each node. */
-    label?: AgChordSeriesLabelOptions<TDatum>;
+    label?: AgChordSeriesLabelOptions<TDatum, TContext>;
     /** The colours to cycle through for the fills of the nodes and links. */
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the nodes and links. */
@@ -44,11 +44,11 @@ export interface AgChordSeriesThemeableOptions<TDatum = TDatumDefault, TContext 
     /** Options for the nodes. */
     node?: AgChordSeriesNodeOptions<TDatum, TContext>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
-export interface AgChordSeriesLabelOptions<TDatum>
-    extends AgChartLabelOptions<TDatum, AgChordSeriesLabelFormatterParams<TDatum>> {
+export interface AgChordSeriesLabelOptions<TDatum, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, AgChordSeriesLabelFormatterParams<TDatum>, TContext> {
     /** Spacing between a node and its label. */
     spacing?: PixelSize;
     /** If the label text exceeds the maximum length, it will be truncated and an ellipsis will be appended to indicate this. */
@@ -96,8 +96,8 @@ interface SizeParams {
     size: number;
 }
 
-export interface AgChordSeriesTooltipRendererParams<TDatum>
-    extends AgSeriesTooltipRendererParams<TDatum>,
+export interface AgChordSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgChordSeriesOptionsKeys,
         AgChordSeriesOptionsNames,
         SizeParams,

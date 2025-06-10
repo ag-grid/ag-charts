@@ -44,7 +44,7 @@ export interface AgRadialGaugeScale<TContext = TContextDefault>
     interval?: AgRadialGaugeScaleInterval;
 }
 
-export interface AgRadialGaugeTooltipRendererParams extends AgSeriesTooltipRendererParams<undefined> {
+export interface AgRadialGaugeTooltipRendererParams extends AgSeriesTooltipRendererParams<never, TContextDefault> {
     /** Value of the Gauge */
     value: number;
 }
@@ -65,7 +65,7 @@ export interface AgRadialGaugeNeedleStyle extends FillOptions, StrokeOptions, Li
 
 export type AgRadialGaugeMarkerShape = AgMarkerShape | 'line';
 
-export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<undefined, never> {
+export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<never, never, TContextDefault> {
     /** Spacing of the label. */
     spacing?: PixelSize;
 }
@@ -90,13 +90,13 @@ export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDas
 }
 
 export interface AgRadialGaugeLabelOptions
-    extends AgChartAutoSizedLabelOptions<undefined, AgRadialGaugeLabelFormatterParams> {
+    extends AgChartAutoSizedLabelOptions<never, AgRadialGaugeLabelFormatterParams, TContextDefault> {
     /** Text to always display. */
     text?: string;
 }
 
 export interface AgRadialGaugeSecondaryLabelOptions
-    extends AgChartAutoSizedSecondaryLabelOptions<undefined, AgRadialGaugeLabelFormatterParams> {
+    extends AgChartAutoSizedSecondaryLabelOptions<never, AgRadialGaugeLabelFormatterParams, TContextDefault> {
     /** Text to always display. */
     text?: string;
 }

@@ -12,8 +12,8 @@ import type {
 } from './cartesianSeriesTooltipOptions';
 import type { LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgLineSeriesTooltipRendererParams<TDatum = TDatumDefault>
-    extends AgCartesianSeriesTooltipRendererParams<TDatum>,
+export interface AgLineSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
         AgErrorBoundSeriesTooltipRendererParams<TDatum>,
         AgSeriesMarkerStyle {}
 
@@ -31,9 +31,9 @@ export interface AgLineSeriesThemeableOptions<TDatum = TDatumDefault, TContext =
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgChartLabelOptions<TDatum, AgLineSeriesLabelFormatterParams<TDatum>>;
+    label?: AgChartLabelOptions<TDatum, AgLineSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgLineSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgLineSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
     /** Set to `true` to connect across missing data points. */

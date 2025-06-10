@@ -5,7 +5,10 @@ import type { GeoJSON, PixelSize, TContextDefault, TDatumDefault } from '../../c
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
-export type AgMapLineSeriesTooltipRendererParams<TDatum = TDatumDefault> = AgSeriesTooltipRendererParams<TDatum> &
+export type AgMapLineSeriesTooltipRendererParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = AgSeriesTooltipRendererParams<TDatum, TContext> &
     AgMapLineSeriesOptionsKeys<TDatum> &
     AgMapLineSeriesOptionsNames &
     AgMapLineSeriesStyle;
@@ -14,7 +17,11 @@ export type AgMapLineSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & St
 
 export type AgMapLineSeriesStyle = StrokeOptions & LineDashOptions;
 
-export type AgMapLineSeriesLabel<TDatum> = AgChartLabelOptions<TDatum, AgMapLineSeriesLabelFormatterParams<TDatum>>;
+export type AgMapLineSeriesLabel<TDatum, TContext = TContextDefault> = AgChartLabelOptions<
+    TDatum,
+    AgMapLineSeriesLabelFormatterParams<TDatum>,
+    TContext
+>;
 
 export type AgMapLineSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgMapLineSeriesOptionsKeys<TDatum> &
     AgMapLineSeriesOptionsNames;
@@ -57,9 +64,9 @@ export interface AgMapLineSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
     sizeDomain?: number[];
     /** Configuration for the labels shown on top of the line. */
-    label?: AgMapLineSeriesLabel<TDatum>;
+    label?: AgMapLineSeriesLabel<TDatum, TContext>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgMapLineSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgMapLineSeriesTooltipRendererParams<TDatum, TContext>>;
     /** A callback function for adjusting the styles of a particular Map line based on the input parameters. */
     itemStyler?: Styler<AgMapLineSeriesItemStylerParams<TDatum, TContext>, AgMapLineSeriesStyle>;
     /** Style overrides when a node is hovered. */

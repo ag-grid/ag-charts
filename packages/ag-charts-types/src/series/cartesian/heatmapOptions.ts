@@ -18,7 +18,10 @@ export type AgHeatmapSeriesStyle = FillOptions & StrokeOptions;
 export type AgHeatmapSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgHeatmapSeriesOptionsKeys<TDatum> &
     AgHeatmapSeriesOptionsNames;
 
-export type AgHeatmapSeriesTooltipRendererParams<TDatum = TDatumDefault> = AgSeriesTooltipRendererParams<TDatum> &
+export type AgHeatmapSeriesTooltipRendererParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = AgSeriesTooltipRendererParams<TDatum, TContext> &
     AgHeatmapSeriesOptionsKeys<TDatum> &
     AgHeatmapSeriesOptionsNames &
     AgHeatmapSeriesStyle;
@@ -27,7 +30,7 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     extends StrokeOptions,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Options for the label in each cell. */
-    label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams<TDatum>>;
+    label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Minimum distance between the label text and the edges of the cell. */
     itemPadding?: PixelSize;
     /** Horizontal position of the label. */
@@ -39,7 +42,7 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     /** Function used to return formatting for individual heatmap cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgHeatmapSeriesItemStylerParams<TDatum, TContext>, AgHeatmapSeriesStyle>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgHeatmapSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgHeatmapSeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
 export interface AgHeatmapSeriesOptionsKeys<TDatum = TDatumDefault> {

@@ -47,8 +47,8 @@ export type AgOhlcSeriesBaseItemStylerParams<
     StrokeOptions &
     LineDashOptions;
 
-export interface AgOhlcSeriesBaseTooltipRendererParams<TDatum>
-    extends AgSeriesTooltipRendererParams<TDatum>,
+export interface AgOhlcSeriesBaseTooltipRendererParams<TDatum, TContext = TContextDefault>
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgOhlcSeriesOptionsKeys<TDatum>,
         AgOhlcSeriesOptionsNames,
         StrokeOptions,

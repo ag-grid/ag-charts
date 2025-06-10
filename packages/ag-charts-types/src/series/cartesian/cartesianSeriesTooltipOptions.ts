@@ -1,8 +1,8 @@
 import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { TDatumDefault } from '../../chart/types';
+import type { TContextDefault, TDatumDefault } from '../../chart/types';
 
-export interface AgCartesianSeriesTooltipRendererParams<TDatum = TDatumDefault>
-    extends AgSeriesTooltipRendererParams<TDatum> {
+export interface AgCartesianSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgSeriesTooltipRendererParams<TDatum, TContext> {
     /** xKey as specified on series options. */
     readonly xKey: TDatum extends object ? keyof TDatum & string : string;
     /** xName as specified on series options. */

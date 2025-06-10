@@ -10,13 +10,13 @@ import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 /* All the label properties that can be changed without affecting the layout. */
-export type AgTreemapSeriesLabelHighlightOptions<TDatum> = Pick<
-    AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>>,
+export type AgTreemapSeriesLabelHighlightOptions<TDatum, TContext = TContextDefault> = Pick<
+    AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>, TContext>,
     'color'
 >;
 
-export interface AgTreemapSeriesTooltipRendererParams<TDatum>
-    extends AgSeriesTooltipRendererParams<TDatum>,
+export interface AgTreemapSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesOptionsNames,
         FillOptions,
@@ -27,15 +27,15 @@ export interface AgTreemapSeriesTooltipRendererParams<TDatum>
 
 export interface AgTreemapSeriesGroupStyle extends FillOptions, StrokeOptions {}
 
-export interface AgTreemapSeriesGroupLabelOptions<TDatum>
-    extends AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>> {
+export interface AgTreemapSeriesGroupLabelOptions<TDatum, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>, TContext> {
     /** The distance between the tiles and the title. */
     spacing?: PixelSize;
 }
 
-export interface AgTreemapSeriesGroupLayout<TDatum> {
+export interface AgTreemapSeriesGroupLayout<TDatum, TContext = TContextDefault> {
     /** Options for the label in a group. */
-    label?: AgTreemapSeriesGroupLabelOptions<TDatum>;
+    label?: AgTreemapSeriesGroupLabelOptions<TDatum, TContext>;
     /** Horizontal position of the label. */
     textAlign?: TextAlign;
     /** The distance between the edges of the outer-most title to the edges of the group. */
@@ -46,25 +46,30 @@ export interface AgTreemapSeriesGroupLayout<TDatum> {
     interactive?: boolean;
 }
 
-export interface AgTreemapSeriesGroupHighlightStyle<TDatum> extends AgTreemapSeriesGroupStyle {
+export interface AgTreemapSeriesGroupHighlightStyle<TDatum, TContext = TContextDefault>
+    extends AgTreemapSeriesGroupStyle {
     /** Options for the label in a group. */
-    label?: AgTreemapSeriesLabelHighlightOptions<TDatum>;
+    label?: AgTreemapSeriesLabelHighlightOptions<TDatum, TContext>;
 }
 
-export interface AgTreemapSeriesGroupOptions<TDatum>
+export interface AgTreemapSeriesGroupOptions<TDatum, TContext = TContextDefault>
     extends AgTreemapSeriesGroupStyle,
-        AgTreemapSeriesGroupLayout<TDatum> {
+        AgTreemapSeriesGroupLayout<TDatum, TContext> {
     /** Apply rounded corners to each group. */
     cornerRadius?: PixelSize;
 }
 
 export interface AgTreemapSeriesTileStyle extends FillOptions, StrokeOptions {}
 
-export interface AgTreemapSeriesTileLayout<TDatum> {
+export interface AgTreemapSeriesTileLayout<TDatum, TContext = TContextDefault> {
     /** Options for the label in a tile. */
-    label?: AgChartAutoSizedLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>>;
+    label?: AgChartAutoSizedLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Options for a secondary, smaller label in a tile - displayed under the primary label. */
-    secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>>;
+    secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<
+        TDatum,
+        AgTreemapSeriesLabelFormatterParams<TDatum>,
+        TContext
+    >;
     /** Horizontal position of the label. */
     textAlign?: TextAlign;
     /** Vertical position of the label. */
@@ -75,25 +80,26 @@ export interface AgTreemapSeriesTileLayout<TDatum> {
     gap?: PixelSize;
 }
 
-export interface AgTreemapSeriesTileHighlightStyle<TDatum> extends AgTreemapSeriesTileStyle {
+export interface AgTreemapSeriesTileHighlightStyle<TDatum, TContext = TContextDefault>
+    extends AgTreemapSeriesTileStyle {
     /** Options for the label in a tile. */
-    label?: AgTreemapSeriesLabelHighlightOptions<TDatum>;
+    label?: AgTreemapSeriesLabelHighlightOptions<TDatum, TContext>;
     /** Options for a secondary, smaller label in a tile - displayed under the primary label. */
-    secondaryLabel?: AgTreemapSeriesLabelHighlightOptions<TDatum>;
+    secondaryLabel?: AgTreemapSeriesLabelHighlightOptions<TDatum, TContext>;
 }
 
-export interface AgTreemapSeriesTileOptions<TDatum>
+export interface AgTreemapSeriesTileOptions<TDatum, TContext = TContextDefault>
     extends AgTreemapSeriesTileStyle,
-        AgTreemapSeriesTileLayout<TDatum> {
+        AgTreemapSeriesTileLayout<TDatum, TContext> {
     /** Apply rounded corners to each tile. */
     cornerRadius?: PixelSize;
 }
 
-export interface AgTreemapSeriesHighlightStyle<TDatum> {
+export interface AgTreemapSeriesHighlightStyle<TDatum, TContext = TContextDefault> {
     /** Options for the label in a tile. */
-    group?: AgTreemapSeriesGroupHighlightStyle<TDatum>;
+    group?: AgTreemapSeriesGroupHighlightStyle<TDatum, TContext>;
     /** Options for a secondary, smaller label in a tile - displayed under the primary label. */
-    tile?: AgTreemapSeriesTileHighlightStyle<TDatum>;
+    tile?: AgTreemapSeriesTileHighlightStyle<TDatum, TContext>;
 }
 
 export interface AgTreemapSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
@@ -105,15 +111,15 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
     /** Options for group nodes (i.e. nodes WITH children). */
-    group?: AgTreemapSeriesGroupOptions<TDatum>;
+    group?: AgTreemapSeriesGroupOptions<TDatum, TContext>;
     /** Options for leaf nodes (i.e. nodes WITHOUT children). */
-    tile?: AgTreemapSeriesTileOptions<TDatum>;
+    tile?: AgTreemapSeriesTileOptions<TDatum, TContext>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgTreemapSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgTreemapSeriesTooltipRendererParams<TDatum, TContext>>;
     /** A callback function for adjusting the styles of a particular tile based on the input parameters. */
     itemStyler?: Styler<AgTreemapSeriesItemStylerParams<TDatum, TContext>, AgTreemapSeriesStyle>;
     /** Style overrides when a node is hovered. */
-    highlightStyle?: AgTreemapSeriesHighlightStyle<TDatum>;
+    highlightStyle?: AgTreemapSeriesHighlightStyle<TDatum, TContext>;
 }
 
 export interface AgTreemapSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>

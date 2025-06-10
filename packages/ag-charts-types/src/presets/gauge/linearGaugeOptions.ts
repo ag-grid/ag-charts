@@ -39,7 +39,7 @@ export interface AgLinearGaugeScale<TContext = TContextDefault>
     interval?: AgLinearGaugeScaleInterval;
 }
 
-export interface AgLinearGaugeTooltipRendererParams extends AgSeriesTooltipRendererParams<undefined> {
+export interface AgLinearGaugeTooltipRendererParams extends AgSeriesTooltipRendererParams<never, TContextDefault> {
     /** Value of the Gauge */
     value: number;
 }
@@ -83,7 +83,7 @@ export type AgLinearGaugeLabelPlacement =
     | 'bar-outside-end'
     | 'bar-end';
 
-export interface AgLinearGaugeLabelOptions extends AgChartAutoSizedLabelOptions<never, unknown> {
+export interface AgLinearGaugeLabelOptions extends AgChartAutoSizedLabelOptions<never, unknown, TContextDefault> {
     /** Text to always display. */
     text?: string;
     /** Distance between the shape edges and the text. */

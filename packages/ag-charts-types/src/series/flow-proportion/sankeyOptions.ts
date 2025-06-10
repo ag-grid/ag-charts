@@ -34,7 +34,7 @@ export interface AgSankeySeriesNodeItemStylerParams<TDatum, TContext = TContextD
 export interface AgSankeySeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Options for the label for each node. */
-    label?: AgSankeySeriesLabelOptions<TDatum>;
+    label?: AgSankeySeriesLabelOptions<TDatum, TContext>;
     /** The colours to cycle through for the fills of the nodes and links. */
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the nodes and links. */
@@ -44,11 +44,11 @@ export interface AgSankeySeriesThemeableOptions<TDatum = TDatumDefault, TContext
     /** Options for the nodes. */
     node?: AgSankeySeriesNodeOptions<TDatum, TContext>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
-export interface AgSankeySeriesLabelOptions<TDatum>
-    extends AgChartLabelOptions<TDatum, AgSankeySeriesLabelFormatterParams<TDatum>> {
+export interface AgSankeySeriesLabelOptions<TDatum, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, AgSankeySeriesLabelFormatterParams<TDatum>, TContext> {
     /** Spacing between a node and its label. */
     spacing?: PixelSize;
 }
@@ -93,8 +93,8 @@ interface SizeParams {
     size: number;
 }
 
-export interface AgSankeySeriesTooltipRendererParams<TDatum>
-    extends AgSeriesTooltipRendererParams<TDatum>,
+export interface AgSankeySeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames,
         SizeParams {}

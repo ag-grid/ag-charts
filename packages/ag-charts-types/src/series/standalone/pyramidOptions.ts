@@ -6,9 +6,14 @@ import type { CssColor, Opacity, PixelSize, TContextDefault, TDatumDefault } fro
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 
-export type AgPyramidSeriesLabelOptions<TDatum, TParams> = AgChartLabelOptions<TDatum, TParams>;
+export type AgPyramidSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault> = AgChartLabelOptions<
+    TDatum,
+    TParams,
+    TContext
+>;
 
-export interface AgPyramidSeriesStageLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
+export interface AgPyramidSeriesStageLabelOptions<TDatum, TParams, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
     /** Spacing of the label in relation to the chart. */
@@ -26,10 +31,10 @@ export interface AgPyramidSeriesStyle extends FillOptions, StrokeOptions, LineDa
 export interface AgPyramidSeriesLabelFormatterParams<TDatum = TDatumDefault>
     extends AgPyramidSeriesOptionsKeys<TDatum> {}
 
-export interface AgPyramidSeriesTooltipRendererParams<TDatum = TDatumDefault>
+export interface AgPyramidSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgPyramidSeriesOptionsKeys<TDatum>,
         AgPyramidSeriesOptionsNames,
-        AgSeriesTooltipRendererParams<TDatum>,
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgPyramidSeriesStyle {}
 
 export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
@@ -53,13 +58,13 @@ export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     /** Ratio of the triangle width to its height. When unset, the triangle will fill the available space. */
     aspectRatio?: number;
     /** Configuration for the labels shown on stages. */
-    label?: AgPyramidSeriesLabelOptions<TDatum, AgPyramidSeriesLabelFormatterParams<TDatum>>;
+    label?: AgPyramidSeriesLabelOptions<TDatum, AgPyramidSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the stage labels. */
-    stageLabel?: AgPyramidSeriesStageLabelOptions<TDatum, AgPyramidSeriesLabelFormatterParams<TDatum>>;
+    stageLabel?: AgPyramidSeriesStageLabelOptions<TDatum, AgPyramidSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgPyramidSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgPyramidSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgPyramidSeriesItemStylerParams<TDatum, TContext>, AgPyramidSeriesStyle>;
 }

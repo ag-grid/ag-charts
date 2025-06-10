@@ -15,7 +15,8 @@ export type AgBarSeriesLabelPlacement =
     | 'outside-start'
     | 'outside-end';
 
-export interface AgBarSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
+export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Where to render series labels relative to the segments. */
     placement?: AgBarSeriesLabelPlacement;
     /** Distance between the shape edges and the text. */
@@ -50,12 +51,12 @@ export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOp
 export type AgBarSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgBarSeriesOptionsKeys<TDatum> &
     AgBarSeriesOptionsNames;
 
-export interface AgBarSeriesTooltipRendererParams<TDatum = TDatumDefault>
+export interface AgBarSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBarSeriesOptionsKeys<TDatum>,
         AgBarSeriesOptionsNames,
         AgBarSeriesStyle,
         AgErrorBoundSeriesTooltipRendererParams<TDatum>,
-        AgSeriesTooltipRendererParams<TDatum> {
+        AgSeriesTooltipRendererParams<TDatum, TContext> {
     readonly stackGroup?: string;
 }
 
@@ -73,9 +74,9 @@ export interface AgBarSeriesThemeableOptions<TDatum = TDatumDefault, TContext = 
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on bars. */
-    label?: AgBarSeriesLabelOptions<TDatum, AgBarSeriesLabelFormatterParams<TDatum>>;
+    label?: AgBarSeriesLabelOptions<TDatum, AgBarSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgBarSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgBarSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgBarSeriesItemStylerParams<TDatum, TContext>, AgBarSeriesStyle>;
     /** Configuration for the Error Bars. */

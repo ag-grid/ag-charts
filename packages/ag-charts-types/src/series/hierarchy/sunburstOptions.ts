@@ -10,13 +10,13 @@ import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 /* All the label properties that can be changed without affecting the layout. */
-export type AgSunburstSeriesLabelHighlightOptions<TDatum> = Pick<
-    AgChartLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>,
+export type AgSunburstSeriesLabelHighlightOptions<TDatum, TContext = TContextDefault> = Pick<
+    AgChartLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>, TContext>,
     'color'
 >;
 
-export interface AgSunburstSeriesTooltipRendererParams<TDatum>
-    extends AgSeriesTooltipRendererParams<TDatum>,
+export interface AgSunburstSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames,
         AgSunburstSeriesStyle {
@@ -24,19 +24,23 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum>
     depth: number;
 }
 
-export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSunburstSeriesStyle {
+export interface AgSunburstSeriesHighlightStyle<TDatum, TContext = TContextDefault> extends AgSunburstSeriesStyle {
     /** Options for the label in a sector. */
-    label?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
+    label?: AgSunburstSeriesLabelHighlightOptions<TDatum, TContext>;
     /** Options for a secondary, smaller label in a sector - displayed under the primary label. */
-    secondaryLabel?: AgSunburstSeriesLabelHighlightOptions<TDatum>;
+    secondaryLabel?: AgSunburstSeriesLabelHighlightOptions<TDatum, TContext>;
 }
 
 export interface AgSunburstSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle'> {
     /** Options for the label in a sector. */
-    label?: AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>;
+    label?: AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Options for a secondary, smaller label in a sector - displayed under the primary label. */
-    secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>>;
+    secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<
+        TDatum,
+        AgSunburstSeriesLabelFormatterParams<TDatum>,
+        TContext
+    >;
     /** Apply rounded corners to each sector. */
     cornerRadius?: PixelSize;
     /** Spacing between the sectors. */
@@ -56,11 +60,11 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = TDatumDefault, TConte
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgSunburstSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgSunburstSeriesTooltipRendererParams<TDatum, TContext>>;
     /** A callback function for adjusting the styles of a particular Sunburst sector based on the input parameters. */
     itemStyler?: Styler<AgSunburstSeriesItemStylerParams<TDatum, TContext>, AgSunburstSeriesStyle>;
     /** Style overrides when a node is hovered. */
-    highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum>;
+    highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum, TContext>;
 }
 
 export interface AgSunburstSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
