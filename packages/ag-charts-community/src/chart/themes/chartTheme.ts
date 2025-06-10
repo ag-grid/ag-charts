@@ -160,7 +160,7 @@ export class ChartTheme {
             fontWeight: 400,
             gridLineColor: { $foregroundBackgroundMix: [0.1] },
             padding: 20,
-            popupShadow: '0 2px 8px 0 color-mix(in srgb, black 8%, transparent)',
+            popupShadow: '0 0 16px rgba(0, 0, 0, 0.15)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.38] },
             textColor: { $ref: 'foregroundColor' },
 

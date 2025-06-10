@@ -16,7 +16,7 @@
     --ag-charts-font-size: 12px;
     --ag-charts-font-weight: 400;
     --ag-charts-padding: 20px;
-    --ag-charts-popup-shadow: 0 2px 8px 0 color-mix(in srgb, black 8%, transparent);
+    --ag-charts-popup-shadow: 0 0 16px rgba(0, 0, 0, 0.15);
     --ag-charts-subtle-text-color: #8c8c8c;
     --ag-charts-text-color: #181d1f;
 
