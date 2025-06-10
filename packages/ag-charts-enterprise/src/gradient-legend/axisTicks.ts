@@ -145,20 +145,12 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
                 boundSeries,
                 fractionDigits,
             };
-            let result: string | undefined;
-            result ??= this.label.formatValue(
-                (fn, params) => formatWithContext(ctx, fn, params),
-                'number',
-                value,
-                index,
-                domain,
-                boundSeries,
-                fractionDigits,
-                undefined
+
+            return (
+                this.label.formatValue((fn, params) => formatWithContext(ctx, fn, params), formatParams, index) ??
+                formatManager.format((fn, params) => formatWithContext(ctx, fn, params), formatParams) ??
+                formatManager.defaultFormat(formatParams)
             );
-            result ??= formatManager.format((fn, params) => formatWithContext(ctx, fn, params), formatParams);
-            result ??= formatManager.defaultFormat(formatParams);
-            return result;
         };
     }
 

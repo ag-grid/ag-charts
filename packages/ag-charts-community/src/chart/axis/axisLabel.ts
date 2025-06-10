@@ -1,5 +1,4 @@
 import type {
-    AgAxisBoundSeries,
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
     AgBaseAxisLabelStyleOptions,
@@ -7,15 +6,14 @@ import type {
     FontStyle,
     FontWeight,
     Formatter,
+    FormatterParams,
     Styler,
-    TimeInterval,
     TimeIntervalUnit,
 } from 'ag-charts-types';
 
 import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
-import { intervalStep, intervalUnit } from '../../util/time';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { FormatManager } from '../formatter/formatManager';
 
@@ -138,29 +136,32 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
             formatter: (params: AgAxisLabelFormatterParams) => string | undefined,
             params: AgAxisLabelFormatterParams
         ) => string | undefined,
-        type: 'number' | 'date' | 'category',
-        value: any,
+        params: FormatterParams<any>,
         index: number,
-        domain: any[],
-        boundSeries: AgAxisBoundSeries[],
-        fractionDigits: number | undefined,
-        timeInterval: TimeInterval | TimeIntervalUnit | undefined,
-        specifier?: string | Record<string, string>,
-        style: DateFormatterStyle = 'long',
-        options: { includeYear: boolean } = { includeYear: true }
+        options: {
+            specifier?: string | Record<string, string>;
+            dateStyle: DateFormatterStyle;
+            includeYear: boolean;
+        } = {
+            dateStyle: 'long',
+            includeYear: true,
+        }
     ) {
         const { formatter, format } = this;
+        const { type, value, domain, boundSeries } = params;
+        const fractionDigits = params.type === 'number' ? params.fractionDigits : undefined;
 
-        const unit = timeInterval ? intervalUnit(timeInterval) : undefined;
+        const unit = params.type === 'date' ? params.unit : undefined;
 
         let result: string | undefined;
         if (formatter != null) {
-            const step = timeInterval ? intervalStep(timeInterval) : undefined;
+            const step = params.type === 'date' ? params.step : undefined;
             result = callWithContext(formatter, { value, index, domain, fractionDigits, unit, step, boundSeries });
         }
 
         if (format != null) {
-            const cacheKey: FormatterCacheKey = `${style}:${options.includeYear}`;
+            const { specifier, dateStyle, includeYear } = options;
+            const cacheKey: FormatterCacheKey = `${dateStyle}:${includeYear}`;
             let valueFormatter = this._formatters[cacheKey];
 
             const mergedFormat = FormatManager.mergeSpecifiers(specifier, format);
@@ -174,7 +175,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
                     type,
                     mergedFormat,
                     unit,
-                    formatter: FormatManager.getFormatter(type, mergedFormat, unit, style, options),
+                    formatter: FormatManager.getFormatter(type, mergedFormat, unit, dateStyle, options),
                 };
 
                 this._formatters[cacheKey] = valueFormatter;
