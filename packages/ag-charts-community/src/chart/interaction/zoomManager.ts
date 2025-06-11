@@ -261,7 +261,7 @@ export class ZoomManager extends BaseManager {
         return this.zoomModule;
     }
 
-    public updateZoom(callerId: string, newZoom?: AxisZoomState) {
+    public updateZoom(callerId: string, newZoom?: AxisZoomState, primaryAxesOnly = false) {
         if (newZoom?.x && (newZoom.x.min < 0 || newZoom.x.max > 1)) {
             Logger.warnOnce(
                 `Attempted to update x-axis zoom to an invalid ratio of [{ min: ${newZoom.x.min}, max: ${newZoom.x.max} }], expecting a ratio of 0 to 1, ignoring.`
@@ -291,9 +291,21 @@ export class ZoomManager extends BaseManager {
             this.autoScaleYAxis.manuallyAdjusted = !autoScaleYAxis;
         }
 
-        this.axisZoomManagers.forEach((axis) => {
-            axis.updateZoom(callerId, newZoom?.[axis.getDirection()]);
-        });
+        if (primaryAxesOnly) {
+            for (const direction of [ChartAxisDirection.X, ChartAxisDirection.Y]) {
+                const newZoomValue = newZoom?.[direction === ChartAxisDirection.X ? 'x' : 'y'];
+                if (newZoomValue == null) continue;
+
+                const axis = this.getPrimaryAxis(direction);
+                if (axis) {
+                    this.updateAxisZoom(callerId, axis.id, newZoomValue);
+                }
+            }
+        } else {
+            this.axisZoomManagers.forEach((axis) => {
+                axis.updateZoom(callerId, newZoom?.[axis.getDirection()]);
+            });
+        }
 
         this.applyChanges(callerId);
     }
