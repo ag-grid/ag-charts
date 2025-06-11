@@ -27,6 +27,7 @@ export const HEATMAP_SERIES_THEME: _ModuleSupport.SeriesModule<'heatmap'>['theme
             overflowStrategy: 'ellipsis',
         },
         itemPadding: 3,
+        highlight: _ModuleSupport.singleSeriesHighlightStyle(),
     },
     gradientLegend: {
         enabled: true,
