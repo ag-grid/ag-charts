@@ -1,7 +1,8 @@
 import type { NormalizedDomain, Scale, ScaleTickParams, ScaleType } from './scale';
 
 export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> {
-    abstract type: ScaleType;
+    abstract readonly type: ScaleType;
+    abstract readonly defaultTickCount: number;
     abstract domain: D[];
     abstract range: R[];
     abstract normalizeDomains(...domains: D[][]): NormalizedDomain<D>;

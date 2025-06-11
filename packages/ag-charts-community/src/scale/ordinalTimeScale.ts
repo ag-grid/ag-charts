@@ -2,12 +2,14 @@ import { findMinIndex } from 'ag-charts-core';
 import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
 
 import { datesSortOrder, sortAndUniqueDates } from '../util/date';
+import { ContinuousScale } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
 import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from './scale';
 import { getDateTicksForInterval } from './timeScale';
 
 export class OrdinalTimeScale extends DiscreteTimeScale {
     readonly type = 'ordinal-time';
+    readonly defaultTickCount = ContinuousScale.defaultTickCount;
 
     static override is(value: unknown): value is OrdinalTimeScale {
         return value instanceof OrdinalTimeScale;

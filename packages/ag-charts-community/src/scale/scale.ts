@@ -23,7 +23,8 @@ export interface ScaleTickResult<D> {
 }
 
 export interface Scale<D, R, I = number> {
-    type: ScaleType;
+    readonly type: ScaleType;
+    readonly defaultTickCount: number;
     domain: D[];
     range: R[];
     normalizeDomains(...domains: D[][]): NormalizedDomain<D>;
