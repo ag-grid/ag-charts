@@ -3,7 +3,7 @@ import type { RequiredInternalAgGradientColor } from 'ag-charts-core';
 
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
-    MULTI_SERIES_HIGHLIGHT_STYLE,
+    multiSeriesHighlightStyle,
 } = _ModuleSupport;
 
 export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['themeTemplate'] = {
@@ -35,7 +35,7 @@ export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['the
         fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         strokeWidth: 2,
-        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        highlight: multiSeriesHighlightStyle(),
     },
     axes: {
         [CARTESIAN_AXIS_TYPE.NUMBER]: {
