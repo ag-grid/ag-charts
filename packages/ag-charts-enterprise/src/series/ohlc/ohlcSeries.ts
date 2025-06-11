@@ -93,6 +93,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
                     highlightStyle?.lineDashOffset ??
                     style?.lineDashOffset ??
                     (isRising ? upLineDashOffset : downLineDashOffset),
+                opacity: highlightStyle?.opacity ?? 1,
             });
 
             // Ignore highlight style
