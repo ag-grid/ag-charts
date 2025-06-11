@@ -519,7 +519,7 @@ export abstract class CartesianSeries<
             seriesHighlighted,
             itemId,
             paths,
-            opacity: opacity,
+            opacity,
             visible: visible,
             animationEnabled,
         });
