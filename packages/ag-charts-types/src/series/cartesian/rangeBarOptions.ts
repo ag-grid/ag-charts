@@ -27,7 +27,7 @@ export type AgRangeBarSeriesTooltipRendererParams<
     AgRangeBarSeriesOptionsNames &
     AgRangeBarSeriesStyle;
 
-export interface AgRangeBarSeriesLabelOptions<TDatum, TContext=TContextDefault>
+export interface AgRangeBarSeriesLabelOptions<TDatum, TContext = TContextDefault>
     extends AgChartLabelOptions<TDatum, AgRangeBarSeriesLabelFormatterParams<TDatum>, TContext> {
     /** Where to render series labels relative to the bars. */
     placement?: AgRangeBarSeriesLabelPlacement;
