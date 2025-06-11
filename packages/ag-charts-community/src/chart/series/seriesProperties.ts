@@ -111,6 +111,8 @@ export class HighlightProperties<T> extends BaseProperties {
 
     private getSeriesHighlightStyle(highlightState: HighlightState) {
         switch (highlightState) {
+            case HighlightState.Item:
+            case HighlightState.OtherItem:
             case HighlightState.Series:
                 return this.highlightedSeries;
             case HighlightState.OtherSeries:
