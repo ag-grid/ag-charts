@@ -269,6 +269,7 @@ export function cartesianAxisCrosshairOptions(
     if (canFormat) {
         crosshairLabel = {
             ...baseCrosshairLabel,
+            formatter: callbackOf(string),
             format: timeFormat
                 ? or(
                       string,
