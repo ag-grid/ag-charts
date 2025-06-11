@@ -10,12 +10,12 @@
     --ag-charts-border-color: #dddddd;
     --ag-charts-border-radius: 4px;
     --ag-charts-chart-background-color: #fff;
+    --ag-charts-chart-padding: 20px;
     --ag-charts-focus-shadow: 0 0 0 3px #2196f3;
     --ag-charts-foreground-color: #181d1f;
     --ag-charts-font-family: Verdana, sans-serif;
     --ag-charts-font-size: 12px;
     --ag-charts-font-weight: 400;
-    --ag-charts-padding: 20px;
     --ag-charts-popup-shadow: 0 0 16px rgba(0, 0, 0, 0.15);
     --ag-charts-subtle-text-color: #8c8c8c;
     --ag-charts-text-color: #181d1f;

@@ -90,6 +90,8 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     axisColor?: CssColor;
     /** Background colour of the chart. */
     chartBackgroundColor?: CssColor;
+    /** The outer chart padding. */
+    chartPadding?: PixelSize;
     /**
      * Background colour of tooltips, menus, dialogs, toolbars and buttons.
      *
@@ -142,6 +144,4 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     fontWeight?: FontWeight;
     /** Default colour for grid lines. */
     gridLineColor?: CssColor;
-    /** The outer chart padding. */
-    padding?: PixelSize;
 }

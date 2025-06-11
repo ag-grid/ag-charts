@@ -59,8 +59,8 @@ export class FinancialDark extends DarkTheme {
     override getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
         return {
             ...super.getPublicParameters(),
+            chartPadding: 0,
             gridLineColor: { $foregroundBackgroundMix: [0.12] },
-            padding: 0,
         };
     }
 
