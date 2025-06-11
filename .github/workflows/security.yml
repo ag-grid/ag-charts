@@ -1,11 +1,5 @@
 name: Security
 
-env:
-    SECURITY_SEVERITY_THRESHOLD: high
-
-    # Ignore `project.json` as snyk thinks it is a dot net project
-    SECURITY_BASE_IGNORE_LIST: '.nx,project.json,dist'
-
 on:
     issue_comment:
         types: [created]
@@ -22,28 +16,28 @@ jobs:
         runs-on: ubuntu-latest
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/security') || github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'pull_request'
         steps:
-            - uses: actions/checkout@main
-            - name: Echo ignore lists
-              run: |
-                  echo "SECURITY_BASE_IGNORE_LIST: ${{ env.SECURITY_BASE_IGNORE_LIST }}"
-            - name: Run snyk to check for vulnerabilities on all projects
-              uses: snyk/actions/node@master
-              env:
-                  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
               with:
-                  args: --yarn-workspaces --strict-out-of-sync=false --severity-threshold=${{ env.SECURITY_SEVERITY_THRESHOLD }} --exclude=${{ env.SECURITY_BASE_IGNORE_LIST }}
+                  fetch-depth: 1
+            - name: Snyk scan workspaces
+              id: snyk-scan-workspaces
+              uses: ./external/ag-shared/github/actions/snyk-scan-workspaces
+              with:
+                  snyk_token: ${{ secrets.SNYK_TOKEN }}
 
     code-security:
         runs-on: ubuntu-latest
-        permissions:
-            pull-requests: write
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/security') || github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'pull_request'
         steps:
-            - uses: actions/checkout@main
-            - name: Run Snyk SAST security code scan
-              uses: snyk/actions/node@master
-              env:
-                  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
               with:
-                  command: code test
-                  args: --severity-threshold=${{ env.SECURITY_SEVERITY_THRESHOLD }}
+                  fetch-depth: 1
+            - name: Snyk code scan
+              id: snyk-code-scan
+              uses: ./external/ag-shared/github/actions/snyk-code-scan
+              with:
+                  snyk_token: ${{ secrets.SNYK_TOKEN }}
