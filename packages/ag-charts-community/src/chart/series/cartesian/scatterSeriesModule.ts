@@ -59,7 +59,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             tooltip: {
                 range: { $path: ['/tooltip/range', 'nearest'] },
                 position: {
-                    anchorTo: { $path: ['/tooltip/anchorTo', 'node'] },
+                    anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
                 },
             },
             highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
