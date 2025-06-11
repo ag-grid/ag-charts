@@ -75,6 +75,7 @@ export const WATERFALL_SERIES_THEME: _ModuleSupport.SeriesModule<'waterfall'>['t
             lineDashOffset: 0,
             strokeWidth: 2,
         },
+        highlight: _ModuleSupport.singleSeriesHighlightStyle(),
     },
     legend: {
         enabled: true,
