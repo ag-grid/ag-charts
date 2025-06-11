@@ -16,6 +16,7 @@ export const SELECTORS = {
     axisButton: '.ag-charts-annotations__axis-button',
     tooltip: '.ag-charts-tooltip',
     crosshairLabel: '.ag-charts-crosshair-label',
+    focusIndicator: '.ag-charts-focus-indicator',
 } as const;
 
 export function getExamples() {
