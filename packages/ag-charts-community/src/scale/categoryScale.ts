@@ -9,6 +9,7 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
     }
 
     readonly type = 'band' as const;
+    readonly defaultTickCount = 0;
 
     /**
      * Maps datum to its index in the {@link domain} array.
