@@ -23,7 +23,7 @@ const options: AgCartesianChartOptions = {
             position: 'left',
         },
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             crosshair: {
                 enabled: false,
