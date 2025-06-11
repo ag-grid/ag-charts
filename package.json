@@ -158,6 +158,7 @@
     ]
   },
   "resolutions": {
-    "**/micromatch": "4.0.8"
+    "**/micromatch": "4.0.8",
+    "**/puppeteer-core/ws": "7.5.10"
   }
 }
