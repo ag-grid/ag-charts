@@ -2,6 +2,8 @@ import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
 import { AsyncAwaitQueue, Logger, arraysEqual, isDate, isDefined, isFiniteNumber, unique } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
+import type { Zoom } from '../zoom/zoom';
+import { definedZoomState } from '../zoom/zoomUtils';
 
 const {
     BaseProperties,
@@ -94,15 +96,23 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     private disableZoomSync?: () => void;
     private enabledZoomSync() {
-        const { eventsHub, syncManager } = this.moduleContext;
+        const { eventsHub } = this.moduleContext;
         this.disableZoomSync?.(); // Cleanup any existing listeners.
-        this.disableZoomSync = eventsHub.on('zoom:change', () => {
-            for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-                if (chart.modulesManager.getModule<ChartSync>('sync')?.zoom) {
-                    chart.ctx.zoomManager.updateZoom('sync', this.mergeZoom(chart));
-                }
-            }
-        });
+        this.disableZoomSync = eventsHub.on('zoom:change', this.onZoom.bind(this));
+    }
+
+    private onZoom() {
+        const { syncManager } = this.moduleContext;
+        for (const chart of syncManager.getGroupSiblings(this.groupId)) {
+            if (!chart.modulesManager.getModule<ChartSync>('sync')?.zoom) continue;
+            const zoomModule = chart.modulesManager.getModule<Zoom>('zoom');
+            if (!zoomModule) continue;
+
+            const zoom = this.prepareZoomUpdate();
+
+            debug('ChartsSyncManager.enabledZoomSync()', chart.id, zoom);
+            zoomModule.updateSyncZoom(zoom);
+        }
     }
 
     private disableNodeInteractionSync?: () => void;
@@ -493,16 +503,17 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         this.domainSync.notify();
     }
 
-    private mergeZoom(chart: _ModuleSupport.SyncChartLike) {
+    private prepareZoomUpdate() {
         const { zoomManager } = this.moduleContext;
 
-        if (this.axes === 'xy') {
-            return zoomManager.getZoom();
+        const zoom = zoomManager.getZoom();
+        if (this.axes === 'x') {
+            delete zoom?.y;
+        } else if (this.axes === 'y') {
+            delete zoom?.x;
         }
 
-        const combinedZoom = chart.ctx.zoomManager.getZoom() ?? {};
-        combinedZoom[this.axes] = zoomManager.getZoom()?.[this.axes];
-        return combinedZoom;
+        return definedZoomState(zoom);
     }
 
     private onEnabledChange() {
