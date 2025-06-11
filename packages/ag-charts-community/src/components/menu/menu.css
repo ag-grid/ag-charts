@@ -1,6 +1,6 @@
 .ag-charts-menu {
     --item-padding: 6px 12px;
-    --icon-color: var(--ag-charts-chrome-text-color);
+    --icon-color: var(--ag-charts-menu-text-color);
     display: grid;
     grid: auto-flow auto / 1fr;
     column-gap: 12px;

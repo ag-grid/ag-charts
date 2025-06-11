@@ -27,7 +27,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
-            color: { $ref: 'backgroundColor' },
+            color: { $ref: 'chartBackgroundColor' },
             positionOffset: 0,
             positionRatio: 0.5,
         },

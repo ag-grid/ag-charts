@@ -5,7 +5,7 @@ export const HEATMAP_SERIES_THEME: _ModuleSupport.SeriesModule<'heatmap'>['theme
         stroke: {
             $if: [
                 { $eq: [{ $palette: 'type' }, 'inbuilt'] },
-                { $ref: 'backgroundColor' },
+                { $ref: 'chartBackgroundColor' },
                 { $path: ['/0', { $palette: 'stroke' }, { $palette: 'strokes' }] },
             ],
         },

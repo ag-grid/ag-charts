@@ -52,7 +52,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             tile: {
                 label: {
                     enabled: true,
-                    color: { $ref: 'backgroundColor' },
+                    color: { $ref: 'chartBackgroundColor' },
                     fontStyle: undefined,
                     fontWeight: { $ref: 'fontWeight' },
                     fontSize: { $rem: [1.5] },
@@ -64,7 +64,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 },
                 secondaryLabel: {
                     enabled: true,
-                    color: { $ref: 'backgroundColor' },
+                    color: { $ref: 'chartBackgroundColor' },
                     fontStyle: undefined,
                     fontWeight: undefined,
                     fontSize: { $ref: 'fontSize' },
@@ -91,10 +91,10 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 },
                 tile: {
                     label: {
-                        color: { $ref: 'backgroundColor' },
+                        color: { $ref: 'chartBackgroundColor' },
                     },
                     secondaryLabel: {
-                        color: { $ref: 'backgroundColor' },
+                        color: { $ref: 'chartBackgroundColor' },
                     },
                     fill: 'rgba(255,255,255, 0.33)',
                     stroke: `rgba(0, 0, 0, 0.4)`,

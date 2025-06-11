@@ -151,13 +151,17 @@ export class ChartTheme {
             axisColor: { $foregroundBackgroundMix: [0.675] },
             backgroundColor: DEFAULT_BACKGROUND_FILL,
             borderColor: { $foregroundBackgroundMix: [0.818] },
+            borderRadius: 4,
+            chartBackgroundColor: { $ref: 'backgroundColor' },
+            focusShadow: '0 0 0 3px var(--ag-charts-accent-color)',
             foregroundColor: '#464646',
             fontFamily: 'Verdana, sans-serif',
             fontSize: BASE_FONT_SIZE,
             fontWeight: 400,
             gridLineColor: { $foregroundBackgroundAccentMix: [0.93, 0.085] },
             padding: 20,
-            subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'backgroundColor' }, 0.38] },
+            popupShadow: '0 2px 8px 0 color-mix(in srgb, black 8%, transparent)',
+            subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.38] },
             textColor: { $ref: 'foregroundColor' },
 
             chromeBackgroundColor: { $foregroundBackgroundMix: [0.975] },
@@ -167,11 +171,29 @@ export class ChartTheme {
             chromeTextColor: '#181d1f',
             chromeSubtleTextColor: { $mix: [{ $ref: 'chromeTextColor' }, { $ref: 'backgroundColor' }, 0.38] },
 
+            buttonBackgroundColor: { $ref: 'backgroundColor' },
+            buttonBorder: true,
+            buttonFontWeight: 400,
+            buttonTextColor: { $ref: 'textColor' },
+
             inputBackgroundColor: { $ref: 'backgroundColor' },
+            inputBorder: true,
             inputTextColor: { $ref: 'textColor' },
 
+            menuBackgroundColor: { $ref: 'chromeBackgroundColor' },
+            menuBorder: true,
+            menuTextColor: { $ref: 'chromeTextColor' },
+
+            panelBackgroundColor: { $ref: 'chromeBackgroundColor' },
+            panelSubtleTextColor: { $ref: 'chromeSubtleTextColor' },
+
+            tooltipBackgroundColor: { $ref: 'chromeBackgroundColor' },
+            tooltipBorder: true,
+            tooltipTextColor: { $ref: 'chromeTextColor' },
+            tooltipSubtleTextColor: { $ref: 'chromeSubtleTextColor' },
+
             crosshairLabelBackgroundColor: { $ref: 'foregroundColor' },
-            crosshairLabelTextColor: { $ref: 'backgroundColor' },
+            crosshairLabelTextColor: { $ref: 'chartBackgroundColor' },
         };
     }
 
@@ -279,7 +301,7 @@ export class ChartTheme {
         return {
             minHeight: 300,
             minWidth: 300,
-            background: { visible: true, fill: { $ref: 'backgroundColor' } },
+            background: { visible: true, fill: { $ref: 'chartBackgroundColor' } },
             padding: {
                 top: { $ref: 'padding' },
                 right: { $ref: 'padding' },

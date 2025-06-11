@@ -59,7 +59,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
                             ],
                         },
                         { $ref: 'textColor' },
-                        { $ref: 'backgroundColor' },
+                        { $ref: 'chartBackgroundColor' },
                     ],
                 },
                 placement: 'inside-center',

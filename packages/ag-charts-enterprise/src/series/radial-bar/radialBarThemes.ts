@@ -26,7 +26,7 @@ export const RADIAL_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-bar'>[
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'backgroundColor' },
+            color: { $ref: 'chartBackgroundColor' },
         },
     },
     axes: {

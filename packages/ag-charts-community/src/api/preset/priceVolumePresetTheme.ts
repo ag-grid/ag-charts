@@ -159,7 +159,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...font,
         color: DEFAULT_TEXTBOX_COLOR,
         fill: DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-        stroke: { $ref: 'backgroundColor' },
+        stroke: { $ref: 'chartBackgroundColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
         handle: { ...handle },

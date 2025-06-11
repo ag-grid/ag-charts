@@ -1,4 +1,7 @@
-import type { CssColor, FontFamilyFull, FontSize, FontWeight, PixelSize } from './types';
+import type { CssColor, CssShadow, FontFamilyFull, FontSize, FontWeight, PixelSize } from './types';
+
+// AgBaseChartThemeParams - Shared with Grid
+// AgChartThemeParams - Unique to Charts
 
 export interface AgBaseChartThemeParams {
     /**
@@ -13,11 +16,25 @@ export interface AgBaseChartThemeParams {
     backgroundColor?: CssColor;
     /** Default colour for borders. */
     borderColor?: CssColor;
+    /** Default corner radius for many UI elements such as menus and dialogs.  */
+    borderRadius?: PixelSize;
+    /** Background colour of standard action buttons. */
+    buttonBackgroundColor?: CssColor;
+    /** Border around standard action buttons. */
+    buttonBorder?: boolean;
+    /** Font weight of standard action buttons. */
+    buttonFontWeight?: FontWeight;
+    /** Text colour of standard action buttons. */
+    buttonTextColor?: CssColor;
+    /** Shadow around UI controls that have focus e.g. text inputs and buttons. The value must a valid CSS box-shadow. */
+    focusShadow?: CssShadow;
     /**
      * Default colour for neutral UI elements. Most text, borders and backgrounds are defined as a blend between the
      * background and foreground colors.
      */
     foregroundColor?: CssColor;
+    /** Font family used for all text. */
+    fontFamily?: FontFamilyFull;
     /** Default font size used for all text. Titles and some other text are scaled to this font size. */
     fontSize?: FontSize;
     /**
@@ -26,12 +43,26 @@ export interface AgBaseChartThemeParams {
      * Default: `backgroundColor`
      */
     inputBackgroundColor?: CssColor;
+    /** Border around text inputs. */
+    inputBorder?: boolean;
     /**
      * Colour of text within text inputs.
      *
      * Default: `textColor`
      */
     inputTextColor?: CssColor;
+    /** Background colour for menus, e.g. right-click context menus. */
+    menuBackgroundColor?: CssColor;
+    /** Border around menus. */
+    menuBorder?: boolean;
+    /** Text colour for menus. */
+    menuTextColor?: CssColor;
+    /** Background colour for panels and dialogs. */
+    panelBackgroundColor?: CssColor;
+    /** Colour of text that should stand out less in panels and dialogs. */
+    panelSubtleTextColor?: CssColor;
+    /** Default shadow for elements that float above the chart and are intended to appear separated from it, e.g. dialogs and menus. */
+    popupShadow?: CssShadow;
     /**
      * Colour of text that should stand out less than the default.
      *
@@ -44,11 +75,21 @@ export interface AgBaseChartThemeParams {
      * Default: `foregroundColor`
      */
     textColor?: CssColor;
+    /** Background colour for tooltips. */
+    tooltipBackgroundColor?: CssColor;
+    /** Border around tooltips. */
+    tooltipBorder?: boolean;
+    /** Text colour for tooltips. */
+    tooltipTextColor?: CssColor;
+    /** Colour of text that should stand out less in tooltips. */
+    tooltipSubtleTextColor?: CssColor;
 }
 
 export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /** Default colour for axis lines and ticks. */
     axisColor?: CssColor;
+    /** Background colour of the chart. */
+    chartBackgroundColor?: CssColor;
     /**
      * Background colour of tooltips, menus, dialogs, toolbars and buttons.
      *
@@ -97,8 +138,6 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * Default: `backgroundColor`
      */
     crosshairLabelTextColor?: CssColor;
-    /** Font family used for all text. */
-    fontFamily?: FontFamilyFull;
     /** Default font weight used for all text. */
     fontWeight?: FontWeight;
     /** Default colour for grid lines. */

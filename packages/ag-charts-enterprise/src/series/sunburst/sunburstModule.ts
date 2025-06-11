@@ -36,7 +36,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
                 fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
                 minimumFontSize: { $rem: [9 / BASE_FONT_SIZE] },
                 fontWeight: { $ref: 'fontWeight' },
-                color: { $ref: 'backgroundColor' },
+                color: { $ref: 'chartBackgroundColor' },
                 overflowStrategy: 'ellipsis',
                 wrapping: 'never',
                 spacing: 2,
@@ -46,7 +46,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
                 fontSize: { $rem: [FONT_SIZE_RATIO.SMALLEST] },
                 minimumFontSize: { $rem: [7 / BASE_FONT_SIZE] },
                 fontWeight: { $ref: 'fontWeight' },
-                color: { $ref: 'backgroundColor' },
+                color: { $ref: 'chartBackgroundColor' },
                 overflowStrategy: 'ellipsis',
                 wrapping: 'never',
             },
@@ -54,10 +54,10 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             padding: 3,
             highlightStyle: {
                 label: {
-                    color: { $ref: 'backgroundColor' },
+                    color: { $ref: 'chartBackgroundColor' },
                 },
                 secondaryLabel: {
-                    color: { $ref: 'backgroundColor' },
+                    color: { $ref: 'chartBackgroundColor' },
                 },
                 fill: 'rgba(255,255,255, 0.33)',
                 stroke: `rgba(0, 0, 0, 0.4)`,

@@ -38,7 +38,7 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
                 fontWeight: { $ref: 'fontWeight' },
             },
             background: {
-                fill: { $ref: 'backgroundColor' },
+                fill: { $ref: 'chartBackgroundColor' },
                 fillOpacity: 0.5,
             },
             altNeutral: {

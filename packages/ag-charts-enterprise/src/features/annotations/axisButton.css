@@ -9,9 +9,9 @@
     box-sizing: border-box;
     color: var(--ag-charts-crosshair-label-text-color);
     cursor: pointer;
-    font-family: var(--ag-charts-chrome-font-family);
-    font-size: var(--ag-charts-chrome-font-size);
-    font-weight: var(--ag-charts-chrome-font-weight);
+    font-family: var(--ag-charts-button-font-family);
+    font-size: var(--ag-charts-button-font-size);
+    font-weight: var(--ag-charts-button-font-weight);
     left: 0px;
     line-height: 16px;
     overflow: hidden;

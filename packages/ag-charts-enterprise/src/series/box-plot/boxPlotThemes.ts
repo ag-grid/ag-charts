@@ -16,7 +16,7 @@ export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['the
                     ],
                 },
                 { $palette: 'fill' },
-                { $mix: [_ModuleSupport.SAFE_FILL_OPERATION, { $ref: 'backgroundColor' }, 0.7] },
+                { $mix: [_ModuleSupport.SAFE_FILL_OPERATION, { $ref: 'chartBackgroundColor' }, 0.7] },
             ],
         },
         stroke: { $palette: 'stroke' },

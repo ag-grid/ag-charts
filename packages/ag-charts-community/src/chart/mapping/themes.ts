@@ -2,6 +2,7 @@ import {
     Logger,
     type OptionsDefs,
     arrayOf,
+    boolean,
     color,
     colorUnion,
     fontFamilyFull,
@@ -124,12 +125,16 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         axisColor: color,
         backgroundColor: color,
         borderColor: color,
+        borderRadius: number,
+        chartBackgroundColor: color,
+        focusShadow: string,
         foregroundColor: color,
         fontFamily: fontFamilyFull,
         fontSize: number,
         fontWeight: or(string, number),
         gridLineColor: color,
         padding: number,
+        popupShadow: string,
         subtleTextColor: color,
         textColor: color,
 
@@ -140,8 +145,26 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         chromeSubtleTextColor: color,
         chromeTextColor: color,
 
+        buttonBackgroundColor: color,
+        buttonBorder: boolean,
+        buttonFontWeight: number,
+        buttonTextColor: color,
+
         inputBackgroundColor: color,
+        inputBorder: boolean,
         inputTextColor: color,
+
+        menuBackgroundColor: color,
+        menuBorder: boolean,
+        menuTextColor: color,
+
+        panelBackgroundColor: color,
+        panelSubtleTextColor: color,
+
+        tooltipBackgroundColor: color,
+        tooltipBorder: boolean,
+        tooltipTextColor: color,
+        tooltipSubtleTextColor: color,
 
         crosshairLabelBackgroundColor: color,
         crosshairLabelTextColor: color,

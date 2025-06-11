@@ -23,7 +23,7 @@ export const RANGE_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'range-bar'>['t
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'backgroundColor' },
+            color: { $ref: 'chartBackgroundColor' },
             placement: 'inside',
         },
     },

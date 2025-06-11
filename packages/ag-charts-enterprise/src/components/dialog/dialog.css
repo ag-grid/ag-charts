@@ -42,7 +42,7 @@
     border: 0;
     border-bottom: 2px solid transparent;
     border-radius: 0;
-    color: var(--ag-charts-chrome-subtle-text-color);
+    color: var(--ag-charts-panel-subtle-text-color);
     margin-bottom: -1px;
     padding: var(--input-padding) calc(var(--input-padding) / 2);
 }
@@ -104,7 +104,7 @@
 }
 
 .ag-charts-dialog__input-group-label {
-    color: var(--ag-charts-chrome-subtle-text-color);
+    color: var(--ag-charts-panel-subtle-text-color);
     margin-right: 5px;
 }
 

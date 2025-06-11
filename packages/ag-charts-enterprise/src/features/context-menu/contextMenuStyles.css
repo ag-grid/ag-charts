@@ -12,11 +12,11 @@
 }
 
 .ag-charts-context-menu__menu {
-    background: var(--ag-charts-chrome-background-color);
+    background: var(--ag-charts-menu-background-color);
     border-radius: var(--ag-charts-border-radius);
-    border: var(--ag-charts-border);
-    box-shadow: var(--ag-charts-shadow);
-    color: var(--ag-charts-chrome-text-color);
+    border: var(--ag-charts-menu-border);
+    box-shadow: var(--ag-charts-popup-shadow);
+    color: var(--ag-charts-menu-text-color);
     display: table;
     flex-direction: column;
     padding: 0.5em 0;
