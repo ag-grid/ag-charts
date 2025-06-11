@@ -156,5 +156,8 @@
       "**/vue",
       "**/vue-template-compiler"
     ]
+  },
+  "resolutions": {
+    "**/micromatch": "4.0.8"
   }
 }
