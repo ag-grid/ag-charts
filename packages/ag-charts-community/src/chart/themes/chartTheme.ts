@@ -399,10 +399,10 @@ export class ChartTheme {
                 tooltip: {
                     range: { $path: ['/tooltip/range', 'exact'] },
                     position: {
-                        anchorTo: { $path: ['/tooltip/anchorTo', 'pointer'] },
-                        placement: { $path: ['/tooltip/placement', undefined] },
-                        xOffset: { $path: ['/tooltip/xOffset', 0] },
-                        yOffset: { $path: ['/tooltip/yOffset', 0] },
+                        anchorTo: { $path: ['/tooltip/position/anchorTo', 'pointer'] },
+                        placement: { $path: ['/tooltip/position/placement', undefined] },
+                        xOffset: { $path: ['/tooltip/position/xOffset', 0] },
+                        yOffset: { $path: ['/tooltip/position/yOffset', 0] },
                     },
                 },
             },
