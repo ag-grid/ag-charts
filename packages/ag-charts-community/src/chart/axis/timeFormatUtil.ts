@@ -1,6 +1,6 @@
-import type { TimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeIntervalUnit } from 'ag-charts-types';
 
-export const defaultTimeFormats: Record<TimeIntervalUnit, string> = {
+export const defaultTimeFormats: Record<AgTimeIntervalUnit, string> = {
     millisecond: '%H:%M:%S.%L',
     second: '%H:%M:%S',
     minute: '%H:%M',
@@ -10,7 +10,7 @@ export const defaultTimeFormats: Record<TimeIntervalUnit, string> = {
     year: '%Y',
 };
 
-const hardCodedTimeFormats: Record<TimeIntervalUnit, string> = {
+const hardCodedTimeFormats: Record<AgTimeIntervalUnit, string> = {
     millisecond: '%Y %b %e %H:%M:%S.%L',
     second: '%Y %b %e %H:%M:%S',
     minute: '%Y %b %e %H:%M',
@@ -20,7 +20,7 @@ const hardCodedTimeFormats: Record<TimeIntervalUnit, string> = {
     year: '%Y',
 };
 
-const FORMAT_ORDERS: Record<TimeIntervalUnit, number> = {
+const FORMAT_ORDERS: Record<AgTimeIntervalUnit, number> = {
     year: 0,
     month: 1,
     day: 2,
@@ -40,7 +40,7 @@ const YEAR_FORMAT = /^%[-_0]?[Yy]$/;
 
 export function deriveTimeSpecifier(
     format: string | Partial<Record<string, string>> | undefined,
-    unit: TimeIntervalUnit,
+    unit: AgTimeIntervalUnit,
     includeYear = true
 ): string {
     if (typeof format === 'string') return format;

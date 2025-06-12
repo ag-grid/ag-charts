@@ -1,4 +1,4 @@
-import type { TimeIntervalUnit } from './axisOptions';
+import type { AgTimeIntervalUnit } from './axisOptions';
 import type { TDatumDefault } from './types';
 
 export type FormatterPropertyType =
@@ -62,7 +62,7 @@ export type DateFormatterStyle = 'long' | 'component';
 
 export interface DateFormatterParams<TDatum> extends BaseFormatterParams<TDatum, Date> {
     type: 'date';
-    unit: TimeIntervalUnit;
+    unit: AgTimeIntervalUnit;
     step: number;
     epoch: Date | undefined;
     style: DateFormatterStyle;
@@ -79,7 +79,7 @@ export type FormatterParams<TDatum = TDatumDefault> =
     | CategoryFormatterParams<TDatum>;
 
 type FunctionFormatter<TDatum> = (params: FormatterParams<TDatum>) => string | undefined;
-type TimeIntervalFormatter = Record<TimeIntervalUnit, string>;
+type TimeIntervalFormatter = Record<AgTimeIntervalUnit, string>;
 
 export type FormatterConfiguration<TDatum> =
     | FunctionFormatter<TDatum>

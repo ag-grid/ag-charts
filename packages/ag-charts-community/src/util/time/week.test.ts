@@ -3,11 +3,11 @@
  */
 import { expect, test } from '@jest/globals';
 
-import { TimeInterval } from 'ag-charts-types';
+import { AgTimeInterval } from 'ag-charts-types';
 
 import { intervalFloor, intervalRange } from './index';
 
-const sunday: TimeInterval = {
+const sunday: AgTimeInterval = {
     unit: 'day',
     step: 7,
     epoch: new Date(Date.UTC(1970, 0, 4)), // 1970-01-04 is a Sunday

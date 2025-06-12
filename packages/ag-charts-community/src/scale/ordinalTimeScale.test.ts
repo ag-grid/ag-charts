@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { datesSortOrder } from '../util/date';
 import {
@@ -287,7 +287,7 @@ describe('OrdinalTimeScale', () => {
         describe(`time interval`, () => {
             const TIME_INTERVALS: Array<{
                 name: string;
-                interval: TimeInterval | TimeIntervalUnit;
+                interval: AgTimeInterval | AgTimeIntervalUnit;
                 domain: Date[];
             }> = [
                 {

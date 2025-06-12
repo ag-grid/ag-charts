@@ -70,7 +70,7 @@ export interface AgBaseAxisOptions<LabelType = any, TContext = TContextDefault> 
 
 export interface AgContinuousAxisOptions<
     TDatum extends Date | number = number,
-    TInterval extends TimeInterval | TimeIntervalUnit | number = number,
+    TInterval extends AgTimeInterval | AgTimeIntervalUnit | number = number,
 > {
     /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */
     nice?: boolean;
@@ -82,7 +82,7 @@ export interface AgContinuousAxisOptions<
     interval?: AgAxisContinuousIntervalOptions<TInterval>;
 }
 
-export interface AgAxisContinuousIntervalOptions<T extends TimeInterval | TimeIntervalUnit | number>
+export interface AgAxisContinuousIntervalOptions<T extends AgTimeInterval | AgTimeIntervalUnit | number>
     extends AgAxisBaseIntervalOptions {
     /** The axis interval. Expressed in the units of the axis. If the configured interval results in too many items given the chart size, it will be ignored. */
     step?: T;
@@ -145,7 +145,7 @@ export interface AgAxisLabelFormatterParams {
     readonly value: any;
     readonly index: number;
     readonly fractionDigits?: number;
-    readonly unit?: TimeIntervalUnit;
+    readonly unit?: AgTimeIntervalUnit;
     readonly step?: number;
     readonly boundSeries: AgAxisBoundSeries[];
     readonly domain: any[];
@@ -199,11 +199,15 @@ export interface AgAxisGridStyle {
     lineDash?: PixelSize[];
 }
 
-export type TimeIntervalUnit = 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'month' | 'year';
+export type AgTimeIntervalUnit = 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'month' | 'year';
 
-export interface TimeInterval {
-    unit: TimeIntervalUnit;
+export interface AgTimeInterval {
+    /* The base duration of the time interval */
+    unit: AgTimeIntervalUnit;
+    /* A multiplier of the `unit`. I.e. a unit of `'week'` and a step of `2` would be every two weeks. */
     step?: number;
+    /* Defines the alignment of time time interval. For example, a unit of `'week'` with an epoch on any Monday would be every Monday. */
     epoch?: Date;
+    /* Whether all dates should be in UTC, or local time */
     utc?: boolean;
 }

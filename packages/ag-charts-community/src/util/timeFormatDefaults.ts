@@ -1,4 +1,4 @@
-import type { TimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { findMinMax } from './number';
 import { durationDay, durationHour, durationMinute, durationSecond, durationYear, intervalFloor } from './time';
@@ -27,7 +27,7 @@ export function lowestGranularityForInterval(interval: number) {
     }
 }
 
-export function lowestGranularityUnitForTicks(ticks: (Date | number)[]): TimeIntervalUnit {
+export function lowestGranularityUnitForTicks(ticks: (Date | number)[]): AgTimeIntervalUnit {
     if (ticks.length === 0) {
         return 'millisecond';
     } else if (ticks.length === 1) {
@@ -42,7 +42,7 @@ export function lowestGranularityUnitForTicks(ticks: (Date | number)[]): TimeInt
     return lowestGranularityForInterval(minInterval);
 }
 
-export function lowestGranularityUnitForValue(value: Date | number): TimeIntervalUnit {
+export function lowestGranularityUnitForValue(value: Date | number): AgTimeIntervalUnit {
     if (intervalFloor('second', value) < value) {
         return 'millisecond';
     } else if (intervalFloor('minute', value) < value) {

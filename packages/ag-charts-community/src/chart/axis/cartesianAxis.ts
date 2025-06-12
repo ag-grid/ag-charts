@@ -1,5 +1,5 @@
 import { arraysEqual, countLines, diffArrays, isPlainObject } from 'ag-charts-core';
-import type { AgCartesianAxisPosition, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { AgCartesianAxisPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
 import type { ModuleContext } from '../../module/moduleContext';
@@ -199,7 +199,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         ticks: D[];
         rawTickCount: number | undefined;
         fractionDigits: number;
-        timeInterval: TimeInterval | TimeIntervalUnit | undefined;
+        timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined;
         bbox: BBox;
         layout: GeneratedTicks;
     } {

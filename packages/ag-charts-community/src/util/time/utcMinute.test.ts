@@ -1,11 +1,11 @@
 import { expect, test } from '@jest/globals';
 
-import { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { intervalCeil, intervalFloor, intervalRange } from './index';
 
 test('UTC minute', () => {
-    const interval: TimeInterval | TimeIntervalUnit = { unit: 'minute', utc: true };
+    const interval: AgTimeInterval | AgTimeIntervalUnit = { unit: 'minute', utc: true };
     const date = new Date(Date.UTC(2019, 7, 23, 15, 17, 5, 100));
 
     const floor = intervalFloor(interval, date);
@@ -27,7 +27,7 @@ test('UTC minute', () => {
 });
 
 test('UTC minute.every', () => {
-    const interval: TimeInterval | TimeIntervalUnit = { unit: 'minute', step: 5, utc: true };
+    const interval: AgTimeInterval | AgTimeIntervalUnit = { unit: 'minute', step: 5, utc: true };
     const date = new Date(Date.UTC(2019, 7, 23, 15, 17, 5, 100));
 
     const floor = intervalFloor(interval, date);
@@ -49,7 +49,7 @@ test('UTC minute.every', () => {
 });
 
 test('UTC minute.every with defaultAlignment: interval', () => {
-    const interval: TimeInterval | TimeIntervalUnit = { unit: 'minute', step: 5, utc: true };
+    const interval: AgTimeInterval | AgTimeIntervalUnit = { unit: 'minute', step: 5, utc: true };
 
     const range = intervalRange(
         interval,

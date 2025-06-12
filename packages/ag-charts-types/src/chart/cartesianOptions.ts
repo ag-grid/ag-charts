@@ -12,8 +12,8 @@ import type {
     AgNumericAxisFormattableLabelOptions,
     AgTimeAxisFormattableLabelFormat,
     AgTimeAxisFormattableLabelOptions,
-    TimeInterval,
-    TimeIntervalUnit,
+    AgTimeInterval,
+    AgTimeIntervalUnit,
 } from './axisOptions';
 import type { AgBandHighlightOptions } from './bandHighlightOptions';
 import type { Styler } from './callbackOptions';
@@ -160,7 +160,7 @@ export interface AgTimeAxisOptions<TContext = TContextDefault>
             'interval'
         >,
         // eslint-disable-next-line sonarjs/use-type-alias
-        AgContinuousAxisOptions<Date | number, TimeInterval | TimeIntervalUnit | number> {
+        AgContinuousAxisOptions<Date | number, AgTimeInterval | AgTimeIntervalUnit | number> {
     type: 'time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel;
@@ -175,12 +175,12 @@ export interface AgUnitTimeAxisOptions<TContext = TContextDefault>
             >,
             'interval'
         >,
-        Omit<AgContinuousAxisOptions<Date | number, TimeInterval | TimeIntervalUnit | number>, 'nice'> {
+        Omit<AgContinuousAxisOptions<Date | number, AgTimeInterval | AgTimeIntervalUnit | number>, 'nice'> {
     type: 'unit-time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel;
     /** The size of each band. */
-    unit?: TimeInterval | TimeIntervalUnit;
+    unit?: AgTimeInterval | AgTimeIntervalUnit;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
     /** The padding on the outside i.e. left and right of the first and last category. In association with `paddingInner`, this value can be between 0 and 1. */
@@ -201,7 +201,7 @@ export interface AgOrdinalTimeAxisOptions<TContext = TContextDefault>
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel;
     /** Configuration for the axis ticks interval. */
-    interval?: AgAxisContinuousIntervalOptions<TimeInterval | TimeIntervalUnit | number>;
+    interval?: AgAxisContinuousIntervalOptions<AgTimeInterval | AgTimeIntervalUnit | number>;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
     /** The padding on the outside i.e. left and right of the first and last category. In association with `paddingInner`, this value can be between 0 and 1. */

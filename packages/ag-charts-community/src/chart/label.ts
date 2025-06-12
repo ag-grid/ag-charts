@@ -2,11 +2,11 @@ import { type RequireOptional, isPlainObject } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
+    AgTimeInterval,
+    AgTimeIntervalUnit,
     FontStyle,
     FontWeight,
     Formatter,
-    TimeInterval,
-    TimeIntervalUnit,
 } from 'ag-charts-types';
 
 import type { ContextFormatter } from '../module/axisContext';
@@ -161,7 +161,7 @@ export function getTextAlign(
 
 export function labelSpecifier(
     format: ChartAxisLabel['format'] | undefined,
-    timeInterval: TimeInterval | TimeIntervalUnit | undefined
+    timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined
 ): string | undefined {
     if (format == null) return;
 
@@ -176,7 +176,7 @@ export function timeIntervalMaxLabelSize(
     label: ChartAxisLabel,
     primaryLabel: ChartAxisLabel | undefined,
     domain: Date[],
-    timeInterval: TimeInterval | TimeIntervalUnit,
+    timeInterval: AgTimeInterval | AgTimeIntervalUnit,
     textMeasurer: TextMeasurer
 ) {
     const specifier =

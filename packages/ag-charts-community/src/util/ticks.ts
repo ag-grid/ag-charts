@@ -1,16 +1,16 @@
 import { Logger, clamp, countFractionDigits, createNumberFormatter, parseNumberFormat } from 'ag-charts-core';
-import type { TimeInterval } from 'ag-charts-types';
+import type { AgTimeInterval } from 'ag-charts-types';
 
 import { durationMonth, durationWeek, intervalHierarchy, intervalMilliseconds, intervalStep } from './time';
 import { durationYear } from './time';
 
 interface TickInterval {
     duration: number;
-    timeInterval: TimeInterval;
+    timeInterval: AgTimeInterval;
     step: number;
 }
 
-const tInterval = (timeInterval: TimeInterval, step: number): TickInterval => ({
+const tInterval = (timeInterval: AgTimeInterval, step: number): TickInterval => ({
     duration: intervalMilliseconds(timeInterval) * step,
     timeInterval,
     step,
@@ -98,7 +98,7 @@ function isPrimaryTickInterval({ timeInterval, step }: TickInterval) {
     return milliseconds <= (hierarchyMilliseconds ?? Infinity) * minPrimaryTickRatio;
 }
 
-export function defaultEpoch(timeInterval: TimeInterval, { weekStart }: { weekStart: Date | undefined }) {
+export function defaultEpoch(timeInterval: AgTimeInterval, { weekStart }: { weekStart: Date | undefined }) {
     if (timeInterval.unit === 'day' && timeInterval.step === 7) {
         return weekStart;
     }
@@ -119,7 +119,7 @@ export function getTickTimeInterval(
         primaryOnly?: boolean;
         targetInterval?: number;
     }
-): TimeInterval | undefined {
+): AgTimeInterval | undefined {
     if (count <= 0) return;
 
     const target = targetInterval ?? Math.abs(stop - start) / Math.max(count, 1);

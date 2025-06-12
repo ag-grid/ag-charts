@@ -7857,7 +7857,7 @@
         "key": "AG-5761",
         "issueType": "Bug",
         "componentsByName": ["Charts"],
-        "summary": "Chart themes doesn't accept a TimeInterval object for axes-tick-count",
+        "summary": "Chart themes doesn't accept a AgTimeInterval object for axes-tick-count",
         "versions": ["26.1.0"],
         "status": "Done",
         "resolution": "Done",

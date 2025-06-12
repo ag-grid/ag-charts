@@ -1,4 +1,4 @@
-import type { AgAxisBoundSeries, TimeIntervalUnit } from './axisOptions';
+import type { AgAxisBoundSeries, AgTimeIntervalUnit } from './axisOptions';
 import type { Formatter, Renderer } from './callbackOptions';
 import type { CssColor, Opacity, PixelSize } from './types';
 
@@ -24,7 +24,7 @@ export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string>> {
 export interface AgCrosshairLabelFormatterParams {
     readonly value: any;
     readonly fractionDigits?: number;
-    readonly unit?: TimeIntervalUnit;
+    readonly unit?: AgTimeIntervalUnit;
     readonly step?: number;
     readonly boundSeries: AgAxisBoundSeries[];
     readonly domain: any[];

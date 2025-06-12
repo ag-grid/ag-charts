@@ -5,69 +5,6 @@ description: 'Use $framework chart axis labels to provide clear identification a
 
 Axis labels provide clear identification and context for the data represented on each axis in a chart.
 
-## Parent Levels
-
-The `parentLevel` option allows displaying labels and ticks for the parent level of the time axes. For example, if the axis is showing monthly data, the parent level would be the years.
-These levels are based on the data displayed, and change as the user zooms in and out.
-
-It is enabled by default for the [Unit Time Axis](./axes-types/#unit-time), and can be opted into for the
-[Time Axis](./axes-types/#time) and [Ordinal Time Axis](./axes-types/#ordinal-time).
-
-{% chartExampleRunner title="Parent Level" name="axis-parent-level" type="generated" /%}
-
-```js
-{
-    parentLevel: {
-        enabled: true,
-    },
-}
-```
-
-In this example:
-
--   The data is shown with a 'day' unit, and the parent level of 'month' is shown in bold.
--   As you zoom out, the labels will change to 'month', with a parent level of 'year'.
-
-### Customisation
-
-Parent level labels and ticks options are inherited from the axes label and tick options, but can be customised with the `parentLevel` options.
-
-{% chartExampleRunner title="Parent Level Customisation" name="axis-parent-level-customisation" type="generated" /%}
-
-```js
-{
-    tick: {
-        width: 0,
-    },
-    label: {
-        format: {
-            day: '%e',
-            month: '%b',
-        },
-    },
-    parentLevel: {
-        enabled: true,
-        tick: {
-            width: 1,
-        },
-        label: {
-            format: {
-                month: '%e\n%b',
-                year: '%b\n%Y',
-            },
-        },
-    },
-}
-```
-
-In this configuration:
-
--   The label format is set to show the day and month for the `day` level, and the month for the `month` level.
--   The parent level tick is given a width of `1` to show the parent level ticks.
--   The parent level label format is set to show the day and month on separate lines for the `month` level, and the month and year on separate lines for the `year` level.
-
-See [Format](#format) for more information on formatting labels.
-
 ## Collision Avoidance
 
 AG Charts has a number of methods to avoid axis label collisions.

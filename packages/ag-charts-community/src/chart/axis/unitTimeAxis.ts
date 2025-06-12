@@ -1,4 +1,4 @@
-import type { DateFormatterStyle, FormatterParams, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
@@ -35,7 +35,7 @@ export class UnitTimeAxis extends CategoryAxis<UnitTimeScale> {
 
     @Property
     // eslint-disable-next-line sonarjs/use-type-alias
-    unit: TimeInterval | TimeIntervalUnit | undefined = undefined;
+    unit: AgTimeInterval | AgTimeIntervalUnit | undefined = undefined;
 
     override get primaryLabel(): AxisLabel | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
@@ -49,12 +49,12 @@ export class UnitTimeAxis extends CategoryAxis<UnitTimeScale> {
         super(moduleCtx, new UnitTimeScale());
     }
 
-    private defaultUnit: TimeInterval | TimeIntervalUnit | undefined = undefined;
+    private defaultUnit: AgTimeInterval | AgTimeIntervalUnit | undefined = undefined;
 
     override processData(): void {
         super.processData();
 
-        let defaultUnit: TimeInterval | TimeIntervalUnit | undefined;
+        let defaultUnit: AgTimeInterval | AgTimeIntervalUnit | undefined;
 
         const { domain } = this.dataDomain;
         if (domain.length === 2 && domain[0].valueOf() === domain[1].valueOf()) {
@@ -98,7 +98,7 @@ export class UnitTimeAxis extends CategoryAxis<UnitTimeScale> {
         domain: (number | Date)[],
         ticks: (number | Date)[],
         _fractionDigits?: number,
-        timeInterval?: TimeInterval | TimeIntervalUnit
+        timeInterval?: AgTimeInterval | AgTimeIntervalUnit
     ): AxisTickFormatParams {
         timeInterval ??= lowestGranularityUnitForTicks(ticks);
         const includeYear = domainSpansMultipleYears(domain);
@@ -112,7 +112,7 @@ export class UnitTimeAxis extends CategoryAxis<UnitTimeScale> {
         value: Date | number,
         params: FormatDatumParams,
         _fractionDigits: number | undefined,
-        timeInterval: TimeInterval | TimeIntervalUnit | undefined,
+        timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
         const interval = this.unit ?? this.defaultUnit ?? 'millisecond';

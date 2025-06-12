@@ -1,5 +1,5 @@
 import { Logger } from 'ag-charts-core';
-import type { DateFormatterStyle, FormatterParams, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
@@ -46,18 +46,18 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     max?: Date | number = undefined;
 
     // eslint-disable-next-line sonarjs/use-type-alias
-    get _unit(): TimeInterval | TimeIntervalUnit | undefined {
+    get _unit(): AgTimeInterval | AgTimeIntervalUnit | undefined {
         return undefined;
     }
-    set _unit(_unit: TimeInterval | TimeIntervalUnit | undefined) {
+    set _unit(_unit: AgTimeInterval | AgTimeIntervalUnit | undefined) {
         Logger.warnOnce(`To use 'unit', use an axis with type 'unit-time' instead of 'time'.`);
     }
 
     @Property
     @ProxyPropertyOnWrite('_unit')
-    unit: TimeInterval | TimeIntervalUnit | undefined;
+    unit: AgTimeInterval | AgTimeIntervalUnit | undefined;
 
-    private minGranularity: TimeIntervalUnit | undefined = undefined;
+    private minGranularity: AgTimeIntervalUnit | undefined = undefined;
 
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new TimeScale());
@@ -86,7 +86,7 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         domain: (number | Date)[],
         ticks: (number | Date)[],
         _fractionDigits?: number,
-        timeInterval?: TimeInterval | TimeIntervalUnit
+        timeInterval?: AgTimeInterval | AgTimeIntervalUnit
     ): AxisTickFormatParams {
         timeInterval ??= lowestGranularityUnitForTicks(ticks);
         const includeYear = domainSpansMultipleYears(domain);
@@ -100,7 +100,7 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         value: number | Date,
         params: FormatDatumParams,
         _fractionDigits: number | undefined,
-        timeInterval: TimeInterval | TimeIntervalUnit | undefined,
+        timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
         if (typeof value === 'number') value = new Date(value);
@@ -163,7 +163,7 @@ export function calculateDefaultUnit(
     direction: ChartAxisDirection,
     min: Date | number | undefined,
     max: Date | number | undefined
-): TimeInterval | undefined {
+): AgTimeInterval | undefined {
     let start = Infinity;
     let end = -Infinity;
     let interval: number | undefined;
