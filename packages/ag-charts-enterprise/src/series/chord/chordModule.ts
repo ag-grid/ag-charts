@@ -34,6 +34,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
                     dimOpacity: 0.2,
                 },
             },
+            highlight: _ModuleSupport.singleSeriesHighlightStyle(),
             label: {
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },

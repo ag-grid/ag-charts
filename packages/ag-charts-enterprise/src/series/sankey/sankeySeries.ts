@@ -388,11 +388,10 @@ export class SankeySeries extends FlowProportionSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId([datum.type, datum.id]));
     }
 
-    protected getBaseNodeStyle(highlighted: boolean): NodeStyle {
+    protected getBaseNodeStyle(isHighlight: boolean, datum?: SankeyDatum): NodeStyle {
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.node;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
-
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
         return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? fill,
@@ -402,6 +401,7 @@ export class SankeySeries extends FlowProportionSeries<
                 strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.node.strokeWidth),
                 lineDash: highlightStyle?.lineDash ?? lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
+                opacity: highlightStyle?.opacity ?? 1,
             },
             properties.fillGradientDefaults,
             properties.fillPatternDefaults,
@@ -482,11 +482,11 @@ export class SankeySeries extends FlowProportionSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
 
-        const style = this.getBaseNodeStyle(isHighlight);
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
             const { datumIndex, size, label } = datum;
+            const style = this.getBaseNodeStyle(isHighlight, datum);
             const overrides = this.getNodeStyleOverrides(
                 String(datumIndex.index),
                 datum.datum,
@@ -522,11 +522,10 @@ export class SankeySeries extends FlowProportionSeries<
         );
     }
 
-    protected getBaseLinkStyle(highlighted: boolean): LinkStyle {
+    protected getBaseLinkStyle(isHighlight: boolean, datum?: SankeyDatum): LinkStyle {
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
-
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
         return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? fill,
@@ -536,6 +535,7 @@ export class SankeySeries extends FlowProportionSeries<
                 strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.link.strokeWidth),
                 lineDash: highlightStyle?.lineDash ?? lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
+                opacity: highlightStyle?.opacity ?? 1,
             },
             properties.fillGradientDefaults,
             properties.fillPatternDefaults,
@@ -612,12 +612,12 @@ export class SankeySeries extends FlowProportionSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
 
-        const style = this.getBaseLinkStyle(isHighlight);
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((link, datum) => {
             const { datumIndex } = datum;
             const fromNodeDatumIndex = datum.fromNode.datumIndex;
+            const style = this.getBaseLinkStyle(isHighlight, datum);
             const overrides = this.getLinkStyleOverrides(
                 String(datumIndex.index),
                 datum.datum,
