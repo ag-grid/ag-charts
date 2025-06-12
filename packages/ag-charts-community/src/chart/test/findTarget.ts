@@ -1,5 +1,5 @@
 import { boxContains } from 'ag-charts-core';
-import { Caster, ClassTypePair } from 'ag-charts-test';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, ClassTypePair } from 'ag-charts-test';
 
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
@@ -7,7 +7,6 @@ import { Node } from '../../scene/node';
 import { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../../util/test/mockCanvas';
 import { ListWidget } from '../../widget/listWidget';
 import { NativeWidget } from '../../widget/nativeWidget';
 import { SliderWidget } from '../../widget/sliderWidget';

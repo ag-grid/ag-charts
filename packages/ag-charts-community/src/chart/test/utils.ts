@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
 import { type AnyFn, getDocument } from 'ag-charts-core';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, toMatchImage } from 'ag-charts-test';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -15,14 +16,7 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
-import {
-    CANVAS_HEIGHT,
-    CANVAS_TO_BUFFER_DEFAULTS,
-    CANVAS_WIDTH,
-    extractImageData,
-    setupMockCanvas,
-    toMatchImage,
-} from '../../util/test/mockCanvas';
+import { CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';

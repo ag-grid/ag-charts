@@ -4,9 +4,7 @@ import { DOMMatrix, Image, Path2D } from 'skia-canvas';
 import { URL } from 'url';
 import { TextDecoder, TextEncoder } from 'util';
 
-import { mockCanvas } from 'ag-charts-test';
-
-import { toMatchImage } from './src/chart/test/utils';
+import { mockCanvas, toMatchImage } from 'ag-charts-test';
 
 // @ts-expect-error types don't exactly align
 global.Canvas = mockCanvas.ConfiguredCanvas;
