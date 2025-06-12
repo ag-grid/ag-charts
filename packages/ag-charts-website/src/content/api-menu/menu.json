@@ -23,6 +23,10 @@
         {
             "title": "State API",
             "path": "/[framework]/api-state"
+        },
+        {
+            "title": "Typescript Generics",
+            "path": "/[framework]/ts-generics"
         }
     ]
 }
