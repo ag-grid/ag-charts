@@ -12,15 +12,15 @@ import type {
     AgContextMenuItem,
 } from 'ag-charts-types';
 
-export type MockItemStyler<TDatum, _TContext> = NonNullable<AgBarSeriesThemeableOptions<TDatum>['itemStyler']>;
+export type MockItemStyler<TDatum, TContext> = NonNullable<AgBarSeriesThemeableOptions<TDatum, TContext>['itemStyler']>;
 export type MockAxisLabelFormatter<_TDatum, TContext> = NonNullable<
     NonNullable<AgCartesianAxisOptions<TContext>['label']>['formatter']
 >;
-export type MockSeriesLabelFormatter<TDatum, _TContext> = NonNullable<
-    NonNullable<AgBarSeriesThemeableOptions<TDatum>['label']>['formatter']
+export type MockSeriesLabelFormatter<TDatum, TContext> = NonNullable<
+    NonNullable<AgBarSeriesThemeableOptions<TDatum, TContext>['label']>['formatter']
 >;
-export type MockTooltipRenderer<TDatum, _TContext> = NonNullable<
-    NonNullable<AgBarSeriesThemeableOptions<TDatum>['tooltip']>['renderer']
+export type MockTooltipRenderer<TDatum, TContext> = NonNullable<
+    NonNullable<AgBarSeriesThemeableOptions<TDatum, TContext>['tooltip']>['renderer']
 >;
 export type MockErrorBarStyler<TDatum, TContext> = NonNullable<
     NonNullable<AgBarSeriesOptions<TDatum, TContext>['errorBar']>['itemStyler']

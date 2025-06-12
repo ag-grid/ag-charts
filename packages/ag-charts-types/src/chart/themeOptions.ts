@@ -83,17 +83,18 @@ export interface AgChartThemePalette {
     neutral?: AgPaletteColors;
 }
 
-export interface AgBaseChartThemeOptions<TDatum = TDatumDefault> {
+export interface AgBaseChartThemeOptions<TDatum = TDatumDefault, TContext = TContextDefault> {
     /** The palette to use. If specified, this replaces the palette from the base theme. */
     palette?: AgChartThemePalette;
     /** Global parameters to set styles across the whole chart. */
     params?: AgChartThemeParams;
     /** Configuration from this object is merged over the defaults specified in the base theme. */
-    overrides?: AgThemeOverrides<TDatum>;
+    overrides?: AgThemeOverrides<TDatum, TContext>;
 }
 
 /** This object is used to define the configuration for a custom chart theme. */
-export interface AgChartTheme<TDatum = TDatumDefault> extends AgBaseChartThemeOptions<TDatum> {
+export interface AgChartTheme<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseChartThemeOptions<TDatum, TContext> {
     /** The name of the theme to base your theme on. Your custom theme will inherit all the configuration from the base theme, allowing you to override just the settings you wish to change using the `overrides` config (see below). */
     baseTheme?: AgChartThemeName;
 }
@@ -259,11 +260,12 @@ export interface AgPyramidThemeOverrides<TDatum = TDatumDefault, TContext = TCon
     series?: AgPyramidSeriesThemeableOptions<TDatum, TContext>;
 }
 
-export type AgBaseGaugePresetThemeOptions = Pick<
-    AgBaseChartOptions<TDatumDefault, TContextDefault>,
+export type AgBaseGaugePresetThemeOptions<TDatum = TDatumDefault, TContext = TContextDefault> = Pick<
+    AgBaseChartOptions<TDatum, TContext>,
     | 'animation'
     | 'background'
     | 'contextMenu'
+    | 'context'
     | 'footnote'
     | 'height'
     | 'listeners'
@@ -278,15 +280,19 @@ export type AgBaseGaugePresetThemeOptions = Pick<
 >;
 
 // Interface needed for docs generation, but listeners conflicts using the extends clause
-type AgRadialGaugeTheme = AgBaseGaugePresetThemeOptions & AgRadialGaugeThemeableOptions;
+type AgRadialGaugeTheme<TDatum, TContext> = AgBaseGaugePresetThemeOptions<TDatum, TContext> &
+    AgRadialGaugeThemeableOptions<TContext>;
 export interface AgRadialGaugeTargetTheme extends Omit<AgRadialGaugeTarget, 'value' | 'text'> {}
-export interface AgRadialGaugeThemeOverrides extends AgRadialGaugeTheme {
+export interface AgRadialGaugeThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgRadialGaugeTheme<TDatum, TContext> {
     targets?: AgRadialGaugeTargetTheme;
 }
 
-type AgLinearGaugeTheme = AgBaseGaugePresetThemeOptions & AgLinearGaugeThemeableOptions;
+type AgLinearGaugeTheme<TDatum, TContext> = AgBaseGaugePresetThemeOptions<TDatum, TContext> &
+    AgLinearGaugeThemeableOptions;
 export interface AgLinearGaugeTargetTheme extends Omit<AgLinearGaugeTarget, 'value' | 'text'> {}
-export interface AgLinearGaugeThemeOverrides extends AgLinearGaugeTheme {
+export interface AgLinearGaugeThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgLinearGaugeTheme<TDatum, TContext> {
     targets?: AgLinearGaugeTargetTheme;
 }
 
@@ -300,84 +306,86 @@ export interface AgCommonThemeableChartOptions<TDatum = TDatumDefault, TContext 
     initialState?: AgInitialStateThemeableOptions;
 }
 
-export interface AgChartThemeOverrides<TDatum = TDatumDefault> {
+export interface AgChartThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault> {
     /** Common theme overrides for series. */
-    common?: AgCommonThemeableChartOptions<TDatum>;
+    common?: AgCommonThemeableChartOptions<TDatum, TContext>;
 
     /** Line series theme overrides. */
-    line?: AgLineSeriesThemeOverrides<TDatum>;
+    line?: AgLineSeriesThemeOverrides<TDatum, TContext>;
     /** Scatter series theme overrides. */
-    scatter?: AgScatterSeriesThemeOverrides<TDatum>;
+    scatter?: AgScatterSeriesThemeOverrides<TDatum, TContext>;
     /** Bubble series theme overrides. */
-    bubble?: AgBubbleSeriesThemeOverrides<TDatum>;
+    bubble?: AgBubbleSeriesThemeOverrides<TDatum, TContext>;
     /** Area series theme overrides. */
-    area?: AgAreaSeriesThemeOverrides<TDatum>;
+    area?: AgAreaSeriesThemeOverrides<TDatum, TContext>;
     /** Bar series theme overrides. */
-    bar?: AgBarSeriesThemeOverrides<TDatum>;
+    bar?: AgBarSeriesThemeOverrides<TDatum, TContext>;
     /** Box-plot series theme overrides. */
-    'box-plot'?: AgBoxPlotSeriesThemeOverrides<TDatum>;
+    'box-plot'?: AgBoxPlotSeriesThemeOverrides<TDatum, TContext>;
     /** Candlestick series theme overrides. */
-    candlestick?: AgCandlestickSeriesThemeOverrides<TDatum>;
+    candlestick?: AgCandlestickSeriesThemeOverrides<TDatum, TContext>;
     /** Cone Funnel series theme overrides. */
-    'cone-funnel'?: AgConeFunnelSeriesThemeOverrides<TDatum>;
+    'cone-funnel'?: AgConeFunnelSeriesThemeOverrides<TDatum, TContext>;
     /** Funnel series theme overrides. */
-    funnel?: AgFunnelSeriesThemeOverrides<TDatum>;
+    funnel?: AgFunnelSeriesThemeOverrides<TDatum, TContext>;
     /** ohlc series theme overrides. */
-    ohlc?: AgOhlcSeriesThemeOverrides<TDatum>;
+    ohlc?: AgOhlcSeriesThemeOverrides<TDatum, TContext>;
     /** Histogram series theme overrides. */
-    histogram?: AgHistogramSeriesThemeOverrides<TDatum>;
+    histogram?: AgHistogramSeriesThemeOverrides<TDatum, TContext>;
     /** Heatmap series theme overrides. */
-    heatmap?: AgHeatmapSeriesThemeOverrides<TDatum>;
+    heatmap?: AgHeatmapSeriesThemeOverrides<TDatum, TContext>;
     /** Waterfall series theme overrides. */
-    waterfall?: AgWaterfallSeriesThemeOverrides<TDatum>;
+    waterfall?: AgWaterfallSeriesThemeOverrides<TDatum, TContext>;
     /** Range-bar series theme overrides. */
-    'range-bar'?: AgRangeBarSeriesThemeOverrides<TDatum>;
+    'range-bar'?: AgRangeBarSeriesThemeOverrides<TDatum, TContext>;
     /** Range-area series theme overrides. */
-    'range-area'?: AgRangeAreaSeriesThemeOverrides<TDatum>;
+    'range-area'?: AgRangeAreaSeriesThemeOverrides<TDatum, TContext>;
     /** Donut series theme overrides. */
-    donut?: AgDonutSeriesThemeOverrides<TDatum>;
+    donut?: AgDonutSeriesThemeOverrides<TDatum, TContext>;
     /** Pie series theme overrides. */
-    pie?: AgPieSeriesThemeOverrides<TDatum>;
+    pie?: AgPieSeriesThemeOverrides<TDatum, TContext>;
     /** Radar-line series theme overrides. */
-    'radar-line'?: AgRadarLineSeriesThemeOverrides<TDatum>;
+    'radar-line'?: AgRadarLineSeriesThemeOverrides<TDatum, TContext>;
     /** Radar-area series theme overrides. */
-    'radar-area'?: AgRadarAreaSeriesThemeOverrides<TDatum>;
+    'radar-area'?: AgRadarAreaSeriesThemeOverrides<TDatum, TContext>;
     /** Radial-bar series theme overrides. */
-    'radial-bar'?: AgRadialBarSeriesThemeOverrides<TDatum>;
+    'radial-bar'?: AgRadialBarSeriesThemeOverrides<TDatum, TContext>;
     /** Radial-column series theme overrides. */
-    'radial-column'?: AgRadialColumnSeriesThemeOverrides<TDatum>;
+    'radial-column'?: AgRadialColumnSeriesThemeOverrides<TDatum, TContext>;
     /** Nightingale series theme overrides. */
-    nightingale?: AgNightingaleSeriesThemeOverrides<TDatum>;
+    nightingale?: AgNightingaleSeriesThemeOverrides<TDatum, TContext>;
     /** Sunburst series theme overrides. */
-    sunburst?: AgSunburstSeriesThemeOverrides<TDatum>;
+    sunburst?: AgSunburstSeriesThemeOverrides<TDatum, TContext>;
     /** Treemap series theme overrides. */
-    treemap?: AgTreemapSeriesThemeOverrides<TDatum>;
+    treemap?: AgTreemapSeriesThemeOverrides<TDatum, TContext>;
     /** Map shape series theme overrides. */
-    'map-shape'?: AgMapShapeSeriesThemeOverrides<TDatum>;
+    'map-shape'?: AgMapShapeSeriesThemeOverrides<TDatum, TContext>;
     /** Map line series theme overrides. */
-    'map-line'?: AgMapLineSeriesThemeOverrides<TDatum>;
+    'map-line'?: AgMapLineSeriesThemeOverrides<TDatum, TContext>;
     /** Map marker series theme overrides. */
-    'map-marker'?: AgMapMarkerSeriesThemeOverrides<TDatum>;
+    'map-marker'?: AgMapMarkerSeriesThemeOverrides<TDatum, TContext>;
     /** Map shape background series theme overrides. */
-    'map-shape-background'?: AgMapShapeBackgroundThemeOverrides<TDatum>;
+    'map-shape-background'?: AgMapShapeBackgroundThemeOverrides<TDatum, TContext>;
     /** Map line background series theme overrides. */
-    'map-line-background'?: AgMapLineBackgroundThemeOverrides<TDatum>;
+    'map-line-background'?: AgMapLineBackgroundThemeOverrides<TDatum, TContext>;
     /** Sankey series theme overrides. */
-    sankey?: AgSankeyThemeOverrides<TDatum>;
+    sankey?: AgSankeyThemeOverrides<TDatum, TContext>;
     /** Chord series theme overrides. */
-    chord?: AgChordThemeOverrides<TDatum>;
+    chord?: AgChordThemeOverrides<TDatum, TContext>;
     /** Pyramid series theme overrides. */
-    pyramid?: AgPyramidThemeOverrides<TDatum>;
+    pyramid?: AgPyramidThemeOverrides<TDatum, TContext>;
 }
 
-export interface AgPresetOverrides {
+export interface AgPresetOverrides<TDatum = TDatumDefault, TContext = TContextDefault> {
     /** Radial gauge theme overrides. */
-    'radial-gauge'?: AgRadialGaugeThemeOverrides;
+    'radial-gauge'?: AgRadialGaugeThemeOverrides<TDatum, TContext>;
     /** Linear Gauge theme overrides. */
-    'linear-gauge'?: AgLinearGaugeThemeOverrides;
+    'linear-gauge'?: AgLinearGaugeThemeOverrides<TDatum, TContext>;
 }
 
-export interface AgThemeOverrides<TDatum = TDatumDefault> extends AgChartThemeOverrides<TDatum>, AgPresetOverrides {}
+export interface AgThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgChartThemeOverrides<TDatum, TContext>,
+        AgPresetOverrides<TDatum, TContext> {}
 
 // Use Typescript function types to verify that all series types are present in the manually
 // maintained AgBaseChartThemeOverrides type.
@@ -394,7 +402,7 @@ type VerifyAgBaseChartThemeOverrides<T> = {
 };
 
 // Verification checks for completeness/correctness.
-const __THEME_OVERRIDES = undefined as any as Required<AgChartThemeOverrides<never>>;
+const __THEME_OVERRIDES = undefined as any as Required<AgChartThemeOverrides<never, never>>;
 // @ts-expect-error TS6133 - this is used to validate completeness by the compiler, but is deliberately unused.
 let __VERIFY_THEME_OVERRIDES: Required<VerifyAgBaseChartThemeOverrides<AgBaseChartOptions<never, never>>> =
     undefined as any;

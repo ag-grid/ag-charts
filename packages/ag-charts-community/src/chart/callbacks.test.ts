@@ -1,4 +1,9 @@
-import { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
+import {
+    AgAxisLabelFormatterParams,
+    AgBarSeriesItemStylerParams,
+    AgCartesianChartOptions,
+    AgChartInstance,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import type {
@@ -11,7 +16,6 @@ import type {
 } from './test/freezableMock';
 import { newFreezableMock } from './test/freezableMock';
 import {
-    AgCartesianChartOptionsWithContext,
     Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
@@ -29,11 +33,11 @@ describe('AG-13024 API context', () => {
     setupMockCanvas();
 
     type TDatum = { quarter: 'q1' | 'q2' | 'q3' | 'q4'; Toyota: number; Ford: number; BMW: number };
-    type TContext = object;
+    type TContext = { name: string };
     type TFreezable<TMock extends MockAPICallback<TDatum, TContext>> = ReturnType<typeof newFreezable<TMock>>;
 
     let chart: Chart;
-    let options: AgCartesianChartOptionsWithContext<TDatum, unknown>;
+    let options: AgCartesianChartOptions<TDatum, TContext>;
     let seriesContext0: TContext;
     let seriesContext1: TContext;
     let seriesContext2: TContext;
@@ -68,10 +72,26 @@ describe('AG-13024 API context', () => {
         seriesContext2 = { name: '[2]: bmw' };
         axisContext = { name: 'X axis context' };
         rootContext = { name: 'root context' };
-        itemStyler = newFreezable<MockItemStyler<TDatum, TContext>>((_params) => undefined);
-        axisLabelFormatter = newFreezable<MockAxisLabelFormatter<TDatum, TContext>>((_params: any) => undefined);
-        seriesLabelFormatter = newFreezable<MockSeriesLabelFormatter<TDatum, TContext>>((_params) => undefined);
-        tooltipRenderer = newFreezable<MockTooltipRenderer<TDatum, TContext>>((_params) => '');
+        itemStyler = newFreezable<MockItemStyler<TDatum, TContext>>(
+            (params: AgBarSeriesItemStylerParams<TDatum, TContext>) => {
+                params.context satisfies TContext | undefined;
+                return undefined;
+            }
+        );
+        axisLabelFormatter = newFreezable<MockAxisLabelFormatter<TDatum, TContext>>(
+            (params: AgAxisLabelFormatterParams<TContext>) => {
+                params.context satisfies TContext | undefined;
+                return undefined;
+            }
+        );
+        seriesLabelFormatter = newFreezable<MockSeriesLabelFormatter<TDatum, TContext>>((params) => {
+            params.context satisfies TContext | undefined;
+            return undefined;
+        });
+        tooltipRenderer = newFreezable<MockTooltipRenderer<TDatum, TContext>>((params) => {
+            params.context satisfies TContext | undefined;
+            return '';
+        });
         options = {
             theme: {
                 overrides: {
@@ -247,10 +267,10 @@ describe('AG-13024 API context', () => {
                 tooltipRenderer.expect().toHaveBeenCalledTimes(1).withoutContext();
             });
             test('defined to null', async () => {
-                options.series![0].context = null;
-                options.series![1].context = null;
-                options.series![2].context = null;
-                options.axes![0].context = null;
+                options.series![0].context = null as unknown as TContext;
+                options.series![1].context = null as unknown as TContext;
+                options.series![2].context = null as unknown as TContext;
+                options.axes![0].context = null as unknown as TContext;
                 chart = await createChart(options);
                 itemStyler.expect().toHaveBeenCalledTimes(12).withContext(null);
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(null);
@@ -276,10 +296,10 @@ describe('AG-13024 API context', () => {
                 tooltipRenderer.expect().toHaveBeenCalledTimes(1).withContext(rootContext);
             });
             test('defined to null', async () => {
-                options.series![0].context = null;
-                options.series![1].context = null;
-                options.series![2].context = null;
-                options.axes![0].context = null;
+                options.series![0].context = null as unknown as TContext;
+                options.series![1].context = null as unknown as TContext;
+                options.series![2].context = null as unknown as TContext;
+                options.axes![0].context = null as unknown as TContext;
                 chart = await createChart(options);
                 itemStyler.expect().toHaveBeenCalledTimes(12).withContext(null);
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(null);

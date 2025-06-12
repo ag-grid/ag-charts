@@ -11,7 +11,7 @@ import type { InternalAgColorType } from 'ag-charts-core';
 
 import { AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const { Property, SeriesProperties, SeriesTooltip, FillGradientDefaults, FillPatternDefaults, FillImageDefaults } =
+const { Property, SeriesProperties, makeSeriesTooltip, FillGradientDefaults, FillPatternDefaults, FillImageDefaults } =
     _ModuleSupport;
 
 export interface MapShapeNodeLabelDatum {
@@ -104,5 +104,5 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
     readonly label = new AutoSizedSecondaryLabel<AgMapShapeSeriesLabelFormatterParams>();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgMapShapeSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgMapShapeSeriesTooltipRendererParams<any>>();
 }

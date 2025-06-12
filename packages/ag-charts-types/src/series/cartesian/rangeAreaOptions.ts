@@ -8,8 +8,8 @@ import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHigh
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = TDatumDefault>
-    extends Omit<AgCartesianSeriesTooltipRendererParams<TDatum>, 'xKey' | 'xName' | 'yKey' | 'yName'>,
+export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends Omit<AgCartesianSeriesTooltipRendererParams<TDatum, TContext>, 'xKey' | 'xName' | 'yKey' | 'yName'>,
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         AgRangeAreaSeriesOptionsNames,
         Omit<AgSeriesMarkerStyle, 'shape'> {
@@ -17,7 +17,8 @@ export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = TDatumDefault>
     itemId: 'up' | 'down' | 'unknown';
 }
 
-export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
+export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Padding in pixels between the label and the edge of the marker. */
     padding?: PixelSize;
     /** Where to render series labels relative to the area. */
@@ -41,11 +42,11 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = TDatumDefault, TCont
     /** Configuration for the range series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgRangeAreaSeriesLabelOptions<TDatum, AgRangeAreaSeriesLabelFormatterParams<TDatum>>;
+    label?: AgRangeAreaSeriesLabelOptions<TDatum, AgRangeAreaSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
 }

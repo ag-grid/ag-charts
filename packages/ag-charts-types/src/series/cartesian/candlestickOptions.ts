@@ -12,12 +12,12 @@ import type {
 
 export type AgCandlestickWickOptions = StrokeOptions & LineDashOptions;
 
-export interface AgCandlestickSeriesItemStylerParams<TDatum>
-    extends AgOhlcSeriesBaseItemStylerParams<TDatum>,
+export interface AgCandlestickSeriesItemStylerParams<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgOhlcSeriesBaseItemStylerParams<TDatum, TContext>,
         FillOptions {}
 
-export interface AgCandlestickSeriesTooltipRendererParams<TDatum>
-    extends AgOhlcSeriesBaseTooltipRendererParams<TDatum>,
+export interface AgCandlestickSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+    extends AgOhlcSeriesBaseTooltipRendererParams<TDatum, TContext>,
         AgOhlcSeriesBaseOptions<TDatum>,
         FillOptions {}
 
@@ -42,9 +42,9 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum = TDatumDefault, TCo
     extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>,
         AgCandlestickSeriesStyles {
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgCandlestickSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgCandlestickSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<TDatum>, AgCandlestickSeriesItemOptions>;
+    itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<TDatum, TContext>, AgCandlestickSeriesItemOptions>;
 }
 
 export interface AgCandlestickSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>

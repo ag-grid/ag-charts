@@ -23,7 +23,7 @@ import { Property } from '../../../util/properties';
 import { ProxyProperty } from '../../../util/proxy';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
-import { SeriesTooltip } from '../seriesTooltip';
+import { makeSeriesTooltip } from '../seriesTooltip';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
 export interface BubbleNodeDatum extends CartesianSeriesNodeDatum {
@@ -142,7 +142,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     readonly label = new BubbleSeriesLabel();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgBubbleSeriesTooltipRendererParams>();
+    readonly tooltip = makeSeriesTooltip<AgBubbleSeriesTooltipRendererParams>();
 
     // No validation. Not a part of the options contract.
     readonly marker = new BubbleSeriesMarker();

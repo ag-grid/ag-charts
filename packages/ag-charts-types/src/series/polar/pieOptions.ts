@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -13,7 +13,8 @@ import type {
 } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
-export interface AgPieSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
+export interface AgPieSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Distance in pixels between the callout line and the label text. */
     offset?: PixelSize;
     /** Minimum angle in degrees required for a sector to show a label. */
@@ -22,14 +23,19 @@ export interface AgPieSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOp
     avoidCollisions?: boolean;
 }
 
-export interface AgPieSeriesSectorLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
+export interface AgPieSeriesSectorLabelOptions<TDatum, TParams, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Distance in pixels, used to make the label text closer to or further from the center. This offset is applied after positionRatio. */
     positionOffset?: PixelSize;
     /** Position of labels as a ratio proportional to pie radius. Additional offset in pixels can be applied by using positionOffset. */
     positionRatio?: Ratio;
 }
 
-export type AgPieSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type AgPieSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     AgPieSeriesOptionsKeys<TDatum> &
     Required<AgPieSeriesStyle>;
 
@@ -62,9 +68,9 @@ export interface AgPieSeriesThemeableOptions<TDatum = TDatumDefault, TContext = 
     /** Configuration for the series title. */
     title?: AgPieTitleOptions;
     /** Configuration for the labels used outside the sectors. */
-    calloutLabel?: AgPieSeriesLabelOptions<TDatum, AgPieSeriesLabelFormatterParams<TDatum>>;
+    calloutLabel?: AgPieSeriesLabelOptions<TDatum, AgPieSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the labels used inside the sectors. */
-    sectorLabel?: AgPieSeriesSectorLabelOptions<TDatum, AgPieSeriesLabelFormatterParams<TDatum>>;
+    sectorLabel?: AgPieSeriesSectorLabelOptions<TDatum, AgPieSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the callout lines used with the labels for the sectors. */
     calloutLine?: AgPieSeriesCalloutOptions;
     /** The colours to cycle through for the fills of the sectors. */
@@ -90,7 +96,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = TDatumDefault, TContext = 
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgPieSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgPieSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Apply rounded corners to each sector. */
     cornerRadius?: PixelSize;
     /** The spacing between Pie sectors. */
@@ -98,7 +104,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = TDatumDefault, TContext = 
     /** Whether items with a value of 0 should be hidden in the legend. */
     hideZeroValueSectorsInLegend?: boolean;
     /** A styler function for adjusting the styling of the pie sectors. */
-    itemStyler?: Styler<AgPieSeriesItemStylerParams<TDatum>, AgPieSeriesStyle>;
+    itemStyler?: Styler<AgPieSeriesItemStylerParams<TDatum, TContext>, AgPieSeriesStyle>;
 }
 
 export interface AgPieSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
@@ -134,8 +140,8 @@ export interface AgPieSeriesOptionsNames {
     sectorLabelName?: string;
 }
 
-export interface AgPieSeriesTooltipRendererParams<TDatum>
-    extends AgSeriesTooltipRendererParams<TDatum>,
+export interface AgPieSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgPieSeriesOptionsKeys<TDatum>,
         AgPieSeriesOptionsNames,
         FillOptions,

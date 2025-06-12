@@ -15,7 +15,7 @@ const {
     FillGradientDefaults,
     FillPatternDefaults,
     FillImageDefaults,
-    SeriesTooltip,
+    makeSeriesTooltip,
     Property,
     Label,
     DropShadow,
@@ -93,5 +93,5 @@ export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> 
     readonly stageLabel = new PyramidSeriesStageLabel();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgPyramidSeriesTooltipRendererParams<unknown>>();
+    readonly tooltip = makeSeriesTooltip<AgPyramidSeriesTooltipRendererParams<unknown>>();
 }

@@ -20,7 +20,7 @@ export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum 
     readonly radiusValue: any;
 }
 
-const { Label, SeriesMarker, SeriesProperties, SeriesTooltip, Property } = _ModuleSupport;
+const { Label, SeriesMarker, SeriesProperties, makeSeriesTooltip, Property } = _ModuleSupport;
 
 export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends SeriesProperties<T> {
     @Property
@@ -60,7 +60,7 @@ export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends S
     readonly label = new Label<AgRadarSeriesLabelFormatterParams>();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgRadarSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgRadarSeriesTooltipRendererParams<any>>();
 
     @Property
     connectMissingData: boolean = false;

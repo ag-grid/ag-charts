@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
@@ -42,14 +42,18 @@ export interface AgBoxPlotCapOptions {
 
 export type AgBoxPlotWhiskerOptions = StrokeOptions & LineDashOptions;
 
-export type AgBoxPlotSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type AgBoxPlotSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     BoxPlotOptionsKeys<TDatum> &
     Required<AgBoxPlotSeriesStyle>;
 
-export interface AgBoxPlotSeriesTooltipRendererParams<TDatum>
+export interface AgBoxPlotSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
     extends BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNames,
-        AgSeriesTooltipRendererParams<TDatum>,
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgBoxPlotSeriesStyle {}
 
 export interface AgBoxPlotSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
@@ -70,9 +74,9 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = TDatumDefault, TContex
      */
     direction?: 'horizontal' | 'vertical';
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgBoxPlotSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgBoxPlotSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum>, AgBoxPlotSeriesStyle>;
+    itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum, TContext>, AgBoxPlotSeriesStyle>;
 }
 
 export interface AgBoxPlotSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>

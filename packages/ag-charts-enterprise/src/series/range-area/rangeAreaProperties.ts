@@ -25,7 +25,7 @@ const {
     FillImageDefaults,
     InterpolationProperties,
     SeriesMarker,
-    SeriesTooltip,
+    makeSeriesTooltip,
     Property,
     DropShadow,
     Label,
@@ -104,7 +104,7 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
     readonly label = new RangeAreaSeriesLabel();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>();
+    readonly tooltip = makeSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams>();
 
     @Property
     connectMissingData: boolean = false;

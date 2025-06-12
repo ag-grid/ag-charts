@@ -54,6 +54,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         background,
         container,
         contextMenu,
+        context,
         footnote,
         height,
         listeners,
@@ -99,6 +100,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         background,
         container,
         contextMenu,
+        context,
         footnote,
         height,
         listeners,
@@ -141,9 +143,6 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         ...rest,
     });
 
-    if ('context' in opts) {
-        chartOpts['context'] = opts.context;
-    }
     return {
         ...chartOpts,
         series: [seriesOpts],
@@ -156,6 +155,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         background,
         container,
         contextMenu,
+        context,
         footnote,
         height,
         listeners,
@@ -194,6 +194,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         background,
         container,
         contextMenu,
+        context,
         footnote,
         height,
         listeners,
@@ -228,9 +229,6 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         ...rest,
     });
 
-    if ('context' in opts) {
-        chartOpts['context'] = opts.context;
-    }
     return {
         ...chartOpts,
         series: [seriesOpts],

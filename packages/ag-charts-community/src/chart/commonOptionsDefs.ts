@@ -376,6 +376,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         enabled: boolean,
         items: contextMenuItemsArray,
     },
+    context: () => true,
     dataSource: {
         getData: callback,
     },

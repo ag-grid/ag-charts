@@ -29,8 +29,8 @@ import type { Degree, PixelSize, Ratio, TContextDefault, TDatumDefault } from '.
 
 /** Configuration for axes in cartesian charts. */
 export interface AgBaseCartesianAxisOptions<
-    LabelType = AgCartesianAxisLabelOptions,
-    CrosshairLabelType = AgCrosshairLabel<any>,
+    LabelType = AgCartesianAxisLabelOptions<TContextDefault>,
+    CrosshairLabelType = AgCrosshairLabel<any, TContextDefault>,
     TContext = TContextDefault,
 > extends AgBaseAxisOptions<LabelType, TContext> {
     /** An array of keys determining which series are charted on this axis. */
@@ -54,36 +54,38 @@ export interface AgBaseCartesianAxisOptions<
     crosshair?: AgCrosshairOptions<CrosshairLabelType>;
 }
 
-export interface AgTimeAxisParentLevel {
+export interface AgTimeAxisParentLevel<TContext = TContextDefault> {
     /** Enables parent level labels and ticks. */
     enabled?: boolean;
     /** Configuration for the axis labels, shown next to the ticks. */
-    label?: AgCartesianTimeAxisLabelOptions;
+    label?: AgCartesianTimeAxisLabelOptions<TContext>;
     /** Configuration for the axis ticks. */
     tick?: AgAxisBaseTickOptions;
 }
 
-export interface AgCartesianAxisLabelOptions
-    extends AgBaseCartesianAxisLabelOptions,
-        AgNumericAxisFormattableLabelOptions {}
+export interface AgCartesianAxisLabelOptions<TContext = TContextDefault>
+    extends AgBaseCartesianAxisLabelOptions<TContext>,
+        AgNumericAxisFormattableLabelOptions<TContext> {}
 
-export interface AgCartesianTimeAxisLabelOptions
-    extends AgBaseCartesianAxisLabelOptions,
-        AgTimeAxisFormattableLabelOptions {}
+export interface AgCartesianTimeAxisLabelOptions<TContext = TContextDefault>
+    extends AgBaseCartesianAxisLabelOptions<TContext>,
+        AgTimeAxisFormattableLabelOptions<TContext> {}
 
-export interface AgBaseCartesianAxisLabelOptions extends AgBaseAxisLabelOptions {
+export interface AgBaseCartesianAxisLabelOptions<TContext = TContextDefault> extends AgBaseAxisLabelOptions<TContext> {
     /** If specified and axis labels may collide, they are rotated so that they are positioned at the supplied angle. This is enabled by default for category. If the `rotation` property is specified, it takes precedence. */
     autoRotate?: boolean;
     /** If autoRotate is enabled, specifies the rotation angle to use when autoRotate is activated. Defaults to an angle of 335 degrees if unspecified. */
     autoRotateAngle?: Degree;
 }
 
-export interface AgGroupedCategoryAxisLabelOptions extends Omit<AgBaseAxisLabelOptions, 'itemStyler'> {
+export interface AgGroupedCategoryAxisLabelOptions<TContext = TContextDefault>
+    extends Omit<AgBaseAxisLabelOptions<TContext>, 'itemStyler'> {
     /** Function used to style axis labels. */
-    itemStyler?: Styler<AgGroupedCategoryAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
+    itemStyler?: Styler<AgGroupedCategoryAxisLabelStylerParams<TContext>, AgBaseAxisLabelStyleOptions>;
 }
 
-export interface AgGroupedCategoryAxisLabelStylerParams extends AgAxisLabelStylerParams {
+export interface AgGroupedCategoryAxisLabelStylerParams<TContext = TContextDefault>
+    extends AgAxisLabelStylerParams<TContext> {
     /** The depth of the label, used by `grouped-category` axes. */
     readonly depth: number;
 }
@@ -97,8 +99,8 @@ export interface AgBaseCartesianChartOptions<TDatum = TDatumDefault, TContext = 
     annotations?: AgAnnotationsOptions;
 }
 
-export type AgGroupedCategoryDepthLabelOptions = Pick<
-    AgBaseAxisLabelOptions,
+export type AgGroupedCategoryDepthLabelOptions<TContext = TContextDefault> = Pick<
+    AgBaseAxisLabelOptions<TContext>,
     | 'enabled'
     | 'avoidCollisions'
     | 'rotation'
@@ -112,13 +114,13 @@ export type AgGroupedCategoryDepthLabelOptions = Pick<
 
 export type AgGroupedCategoryDepthTickOptions = Pick<AgAxisBaseTickOptions, 'enabled' | 'stroke' | 'width'>;
 
-export interface AgGroupedCategoryDepthOptions {
-    label?: AgGroupedCategoryDepthLabelOptions;
+export interface AgGroupedCategoryDepthOptions<TContext = TContextDefault> {
+    label?: AgGroupedCategoryDepthLabelOptions<TContext>;
     tick?: AgGroupedCategoryDepthTickOptions;
 }
 
 export interface AgCategoryAxisOptions<TContext = TContextDefault>
-    extends AgBaseCartesianAxisOptions<AgBaseCartesianAxisLabelOptions, AgBaseCrosshairLabel, TContext> {
+    extends AgBaseCartesianAxisOptions<AgBaseCartesianAxisLabelOptions<TContext>, AgBaseCrosshairLabel, TContext> {
     type: 'category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
@@ -134,7 +136,7 @@ type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;
 
 export interface AgGroupedCategoryAxisOptions<TContext = TContextDefault>
     extends Omit<
-        AgBaseCartesianAxisOptions<AgGroupedCategoryAxisLabelOptions, AgBaseCrosshairLabel, TContext>,
+        AgBaseCartesianAxisOptions<AgGroupedCategoryAxisLabelOptions<TContext>, AgBaseCrosshairLabel, TContext>,
         'tick'
     > {
     type: 'grouped-category';
@@ -143,7 +145,7 @@ export interface AgGroupedCategoryAxisOptions<TContext = TContextDefault>
     /** This property is for grouped column/bar series plotted on a category axis. It is a proportion between 0 and 1 which determines the size of the gap between the bars or columns within a single group along the axis. */
     groupPaddingInner?: Ratio;
     /** An array of depth options, starting from the leafs. */
-    depthOptions?: AgGroupedCategoryDepthOptions[];
+    depthOptions?: AgGroupedCategoryDepthOptions<TContext>[];
     /** Configuration for the axis ticks. */
     tick?: AgGroupedCategoryAxisTickOptions;
     /** Configuration for the axis band highlight. */
@@ -153,7 +155,7 @@ export interface AgGroupedCategoryAxisOptions<TContext = TContextDefault>
 export interface AgTimeAxisOptions<TContext = TContextDefault>
     extends Omit<
             AgBaseCartesianAxisOptions<
-                AgCartesianTimeAxisLabelOptions,
+                AgCartesianTimeAxisLabelOptions<TContext>,
                 AgCrosshairLabel<AgTimeAxisFormattableLabelFormat>,
                 TContext
             >,
@@ -163,13 +165,13 @@ export interface AgTimeAxisOptions<TContext = TContextDefault>
         AgContinuousAxisOptions<Date | number, TimeInterval | TimeIntervalUnit | number> {
     type: 'time';
     /** Options for labels and ticks for the parent level intervals. */
-    parentLevel?: AgTimeAxisParentLevel;
+    parentLevel?: AgTimeAxisParentLevel<TContext>;
 }
 
 export interface AgUnitTimeAxisOptions<TContext = TContextDefault>
     extends Omit<
             AgBaseCartesianAxisOptions<
-                AgCartesianTimeAxisLabelOptions,
+                AgCartesianTimeAxisLabelOptions<TContext>,
                 AgCrosshairLabel<AgTimeAxisFormattableLabelFormat>,
                 TContext
             >,
@@ -178,7 +180,7 @@ export interface AgUnitTimeAxisOptions<TContext = TContextDefault>
         Omit<AgContinuousAxisOptions<Date | number, TimeInterval | TimeIntervalUnit | number>, 'nice'> {
     type: 'unit-time';
     /** Options for labels and ticks for the parent level intervals. */
-    parentLevel?: AgTimeAxisParentLevel;
+    parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** The size of each band. */
     unit?: TimeInterval | TimeIntervalUnit;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
@@ -193,13 +195,13 @@ export interface AgUnitTimeAxisOptions<TContext = TContextDefault>
 
 export interface AgOrdinalTimeAxisOptions<TContext = TContextDefault>
     extends AgBaseCartesianAxisOptions<
-        AgCartesianTimeAxisLabelOptions,
-        AgCrosshairLabel<AgTimeAxisFormattableLabelFormat>,
+        AgCartesianTimeAxisLabelOptions<TContext>,
+        AgCrosshairLabel<AgTimeAxisFormattableLabelFormat, TContext>,
         TContext
     > {
     type: 'ordinal-time';
     /** Options for labels and ticks for the parent level intervals. */
-    parentLevel?: AgTimeAxisParentLevel;
+    parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisContinuousIntervalOptions<TimeInterval | TimeIntervalUnit | number>;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
@@ -214,7 +216,11 @@ export interface AgOrdinalTimeAxisOptions<TContext = TContextDefault>
 
 export interface AgNumberAxisOptions<TContext = TContextDefault>
     extends Omit<
-            AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions, AgCrosshairLabel<string>, TContext>,
+            AgBaseCartesianAxisOptions<
+                AgCartesianAxisLabelOptions<TContext>,
+                AgCrosshairLabel<string, TContext>,
+                TContext
+            >,
             'interval'
         >,
         AgContinuousAxisOptions<number, number> {
@@ -223,7 +229,11 @@ export interface AgNumberAxisOptions<TContext = TContextDefault>
 
 export interface AgLogAxisOptions<TContext = TContextDefault>
     extends Omit<
-            AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions, AgCrosshairLabel<string>, TContext>,
+            AgBaseCartesianAxisOptions<
+                AgCartesianAxisLabelOptions<TContext>,
+                AgCrosshairLabel<string, TContext>,
+                TContext
+            >,
             'interval'
         >,
         AgContinuousAxisOptions<number, number> {

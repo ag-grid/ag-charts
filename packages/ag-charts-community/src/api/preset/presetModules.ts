@@ -81,6 +81,7 @@ const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgS
     animation: defined,
     background: defined,
     contextMenu: defined,
+    context: () => true,
     listeners: defined,
     locale: defined,
     width: defined,

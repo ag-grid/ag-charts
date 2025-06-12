@@ -20,7 +20,7 @@ const {
     DropShadow,
     AbstractBarSeriesProperties,
     BaseProperties,
-    SeriesTooltip,
+    makeSeriesTooltip,
     AxisLabel,
     Property,
 } = _ModuleSupport;
@@ -117,5 +117,5 @@ export class FunnelProperties
     readonly stageLabel = new FunnelSeriesStageLabel();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgFunnelSeriesTooltipRendererParams<unknown>>();
+    readonly tooltip = makeSeriesTooltip<AgFunnelSeriesTooltipRendererParams<unknown>>();
 }

@@ -1,25 +1,28 @@
 import type { AgNumericAxisFormattableLabelOptions } from '../../chart/axisOptions';
-import type { DatumCallbackParams } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
+export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Spacing between label and the associated divider. */
     spacing?: PixelSize;
     /** The placement of the label in relation to the divider between drop-offs. */
     placement?: 'before' | 'middle' | 'after';
 }
 
-export interface AgConeFunnelSeriesStageLabelOptions extends AgNumericAxisFormattableLabelOptions {
+export interface AgConeFunnelSeriesStageLabelOptions<TContext = TContextDefault>
+    extends AgNumericAxisFormattableLabelOptions<TContext> {
     /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
 }
 
-export interface AgConeFunnelSeriesItemStylerParams<TDatum>
+export interface AgConeFunnelSeriesItemStylerParams<TDatum = TDatumDefault, TContext = TContextDefault>
     extends DatumCallbackParams<TDatum>,
+        ContextCallbackParams<TContext>,
         AgConeFunnelSeriesOptionsKeys<TDatum>,
         Required<AgConeFunnelSeriesStyle> {}
 
@@ -28,10 +31,10 @@ export interface AgConeFunnelSeriesStyle extends FillOptions, StrokeOptions, Lin
 export interface AgConeFunnelSeriesLabelFormatterParams<TDatum = TDatumDefault>
     extends AgConeFunnelSeriesOptionsKeys<TDatum> {}
 
-export interface AgConeFunnelSeriesTooltipRendererParams<TDatum = TDatumDefault>
+export interface AgConeFunnelSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgConeFunnelSeriesOptionsKeys<TDatum>,
         AgConeFunnelSeriesOptionsNames,
-        AgSeriesTooltipRendererParams<TDatum>,
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgConeFunnelSeriesStyle {}
 
 export interface AgConeFunnelSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
@@ -50,11 +53,11 @@ export interface AgConeFunnelSeriesThemeableOptions<TDatum = TDatumDefault, TCon
     /** Bar rendering direction. */
     direction?: 'horizontal' | 'vertical';
     /** Configuration for the labels shown on between drop-offs. */
-    label?: AgConeFunnelSeriesLabelOptions<TDatum, AgConeFunnelSeriesLabelFormatterParams<TDatum>>;
+    label?: AgConeFunnelSeriesLabelOptions<TDatum, AgConeFunnelSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the stage labels. */
-    stageLabel?: AgConeFunnelSeriesStageLabelOptions;
+    stageLabel?: AgConeFunnelSeriesStageLabelOptions<TContext>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgConeFunnelSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgConeFunnelSeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
 export interface AgConeFunnelSeriesOptionsKeys<TDatum = TDatumDefault> {

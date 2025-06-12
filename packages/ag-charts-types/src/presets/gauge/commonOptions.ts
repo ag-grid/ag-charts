@@ -35,7 +35,7 @@ let __VERIFY_THEMEABLE_OPTIONS: Required<Omit<AgBaseSeriesThemeableOptions<any>,
     undefined as any;
 __VERIFY_THEMEABLE_OPTIONS = __THEMEABLE_OPTIONS;
 
-export interface AgGaugeScaleLabel {
+export interface AgGaugeScaleLabel<TContext> {
     /** Set to `false` to hide the scale labels. */
     enabled?: boolean;
     /** The font style to use for the labels. */
@@ -59,13 +59,13 @@ export interface AgGaugeScaleLabel {
     /** Format string used when rendering labels. */
     format?: string;
     /** Function used to render scale labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
-    formatter?: Formatter<AgAxisLabelFormatterParams>;
+    formatter?: Formatter<AgAxisLabelFormatterParams<TContext>>;
 }
 
 // Verification checks for completeness/correctness.
-const __AXIS_LABEL_OPTIONS = undefined as any as Required<AgGaugeScaleLabel>;
+const __AXIS_LABEL_OPTIONS = undefined as any as Required<AgGaugeScaleLabel<never>>;
 // @ts-expect-error TS6133 - this is used to validate completeness by the compiler, but is deliberately unused.
-let __VERIFY_AXIS_LABEL_OPTIONS: AgBaseAxisLabelOptions = undefined as any;
+let __VERIFY_AXIS_LABEL_OPTIONS: AgBaseAxisLabelOptions<never> = undefined as any;
 __VERIFY_AXIS_LABEL_OPTIONS = __AXIS_LABEL_OPTIONS;
 
 export interface AgGaugeSegmentationInterval {

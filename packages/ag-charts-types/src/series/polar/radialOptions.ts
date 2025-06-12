@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
@@ -9,11 +9,11 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = TDatumDefault, TCon
     extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
         AgRadialSeriesStyle {
     /** Configuration for the labels shown on top of data points. */
-    label?: AgChartLabelOptions<TDatum, AgRadialSeriesLabelFormatterParams<TDatum>>;
+    label?: AgChartLabelOptions<TDatum, AgRadialSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgRadialSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgRadialSeriesTooltipRendererParams<TDatum, TContext>>;
     /** A styler function for adjusting the styling of the radial columns. */
-    itemStyler?: Styler<AgRadialSeriesItemStylerParams<TDatum>, AgRadialSeriesStyle>;
+    itemStyler?: Styler<AgRadialSeriesItemStylerParams<TDatum, TContext>, AgRadialSeriesStyle>;
 }
 
 export interface AgRadialSeriesOptionsKeys<TDatum = TDatumDefault> {
@@ -33,13 +33,17 @@ export interface AgRadialSeriesOptionsNames {
 export type AgRadialSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgRadialSeriesOptionsKeys<TDatum> &
     AgRadialSeriesOptionsNames;
 
-export interface AgRadialSeriesTooltipRendererParams<TDatum>
-    extends AgSeriesTooltipRendererParams<TDatum>,
+export interface AgRadialSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgRadialSeriesStyle {}
 
-export type AgRadialSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type AgRadialSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     AgRadialSeriesOptionsKeys<TDatum> &
     Required<AgRadialSeriesStyle>;
 

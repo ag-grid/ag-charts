@@ -8,7 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { Property, SeriesProperties, SeriesTooltip, Label } = _ModuleSupport;
+const { Property, SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
 
 export interface MapLineNodeLabelDatum extends _ModuleSupport.PointLabelDatum {}
 
@@ -89,5 +89,5 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
     readonly label = new Label<AgMapLineSeriesLabelFormatterParams>();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgMapLineSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgMapLineSeriesTooltipRendererParams<any>>();
 }

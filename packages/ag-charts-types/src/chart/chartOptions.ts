@@ -226,13 +226,15 @@ export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault, TContext = 
     /** Configuration for the chart legend. */
     legend?: AgChartLegendOptions<TContext>;
     /** Configuration for the gradient legend. */
-    gradientLegend?: AgGradientLegendOptions;
+    gradientLegend?: AgGradientLegendOptions<TContext>;
     /** Configuration for chart animations. */
     animation?: AgAnimationOptions;
     /** Configuration for asynchronously loaded data. */
     dataSource?: AgDataSourceOptions<TDatum, TContext>;
     /** Configuration for the context menu. */
     contextMenu?: AgContextMenuOptions<TDatum, TContext>;
+    /** Context object to use in callbacks */
+    context?: TContext;
     /** Configuration for localisation. */
     locale?: AgLocaleOptions;
     /** Configuration for the ranges buttons. */
@@ -267,7 +269,7 @@ export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault, TContext = 
 
     // Cartesian-specific options - special care required.
     /** Configuration for the Navigator. */
-    navigator?: AgNavigatorOptions<TDatum>;
+    navigator?: AgNavigatorOptions<TDatum, TContext>;
     /** Configuration for synchronizing multiple charts. */
     sync?: AgChartSyncOptions;
     /** Configuration for the zoom options. */
@@ -279,8 +281,6 @@ export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault, TContext = 
 /** Configuration common to all charts.  */
 export interface AgBaseChartOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseThemeableChartOptions<TDatum, TContext> {
-    /** Context object to use in callbacks */
-    context?: TContext;
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
     data?: TDatum[];
     /** The element to place the rendered chart into. */

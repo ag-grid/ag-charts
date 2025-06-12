@@ -6,8 +6,8 @@ import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../se
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgHistogramSeriesTooltipRendererParams<TDatum>
-    extends Omit<AgCartesianSeriesTooltipRendererParams<AgHistogramBinDatum<TDatum>>, 'yKey'>,
+export interface AgHistogramSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+    extends Omit<AgCartesianSeriesTooltipRendererParams<AgHistogramBinDatum<TDatum>, TContext>, 'yKey'>,
         FillOptions,
         StrokeOptions {
     /** yKey as specified on series options. */
@@ -36,11 +36,11 @@ export interface AgHistogramSeriesThemeableOptions<TDatum = TDatumDefault, TCont
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on bars. */
-    label?: AgChartLabelOptions<TDatum, AgHistogramSeriesLabelFormatterParams<TDatum>>;
+    label?: AgChartLabelOptions<TDatum, AgHistogramSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Apply rounded corners to each bar. */
     cornerRadius?: PixelSize;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
 export interface AgHistogramSeriesOptionsKeys<TDatum = TDatumDefault> {

@@ -4,7 +4,7 @@ import type {
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { AgMarkerShape, Degree, PixelSize, Ratio } from '../../chart/types';
+import type { AgMarkerShape, Degree, PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../../series/cartesian/commonOptions';
 import type {
     AgBaseGaugeThemeableOptions,
@@ -27,20 +27,25 @@ export interface AgRadialGaugeScaleInterval {
     step?: number;
 }
 
-export interface AgRadialGaugeScaleLabel extends AgGaugeScaleLabel {}
+export interface AgRadialGaugeScaleLabel<TContext = TContextDefault> extends AgGaugeScaleLabel<TContext> {}
 
-export interface AgRadialGaugeScale extends FillsOptions, FillOptions, StrokeOptions, LineDashOptions {
+export interface AgRadialGaugeScale<TContext = TContextDefault>
+    extends FillsOptions,
+        FillOptions,
+        StrokeOptions,
+        LineDashOptions {
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     min?: number;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
     max?: number;
     /** Configuration for the scale labels. */
-    label?: AgRadialGaugeScaleLabel;
+    label?: AgRadialGaugeScaleLabel<TContext>;
     /** Configuration for the ticks interval. */
     interval?: AgRadialGaugeScaleInterval;
 }
 
-export interface AgRadialGaugeTooltipRendererParams extends AgSeriesTooltipRendererParams<undefined> {
+export interface AgRadialGaugeTooltipRendererParams
+    extends AgSeriesTooltipRendererParams<TDatumDefault, TContextDefault> {
     /** Value of the Gauge */
     value: number;
 }
@@ -61,7 +66,7 @@ export interface AgRadialGaugeNeedleStyle extends FillOptions, StrokeOptions, Li
 
 export type AgRadialGaugeMarkerShape = AgMarkerShape | 'line';
 
-export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<undefined, never> {
+export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<never, never, TContextDefault> {
     /** Spacing of the label. */
     spacing?: PixelSize;
 }
@@ -86,18 +91,18 @@ export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDas
 }
 
 export interface AgRadialGaugeLabelOptions
-    extends AgChartAutoSizedLabelOptions<undefined, AgRadialGaugeLabelFormatterParams> {
+    extends AgChartAutoSizedLabelOptions<never, AgRadialGaugeLabelFormatterParams, TContextDefault> {
     /** Text to always display. */
     text?: string;
 }
 
 export interface AgRadialGaugeSecondaryLabelOptions
-    extends AgChartAutoSizedSecondaryLabelOptions<undefined, AgRadialGaugeLabelFormatterParams> {
+    extends AgChartAutoSizedSecondaryLabelOptions<never, AgRadialGaugeLabelFormatterParams, TContextDefault> {
     /** Text to always display. */
     text?: string;
 }
 
-export interface AgRadialGaugeThemeableOptions extends AgBaseGaugeThemeableOptions {
+export interface AgRadialGaugeThemeableOptions<TContext = TContextDefault> extends AgBaseGaugeThemeableOptions {
     /** Outer radius of the gauge. */
     outerRadius?: PixelSize;
     /** Inner radius of the gauge. */
@@ -123,7 +128,7 @@ export interface AgRadialGaugeThemeableOptions extends AgBaseGaugeThemeableOptio
     /** Configuration for the needle. */
     needle?: AgRadialGaugeNeedleStyle;
     /** Configuration for the scale. */
-    scale?: AgRadialGaugeScale;
+    scale?: AgRadialGaugeScale<TContext>;
     /** Configuration for the bar. */
     bar?: AgRadialGaugeBarStyle;
     /** Configuration for the labels shown inside the shape. */
@@ -136,7 +141,7 @@ export interface AgRadialGaugeThemeableOptions extends AgBaseGaugeThemeableOptio
     tooltip?: AgSeriesTooltip<AgRadialGaugeTooltipRendererParams>;
 }
 
-export interface AgRadialGaugePreset extends AgRadialGaugeThemeableOptions {
+export interface AgRadialGaugePreset<TContext = TContextDefault> extends AgRadialGaugeThemeableOptions<TContext> {
     /** Configuration for the Radial Gauge. */
     type: 'radial-gauge';
     /** Value of the Radial Gauge. */

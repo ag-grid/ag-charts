@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { LabelPlacement, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
@@ -11,8 +11,8 @@ import type {
 } from '../seriesOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
 
-export interface AgBubbleSeriesTooltipRendererParams<TDatum = TDatumDefault>
-    extends AgSeriesTooltipRendererParams<TDatum>,
+export interface AgBubbleSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgBubbleSeriesOptionsKeys<TDatum>,
         AgBubbleSeriesOptionsNames,
         FillOptions,
@@ -21,8 +21,8 @@ export interface AgBubbleSeriesTooltipRendererParams<TDatum = TDatumDefault>
 export type AgBubbleSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgBubbleSeriesOptionsKeys<TDatum> &
     AgBubbleSeriesOptionsNames;
 
-export interface AgBubbleSeriesLabel<TDatum>
-    extends AgChartLabelOptions<TDatum, AgBubbleSeriesLabelFormatterParams<TDatum>> {
+export interface AgBubbleSeriesLabel<TDatum, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, AgBubbleSeriesLabelFormatterParams<TDatum>, TContext> {
     /**
      * Placement of label in relation to the marker.
      *
@@ -33,7 +33,11 @@ export interface AgBubbleSeriesLabel<TDatum>
 
 export interface AgBubbleSeriesStyle extends AgSeriesMarkerStyle {}
 
-export type BubbleSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type BubbleSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     AgBubbleSeriesOptionsKeys<TDatum> &
     Required<AgBubbleSeriesStyle>;
 
@@ -49,11 +53,11 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = TDatumDefault, TContext
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgBubbleSeriesLabel<TDatum>;
+    label?: AgBubbleSeriesLabel<TDatum, TContext>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgBubbleSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgBubbleSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<BubbleSeriesItemStylerParams<TDatum>, AgBubbleSeriesStyle>;
+    itemStyler?: Styler<BubbleSeriesItemStylerParams<TDatum, TContext>, AgBubbleSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }

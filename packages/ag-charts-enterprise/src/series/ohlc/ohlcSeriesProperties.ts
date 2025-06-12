@@ -19,7 +19,7 @@ import type {
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
 
-const { BaseProperties, Property, AbstractBarSeriesProperties, SeriesTooltip } = _ModuleSupport;
+const { BaseProperties, Property, AbstractBarSeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 
 class OhlcSeriesItem extends BaseProperties {
     @Property
@@ -94,7 +94,7 @@ export abstract class OhlcSeriesBaseProperties<
     lowName?: string;
 
     abstract override readonly tooltip: _ModuleSupport.SeriesTooltip<
-        AgOhlcSeriesTooltipRendererParams<any> & AgCandlestickSeriesTooltipRendererParams<any>
+        Omit<AgOhlcSeriesTooltipRendererParams<any> & AgCandlestickSeriesTooltipRendererParams<any>, 'context'>
     >;
 
     abstract itemStyler?: Styler<AgOhlcSeriesItemStylerParams<unknown>, AgOhlcSeriesItemOptions> &
@@ -103,7 +103,7 @@ export abstract class OhlcSeriesBaseProperties<
 
 export class OhlcSeriesProperties extends OhlcSeriesBaseProperties<AgOhlcSeriesOptions> {
     @Property
-    readonly tooltip = new SeriesTooltip<AgOhlcSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgOhlcSeriesTooltipRendererParams<any>>();
 
     @Property
     readonly item = new OhlcSeriesItems();

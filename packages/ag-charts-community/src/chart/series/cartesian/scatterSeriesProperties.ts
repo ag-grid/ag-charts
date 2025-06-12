@@ -21,7 +21,7 @@ import { Property } from '../../../util/properties';
 import { ProxyProperty } from '../../../util/proxy';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
-import { SeriesTooltip } from '../seriesTooltip';
+import { makeSeriesTooltip } from '../seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
@@ -109,7 +109,7 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     readonly label = new ScatterSeriesLabel();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgScatterSeriesTooltipRendererParams>();
+    readonly tooltip = makeSeriesTooltip<AgScatterSeriesTooltipRendererParams>();
 
     // No validation. Not a part of the options contract.
     readonly marker = new SeriesMarker<AgScatterSeriesOptionsKeys>();

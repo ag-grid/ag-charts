@@ -1,6 +1,6 @@
 import type { AgChartAutoSizedLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { AgMarkerShape, Degree, Direction, PixelSize } from '../../chart/types';
+import type { AgMarkerShape, Degree, Direction, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../../series/cartesian/commonOptions';
 import type {
     AgBaseGaugeThemeableOptions,
@@ -19,23 +19,28 @@ export interface AgLinearGaugeScaleInterval {
     step?: number;
 }
 
-export interface AgLinearGaugeScaleLabel extends AgGaugeScaleLabel {
+export interface AgLinearGaugeScaleLabel<TContext = TContextDefault> extends AgGaugeScaleLabel<TContext> {
     /** Placement of labels */
     placement?: 'before' | 'after';
 }
 
-export interface AgLinearGaugeScale extends FillsOptions, FillOptions, StrokeOptions, LineDashOptions {
+export interface AgLinearGaugeScale<TContext = TContextDefault>
+    extends FillsOptions,
+        FillOptions,
+        StrokeOptions,
+        LineDashOptions {
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     min?: number;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
     max?: number;
     /** Configuration for the scale labels. */
-    label?: AgLinearGaugeScaleLabel;
+    label?: AgLinearGaugeScaleLabel<TContext>;
     /** Configuration for the ticks interval. */
     interval?: AgLinearGaugeScaleInterval;
 }
 
-export interface AgLinearGaugeTooltipRendererParams extends AgSeriesTooltipRendererParams<undefined> {
+export interface AgLinearGaugeTooltipRendererParams
+    extends AgSeriesTooltipRendererParams<TDatumDefault, TContextDefault> {
     /** Value of the Gauge */
     value: number;
 }
@@ -79,7 +84,7 @@ export type AgLinearGaugeLabelPlacement =
     | 'bar-outside-end'
     | 'bar-end';
 
-export interface AgLinearGaugeLabelOptions extends AgChartAutoSizedLabelOptions<never, unknown> {
+export interface AgLinearGaugeLabelOptions extends AgChartAutoSizedLabelOptions<never, unknown, TContextDefault> {
     /** Text to always display. */
     text?: string;
     /** Distance between the shape edges and the text. */
@@ -117,13 +122,13 @@ export interface AgLinearGaugeThemeableOptions extends AgBaseGaugeThemeableOptio
     tooltip?: AgSeriesTooltip<AgLinearGaugeTooltipRendererParams>;
 }
 
-export interface AgLinearGaugePreset extends AgLinearGaugeThemeableOptions {
+export interface AgLinearGaugePreset<TContext = TContextDefault> extends AgLinearGaugeThemeableOptions {
     /** Configuration for the Linear Gauge. */
     type: 'linear-gauge';
     /** Value of the Linear Gauge. */
     value: number;
     /** Scale of the Linear Gauge. */
-    scale?: AgLinearGaugeScale;
+    scale?: AgLinearGaugeScale<TContext>;
     /** Configuration for the targets. */
     targets?: AgLinearGaugeTarget[];
 }

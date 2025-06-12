@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
@@ -13,8 +13,8 @@ import type {
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
-export interface AgMapMarkerSeriesTooltipRendererParams<TDatum>
-    extends AgSeriesTooltipRendererParams<TDatum>,
+export interface AgMapMarkerSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgMapMarkerSeriesOptionsKeys<TDatum>,
         AgMapMarkerSeriesOptionsNames,
         AgMapMarkerSeriesStyle {}
@@ -24,7 +24,11 @@ export type AgMapMarkerSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & 
 export type AgMapMarkerSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgMapMarkerSeriesOptionsKeys<TDatum> &
     AgMapMarkerSeriesOptionsNames;
 
-export type AgMapMarkerSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type AgMapMarkerSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     AgMapMarkerSeriesOptionsKeys<TDatum> &
     Required<AgMapMarkerSeriesStyle>;
 
@@ -65,8 +69,8 @@ export interface AgMapMarkerSeriesStyle extends FillOptions, StrokeOptions, Line
     size?: PixelSize;
 }
 
-export interface AgMapMarkerSeriesLabel<TDatum>
-    extends AgChartLabelOptions<TDatum, AgMapMarkerSeriesLabelFormatterParams<TDatum>> {
+export interface AgMapMarkerSeriesLabel<TDatum, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, AgMapMarkerSeriesLabelFormatterParams<TDatum>, TContext> {
     /**
      * Placement of label in relation to the marker.
      *
@@ -85,11 +89,11 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = TDatumDefault, TCont
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
     /** Configuration for the labels shown on top of data points. */
-    label?: AgMapMarkerSeriesLabel<TDatum>;
+    label?: AgMapMarkerSeriesLabel<TDatum, TContext>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<TDatum, TContext>>;
     /** A callback function for adjusting the styles of a particular Map marker based on the input parameters. */
-    itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<TDatum>, AgMapMarkerSeriesStyle>;
+    itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<TDatum, TContext>, AgMapMarkerSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapMarkerSeriesHighlightStyle<TDatum>;
 }

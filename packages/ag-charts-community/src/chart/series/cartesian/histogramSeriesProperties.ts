@@ -10,7 +10,7 @@ import { DropShadow } from '../../../scene/dropShadow';
 import { Property } from '../../../util/properties';
 import { Label } from '../../label';
 import { FillGradientDefaults, FillImageDefaults, FillPatternDefaults } from '../seriesProperties';
-import { SeriesTooltip } from '../seriesTooltip';
+import { makeSeriesTooltip } from '../seriesTooltip';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
 export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
@@ -101,5 +101,5 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
     readonly label = new Label<AgHistogramSeriesLabelFormatterParams>();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgHistogramSeriesTooltipRendererParams<HistogramNodeDatum>>();
+    readonly tooltip = makeSeriesTooltip<AgHistogramSeriesTooltipRendererParams<HistogramNodeDatum>>();
 }

@@ -15,7 +15,7 @@ import { Caption } from '../../caption';
 import { Label } from '../../label';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { SeriesProperties } from '../seriesProperties';
-import { SeriesTooltip } from '../seriesTooltip';
+import { makeSeriesTooltip } from '../seriesTooltip';
 
 export class PieTitle extends Caption {
     @Property
@@ -159,5 +159,5 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     readonly calloutLine = new PieSeriesCalloutLine();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgPieSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgPieSeriesTooltipRendererParams<any>>();
 }

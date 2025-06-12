@@ -4,6 +4,7 @@ import type {
     AgCrosshairLabelRendererResult,
     Formatter,
     FormatterParams,
+    TContextDefault,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { createId, setAttribute } from 'ag-charts-core';
@@ -21,7 +22,7 @@ interface FormatterCache {
 
 export class CrosshairLabelProperties
     extends BaseProperties
-    implements _ModuleSupport.AxisFormattableLabel<AgCrosshairLabelFormatterParams, FormatterParams>
+    implements _ModuleSupport.AxisFormattableLabel<AgCrosshairLabelFormatterParams<TContextDefault>, FormatterParams>
 {
     @Property
     enabled: boolean = true;
@@ -33,7 +34,7 @@ export class CrosshairLabelProperties
     yOffset: number = 0;
 
     @Property
-    formatter?: Formatter<AgCrosshairLabelFormatterParams>;
+    formatter?: Formatter<AgCrosshairLabelFormatterParams<TContextDefault>>;
 
     @Property
     format?: string = undefined;
@@ -44,8 +45,8 @@ export class CrosshairLabelProperties
     private _cachedFormatter: FormatterCache | undefined = undefined;
     formatValue(
         callWithContext: (
-            formatter: (params: AgCrosshairLabelFormatterParams) => string | undefined,
-            params: AgCrosshairLabelFormatterParams
+            formatter: (params: AgCrosshairLabelFormatterParams<TContextDefault>) => string | undefined,
+            params: AgCrosshairLabelFormatterParams<TContextDefault>
         ) => string | undefined,
         type: 'number' | 'date' | 'category',
         value: any,

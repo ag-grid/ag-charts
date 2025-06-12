@@ -14,7 +14,7 @@ const {
     FillGradientDefaults,
     FillPatternDefaults,
     FillImageDefaults,
-    SeriesTooltip,
+    makeSeriesTooltip,
     Property,
     Label,
 } = _ModuleSupport;
@@ -81,5 +81,5 @@ export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeries
     readonly label = new Label<AgRadialSeriesLabelFormatterParams>();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgRadialSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgRadialSeriesTooltipRendererParams<any>>();
 }

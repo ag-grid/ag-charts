@@ -17,6 +17,7 @@ import type {
     AgRangeBarSeriesOptions,
     AgRangesOptions,
     AgZoomOptions,
+    TDatumDefault,
 } from 'ag-charts-types';
 
 import type { ChartTheme } from '../../chart/themes/chartTheme';
@@ -71,7 +72,7 @@ export function priceVolume(
     opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions,
     _presetTheme: any,
     getTheme: () => ChartTheme
-): AgCartesianChartOptions {
+): AgCartesianChartOptions<TDatumDefault, never> {
     const {
         dateKey = 'date',
         highKey = 'high',
@@ -318,7 +319,7 @@ export function priceVolume(
         ...toolbarOpts,
         ...syncGroup,
         ...unusedOpts,
-    } satisfies AgCartesianChartOptions;
+    } satisfies AgCartesianChartOptions<TDatumDefault, never>;
 }
 
 function createVolumeSeries(

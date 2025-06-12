@@ -22,8 +22,6 @@ import {
     AgZoomEvent,
 } from 'ag-charts-community';
 import {
-    AgLinearGaugeOptionsWithContext,
-    AgRadialGaugeOptionsWithContext,
     MockAPICallback,
     MockAnnotationsListener,
     MockChartClickListener,
@@ -463,7 +461,7 @@ describe('AG-13024 API context gauges', () => {
     });
 
     describe('radial-gauge', () => {
-        function initOptions(): AgRadialGaugeOptionsWithContext {
+        function initOptions(): AgRadialGaugeOptions {
             return {
                 type: 'radial-gauge',
                 value: 80,
@@ -503,7 +501,7 @@ describe('AG-13024 API context gauges', () => {
     });
 
     describe('linear-gauge', () => {
-        function initOptions(): AgLinearGaugeOptionsWithContext {
+        function initOptions(): AgLinearGaugeOptions {
             return {
                 type: 'linear-gauge',
                 value: 80,

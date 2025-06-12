@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
@@ -14,13 +14,15 @@ export interface AgSankeySeriesOptions<TDatum = TDatumDefault, TContext = TConte
     type: 'sankey';
 }
 
-export interface AgSankeySeriesLinkItemStylerParams<TDatum>
+export interface AgSankeySeriesLinkItemStylerParams<TDatum, TContext = TContextDefault>
     extends DatumCallbackParams<TDatum>,
+        ContextCallbackParams<TContext>,
         AgSankeySeriesOptionsKeys,
         Required<AgSankeySeriesLinkStyle> {}
 
-export interface AgSankeySeriesNodeItemStylerParams<TDatum>
+export interface AgSankeySeriesNodeItemStylerParams<TDatum, TContext = TContextDefault>
     extends DatumCallbackParams<TDatum>,
+        ContextCallbackParams<TContext>,
         AgSankeySeriesOptionsKeys,
         Required<AgSankeySeriesNodeStyle> {
     /** Label of the node */
@@ -32,35 +34,35 @@ export interface AgSankeySeriesNodeItemStylerParams<TDatum>
 export interface AgSankeySeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Options for the label for each node. */
-    label?: AgSankeySeriesLabelOptions<TDatum>;
+    label?: AgSankeySeriesLabelOptions<TDatum, TContext>;
     /** The colours to cycle through for the fills of the nodes and links. */
     fills?: CssColor[];
     /** The colours to cycle through for the strokes of the nodes and links. */
     strokes?: CssColor[];
     /** Options for the links. */
-    link?: AgSankeySeriesLinkOptions<TDatum>;
+    link?: AgSankeySeriesLinkOptions<TDatum, TContext>;
     /** Options for the nodes. */
-    node?: AgSankeySeriesNodeOptions<TDatum>;
+    node?: AgSankeySeriesNodeOptions<TDatum, TContext>;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
-export interface AgSankeySeriesLabelOptions<TDatum>
-    extends AgChartLabelOptions<TDatum, AgSankeySeriesLabelFormatterParams<TDatum>> {
+export interface AgSankeySeriesLabelOptions<TDatum, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, AgSankeySeriesLabelFormatterParams<TDatum>, TContext> {
     /** Spacing between a node and its label. */
     spacing?: PixelSize;
 }
 
 export interface AgSankeySeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgSankeySeriesLinkOptions<TDatum> extends AgSankeySeriesLinkStyle {
+export interface AgSankeySeriesLinkOptions<TDatum, TContext = TContextDefault> extends AgSankeySeriesLinkStyle {
     /** Function used to return formatting for individual links, based on the given parameters. If the current link is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<TDatum>, AgSankeySeriesLinkStyle>;
+    itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<TDatum, TContext>, AgSankeySeriesLinkStyle>;
 }
 
 export interface AgSankeySeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgSankeySeriesNodeOptions<TDatum> extends AgSankeySeriesNodeStyle {
+export interface AgSankeySeriesNodeOptions<TDatum, TContext = TContextDefault> extends AgSankeySeriesNodeStyle {
     /** Minimum spacing between the nodes. */
     spacing?: PixelSize;
     /** Width of the nodes. */
@@ -68,7 +70,7 @@ export interface AgSankeySeriesNodeOptions<TDatum> extends AgSankeySeriesNodeSty
     /** Alignment of the nodes. */
     alignment?: 'left' | 'right' | 'center' | 'justify';
     /** Function used to return formatting for individual nodes, based on the given parameters. If the current node is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<TDatum>, AgSankeySeriesNodeStyle>;
+    itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<TDatum, TContext>, AgSankeySeriesNodeStyle>;
 }
 
 export interface AgSankeySeriesOptionsKeys {
@@ -91,8 +93,8 @@ interface SizeParams {
     size: number;
 }
 
-export interface AgSankeySeriesTooltipRendererParams<TDatum>
-    extends AgSeriesTooltipRendererParams<TDatum>,
+export interface AgSankeySeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames,
         SizeParams {}

@@ -9,6 +9,7 @@ import {
     type AgSankeySeriesOptions,
     type AgSankeySeriesTooltipRendererParams,
     type Styler,
+    type TDatumDefault,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
@@ -20,7 +21,7 @@ const {
     FillGradientDefaults,
     FillPatternDefaults,
     FillImageDefaults,
-    SeriesTooltip,
+    makeSeriesTooltip,
     SeriesProperties,
     Property,
     Label,
@@ -175,5 +176,5 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     readonly node = new SankeySeriesNodeProperties();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgSankeySeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatumDefault>>();
 }

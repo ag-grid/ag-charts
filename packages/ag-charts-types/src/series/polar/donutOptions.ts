@@ -1,4 +1,4 @@
-import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -13,7 +13,8 @@ import type {
 } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
-export interface AgDonutSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
+export interface AgDonutSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Distance in pixels between the callout line and the label text. */
     offset?: PixelSize;
     /** Minimum angle in degrees required for a sector to show a label. */
@@ -22,14 +23,19 @@ export interface AgDonutSeriesLabelOptions<TDatum, TParams> extends AgChartLabel
     avoidCollisions?: boolean;
 }
 
-export interface AgDonutSeriesSectorLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
+export interface AgDonutSeriesSectorLabelOptions<TDatum, TParams, TContext = TContextDefault>
+    extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Distance in pixels, used to make the label text closer to or further from the center. This offset is applied after positionRatio. */
     positionOffset?: PixelSize;
     /** Position of labels as a ratio proportional to Donut radius (or Donut thickness). Additional offset in pixels can be applied by using positionOffset. */
     positionRatio?: Ratio;
 }
 
-export type AgDonutSeriesItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type AgDonutSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     AgDonutSeriesOptionsKeys<TDatum> &
     Required<AgDonutSeriesStyle>;
 
@@ -78,9 +84,9 @@ export interface AgDonutSeriesThemeableOptions<TDatum = TDatumDefault, TContext 
     /** Configuration for the series title. */
     title?: AgDonutTitleOptions;
     /** Configuration for the labels used outside the sectors. */
-    calloutLabel?: AgDonutSeriesLabelOptions<TDatum, AgDonutSeriesLabelFormatterParams<TDatum>>;
+    calloutLabel?: AgDonutSeriesLabelOptions<TDatum, AgDonutSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the labels used inside the sectors. */
-    sectorLabel?: AgDonutSeriesSectorLabelOptions<TDatum, AgDonutSeriesLabelFormatterParams<TDatum>>;
+    sectorLabel?: AgDonutSeriesSectorLabelOptions<TDatum, AgDonutSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the callout lines used with the labels for the sectors. */
     calloutLine?: AgDonutSeriesCalloutOptions;
     /** The colours to cycle through for the fills of the sectors. */
@@ -114,7 +120,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = TDatumDefault, TContext 
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgDonutSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgDonutSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Configuration for the text lines to display inside the series. */
     innerLabels?: AgDonutInnerLabelThemeOptions;
     /** Configuration for the area inside the series. */
@@ -126,7 +132,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = TDatumDefault, TContext 
     /** Whether items with a value of 0 should be hidden in the legend. */
     hideZeroValueSectorsInLegend?: boolean;
     /** A styler function for adjusting the styling of the Donut sectors. */
-    itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum>, AgDonutSeriesStyle>;
+    itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum, TContext>, AgDonutSeriesStyle>;
 }
 
 export interface AgDonutSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
@@ -164,8 +170,8 @@ export interface AgDonutSeriesOptionsNames {
     sectorLabelName?: string;
 }
 
-export interface AgDonutSeriesTooltipRendererParams<TDatum>
-    extends AgSeriesTooltipRendererParams<TDatum>,
+export interface AgDonutSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgDonutSeriesOptionsKeys<TDatum>,
         AgDonutSeriesOptionsNames,
         FillOptions,

@@ -1,8 +1,12 @@
 import type { LineDashOptions, StrokeOptions } from '../series/cartesian/commonOptions';
-import type { DatumCallbackParams, Styler } from './callbackOptions';
-import type { PixelSize, Ratio, TDatumDefault } from './types';
+import type { ContextCallbackParams, DatumCallbackParams, Styler } from './callbackOptions';
+import type { PixelSize, Ratio, TContextDefault, TDatumDefault } from './types';
 
-export type AgErrorBarItemStylerParams<TDatum = TDatumDefault> = DatumCallbackParams<TDatum> &
+export type AgErrorBarItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = DatumCallbackParams<TDatum> &
+    ContextCallbackParams<TContext> &
     SeriesKeyOptions<TDatum> &
     ErrorBarKeyOptions<TDatum> &
     Required<AgErrorBarThemeableOptions>;
@@ -41,9 +45,9 @@ interface ErrorBarNameOptions {
     yUpperName?: string;
 }
 
-interface ErrorBarFormatterOption<TDatum> {
+interface ErrorBarFormatterOption<TDatum, TContext> {
     /** Function used to return formatting for individual error bars, based on the given parameters. If the current error bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgErrorBarItemStylerParams<TDatum>, AgErrorBarThemeableOptions>;
+    itemStyler?: Styler<AgErrorBarItemStylerParams<TDatum, TContext>, AgErrorBarThemeableOptions>;
 }
 
 export interface ErrorBarCapOptions extends ErrorBarStylingOptions {
@@ -60,8 +64,8 @@ export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
 
 export const AgErrorBarSupportedSeriesTypes = ['bar', 'line', 'scatter'] as const;
 
-export interface AgErrorBarOptions<TDatum = TDatumDefault>
+export interface AgErrorBarOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends ErrorBarKeyOptions<TDatum>,
         ErrorBarNameOptions,
-        ErrorBarFormatterOption<TDatum>,
+        ErrorBarFormatterOption<TDatum, TContext>,
         AgErrorBarThemeableOptions {}

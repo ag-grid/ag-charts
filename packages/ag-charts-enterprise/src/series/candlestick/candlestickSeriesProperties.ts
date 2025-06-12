@@ -10,7 +10,7 @@ import type { InternalAgColorType } from 'ag-charts-core';
 
 import { OhlcSeriesBaseProperties } from '../ohlc/ohlcSeriesProperties';
 
-const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, BaseProperties, SeriesTooltip, Property } =
+const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, BaseProperties, makeSeriesTooltip, Property } =
     _ModuleSupport;
 
 class CandlestickSeriesWick extends BaseProperties {
@@ -81,7 +81,7 @@ export class CandlestickSeriesProperties<T extends AgOhlcSeriesBaseOptions> exte
     readonly item = new CandlestickSeriesItems();
 
     @Property
-    override readonly tooltip = new SeriesTooltip<AgCandlestickSeriesTooltipRendererParams<any>>();
+    override readonly tooltip = makeSeriesTooltip<AgCandlestickSeriesTooltipRendererParams<any>>();
 
     @Property
     itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;

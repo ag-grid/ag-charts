@@ -1,5 +1,5 @@
 import type { AgChartCallbackParams, Renderer } from './callbackOptions';
-import type { DurationMs, InteractionRange, PixelSize, TextWrap } from './types';
+import type { DurationMs, InteractionRange, PixelSize, TContextDefault, TDatumDefault, TextWrap } from './types';
 
 export type AgTooltipMode = 'single' | 'shared' | 'compact';
 
@@ -80,12 +80,13 @@ export interface AgTooltipRendererResult {
     data?: AgTooltipRendererDataRow[];
 }
 
-export interface AgSeriesTooltipRendererParams<TDatum> extends Omit<AgChartCallbackParams<TDatum>, 'itemId'> {
+export interface AgSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+    extends Omit<AgChartCallbackParams<TDatum, TContext>, 'itemId'> {
     /** Series title or yName depending on series configuration. */
     readonly title?: string;
 }
 
-export interface AgSeriesTooltip<TParams extends AgSeriesTooltipRendererParams<any>> {
+export interface AgSeriesTooltip<TParams extends AgSeriesTooltipRendererParams<TDatumDefault, TContextDefault>> {
     /** Whether to show tooltips when the series are hovered over. */
     enabled?: boolean;
     /** The tooltip arrow is displayed by default, unless the container restricts it or a position offset is provided. To always display the arrow, set `showArrow` to `true`. To remove the arrow, set `showArrow` to `false`.  */

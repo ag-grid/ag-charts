@@ -2,7 +2,7 @@ import type { AgMapShapeBackgroundOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, Property, SeriesProperties, SeriesTooltip } =
+const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, Property, SeriesProperties, makeSeriesTooltip } =
     _ModuleSupport;
 
 export interface MapShapeBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
@@ -45,5 +45,5 @@ export class MapShapeBackgroundSeriesProperties extends SeriesProperties<AgMapSh
     lineDashOffset: number = 0;
 
     @Property
-    readonly tooltip = new SeriesTooltip<never>();
+    readonly tooltip = makeSeriesTooltip<never>();
 }

@@ -1,9 +1,9 @@
 import type { AgAxisContinuousIntervalOptions, AgAxisLabelFormatterParams } from './axisOptions';
 import type { Formatter } from './callbackOptions';
 import type { AgChartLegendPosition } from './legendOptions';
-import type { CssColor, FontFamilyFull, FontSize, FontStyle, FontWeight, PixelSize } from './types';
+import type { CssColor, FontFamilyFull, FontSize, FontStyle, FontWeight, PixelSize, TContextDefault } from './types';
 
-export interface AgGradientLegendLabelOptions {
+export interface AgGradientLegendLabelOptions<TContext = TContextDefault> {
     /** The font style to use for the labels. */
     fontStyle?: FontStyle;
     /** The font weight to use for the labels. */
@@ -19,19 +19,19 @@ export interface AgGradientLegendLabelOptions {
     /** Format string used when rendering labels. */
     format?: string;
     /** Function used to render scale labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between intervals; for example, a interval step of `0.0005` would have `fractionDigits` set to `4`. */
-    formatter?: Formatter<AgAxisLabelFormatterParams>;
+    formatter?: Formatter<AgAxisLabelFormatterParams<TContext>>;
 }
 
-export interface AgGradientLegendScaleOptions {
+export interface AgGradientLegendScaleOptions<TContext = TContextDefault> {
     /** Options for the labels on the scale. */
-    label?: AgGradientLegendLabelOptions;
+    label?: AgGradientLegendLabelOptions<TContext>;
     /** Distance between the gradient box and the labels. */
     padding?: PixelSize;
     /** Options for intervals on the scale. */
     interval?: AgAxisContinuousIntervalOptions<number>;
 }
 
-export interface AgGradientLegendOptions {
+export interface AgGradientLegendOptions<TContext = TContextDefault> {
     /** Whether to show the gradient legend. By default, the chart displays a gradient legend for series using a `colorKey`. */
     enabled?: boolean;
     /** Where the legend should show in relation to the chart. */
@@ -43,7 +43,7 @@ export interface AgGradientLegendOptions {
     /** Reverse the display order of legend items if `true`. */
     reverseOrder?: boolean;
     /** Options for the numbers that appear below or to the side of the gradient. */
-    scale?: AgGradientLegendScaleOptions;
+    scale?: AgGradientLegendScaleOptions<TContext>;
 }
 
 export interface AgGradientLegendBarOptions {

@@ -9,10 +9,13 @@ import type {
     AgOhlcSeriesBaseTooltipRendererParams,
 } from './ohlcBaseOptions';
 
-export type AgOhlcSeriesItemStylerParams<TDatum = TDatumDefault> = AgOhlcSeriesBaseItemStylerParams<TDatum>;
+export type AgOhlcSeriesItemStylerParams<
+    TDatum = TDatumDefault,
+    TContext = TContextDefault,
+> = AgOhlcSeriesBaseItemStylerParams<TDatum, TContext>;
 
-export interface AgOhlcSeriesTooltipRendererParams<TDatum>
-    extends AgOhlcSeriesBaseTooltipRendererParams<TDatum>,
+export interface AgOhlcSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+    extends AgOhlcSeriesBaseTooltipRendererParams<TDatum, TContext>,
         AgOhlcSeriesBaseOptions<TDatum>,
         AgOhlcSeriesItemOptions {}
 
@@ -34,9 +37,9 @@ export interface AgOhlcSeriesThemeableOptions<TDatum = TDatumDefault, TContext =
     extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>,
         AgOhlcSeriesStyles {
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgOhlcSeriesTooltipRendererParams<TDatum>>;
+    tooltip?: AgSeriesTooltip<AgOhlcSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual items, based on the given parameters. If the current datum is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<AgOhlcSeriesItemStylerParams<TDatum>, AgOhlcSeriesItemOptions>;
+    itemStyler?: Styler<AgOhlcSeriesItemStylerParams<TDatum, TContext>, AgOhlcSeriesItemOptions>;
 }
 
 export interface AgOhlcSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
