@@ -1,4 +1,10 @@
-import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } from 'ag-charts-community';
+import type {
+    AgCrosshairLabelFormatterParams,
+    AgCrosshairLabelRendererParams,
+    AgCrosshairLabelRendererResult,
+    Formatter,
+    FormatterParams,
+} from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { createId, setAttribute } from 'ag-charts-core';
 
@@ -13,7 +19,10 @@ interface FormatterCache {
     formatter: ((value: any, fractionDigits?: number) => string) | undefined;
 }
 
-export class CrosshairLabelProperties extends _ModuleSupport.ChangeDetectableProperties {
+export class CrosshairLabelProperties
+    extends BaseProperties
+    implements _ModuleSupport.AxisFormattableLabel<AgCrosshairLabelFormatterParams, FormatterParams>
+{
     @Property
     enabled: boolean = true;
 
@@ -24,16 +33,35 @@ export class CrosshairLabelProperties extends _ModuleSupport.ChangeDetectablePro
     yOffset: number = 0;
 
     @Property
+    formatter?: Formatter<AgCrosshairLabelFormatterParams>;
+
+    @Property
     format?: string = undefined;
 
     @Property
     renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult = undefined;
 
     private _cachedFormatter: FormatterCache | undefined = undefined;
-    formatValue(_ctx: any, type: 'number' | 'date' | 'category', value: any) {
-        const { format } = this;
+    formatValue(
+        callWithContext: (
+            formatter: (params: AgCrosshairLabelFormatterParams) => string | undefined,
+            params: AgCrosshairLabelFormatterParams
+        ) => string | undefined,
+        type: 'number' | 'date' | 'category',
+        value: any,
+        params: FormatterParams<any>
+    ) {
+        const { formatter, format } = this;
+        const { domain, boundSeries } = params;
 
         let result: string | undefined;
+        if (formatter != null) {
+            const fractionDigits = params.type === 'number' ? params.fractionDigits : undefined;
+            const unit = params.type === 'date' ? params.unit : undefined;
+            const step = params.type === 'date' ? params.step : undefined;
+            result = callWithContext(formatter, { value, domain, fractionDigits, unit, step, boundSeries });
+        }
+
         if (format != null) {
             let cachedFormatter = this._cachedFormatter;
             if (cachedFormatter == null || cachedFormatter.type !== type || cachedFormatter.format !== format) {
@@ -52,24 +80,8 @@ export class CrosshairLabelProperties extends _ModuleSupport.ChangeDetectablePro
     }
 }
 
-export class CrosshairLabel extends BaseProperties {
+export class CrosshairLabel extends CrosshairLabelProperties {
     private readonly id = createId(this);
-
-    @Property
-    enabled: boolean = true;
-
-    @Property
-    xOffset: number = 0;
-
-    @Property
-    yOffset: number = 0;
-
-    @Property
-    format?: string;
-
-    @Property
-    renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult = undefined;
-
     private readonly element: HTMLElement;
 
     constructor(

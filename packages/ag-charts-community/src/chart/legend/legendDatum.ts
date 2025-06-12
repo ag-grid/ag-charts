@@ -44,11 +44,18 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
     hideToggleOtherSeries?: true; // used to hide "Toggle Other Series" for Multi-Donut and Pie/Donut combo charts.
 }
 
+interface FormatterBoundSeries {
+    /** Key used by the series for values on the related axis. */
+    key: string;
+    /** Optional name used by the series for values on the related axis. */
+    name?: string;
+}
+
 export interface GradientLegendDatum extends BaseChartLegendDatum {
     legendType: 'gradient';
     enabled: boolean;
     seriesId: string;
-    colorName?: string;
+    series: FormatterBoundSeries[];
     colorDomain: number[];
     colorRange: string[];
 }

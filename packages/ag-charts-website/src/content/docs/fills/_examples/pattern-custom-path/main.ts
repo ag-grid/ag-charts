@@ -30,7 +30,7 @@ const options: AgCartesianChartOptions = {
     ],
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
         },
         {

@@ -55,7 +55,7 @@ const options: AgCartesianChartOptions = {
     ],
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             interval: {
                 maxSpacing: 200,
@@ -81,7 +81,6 @@ const options: AgCartesianChartOptions = {
     },
     navigator: {
         enabled: true,
-        height: 40,
         miniChart: {
             enabled: true,
             label: {

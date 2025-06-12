@@ -66,7 +66,7 @@ const options: AgCartesianChartOptions = {
     axes: [
         {
             position: 'bottom',
-            type: 'time',
+            type: 'unit-time',
             min: new Date(2000, 0, 1),
             max: new Date(2022, 0, 1),
         },

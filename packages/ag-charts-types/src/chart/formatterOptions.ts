@@ -24,25 +24,28 @@ interface FormatterBoundSeries {
     name?: string;
 }
 
-export interface SeriesFormatterParams<TDatum, Property, Value> {
+export interface SeriesFormatterParams<TDatum, Value> {
     value: Value;
     datum: TDatum | undefined;
+    seriesId: string | undefined;
     key: TDatum extends object ? keyof TDatum & string : string | undefined;
     source: SeriesFormatterSource;
-    property: Property;
+    property: FormatterPropertyType;
 }
 
-export interface ChartFormatterParams<Property, Value> {
+export interface ChartFormatterParams<Value> {
     value: Value;
     datum: undefined;
+    seriesId: undefined;
     key: undefined;
     source: ChartFormatterSource;
-    property: Property;
+    property: FormatterPropertyType;
 }
 
 interface BaseFormatterParams<TDatum, Value> {
     value: Value;
     datum: TDatum | undefined;
+    seriesId: string | undefined;
     key: TDatum extends object ? keyof TDatum & string : string | undefined;
     source: AnyFormatterSource;
     property: FormatterPropertyType;

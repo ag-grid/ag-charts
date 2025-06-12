@@ -661,6 +661,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.ctx.zoomManager.resetZoom('zoom');
     }
 
+    public updateSyncZoom(zoom: DefinedZoomState) {
+        this.updateZoom(zoom);
+    }
+
     private updateZoom(zoom: DefinedZoomState) {
         if (this.enableIndependentAxes) {
             this.updatePrimaryAxisZooms(zoom);

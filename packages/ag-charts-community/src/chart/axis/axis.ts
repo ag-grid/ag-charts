@@ -634,58 +634,49 @@ export abstract class Axis<
         const { formatManager } = moduleCtx;
         const primaryLabel = primary ? this.primaryLabel : undefined;
 
-        const formatParams = this.tickFormatParams(domain, ticks, inputFractionDigits, inputTimeInterval);
+        const tickFormatParams = this.tickFormatParams(domain, ticks, inputFractionDigits, inputTimeInterval);
         const boundSeries = this.getFormatterBoundSeries();
 
+        let fractionDigits: number | undefined;
+        let timeInterval: TimeInterval | undefined;
+        let includeYear = false;
+        if (tickFormatParams.type === 'number') {
+            fractionDigits = tickFormatParams.fractionDigits;
+        } else if (tickFormatParams.type === 'date') {
+            const { unit, step, epoch } = tickFormatParams;
+            timeInterval = { unit, step, epoch };
+            includeYear = tickFormatParams.includeYear ?? false;
+        }
+
+        const f = this.callWithContext.bind(this);
+
+        const params: FormatDatumParams = {
+            datum: undefined,
+            seriesId: undefined,
+            key: undefined,
+            source: 'axis',
+            property: this.direction,
+            domain,
+            boundSeries,
+        };
+
+        const currentLabel = primaryLabel ?? label;
+        const specifier = primary ? label.format : undefined;
+
+        const options = {
+            specifier: FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
+            includeYear,
+        };
+
         return (value: any, index: number): string => {
-            let fractionDigits: number | undefined;
-            let timeInterval: TimeInterval | undefined;
-            let includeYear = false;
-            if (formatParams.type === 'number') {
-                fractionDigits = formatParams.fractionDigits;
-            } else if (formatParams.type === 'date') {
-                const { unit, step, epoch } = formatParams;
-                timeInterval = { unit, step, epoch };
-                includeYear = formatParams.includeYear ?? false;
-            }
-
-            const currentLabel = primaryLabel ?? label;
-            const specifier = primary ? label.format : undefined;
-            const labelValue = currentLabel.formatValue(
-                this.callWithContext.bind(this),
-                formatParams.type,
-                value,
-                index,
-                domain,
-                boundSeries,
-                fractionDigits,
-                timeInterval,
-                specifier,
-                dateStyle,
-                { includeYear }
-            );
-            if (labelValue != null) return labelValue;
-
-            const params: FormatDatumParams = {
-                datum: undefined,
-                key: undefined,
-                source: 'axis',
-                property: this.direction,
-                domain,
-                boundSeries,
-            };
-
-            const unit = timeInterval?.unit;
-            const datumFormatParams = this.datumFormatParams(value, params, fractionDigits, unit, dateStyle);
+            const formatParams = this.datumFormatParams(value, params, fractionDigits, timeInterval, dateStyle);
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
-            datumFormatParams.value = value;
-
-            const mergedSpecifier = FormatManager.mergeSpecifiers(primaryLabel?.format, label.format);
-            const options = { includeYear };
+            formatParams.value = value;
 
             return (
-                formatManager.format(datumFormatParams, mergedSpecifier, options) ??
-                formatManager.defaultFormat(datumFormatParams, mergedSpecifier, options)
+                currentLabel.formatValue(f, formatParams, index, { specifier, dateStyle, includeYear }) ??
+                formatManager.format(f, formatParams, options) ??
+                formatManager.defaultFormat(formatParams, options)
             );
         };
     }
@@ -699,8 +690,7 @@ export abstract class Axis<
         datum: undefined,
         key: undefined,
         domain: undefined,
-        label: AxisFormattableLabel<Params>,
-        labelParams: Params
+        label?: AxisFormattableLabel<Params, FormatterParams<any>>
     ): string;
     formatDatum<Params extends object>(
         value: any,
@@ -747,24 +737,18 @@ export abstract class Axis<
 
         const formatParams = this.datumFormatParams(
             input,
-            { source, datum, key, property: direction, domain, boundSeries },
+            { source, datum, seriesId: undefined, key, property: direction, domain, boundSeries },
             inputFractionDigits,
             undefined,
             'long'
         );
         const { type, value } = formatParams;
-        const fractionDigits = formatParams.type === 'number' ? formatParams.fractionDigits : undefined;
-        let timeInterval: TimeInterval | undefined;
-        if (formatParams.type === 'date') {
-            const { unit, step, epoch } = formatParams;
-            timeInterval = unit ? { unit, step, epoch } : undefined;
-        }
 
         const f = formatInContext;
         const result =
-            label?.formatValue(f, type, value, params) ??
-            formatManager.format(formatParams) ??
-            this.label.formatValue(f, type, value, NaN, domain, boundSeries, fractionDigits, timeInterval) ??
+            label?.formatValue(f, type, value, params ?? formatParams) ??
+            formatManager.format(f, formatParams) ??
+            this.label.formatValue(f, formatParams, NaN) ??
             formatManager.defaultFormat(formatParams);
 
         return String(result);
@@ -851,7 +835,7 @@ export abstract class Axis<
             scaleInvert: (val) => scale.invert(val, true),
             scaleInvertNearest: (val) => scale.invert(val, true),
             formatScaleValue: (value, source, label) =>
-                this.formatDatum(value, source, undefined, undefined, undefined, label!, undefined!),
+                this.formatDatum(value, source, undefined, undefined, undefined, label),
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),

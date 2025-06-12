@@ -40,7 +40,7 @@ import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { SeriesNodeEvent, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeEventTypes } from '../seriesTypes';
-import { applyShapeFillBBox, getShapeFill } from '../shapeUtil';
+import { applyShapeStyle, getShapeFill } from '../shapeUtil';
 import type { PieTitle } from './pieSeriesProperties';
 import { PieSeriesProperties } from './pieSeriesProperties';
 import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
@@ -630,7 +630,13 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         };
     }
 
-    private getSectorFormat(datum: any, datumIndex: number, highlighted: boolean) {
+    private getSectorFormat(
+        datum: any,
+        datumIndex: number,
+        isHighlight: boolean,
+        nodeDatum?: PieNodeDatum,
+        legendItemValues?: string[]
+    ) {
         const {
             angleKey,
             radiusKey,
@@ -644,18 +650,27 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             itemStyler,
         } = this.properties;
 
-        const defaultStroke: string | undefined = strokes[datumIndex % strokes.length];
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } =
-            mergeDefaults(
-                highlighted && this.properties.highlightStyle.item,
-                {
-                    fill: fills.length > 0 ? fills[datumIndex % fills.length] : undefined,
-                    stroke: defaultStroke,
-                    strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
-                    strokeOpacity: this.getOpacity(),
-                },
-                this.properties
-            );
+        const defaultStroke = strokes[datumIndex % strokes.length];
+        const defaultFill = fills[datumIndex % fills.length];
+
+        const {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            opacity,
+        } = mergeDefaults(
+            this.getHighlightStyle(isHighlight, nodeDatum, legendItemValues),
+            {
+                fill: defaultFill,
+                stroke: defaultStroke,
+            },
+            this.properties
+        );
 
         const defaultColors = defaultColorRange[datumIndex % defaultColorRange.length];
         const defaultPatternFill = defaultPatternFills[datumIndex % defaultPatternFills.length];
@@ -665,7 +680,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         let format: AgPieSeriesStyle | undefined;
         if (itemStyler) {
             format = this.cachedDatumCallback(
-                this.getDatumId(datumIndex) + (highlighted ? '-highlight' : '-hide'),
+                this.getDatumId(datumIndex) + (isHighlight ? '-highlight' : '-hide'),
                 () =>
                     this.callWithContext(itemStyler, {
                         datum,
@@ -682,7 +697,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                         lineDash,
                         lineDashOffset,
                         cornerRadius,
-                        highlighted,
+                        highlighted: isHighlight,
                         seriesId: this.id,
                     })
             );
@@ -697,6 +712,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             lineDash: format?.lineDash ?? lineDash,
             lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
             cornerRadius: format?.cornerRadius ?? cornerRadius,
+            opacity,
         };
     }
 
@@ -868,8 +884,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             this.labelGroup.visible = visible;
         }
 
-        this.contentGroup.opacity = this.getOpacity();
-
         const innerRadius = this.radiusScale.range[0];
         const outerRadius = this.radiusScale.range[1];
 
@@ -877,7 +891,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         const animationDisabled = this.ctx.animationManager.isSkipped();
         const updateSectorFn = (sector: Sector, datum: PieNodeDatum, _index: number, isDatumHighlighted: boolean) => {
-            const format = this.getSectorFormat(datum.datum, datum.itemId, isDatumHighlighted);
+            const format = this.getSectorFormat(datum.datum, datum.itemId, isDatumHighlighted, datum, legendItemValues);
 
             datum.sectorFormat.fill = format.fill;
             datum.sectorFormat.stroke = format.stroke;
@@ -894,13 +908,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             }
 
             const fillParams = this.getFillParams(format.fill, innerRadius, outerRadius);
-            applyShapeFillBBox(sector, format.fill, fillBBox, fillParams);
+            applyShapeStyle(sector, format, undefined, fillBBox, fillParams);
 
-            sector.strokeWidth = format.strokeWidth;
-            sector.fillOpacity = format.fillOpacity;
-            sector.strokeOpacity = format.strokeOpacity;
-            sector.lineDash = format.lineDash;
-            sector.lineDashOffset = format.lineDashOffset;
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
             const inset = Math.max(
@@ -1414,10 +1423,11 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         const domain = dataModel.getDomain(this, `angleRaw`, 'value', processedData);
         const angleContent =
-            formatManager.format({
+            formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: angleRawValue,
                 datum,
+                seriesId,
                 key: angleKey,
                 source: 'tooltip',
                 property: 'angle',

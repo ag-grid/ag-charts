@@ -9,8 +9,9 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 
+import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
-import { fadeInFns, formatLabel, formatWithContext, getLabelText } from '../gauge-util/label';
+import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import { getLineHeight } from '../util/labelFormatter';

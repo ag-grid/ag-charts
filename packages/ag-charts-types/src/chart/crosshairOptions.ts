@@ -1,8 +1,8 @@
-import type { AgFormattableLabelOptions } from './axisOptions';
-import type { Renderer } from './callbackOptions';
+import type { AgAxisBoundSeries, TimeIntervalUnit } from './axisOptions';
+import type { Formatter, Renderer } from './callbackOptions';
 import type { CssColor, Opacity, PixelSize, TContextDefault } from './types';
 
-export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<TContextDefault>> {
+export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string, TContextDefault>> {
     /** Whether to show the crosshair. */
     enabled?: boolean;
     /** When true, the crosshair snaps to the highlighted data point. By default this property is true. */
@@ -21,9 +21,22 @@ export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<TContextDefault
     label?: LabelType;
 }
 
-export interface AgCrosshairLabel<TContext = TContextDefault>
-    extends AgBaseCrosshairLabel,
-        AgFormattableLabelOptions<TContext> {}
+export interface AgCrosshairLabelFormatterParams<TContext> {
+    readonly value: any;
+    readonly fractionDigits?: number;
+    readonly unit?: TimeIntervalUnit;
+    readonly step?: number;
+    readonly boundSeries: AgAxisBoundSeries[];
+    readonly domain: any[];
+    readonly context?: TContext;
+}
+
+export interface AgCrosshairLabel<TFormat, TContext = TContextDefault> extends AgBaseCrosshairLabel {
+    /** Function used to render crosshair labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
+    formatter?: Formatter<AgCrosshairLabelFormatterParams<TContext>>;
+    /** Format string used when rendering labels. */
+    format?: TFormat;
+}
 
 export interface AgBaseCrosshairLabel {
     /** Whether to show label when the crosshair is visible. */

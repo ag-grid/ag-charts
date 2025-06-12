@@ -72,9 +72,9 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
                 fontSize: { $rem: [2] },
-                minimumFontSize: 12,
+                minimumFontSize: _ModuleSupport.FONT_SIZE.SMALL,
                 spacing: 18,
-                color: { $ref: 'backgroundColor' },
+                color: { $ref: 'chartBackgroundColor' },
             },
             margin: 4,
             tooltip: {

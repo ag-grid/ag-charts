@@ -1,5 +1,5 @@
-import type { AgFormattableLabelOptions } from '../../chart/axisOptions';
 import type { ContextCallbackParams, DatumCallbackParams } from '../../chart/callbackOptions';
+import type { AgNumericAxisFormattableLabelOptions } from '../../chart/axisOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
@@ -15,7 +15,7 @@ export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams, TContext = TCon
 }
 
 export interface AgConeFunnelSeriesStageLabelOptions<TContext = TContextDefault>
-    extends AgFormattableLabelOptions<TContext> {
+    extends AgNumericAxisFormattableLabelOptions<TContext> {
     /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
 }

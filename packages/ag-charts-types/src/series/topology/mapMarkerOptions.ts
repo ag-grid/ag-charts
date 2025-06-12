@@ -81,7 +81,7 @@ export interface AgMapMarkerSeriesLabel<TDatum, TContext = TContextDefault>
 
 export interface AgMapMarkerSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgMapMarkerSeriesStyle,
-        Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle'> {
+        Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
     /** Determines the largest size a marker can be in pixels. */
     maxSize?: PixelSize;
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */

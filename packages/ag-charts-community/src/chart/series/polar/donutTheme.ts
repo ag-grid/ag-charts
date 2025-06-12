@@ -1,7 +1,7 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
 import { FONT_SIZE_RATIO } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { SAFE_FILLS_OPERATION } from '../../themes/util';
+import { SAFE_FILLS_OPERATION, SINGLE_SERIES_HIGHLIGHT_STYLE } from '../../themes/util';
 
 export const donutTheme: ExtensibleTheme<'donut'> = {
     series: {
@@ -27,7 +27,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
-            color: { $ref: 'backgroundColor' },
+            color: { $ref: 'chartBackgroundColor' },
             positionOffset: 0,
             positionRatio: 0.5,
         },
@@ -92,6 +92,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
                 },
             ],
         } as any,
+        highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
     },
     legend: { enabled: true },
 };

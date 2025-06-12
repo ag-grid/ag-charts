@@ -1,6 +1,8 @@
 import type { AgChartLabelFormatterParams, Formatter } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
+import { formatWithContext } from '../../utils/formatter';
+
 interface GaugeLabelDatum {
     value: number;
     text?: string;
@@ -35,8 +37,4 @@ export function getLabelText(seriesId: string, ctx: Ctx, datum: GaugeLabelDatum,
         labelFormat = formatWithContext(ctx, datum.formatter, { seriesId, datum: undefined, value });
     }
     if (labelFormat != null) return String(labelFormat);
-}
-
-export function formatWithContext<P>(ctx: Ctx, formatter: Formatter<P>, params: P): string | undefined {
-    return _ModuleSupport.callWithContext(ctx.chartService, formatter, params);
 }

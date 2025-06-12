@@ -104,3 +104,19 @@ export function levenshteinDistance(a: string, b: string): number {
 
     return prevRow[m];
 }
+
+/**
+ * Converts a string into kebab-case. It lowercases each matched uppercase character in the same single iteration
+ * through the string.
+ *
+ * @param {string} a - The string.
+ * @returns {string} - The kebab-case string.
+ */
+export function kebabCase(a: string) {
+    // Lowercase all matches and add a `-` if the match is a standalone uppercase character (not the 0th offset).
+    return a.replace(KEBAB_CASE_REGEX, (match, offset) => (offset > 0 ? '-' : '') + match.toLowerCase());
+}
+
+// Find sequences of uppercase characters that are not followed by a lowercase character OR standalone uppercase
+// characters.
+const KEBAB_CASE_REGEX = /[A-Z]+(?![a-z])|[A-Z]/g;

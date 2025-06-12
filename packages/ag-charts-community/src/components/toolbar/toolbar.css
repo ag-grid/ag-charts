@@ -13,7 +13,7 @@
 .ag-charts-toolbar__button {
     align-items: center;
     background: var(--ag-charts-chrome-background-color);
-    border: var(--ag-charts-border);
+    border: var(--ag-charts-button-border);
     color: var(--ag-charts-chrome-text-color);
     cursor: pointer;
     display: flex;

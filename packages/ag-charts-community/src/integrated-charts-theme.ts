@@ -15,11 +15,14 @@ export { ChartTheme } from './chart/themes/chartTheme';
 export { themes } from './chart/mapping/themes';
 export * from './chart/themes/symbols';
 
-// TODO: ?
 export function resolveOperation(operation: Operation): any {
+    // Use the default theme params and palette, ignoring the grid's chosen theme
     const params = ChartTheme.getDefaultPublicParameters();
     const palette = ChartTheme.getDefaultColors();
-    const graph = new OptionsGraph({ operation }, {}, params, palette);
+
+    // Create a graph with a stub line series with which to resolve the operation
+    const graph = new OptionsGraph({ line: { operation } }, { series: [{ type: 'line' }] }, params, palette);
     const resolved = graph.resolve();
+
     return resolved.operation;
 }

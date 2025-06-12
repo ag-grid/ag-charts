@@ -26,11 +26,8 @@ describe('large-dataset benchmark', () => {
             ctx,
             { expectedRelativeMB: 160, expectedCanvasCount: 4 },
             async () => {
-                ctx.options.series![0].visible = false;
-                await ctx.update();
-
-                ctx.options.series![0].visible = true;
-                await ctx.update();
+                await ctx.legendToggle();
+                await ctx.legendToggle();
             },
             15_000
         );

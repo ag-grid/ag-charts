@@ -1,6 +1,6 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-import { DataType } from './data';
+import { DataType, getData } from './data';
 
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
@@ -10,11 +10,7 @@ const options: AgChartOptions<DataType> = {
     subtitle: {
         text: '(click a data point for details)',
     },
-    data: [
-        { month: 'March', low: 3.9, high: 11.3 },
-        { month: 'April', low: 5.5, high: 14.2 },
-        { month: 'May', low: 8.7, high: 17.9 },
-    ],
+    data: getData(),
     series: [
         {
             type: 'line',

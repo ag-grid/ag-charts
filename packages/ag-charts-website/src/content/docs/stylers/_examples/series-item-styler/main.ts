@@ -1,30 +1,13 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-import { DataType } from './data';
+import { DataType, getData } from './data';
 
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'GDP by country in billions of USD (2018)',
     },
-    data: [
-        {
-            country: 'Spain',
-            gdp: 1419,
-        },
-        {
-            country: 'UK',
-            gdp: 2855,
-        },
-        {
-            country: 'Germany',
-            gdp: 3948,
-        },
-        {
-            country: 'France',
-            gdp: 2778,
-        },
-    ],
+    data: getData(),
     series: [
         {
             type: 'bar',

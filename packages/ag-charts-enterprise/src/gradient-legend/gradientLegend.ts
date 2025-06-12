@@ -81,7 +81,7 @@ export class GradientLegend {
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         this.highlightManager = ctx.highlightManager;
 
-        this.axisTicks = new AxisTicks(ctx);
+        this.axisTicks = new AxisTicks(ctx, this);
         this.axisTicks.attachAxis(this.ticksGroup);
 
         this.scale = new GradientLegendScale(this.axisTicks);

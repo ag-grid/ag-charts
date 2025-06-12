@@ -18,6 +18,7 @@ import {
     fillOptionsDef,
     fontOptionsDef,
     greaterThan,
+    highlightOptionsDef,
     htmlElement,
     lessThan,
     lineDashOptionsDef,
@@ -28,6 +29,7 @@ import {
     positiveNumber,
     ratio,
     required,
+    shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
     typeUnion,
@@ -501,6 +503,7 @@ export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeable
         seriesNodeClick: callback,
         seriesNodeDoubleClick: callback,
     },
+    // TODO Remove in next major version
     highlightStyle: {
         item: { ...fillOptionsDef, ...strokeOptionsDef },
         series: {
@@ -509,6 +512,7 @@ export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeable
             strokeWidth: positiveNumber,
         },
     },
+    highlight: highlightOptionsDef(shapeHighlightOptionsDef),
 };
 
 export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
@@ -521,8 +525,6 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
 
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.seriesGrouping = undocumented(defined);
-// @ts-expect-error undocumented option
-commonSeriesOptionsDefs.highlight = undocumented({ enabled: boolean });
 
 export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     enabled: boolean,

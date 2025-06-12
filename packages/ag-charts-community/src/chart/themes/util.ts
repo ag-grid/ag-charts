@@ -1,5 +1,11 @@
 import type { RequiredInternalAgImageFill, RequiredInternalAgPatternColor } from 'ag-charts-core';
-import type { AgCartesianChartOptions, WithThemeParams } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgHighlightOptions,
+    AgHighlightStyleOptions,
+    AgMultiSeriesHighlightOptions,
+    WithThemeParams,
+} from 'ag-charts-types';
 
 import { Color } from '../../util/color';
 import { mapValues } from '../../util/object';
@@ -130,3 +136,33 @@ export function getSequentialColors(colors: { [key: string]: string }) {
         return [Color.darken(color, 0.15).toString(), value, Color.lighten(color, 0.15).toString()];
     });
 }
+
+const ITEM_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
+    fill: { $path: ['../../highlightStyle/item/fill', `rgba(255,255,255, 0.33)`] },
+    stroke: { $path: ['../../highlightStyle/item/stroke', `rgba(0, 0, 0, 0.4)`] },
+    strokeWidth: { $path: ['../../highlightStyle/item/strokeWidth', 2] },
+    fillOpacity: { $path: ['../../highlightStyle/item/fillOpacity', undefined] },
+    strokeOpacity: { $path: ['../../highlightStyle/item/strokeOpacity', undefined] },
+    opacity: { $path: ['../../highlightStyle/item/opacity', 1] },
+};
+
+export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
+    highlightedItem: ITEM_HIGHLIGHT_STYLE,
+    unHighlightedItem: {
+        strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
+    },
+    highlightedSeries: {
+        strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
+    },
+    unHighlightedSeries: {
+        opacity: { $path: ['../../highlightStyle/series/dimOpacity', undefined] },
+    },
+};
+
+export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<AgHighlightStyleOptions>> = {
+    highlightedItem: ITEM_HIGHLIGHT_STYLE,
+    unHighlightedItem: {
+        strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
+        opacity: { $path: ['../../highlightStyle/series/dimOpacity', undefined] },
+    },
+};

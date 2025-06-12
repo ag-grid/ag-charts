@@ -130,8 +130,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         maxSpacing?: number
     ) {
         const { scale } = this.axis;
-        const defaultTickCount = UnitTimeScale.is(scale)
-            ? UnitTimeScale.defaultTickCount
+        const defaultTickCount = DiscreteTimeScale.is(scale)
+            ? DiscreteTimeScale.defaultTickCount
             : ContinuousScale.defaultTickCount;
         return estimateTickCount(
             findRangeExtent(range),

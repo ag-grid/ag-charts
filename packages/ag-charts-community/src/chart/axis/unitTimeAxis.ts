@@ -121,7 +121,7 @@ export class UnitTimeAxis extends CategoryAxis<UnitTimeScale> {
         if (typeof value === 'number') value = new Date(value);
         timeInterval ??= interval;
 
-        const { datum, key, source, property, domain, boundSeries } = params;
+        const { datum, seriesId, key, source, property, domain, boundSeries } = params;
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
         const epoch = intervalEpoch(timeInterval);
@@ -130,6 +130,7 @@ export class UnitTimeAxis extends CategoryAxis<UnitTimeScale> {
             type: 'date',
             value,
             datum,
+            seriesId,
             key,
             source,
             property,

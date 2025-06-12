@@ -48,7 +48,7 @@ import type { DataModel, ProcessedData } from '../data/dataModel';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
-import type { SeriesProperties } from './seriesProperties';
+import { HighlightState, type SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type { INodeEvent, ISeries, NodeDataDependencies, SeriesNodeDatum, SeriesNodeEventTypes } from './seriesTypes';
@@ -134,12 +134,6 @@ export type SeriesNodeDataContext<I, S = SeriesNodeDatum<I>, L = S> = {
     nodeData: S[];
     labelData: L[];
 };
-
-enum SeriesHighlight {
-    None,
-    This,
-    Other,
-}
 
 export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesOptionInstance, SeriesContext>;
 
@@ -562,57 +556,63 @@ export abstract class Series<
 
     public getOpacity(): number {
         const defaultOpacity = 1;
-        const { dimOpacity = 1, enabled = true } = this.properties.highlightStyle.series;
 
-        if (!enabled || dimOpacity === defaultOpacity) {
+        if (!this.properties.highlight) {
             return defaultOpacity;
         }
 
-        switch (this.isItemIdHighlighted()) {
-            case SeriesHighlight.None:
-            case SeriesHighlight.This:
-                return defaultOpacity;
-            case SeriesHighlight.Other:
-            default:
-                return dimOpacity;
-        }
+        const { opacity = defaultOpacity } = this.getHighlightStyle();
+        return opacity;
     }
 
     protected getStrokeWidth(defaultStrokeWidth: number): number {
-        const { strokeWidth, enabled = true } = this.properties.highlightStyle.series;
-
-        if (!enabled || strokeWidth === undefined) {
+        if (!this.properties.highlight.enabled) {
             // No change in styling for highlight cases.
             return defaultStrokeWidth;
         }
 
-        switch (this.isItemIdHighlighted()) {
-            case SeriesHighlight.This:
-                return strokeWidth;
-            case SeriesHighlight.None:
-            case SeriesHighlight.Other:
-                return defaultStrokeWidth;
-        }
+        const { strokeWidth = defaultStrokeWidth } = this.getHighlightStyle();
+        return strokeWidth;
     }
 
-    protected isItemIdHighlighted(): SeriesHighlight {
+    protected getHighlightState(isHighlight?: boolean, datum?: TDatum, legendItemValues?: string[]): HighlightState {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
 
-        if (this.isSeriesHighlighted(highlightedDatum)) {
-            return SeriesHighlight.This;
+        if (isHighlight) {
+            return HighlightState.Item;
         }
 
-        // Highlighting not active.
         if (highlightedDatum?.series == null) {
-            return SeriesHighlight.None;
+            return HighlightState.None;
         }
 
-        // Highlighting active, this series not highlighted.
-        return SeriesHighlight.Other;
+        if (this.isSeriesHighlighted(highlightedDatum, legendItemValues)) {
+            const itemHighlighted = this.isItemHighlighted(highlightedDatum, datum);
+            if (itemHighlighted == null) {
+                return HighlightState.Series;
+            }
+            if (itemHighlighted) {
+                return HighlightState.Series; // TODO: should be HighlightState.Item but we do that in the highlight layer
+            }
+            return HighlightState.OtherItem;
+        }
+
+        return HighlightState.OtherSeries;
     }
 
-    protected isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined) {
+    protected isSeriesHighlighted(highlightedDatum?: HighlightNodeDatum, _legendItemValues?: string[]) {
         return highlightedDatum?.series === this;
+    }
+
+    protected isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datum?: TDatum) {
+        // If this function is being invoked, we have already determined that the series is highlighted.
+        if (highlightedDatum?.datumIndex == null || datum?.datumIndex == null) return;
+        return highlightedDatum.datumIndex === datum.datumIndex;
+    }
+
+    protected getHighlightStyle(isHighlight?: boolean, datum?: TDatum, legendItemValues?: string[]) {
+        const highlightState = this.getHighlightState(isHighlight, datum, legendItemValues);
+        return this.properties.highlight.getStyle(highlightState);
     }
 
     protected getModuleTooltipParams() {
@@ -857,7 +857,7 @@ export abstract class Series<
 
         const format = (formatParams: FormatterParams<any>) =>
             label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
-            formatManager.format(formatParams) ??
+            formatManager.format(formatInContext, formatParams) ??
             String(value);
 
         const direction = canHaveAxes ? propertyAxisDirection(property) : undefined;
@@ -876,6 +876,7 @@ export abstract class Series<
         }
 
         const boundSeries = this.getFormatterContext(property);
+        const seriesId = this.id;
         switch (property) {
             case 'y':
             case 'color':
@@ -885,6 +886,7 @@ export abstract class Series<
                     type: 'number',
                     value,
                     datum,
+                    seriesId,
                     key,
                     source,
                     property,
@@ -900,7 +902,7 @@ export abstract class Series<
             case 'secondaryLabel':
             case 'calloutLabel':
             case 'sectorLabel':
-                return format({ type: 'category', value, datum, key, source, property, domain, boundSeries });
+                return format({ type: 'category', value, datum, seriesId, key, source, property, domain, boundSeries });
         }
     }
 

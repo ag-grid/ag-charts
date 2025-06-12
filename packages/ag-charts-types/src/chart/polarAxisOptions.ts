@@ -2,7 +2,7 @@ import type {
     AgBaseAxisLabelOptions,
     AgBaseAxisOptions,
     AgContinuousAxisOptions,
-    AgFormattableLabelOptions,
+    AgNumericAxisFormattableLabelOptions,
 } from './axisOptions';
 import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions, AgCrossLineThemeOptions } from './crossLineOptions';
 import type { Degree, Ratio, TContextDefault } from './types';
@@ -62,13 +62,8 @@ interface OrientableLabel {
     orientation?: AgAngleAxisLabelOrientation;
 }
 
-export interface AgAngleAxisFormattableLabelOptions<TContext = TContextDefault>
-    extends AgFormattableLabelOptions<TContext>,
-        OrientableLabel {}
-
-export interface AgAngleAxisLabelOptions<TContext = TContextDefault>
-    extends AgBaseAxisLabelOptions<TContext>,
-        OrientableLabel {}
+export interface AgAngleAxisFormattableLabelOptions<TContext = TContextDefault> extends AgNumericAxisFormattableLabelOptions<TContext>, OrientableLabel {}
+export interface AgAngleAxisLabelOptions<TContext = TContextDefault> extends AgBaseAxisLabelOptions<TContext>, OrientableLabel {}
 
 export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions<AgBaseCrossLineLabelOptions> {}
 export interface AgAngleCrossLineThemeOptions extends AgCrossLineThemeOptions<AgBaseCrossLineLabelOptions> {}

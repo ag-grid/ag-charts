@@ -2,10 +2,15 @@ import type { ContextCallbackParams } from '../../chart/callbackOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { TContextDefault, TDatumDefault } from '../../chart/types';
+import type { Opacity, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
+import type {
+    AgBaseCartesianThemeableOptions,
+    AgBaseSeriesOptions,
+    AgHighlightStyleOptions,
+    AgMultiSeriesHighlightOptions,
+} from '../seriesOptions';
 import type {
     AgCartesianSeriesTooltipRendererParams,
     AgErrorBoundSeriesTooltipRendererParams,
@@ -23,7 +28,7 @@ export type AgLineSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgLineSer
 export interface AgLineSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends StrokeOptions,
         LineDashOptions,
-        AgBaseCartesianThemeableOptions<TDatum, TContext> {
+        Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<TDatum, AgLineSeriesMarkerItemStylerParams<TDatum, TContext>>;
     /** Configuration for the line used in the series. */
@@ -38,6 +43,13 @@ export interface AgLineSeriesThemeableOptions<TDatum = TDatumDefault, TContext =
     errorBar?: AgErrorBarThemeableOptions;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgLineHighlightStyleOptions>;
+}
+
+export interface AgLineHighlightStyleOptions extends StrokeOptions {
+    /** The opacity of the whole series (area line, area fill, labels and markers, if any) */
+    opacity?: Opacity;
 }
 
 export interface AgLineSeriesOptionsKeys<TDatum = TDatumDefault> {
@@ -74,7 +86,7 @@ export interface AgLineSeriesOptionsNames {
 }
 
 export interface AgLineSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgLineSeriesOptionsKeys<TDatum>,
         AgLineSeriesOptionsNames,
         AgLineSeriesThemeableOptions<TDatum, TContext> {

@@ -71,6 +71,22 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
         await waitForUpdate(this.chart);
     }
 
+    async legendToggle(index = 0) {
+        if (isAtOrAfterVersion(10, 0, 0)) {
+            this.options.container
+                ?.querySelectorAll('.ag-charts-proxy-legend-toolbar button')
+                ?.[index].dispatchEvent(new Event('click'));
+            await this.chart?.waitForUpdate();
+            return;
+        }
+
+        const options = this.options as any;
+        options.series![index].visible = !options.series![index].visible;
+        await this.update();
+
+        await waitForUpdate(this.chart);
+    }
+
     repeatCount(count: number) {
         this.repeat = count;
         return this;

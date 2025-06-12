@@ -1,8 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { createId } from 'ag-charts-core';
-import type { AgChartLegendPosition } from 'ag-charts-types';
+import { countFractionDigits, createId } from 'ag-charts-core';
+import type { AgChartLegendPosition, FormatterParams } from 'ag-charts-types';
 
-import { formatWithContext } from '../series/gauge-util/label';
+import { formatWithContext } from '../utils/formatter';
 
 const {
     AxisInterval,
@@ -13,23 +13,32 @@ const {
     TranslatableGroup,
     Selection,
     Text,
-    AxisTickGenerator,
-    NiceMode,
-    formatValue,
+    CachedTextMeasurerPool,
+    createIdsGenerator,
     findMinMax,
-    normalizeAngle360,
+    findRangeExtent,
+    estimateTickCount,
 } = _ModuleSupport;
 
+interface TickDatum {
+    tick: any;
+    tickId: string;
+    tickLabel: string;
+    translation: number;
+}
+
+interface DataProvider {
+    data: _ModuleSupport.GradientLegendDatum[];
+}
+
 export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
+    static readonly DefaultTickCount = 5;
+    static readonly DefaultMinSpacing = 10;
+
     readonly id = createId(this);
 
     protected readonly axisGroup = new TranslatableGroup({ name: `${this.id}-AxisTicks`, zIndex: ZIndexMap.AXIS });
-    protected readonly labelSelection = Selection.select<_ModuleSupport.Text, _ModuleSupport.TickDatum>(
-        this.axisGroup,
-        Text
-    );
-
-    private readonly tickGenerator = new AxisTickGenerator<_ModuleSupport.LinearScale, number>(this);
+    protected readonly labelSelection = Selection.select<_ModuleSupport.Text, TickDatum>(this.axisGroup, Text);
 
     readonly interval = new AxisInterval();
     readonly label = new AxisLabel();
@@ -39,7 +48,10 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
     translationX: number = 0;
     translationY: number = 0;
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {}
+    constructor(
+        private readonly ctx: _ModuleSupport.ModuleContext,
+        private readonly dataProvider: DataProvider
+    ) {}
 
     private get horizontal(): boolean {
         return this.position === 'top' || this.position === 'bottom';
@@ -52,14 +64,30 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
     calculateLayout(): _ModuleSupport.BBox | undefined {
         const { position, translationX, translationY, horizontal, label } = this;
 
+        let textBaseline: CanvasTextBaseline;
+        let textAlign: CanvasTextAlign;
         switch (position) {
             case 'top':
+                textBaseline = 'bottom';
+                textAlign = 'center';
+                label.mirrored = false;
+                label.parallel = true;
+                break;
             case 'bottom':
+                textBaseline = 'top';
+                textAlign = 'center';
                 label.mirrored = false;
                 label.parallel = true;
                 break;
             case 'right':
+                textBaseline = 'middle';
+                textAlign = 'left';
+                label.mirrored = true;
+                label.parallel = false;
+                break;
             case 'left':
+                textBaseline = 'middle';
+                textAlign = 'right';
                 label.mirrored = true;
                 label.parallel = false;
                 break;
@@ -68,9 +96,9 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
         const boxes: _ModuleSupport.BBox[] = [];
 
         const tickGenerationResult = this.generateTicks();
-        const { textBaseline, textAlign, tickData } = tickGenerationResult;
+        const { ticks } = tickGenerationResult;
 
-        this.labelSelection.update(tickData.ticks, undefined, (datum) => datum.tickId);
+        this.labelSelection.update(ticks, undefined, (datum) => datum.tickId);
 
         this.axisGroup.setProperties({ translationX, translationY });
 
@@ -100,34 +128,29 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
         _primary: boolean,
         fractionDigits?: number
     ): (value: any, index: number) => string | undefined {
+        const { ctx } = this;
+        const { formatManager } = ctx;
+        const boundSeries = this.dataProvider.data.flatMap((d) => d.series);
+
         return (value, index) => {
-            const { ctx } = this;
-            const { formatManager } = ctx;
-            const boundSeries: any[] = [];
-            let result: string | undefined;
-            result ??= this.label.formatValue(
-                (fn, params) => formatWithContext(ctx, fn, params),
-                'number',
-                value,
-                index,
-                domain,
-                boundSeries,
-                fractionDigits,
-                undefined
-            );
-            result ??= formatManager.format({
+            const formatParams: FormatterParams<any> = {
                 type: 'number',
                 value,
-                datum: 'undefined',
-                key: 'undefined',
+                datum: undefined,
+                seriesId: undefined,
+                key: undefined,
                 source: 'gradient-legend',
                 property: 'color',
                 domain,
                 boundSeries,
                 fractionDigits,
-            });
-            result ??= formatValue(value, fractionDigits);
-            return result;
+            };
+
+            return (
+                this.label.formatValue((fn, params) => formatWithContext(ctx, fn, params), formatParams, index) ??
+                formatManager.format((fn, params) => formatWithContext(ctx, fn, params), formatParams) ??
+                formatManager.defaultFormat(formatParams)
+            );
         };
     }
 
@@ -138,53 +161,65 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
 
     public padding: number = 0;
 
-    private _cachedTicks:
-        | { params: _ModuleSupport.TickGenerationParams<number>; ticks: _ModuleSupport.TickGenerationResult<number> }
-        | undefined;
     private generateTicks() {
-        const { scale, _cachedTicks } = this;
+        const { minSpacing, maxSpacing } = this.interval;
+        const { maxTickCount, minTickCount, tickCount } = estimateTickCount(
+            findRangeExtent(this.scale.range),
+            1,
+            minSpacing,
+            maxSpacing,
+            AxisTicks.DefaultTickCount,
+            AxisTicks.DefaultMinSpacing
+        );
 
-        const rotation = this.horizontal ? -0.5 * Math.PI : 0;
-        const sideFlag = this.label.getSideFlag();
-        const parallelFlipRotation = normalizeAngle360(rotation);
-        const regularFlipRotation = normalizeAngle360(rotation - Math.PI / 2);
-        const labelX = sideFlag * this.label.spacing;
+        const tickData = this.getTicksData({
+            nice: true,
+            interval: this.interval.step,
+            tickCount,
+            minTickCount,
+            maxTickCount,
+        });
 
-        const params: _ModuleSupport.TickGenerationParams<number> = {
-            domain: scale.domain,
-            range: scale.range as any as [number, number],
-            reverse: false,
-            visibleRange: [0, 1],
-            primaryTickCount: undefined,
-            defaultTickMinSpacing: 0,
-            niceMode: NiceMode.Off,
-            labelX,
-            parallelFlipRotation,
-            regularFlipRotation,
-            sideFlag,
-            removeOverflowLabels: false,
-        };
+        if (this.position === 'bottom' || this.position === 'top') {
+            const measurer = CachedTextMeasurerPool.getMeasurer({ font: this.label });
 
-        if (_cachedTicks != null && _ModuleSupport.objectsEqual(_cachedTicks?.params, params)) {
-            return _cachedTicks.ticks;
+            const { domain } = this.scale;
+            const reversed = domain[0] > domain[1];
+            const direction = reversed ? -1 : 1;
+            let lastTickPosition = -Infinity * direction;
+            tickData.ticks = tickData.ticks.filter((data) => {
+                if (Math.sign(data.translation - lastTickPosition) !== direction) return false;
+                lastTickPosition = data.translation + measurer.textWidth(data.tickLabel, true) * direction;
+                return true;
+            });
         }
 
-        const ticks = this.tickGenerator.generateTicks({
-            domain: scale.domain,
-            range: scale.range as any as [number, number],
-            reverse: false,
-            visibleRange: [0, 1],
-            primaryTickCount: undefined,
-            defaultTickMinSpacing: 0,
-            niceMode: NiceMode.Off,
-            labelX,
-            parallelFlipRotation,
-            regularFlipRotation,
-            sideFlag,
-            removeOverflowLabels: false,
-        });
-        this._cachedTicks = { params, ticks };
+        return tickData;
+    }
 
-        return ticks;
+    private getTicksData(tickParams: _ModuleSupport.ScaleTickParams<any>) {
+        const ticks: TickDatum[] = [];
+        const domain = tickParams.nice ? this.scale.niceDomain(tickParams) : this.scale.domain;
+        const rawTicks = this.scale.ticks(tickParams, domain)?.ticks ?? [];
+        const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
+        const idGenerator = createIdsGenerator();
+
+        const tickFormatter = this.tickFormatter(domain, rawTicks, false, fractionDigits);
+
+        for (let index = 0; index < rawTicks.length; index++) {
+            const tick = rawTicks[index];
+            const translation = this.scale.convert(tick);
+
+            if (!this.inRange(translation)) continue;
+
+            const tickLabel = tickFormatter(tick, index);
+            if (tickLabel == null || tickLabel === '') continue;
+
+            const tickId = idGenerator(tickLabel);
+
+            ticks.push({ tick, tickId, tickLabel, translation });
+        }
+
+        return { rawTicks, fractionDigits, ticks };
     }
 }

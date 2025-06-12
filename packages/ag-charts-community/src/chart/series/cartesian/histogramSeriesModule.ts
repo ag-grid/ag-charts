@@ -52,7 +52,7 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
-                color: { $ref: 'backgroundColor' },
+                color: { $ref: 'chartBackgroundColor' },
             },
             shadow: {
                 enabled: false,

@@ -504,12 +504,10 @@ export abstract class CartesianSeries<
         const { dataNodeGroup, markerGroup, datumSelection, labelSelection, markerSelection, paths, labelGroup } = this;
         const { itemId } = this.contextNodeData ?? {};
 
-        dataNodeGroup.opacity = opacity;
         dataNodeGroup.visible = animationEnabled || visible;
         labelGroup.visible = visible;
 
         if (hasMarkers) {
-            markerGroup.opacity = opacity;
             markerGroup.visible = visible;
         }
 
@@ -531,7 +529,10 @@ export abstract class CartesianSeries<
         }
 
         const strokeWidthChangesOnHighlight = this.properties.highlightStyle.series.strokeWidth != null;
-        if (nodeRefresh || strokeWidthChangesOnHighlight) {
+        const { highlight: { unHighlightedItem, highlightedSeries, unHighlightedSeries } = {} } = this.properties;
+        const changesOnHighlight =
+            unHighlightedItem != null || highlightedSeries != null || unHighlightedSeries != null;
+        if (nodeRefresh || strokeWidthChangesOnHighlight || changesOnHighlight) {
             this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false });
             if (!this.usesPlacedLabels) {
                 this.updateLabelNodes({ labelSelection });

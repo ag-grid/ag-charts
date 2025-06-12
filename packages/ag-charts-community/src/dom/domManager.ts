@@ -6,6 +6,7 @@ import {
     entries,
     getDocument,
     getWindow,
+    kebabCase,
     setAttribute,
 } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
@@ -351,42 +352,14 @@ export class DOMManager extends BaseManager {
     }
 
     setThemeParameters(params: AgChartThemeParams) {
-        const keysMap: Record<keyof AgChartThemeParams, string> = {
-            accentColor: 'accent-color',
-            axisColor: 'axis-color',
-            backgroundColor: 'background-color',
-            borderColor: 'border-color',
-            foregroundColor: 'foreground-color',
-            fontFamily: 'font-family',
-            fontSize: 'font-size',
-            fontWeight: 'font-weight',
-            gridLineColor: 'grid-line-color',
-            padding: 'padding',
-            subtleTextColor: 'subtle-text-color',
-            textColor: 'text-color',
-
-            chromeBackgroundColor: 'chrome-background-color',
-            chromeFontFamily: 'chrome-font-family',
-            chromeFontSize: 'chrome-font-size',
-            chromeFontWeight: 'chrome-font-weight',
-            chromeSubtleTextColor: 'chrome-subtle-text-color',
-            chromeTextColor: 'chrome-text-color',
-
-            inputBackgroundColor: 'input-background-color',
-            inputTextColor: 'input-text-color',
-
-            crosshairLabelBackgroundColor: 'crosshair-label-background-color',
-            crosshairLabelTextColor: 'crosshair-label-text-color',
-        };
-
-        const lengthKeys: Array<keyof AgChartThemeParams> = ['fontSize', 'chromeFontSize'];
-
         for (const [key, value] of entries(params) as Array<[keyof AgChartThemeParams, string | number]>) {
             let formattedValue = `${value}`;
-            if (lengthKeys.includes(key)) {
+            if (key.endsWith('Size') || key.endsWith('Radius')) {
                 formattedValue = `${value}px`;
+            } else if (key.endsWith('Border') && typeof value === 'boolean') {
+                formattedValue = value ? 'var(--ag-charts-border)' : 'none';
             }
-            this.element.style.setProperty(`--ag-charts-${keysMap[key]}`, formattedValue);
+            this.element.style.setProperty(`--ag-charts-${kebabCase(key)}`, formattedValue);
         }
     }
 

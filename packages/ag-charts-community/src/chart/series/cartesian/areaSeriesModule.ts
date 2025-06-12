@@ -5,7 +5,7 @@ import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS } from '../../themes/util';
+import { FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS, MULTI_SERIES_HIGHLIGHT_STYLE } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
 
@@ -86,9 +86,10 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
             tooltip: {
                 range: { $path: ['/tooltip/range', 'nearest'] },
                 position: {
-                    anchorTo: { $path: ['/tooltip/anchorTo', 'node'] },
+                    anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
                 },
             },
+            highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
         },
     },
 };

@@ -46,7 +46,7 @@ export interface AgMapShapeSeriesOptionsNames {
 
 export interface AgMapShapeSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgMapShapeSeriesStyle,
-        Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle'> {
+        Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
     /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
     colorRange?: CssColor[];
     /** Configuration for the labels shown inside the shape. */

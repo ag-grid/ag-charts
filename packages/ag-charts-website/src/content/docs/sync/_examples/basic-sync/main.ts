@@ -23,7 +23,7 @@ const commonOptions: AgChartOptions = {
     },
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             interval: {
                 maxSpacing: 180,

@@ -28,7 +28,7 @@ const handle = {
 };
 
 const font: WithThemeParams<FontOptions> = {
-    color: { $ref: 'backgroundColor' },
+    color: { $ref: 'chartBackgroundColor' },
     fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
     fontFamily: { $ref: 'fontFamily' },
 };
@@ -220,9 +220,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         label: {
             ...font,
             color: undefined,
-            fontSize: {
-                $round: [{ $mul: [{ $ref: 'fontSize' }, 10 / 12] }],
-            },
+            fontSize: { $rem: [FONT_SIZE_RATIO.SMALLER] },
         },
     },
 
@@ -235,9 +233,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         label: {
             ...font,
             color: undefined,
-            fontSize: {
-                $round: [{ $mul: [{ $ref: 'fontSize' }, 10 / 12] }],
-            },
+            fontSize: { $rem: [FONT_SIZE_RATIO.SMALLER] },
         },
     },
 
@@ -260,7 +256,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...text,
         color: ThemeSymbols.DEFAULT_TEXTBOX_COLOR,
         fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-        stroke: { $ref: 'backgroundColor' },
+        stroke: { $ref: 'chartBackgroundColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
         handle: { ...handle },

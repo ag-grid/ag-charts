@@ -46,7 +46,7 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
     label: cartesianTimeAxisLabel,
     parentLevel: cartesianTimeAxisParentLevel,
     interval: continuousAxisOptions(or(number, date), true).interval,
-    crosshair: cartesianAxisCrosshairOptions(true),
+    crosshair: cartesianAxisCrosshairOptions(true, true),
     bandHighlight: cartesianAxisBandHighlightOptions,
 };
 

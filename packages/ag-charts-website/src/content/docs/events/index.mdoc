@@ -102,7 +102,7 @@ These events contain:
 -   The piece of chart data or `datum`.
 -   The specific keys in that `datum` that were used to fetch the values represented by the clicked node.
 
-### nodeClick and nodeDoubleClick
+### seriesNodeClick and seriesNodeDoubleClick
 
 {% chartExampleRunner title="Node Click Event" name="node-click-event" type="generated" /%}
 
@@ -113,7 +113,7 @@ In this example:
 
 ### Example: Toggling node's selected state
 
-This example shows how the `nodeClick` event listener can be used to toggle each node's selected
+This example shows how the `seriesNodeClick` event listener can be used to toggle each node's selected
 state in combination with a `series[].marker.itemStyler`:
 
 {% chartExampleRunner title="Node Click Event" name="node-click-select" type="generated" /%}
@@ -156,7 +156,7 @@ The legend item click events include a `preventDefault` function that can be cal
 
 ## Interaction Ranges
 
-By default, the `nodeClick` event is only triggered when the user clicks exactly on a node. You can use the `nodeClickRange` option to instead define a range at which the event is triggered. This can be set to one of three values: `'nearest'`, `'exact'` or a number as a distance in pixels.
+By default, the `seriesNodeClick` event is only triggered when the user clicks exactly on a node. You can use the `nodeClickRange` option to instead define a range at which the event is triggered. This can be set to one of three values: `'nearest'`, `'exact'` or a number as a distance in pixels.
 
 {% chartExampleRunner title="Interaction Ranges" name="interaction-ranges" type="generated" /%}
 
@@ -172,7 +172,7 @@ In this example:
 
 {% tabItem id="AgSeriesListeners" label="Series Events" %}
 All series event options have similar interface contracts. See the series-specific documentation for variations.
-{% apiReference id="AgSeriesListeners" include=["nodeClick", "nodeDoubleClick"] /%}
+{% apiReference id="AgSeriesListeners" include=["seriesNodeClick", "seriesNodeDoubleClick"] /%}
 {% apiReference id="AgBaseSeriesOptions" include=["nodeClickRange"] /%}
 {% /tabItem %}
 

@@ -16,9 +16,9 @@ import { Range } from '../../scene/shape/range';
 import { TransformableText } from '../../scene/shape/text';
 import { toRadians } from '../../util/angle';
 import { clampArray, findMinMax } from '../../util/number';
-import { BaseProperties } from '../../util/properties';
-import { Property } from '../../util/properties';
-import { type CrossLine, type CrossLineType, getCrossLineValue, validateCrossLineValue } from './crossLine';
+import { BaseProperties, Property } from '../../util/properties';
+import { FONT_SIZE } from '../themes/constants';
+import { type CrossLine, type CrossLineType, validateCrossLineValue } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
 
 type AnchorDirection = 1 | 0 | -1;
@@ -124,7 +124,7 @@ class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCross
     fontWeight?: FontWeight;
 
     @Property
-    fontSize: number = 14;
+    fontSize: number = FONT_SIZE.LARGE;
 
     @Property
     fontFamily: string = 'Verdana, sans-serif';
@@ -224,7 +224,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private _isRange: boolean | undefined = undefined;
     update(visible: boolean) {
         const { enabled, type, data, scale } = this;
-        if (!scale || !enabled || !visible || !validateCrossLineValue(getCrossLineValue(this), scale) || data == null) {
+        if (!scale || !enabled || !visible || !validateCrossLineValue(this, scale) || data == null) {
             this.rangeGroup.visible = false;
             this.lineGroup.visible = false;
             this.labelGroup.visible = false;

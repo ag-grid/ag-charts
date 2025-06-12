@@ -90,6 +90,7 @@ export type AgBaseFinancialPresetOptions<TDatum = TDatumDefault> = Pick<
     | 'initialState'
     | 'data'
     | 'listeners'
+    | 'formatter'
 >;
 
 export type AgBaseSparklinePresetThemeOptions<TDatum = TDatumDefault> = AgSparklineBaseThemeableOptions<TDatum> &

@@ -3,9 +3,11 @@ import {
     arrayOf,
     boolean,
     constant,
+    multiSeriesHighlightOptionsDef,
     number,
     positiveNumber,
     required,
+    shapeHighlightOptionsDef,
     string,
     union,
 } from 'ag-charts-core';
@@ -32,6 +34,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
@@ -46,4 +49,5 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     yName: string,
     sizeName: string,
     labelName: string,
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };

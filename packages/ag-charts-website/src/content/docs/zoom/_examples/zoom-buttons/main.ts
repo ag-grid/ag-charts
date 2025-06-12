@@ -19,7 +19,7 @@ const options: AgCartesianChartOptions = {
             position: 'left',
         },
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
             interval: {
                 minSpacing: 50,

@@ -198,9 +198,6 @@ export interface AgTimeAxisFormattableLabelOptions<TContext = TContextDefault>
     format?: AgTimeAxisFormattableLabelFormat;
 }
 
-export type AgFormattableLabelOptions<TContext = TContextDefault> = AgNumericAxisFormattableLabelOptions<TContext> &
-    AgTimeAxisFormattableLabelOptions<TContext>;
-
 export interface AgAxisGridStyle {
     /** The colour of the grid line. */
     stroke?: CssColor;

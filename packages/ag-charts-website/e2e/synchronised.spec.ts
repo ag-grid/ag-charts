@@ -1074,5 +1074,26 @@ test.describe('synchronised', () => {
                 await expect(page).toHaveScreenshot('financial-charts-crosshair-replicated-2.png');
             });
         });
+
+        test.describe('zoom', () => {
+            test('should replicate candlestick zoom', async ({ page }) => {
+                await gotoExample(page, url);
+
+                const focusIndicator = page.locator(SELECTORS.focusIndicator);
+
+                await page.keyboard.press('Tab');
+                for (let i = 0; i < 40; i++) {
+                    await page.keyboard.press('+');
+                    await waitForAllChartUpdates(page);
+                }
+                await page.keyboard.press('ArrowDown');
+
+                const focusBox = focusIndicator.first();
+                await expect(focusBox).toBeVisible();
+                await expect(focusBox.boundingBox().then((b) => b?.height)).resolves.toBeLessThan(250);
+
+                await expect(page).toHaveScreenshot('financial-charts-zoomed-in.png');
+            });
+        });
     });
 });
