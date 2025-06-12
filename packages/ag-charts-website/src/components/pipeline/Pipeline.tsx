@@ -73,6 +73,7 @@ const COLUMN_DEFS = [
 
 const defaultColDef = {
     filter: true,
+    floatingFilter: true,
     resizable: true,
     sortable: true,
     suppressHeaderMenuButton: true,
