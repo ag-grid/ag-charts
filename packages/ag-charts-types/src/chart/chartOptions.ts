@@ -55,7 +55,12 @@ export interface AgSeriesAreaOptions {
     padding?: AgSeriesAreaPaddingOptions;
 }
 
-export interface AgChartOverlayOptions {
+export interface AgChartOverlayRendererParams<TContext> {
+    /** Context for this callback. */
+    context?: TContext;
+}
+
+export interface AgChartOverlayOptions<TContext = TContextDefault> {
     /**
      * Enabled or disable use of the overlay.
      *
@@ -65,18 +70,18 @@ export interface AgChartOverlayOptions {
     /** Text to render in the overlay. */
     text?: string;
     /** A function for generating HTML element or string for overlay content. */
-    renderer?: Renderer<never, HTMLElement>;
+    renderer?: Renderer<AgChartOverlayRendererParams<TContext>, HTMLElement>;
 }
 
-export interface AgChartOverlaysOptions {
+export interface AgChartOverlaysOptions<TContext = TContextDefault> {
     /** An overlay to be displayed when there is no data. */
-    loading?: AgChartOverlayOptions;
+    loading?: AgChartOverlayOptions<TContext>;
     /** An overlay to be displayed when there is no data. */
-    noData?: AgChartOverlayOptions;
+    noData?: AgChartOverlayOptions<TContext>;
     /** An overlay to be displayed when there are no series visible. */
-    noVisibleSeries?: AgChartOverlayOptions;
+    noVisibleSeries?: AgChartOverlayOptions<TContext>;
     /** An overlay to be displayed when chart is running in an unsupported browser. */
-    unsupportedBrowser?: AgChartOverlayOptions;
+    unsupportedBrowser?: AgChartOverlayOptions<TContext>;
 }
 
 export interface AgChartCaptionOptions {
@@ -215,7 +220,7 @@ export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault, TContext = 
     /** Configuration for the chart highlighting. */
     highlight?: AgChartHighlightOptions;
     /** HTML overlays. */
-    overlays?: AgChartOverlaysOptions;
+    overlays?: AgChartOverlaysOptions<TContext>;
     /** Global configuration that applies to all tooltips in the chart. */
     tooltip?: AgChartTooltipOptions;
     /** Configuration for the chart legend. */
