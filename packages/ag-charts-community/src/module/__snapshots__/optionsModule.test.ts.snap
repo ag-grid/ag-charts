@@ -3143,7 +3143,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 12,
           "fontWeight": "bold",
-          "format": "%d/%m",
           "spacing": 11,
         },
         "tick": {
@@ -14226,7 +14225,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 12,
           "fontWeight": "bold",
-          "format": "%b",
           "spacing": 11,
         },
         "tick": {
