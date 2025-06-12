@@ -12,11 +12,11 @@
         "highlights": [
             {
                 "text": "Unit Time Axis",
-                "path": "./axes-types/#unit-time"
+                "path": "./axes-time/#unit-time"
             },
             {
                 "text": "Axis Parent Label/Ticks Support",
-                "path": "./axes-labels/#parent-levels"
+                "path": "./axes-time/#parent-levels"
             },
             {
                 "text": "Improved Context Menu",
@@ -279,7 +279,7 @@
             },
             {
                 "text": "Ordinal Time Axis",
-                "path": "./axes-types/#ordinal-time"
+                "path": "./axes-types/#time"
             },
             {
                 "text": "Zoom Buttons",
