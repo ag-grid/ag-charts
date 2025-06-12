@@ -286,6 +286,7 @@ export const Changelog = () => {
                 field: 'key',
                 headerName: 'Issue',
                 width: 150,
+                maxWidth: 150,
                 resizable: true,
                 cellRendererSelector: (params: any) => {
                     if (
