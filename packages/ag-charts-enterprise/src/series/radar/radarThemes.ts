@@ -36,6 +36,7 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
             strokeOpacity: 1,
             strokeWidth: 0,
         },
+        highlight: _ModuleSupport.multiSeriesHighlightStyle(),
     },
     axes: {
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {

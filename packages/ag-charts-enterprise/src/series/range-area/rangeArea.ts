@@ -411,7 +411,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     protected override updatePathNodes(opts: {
         paths: _ModuleSupport.Path[];
-        opacity: number;
         visible: boolean;
         animationEnabled: boolean;
     }) {

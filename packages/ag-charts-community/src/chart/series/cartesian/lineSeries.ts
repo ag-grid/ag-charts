@@ -428,21 +428,15 @@ export class LineSeries extends CartesianSeries<
         return this.properties.marker.isDirty();
     }
 
-    protected override updatePathNodes(opts: {
-        paths: Path[];
-        opacity: number;
-        visible: boolean;
-        animationEnabled: boolean;
-    }) {
+    protected override updatePathNodes(opts: { paths: Path[]; visible: boolean; animationEnabled: boolean }) {
         const {
             paths: [lineNode],
-            opacity,
             visible,
             animationEnabled,
         } = opts;
         const crossFiltering = this.contextNodeData?.crossFiltering === true;
 
-        const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset } = mergeDefaults(
+        const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = mergeDefaults(
             this.getHighlightStyle(),
             this.properties
         );

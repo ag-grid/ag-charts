@@ -519,7 +519,6 @@ export abstract class CartesianSeries<
             seriesHighlighted,
             itemId,
             paths,
-            opacity,
             visible: visible,
             animationEnabled,
         });
@@ -1042,13 +1041,11 @@ export abstract class CartesianSeries<
         seriesHighlighted?: boolean;
         itemId?: string;
         paths: Path[];
-        opacity: number;
         visible: boolean;
         animationEnabled: boolean;
     }): void {
-        const { paths, opacity, visible } = opts;
+        const { paths, visible } = opts;
         for (const path of paths) {
-            path.opacity = opacity;
             path.visible = visible;
         }
     }

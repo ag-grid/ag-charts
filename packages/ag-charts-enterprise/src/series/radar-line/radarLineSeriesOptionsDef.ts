@@ -4,8 +4,8 @@ import { type OptionsDefs, constant, required, string } from 'ag-charts-core';
 const { commonSeriesOptionsDefs, radarLineSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const radarLineSeriesOptionsDef: OptionsDefs<AgRadarLineSeriesOptions> = {
-    ...radarLineSeriesThemeableOptionsDef,
     ...commonSeriesOptionsDefs,
+    ...radarLineSeriesThemeableOptionsDef,
     type: required(constant('radar-line')),
     angleKey: required(string),
     radiusKey: required(string),

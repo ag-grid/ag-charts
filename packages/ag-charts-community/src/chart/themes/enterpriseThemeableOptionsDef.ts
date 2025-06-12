@@ -421,6 +421,7 @@ export const radarAreaSeriesThemeableOptionsDef: OptionsDefs<AgRadarAreaSeriesTh
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemeableOptions> = {
@@ -431,6 +432,7 @@ export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemea
     ...commonSeriesThemeableOptionsDefs,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef),
 };
 
 export const radialBarSeriesThemeableOptionsDef: OptionsDefs<AgRadialBarSeriesThemeableOptions> = {
