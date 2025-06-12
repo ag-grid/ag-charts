@@ -519,6 +519,41 @@ describe('BarSeries', () => {
         }
     });
 
+    describe('legend toggle animation', () => {
+        const animate = spyOnAnimationManager();
+
+        let options: AgChartOptions;
+
+        beforeEach(() => {
+            options = { ...examples.BAR_CHART_WITH_LABELS_EXAMPLE };
+            prepareTestOptions(options);
+            options.series = [options.series![0], { ...options.series![0], visible: true }];
+            options.data = options.data?.slice(0, 3);
+        });
+
+        it('should render to canvas as expected', async () => {
+            animate(1200, 1);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        for (const ratio of [0, 0.2, 0.5, 0.8, 0.9, 1]) {
+            it(`for BAR_CHART_WITH_LABELS_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                (options.series![1] as AgBarSeriesOptions).visible = false;
+                await chart.update(options);
+
+                await waitForChartStability(chart);
+                await compare();
+            });
+        }
+    });
+
     describe('invalid data domain', () => {
         it.each(Object.entries(INVALID_DATA_EXAMPLES))(
             'for %s it should create chart instance as expected',
