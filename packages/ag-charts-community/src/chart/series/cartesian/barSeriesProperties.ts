@@ -13,7 +13,7 @@ import { DropShadow } from '../../../scene/dropShadow';
 import { Property } from '../../../util/properties';
 import { Label } from '../../label';
 import { FillGradientDefaults, FillImageDefaults, FillPatternDefaults } from '../seriesProperties';
-import { SeriesTooltip } from '../seriesTooltip';
+import { makeSeriesTooltip } from '../seriesTooltip';
 import { AbstractBarSeriesProperties } from './abstractBarSeries';
 
 class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
@@ -92,7 +92,7 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     readonly label = new BarSeriesLabel();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgBarSeriesTooltipRendererParams>();
+    readonly tooltip = makeSeriesTooltip<AgBarSeriesTooltipRendererParams>();
 
     @Property
     sparklineMode: boolean = false;

@@ -12,7 +12,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { AutoSizedLabel } from '../util/autoSizedLabel';
 
-const { CartesianSeriesProperties, SeriesTooltip, Property } = _ModuleSupport;
+const { CartesianSeriesProperties, makeSeriesTooltip, Property } = _ModuleSupport;
 
 export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmapSeriesOptions> {
     @Property
@@ -64,5 +64,5 @@ export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmap
     readonly label = new AutoSizedLabel<AgHeatmapSeriesLabelFormatterParams>();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgHeatmapSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgHeatmapSeriesTooltipRendererParams<any>>();
 }

@@ -16,7 +16,8 @@ import type {
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const { BaseProperties, SeriesTooltip, SeriesProperties, PropertiesArray, AxisLabel, Property, Label } = _ModuleSupport;
+const { BaseProperties, makeSeriesTooltip, SeriesProperties, PropertiesArray, AxisLabel, Property, Label } =
+    _ModuleSupport;
 
 export enum NodeDataType {
     Node,
@@ -342,5 +343,5 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeO
     readonly secondaryLabel = new RadialGaugeSecondaryLabelProperties();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgRadialGaugeTooltipRendererParams>();
+    readonly tooltip = makeSeriesTooltip<AgRadialGaugeTooltipRendererParams>();
 }

@@ -144,5 +144,5 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
     readonly node = new ChordSeriesNodeProperties();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgChordSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgChordSeriesTooltipRendererParams<any>>();
 }

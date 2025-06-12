@@ -14,7 +14,7 @@ const {
     FillImageDefaults,
     Label,
     AbstractBarSeriesProperties,
-    SeriesTooltip,
+    makeSeriesTooltip,
     AxisLabel,
     Property,
 } = _ModuleSupport;
@@ -79,5 +79,5 @@ export class ConeFunnelProperties
     readonly stageLabel = new ConeFunnelSeriesStageLabel();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgConeFunnelSeriesTooltipRendererParams<unknown>>();
+    readonly tooltip = makeSeriesTooltip<AgConeFunnelSeriesTooltipRendererParams<unknown>>();
 }

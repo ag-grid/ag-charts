@@ -15,7 +15,7 @@ import { Caption } from '../../caption';
 import { Label } from '../../label';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { SeriesProperties } from '../seriesProperties';
-import { SeriesTooltip } from '../seriesTooltip';
+import { makeSeriesTooltip } from '../seriesTooltip';
 
 export class DonutTitle extends Caption {
     @Property
@@ -191,5 +191,5 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     readonly calloutLine = new DonutSeriesCalloutLine();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgDonutSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgDonutSeriesTooltipRendererParams<any>>();
 }

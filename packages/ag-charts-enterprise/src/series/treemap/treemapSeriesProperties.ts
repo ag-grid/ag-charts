@@ -13,7 +13,8 @@ import type { InternalAgColorType } from 'ag-charts-core';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const { BaseProperties, HierarchySeriesProperties, HighlightStyle, SeriesTooltip, Property, Label } = _ModuleSupport;
+const { BaseProperties, HierarchySeriesProperties, HighlightStyle, makeSeriesTooltip, Property, Label } =
+    _ModuleSupport;
 
 class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
     @Property
@@ -161,7 +162,7 @@ export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemap
     override readonly highlightStyle = new TreemapSeriesHighlightStyle();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgTreemapSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgTreemapSeriesTooltipRendererParams<any>>();
 
     @Property
     readonly group = new TreemapSeriesGroup();

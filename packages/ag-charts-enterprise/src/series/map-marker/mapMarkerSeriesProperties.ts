@@ -16,7 +16,7 @@ const {
     FillImageDefaults,
     Property,
     SeriesProperties,
-    SeriesTooltip,
+    makeSeriesTooltip,
     Label,
 } = _ModuleSupport;
 
@@ -141,5 +141,5 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     readonly label = new MapMarkerSeriesLabel();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgMapMarkerSeriesTooltipRendererParams<any>>();
 }

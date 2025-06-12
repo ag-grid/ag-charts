@@ -14,7 +14,7 @@ const {
     FillPatternDefaults,
     FillImageDefaults,
     AbstractBarSeriesProperties,
-    SeriesTooltip,
+    makeSeriesTooltip,
     Property,
     mergeDefaults,
 } = _ModuleSupport;
@@ -124,7 +124,7 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
     readonly whisker = new BoxPlotSeriesWhisker();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgBoxPlotSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgBoxPlotSeriesTooltipRendererParams<any>>();
 
     override toJson() {
         const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;

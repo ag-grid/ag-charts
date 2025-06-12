@@ -18,7 +18,7 @@ const {
     FillPatternDefaults,
     FillImageDefaults,
     PropertiesArray,
-    SeriesTooltip,
+    makeSeriesTooltip,
     Property,
     DropShadow,
     Label,
@@ -152,5 +152,5 @@ export class WaterfallSeriesProperties extends AbstractBarSeriesProperties<AgWat
     readonly line = new WaterfallSeriesConnectorLine();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
+    readonly tooltip = makeSeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
 }

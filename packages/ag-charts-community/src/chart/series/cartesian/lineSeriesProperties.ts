@@ -8,7 +8,7 @@ import type {
 import { Property } from '../../../util/properties';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
-import { SeriesTooltip } from '../seriesTooltip';
+import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
 
@@ -62,7 +62,7 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     readonly label = new Label<AgLineSeriesLabelFormatterParams>();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgLineSeriesTooltipRendererParams>();
+    readonly tooltip = makeSeriesTooltip<AgLineSeriesTooltipRendererParams>();
 
     @Property
     connectMissingData: boolean = false;

@@ -10,7 +10,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const { HierarchySeriesProperties, HighlightStyle, SeriesTooltip, Property } = _ModuleSupport;
+const { HierarchySeriesProperties, HighlightStyle, makeSeriesTooltip, Property } = _ModuleSupport;
 
 class SunburstSeriesTileHighlightStyle extends HighlightStyle {
     @Property
@@ -76,5 +76,5 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
     readonly secondaryLabel = new AutoSizedSecondaryLabel<AgSunburstSeriesLabelFormatterParams>();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgSunburstSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgSunburstSeriesTooltipRendererParams<any>>();
 }

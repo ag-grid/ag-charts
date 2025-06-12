@@ -11,7 +11,7 @@ import { Property } from '../../../util/properties';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { FillGradientDefaults, FillImageDefaults, FillPatternDefaults } from '../seriesProperties';
-import { SeriesTooltip } from '../seriesTooltip';
+import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
 
@@ -77,7 +77,7 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
     readonly label = new Label<AgAreaSeriesLabelFormatterParams>();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgAreaSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<AgAreaSeriesTooltipRendererParams>();
 
     @Property
     connectMissingData: boolean = false;

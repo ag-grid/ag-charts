@@ -15,7 +15,7 @@ const {
     FillGradientDefaults,
     FillPatternDefaults,
     FillImageDefaults,
-    SeriesTooltip,
+    makeSeriesTooltip,
     Property,
     DropShadow,
     Label,
@@ -94,7 +94,7 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
     readonly label = new RangeBarSeriesLabel();
 
     @Property
-    readonly tooltip = new SeriesTooltip<AgRangeBarSeriesTooltipRendererParams<unknown>>();
+    readonly tooltip = makeSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<unknown>>();
 
     @Property
     fastDataProcessing: boolean = false;
