@@ -1,8 +1,6 @@
 import {
     AgAxisLabelFormatterParams,
     AgBarSeriesItemStylerParams,
-    AgBarSeriesLabelFormatterParams,
-    AgBarSeriesTooltipRendererParams,
     AgCartesianChartOptions,
     AgChartInstance,
 } from 'ag-charts-types';
