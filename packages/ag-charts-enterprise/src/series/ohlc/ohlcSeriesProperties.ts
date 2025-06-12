@@ -94,7 +94,7 @@ export abstract class OhlcSeriesBaseProperties<
     lowName?: string;
 
     abstract override readonly tooltip: _ModuleSupport.SeriesTooltip<
-        AgOhlcSeriesTooltipRendererParams<any> & AgCandlestickSeriesTooltipRendererParams<any>
+        Omit<AgOhlcSeriesTooltipRendererParams<any> & AgCandlestickSeriesTooltipRendererParams<any>, 'context'>
     >;
 
     abstract itemStyler?: Styler<AgOhlcSeriesItemStylerParams<unknown>, AgOhlcSeriesItemOptions> &

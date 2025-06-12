@@ -216,7 +216,11 @@ export interface AgOrdinalTimeAxisOptions<TContext = TContextDefault>
 
 export interface AgNumberAxisOptions<TContext = TContextDefault>
     extends Omit<
-            AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions<TContext>, AgCrosshairLabel<string,TContext>, TContext>,
+            AgBaseCartesianAxisOptions<
+                AgCartesianAxisLabelOptions<TContext>,
+                AgCrosshairLabel<string, TContext>,
+                TContext
+            >,
             'interval'
         >,
         AgContinuousAxisOptions<number, number> {
@@ -225,7 +229,11 @@ export interface AgNumberAxisOptions<TContext = TContextDefault>
 
 export interface AgLogAxisOptions<TContext = TContextDefault>
     extends Omit<
-    AgBaseCartesianAxisOptions<AgCartesianAxisLabelOptions<TContext>, AgCrosshairLabel<string,TContext>, TContext>,
+            AgBaseCartesianAxisOptions<
+                AgCartesianAxisLabelOptions<TContext>,
+                AgCrosshairLabel<string, TContext>,
+                TContext
+            >,
             'interval'
         >,
         AgContinuousAxisOptions<number, number> {

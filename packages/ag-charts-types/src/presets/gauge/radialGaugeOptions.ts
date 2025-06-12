@@ -4,7 +4,7 @@ import type {
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { AgMarkerShape, Degree, PixelSize, Ratio, TContextDefault } from '../../chart/types';
+import type { AgMarkerShape, Degree, PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../../series/cartesian/commonOptions';
 import type {
     AgBaseGaugeThemeableOptions,
@@ -44,7 +44,8 @@ export interface AgRadialGaugeScale<TContext = TContextDefault>
     interval?: AgRadialGaugeScaleInterval;
 }
 
-export interface AgRadialGaugeTooltipRendererParams extends AgSeriesTooltipRendererParams<never, TContextDefault> {
+export interface AgRadialGaugeTooltipRendererParams
+    extends AgSeriesTooltipRendererParams<TDatumDefault, TContextDefault> {
     /** Value of the Gauge */
     value: number;
 }

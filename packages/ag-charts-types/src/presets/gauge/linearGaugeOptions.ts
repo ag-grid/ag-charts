@@ -1,6 +1,6 @@
 import type { AgChartAutoSizedLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { AgMarkerShape, Degree, Direction, PixelSize, TContextDefault } from '../../chart/types';
+import type { AgMarkerShape, Degree, Direction, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../../series/cartesian/commonOptions';
 import type {
     AgBaseGaugeThemeableOptions,
@@ -39,7 +39,8 @@ export interface AgLinearGaugeScale<TContext = TContextDefault>
     interval?: AgLinearGaugeScaleInterval;
 }
 
-export interface AgLinearGaugeTooltipRendererParams extends AgSeriesTooltipRendererParams<never, TContextDefault> {
+export interface AgLinearGaugeTooltipRendererParams
+    extends AgSeriesTooltipRendererParams<TDatumDefault, TContextDefault> {
     /** Value of the Gauge */
     value: number;
 }

@@ -62,8 +62,12 @@ interface OrientableLabel {
     orientation?: AgAngleAxisLabelOrientation;
 }
 
-export interface AgAngleAxisFormattableLabelOptions<TContext = TContextDefault> extends AgNumericAxisFormattableLabelOptions<TContext>, OrientableLabel {}
-export interface AgAngleAxisLabelOptions<TContext = TContextDefault> extends AgBaseAxisLabelOptions<TContext>, OrientableLabel {}
+export interface AgAngleAxisFormattableLabelOptions<TContext = TContextDefault>
+    extends AgNumericAxisFormattableLabelOptions<TContext>,
+        OrientableLabel {}
+export interface AgAngleAxisLabelOptions<TContext = TContextDefault>
+    extends AgBaseAxisLabelOptions<TContext>,
+        OrientableLabel {}
 
 export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions<AgBaseCrossLineLabelOptions> {}
 export interface AgAngleCrossLineThemeOptions extends AgCrossLineThemeOptions<AgBaseCrossLineLabelOptions> {}

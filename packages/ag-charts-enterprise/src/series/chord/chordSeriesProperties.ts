@@ -16,7 +16,7 @@ const {
     FillPatternDefaults,
     FillImageDefaults,
     BaseProperties,
-    SeriesTooltip,
+    makeSeriesTooltip,
     SeriesProperties,
     Property,
     Label,
