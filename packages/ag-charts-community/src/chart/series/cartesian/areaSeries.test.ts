@@ -426,7 +426,7 @@ describe('AreaSeries', () => {
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
-                    await chart.update({ ...EXAMPLE });
+                    await chart.update({ ...options, data: EXAMPLE.data });
 
                     await compare();
                 });
