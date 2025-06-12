@@ -36,6 +36,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'textColor' },
             },
+            highlight: _ModuleSupport.multiSeriesHighlightStyle(false),
         },
         tooltip: {
             range: 'exact',

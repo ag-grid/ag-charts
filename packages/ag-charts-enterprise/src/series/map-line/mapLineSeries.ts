@@ -26,7 +26,7 @@ const {
 interface MapLineNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapLineNodeDatum, MapLineNodeLabelDatum> {}
 
-type ItemStyle = Required<AgMapLineSeriesStyle>;
+type ItemStyle = Required<AgMapLineSeriesStyle> & { opacity: number };
 
 export class MapLineSeries extends TopologySeries<
     MapLineNodeDatum,
@@ -352,7 +352,6 @@ export class MapLineSeries extends TopologySeries<
         this.updateSelections();
 
         this.contentGroup.visible = this.visible;
-        this.contentGroup.opacity = this.getOpacity();
 
         let highlightedDatum: MapLineNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
 
@@ -388,9 +387,9 @@ export class MapLineSeries extends TopologySeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
 
-    private getItemBaseStyle(highlighted: boolean): ItemStyle {
+    private getItemBaseStyle(isHighlight: boolean, datum?: MapLineNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
 
         return {
             stroke: highlightStyle?.stroke ?? properties.stroke,
@@ -398,6 +397,7 @@ export class MapLineSeries extends TopologySeries<
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            opacity: highlightStyle?.opacity ?? 1,
         };
     }
 
@@ -453,8 +453,6 @@ export class MapLineSeries extends TopologySeries<
     }) {
         const { datumSelection, isHighlight } = opts;
 
-        const format = this.getItemBaseStyle(isHighlight);
-
         datumSelection.each((geoGeometry, nodeDatum) => {
             const { datum, datumIndex, colorValue, sizeValue, projectedGeometry } = nodeDatum;
             if (projectedGeometry == null) {
@@ -463,6 +461,7 @@ export class MapLineSeries extends TopologySeries<
                 return;
             }
 
+            const format = this.getItemBaseStyle(isHighlight, nodeDatum);
             const overrides = this.getItemStyleOverrides(
                 String(datumIndex),
                 datum,

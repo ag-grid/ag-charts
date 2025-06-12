@@ -506,7 +506,6 @@ export class MapMarkerSeries
         this.updateSelections();
 
         this.contentGroup.visible = this.visible;
-        this.contentGroup.opacity = this.getOpacity();
 
         let highlightedDatum: MapMarkerNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
         const { legendItemName } = this.properties;
@@ -585,9 +584,9 @@ export class MapMarkerSeries
         );
     }
 
-    private getMarkerItemBaseStyle(highlighted: boolean): ItemStyle {
+    private getMarkerItemBaseStyle(isHighlight: boolean, datum?: MapMarkerNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
 
         return getShapeStyle(
             {
@@ -600,6 +599,7 @@ export class MapMarkerSeries
                 strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+                opacity: highlightStyle.opacity ?? 1,
             },
             this.properties.fillGradientDefaults,
             this.properties.fillPatternDefaults,
@@ -659,11 +659,11 @@ export class MapMarkerSeries
     }) {
         const { markerSelection, isHighlight, highlightedDatum } = opts;
 
-        const style = this.getMarkerItemBaseStyle(isHighlight);
         const fillBBox = getTopologyShapeFillBBox(this.scale);
 
         markerSelection.each((marker, markerDatum) => {
             const { datumIndex, datum, point, colorValue, sizeValue } = markerDatum;
+            const style = this.getMarkerItemBaseStyle(isHighlight, markerDatum);
             const overrides = this.getMarkerItemStyleOverrides(
                 String(datumIndex),
                 datum,

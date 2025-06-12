@@ -15,8 +15,8 @@ import {
 const { commonSeriesOptionsDefs, mapLineSeriesThemeableOptionsDef, without } = _ModuleSupport;
 
 export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions> = {
+    ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight']),
     ...mapLineSeriesThemeableOptionsDef,
-    ...without(commonSeriesOptionsDefs, ['highlightStyle']),
     type: required(constant('map-line')),
     idKey: required(string),
     sizeKey: string,

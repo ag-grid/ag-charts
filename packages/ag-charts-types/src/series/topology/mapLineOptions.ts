@@ -1,9 +1,14 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { GeoJSON, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { GeoJSON, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type {
+    AgBaseSeriesOptions,
+    AgBaseSeriesThemeableOptions,
+    AgMultiSeriesHighlightOptions,
+    AgSeriesHighlightStyle,
+} from '../seriesOptions';
 
 export type AgMapLineSeriesTooltipRendererParams<
     TDatum = TDatumDefault,
@@ -71,10 +76,17 @@ export interface AgMapLineSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     itemStyler?: Styler<AgMapLineSeriesItemStylerParams<TDatum, TContext>, AgMapLineSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapLineSeriesHighlightStyle<TDatum>;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgMapLineHighlightStyleOptions>;
+}
+
+export interface AgMapLineHighlightStyleOptions extends StrokeOptions, LineDashOptions {
+    /** The opacity of the whole series (line, fill, labels and markers, if any) */
+    opacity?: Opacity;
 }
 
 export interface AgMapLineSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'>,
         AgMapLineSeriesOptionsKeys<TDatum>,
         AgMapLineSeriesOptionsNames,
         AgMapLineSeriesThemeableOptions<TDatum, TContext> {

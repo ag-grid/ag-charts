@@ -51,6 +51,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'textColor' },
             },
+            highlight: _ModuleSupport.multiSeriesHighlightStyle(),
         },
         tooltip: {
             range: 'exact',
