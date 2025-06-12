@@ -17,6 +17,7 @@ const COLUMN_DEFS = [
         field: 'key',
         headerName: 'Issue',
         width: 140,
+        filter: 'agTextColumnFilter',
         cellRendererSelector: (params: any) => {
             if (isRowMaster(params.node.data)) {
                 return {
