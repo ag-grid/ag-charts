@@ -1,5 +1,5 @@
 import { Logger, findMaxIndex, findMinIndex, isPlainObject } from 'ag-charts-core';
-import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { intervalFloor, intervalMilliseconds, intervalRange, intervalRangeCount } from '../util/time';
 import { normalizeContinuousDomains } from './continuousScale';
@@ -17,7 +17,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
     override readonly defaultTickCount = 12;
 
-    static supportsInterval(domain: Date[], interval: TimeInterval | TimeIntervalUnit) {
+    static supportsInterval(domain: Date[], interval: AgTimeInterval | AgTimeIntervalUnit) {
         return supportsInterval(domain, interval);
     }
 
@@ -33,11 +33,11 @@ export class UnitTimeScale extends DiscreteTimeScale {
     }
 
     /* eslint-disable sonarjs/use-type-alias */
-    private _interval: TimeInterval | TimeIntervalUnit | undefined;
-    get interval(): TimeInterval | TimeIntervalUnit | undefined {
+    private _interval: AgTimeInterval | AgTimeIntervalUnit | undefined;
+    get interval(): AgTimeInterval | AgTimeIntervalUnit | undefined {
         return this._interval;
     }
-    set interval(interval: TimeInterval | TimeIntervalUnit | undefined) {
+    set interval(interval: AgTimeInterval | AgTimeIntervalUnit | undefined) {
         if (this._interval === interval) return;
 
         this._interval = interval;
@@ -100,7 +100,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
     }
 
     override ticks(
-        { interval }: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
+        { interval }: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1],
         extend = false
@@ -173,14 +173,14 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
 function supportsInterval(
     domain: Date[],
-    interval: TimeInterval | TimeIntervalUnit,
+    interval: AgTimeInterval | AgTimeIntervalUnit,
     rangeParams?: { visibleRange?: [number, number]; extend?: boolean }
 ): boolean {
     const [start, stop] = calculateBandRange(domain, interval);
     return intervalRangeCount(interval, start, stop, rangeParams) <= MAX_BANDS;
 }
 
-function calculateBandRange(domain: Date[], interval: TimeInterval | TimeIntervalUnit): [Date, Date] {
+function calculateBandRange(domain: Date[], interval: AgTimeInterval | AgTimeIntervalUnit): [Date, Date] {
     const start = intervalFloor(interval, domain[0]);
     const stop = intervalFloor(interval, domain[1]);
     return [start, stop];

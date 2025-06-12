@@ -102,6 +102,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Time Axes",
+                            "path": "axes-time"
+                        },
+                        {
+                            "type": "item",
                             "title": "Grid Lines",
                             "path": "axes-grid-lines"
                         },

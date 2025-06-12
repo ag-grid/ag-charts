@@ -2,13 +2,13 @@ import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
     AgBaseAxisLabelStyleOptions,
+    AgTimeIntervalUnit,
     DateFormatterStyle,
     FontStyle,
     FontWeight,
     Formatter,
     FormatterParams,
     Styler,
-    TimeIntervalUnit,
 } from 'ag-charts-types';
 
 import { objectsEqual } from '../../util/object';
@@ -22,7 +22,7 @@ type FormatterCacheKey = `${DateFormatterStyle}:${boolean}`;
 interface FormatterCache {
     type: string;
     mergedFormat: string | Record<string, string>;
-    unit: TimeIntervalUnit | undefined;
+    unit: AgTimeIntervalUnit | undefined;
     formatter: ((value: any, fractionDigits?: number) => string) | undefined;
 }
 

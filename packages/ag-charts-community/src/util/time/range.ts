@@ -1,15 +1,15 @@
-import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { unitEncoding } from './encoding';
 
 interface TimeIntervalParams {
-    unit: TimeIntervalUnit;
+    unit: AgTimeIntervalUnit;
     step: number;
     epoch: Date | undefined;
     utc: boolean;
 }
 
-function timeInterval(interval: TimeInterval | TimeIntervalUnit): TimeIntervalParams {
+function timeInterval(interval: AgTimeInterval | AgTimeIntervalUnit): TimeIntervalParams {
     return typeof interval === 'string'
         ? { unit: interval, step: 1, epoch: undefined, utc: false }
         : {
@@ -20,48 +20,48 @@ function timeInterval(interval: TimeInterval | TimeIntervalUnit): TimeIntervalPa
           };
 }
 
-function getOffset(unit: TimeIntervalUnit, step: number, epoch: Date | undefined, utc: boolean) {
+function getOffset(unit: AgTimeIntervalUnit, step: number, epoch: Date | undefined, utc: boolean) {
     if (epoch == null) return 0;
 
     const encoding = unitEncoding[unit];
     return Math.floor(encoding.encode(new Date(epoch), utc)) % step;
 }
 
-function encode(d: Date | number, unit: TimeIntervalUnit, step: number, utc: boolean, offset: number) {
+function encode(d: Date | number, unit: AgTimeIntervalUnit, step: number, utc: boolean, offset: number) {
     const encoding = unitEncoding[unit];
     return Math.floor((encoding.encode(new Date(d), utc) - offset) / step);
 }
 
-function decode(encoded: number, unit: TimeIntervalUnit, step: number, utc: boolean, offset: number) {
+function decode(encoded: number, unit: AgTimeIntervalUnit, step: number, utc: boolean, offset: number) {
     const encoding = unitEncoding[unit];
     return encoding.decode(encoded * step + offset, utc);
 }
 
-function encodingFloor(date: Date | number, unit: TimeIntervalUnit, step: number, utc: boolean, offset: number) {
+function encodingFloor(date: Date | number, unit: AgTimeIntervalUnit, step: number, utc: boolean, offset: number) {
     const d = new Date(date);
     const e = encode(d, unit, step, utc, offset);
     return decode(e, unit, step, utc, offset);
 }
 
-function encodingCeil(date: Date | number, unit: TimeIntervalUnit, step: number, utc: boolean, offset: number) {
+function encodingCeil(date: Date | number, unit: AgTimeIntervalUnit, step: number, utc: boolean, offset: number) {
     const d = new Date(Number(date) - 1);
     const e = encode(d, unit, step, utc, offset);
     return decode(e + 1, unit, step, utc, offset);
 }
 
-export function intervalFloor(interval: TimeInterval | TimeIntervalUnit, date: Date | number): Date {
+export function intervalFloor(interval: AgTimeInterval | AgTimeIntervalUnit, date: Date | number): Date {
     const { unit, step, epoch, utc } = timeInterval(interval);
     const offset = getOffset(unit, step, epoch, utc);
     return encodingFloor(date, unit, step, utc, offset);
 }
 
-export function intervalCeil(interval: TimeInterval | TimeIntervalUnit, date: Date | number): Date {
+export function intervalCeil(interval: AgTimeInterval | AgTimeIntervalUnit, date: Date | number): Date {
     const { unit, step, epoch, utc } = timeInterval(interval);
     const offset = getOffset(unit, step, epoch, utc);
     return encodingCeil(date, unit, step, utc, offset);
 }
 
-export function intervalPrevious(interval: TimeInterval | TimeIntervalUnit, date: Date) {
+export function intervalPrevious(interval: AgTimeInterval | AgTimeIntervalUnit, date: Date) {
     const { unit, step, epoch, utc } = timeInterval(interval);
     const offset = getOffset(unit, step, epoch, utc);
     return decode(
@@ -73,7 +73,7 @@ export function intervalPrevious(interval: TimeInterval | TimeIntervalUnit, date
     );
 }
 
-export function intervalNext(interval: TimeInterval | TimeIntervalUnit, date: Date) {
+export function intervalNext(interval: AgTimeInterval | AgTimeIntervalUnit, date: Date) {
     const { unit, step, epoch, utc } = timeInterval(interval);
     const offset = getOffset(unit, step, epoch, utc);
     return decode(
@@ -117,7 +117,7 @@ export function intervalExtent(
 }
 
 function rangeData(
-    interval: TimeInterval | TimeIntervalUnit,
+    interval: AgTimeInterval | AgTimeIntervalUnit,
     start: Date,
     stop: Date,
     { extend = false, visibleRange = [0, 1], limit, defaultAlignment = 'start' }: RangeParams = {}
@@ -158,7 +158,7 @@ function rangeData(
 }
 
 export function intervalRangeCount(
-    interval: TimeInterval | TimeIntervalUnit,
+    interval: AgTimeInterval | AgTimeIntervalUnit,
     start: Date,
     stop: Date,
     params?: RangeParams
@@ -170,7 +170,7 @@ export function intervalRangeCount(
 }
 
 export function intervalRange(
-    interval: TimeInterval | TimeIntervalUnit,
+    interval: AgTimeInterval | AgTimeIntervalUnit,
     start: Date,
     stop: Date,
     params?: RangeParams

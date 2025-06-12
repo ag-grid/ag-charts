@@ -1,17 +1,17 @@
-import type { TimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { durationDay, durationHour, durationMinute, durationMonth, durationSecond, durationYear } from './duration';
 
 export interface IntervalEncoder {
     milliseconds: number;
-    hierarchy: TimeIntervalUnit | undefined;
+    hierarchy: AgTimeIntervalUnit | undefined;
     encode(this: void, date: Date, utc: boolean): number;
     decode(this: void, encoded: number, utc: boolean): Date;
 }
 
 const tzOffset = new Date().getTimezoneOffset() * durationMinute;
 
-export const unitEncoding: Record<TimeIntervalUnit, IntervalEncoder> = {
+export const unitEncoding: Record<AgTimeIntervalUnit, IntervalEncoder> = {
     millisecond: {
         milliseconds: 1,
         hierarchy: 'day',

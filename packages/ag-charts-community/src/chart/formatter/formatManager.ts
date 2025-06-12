@@ -1,9 +1,9 @@
 import { Logger, createNumberFormatter, isPlainObject, parseNumberFormat } from 'ag-charts-core';
 import {
+    type AgTimeIntervalUnit,
     type DateFormatterStyle,
     type FormatterConfiguration,
     type FormatterParams,
-    type TimeIntervalUnit,
 } from 'ag-charts-types';
 
 import { formatValue } from '../../util/format.util';
@@ -17,7 +17,7 @@ export type ContextFormatter = (
     params: FormatterParams<any>
 ) => string | undefined;
 
-type Specifier = Record<TimeIntervalUnit, string> | string;
+type Specifier = Record<AgTimeIntervalUnit, string> | string;
 
 interface FormatParams {
     specifier?: Record<string, string> | string;
@@ -30,7 +30,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         (
             propertyFormatter: Specifier | undefined,
             specifier: Specifier | undefined,
-            unit: TimeIntervalUnit,
+            unit: AgTimeIntervalUnit,
             style: DateFormatterStyle,
             includeYear: boolean
         ) => {
@@ -57,8 +57,8 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
 
     static getFormatter(
         type: 'number' | 'date' | 'category',
-        specifier: string | Partial<Record<TimeIntervalUnit, string>>,
-        unit?: TimeIntervalUnit,
+        specifier: string | Partial<Record<AgTimeIntervalUnit, string>>,
+        unit?: AgTimeIntervalUnit,
         style: DateFormatterStyle = 'long',
         { includeYear = true } = {}
     ): ((value: any, fractionDigits?: number) => string) | undefined {

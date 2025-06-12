@@ -3,7 +3,7 @@
  */
 import { expect, test } from '@jest/globals';
 
-import { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { intervalCeil, intervalFloor, intervalRange } from './index';
 
@@ -12,7 +12,7 @@ it('should execute with Los Angeles timezone', () => {
 });
 
 test('hour', () => {
-    const interval: TimeInterval | TimeIntervalUnit = 'hour';
+    const interval: AgTimeInterval | AgTimeIntervalUnit = 'hour';
     const date = new Date(2023, 0, 18, 8, 31, 5, 100);
 
     const floor = intervalFloor(interval, date);
@@ -30,7 +30,7 @@ test('hour', () => {
 });
 
 test('hour.every', () => {
-    const interval: TimeInterval | TimeIntervalUnit = { unit: 'hour', step: 5, epoch: new Date(2023, 0, 18) };
+    const interval: AgTimeInterval | AgTimeIntervalUnit = { unit: 'hour', step: 5, epoch: new Date(2023, 0, 18) };
     const date = new Date(2023, 0, 18, 8, 31, 5, 100);
 
     const floor = intervalFloor(interval, date);
@@ -48,7 +48,7 @@ test('hour.every', () => {
 });
 
 test('hour.every with defaultAlignment: interval', () => {
-    const interval: TimeInterval | TimeIntervalUnit = { unit: 'hour', step: 4 };
+    const interval: AgTimeInterval | AgTimeIntervalUnit = { unit: 'hour', step: 4 };
 
     const today = new Date();
     const year = today.getFullYear();

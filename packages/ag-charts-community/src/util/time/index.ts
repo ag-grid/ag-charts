@@ -1,4 +1,4 @@
-import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { unitEncoding } from './encoding';
 
@@ -21,23 +21,23 @@ export {
     intervalRange,
 } from './range';
 
-export function intervalUnit(interval: TimeInterval | TimeIntervalUnit): TimeIntervalUnit {
+export function intervalUnit(interval: AgTimeInterval | AgTimeIntervalUnit): AgTimeIntervalUnit {
     return typeof interval === 'string' ? interval : interval.unit;
 }
 
-export function intervalStep(interval: TimeInterval | TimeIntervalUnit): number {
+export function intervalStep(interval: AgTimeInterval | AgTimeIntervalUnit): number {
     return typeof interval === 'string' ? 1 : interval.step ?? 1;
 }
 
-export function intervalEpoch(interval: TimeInterval | TimeIntervalUnit): Date | undefined {
+export function intervalEpoch(interval: AgTimeInterval | AgTimeIntervalUnit): Date | undefined {
     return typeof interval === 'string' ? undefined : interval.epoch;
 }
 
-export function intervalHierarchy(interval: TimeInterval | TimeIntervalUnit): TimeIntervalUnit | undefined {
+export function intervalHierarchy(interval: AgTimeInterval | AgTimeIntervalUnit): AgTimeIntervalUnit | undefined {
     return unitEncoding[intervalUnit(interval)].hierarchy;
 }
 
-export function intervalMilliseconds(interval: TimeInterval | TimeIntervalUnit): number {
+export function intervalMilliseconds(interval: AgTimeInterval | AgTimeIntervalUnit): number {
     const step = intervalStep(interval);
     return step * unitEncoding[intervalUnit(interval)].milliseconds;
 }

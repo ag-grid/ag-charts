@@ -1,5 +1,5 @@
 import { findMinIndex } from 'ag-charts-core';
-import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { datesSortOrder, sortAndUniqueDates } from '../util/date';
 import { ContinuousScale } from './continuousScale';
@@ -58,7 +58,11 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
     }
 
     override ticks(
-        { interval, maxTickCount, tickCount = maxTickCount }: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
+        {
+            interval,
+            maxTickCount,
+            tickCount = maxTickCount,
+        }: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1],
         // Only used for OrdinalTimeScale

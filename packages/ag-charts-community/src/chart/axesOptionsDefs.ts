@@ -53,12 +53,12 @@ import type {
     AgTimeAxisFormattableLabelFormat,
     AgTimeAxisFormattableLabelUnitFormat,
     AgTimeAxisParentLevel,
-    TimeInterval,
+    AgTimeInterval,
 } from 'ag-charts-types';
 
 export const timeIntervalUnit = union('millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year');
 
-const timeIntervalDefs: OptionsDefs<TimeInterval> = {
+const timeIntervalDefs: OptionsDefs<AgTimeInterval> = {
     unit: required(timeIntervalUnit),
     step: positiveNumberNonZero,
     epoch: date,
@@ -68,7 +68,7 @@ const timeIntervalDefs: OptionsDefs<TimeInterval> = {
 // @ts-expect-error undocumented option - required for interop
 timeIntervalDefs.every = callback;
 
-export const timeInterval = optionsDefs<TimeInterval>(timeIntervalDefs, 'a time interval object');
+export const timeInterval = optionsDefs<AgTimeInterval>(timeIntervalDefs, 'a time interval object');
 
 export const numberFormatValidator = attachDescription(isValidNumberFormat, 'a valid number format string');
 

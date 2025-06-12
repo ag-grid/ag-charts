@@ -1,8 +1,8 @@
 import {
+    type AgTimeInterval,
+    type AgTimeIntervalUnit,
     type DateFormatterStyle,
     type FormatterParams,
-    type TimeInterval,
-    type TimeIntervalUnit,
     _ModuleSupport,
 } from 'ag-charts-community';
 
@@ -27,7 +27,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
     @Property
     readonly parentLevel = new TimeAxisParentLevel();
 
-    private minGranularity: TimeIntervalUnit | undefined = undefined;
+    private minGranularity: AgTimeIntervalUnit | undefined = undefined;
 
     override get primaryLabel(): _ModuleSupport.AxisLabel | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
@@ -52,7 +52,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
         domain: (number | Date)[],
         ticks: (number | Date)[],
         _fractionDigits?: number,
-        timeInterval?: TimeInterval | TimeIntervalUnit
+        timeInterval?: AgTimeInterval | AgTimeIntervalUnit
     ): _ModuleSupport.AxisTickFormatParams {
         timeInterval ??= lowestGranularityUnitForTicks(ticks);
         const includeYear = domainSpansMultipleYears(domain);
@@ -66,7 +66,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
         value: Date | number,
         params: _ModuleSupport.FormatDatumParams,
         _fractionDigits: number | undefined,
-        timeInterval: TimeInterval | TimeIntervalUnit | undefined,
+        timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
         if (typeof value === 'number') value = new Date(value);

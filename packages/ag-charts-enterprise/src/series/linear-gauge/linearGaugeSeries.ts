@@ -2,10 +2,10 @@ import {
     type AgGradientColorMode,
     type AgLinearGaugeMarkerShape,
     type AgLinearGaugeTargetPlacement,
+    type AgTimeInterval,
+    type AgTimeIntervalUnit,
     type FontStyle,
     type FontWeight,
-    type TimeInterval,
-    type TimeIntervalUnit,
     _ModuleSupport,
 } from 'ag-charts-community';
 
@@ -141,7 +141,7 @@ class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSuppor
         ticks: number[],
         _primary: boolean,
         _fractionDigits?: number,
-        _timeInterval?: TimeInterval | TimeIntervalUnit
+        _timeInterval?: AgTimeInterval | AgTimeIntervalUnit
     ): (value: number, index: number) => string {
         const { format } = this.label;
         let tickFormatter: ((value: number) => string) | undefined;

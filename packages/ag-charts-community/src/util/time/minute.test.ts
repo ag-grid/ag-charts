@@ -1,11 +1,11 @@
 import { expect, test } from '@jest/globals';
 
-import { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { intervalCeil, intervalFloor, intervalRange } from './index';
 
 test('minute', () => {
-    const interval: TimeInterval | TimeIntervalUnit = 'minute';
+    const interval: AgTimeInterval | AgTimeIntervalUnit = 'minute';
     const date = new Date(2019, 7, 23, 15, 17, 5, 100);
 
     const floor = intervalFloor(interval, date);
@@ -23,7 +23,7 @@ test('minute', () => {
 });
 
 test('minute.every', () => {
-    const interval: TimeInterval | TimeIntervalUnit = { unit: 'minute', step: 5 };
+    const interval: AgTimeInterval | AgTimeIntervalUnit = { unit: 'minute', step: 5 };
     const date = new Date(2019, 7, 23, 15, 17, 5, 100);
 
     const floor = intervalFloor(interval, date);
@@ -41,7 +41,7 @@ test('minute.every', () => {
 });
 
 test('minute.every with defaultAlignment: interval', () => {
-    const interval: TimeInterval | TimeIntervalUnit = { unit: 'minute', step: 5 };
+    const interval: AgTimeInterval | AgTimeIntervalUnit = { unit: 'minute', step: 5 };
 
     const range = intervalRange(
         interval,

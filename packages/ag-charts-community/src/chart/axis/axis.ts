@@ -2,6 +2,8 @@ import { type AnyFn, CleanupRegistry, createId } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
+    AgTimeInterval,
+    AgTimeIntervalUnit,
     AnyFormatterSource,
     CssColor,
     DateFormatterStyle,
@@ -10,8 +12,6 @@ import type {
     FontStyle,
     FontWeight,
     FormatterParams,
-    TimeInterval,
-    TimeIntervalUnit,
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../../core/eventsHub';
@@ -89,7 +89,7 @@ export type AxisTickFormatParams =
       }
     | {
           type: 'date';
-          unit: TimeIntervalUnit;
+          unit: AgTimeIntervalUnit;
           step: number;
           epoch: Date | undefined;
           includeYear?: boolean;
@@ -610,14 +610,14 @@ export abstract class Axis<
         domain: D[],
         ticks: D[],
         fractionDigits: number | undefined,
-        timeInterval: TimeInterval | TimeIntervalUnit | undefined
+        timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined
     ): AxisTickFormatParams;
 
     abstract datumFormatParams(
         value: any,
         params: FormatDatumParams,
         fractionDigits: number | undefined,
-        timeInterval: TimeInterval | TimeIntervalUnit | undefined,
+        timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,
         dateStyle: 'long' | 'component'
     ): FormatterParams<any>;
 
@@ -627,7 +627,7 @@ export abstract class Axis<
         ticks: D[],
         primary: boolean,
         inputFractionDigits?: number,
-        inputTimeInterval?: TimeInterval | TimeIntervalUnit,
+        inputTimeInterval?: AgTimeInterval | AgTimeIntervalUnit,
         dateStyle: DateFormatterStyle = 'long'
     ): (value: any, index: number) => string {
         const { moduleCtx, label } = this;
@@ -638,7 +638,7 @@ export abstract class Axis<
         const boundSeries = this.getFormatterBoundSeries();
 
         let fractionDigits: number | undefined;
-        let timeInterval: TimeInterval | undefined;
+        let timeInterval: AgTimeInterval | undefined;
         let includeYear = false;
         if (tickFormatParams.type === 'number') {
             fractionDigits = tickFormatParams.fractionDigits;

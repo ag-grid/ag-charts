@@ -1,5 +1,5 @@
 import { EventEmitter } from 'ag-charts-core';
-import type { AgAnnotation, AgContextMenuItemShowOn, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { AgAnnotation, AgContextMenuItemShowOn, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
@@ -141,5 +141,5 @@ export interface AxisLayout {
     };
     direction: ChartAxisDirection;
     domain: any[];
-    scale: Scale<any, any, number | TimeInterval | TimeIntervalUnit>;
+    scale: Scale<any, any, number | AgTimeInterval | AgTimeIntervalUnit>;
 }

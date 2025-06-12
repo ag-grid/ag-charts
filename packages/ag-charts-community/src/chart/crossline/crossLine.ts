@@ -1,8 +1,8 @@
 import type {
     AgBaseCrossLineLabelOptions,
     AgCrossLineLabelPosition,
-    TimeInterval,
-    TimeIntervalUnit,
+    AgTimeInterval,
+    AgTimeIntervalUnit,
 } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
@@ -63,7 +63,7 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     labelGroup: Group;
     lineDash?: number[];
     range?: [any, any];
-    scale?: Scale<any, number, number | TimeInterval | TimeIntervalUnit>;
+    scale?: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>;
     stroke?: string;
     strokeOpacity?: number;
     strokeWidth?: number;

@@ -1,5 +1,5 @@
 import { isFiniteNumber } from 'ag-charts-core';
-import type { DateFormatterStyle, FormatterParams, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { CategoryScale } from '../../scale/categoryScale';
@@ -76,7 +76,7 @@ export class CategoryAxis<
         _domain: any[],
         _ticks: any[],
         _fractionDigits?: number,
-        _timeInterval?: TimeInterval | TimeIntervalUnit
+        _timeInterval?: AgTimeInterval | AgTimeIntervalUnit
     ): AxisTickFormatParams {
         return { type: 'category' };
     }
@@ -85,7 +85,7 @@ export class CategoryAxis<
         value: any,
         params: FormatDatumParams,
         _fractionDigits: number | undefined,
-        _timeInterval: TimeInterval | TimeIntervalUnit | undefined,
+        _timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,
         _style: DateFormatterStyle
     ): FormatterParams<any> {
         const { datum, seriesId, key, source, property, domain, boundSeries } = params;

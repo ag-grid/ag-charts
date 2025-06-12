@@ -223,9 +223,13 @@ export class ChartTheme {
                         spacing: { $path: '../../label/spacing' },
                         color: { $path: '../../label/color' },
                         avoidCollisions: { $path: '../../label/avoidCollisions' },
-                        format: { $path: '../../label/format' },
                     },
-                    tick: { $path: '../tick' },
+                    tick: {
+                        enabled: { $path: '../../tick/enabled' },
+                        width: { $path: '../../tick/width' },
+                        size: { $path: '../../tick/size' },
+                        stroke: { $path: '../../tick/stroke' },
+                    },
                 },
             },
             {

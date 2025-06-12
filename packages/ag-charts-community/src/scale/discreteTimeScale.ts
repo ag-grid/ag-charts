@@ -1,9 +1,9 @@
 import { findMinIndex } from 'ag-charts-core';
-import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { BandScale } from './bandScale';
 
-export abstract class DiscreteTimeScale extends BandScale<Date, TimeInterval | TimeIntervalUnit | number> {
+export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval | AgTimeIntervalUnit | number> {
     static override is(value: unknown): value is DiscreteTimeScale {
         return value instanceof DiscreteTimeScale;
     }

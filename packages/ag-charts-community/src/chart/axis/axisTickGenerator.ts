@@ -1,5 +1,5 @@
 import { boxCollides, countFractionDigits, dropFirstWhile, dropLastWhile } from 'ag-charts-core';
-import type { DateFormatterStyle, TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -40,7 +40,7 @@ import type { AxisInterval } from './axisInterval';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
 
-export type AnyTimeInterval = TimeInterval | TimeIntervalUnit;
+export type AnyTimeInterval = AgTimeInterval | AgTimeIntervalUnit;
 
 export interface TickData<D = any> {
     tickDomain: D[];
@@ -112,7 +112,7 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
         ticks: D[],
         primary: boolean,
         fractionDigits: number | undefined,
-        timeInterval: TimeInterval | TimeIntervalUnit | undefined,
+        timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,
         dateStyle: DateFormatterStyle
     ): (value: any, index: number) => string | undefined;
 }
@@ -475,7 +475,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     private getTimeIntervalTicks(
         visibleRange: [number, number],
         tickParams: Readonly<ScaleTickParams<any>>,
-        timeInterval: TimeInterval | TimeIntervalUnit,
+        timeInterval: AgTimeInterval | AgTimeIntervalUnit,
         reverse: boolean
     ) {
         const parentInterval = intervalHierarchy(timeInterval);
@@ -641,7 +641,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         let tickDomain: D[] = niceDomain;
         let rawTicks: any[] | undefined;
         let rawTickCount: number | undefined;
-        let timeInterval: TimeInterval | TimeIntervalUnit | undefined;
+        let timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined;
         let primaryTicksIndices: Set<number> | undefined;
         let interpolate = false;
 
@@ -812,7 +812,7 @@ function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding: number = 
 }
 
 function createTimeScaleTicks(
-    interval: TimeInterval | TimeIntervalUnit | number,
+    interval: AgTimeInterval | AgTimeIntervalUnit | number,
     domain: [Date, Date],
     visibleRange?: [number, number],
     extend?: boolean
@@ -826,7 +826,7 @@ function createTimeScaleTicks(
 
     if (typeof interval !== 'number') {
         const epoch = domain[0];
-        const alignedInterval: TimeInterval =
+        const alignedInterval: AgTimeInterval =
             typeof interval === 'string' ? { unit: interval, epoch } : { ...interval, epoch };
         return intervalRange(alignedInterval, domain[0], domain[1], { visibleRange, extend });
     }

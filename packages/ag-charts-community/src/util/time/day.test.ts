@@ -3,7 +3,7 @@
  */
 import { expect, test } from '@jest/globals';
 
-import { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { intervalCeil, intervalFloor, intervalRange } from './index';
 
@@ -12,7 +12,7 @@ it('should execute with UTC timezone', () => {
 });
 
 test('day', () => {
-    const interval: TimeInterval | TimeIntervalUnit = 'day';
+    const interval: AgTimeInterval | AgTimeIntervalUnit = 'day';
     const date = new Date(2023, 0, 18, 8, 31, 5, 100);
 
     const floor = intervalFloor(interval, date);
@@ -30,7 +30,7 @@ test('day', () => {
 });
 
 test('day.every', () => {
-    const interval: TimeInterval | TimeIntervalUnit = { unit: 'day', step: 2 };
+    const interval: AgTimeInterval | AgTimeIntervalUnit = { unit: 'day', step: 2 };
     const date = new Date(2023, 0, 17, 8, 31, 5, 100);
 
     const floor = intervalFloor(interval, date);
@@ -48,7 +48,7 @@ test('day.every', () => {
 });
 
 test('day.every with defaultAlignment: interval', () => {
-    const interval: TimeInterval | TimeIntervalUnit = { unit: 'day', step: 2 };
+    const interval: AgTimeInterval | AgTimeIntervalUnit = { unit: 'day', step: 2 };
 
     const range = intervalRange(interval, new Date(2023, 0, 17, 8, 31, 5, 100), new Date(2023, 0, 23, 21, 31, 5, 100), {
         defaultAlignment: 'interval',
@@ -61,7 +61,7 @@ test('day.every with defaultAlignment: interval', () => {
 });
 
 test('day.every stick to a date', () => {
-    const interval: TimeInterval | TimeIntervalUnit = { unit: 'day', step: 5, epoch: new Date(2023, 1, 2) };
+    const interval: AgTimeInterval | AgTimeIntervalUnit = { unit: 'day', step: 5, epoch: new Date(2023, 1, 2) };
     const ticks = intervalRange(interval, new Date(2023, 1, 1), new Date(2023, 1, 28));
     expect(ticks).toEqual([
         new Date(2023, 1, 2),
@@ -74,7 +74,7 @@ test('day.every stick to a date', () => {
 });
 
 test('day.every stick to a different date', () => {
-    const interval: TimeInterval | TimeIntervalUnit = { unit: 'day', step: 5, epoch: new Date(2023, 1, 4) };
+    const interval: AgTimeInterval | AgTimeIntervalUnit = { unit: 'day', step: 5, epoch: new Date(2023, 1, 4) };
     const ticks = intervalRange(interval, new Date(2023, 1, 1), new Date(2023, 1, 28));
     expect(ticks).toEqual([
         new Date(2023, 1, 4),
@@ -88,7 +88,7 @@ test('day.every stick to a different date', () => {
 test('day.every snapTo weekly', () => {
     const start = new Date(2023, 10, 1);
     const end = new Date(2023, 11, 1);
-    const interval: TimeInterval | TimeIntervalUnit = { unit: 'day', step: 14, epoch: start };
+    const interval: AgTimeInterval | AgTimeIntervalUnit = { unit: 'day', step: 14, epoch: start };
     const ticks = intervalRange(interval, start, end);
     expect(ticks).toEqual([new Date(2023, 10, 1), new Date(2023, 10, 15), new Date(2023, 10, 29)]);
 });

@@ -1,5 +1,5 @@
 import { isPlainObject } from 'ag-charts-core';
-import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { TickIntervals, defaultEpoch, getTickTimeInterval, isDenseInterval } from '../util/ticks';
 import { intervalRange, intervalStep } from '../util/time';
@@ -10,7 +10,7 @@ import type { ScaleTickParams, ScaleTickResult } from './scale';
 const sunday = new Date(1970, 0, 4);
 
 // eslint-disable-next-line sonarjs/use-type-alias
-export class TimeScale extends ContinuousScale<Date, TimeInterval | TimeIntervalUnit | number> {
+export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeIntervalUnit | number> {
     static override is(value: unknown): value is TimeScale {
         return value instanceof TimeScale;
     }
@@ -34,7 +34,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | TimeInterval
         return new Date(super.invert(value));
     }
 
-    override niceDomain(ticks: ScaleTickParams<TimeInterval | number>, domain: Date[] = this.domain): Date[] {
+    override niceDomain(ticks: ScaleTickParams<AgTimeInterval | number>, domain: Date[] = this.domain): Date[] {
         if (domain.length < 2) return [];
 
         let [d0, d1] = domain;
@@ -55,7 +55,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | TimeInterval
      * Returns uniformly-spaced dates that represent the scale's domain.
      */
     override ticks(
-        params: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
+        params: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1],
         extend = false
@@ -118,7 +118,7 @@ export function getDateTicksForInterval({
 }: {
     start: number;
     stop: number;
-    interval: number | TimeInterval | TimeIntervalUnit;
+    interval: number | AgTimeInterval | AgTimeIntervalUnit;
     availableRange: number;
     visibleRange: [number, number] | undefined;
     extend: boolean;
@@ -144,7 +144,7 @@ export function getDateTicksForInterval({
 
     if (tickInterval) {
         const { timeInterval, step, duration } = tickInterval;
-        const alignedInterval: TimeInterval = {
+        const alignedInterval: AgTimeInterval = {
             ...timeInterval,
             step: step * intervalStep(timeInterval) * Math.round(absInterval / duration),
             epoch: defaultEpoch(timeInterval, { weekStart: sunday }),
@@ -167,14 +167,14 @@ export function getDateTicksForInterval({
 function updateNiceDomainIteration(
     d0: Date,
     d1: Date,
-    ticks: ScaleTickParams<TimeInterval | TimeIntervalUnit | number>,
+    ticks: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
     availableRange: number
 ): [Date, Date] {
     const { interval } = ticks;
     const start = Math.min(dateToNumber(d0), dateToNumber(d1));
     const stop = Math.max(dateToNumber(d0), dateToNumber(d1));
 
-    let i: TimeInterval | TimeIntervalUnit | undefined;
+    let i: AgTimeInterval | AgTimeIntervalUnit | undefined;
 
     if (isPlainObject(interval) || typeof interval === 'string') {
         i = interval;

@@ -1,12 +1,12 @@
 import { Logger, type RequireOptional } from 'ag-charts-core';
-import type { TimeInterval, TimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
-interface TimeIntervalBackwardsCompat extends RequireOptional<TimeInterval> {
+interface TimeIntervalBackwardsCompat extends RequireOptional<AgTimeInterval> {
     every(count: number): TimeIntervalBackwardsCompat;
 }
 
 function createTimeInterval(
-    unit: TimeIntervalUnit,
+    unit: AgTimeIntervalUnit,
     step: number,
     epoch: Date | undefined,
     utc: boolean | undefined
@@ -24,7 +24,7 @@ function createTimeInterval(
 
 const cachedInstances: Partial<Record<string, TimeIntervalBackwardsCompat>> = {};
 
-function getTimeInterval(unit: TimeIntervalUnit, step = 1, epoch?: Date, utc = false): TimeIntervalBackwardsCompat {
+function getTimeInterval(unit: AgTimeIntervalUnit, step = 1, epoch?: Date, utc = false): TimeIntervalBackwardsCompat {
     Logger.warnOnce('time import is deprecated, use object notation instead');
 
     const key = `${unit}:${step}:${epoch?.getTime() ?? 0}:${utc}`;
