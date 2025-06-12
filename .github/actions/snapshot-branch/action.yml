@@ -4,6 +4,9 @@ inputs:
     path:
         description: 'Path to snapshot files.'
         required: true
+    source_branch:
+        description: 'Source branch to use for snapshots.'
+        required: true
     branch:
         description: 'Snapshot branch name to use.'
         required: true
@@ -43,10 +46,8 @@ runs:
           run: |
               set -eux
 
-              if [[ "${{github.head_ref || github.ref}}" == "refs/heads/latest" ]] ; then
-                  git fetch origin ${{github.head_ref || github.ref}}
-                  git switch latest
-              fi
+              git fetch origin ${{inputs.source_branch}}
+              git switch ${{inputs.source_branch}}
 
               git checkout -b ${{inputs.branch}}
 
