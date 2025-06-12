@@ -66,7 +66,7 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = TDatumDefault, TConte
 }
 
 export interface AgRangeBarHighlightStyleOptions extends AgRangeBarSeriesStyle {
-    /** The opacity of the whole series (area line, area fill, labels and markers, if any) */
+    /** The opacity of the whole series (line, fill, labels and markers, if any) */
     opacity?: Opacity;
 }
 export type AgRangeBarSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgRangeBarSeriesOptionsKeys<TDatum> &

@@ -48,7 +48,7 @@ export interface AgLineSeriesThemeableOptions<TDatum = TDatumDefault, TContext =
 }
 
 export interface AgLineHighlightStyleOptions extends StrokeOptions, LineDashOptions {
-    /** The opacity of the whole series (area line, area fill, labels and markers, if any) */
+    /** The opacity of the whole series (line, fill, labels and markers, if any) */
     opacity?: Opacity;
 }
 

@@ -46,7 +46,7 @@ export interface AgSeriesHighlightOptions<SeriesHighlightStyleOptions> {
 export interface AgHighlightStyleOptions extends AgBaseHighlightStyleOptions, FillOptions {}
 
 export interface AgBaseHighlightStyleOptions extends StrokeOptions, LineDashOptions {
-    /** The opacity of the whole series (area line, area fill, labels and markers, if any) */
+    /** The opacity of the whole series (line, fill, labels and markers, if any) */
     opacity?: Opacity;
 }
 

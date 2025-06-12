@@ -19,7 +19,7 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = TDatumDefault, TCon
 }
 
 export interface AgRadialHighlightStyleOptions extends AgRadialSeriesStyle {
-    /** The opacity of the whole series (area line, area fill, labels and markers, if any) */
+    /** The opacity of the whole series (line, fill, labels and markers, if any) */
     opacity?: Opacity;
 }
 
