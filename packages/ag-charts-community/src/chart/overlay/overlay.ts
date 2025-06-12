@@ -1,7 +1,9 @@
 import { createElement } from 'ag-charts-core';
+import type { AgChartOverlayRendererParams, TDatumDefault } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
+import { callWithContext } from '../../util/callbackCache';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
 import type { AnimationManager } from '../interaction/animationManager';
@@ -17,7 +19,7 @@ export class Overlay extends BaseProperties {
     text?: string;
 
     @Property
-    renderer?: () => string | HTMLElement;
+    renderer?: (params: AgChartOverlayRendererParams<TDatumDefault>) => string | HTMLElement;
 
     private content?: HTMLElement;
     public focusBox?: BBox;
@@ -33,12 +35,18 @@ export class Overlay extends BaseProperties {
         return localeManager.t(this.text ?? this.defaultMessageId);
     }
 
-    getElement(animationManager: AnimationManager | undefined, localeManager: LocaleManager, rect: BBox) {
+    getElement(
+        callers: Parameters<typeof callWithContext>[0],
+        animationManager: AnimationManager | undefined,
+        localeManager: LocaleManager,
+        rect: BBox
+    ) {
         this.content?.remove();
         this.focusBox = rect;
 
         if (this.renderer) {
-            const htmlContent = this.renderer();
+            const params: AgChartOverlayRendererParams<TDatumDefault> = {};
+            const htmlContent = callWithContext(callers, this.renderer, params);
             if (htmlContent instanceof HTMLElement) {
                 this.content = htmlContent;
             } else {

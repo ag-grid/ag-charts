@@ -5,6 +5,7 @@ import type {
     MockAPICallback,
     MockAxisLabelFormatter,
     MockItemStyler,
+    MockOverlayRenderer,
     MockSeriesLabelFormatter,
     MockTooltipRenderer,
 } from './test/freezableMock';
@@ -287,6 +288,47 @@ describe('AG-13024 API context', () => {
                 tooltipRenderer.expect().toHaveBeenCalledTimes(1).withContext(null);
             });
         });
+    });
+});
+
+describe('AG-13024 API context - overlays', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    type TDatum = undefined;
+    type TContext = { name: string };
+    type TMock = MockOverlayRenderer<TDatum, TContext>;
+    let chart: Chart;
+    let context: TContext;
+    let overlayRenderer: ReturnType<typeof newFreezableMock<TDatum, TContext, TMock>>;
+
+    beforeEach(() => {
+        context = { name: 'myContext' };
+        overlayRenderer = newFreezableMock<TDatum, TContext, TMock>((params) => {
+            params.context satisfies TContext | undefined;
+            return '';
+        });
+    });
+
+    afterEach(() => {
+        chart?.destroy();
+        (chart as unknown) = undefined;
+        expect(Object.isFrozen(context)).toBe(false);
+    });
+
+    test('with context', async () => {
+        await createChart({
+            context,
+            overlays: { noData: { renderer: overlayRenderer.frozen } },
+        });
+        overlayRenderer.expect().toHaveBeenCalledTimes(1).withContext(context);
+    });
+
+    test('without context', async () => {
+        await createChart({
+            overlays: { noData: { renderer: overlayRenderer.frozen } },
+        });
+        overlayRenderer.expect().toHaveBeenCalledTimes(1).withoutContext();
     });
 });
 

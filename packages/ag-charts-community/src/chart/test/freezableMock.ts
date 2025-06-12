@@ -8,6 +8,7 @@ import type {
     AgBaseThemeableChartOptions,
     AgCartesianAxisOptions,
     AgChartLabelOptions,
+    AgChartOptions,
     AgContextMenuItem,
 } from 'ag-charts-types';
 
@@ -56,6 +57,9 @@ export type MockLegendItemDblClickListener<TDatum, TContext> = NonNullable<
 export type MockContextMenuAction<TDatum, TContext> = NonNullable<
     Extract<AgContextMenuItem<TDatum, TContext>, object>['action']
 >;
+export type MockOverlayRenderer<TDatum, TContext> = NonNullable<
+    NonNullable<NonNullable<AgChartOptions<TDatum, TContext>['overlays']>['noData']>['renderer']
+>;
 
 export type MockAPICallback<TDatum, TContext> =
     | MockItemStyler<TDatum, TContext>
@@ -74,7 +78,8 @@ export type MockAPICallback<TDatum, TContext> =
     | MockSeriesNodeDblClickListener<TDatum, TContext>
     | MockLegendItemClickListener<TDatum, TContext>
     | MockLegendItemDblClickListener<TDatum, TContext>
-    | MockContextMenuAction<TDatum, TContext>;
+    | MockContextMenuAction<TDatum, TContext>
+    | MockOverlayRenderer<TDatum, TContext>;
 
 // AG Charts calls Object.freeze on theme options, so we must create intermediate functions to circumvent that.
 export function newFreezableMock<D, C, F extends MockAPICallback<D, C>>(mockImp?: F) {
