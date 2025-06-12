@@ -4,7 +4,7 @@ import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag
 import { SunburstSeries } from './sunburstSeries';
 import { sunburstSeriesOptionsDef } from './sunburstSeriesOptionsDef';
 
-const { BASE_FONT_SIZE, FONT_SIZE_RATIO } = _ModuleSupport;
+const { BASE_FONT_SIZE, FONT_SIZE_RATIO, singleSeriesHighlightStyle } = _ModuleSupport;
 
 export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     type: 'series',
@@ -63,6 +63,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
                 stroke: `rgba(0, 0, 0, 0.4)`,
                 strokeWidth: 2,
             },
+            highlight: singleSeriesHighlightStyle(),
         },
         gradientLegend: {
             enabled: true,
