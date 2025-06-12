@@ -44,6 +44,7 @@ const interpolateOklch = (x: OKLCHA, y: OKLCHA, d: number): Color => {
 
 export class ColorScale extends AbstractScale<number, string> {
     readonly type = 'color';
+    readonly defaultTickCount = 0;
     protected invalid = true;
 
     @Invalidating

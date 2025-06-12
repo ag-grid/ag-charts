@@ -14,6 +14,7 @@ const yLat = (y: number) => (Math.atan(Math.exp(-y)) - Math.PI * 0.25) / (radsIn
 
 export class MercatorScale extends AbstractScale<Position, XY> {
     readonly type = 'mercator';
+    readonly defaultTickCount = 0;
     readonly bounds: BBox;
 
     static bounds(domain: Position[]): BBox {
