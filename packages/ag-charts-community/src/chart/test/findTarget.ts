@@ -1,5 +1,5 @@
 import { boxContains } from 'ag-charts-core';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, ClassTypePair } from 'ag-charts-test';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, ClassTypePair, type MockEvent } from 'ag-charts-test';
 
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
@@ -18,15 +18,6 @@ import { Legend } from '../legend/legend';
 import { LegendDOMProxy } from '../legend/legendDOMProxy';
 import { LegendMarkerLabel } from '../legend/legendMarkerLabel';
 import { SeriesAreaManager } from '../series/seriesAreaManager';
-
-export type MockEvent = {
-    bubbleChain: HTMLElement[];
-    target: HTMLElement;
-    offsetX: number;
-    offsetY: number;
-    clientX: number;
-    clientY: number;
-};
 
 const KNOWN_AG_CHARTS_CLASSES: readonly string[] = [
     'ag-charts-series-area',
