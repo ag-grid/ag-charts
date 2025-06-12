@@ -301,7 +301,7 @@ export const Changelog = () => {
                         component: 'paddingCellRenderer',
                     };
                 },
-                filter: 'agSetColumnFilter',
+                filter: 'agTextColumnFilter',
                 filterParams: {
                     comparator: (a: any, b: any) => {
                         const valA = parseInt(a);
