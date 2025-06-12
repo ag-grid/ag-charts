@@ -5,6 +5,8 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH, mockCanvas } from 'ag-charts-test';
 
 export const CANVAS_TO_BUFFER_DEFAULTS = { quality: 1 };
 
+export { CANVAS_HEIGHT, CANVAS_WIDTH, toMatchImage } from 'ag-charts-test';
+
 export function extractImageData({
     nodeCanvas,
     bbox,

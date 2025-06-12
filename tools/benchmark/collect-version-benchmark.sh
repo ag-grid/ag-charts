@@ -1,18 +1,48 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Print a message in green
+log_success() {
+    echo -e "\033[32m$1\033[0m"
+}
+
+# Print a message in yellow
+log_warning() {
+    echo -e "\033[33m$1\033[0m" 
+}
+
+# Print a message in red
+log_error() {
+    echo -e "\033[31m$1\033[0m"
+}
+
+# Print a message in blue
+log_info() {
+    echo -e "\033[34m$1\033[0m"
+}
+
+# Print a divider line
+log_divider() {
+    echo "----------------------------------------"
+}
+
+
 pause=false
 failed=false
 all=false
 data_file=packages/ag-charts-website/src/content/docs/benchmarks/_examples/summary/data.ts
+repeat_count=1
 
-while getopts "pa" opt; do
+while getopts "par:" opt; do
   case $opt in
     p)
       pause=true
       ;;
     a)
       all=true
+      ;;
+    r)
+      repeat_count=$OPTARG
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -63,13 +93,13 @@ excluded_files=("packages/ag-charts-community/src/util/test/mockCanvas.ts")
 
 # Bail out if there are uncommitted changes in the git working tree
 if ! git diff --quiet; then
-    echo "There are uncommitted changes in the working tree. Please commit or stash them before running this script."
+    log_error "There are uncommitted changes in the working tree. Please commit or stash them before running this script."
     exit 1
 fi
 
 # Bail out if there are untracked files in the git working tree
 if [[ -n $(git ls-files --others --exclude-standard) ]]; then
-    echo "There are untracked files in the working tree. Please commit or stash them before running this script."
+    log_error "There are untracked files in the working tree. Please commit or stash them before running this script."
     exit 1
 fi
 
@@ -79,36 +109,49 @@ cleanup() {
     git clean -fd
 }
 
+build() {
+    NX_DAEMON=false nx run-many -t build -p ag-charts-core,ag-charts-test
+}
+
 benchmark() {
     # Remove intermediate test results
     if [[ -d ./reports ]] ; then 
         rm -rf ./reports
     fi
 
+
     repeat=true
     while $($repeat) ; do
-        # Run the benchmark with the current version of the files
-        if (
-            AG_LIBRARY_VERSION=$(echo "$1" | sed 's/^origin\///') \
-            node \
-                --expose-gc ./node_modules/jest/bin/jest.js \
-                --config packages/ag-charts-community/jest.config.ts \
-                --runInBand \
-                --testPathPattern '.*/benchmarks/.*'
-            node \
-                --expose-gc ./node_modules/jest/bin/jest.js \
-                --config packages/ag-charts-enterprise/jest.config.ts \
-                --runInBand \
-                --testPathPattern '.*/benchmarks/.*'
-        ) ; then
-            node "$(dirname $0)/collate-reports.js" --name "$(echo "$version" | sed 's/^origin\///')"
-            git add ${data_file}
-        else
-            failed=true
-            echo "Benchmarks failed, continuing..."
-        fi
-        repeat=false
+        count=0
+        while $($repeat) && [[ $count -lt $repeat_count ]] ; do
+            count=$((count + 1))
 
+            log_info "Benchmarking $version ($count of $repeat_count)"
+
+            # Run the benchmark with the current version of the files
+            if (
+                AG_LIBRARY_VERSION=$(echo "$1" | sed 's/^origin\///') \
+                node \
+                    --expose-gc ./node_modules/jest/bin/jest.js \
+                    --config packages/ag-charts-community/jest.config.ts \
+                    --runInBand \
+                    --testPathPattern '.*/benchmarks/.*'
+                node \
+                    --expose-gc ./node_modules/jest/bin/jest.js \
+                    --config packages/ag-charts-enterprise/jest.config.ts \
+                    --runInBand \
+                    --testPathPattern '.*/benchmarks/.*'
+            ) ; then
+                node "$(dirname $0)/collate-reports.js" --name "$(echo "$version" | sed 's/^origin\///')"
+                git add ${data_file}
+            else
+                failed=true
+                echo "Benchmarks failed, continuing..."
+                repeat=false
+            fi
+        done
+
+        repeat=false
         if $($pause) ; then
             read -p "Paused at ${version}, continue? (Y/n/[r]epeat) " confirm
             if [[ "${confirm}" =~ ^[Rr]$ ]] ; then
@@ -125,11 +168,12 @@ benchmark() {
 trap 'cleanup' ERR EXIT
 
 for version in "${versions[@]}"; do
-    echo "Benchmarking $version"
     # Checkout files in the specified input file set (removing any files that have been added since then)
     git restore --source "$version" -- ${included_files[@]}
     # Checkout any excluded files from the current version
     git checkout HEAD -- ${excluded_files[@]}
+    # Build & benchmark
+    build
     benchmark ${version}
     # Remove any untracked files created during this benchmark run
     git clean -fd
@@ -138,6 +182,6 @@ for version in "${versions[@]}"; do
 done
 
 if $($failed) ; then 
-    echo "Benchmarks failed, check output."
+    log_error "Benchmarks failed, check output."
     exit 1
 fi
