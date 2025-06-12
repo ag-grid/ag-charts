@@ -1,0 +1,39 @@
+name: Security
+
+on:
+    issue_comment:
+        types: [created]
+    workflow_dispatch:
+    schedule:
+        - cron: '0 0 * * *' # Run daily at midnight UTC
+
+jobs:
+    security-all-projects:
+        runs-on: ubuntu-latest
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/security') || github.event_name == 'schedule'
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+            - name: Snyk scan workspaces
+              id: snyk-scan-workspaces
+              uses: ./external/ag-shared/github/actions/snyk-scan-workspaces
+              with:
+                  snyk_token: ${{ secrets.SNYK_TOKEN }}
+
+    code-security:
+        runs-on: ubuntu-latest
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/security') || github.event_name == 'schedule'
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+            - name: Snyk code scan
+              id: snyk-code-scan
+              uses: ./external/ag-shared/github/actions/snyk-code-scan
+              with:
+                  snyk_token: ${{ secrets.SNYK_TOKEN }}

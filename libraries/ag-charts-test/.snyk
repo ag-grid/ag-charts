@@ -1,0 +1,12 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+    SNYK-JS-CROSSSPAWN-8303230:
+        - skia-canvas > glob > foreground-child > cross-spawn:
+              reason: >-
+                  Used in tests, so a ReDoS attack would only apply to
+                  developers
+              expires: 2025-07-11T14:02:59.692Z
+              created: 2025-06-11T14:02:59.694Z
+patch: {}

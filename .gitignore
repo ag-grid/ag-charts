@@ -51,6 +51,9 @@ Thumbs.db
 packages/ag-charts-website/.env
 .nx/
 
+# Snyk
+.dccache
+
 # Astro build generated files
 .astro
 src/env.d.ts
