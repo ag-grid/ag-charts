@@ -286,6 +286,7 @@ export const Changelog = () => {
                 field: 'key',
                 headerName: 'Issue',
                 width: 150,
+                maxWidth: 150,
                 resizable: true,
                 cellRendererSelector: (params: any) => {
                     if (
@@ -301,7 +302,7 @@ export const Changelog = () => {
                         component: 'paddingCellRenderer',
                     };
                 },
-                filter: 'agSetColumnFilter',
+                filter: 'agTextColumnFilter',
                 filterParams: {
                     comparator: (a: any, b: any) => {
                         const valA = parseInt(a);
