@@ -266,10 +266,10 @@ describe('AG-13024 API context', () => {
                 tooltipRenderer.expect().toHaveBeenCalledTimes(1).withoutContext();
             });
             test('defined to null', async () => {
-                options.series![0].context = null;
-                options.series![1].context = null;
-                options.series![2].context = null;
-                options.axes![0].context = null;
+                options.series![0].context = null as unknown as TContext;
+                options.series![1].context = null as unknown as TContext;
+                options.series![2].context = null as unknown as TContext;
+                options.axes![0].context = null as unknown as TContext;
                 chart = await createChart(options);
                 itemStyler.expect().toHaveBeenCalledTimes(12).withContext(null);
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(null);
@@ -295,10 +295,10 @@ describe('AG-13024 API context', () => {
                 tooltipRenderer.expect().toHaveBeenCalledTimes(1).withContext(rootContext);
             });
             test('defined to null', async () => {
-                options.series![0].context = null;
-                options.series![1].context = null;
-                options.series![2].context = null;
-                options.axes![0].context = null;
+                options.series![0].context = null as unknown as TContext;
+                options.series![1].context = null as unknown as TContext;
+                options.series![2].context = null as unknown as TContext;
+                options.axes![0].context = null as unknown as TContext;
                 chart = await createChart(options);
                 itemStyler.expect().toHaveBeenCalledTimes(12).withContext(null);
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(null);
