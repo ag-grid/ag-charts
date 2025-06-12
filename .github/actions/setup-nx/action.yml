@@ -154,7 +154,7 @@ runs:
           if: inputs.os == 'macos'
           shell: bash
           run: |
-              brew install pkg-config cairo pango libpng jpeg giflib librsvg python-setuptools
+              brew install fontconfig libpng jpeg giflib librsvg
 
         - name: Setup Node.js
           id: setup_node
