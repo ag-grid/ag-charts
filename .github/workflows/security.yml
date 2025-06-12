@@ -6,15 +6,11 @@ on:
     workflow_dispatch:
     schedule:
         - cron: '0 0 * * *' # Run daily at midnight UTC
-    push:
-        branches: ['AG-15064-add-snyk']
-    pull_request:
-        branches: ['AG-15064-add-snyk']
 
 jobs:
     security-all-projects:
         runs-on: ubuntu-latest
-        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/security') || github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'pull_request'
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/security') || github.event_name == 'schedule'
         steps:
             - name: Checkout
               id: checkout
@@ -29,7 +25,7 @@ jobs:
 
     code-security:
         runs-on: ubuntu-latest
-        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/security') || github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'pull_request'
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.comment.body == '/security') || github.event_name == 'schedule'
         steps:
             - name: Checkout
               id: checkout
