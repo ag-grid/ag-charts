@@ -470,9 +470,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return opts.datumSelection.update(opts.nodeData);
     }
 
-    private getItemBaseStyle(highlighted: boolean): ItemStyle {
+    private getItemBaseStyle(isHighlight: boolean, datum?: PyramidNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
 
         return getShapeStyle(
             {
@@ -483,6 +483,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+                opacity: highlightStyle?.opacity ?? 1,
             },
             this.properties.fillGradientDefaults,
             this.properties.fillPatternDefaults,
@@ -545,7 +546,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const { properties } = this;
         const { shadow } = properties;
 
-        const style = this.getItemBaseStyle(isHighlight);
         const bounds = this.contextNodeData?.bounds;
         const fillBBox: _ModuleSupport.ShapeFillBBox | undefined = bounds
             ? { series: bounds, axis: bounds }
@@ -553,6 +553,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         datumSelection.each((connector, nodeDatum) => {
             const { datumIndex, datum } = nodeDatum;
+
+            const style = this.getItemBaseStyle(isHighlight, nodeDatum);
             const overrides = this.getItemStyleOverrides(String(datumIndex), datum, datumIndex, style, isHighlight);
 
             applyShapeStyle(connector, style, overrides, fillBBox);
