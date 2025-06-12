@@ -1,10 +1,11 @@
-import { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
+import { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import type {
     MockAPICallback,
     MockAxisLabelFormatter,
     MockItemStyler,
+    MockOverlayRenderer,
     MockSeriesLabelFormatter,
     MockTooltipRenderer,
 } from './test/freezableMock';
@@ -287,6 +288,40 @@ describe('AG-13024 API context', () => {
                 tooltipRenderer.expect().toHaveBeenCalledTimes(1).withContext(null);
             });
         });
+    });
+});
+
+describe('AG-13024 API context', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    type TDatum = undefined;
+    type TContext = { name: string };
+    type TMock = MockOverlayRenderer<TDatum, TContext>;
+    let chart: Chart;
+    let context: TContext;
+
+    afterEach(() => {
+        chart?.destroy();
+        (chart as unknown) = undefined;
+        expect(Object.isFrozen(context)).toBe(false);
+    });
+    test('overlays', async () => {
+        context = { name: 'myContext' };
+        const overlayRenderer = newFreezableMock<TDatum, TContext, TMock>((params) => {
+            params.context satisfies TContext | undefined;
+            return '';
+        });
+
+        const opts: AgChartOptions<TDatum, TContext> = {
+            overlays: {
+                noData: {
+                    renderer: overlayRenderer.frozen,
+                },
+            },
+        };
+        await createChart(opts);
+        overlayRenderer.expect().toHaveBeenCalledTimes(1).withContext(context);
     });
 });
 
