@@ -176,3 +176,40 @@ export function teardown(mockContext: MockContext) {
     }
     mockContext.destroy();
 }
+
+export const CANVAS_TO_BUFFER_DEFAULTS = { quality: 1 };
+
+export function extractImageData({
+    nodeCanvas,
+    bbox,
+}: {
+    nodeCanvas: Canvas;
+    bbox?: { x: number; y: number; width: number; height: number };
+}) {
+    let sourceCanvas = nodeCanvas;
+    if (bbox && nodeCanvas) {
+        const { x, y, width, height } = bbox;
+
+        // Canvas must have a valid size, otherwise node-canvas fails.
+        if (width < 0.5 || height < 0.5) {
+            throw new Error('Invalid image size provided, dimensions must be greater than zero.');
+        }
+
+        sourceCanvas = new ConfiguredCanvas(width, height);
+        sourceCanvas
+            ?.getContext('2d')
+            .drawImage(
+                nodeCanvas,
+                Math.round(x),
+                Math.round(y),
+                Math.round(width),
+                Math.round(height),
+                0,
+                0,
+                Math.round(width),
+                Math.round(height)
+            );
+    }
+
+    return sourceCanvas?.toBufferSync('png', CANVAS_TO_BUFFER_DEFAULTS);
+}

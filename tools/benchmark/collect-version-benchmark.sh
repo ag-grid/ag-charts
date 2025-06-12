@@ -88,8 +88,6 @@ included_files=(
     "packages/ag-charts-community-examples/src"
     "packages/ag-charts-enterprise/src"
 )
-# Files to retain from the current state of the repository
-excluded_files=("packages/ag-charts-community/src/util/test/mockCanvas.ts")
 
 # Bail out if there are uncommitted changes in the git working tree
 if ! git diff --quiet; then
@@ -170,8 +168,6 @@ trap 'cleanup' ERR EXIT
 for version in "${versions[@]}"; do
     # Checkout files in the specified input file set (removing any files that have been added since then)
     git restore --source "$version" -- ${included_files[@]}
-    # Checkout any excluded files from the current version
-    git checkout HEAD -- ${excluded_files[@]}
     # Build & benchmark
     build
     benchmark ${version}

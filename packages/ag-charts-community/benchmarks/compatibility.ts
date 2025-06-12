@@ -1,7 +1,5 @@
 import { AgChartOptions } from 'ag-charts-types';
 
-import { ChartUpdateType } from '../src/chart/chartUpdateType';
-
 export function isHistoricBenchmarkTest() {
     return process.env.AG_LIBRARY_VERSION != null && process.env.AG_LIBRARY_VERSION !== 'latest';
 }
@@ -34,7 +32,7 @@ export function isAtOrAfterVersion(major: number, minor: number, patch: number) 
 export async function waitForUpdate(chart: any): Promise<void> {
     chart = chart.chart;
 
-    if (chart._pendingFactoryUpdatesCount > 0 || chart.performUpdateType !== ChartUpdateType.NONE) {
+    if (chart._pendingFactoryUpdatesCount > 0 || chart.performUpdateType !== 0) {
         return new Promise((resolve) => {
             const destroyFn = chart.ctx.updateService.addListener('update-complete', () => {
                 resolve();

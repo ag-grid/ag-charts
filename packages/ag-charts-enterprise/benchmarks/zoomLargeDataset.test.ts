@@ -1,6 +1,5 @@
 import { describe as originalDescribe } from '@jest/globals';
 
-import { scrollAction } from '../../ag-charts-community/src/chart/test/utils';
 import { AgCartesianChartOptions } from '../src/main';
 import { benchmark, isAtOrAfterVersion, setupBenchmark } from './benchmark';
 
@@ -31,7 +30,7 @@ describe('zoom-large-dataset benchmark', () => {
             ctx,
             { expectedRelativeMB: 2, expectedCanvasCount: 2, autoSnapshot: false },
             async () => {
-                const zoomIn = scrollAction(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);
+                const zoomIn = ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);
                 for (let i = 0; i < 100; i++) {
                     await zoomIn(ctx.chart!);
                     await ctx.waitForUpdate();

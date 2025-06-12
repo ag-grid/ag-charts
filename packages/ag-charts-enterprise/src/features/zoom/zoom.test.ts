@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { AgCartesianChartOptions, AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
-    WheelDeltaMode,
     clickAction,
     delay,
     doubleClickAction,
@@ -21,6 +20,7 @@ import {
     twoFingerStart,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { WheelDeltaMode } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 

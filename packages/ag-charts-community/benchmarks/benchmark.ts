@@ -1,11 +1,21 @@
 import { afterEach, beforeEach } from '@jest/globals';
 
-import { flushTimings, loadBuiltExampleOptions, logTimings, recordTiming, setupMockConsole } from 'ag-charts-test';
+import {
+    CANVAS_HEIGHT,
+    CANVAS_WIDTH,
+    extractImageData,
+    flushTimings,
+    loadBuiltExampleOptions,
+    logTimings,
+    mockCanvas,
+    mouseMoveEvent,
+    recordTiming,
+    setupMockConsole,
+    wheelEvent,
+} from 'ag-charts-test';
 import { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../src/main';
-import { Point } from '../src/scene/point';
-import { extractImageData, setupMockCanvas } from '../src/util/test/mockCanvas';
 import {
     getVersion,
     isAtOrAfterVersion,
@@ -30,11 +40,11 @@ interface BenchmarkExpectations {
 export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
     chart?: AgChartInstance;
     options: T;
-    nodePositions: Point[][] = [];
+    nodePositions: { x: number; y: number }[][] = [];
     repeat = 1;
 
     public constructor(
-        readonly canvasCtx: ReturnType<typeof setupMockCanvas>,
+        readonly canvasCtx: mockCanvas.MockContext,
         readonly createApi: 'create' | '__createSparkline',
         readonly isEnterprise: boolean
     ) {}
@@ -85,6 +95,31 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
         await this.update();
 
         await waitForUpdate(this.chart);
+    }
+
+    async hover(x: number, y: number) {
+        let selector = 'canvas';
+        if (isAtOrAfterVersion(10, 0, 0)) {
+            selector = '.ag-charts-series-area';
+        }
+
+        const element = this.options.container?.querySelector(selector) as HTMLElement;
+        if (!element) throw new Error('No series area element found');
+        element.dispatchEvent(mouseMoveEvent({ target: element }, x, y));
+        await this.waitForUpdate();
+    }
+
+    async scroll(x: number, y: number, deltaX: number, deltaY: number) {
+        let selector = 'canvas';
+        if (isAtOrAfterVersion(10, 0, 0)) {
+            selector = '.ag-charts-series-area';
+        }
+
+        const element = this.options.container?.querySelector(selector) as HTMLElement;
+
+        if (!element) throw new Error('No series area element found');
+        element.dispatchEvent(wheelEvent({ target: element }, { deltaX, deltaY }));
+        await this.waitForUpdate();
     }
 
     repeatCount(count: number) {
@@ -191,11 +226,14 @@ export function setupBenchmark<T extends AgChartOptions>(
         isEnterprise?: boolean;
     }
 ): BenchmarkContext<T> {
-    const canvasCtx = setupMockCanvas();
+    const canvasCtx = new mockCanvas.MockContext(CANVAS_WIDTH, CANVAS_HEIGHT, globalThis.window.document);
+    canvasCtx.mockText = true;
+
     const { createApi = 'create' } = opts ?? {};
     setupMockConsole();
 
     beforeEach(() => {
+        mockCanvas.setup(canvasCtx);
         const { isEnterprise, options } = loadBuiltExampleOptions(exampleName);
         if (isEnterprise && !ctx.isEnterprise) {
             throw new Error('Cannot exercise enterprise example in ag-charts-community');
@@ -208,6 +246,7 @@ export function setupBenchmark<T extends AgChartOptions>(
             ctx.chart.destroy();
             (ctx.chart as unknown) = undefined;
         }
+        mockCanvas.teardown(canvasCtx);
     });
 
     afterAll(() => {
@@ -236,7 +275,7 @@ export async function addSeriesNodePoints<T extends AgChartOptions>(
         expect(nodeData.length).toBeGreaterThanOrEqual(nodeCount);
     }
 
-    const results: Point[] = [];
+    const results: { x: number; y: number }[] = [];
     const addResult = async (idx: number) => {
         const node = nodeData.at(Math.floor(idx));
         const midPoint = node?.midPoint;
@@ -271,11 +310,14 @@ function getSeriesNodeData(series: any): ContentNodeData | null {
     return series.contextNodeData;
 }
 
-async function toCanvasPoint(contentGroup: any, x: number, y: number) {
+function toCanvasPoint(contentGroup: any, x: number, y: number) {
     if (isAtOrAfterVersion(10, 2, 0)) {
-        return import('../src/scene/transformable.ts').then(({ Transformable }) =>
-            Transformable.toCanvasPoint(contentGroup, x, y)
-        );
+        let node = contentGroup;
+        while (node) {
+            ({ x, y } = node.toParentPoint?.(x, y) ?? { x, y });
+            node = node.parent;
+        }
+        return { x, y };
     } else {
         return contentGroup.inverseTransformPoint(x, y);
     }

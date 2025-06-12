@@ -192,7 +192,7 @@
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",
-        "commands": ["npx depcruise src"]
+        "commands": ["npx depcruise src benchmarks"]
       }
     },
     "lint:circular": {
