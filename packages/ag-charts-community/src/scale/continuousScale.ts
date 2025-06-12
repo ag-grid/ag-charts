@@ -9,6 +9,8 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
 
     static readonly defaultTickCount = 5;
 
+    readonly defaultTickCount = ContinuousScale.defaultTickCount;
+
     protected defaultClamp = false;
 
     protected constructor(
