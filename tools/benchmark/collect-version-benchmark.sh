@@ -4,6 +4,7 @@ set -euo pipefail
 pause=false
 failed=false
 all=false
+data_file=packages/ag-charts-website/src/content/docs/benchmarks/_examples/summary/data.ts
 
 while getopts "pa" opt; do
   case $opt in
@@ -28,13 +29,17 @@ shift $((OPTIND - 1))
 # Read an array of versions to benchmark from the argument list, exiting with an error if no versions were provided
 versions=("$@")
 if $all ; then
-    versions=$(
+    readarray -t versions < <(
         npx ts-node <<EOF
-            let { getData } = require('./packages/ag-charts-website/src/content/docs/benchmarks/_examples/summary/data.ts');
-            console.log(getData().map((r: any) => r.name).filter((r: any) => r !== 'latest').join(' '));
+            let { getData } = require('./${data_file}');
+            const versions = getData()
+                .map((r: any) => 'origin/' + r.name)
+                .filter((r: string) => r !== 'origin/latest')
+                .join('\n');
+            console.log(versions);
 EOF
     )
-    echo "Running benchmarks for all versions: $versions"
+    echo "Running benchmarks for all versions: ${versions[@]}"
 elif [[ ${#versions[@]} -eq 0 ]]; then
     echo "Usage: $0 [-p] <version> [<version> ...]"
     echo "Example: $0 origin/latest origin/b9.2.0"
@@ -68,6 +73,12 @@ if [[ -n $(git ls-files --others --exclude-standard) ]]; then
     exit 1
 fi
 
+cleanup() {
+    git add ${data_file}
+    git restore --source HEAD -- ${included_files[@]}
+    git clean -fd
+}
+
 benchmark() {
     # Remove intermediate test results
     if [[ -d ./reports ]] ; then 
@@ -91,6 +102,7 @@ benchmark() {
                 --testPathPattern '.*/benchmarks/.*'
         ) ; then
             node "$(dirname $0)/collate-reports.js" --name "$(echo "$version" | sed 's/^origin\///')"
+            git add ${data_file}
         else
             failed=true
             echo "Benchmarks failed, continuing..."
@@ -102,6 +114,7 @@ benchmark() {
             if [[ "${confirm}" =~ ^[Rr]$ ]] ; then
                 repeat=true
             elif [[ "${confirm}" =~ ^[Nn]$ ]] ; then
+                cleanup
                 exit 1
             fi
         fi
@@ -109,7 +122,7 @@ benchmark() {
 }
 
 # Reset the working tree state if an error is encountered
-trap 'git restore --source HEAD -- ${included_files[@]} && git clean -fd' ERR EXIT
+trap 'cleanup' ERR EXIT
 
 for version in "${versions[@]}"; do
     echo "Benchmarking $version"

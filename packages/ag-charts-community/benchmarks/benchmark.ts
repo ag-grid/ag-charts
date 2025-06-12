@@ -81,7 +81,7 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
         }
 
         const options = this.options as any;
-        options.series![index].visible = !options.series![index].visible;
+        options.series![index].visible = !(options.series![index].visible ?? true);
         await this.update();
 
         await waitForUpdate(this.chart);

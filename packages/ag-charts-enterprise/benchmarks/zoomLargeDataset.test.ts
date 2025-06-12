@@ -1,8 +1,13 @@
-import { describe } from '@jest/globals';
+import { describe as originalDescribe } from '@jest/globals';
 
 import { scrollAction } from '../../ag-charts-community/src/chart/test/utils';
 import { AgCartesianChartOptions } from '../src/main';
-import { benchmark, setupBenchmark } from './benchmark';
+import { benchmark, isAtOrAfterVersion, setupBenchmark } from './benchmark';
+
+let describe = originalDescribe;
+if (isAtOrAfterVersion(11, 0, 0)) {
+    describe = originalDescribe.skip as any;
+}
 
 describe('zoom-large-dataset benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('enterprise-1M-line-series', { isEnterprise: true });
