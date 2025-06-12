@@ -3,11 +3,15 @@ set -euo pipefail
 
 pause=false
 failed=false
+all=false
 
-while getopts "p" opt; do
+while getopts "pa" opt; do
   case $opt in
     p)
       pause=true
+      ;;
+    a)
+      all=true
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -23,7 +27,15 @@ shift $((OPTIND - 1))
 
 # Read an array of versions to benchmark from the argument list, exiting with an error if no versions were provided
 versions=("$@")
-if [[ ${#versions[@]} -eq 0 ]]; then
+if $all ; then
+    versions=$(
+        npx ts-node <<EOF
+            let { getData } = require('./packages/ag-charts-website/src/content/docs/benchmarks/_examples/summary/data.ts');
+            console.log(getData().map((r: any) => r.name).filter((r: any) => r !== 'latest').join(' '));
+EOF
+    )
+    echo "Running benchmarks for all versions: $versions"
+elif [[ ${#versions[@]} -eq 0 ]]; then
     echo "Usage: $0 [-p] <version> [<version> ...]"
     echo "Example: $0 origin/latest origin/b9.2.0"
     echo
@@ -35,6 +47,8 @@ fi
 # Files to check out for each version
 included_files=(
     "packages/ag-charts-types/src"
+    "packages/ag-charts-locale/src"
+    "packages/ag-charts-core/src"
     "packages/ag-charts-community/src"
     "packages/ag-charts-community-examples/src"
     "packages/ag-charts-enterprise/src"
