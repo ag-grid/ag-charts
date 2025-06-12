@@ -101,6 +101,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                     strokeWidth: 2,
                 },
             },
+            highlight: _ModuleSupport.singleSeriesHighlightStyle(),
         },
         gradientLegend: {
             enabled: true,
