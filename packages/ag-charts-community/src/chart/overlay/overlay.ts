@@ -2,7 +2,7 @@ import { createElement } from 'ag-charts-core';
 import type { AgChartOverlayRendererParams, TDatumDefault } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
-import { callWithContext } from '../../module-support';
+import { callWithContext } from '../../util/callbackCache';
 import type { BBox } from '../../scene/bbox';
 import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
