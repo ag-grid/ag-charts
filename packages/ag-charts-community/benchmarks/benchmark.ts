@@ -3,10 +3,11 @@ import { afterEach, beforeEach } from '@jest/globals';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
-    extractImageData,
+    WheelDeltaMode,
     flushTimings,
     loadBuiltExampleOptions,
     logTimings,
+    makeMockEvent,
     mockCanvas,
     mouseMoveEvent,
     recordTiming,
@@ -105,11 +106,18 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
 
         const element = this.options.container?.querySelector(selector) as HTMLElement;
         if (!element) throw new Error('No series area element found');
-        element.dispatchEvent(mouseMoveEvent({ target: element }, x, y));
+        const mockEvent = makeMockEvent({ target: element, offsetX: x, offsetY: y, clientX: x, clientY: y });
+        element.dispatchEvent(mouseMoveEvent(mockEvent, x, y));
         await this.waitForUpdate();
     }
 
-    async scroll(x: number, y: number, deltaX: number, deltaY: number) {
+    async scroll(
+        x: number,
+        y: number,
+        deltaY: number,
+        deltaMode: WheelDeltaMode = WheelDeltaMode.Lines,
+        deltaX: number = 0
+    ) {
         let selector = 'canvas';
         if (isAtOrAfterVersion(10, 0, 0)) {
             selector = '.ag-charts-series-area';
@@ -118,7 +126,8 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
         const element = this.options.container?.querySelector(selector) as HTMLElement;
 
         if (!element) throw new Error('No series area element found');
-        element.dispatchEvent(wheelEvent({ target: element }, { deltaX, deltaY }));
+        const mockEvent = makeMockEvent({ target: element, offsetX: x, offsetY: y, clientX: x, clientY: y });
+        element.dispatchEvent(wheelEvent(mockEvent, { deltaX, deltaY, deltaMode }));
         await this.waitForUpdate();
     }
 
@@ -189,7 +198,7 @@ export function benchmark(
 
             const { autoSnapshot, ...expected } = expectations;
             if (autoSnapshot ?? true) {
-                const newImageData = extractImageData(ctx.canvasCtx);
+                const newImageData = mockCanvas.extractImageData(ctx.canvasCtx.ctx);
                 expect(newImageData).toMatchImageSnapshot({
                     failureThresholdType: 'pixel',
                     failureThreshold: 5,

@@ -30,9 +30,8 @@ describe('zoom-large-dataset benchmark', () => {
             ctx,
             { expectedRelativeMB: 2, expectedCanvasCount: 2, autoSnapshot: false },
             async () => {
-                const zoomIn = ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);
                 for (let i = 0; i < 100; i++) {
-                    await zoomIn(ctx.chart!);
+                    await ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);
                     await ctx.waitForUpdate();
                 }
             },

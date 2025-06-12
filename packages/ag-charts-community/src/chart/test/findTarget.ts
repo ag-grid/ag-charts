@@ -1,5 +1,5 @@
 import { boxContains } from 'ag-charts-core';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, ClassTypePair, type MockEvent } from 'ag-charts-test';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, ClassTypePair, type MockEvent, makeMockEvent } from 'ag-charts-test';
 
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
@@ -19,12 +19,6 @@ import { LegendDOMProxy } from '../legend/legendDOMProxy';
 import { LegendMarkerLabel } from '../legend/legendMarkerLabel';
 import { SeriesAreaManager } from '../series/seriesAreaManager';
 
-const KNOWN_AG_CHARTS_CLASSES: readonly string[] = [
-    'ag-charts-series-area',
-    'ag-charts-canvas-proxy',
-    'ag-charts-canvas-container',
-] as const;
-
 const CAST_INFO = {
     Array: new ClassTypePair<unknown[], typeof Array>(Array),
 
@@ -43,18 +37,6 @@ const CAST_INFO = {
     NativeWidget: new ClassTypePair<NativeWidget, typeof NativeWidget>(NativeWidget),
     WidgetSet: new ClassTypePair<WidgetSet, typeof WidgetSet>(WidgetSet),
 } as const;
-
-function makeMockEvent(opts: Pick<MockEvent, 'target' | 'offsetX' | 'offsetY' | 'clientX' | 'clientY'>): MockEvent {
-    const bubbleChain: HTMLElement[] = [opts.target];
-    let parent: HTMLElement | null = opts.target.parentElement;
-    while (parent != null) {
-        if (KNOWN_AG_CHARTS_CLASSES.includes(parent.className)) {
-            bubbleChain.push(parent);
-        }
-        parent = parent.parentElement;
-    }
-    return { bubbleChain, ...opts };
-}
 
 function initBoundingClientRect(widgets: WidgetSet) {
     // getBoundingClientRect doesn't work correctly in node.js, but it's used in some parts of ag-charts.

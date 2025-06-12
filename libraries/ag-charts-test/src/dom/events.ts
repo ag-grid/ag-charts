@@ -7,6 +7,26 @@ export type MockEvent = {
     clientY: number;
 };
 
+const KNOWN_AG_CHARTS_CLASSES: readonly string[] = [
+    'ag-charts-series-area',
+    'ag-charts-canvas-proxy',
+    'ag-charts-canvas-container',
+] as const;
+
+export function makeMockEvent(
+    opts: Pick<MockEvent, 'target' | 'offsetX' | 'offsetY' | 'clientX' | 'clientY'>
+): MockEvent {
+    const bubbleChain: HTMLElement[] = [opts.target];
+    let parent: HTMLElement | null = opts.target.parentElement;
+    while (parent != null) {
+        if (KNOWN_AG_CHARTS_CLASSES.includes(parent.className)) {
+            bubbleChain.push(parent);
+        }
+        parent = parent.parentElement;
+    }
+    return { bubbleChain, ...opts };
+}
+
 type TMouseEvent =
     | 'mousedown'
     | 'mouseup'
