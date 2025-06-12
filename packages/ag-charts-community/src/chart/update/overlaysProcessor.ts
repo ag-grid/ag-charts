@@ -90,7 +90,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private showOverlay(overlay: Overlay, seriesRect: BBox) {
         if (!overlay.enabled) return;
 
-        const element = overlay.getElement(this.animationManager, this.localeManager, seriesRect);
+        const element = overlay.getElement(this.chartLike, this.animationManager, this.localeManager, seriesRect);
         this.overlayElem.appendChild(element);
     }
 

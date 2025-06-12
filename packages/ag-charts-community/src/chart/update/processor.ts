@@ -4,6 +4,7 @@ import type { Padding } from '../../util/padding';
 
 /** Interface to abstract from the actual chart implementation. */
 export interface ChartLike {
+    context?: unknown;
     axes: AxisLike[];
     series: SeriesLike[];
     seriesArea: { clip?: boolean };
