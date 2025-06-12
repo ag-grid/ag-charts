@@ -171,7 +171,7 @@ export interface AgTimeAxisOptions<TContext = TContextDefault>
 export interface AgUnitTimeAxisOptions<TContext = TContextDefault>
     extends Omit<
             AgBaseCartesianAxisOptions<
-                AgCartesianTimeAxisLabelOptions,
+                AgCartesianTimeAxisLabelOptions<TContext>,
                 AgCrosshairLabel<AgTimeAxisFormattableLabelFormat>,
                 TContext
             >,
