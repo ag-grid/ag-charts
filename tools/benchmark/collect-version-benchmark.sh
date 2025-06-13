@@ -107,8 +107,12 @@ cleanup() {
     git clean -fd
 }
 
-build() {
+prebuild() {
     NX_DAEMON=false nx run-many -t build -p ag-charts-core,ag-charts-test
+}
+
+build() {
+    NX_DAEMON=false nx run-many -t build -p ag-charts-core
 }
 
 benchmark() {
@@ -165,10 +169,11 @@ benchmark() {
 # Reset the working tree state if an error is encountered
 trap 'cleanup' ERR EXIT
 
-build
+prebuild
 for version in "${versions[@]}"; do
     # Checkout files in the specified input file set (removing any files that have been added since then)
     git restore --source "$version" -- ${included_files[@]}
+    build
     # Benchmark
     benchmark ${version}
     # Remove any untracked files created during this benchmark run

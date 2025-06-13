@@ -1,10 +1,11 @@
 import { describe as originalDescribe } from '@jest/globals';
 
-import { AgCartesianChartOptions } from '../src/main';
+import { AgCartesianChartOptions } from 'ag-charts-types';
+
 import { benchmark, isAtOrAfterVersion, setupBenchmark } from './benchmark';
 
 let describe = originalDescribe;
-if (isAtOrAfterVersion(11, 0, 0)) {
+if (!isAtOrAfterVersion(11, 0, 0)) {
     describe = originalDescribe.skip as any;
 }
 
@@ -32,7 +33,6 @@ describe('zoom-large-dataset benchmark', () => {
             async () => {
                 for (let i = 0; i < 100; i++) {
                     await ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);
-                    await ctx.waitForUpdate();
                 }
             },
             30_000

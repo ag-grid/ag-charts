@@ -98,7 +98,7 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
 
     async hover(x: number, y: number) {
         let selector = 'canvas';
-        if (isAtOrAfterVersion(10, 0, 0)) {
+        if (isAtOrAfterVersion(10, 3, 0)) {
             selector = '.ag-charts-series-area';
         }
 
@@ -117,7 +117,7 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
         deltaX: number = 0
     ) {
         let selector = 'canvas';
-        if (isAtOrAfterVersion(10, 0, 0)) {
+        if (isAtOrAfterVersion(10, 3, 0)) {
             selector = '.ag-charts-series-area';
         }
 
