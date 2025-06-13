@@ -1,20 +1,5 @@
----
-title: 'TypeScript Generics'
-hidePageMenu: true
----
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
-AG Charts leverages TypeScript Generics for chart data and context. This
-significantly enhances the developer experience through improved code completion
-and compile-time validation of row data and cell value properties.
-
-## Type \<TData>
-
-The `TData` (default: `any`) generic parameter is used to specify the interface
-of datums in the data.
-
-{% chartExampleRunner title="TDatum Generic Parameter" name="type-tdatum" type="generated" /%}
-
-```ts
 type MyDatumType = {
     country: string;
     gdp: number;
@@ -22,6 +7,10 @@ type MyDatumType = {
 };
 
 const options: AgChartOptions<MyDatumType> = {
+    container: document.getElementById('myChart'),
+    title: {
+        text: 'Country GDP by region (in USD)',
+    },
     data: [
         { region: 'AMER', country: 'Brazil', gdp: 2200 },
         { region: 'AMER', country: 'Canada', gdp: 2000 },
@@ -51,19 +40,7 @@ const options: AgChartOptions<MyDatumType> = {
             },
         },
     ],
-    ... /* other options */
+    legend: { position: 'left' },
 };
-```
 
-This is example, specifying the `TDatum = MyDatumType` generic parameter does
-the following:
-
--   Enables compile-time checks & auto-complete for the elements of the `data[]`
-    property.
-
--   Enforces type-safety for the `series[].angleKey` and
-    `series[].legendItemKey`. These properties must be keys of the `MyDatumType`
-    type.
-
--   Automatically infers the type of `params.datum.region` in the `itemStyler`
-    callback.
+AgCharts.create(options);
