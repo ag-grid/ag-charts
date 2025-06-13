@@ -1,7 +1,10 @@
 import { type AgCandlestickSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 import type { RequiredInternalAgGradientColor } from 'ag-charts-core';
 
-const { CARTESIAN_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
+const {
+    ThemeConstants: { CARTESIAN_AXIS_TYPE },
+    multiSeriesHighlightStyle,
+} = _ModuleSupport;
 
 function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemOptions> {
     return {
@@ -67,6 +70,7 @@ export const CANDLESTICK_SERIES_THEME: _ModuleSupport.SeriesModule<'candlestick'
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
+        highlight: multiSeriesHighlightStyle(),
     },
     animation: { enabled: false },
     axes: {

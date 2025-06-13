@@ -56,7 +56,6 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             down.fillPatternDefaults,
             down.fillImageDefaults
         );
-        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
 
         datumSelection.each((node, datum) => {
             const { isRising, centerX, width, y, height, yOpen, yClose, crisp } = datum;
@@ -106,6 +105,8 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             const risingStyle = isRising ? upStyle : downStyle;
             const risingWickStyle = isRising ? up.wick : down.wick;
 
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+
             applyShapeStyle(
                 node,
                 {
@@ -117,6 +118,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                     lineDash: highlightStyle?.lineDash ?? style?.lineDash ?? risingStyle.lineDash,
                     lineDashOffset:
                         highlightStyle?.lineDashOffset ?? style?.lineDashOffset ?? risingStyle.lineDashOffset,
+                    opacity: highlightStyle.opacity ?? 1,
                 },
                 undefined,
                 this.getShapeFillBBox()

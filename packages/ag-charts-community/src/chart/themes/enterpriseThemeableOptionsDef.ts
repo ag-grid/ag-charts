@@ -8,6 +8,7 @@ import {
     fillOptionsDef,
     fontOptionsDef,
     lineDashOptionsDef,
+    lineHighlightOptionsDef,
     multiSeriesHighlightOptionsDef,
     number,
     positiveNumber,
@@ -21,6 +22,7 @@ import type {
     AgBoxPlotHighlightStyleOptions,
     AgBoxPlotSeriesStyle,
     AgBoxPlotSeriesThemeableOptions,
+    AgCandlestickHighlightStyleOptions,
     AgCandlestickSeriesItemOptions,
     AgCandlestickSeriesThemeableOptions,
     AgChordSeriesLinkStyle,
@@ -127,6 +129,11 @@ const candlestickSeriesItemOptionsDef: OptionsDefs<AgCandlestickSeriesItemOption
     ...lineDashOptionsDef,
 };
 
+const candlestickHighlightStyleOptionsDef: OptionsDefs<AgCandlestickHighlightStyleOptions> = {
+    ...candlestickSeriesItemOptionsDef,
+    opacity: ratio,
+};
+
 export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeriesThemeableOptions> = {
     item: {
         up: candlestickSeriesItemOptionsDef,
@@ -145,6 +152,7 @@ export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeri
     showInMiniChart: boolean,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
+    highlight: multiSeriesHighlightOptionsDef(candlestickHighlightStyleOptionsDef, candlestickHighlightStyleOptionsDef),
 };
 
 export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableOptions> = {
@@ -285,6 +293,7 @@ export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOpt
     },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
+    highlight: multiSeriesHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
 };
 
 export const mapLineSeriesThemeableOptionsDef: OptionsDefs<AgMapLineSeriesThemeableOptions> = {
