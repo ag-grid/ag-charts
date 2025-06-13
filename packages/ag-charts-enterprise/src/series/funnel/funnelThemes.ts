@@ -80,7 +80,7 @@ export const FUNNEL_SERIES_AXES: any = [
 export const FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'funnel'>['themeTemplate'] = {
     series: {
         direction: 'vertical',
-        strokeWidth: 0,
+        strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         spacingRatio: 0.25,
         fills: [{ $palette: 'fill' }],
         strokes: [{ $palette: 'stroke' }],
@@ -105,7 +105,7 @@ export const FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'funnel'>['themeTe
         dropOff: {
             enabled: true,
             fillOpacity: 0.2,
-            strokeWidth: 0,
+            strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         },
         shadow: {
             enabled: false,

@@ -69,9 +69,10 @@ type PaletteParam =
     | 'neutral.stroke';
 
 type PathOperation =
-    | { $ref: ThemeParam }
+    | { $isUserOption: [Leaf<string>, AnyLeaf, AnyLeaf] }
     | { $palette: PaletteParam }
-    | { $path: Leaf<string> | [Leaf<string>, AnyLeaf] | [Leaf<string>, AnyLeaf, AnyLeaf] };
+    | { $path: Leaf<string> | [Leaf<string>, AnyLeaf] | [Leaf<string>, AnyLeaf, AnyLeaf] }
+    | { $ref: ThemeParam };
 
 type LogicOperation =
     | { $if: [AnyLeaf, AnyLeaf, AnyLeaf] }

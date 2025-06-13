@@ -31,6 +31,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
+            strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
             label: {
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },

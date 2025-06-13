@@ -30,12 +30,13 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 // @ts-expect-error undocumented option
                 defaultFill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
                 stroke: { $path: ['/2', _ModuleSupport.SAFE_STROKE_FILL_OPERATION, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
+                strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 label: {
                     spacing: 11,
                 },
             },
             bar: {
-                strokeWidth: 0,
+                strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
             },
             segmentation: {
                 enabled: false,

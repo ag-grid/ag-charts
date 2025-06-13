@@ -93,7 +93,6 @@ describe('WaterfallSeries', () => {
                             placement: 'inside-center',
                         },
                         fill: '#91CC75',
-                        stroke: '#91CC75',
                         name: 'Revenue',
                     },
                     negative: {
@@ -102,7 +101,6 @@ describe('WaterfallSeries', () => {
                             placement: 'inside-center',
                         },
                         fill: '#D21E75',
-                        stroke: '#D21E75',
                         name: 'Product Cost',
                     },
                 },

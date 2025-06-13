@@ -45,7 +45,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
             stroke: { $palette: 'stroke' },
             fillOpacity: 0.8,
             strokeOpacity: 1,
-            strokeWidth: 0,
+            strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
             lineDash: [0],
             lineDashOffset: 0,
             shadow: {

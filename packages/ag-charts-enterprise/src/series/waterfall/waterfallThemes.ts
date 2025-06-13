@@ -47,7 +47,7 @@ function itemTheme(
         fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         stroke: { $palette: `${key}.stroke` },
-        strokeWidth: 0,
+        strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         label: {
             enabled: false,
             fontStyle: undefined,

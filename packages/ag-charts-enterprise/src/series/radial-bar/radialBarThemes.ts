@@ -20,7 +20,7 @@ export const RADIAL_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-bar'>[
         } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
         fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
-        strokeWidth: 0,
+        strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         label: {
             enabled: false,
             fontSize: { $ref: 'fontSize' },
