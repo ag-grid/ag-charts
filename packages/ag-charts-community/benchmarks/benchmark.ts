@@ -25,9 +25,7 @@ import {
     waitForUpdate,
 } from './compatibility.ts';
 
-if (isHistoricBenchmarkTest()) {
-    console.warn('Attempting to run against version: ', getVersion().join('.'));
-}
+console.warn('Attempting to run against version: ', getVersion().join('.'));
 
 globalThis.agChartsDebugTimeout = 60_000; // Use Jest timeouts
 
@@ -143,7 +141,9 @@ export function benchmark(
     timeoutMs = 10_000
 ) {
     if (!global.gc) {
-        throw new Error('GC flags disabled - invoke via `npm run benchmark` to collect heap usage stats');
+        // Just warn and fail on exit - this allows us to run the benchmarks for debugging from VSCode.
+        console.warn('GC flags disabled - invoke via `npm run benchmark` to collect heap usage stats');
+        process.exitCode = 1;
     }
 
     it(

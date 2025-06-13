@@ -1,18 +1,23 @@
+import fs from 'fs';
+import path from 'path';
+
 import { AgChartOptions } from 'ag-charts-types';
 
+import { VERSION } from '../src/version';
+
+const PACKAGE_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../package.json'), 'utf8')).version;
+
 export function isHistoricBenchmarkTest() {
-    return process.env.AG_LIBRARY_VERSION != null && process.env.AG_LIBRARY_VERSION !== 'latest';
+    return PACKAGE_VERSION !== VERSION;
 }
 
 export function getVersion() {
-    if (!isHistoricBenchmarkTest()) return [11, 0, 0];
-
-    const result = process.env
-        .AG_LIBRARY_VERSION!.split('.')
+    const result = VERSION.split('-')[0]
+        .split('.')
         .map((n) => /(\d+)/.exec(n)?.[1])
         .map(Number);
     if (result.length !== 3 || result.some((n) => isNaN(n))) {
-        throw new Error("Couldn't parse semver of: " + process.env.AG_LIBRARY_VERSION);
+        throw new Error("Couldn't parse semver of: " + process.env.VERSION);
     }
     return result;
 }
