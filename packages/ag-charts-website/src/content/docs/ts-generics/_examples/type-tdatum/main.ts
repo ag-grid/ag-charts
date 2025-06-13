@@ -39,6 +39,7 @@ const options: AgChartOptions<MyDatumType> = {
                     default:
                         // (unreachable code)
                         params.datum.region satisfies never;
+                        throw new Error();
                 }
             },
         },
