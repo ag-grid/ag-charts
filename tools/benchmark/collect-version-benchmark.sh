@@ -26,7 +26,22 @@ log_divider() {
     echo "----------------------------------------"
 }
 
+# Execute a command silently, only showing output if it fails
+run_silent() {
+    local temp_file
+    temp_file=$(mktemp)
+    if ! "$@" > "$temp_file" 2>&1; then
+        log_error "Command failed: $*"
+        cat "$temp_file"
+        rm "$temp_file"
+        return 1
+    fi
+    rm "$temp_file"
+    return 0
+}
 
+
+export NX_DAEMON=false
 pause=false
 failed=false
 all=false
@@ -90,6 +105,7 @@ included_files=(
 )
 
 # Bail out if there are uncommitted changes in the git working tree
+git add $0 # Add this script to the git working tree to ensure it is not modified
 if ! git diff --quiet; then
     log_error "There are uncommitted changes in the working tree. Please commit or stash them before running this script."
     exit 1
@@ -102,17 +118,30 @@ if [[ -n $(git ls-files --others --exclude-standard) ]]; then
 fi
 
 cleanup() {
-    git add ${data_file}
-    git restore --source HEAD -- ${included_files[@]}
-    git clean -fd
+    log_info "Cleaning up"
+    run_silent git add ${data_file}
+    run_silent git restore --source HEAD -- ${included_files[@]}
+    run_silent git clean -fd
 }
 
 prebuild() {
-    NX_DAEMON=false nx run-many -t build -p ag-charts-core,ag-charts-test
+    log_info "Building dependencies & test infrastructure"
+    run_silent nx run-many -t build -p ag-charts-core,ag-charts-test
 }
 
 build() {
-    NX_DAEMON=false nx run-many -t build -p ag-charts-core
+    log_info "Building dependencies for $version"
+
+    # Workaround for package not existing at some historical versions
+    if [[ ! -e packages/ag-charts-types/src/main.ts || ! -e packages/ag-charts-types/src/main-scene.ts ]] ; then
+        mkdir -p packages/ag-charts-types/src
+        touch packages/ag-charts-types/src/{main,main-scene}.ts
+    fi
+    if [[ ! -e packages/ag-charts-core/src/main.ts ]] ; then
+        mkdir -p packages/ag-charts-core/src
+        touch packages/ag-charts-core/src/main.ts
+    fi
+    run_silent nx run-many -t build -p ag-charts-core
 }
 
 benchmark() {
@@ -121,7 +150,6 @@ benchmark() {
         rm -rf ./reports
     fi
 
-
     repeat=true
     while $($repeat) ; do
         count=0
@@ -129,26 +157,26 @@ benchmark() {
             count=$((count + 1))
 
             log_info "Benchmarking $version ($count of $repeat_count)"
+            export AG_LIBRARY_VERSION=$(echo "$1" | sed 's/^origin\///')
 
             # Run the benchmark with the current version of the files
             if (
-                AG_LIBRARY_VERSION=$(echo "$1" | sed 's/^origin\///') \
-                node \
+                run_silent node \
                     --expose-gc ./node_modules/jest/bin/jest.js \
                     --config packages/ag-charts-community/jest.config.ts \
                     --runInBand \
-                    --testPathPattern '.*/benchmarks/.*'
-                node \
+                    --testPathPattern '.*/benchmarks/.*' && \
+                run_silent node \
                     --expose-gc ./node_modules/jest/bin/jest.js \
                     --config packages/ag-charts-enterprise/jest.config.ts \
                     --runInBand \
                     --testPathPattern '.*/benchmarks/.*'
             ) ; then
-                node "$(dirname $0)/collate-reports.js" --name "$(echo "$version" | sed 's/^origin\///')"
-                git add ${data_file}
+                run_silent node "$(dirname $0)/collate-reports.js" --name "$(echo "$version" | sed 's/^origin\///')"
+                run_silent git add ${data_file}
             else
                 failed=true
-                echo "Benchmarks failed, continuing..."
+                log_warning "Benchmarks failed, continuing..."
                 repeat=false
             fi
         done
@@ -172,14 +200,14 @@ trap 'cleanup' ERR EXIT
 prebuild
 for version in "${versions[@]}"; do
     # Checkout files in the specified input file set (removing any files that have been added since then)
-    git restore --source "$version" -- ${included_files[@]}
-    build
+    run_silent git restore --source "$version" -- ${included_files[@]}
+    build ${version}
     # Benchmark
     benchmark ${version}
     # Remove any untracked files created during this benchmark run
-    git clean -fd
+    run_silent git clean -fd
     # Reset the working tree state
-    git restore --source HEAD -- ${included_files[@]}
+    run_silent git restore --source HEAD -- ${included_files[@]}
 done
 
 if $($failed) ; then 
