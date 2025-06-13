@@ -30,7 +30,6 @@
             clone: 'npm:clone@2.1.2',
 
             vue: 'npm:vue@3.5.0/dist/vue.esm-browser.js',
-            '@vue/reactivity': 'npm:@vue/reactivity@3.0.0/dist/reactivity.esm-browser.prod.js',
 
             app: appLocation,
             // systemJsMap comes from index.html
