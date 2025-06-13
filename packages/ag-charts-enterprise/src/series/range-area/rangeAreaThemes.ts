@@ -49,6 +49,7 @@ export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>[
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
+        highlight: _ModuleSupport.multiSeriesHighlightStyle(),
     },
     axes: {
         [_ModuleSupport.ThemeConstants.CARTESIAN_AXIS_TYPE.NUMBER]: {

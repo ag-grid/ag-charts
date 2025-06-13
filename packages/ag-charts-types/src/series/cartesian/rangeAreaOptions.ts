@@ -4,7 +4,13 @@ import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type {
+    AgBaseCartesianThemeableOptions,
+    AgBaseSeriesOptions,
+    AgHighlightStyleOptions,
+    AgMultiSeriesHighlightOptions,
+    AgSeriesHighlightStyle,
+} from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -49,6 +55,8 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = TDatumDefault, TCont
     tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>;
 }
 
 export interface AgRangeAreaSeriesOptionsKeys<TDatum = TDatumDefault> {
@@ -72,7 +80,7 @@ export interface AgRangeAreaSeriesOptionsNames {
 }
 
 export interface AgRangeAreaSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         AgRangeAreaSeriesOptionsNames,
         AgRangeAreaSeriesThemeableOptions<TDatum, TContext> {

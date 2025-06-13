@@ -1,6 +1,7 @@
 import {
     type OptionsDefs,
     arrayOf,
+    barHighlightOptionsDef,
     boolean,
     callbackDefs,
     color,
@@ -13,6 +14,7 @@ import {
     number,
     positiveNumber,
     ratio,
+    shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
     union,
@@ -480,6 +482,7 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThemeableOptions> = {
@@ -503,6 +506,7 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
 export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeableOptions> = {

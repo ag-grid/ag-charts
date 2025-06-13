@@ -482,6 +482,7 @@ export class LineSeries extends CartesianSeries<
                 strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
                 lineDash: highlightStyle?.lineDash ?? marker.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
+                opacity: highlightStyle?.opacity ?? 1,
             },
             marker.fillGradientDefaults,
             marker.fillPatternDefaults,

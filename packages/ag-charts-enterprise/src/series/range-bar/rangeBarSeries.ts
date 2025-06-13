@@ -1,4 +1,5 @@
 import {
+    type AgRangeBarHighlightStyleOptions,
     type AgRangeBarSeriesLabelFormatterParams,
     type AgRangeBarSeriesStyle,
     _ModuleSupport,
@@ -495,10 +496,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemBaseStyle(highlighted: boolean): Required<AgRangeBarSeriesStyle> {
+    private getItemBaseStyle(
+        isHighlight: boolean,
+        datum?: RangeBarNodeDatum
+    ): Required<AgRangeBarHighlightStyleOptions> {
         const { properties } = this;
         const { cornerRadius, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
 
         return getShapeStyle(
             {
@@ -510,6 +514,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius,
+                opacity: highlightStyle?.opacity ?? 1,
             },
             fillGradientDefaults,
             fillPatternDefaults,
@@ -553,11 +558,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
-        const style = this.getItemBaseStyle(isHighlight);
-
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
+            const style = this.getItemBaseStyle(isHighlight, datum);
+
             const overrides = this.getItemStyleOverrides(String(datum.datumIndex), datum.datum, style, isHighlight);
 
             applyShapeStyle(rect, style, overrides, fillBBox);
