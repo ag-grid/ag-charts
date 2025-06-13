@@ -1,6 +1,6 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AgTooltipRendererDataRow } from 'ag-charts-enterprise';
 
-import { CurrencyConverter } from './currencyConverter';
+import { Currency, CurrencyConverter } from './currencyConverter';
 import { TradeDatum, getData } from './data';
 
 const myCurrencyConverter = new CurrencyConverter('EUR');
@@ -24,11 +24,12 @@ const options: AgChartOptions<TradeDatum, CurrencyConverter> = {
                 renderer: ({ datum, context }) => {
                     return {
                         title: datum.date.toDateString(),
-                        content: `
-                          Open: ${context.formatBothCurrencies(datum.open)}\n
-                          High: ${context.formatBothCurrencies(datum.high)}\n
-                          Low: ${context.formatBothCurrencies(datum.low)}\n
-                          Close: ${context.formatBothCurrencies(datum.close)}`,
+                        data: [
+                            { label: 'Open', value: context.formatBothCurrencies(datum.open) },
+                            { label: 'High', value: context.formatBothCurrencies(datum.high) },
+                            { label: 'Low', value: context.formatBothCurrencies(datum.low) },
+                            { label: 'Close', value: context.formatBothCurrencies(datum.close) },
+                        ],
                     };
                 },
             },
@@ -44,11 +45,30 @@ const options: AgChartOptions<TradeDatum, CurrencyConverter> = {
             position: 'left',
             label: {
                 formatter: ({ value, context }) => {
-                    return context.formatStockCurrency(value);
+                    return context.formatUserCurrency(value);
                 },
             },
         },
     ],
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function getMySelectValue(): Currency | undefined {
+    const mySelect = document.getElementById('mySelect');
+    if (mySelect instanceof HTMLSelectElement) {
+        const { value } = mySelect;
+        if (value === 'USD' || value === 'EUR' || value === 'GBP' || value === 'JPY' || value === 'INR') {
+            return value;
+        }
+    }
+    return undefined;
+}
+
+function onMySelectChange() {
+    const value = getMySelectValue();
+    if (value != null) {
+        myCurrencyConverter.userCurrency = value;
+        chart.updateDelta({});
+    }
+}

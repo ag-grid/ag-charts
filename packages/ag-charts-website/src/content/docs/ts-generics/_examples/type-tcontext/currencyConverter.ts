@@ -4,7 +4,7 @@ export class CurrencyConverter {
     constructor(public userCurrency: Currency) {}
 
     formatCurrency(stockPrice: number, currency: Currency): string {
-        const convertedPrice = USD_CONVERSION_RATES[currency] * stockPrice;
+        const convertedPrice = Math.floor(USD_CONVERSION_RATES[currency] * stockPrice);
         switch (currency) {
             case 'USD':
                 return `\$${convertedPrice}`;
