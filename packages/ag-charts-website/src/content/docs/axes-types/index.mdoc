@@ -147,11 +147,11 @@ The domain of a log axis should be strictly positive or strictly negative (becau
 
 There are three methods of displaying time along an axis.
 
--   [Continuous Time Axis](./axes-time/#continuous-time) - Data is shown on a continuous scale.
 -   [Unit Time Axis](./axes-time/#unit-time) - Each 'unit' has a dedicated band within the domain.
 -   [Ordinal Time Axis](./axes-time/#ordinal-time) - Only provided values are shown, with missing values omitted.
+-   [Continuous Time Axis](./axes-time/#continuous-time) - Data is shown on a continuous scale.
 
-The difference between a continuous [Continuous Time Axis](./axes-time/#continuous-time), a [Unit Time Axis](./axes-time/#unit-time), and an [Ordinal Time Axis](./axes-time/#ordinal-time) is demonstrated in the following example:
+The difference between a [Unit Time Axis](./axes-time/#unit-time), an [Ordinal Time Axis](./axes-time/#ordinal-time), and a continuous [Continuous Time Axis](./axes-time/#continuous-time) is demonstrated in the following example:
 
 {% chartExampleRunner title="Time Axis Types" name="time-vs-unit-time-vs-ordinal-time" type="generated" /%}
 
@@ -165,28 +165,28 @@ For more detail on time axes, see the [Time Axes](./axes-time/) page.
 {% apiReference id="AgCategoryAxisOptions" /%}
 {% /tabItem %}
 
+{% tabItem id="AgGroupedCategoryAxisOptions" label="Grouped Category Axis" %}
+{% apiReference id="AgGroupedCategoryAxisOptions" /%}
+{% /tabItem %}
+
 {% tabItem id="AgNumberAxisOptions" label="Number Axis" %}
 {% apiReference id="AgNumberAxisOptions" /%}
-{% /tabItem %}
-
-{% tabItem id="AgTimeAxisOptions" label="Time Axis" %}
-{% apiReference id="AgTimeAxisOptions" /%}
-{% /tabItem %}
-
-{% tabItem id="AgUnitTimeAxisOptions" label="Unit Time Axis" %}
-{% apiReference id="AgUnitTimeAxisOptions" /%}
 {% /tabItem %}
 
 {% tabItem id="AgLogAxisOptions" label="Log Axis" %}
 {% apiReference id="AgLogAxisOptions" /%}
 {% /tabItem %}
 
+{% tabItem id="AgUnitTimeAxisOptions" label="Unit Time Axis" %}
+{% apiReference id="AgUnitTimeAxisOptions" /%}
+{% /tabItem %}
+
 {% tabItem id="AgOrdinalTimeAxisOptions" label="Ordinal Time Axis" %}
 {% apiReference id="AgOrdinalTimeAxisOptions" /%}
 {% /tabItem %}
 
-{% tabItem id="AgGroupedCategoryAxisOptions" label="Grouped Category Axis" %}
-{% apiReference id="AgGroupedCategoryAxisOptions" /%}
+{% tabItem id="AgTimeAxisOptions" label="Time Axis" %}
+{% apiReference id="AgTimeAxisOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}
