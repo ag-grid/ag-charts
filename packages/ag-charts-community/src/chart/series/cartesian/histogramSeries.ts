@@ -402,11 +402,10 @@ export class HistogramSeries extends CartesianSeries<
         return datumSelection.update(nodeData, undefined, (datum: HistogramNodeDatum) => datum.domain.join('_'));
     }
 
-    private getItemBaseStyle(highlighted: boolean) {
+    private getItemBaseStyle(isHighlight: boolean, datum?: HistogramNodeDatum) {
         const { properties } = this;
 
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
-
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
         return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? properties.fill,
@@ -417,6 +416,7 @@ export class HistogramSeries extends CartesianSeries<
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius: properties.cornerRadius,
+                opacity: highlightStyle?.opacity ?? 1,
             },
             properties.fillGradientDefaults,
             properties.fillPatternDefaults,
@@ -428,13 +428,14 @@ export class HistogramSeries extends CartesianSeries<
         datumSelection: Selection<Rect, HistogramNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { isHighlight: isDatumHighlighted } = opts;
+        const { isHighlight } = opts;
         const { shadow } = this.properties;
 
-        const style = this.getItemBaseStyle(isDatumHighlighted);
         const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
+            const style = this.getItemBaseStyle(isHighlight, datum);
+
             const { cornerRadius } = style;
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
