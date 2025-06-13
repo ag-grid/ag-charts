@@ -115,16 +115,40 @@ export function prepareTestOptions<T extends AgChartOptions<any, any> | AgSparkl
             fills: ['#f3622d', '#fba71b', '#57b757', '#41a9c9', '#4258c9', '#9a42c8', '#c84164', '#888888'],
             strokes: ['#aa4520', '#b07513', '#3d803d', '#2d768d', '#2e3e8d', '#6c2e8c', '#8c2d46', '#5f5f5f'],
         },
+        params: {
+            axisColor: '#c3c3c3',
+            borderColor: '#dddddd',
+            foregroundColor: '#464646',
+            gridLineColor: '#e0eaf2',
+            popupShadow: '0 2px 8px 0 color-mix(in srgb, black 8%, transparent)',
+            textColor: '#464646',
+            subtleTextColor: '#8c8c8c',
+            chromeBackgroundColor: '#fafafa',
+            buttonTextColor: '#464646',
+            inputTextColor: '#464646',
+            menuBackgroundColor: '#fafafa',
+            panelBackgroundColor: '#fafafa',
+            tooltipBackgroundColor: '#fafafa',
+            crosshairLabelBackgroundColor: '#464646',
+            crosshairLabelTextColor: 'white',
+        },
     };
 
-    if (typeof options?.theme === 'object' && options?.theme.palette != null) {
-        // Keep existing theme.
-        baseTestTheme = options.theme;
-    } else if (typeof options?.theme === 'object') {
-        // Keep theme supplied, just override palette colours.
+    let baseThemeString = options?.theme;
+    if (typeof baseThemeString !== 'string') {
+        baseThemeString = baseThemeString?.baseTheme as any;
+        while (typeof baseThemeString === 'object') {
+            baseThemeString = baseThemeString.baseTheme;
+        }
+    }
+
+    if (typeof options?.theme === 'object') {
+        // Only override palette and params if not provided, and use default params when in dark mode.
         baseTestTheme = {
             ...options.theme,
-            palette: baseTestTheme.palette,
+            baseTheme: options.theme.baseTheme ?? baseTestTheme.baseTheme,
+            palette: options.theme.palette ?? baseTestTheme.palette,
+            params: baseThemeString === 'ag-default-dark' ? undefined : options.theme.params ?? baseTestTheme.params,
         };
     } else if (typeof options?.theme === 'string') {
         // Override colours.

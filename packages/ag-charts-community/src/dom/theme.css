@@ -10,15 +10,15 @@
     --ag-charts-border-color: #dddddd;
     --ag-charts-border-radius: 4px;
     --ag-charts-chart-background-color: #fff;
+    --ag-charts-chart-padding: 20px;
     --ag-charts-focus-shadow: 0 0 0 3px #2196f3;
-    --ag-charts-foreground-color: #464646;
+    --ag-charts-foreground-color: #181d1f;
     --ag-charts-font-family: Verdana, sans-serif;
     --ag-charts-font-size: 12px;
     --ag-charts-font-weight: 400;
-    --ag-charts-padding: 20px;
-    --ag-charts-popup-shadow: 0 2px 8px 0 color-mix(in srgb, black 8%, transparent);
+    --ag-charts-popup-shadow: 0 0 16px rgba(0, 0, 0, 0.15);
     --ag-charts-subtle-text-color: #8c8c8c;
-    --ag-charts-text-color: #464646;
+    --ag-charts-text-color: #181d1f;
 
     --ag-charts-chrome-background-color: #fafafa;
     --ag-charts-chrome-font-family: Verdana, sans-serif;
@@ -47,6 +47,9 @@
     --ag-charts-tooltip-border: 1px solid #dddddd;
     --ag-charts-tooltip-text-color: #181d1f;
     --ag-charts-tooltip-subtle-text-color: #8c8c8c;
+
+    --ag-charts-crosshair-label-background-color: #fafafa;
+    --ag-charts-crosshair-label-text-color: #181d1f;
 
     /******************************************************************************************************************
      * Future Theme Parameters.
@@ -127,10 +130,10 @@
     --ag-charts-chrome-font-size-large: calc(var(--ag-charts-chrome-font-size) * (14 / 12));
 
     /* Borders */
-    --ag-charts-border: solid 1px var(--ag-charts-border-color);
+    --ag-charts-border: 1px solid var(--ag-charts-border-color);
 
     /* Focus Indicator */
-    --ag-charts-focus-border: solid 1px var(--ag-charts-accent-color);
+    --ag-charts-focus-border: 1px solid var(--ag-charts-accent-color);
     --ag-charts-focus-border-shadow: 0 0 0 3px color-mix(in srgb, transparent, var(--ag-charts-accent-color) 20%);
 
     /******************************************************************************************************************

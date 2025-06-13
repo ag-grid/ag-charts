@@ -105,7 +105,7 @@ function isStandaloneChartOperation(graph: OptionsGraphInterface) {
 
 enum ColorOperation {
     ForegroundBackgroundMix = '$foregroundBackgroundMix',
-    ForegroundBackgroundAccentMix = '$foregroundBackgroundAccentMix',
+    ForegroundOpacity = '$foregroundOpacity',
     Interpolate = '$interpolate',
     IsGradient = '$isGradient',
     IsImage = '$isImage',
@@ -115,7 +115,7 @@ enum ColorOperation {
 
 const colorOperations: Record<ColorOperation, OperationFns> = {
     $foregroundBackgroundMix: foregroundBackgroundMixOperation,
-    $foregroundBackgroundAccentMix: foregroundBackgroundAccentMixOperation,
+    $foregroundOpacity: foregroundOpacityOperation,
     $interpolate: interpolateOperation,
     $isGradient: isGradientOperation,
     $isImage: isImageOperation,
@@ -128,55 +128,43 @@ function foregroundBackgroundMixOperation(
     vertex: VertexInterface,
     values: Set<VertexInterface>
 ) {
-    const [backgroundRatioVertex] = values;
-    const backgroundRatio = graph.resolveVertexValue(vertex, backgroundRatioVertex);
+    const [foregroundRatioVertex] = values;
+    const foregroundRatio = graph.resolveVertexValue(vertex, foregroundRatioVertex);
     const foregroundColor = graph.getParamValue('foregroundColor');
     const backgroundColor = graph.getParamValue('backgroundColor');
 
-    if (typeof foregroundColor === 'string' && typeof backgroundColor === 'string' && isRatio(backgroundRatio)) {
+    if (typeof foregroundColor === 'string' && typeof backgroundColor === 'string' && isRatio(foregroundRatio)) {
         return Color.mix(
             Color.fromString(foregroundColor),
             Color.fromString(backgroundColor),
-            backgroundRatio
+            1 - foregroundRatio
         ).toString();
     }
 
     Debug.inDevelopmentMode(() =>
         Logger.warnOnce(
-            `\`$foregroundBackgroundMix\` json operation failed on [${String(backgroundColor)}}}] at [${graph.getPathArray(vertex).join('.')}], expecting a number between 0 and 1.`
+            `\`$foregroundBackgroundMix\` json operation failed on [${String(foregroundRatio)}}}] at [${graph.getPathArray(vertex).join('.')}], expecting a number between 0 and 1.`
         )
     );
 }
 
-function foregroundBackgroundAccentMixOperation(
+function foregroundOpacityOperation(
     graph: OptionsGraphInterface,
     vertex: VertexInterface,
     values: Set<VertexInterface>
 ) {
-    const [backgroundRatioVertex, accentRatioVertex] = values;
-    const backgroundRatio = graph.resolveVertexValue(vertex, backgroundRatioVertex);
-    const accentRatio = graph.resolveVertexValue(vertex, accentRatioVertex);
+    const [opacityVertex] = values;
+    const opacity = graph.resolveVertexValue(vertex, opacityVertex);
     const foregroundColor = graph.getParamValue('foregroundColor');
-    const backgroundColor = graph.getParamValue('backgroundColor');
-    const accentColor = graph.getParamValue('accentColor');
 
-    if (
-        typeof foregroundColor === 'string' &&
-        typeof backgroundColor === 'string' &&
-        typeof accentColor === 'string' &&
-        isRatio(backgroundRatio) &&
-        isRatio(accentRatio)
-    ) {
-        return Color.mix(
-            Color.mix(Color.fromString(foregroundColor), Color.fromString(backgroundColor), backgroundRatio),
-            Color.fromString(accentColor),
-            accentRatio
-        ).toString();
+    if (typeof foregroundColor === 'string' && isRatio(opacity)) {
+        const color = Color.fromString(foregroundColor);
+        return new Color(color.r, color.g, color.b, opacity).toString();
     }
 
     Debug.inDevelopmentMode(() =>
         Logger.warnOnce(
-            `\`$foregroundBackgroundAccentMix\` json operation failed on [${String(backgroundColor)}, ${String(accentColor)}}] at [${graph.getPathArray(vertex).join('.')}], expecting two numbers between 0 and 1.`
+            `\`$foregroundOpacity\` json operation failed on [${String(opacity)}}}] at [${graph.getPathArray(vertex).join('.')}], expecting a number between 0 and 1.`
         )
     );
 }

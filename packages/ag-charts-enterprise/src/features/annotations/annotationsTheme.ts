@@ -108,7 +108,7 @@ const toolbar: AgAnnotationsToolbar = {
         },
     ],
     // @ts-expect-error undocumented option
-    padding: { $ref: 'padding' },
+    padding: { $ref: 'chartPadding' },
 };
 
 const optionsToolbar: AgAnnotationOptionsToolbar = {

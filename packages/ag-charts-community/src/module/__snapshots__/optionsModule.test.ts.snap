@@ -73,7 +73,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "width": 3,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -89,7 +89,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -113,7 +113,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "tick": {
         "enabled": true,
         "size": 10,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
@@ -174,16 +174,16 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -220,7 +220,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -304,7 +304,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -388,7 +388,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -469,7 +469,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -510,7 +510,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -519,7 +519,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -528,18 +528,18 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -555,7 +555,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -565,7 +565,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -575,18 +575,18 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -602,7 +602,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -611,7 +611,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       ],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -621,18 +621,18 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "right",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -650,7 +650,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -668,7 +668,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -687,16 +687,16 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -913,7 +913,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -994,7 +994,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -1006,7 +1006,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -1035,7 +1035,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -1044,7 +1044,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -1054,18 +1054,18 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -1081,14 +1081,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -1098,18 +1098,18 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -1127,7 +1127,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -1145,7 +1145,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -1162,16 +1162,16 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -1223,7 +1223,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -1321,7 +1321,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -1419,7 +1419,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -1517,7 +1517,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -1615,7 +1615,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -1713,7 +1713,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -1811,7 +1811,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -1891,7 +1891,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -1903,7 +1903,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -1932,7 +1932,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -1941,7 +1941,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -1950,18 +1950,18 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -1977,14 +1977,14 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -1994,18 +1994,18 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -2023,7 +2023,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -2041,7 +2041,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -2058,16 +2058,16 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -2829,7 +2829,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -2841,7 +2841,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -2870,14 +2870,14 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -2886,18 +2886,18 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -2913,14 +2913,14 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -2929,18 +2929,18 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -2958,7 +2958,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -3034,7 +3034,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       },
       "itemStyler": [Function],
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -3073,7 +3073,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -3085,7 +3085,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -3114,14 +3114,14 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -3131,14 +3131,14 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "parentLevel": {
         "enabled": false,
         "label": {
           "avoidCollisions": true,
-          "color": "#464646",
+          "color": "#181d1f",
           "enabled": true,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 12,
@@ -3148,7 +3148,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "tick": {
           "enabled": false,
           "size": 6,
-          "stroke": "#c3c3c3",
+          "stroke": "#b4b6b6",
           "width": 1,
         },
       },
@@ -3156,11 +3156,11 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -3176,14 +3176,14 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -3192,18 +3192,18 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -3220,7 +3220,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
   },
   "container": Any<HTMLElement>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -3238,7 +3238,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -3256,16 +3256,16 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -3302,7 +3302,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -3386,7 +3386,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -3470,7 +3470,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -3554,7 +3554,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -3635,7 +3635,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -3647,7 +3647,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -3676,7 +3676,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -3685,7 +3685,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -3694,18 +3694,18 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -3721,14 +3721,14 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -3737,18 +3737,18 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -3766,7 +3766,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -3784,7 +3784,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -3801,16 +3801,16 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -3900,7 +3900,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -4037,7 +4037,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -4174,7 +4174,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -4311,7 +4311,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -4448,7 +4448,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -4529,7 +4529,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -4541,7 +4541,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -4570,7 +4570,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -4579,7 +4579,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -4588,18 +4588,18 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -4615,14 +4615,14 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -4631,18 +4631,18 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -4660,7 +4660,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -4786,7 +4786,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -4798,7 +4798,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -4828,7 +4828,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -4837,7 +4837,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -4846,18 +4846,18 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -4873,14 +4873,14 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -4889,18 +4889,18 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -4918,7 +4918,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -5050,7 +5050,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -5062,7 +5062,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -5105,7 +5105,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -5127,7 +5127,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -5147,7 +5147,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -5169,7 +5169,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -5187,7 +5187,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -5262,7 +5262,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         },
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -5301,7 +5301,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -5313,7 +5313,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -5342,14 +5342,14 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -5358,7 +5358,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "max": 180,
@@ -5368,11 +5368,11 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -5388,14 +5388,14 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -5404,7 +5404,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "max": 90,
@@ -5414,11 +5414,11 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -5436,7 +5436,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -5511,7 +5511,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         },
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -5552,7 +5552,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -5564,7 +5564,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -5593,7 +5593,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -5602,7 +5602,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -5611,18 +5611,18 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -5638,14 +5638,14 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -5654,18 +5654,18 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -5683,7 +5683,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -5701,7 +5701,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -5718,16 +5718,16 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -5957,7 +5957,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -5969,7 +5969,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -5998,7 +5998,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -6007,7 +6007,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -6016,18 +6016,18 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -6043,14 +6043,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -6059,18 +6059,18 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -6088,7 +6088,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -6106,7 +6106,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -6123,16 +6123,16 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -6376,7 +6376,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -6388,7 +6388,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -6417,7 +6417,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -6426,7 +6426,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -6435,18 +6435,18 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -6462,14 +6462,14 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -6479,18 +6479,18 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -6508,7 +6508,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -6526,7 +6526,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -6543,16 +6543,16 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -7335,7 +7335,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -7347,7 +7347,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -7376,7 +7376,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -7385,7 +7385,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -7395,18 +7395,18 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -7422,14 +7422,14 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -7438,7 +7438,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "max": 1,
@@ -7448,11 +7448,11 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -7470,7 +7470,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -7488,7 +7488,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -7505,16 +7505,16 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -7566,7 +7566,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -7665,7 +7665,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -7764,7 +7764,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -7863,7 +7863,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -7962,7 +7962,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -8061,7 +8061,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -8160,7 +8160,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -8259,7 +8259,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -8358,7 +8358,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -8457,7 +8457,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -8556,7 +8556,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -8655,7 +8655,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -8754,7 +8754,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -8853,7 +8853,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -8952,7 +8952,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -9051,7 +9051,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -9132,7 +9132,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -9144,7 +9144,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -9174,14 +9174,14 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 10,
@@ -9191,18 +9191,18 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -9218,14 +9218,14 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 10,
@@ -9234,18 +9234,18 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -9263,7 +9263,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -9303,7 +9303,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -9382,7 +9382,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -9394,7 +9394,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 17,
@@ -9423,7 +9423,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -9432,7 +9432,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -9441,18 +9441,18 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -9468,14 +9468,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -9485,18 +9485,18 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -9514,7 +9514,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -9532,7 +9532,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -9549,16 +9549,16 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -9648,7 +9648,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -9793,7 +9793,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -9938,7 +9938,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -10083,7 +10083,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -10228,7 +10228,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -10373,7 +10373,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -10518,7 +10518,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -10607,7 +10607,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -10619,7 +10619,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -10648,7 +10648,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -10657,7 +10657,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -10667,18 +10667,18 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -10694,14 +10694,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -10711,18 +10711,18 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -10740,7 +10740,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -10758,7 +10758,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -10775,16 +10775,16 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -11136,7 +11136,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -11148,7 +11148,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -11177,7 +11177,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -11186,7 +11186,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -11195,18 +11195,18 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -11222,14 +11222,14 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -11239,18 +11239,18 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -11268,7 +11268,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -11286,7 +11286,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -11303,16 +11303,16 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -11940,7 +11940,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -11952,7 +11952,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -11981,7 +11981,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -11996,7 +11996,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "label": {
         "autoRotate": false,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -12005,14 +12005,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "parentLevel": {
         "enabled": true,
         "label": {
           "avoidCollisions": true,
-          "color": "#464646",
+          "color": "#181d1f",
           "enabled": true,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 12,
@@ -12022,7 +12022,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "tick": {
           "enabled": false,
           "size": 6,
-          "stroke": "#c3c3c3",
+          "stroke": "#b4b6b6",
           "width": 1,
         },
       },
@@ -12030,11 +12030,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -12050,14 +12050,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -12067,18 +12067,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -12096,7 +12096,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -12114,7 +12114,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -12131,16 +12131,16 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -12215,7 +12215,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -12337,7 +12337,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -12459,7 +12459,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -12581,7 +12581,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -12662,7 +12662,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -12674,7 +12674,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -12703,7 +12703,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -12712,7 +12712,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -12721,18 +12721,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -12748,14 +12748,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -12765,18 +12765,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -12794,7 +12794,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -12921,7 +12921,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -12933,7 +12933,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -12962,7 +12962,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -12980,7 +12980,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -12997,16 +12997,16 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -13033,7 +13033,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     {
       "angleKey": "count",
       "calloutLabel": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -13149,7 +13149,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
       },
       "innerLabels": [
         {
-          "color": "#464646",
+          "color": "#181d1f",
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 24,
           "fontWeight": "bold",
@@ -13157,7 +13157,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
           "text": "29,570",
         },
         {
-          "color": "#464646",
+          "color": "#181d1f",
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 16,
           "fontWeight": 400,
@@ -13205,7 +13205,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
         "#a82529",
       ],
       "title": {
-        "color": "#8c8c8c",
+        "color": "#707374",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 14,
@@ -13234,7 +13234,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -13246,7 +13246,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -13275,7 +13275,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -13290,7 +13290,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -13299,14 +13299,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "parentLevel": {
         "enabled": true,
         "label": {
           "avoidCollisions": true,
-          "color": "#464646",
+          "color": "#181d1f",
           "enabled": true,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 12,
@@ -13316,7 +13316,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "tick": {
           "enabled": false,
           "size": 6,
-          "stroke": "#c3c3c3",
+          "stroke": "#b4b6b6",
           "width": 1,
         },
       },
@@ -13324,11 +13324,11 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -13344,7 +13344,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -13352,7 +13352,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -13361,18 +13361,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -13390,7 +13390,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -13408,7 +13408,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -13425,16 +13425,16 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -13486,7 +13486,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -13583,7 +13583,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -13662,7 +13662,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -13674,7 +13674,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -13702,7 +13702,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
   },
   "container": Any<HTMLElement>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -13732,7 +13732,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     {
       "angleKey": "population",
       "calloutLabel": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -13885,7 +13885,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
         "#a82529",
       ],
       "title": {
-        "color": "#8c8c8c",
+        "color": "#707374",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 14,
@@ -13913,7 +13913,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -13925,7 +13925,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -13954,14 +13954,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -13970,18 +13970,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -13997,14 +13997,14 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -14013,18 +14013,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -14042,7 +14042,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -14117,7 +14117,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         },
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -14150,7 +14150,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -14162,7 +14162,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -14191,7 +14191,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -14203,7 +14203,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -14213,14 +14213,14 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "parentLevel": {
         "enabled": true,
         "label": {
           "avoidCollisions": true,
-          "color": "#464646",
+          "color": "#181d1f",
           "enabled": true,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 12,
@@ -14230,7 +14230,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "tick": {
           "enabled": false,
           "size": 6,
-          "stroke": "#c3c3c3",
+          "stroke": "#b4b6b6",
           "width": 1,
         },
       },
@@ -14238,11 +14238,11 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -14258,14 +14258,14 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -14275,18 +14275,18 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -14304,7 +14304,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -14322,7 +14322,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -14339,16 +14339,16 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -14431,7 +14431,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -14568,7 +14568,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -14705,7 +14705,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -14842,7 +14842,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -14979,7 +14979,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -15116,7 +15116,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "type": "linear",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -15204,7 +15204,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -15216,7 +15216,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,
@@ -15245,7 +15245,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -15254,7 +15254,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -15263,18 +15263,18 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -15290,14 +15290,14 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -15306,7 +15306,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "nice": false,
@@ -15314,11 +15314,11 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -15336,7 +15336,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -15354,7 +15354,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -15371,16 +15371,16 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -15834,7 +15834,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": false,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -15846,7 +15846,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 17,
@@ -15875,7 +15875,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
@@ -15884,7 +15884,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "label": {
         "autoRotate": true,
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -15894,18 +15894,18 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "line": {
         "enabled": true,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "bottom",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -15921,14 +15921,14 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "style": [
           {
             "lineDash": [],
-            "stroke": "#e0eaf2",
+            "stroke": "#e8e8e9",
           },
         ],
       },
       "keys": [],
       "label": {
         "avoidCollisions": true,
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
@@ -15938,18 +15938,18 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "line": {
         "enabled": false,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "position": "left",
       "tick": {
         "enabled": false,
         "size": 6,
-        "stroke": "#c3c3c3",
+        "stroke": "#b4b6b6",
         "width": 1,
       },
       "title": {
-        "color": "#464646",
+        "color": "#181d1f",
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 13,
@@ -15967,7 +15967,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
   "container": Any<HTMLElement>,
   "data": Any<Array>,
   "footnote": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -15985,7 +15985,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "enabled": true,
     "item": {
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
@@ -16002,16 +16002,16 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "orientation": "horizontal",
     "pagination": {
       "activeStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "highlightStyle": {
-        "fill": "#464646",
+        "fill": "#181d1f",
       },
       "inactiveStyle": {
-        "fill": "#8c8c8c",
+        "fill": "#707374",
       },
       "label": {
-        "color": "#464646",
+        "color": "#181d1f",
       },
       "marker": {
         "size": 12,
@@ -16570,7 +16570,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     },
   },
   "subtitle": {
-    "color": "#8c8c8c",
+    "color": "#707374",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 13,
@@ -16582,7 +16582,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "wrapping": "hyphenate",
   },
   "title": {
-    "color": "#464646",
+    "color": "#181d1f",
     "enabled": true,
     "fontFamily": "Verdana, sans-serif",
     "fontSize": 18,

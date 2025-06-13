@@ -13,9 +13,7 @@ export const BandHighlightModule: _ModuleSupport.AxisOptionModule = {
         bandHighlight: {
             strokeWidth: 0,
             lineDash: [],
-            fill: {
-                $foregroundBackgroundMix: [0.95],
-            },
+            fill: { $foregroundBackgroundMix: [0.05] },
         },
     },
 };

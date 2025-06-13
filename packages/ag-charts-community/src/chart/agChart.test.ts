@@ -423,7 +423,7 @@ describe('AgChart', () => {
         expect(leftAxis).toBeDefined();
         expect(leftAxis?.title?.text).toBe('Hello');
 
-        expect(leftAxis?.gridLine.style).toEqual([{ stroke: '#e0eaf2', lineDash: [] }]);
+        expect(leftAxis?.gridLine.style).toEqual([{ stroke: '#e8e8e9', lineDash: [] }]);
         await chartProxy.update({
             data: revenueProfitData,
             series: [{ type: 'line', xKey: 'profit', yKey: 'revenue' }],

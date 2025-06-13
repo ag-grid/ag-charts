@@ -96,7 +96,7 @@ type FontOperation = { $rem: [AnyLeaf] | [AnyLeaf, AnyLeaf] };
 type ColorOperation =
     | { $mix: [Leaf<string>, Leaf<string>, Leaf<number>] }
     | { $foregroundBackgroundMix: [Leaf<number>] }
-    | { $foregroundBackgroundAccentMix: [Leaf<number>, Leaf<number>] }
+    | { $foregroundOpacity: [Leaf<number>] }
     | { $interpolate: [AnyLeaf, Leaf<number>] }
     | { $isGradient: [AnyLeaf] }
     | { $isPattern: [AnyLeaf] }
