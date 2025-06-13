@@ -25,9 +25,9 @@ const options: AgCartesianChartOptions = {
     ],
     axes: [
         {
-            type: 'time',
+            type: 'unit-time',
             position: 'bottom',
-            title: { text: 'Continuous Time Axis' },
+            title: { text: 'Unit Time Axis' },
         },
         {
             type: 'number',

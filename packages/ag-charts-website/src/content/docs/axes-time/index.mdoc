@@ -5,43 +5,23 @@ description: 'Use $framework chart time axis to display time-based data in a $fr
 
 Time axes are used to display time-based data in a chart. They can be used to show data at different levels of granularity, such as years, months, days, or even hours and minutes.
 
+Time can be provided as `number` or `Date` objects, where `number` values are interpreted as timestamps derived from Unix time.
+
 There are three methods of displaying time along an axis.
 
--   [Continuous Time Axis](#continuous-time) - Data is shown on a continuous scale.
 -   [Unit Time Axis](#unit-time) - Each 'unit' has a dedicated band within the domain.
 -   [Ordinal Time Axis](#ordinal-time) - Only provided values are shown, with missing values omitted.
+-   [Continuous Time Axis](#continuous-time) - Data is shown on a continuous scale.
 
-The difference between a continuous [Continuous Time Axis](#continuous-time), a [Unit Time Axis](#unit-time), and an [Ordinal Time Axis](#ordinal-time) is demonstrated in the following example:
+The difference between a [Unit Time Axis](#unit-time), an [Ordinal Time Axis](#ordinal-time), and continuous [Continuous Time Axis](#continuous-time) is demonstrated in the following example:
 
 {% chartExampleRunner title="Time Axis Types" name="time-vs-unit-time-vs-ordinal-time" type="generated" /%}
 
-## Continuous Time
-
-The time axis is similar to the number axis in the sense that it is also used to plot continuous values. The time axis
-can even be used with numeric data (in addition to `Date` objects), but the numbers will be interpreted as JavaScript
-timestamps. The time axis differs from the number axis in tick segmentation and label formatting. For example, you could
-choose to place a tick every 5 minutes, every month, or every Friday.
-
-The time axis also supports specifier strings to control the way time values are presented as labels. For example,
-the `%H:%M:%S` specifier string will instruct the axis to format a time value like `new Date('Mon Apr 17 2023 12:43:17')`
-or `1681735397000` as `'12:43:17'`. Time axes are typically used as x-axes and placed at the bottom of a chart. The
-simplest time axis config looks like this:
-
-```js
-{
-    type: 'time',
-    position: 'bottom',
-}
-```
-
-For a full list of configuration options see [Continuous Time Axis Options](#reference-AgTimeAxisOptions).
-
 ## Unit Time
 
-The Time Axis defaults to using a continuous scale. This accurately portrays the difference between each time value, but this is not always desired.
-For example, data points will not be evenly spaced when plotting monthly data, because of the inconsistent number of days across months.
+The Unit Time Axis will plot time values with evenly spaced bands for each unit of time in the domain, regardless of the actual time span between them or missing data.
 
-The Unit Time Axis will plot time values with evenly spaced bands for each unit of time, regardless of the actual time span between them.
+For example, with a `month` unit, dates of 01 Jan and 30 Mar will appear as three evenly spaced items representing "January", "February" and "March".
 
 ```js
 {
@@ -50,7 +30,18 @@ The Unit Time Axis will plot time values with evenly spaced bands for each unit 
 }
 ```
 
-The Unit Time Axis assumes data is evenly spaced, and will infer a time interval based on the data provided. If required, you can specify the `unit` to use for the axis. For example, if you want to display data in months, you can set the `unit` property to `'month'`:
+{% note %}
+
+The Unit Time Axis does not aggregate data, so you should ensure that each series only has one value per `unit`.
+
+{% /note %}
+
+### Custom Unit
+
+The Unit Time Axis assumes that data is is provided with one item per unit, and will infer a `unit` based on the data.
+To explicitly set the `unit`, provide a `AgTimeInterval` string or `AgTimeIntervalUnit` object.
+
+For example, if you want to display data in months, you can set the `unit` property to `'month'`:
 
 ```js
 {
@@ -64,27 +55,18 @@ In this example of `unit: 'month'`, any units smaller than 'month' will be ignor
 
 See [Time Interval](#reference-AgTimeInterval) for more information on the `unit` property.
 
-{% note %}
-
-The Unit Time Axis does not aggregate data, so you should ensure that each series only has one value per `unit`.
-
-{% /note %}
-
 For a full list of configuration options see [Unit Time Axis Options](#reference-AgUnitTimeAxisOptions).
 
 ## Ordinal Time
 
-The Ordinal Time Axis is used to plot time-bound data on a band scale. Unlike a linear [Continuous Time Axis](#continuous-time), which represents time with consistent intervals, the ordinal time scale maintains the order of time values but does not represent the exact time span between them.
-
 Data points plotted along an Ordinal Time Axis will be arranged according to their position in time, ignoring the time intervals between them.
+This is unlike the [Unit Time](#unit-time) and [Continuous Time Axis](#continuous-time), which represent time with consistent intervals.
 
 For example, if the Ordinal Time Axis is used to plot daily values but there are no data points for the weekend, values for Friday and Monday will be equally spaced, without gaps for Saturday and Sunday.
 
-The Ordinal Time Axis can be used with `Date` objects and numeric data, the numbers will be interpreted as JavaScript timestamps.
+Ordinal Time axes are commonly used for financial data on the x-axis, usually placed at the bottom of a chart.
 
-This axis follows the tick segmentation and label formatting of the [Continuous Time Axis](#continuous-time).
-
-Ordinal Time axes are commonly used for financial data on the x-axis, usually placed at the bottom of a chart. A basic Ordinal Time Axis configuration looks like this:
+A basic Ordinal Time Axis configuration looks like this:
 
 ```js
 {
@@ -95,7 +77,22 @@ Ordinal Time axes are commonly used for financial data on the x-axis, usually pl
 
 For a full list of configuration options see [Ordinal Time Axis Options](#reference-AgOrdinalTimeAxisOptions).
 
-## Intervals
+## Continuous Time
+
+The time axis is similar to the number axis in the sense that it is also used to plot continuous values.
+
+Time axes are typically used as x-axes and placed at the bottom of a chart. The simplest time axis config looks like this:
+
+```js
+{
+    type: 'time',
+    position: 'bottom',
+}
+```
+
+For a full list of configuration options see [Continuous Time Axis Options](#reference-AgTimeAxisOptions).
+
+## Time Intervals
 
 The interval of Time Axes can be customised with the `interval.step` parameter, which should be a
 `AgTimeInterval` or `AgTimeIntervalUnit`.
@@ -128,7 +125,7 @@ If the `step` property of a time axis is set to a `number`, this will be interpr
 
 See [Time Interval](#reference-AgTimeInterval) for more information on the `step` property.
 
-## Parent Levels
+## Parent Level Labels
 
 The `parentLevel` option allows displaying labels and ticks for the parent level of the time axes. For example, if the axis is showing monthly data, the parent level would be the years.
 These levels are based on the data displayed, and change as the user zooms in and out.
@@ -195,16 +192,16 @@ See [Axis Labels](./axes-labels/#label-text-formatting) and the [Formatters](./f
 
 {% tabs %}
 
-{% tabItem id="AgTimeAxisOptions" label="Continuous Time Axis" %}
-{% apiReference id="AgTimeAxisOptions" /%}
-{% /tabItem %}
-
 {% tabItem id="AgUnitTimeAxisOptions" label="Unit Time Axis" %}
 {% apiReference id="AgUnitTimeAxisOptions" /%}
 {% /tabItem %}
 
 {% tabItem id="AgOrdinalTimeAxisOptions" label="Ordinal Time Axis" %}
 {% apiReference id="AgOrdinalTimeAxisOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgTimeAxisOptions" label="Continuous Time Axis" %}
+{% apiReference id="AgTimeAxisOptions" /%}
 {% /tabItem %}
 
 {% tabItem id="AgTimeInterval" label="Time Interval" %}
