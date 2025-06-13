@@ -248,7 +248,18 @@ module.exports = {
             comment: 'Benchmarks should be isolated.',
             severity: 'error',
             from: { path: '^benchmarks/' },
-            to: { pathNot: ['benchmarks/', 'ag-charts-test', 'ag-charts-types', 'node_modules', 'src/main'] },
+            to: {
+                pathNot: [
+                    'benchmarks/',
+                    'ag-charts-test',
+                    'ag-charts-types',
+                    'node_modules',
+                    'src/main',
+                    'src/version',
+                    'path',
+                    'fs',
+                ],
+            },
         },
         {
             name: 'ag-avoid-bundles',
