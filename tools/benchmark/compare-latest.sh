@@ -36,17 +36,10 @@ branch=$(git rev-parse --abbrev-ref HEAD)
 tools_dir=$(dirname "$0")
 root=$(git rev-parse --show-toplevel)
 
-trap 'git stash -u -m "benchmark results" && git checkout ${branch}' INT TERM ERR EXIT
-
 if [[ ${branch} == "${base_name}" ]] ; then
     echo "You are on the ${base_name} branch, please switch to a different branch to run this script."
     exit 1
 fi
-
-function benchmark() {
-    yarn nx run-many -t benchmark --parallel 1 --exclude all
-    yarn nx run-many -t benchmark --parallel 1 --exclude all
-}
 
 function logStarBox() {
     local message=$1
@@ -75,19 +68,7 @@ function logStarBox() {
 echo "Running benchmarks on ${branch} against ${base_name}"
 echo "${base} (${base_name}) vs ${head} (${branch})"
 
-data_file="${root}/reports/benchmark-data.ts"
-
-benchmark
-node ${tools_dir}/collate-reports.js --name "${branch}-${head}" --data-file "$data_file"
-
-git stash -u && git checkout ${base} && git restore --source $head -- ${tools_dir}
-if ! git diff --quiet ${head} ${base} -- yarn.lock; then
-    echo "yarn.lock has changed, running yarn..."
-    yarn
-fi
-
-benchmark
-node ${tools_dir}/collate-reports.js --name "${base_name}-${base}" --data-file "$data_file"
+./tools/benchmark/collect-version-benchmark.sh -r 2 ${head} ${base}
 
 output=${root}/reports/benchmark.log
 if [[ ${format} == "json" ]] ; then
@@ -100,10 +81,9 @@ elif [[ -f ${output} ]] ; then
 fi
 node ${tools_dir}/compare-versions.js \
     --report-only \
-    --base ${base_name}-${base} \
-    --compare ${branch}-${head} \
+    --base ${base} \
+    --compare ${head} \
     --format ${format} \
-    --data-file "$data_file" \
     >>${output}
 cat ${output}
 echo "Benchmark results saved to ${output}"
