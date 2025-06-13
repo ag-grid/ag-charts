@@ -1,5 +1,9 @@
 import { TradeDatum } from './data';
 
+function unreachable(_arg: never): never {
+    throw new Error('');
+}
+
 export type Currency = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'INR';
 
 export class CurrencyConverter {
@@ -19,7 +23,7 @@ export class CurrencyConverter {
             case 'INR':
                 return `₹${convertedPrice}`;
             default:
-                currency satisfies never;
+                unreachable(currency);
         }
     }
 
