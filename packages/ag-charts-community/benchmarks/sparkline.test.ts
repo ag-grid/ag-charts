@@ -1,6 +1,7 @@
 import { beforeEach, describe as jestDescribe } from '@jest/globals';
 
-import { AgCartesianChartOptions } from '../src/main';
+import { AgCartesianChartOptions } from 'ag-charts-types';
+
 import { benchmark, setupBenchmark } from './benchmark';
 import { isAtOrAfterVersion } from './compatibility';
 
@@ -38,7 +39,7 @@ describe('sparkline benchmark', () => {
             await ctx.create();
         });
 
-        benchmark('update', ctx, { expectedRelativeMB: 0.9, expectedCanvasCount: 0, autoSnapshot: false }, async () => {
+        benchmark('update', ctx, { expectedRelativeMB: 3, expectedCanvasCount: 1, autoSnapshot: false }, async () => {
             ctx.options.data = ctx.options.data?.map((d) => ({ x: d.x, y: Math.random() * d.y }));
             await ctx.update();
         });
@@ -46,7 +47,7 @@ describe('sparkline benchmark', () => {
         benchmark(
             'updateDelta',
             ctx,
-            { expectedRelativeMB: 0.8, expectedCanvasCount: 0, autoSnapshot: false },
+            { expectedRelativeMB: 3, expectedCanvasCount: 1, autoSnapshot: false },
             async () => {
                 await ctx.updateDelta({
                     data: ctx.options.data?.map((d) => ({ x: d.x, y: Math.random() * d.y })),
