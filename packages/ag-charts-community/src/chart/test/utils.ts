@@ -134,12 +134,21 @@ export function prepareTestOptions<T extends AgChartOptions<any, any> | AgSparkl
         },
     };
 
+    let baseThemeString = options?.theme;
+    if (typeof baseThemeString !== 'string') {
+        baseThemeString = baseThemeString?.baseTheme as any;
+        while (typeof baseThemeString === 'object') {
+            baseThemeString = baseThemeString.baseTheme;
+        }
+    }
+
     if (typeof options?.theme === 'object') {
+        // Only override palette and params if not provided, and use default params when in dark mode.
         baseTestTheme = {
             ...options.theme,
             baseTheme: options.theme.baseTheme ?? baseTestTheme.baseTheme,
             palette: options.theme.palette ?? baseTestTheme.palette,
-            params: options.theme.params ?? baseTestTheme.params,
+            params: baseThemeString === 'ag-default-dark' ? undefined : options.theme.params ?? baseTestTheme.params,
         };
     } else if (typeof options?.theme === 'string') {
         // Override colours.
@@ -147,22 +156,6 @@ export function prepareTestOptions<T extends AgChartOptions<any, any> | AgSparkl
     }
 
     options.theme = baseTestTheme;
-
-    // if (typeof options?.theme === 'object' && options?.theme.palette != null) {
-    //     // Keep existing theme.
-    //     baseTestTheme = options.theme;
-    // } else if (typeof options?.theme === 'object') {
-    //     // Keep theme supplied, just override palette colours.
-    //     baseTestTheme = {
-    //         ...options.theme,
-    //         palette: baseTestTheme.palette,
-    //     };
-    // } else if (typeof options?.theme === 'string') {
-    //     // Override colours.
-    //     baseTestTheme.baseTheme = options.theme;
-    // }
-
-    // options.theme = baseTestTheme;
 
     return options;
 }
