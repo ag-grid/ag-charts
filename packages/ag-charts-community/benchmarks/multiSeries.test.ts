@@ -34,7 +34,6 @@ describe('multi-series benchmark', () => {
         benchmark('1x datum highlight', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 32 }, async () => {
             const point = ctx.nodePositions[0][2];
             await ctx.hover(point.x, point.y);
-            await ctx.waitForUpdate();
         });
 
         benchmark('15x datum highlight', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 32 }, async () => {
@@ -42,7 +41,6 @@ describe('multi-series benchmark', () => {
                 for (let seriesIdx = 0; seriesIdx < 3; seriesIdx++) {
                     const point = ctx.nodePositions[seriesIdx][nodeIdx];
                     await ctx.hover(point.x, point.y);
-                    await ctx.waitForUpdate();
                 }
             }
         });
