@@ -58,7 +58,7 @@ const options: AgChartOptions<DataType> = {
     ],
     formatter: {
         x: (params) =>
-            params.source === 'axis'
+            params.source === 'axis-label'
                 ? `'${String((params.value as Date).getFullYear()).slice(2)}`
                 : dateFormatter.format(params.value as Date),
     },

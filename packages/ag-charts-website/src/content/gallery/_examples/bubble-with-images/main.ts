@@ -83,12 +83,12 @@ const options: AgCartesianChartOptions = {
         x: (params) => {
             const value = params.value as number;
             const era = value < 0 ? 'BCE' : 'CE';
-            if (params.source === 'axis') return era;
+            if (params.source === 'axis-label') return era;
             return `${Math.abs(value)} ${era}`;
         },
         y: (params) => {
             const value = params.value as number;
-            if (params.source === 'axis') return value > 5 ? 'Difficult' : 'Easy';
+            if (params.source === 'axis-label') return value > 5 ? 'Difficult' : 'Easy';
             return value.toFixed(0);
         },
     },

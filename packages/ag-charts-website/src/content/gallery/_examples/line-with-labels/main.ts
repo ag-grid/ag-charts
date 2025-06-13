@@ -89,7 +89,7 @@ const options: AgChartOptions = {
             const hours = Math.floor(value);
             const minutes = Math.round((value % 1) * 60);
             const minutesString = String(minutes).padStart(2, '0');
-            if (params.source !== 'axis') {
+            if (params.source !== 'axis-label') {
                 return `${hours}h ${minutesString}m`;
             }
 

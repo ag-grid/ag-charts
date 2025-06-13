@@ -122,7 +122,7 @@ const options: AgChartOptions = {
     formatter: {
         x(params) {
             const value = params.value as number;
-            if (params.source === 'axis') {
+            if (params.source === 'axis-label') {
                 return `${Math.round(value / Math.PI)}π`;
             }
             return value.toFixed(2);

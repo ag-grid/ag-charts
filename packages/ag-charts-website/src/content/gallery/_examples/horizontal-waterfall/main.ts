@@ -64,7 +64,7 @@ const options: AgChartOptions = {
     formatter: {
         x: (params) => {
             const value = params.value as number;
-            const positiveSign = params.source === 'axis' ? '' : '+';
+            const positiveSign = params.source === 'axis-label' ? '' : '+';
             return `${value < 0 ? '-' : positiveSign}£${Math.abs(value).toFixed(0)} bn`;
         },
     },
