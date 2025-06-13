@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "ag-shared": "0.0.1",
-    "glob": "8.0.3",
+    "glob": "9.0.0",
     "typescript": "^5.4.5",
     "@nx/devkit": "^18.3.4",
     "@swc/helpers": "0.5.3"
