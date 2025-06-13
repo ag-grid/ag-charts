@@ -567,7 +567,7 @@ describe('ChartTheme', () => {
             const axis0 = chart.axes[0] as any;
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('left');
-            expect(axis0.line.stroke).toBe('#c3c3c3');
+            expect(axis0.line.stroke).toBe('#b4b6b6');
             expect(axis0.label.fontSize).toBe(12);
 
             const axis1 = chart.axes[1] as any;
@@ -617,7 +617,7 @@ describe('ChartTheme', () => {
             const axis0 = chart.axes[0] as any;
             expect(axis0.type).toBe('number');
             expect(axis0.position).toBe('left');
-            expect(axis0.line.stroke).toBe('#c3c3c3');
+            expect(axis0.line.stroke).toBe('#b4b6b6');
             expect(axis0.label.fontSize).toBe(12);
 
             const axis1 = chart.axes[1] as any;

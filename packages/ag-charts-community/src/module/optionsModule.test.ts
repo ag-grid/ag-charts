@@ -807,7 +807,7 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
-      "color": "#464646",
+      "color": "#181d1f",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
@@ -890,7 +890,7 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
-      "color": "#464646",
+      "color": "#181d1f",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
@@ -1348,7 +1348,7 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
-      "color": "#464646",
+      "color": "#181d1f",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
@@ -1431,7 +1431,7 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
-      "color": "#464646",
+      "color": "#181d1f",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
@@ -1889,7 +1889,7 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
-      "color": "#464646",
+      "color": "#181d1f",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
@@ -1972,7 +1972,7 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
-      "color": "#464646",
+      "color": "#181d1f",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
