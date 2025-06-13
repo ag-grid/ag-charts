@@ -1,21 +1,15 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
+import { CurrencyConverter } from './currencyConverter';
 import { TradeDatum, getData } from './data';
 
-type CurrentConverter = never;
+const myCurrencyConverter = new CurrencyConverter('EUR');
 
-const USD_TO_EUR = 0.94;
-
-function formatCurrencyUSDandEUR(value: number): string {
-    const usd = `$${value.toFixed(2)}`;
-    const eur = `€${(value * USD_TO_EUR).toFixed(2)}`;
-    return `${usd} (${eur})`;
-}
-
-const options: AgChartOptions<TradeDatum, CurrentConverter> = {
+const options: AgChartOptions<TradeDatum, CurrencyConverter> = {
     container: document.getElementById('myChart'),
+    context: myCurrencyConverter,
     title: {
-        text: 'Stock Prices in USD',
+        text: 'Stock Prices',
     },
     data: getData(),
     series: [
@@ -27,14 +21,14 @@ const options: AgChartOptions<TradeDatum, CurrentConverter> = {
             lowKey: 'low',
             closeKey: 'close',
             tooltip: {
-                renderer: ({ datum }) => {
+                renderer: ({ datum, context }) => {
                     return {
                         title: datum.date.toDateString(),
                         content: `
-                          Open: ${formatCurrencyUSDandEUR(datum.open)}\n
-                          High: ${formatCurrencyUSDandEUR(datum.high)}\n
-                          Low: ${formatCurrencyUSDandEUR(datum.low)}\n
-                          Close: ${formatCurrencyUSDandEUR(datum.close)}`,
+                          Open: ${context.formatBothCurrencies(datum.open)}\n
+                          High: ${context.formatBothCurrencies(datum.high)}\n
+                          Low: ${context.formatBothCurrencies(datum.low)}\n
+                          Close: ${context.formatBothCurrencies(datum.close)}`,
                     };
                 },
             },
@@ -49,7 +43,9 @@ const options: AgChartOptions<TradeDatum, CurrentConverter> = {
             type: 'number',
             position: 'left',
             label: {
-                formatter: ({ value }) => formatCurrencyUSDandEUR(value),
+                formatter: ({ value, context }) => {
+                    return context.formatStockCurrency(value);
+                },
             },
         },
     ],
