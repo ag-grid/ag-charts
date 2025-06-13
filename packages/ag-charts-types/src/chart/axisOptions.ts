@@ -208,12 +208,12 @@ export interface AgAxisGridStyle {
 export type AgTimeIntervalUnit = 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'month' | 'year';
 
 export interface AgTimeInterval {
-    /* The base duration of the time interval */
+    /** The base duration of the time interval */
     unit: AgTimeIntervalUnit;
-    /* A multiplier of the `unit`. I.e. a unit of `'week'` and a step of `2` would be every two weeks. */
+    /** A multiplier of the `unit`. I.e. a unit of `'week'` and a step of `2` would be every two weeks. */
     step?: number;
-    /* Defines the alignment of time time interval. For example, a unit of `'week'` with an epoch on any Monday would be every Monday. */
+    /** Defines the alignment of time time interval. For example, a unit of `'week'` with an epoch on any Monday would be every Monday. */
     epoch?: Date;
-    /* Whether all dates should be in UTC, or local time */
+    /** Whether all dates should be in UTC, or local time */
     utc?: boolean;
 }
