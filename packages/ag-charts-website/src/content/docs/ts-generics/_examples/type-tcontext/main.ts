@@ -50,6 +50,35 @@ const options: AgChartOptions<TradeDatum, CurrencyConverter> = {
             },
         },
     ],
+    contextMenu: {
+        items: [
+            {
+                showOn: 'series-node',
+                label: 'Log as USD',
+                action: ({ datum, context }) => console.log(context.formatLog(datum, 'USD')),
+            },
+            {
+                showOn: 'series-node',
+                label: 'Log as EUR',
+                action: ({ datum, context }) => console.log(context.formatLog(datum, 'EUR')),
+            },
+            {
+                showOn: 'series-node',
+                label: 'Log as GBP',
+                action: ({ datum, context }) => console.log(context.formatLog(datum, 'GBP')),
+            },
+            {
+                showOn: 'series-node',
+                label: 'Log as JPY',
+                action: ({ datum, context }) => console.log(context.formatLog(datum, 'JPY')),
+            },
+            {
+                showOn: 'series-node',
+                label: 'Log as INR',
+                action: ({ datum, context }) => console.log(context.formatLog(datum, 'INR')),
+            },
+        ],
+    },
 };
 
 const chart = AgCharts.create(options);

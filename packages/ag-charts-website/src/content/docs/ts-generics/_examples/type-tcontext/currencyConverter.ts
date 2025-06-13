@@ -1,3 +1,5 @@
+import { TradeDatum } from './data';
+
 export type Currency = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'INR';
 
 export class CurrencyConverter {
@@ -37,6 +39,16 @@ export class CurrencyConverter {
             const userFmt = this.formatUserCurrency(stockPrice);
             return `${stockFmt} (${userFmt})`;
         }
+    }
+
+    formatLog(datum: TradeDatum, currency: Currency) {
+        return [
+            `Pricing in ${currency}:`,
+            `  Open  : ${this.formatCurrency(datum.open, currency)}`,
+            `  High  : ${this.formatCurrency(datum.high, currency)}`,
+            `  Low   : ${this.formatCurrency(datum.low, currency)}`,
+            `  Close : ${this.formatCurrency(datum.close, currency)}`,
+        ].join('\n');
     }
 }
 
