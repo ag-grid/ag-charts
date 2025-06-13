@@ -528,9 +528,9 @@ export abstract class CartesianSeries<
         }
 
         const strokeWidthChangesOnHighlight = this.properties.highlightStyle.series.strokeWidth != null;
-        const { highlight: { unHighlightedItem, highlightedSeries, unHighlightedSeries } = {} } = this.properties;
+        const { highlight: { unhighlightedItem, highlightedSeries, unhighlightedSeries } = {} } = this.properties;
         const changesOnHighlight =
-            unHighlightedItem != null || highlightedSeries != null || unHighlightedSeries != null;
+            unhighlightedItem != null || highlightedSeries != null || unhighlightedSeries != null;
         if (nodeRefresh || strokeWidthChangesOnHighlight || changesOnHighlight) {
             this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false });
             if (!this.usesPlacedLabels) {

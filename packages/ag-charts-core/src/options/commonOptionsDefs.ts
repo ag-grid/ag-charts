@@ -262,7 +262,7 @@ export function highlightOptionsDef<T>(itemHighlightOptionsDef: T) {
         enabled: boolean,
         range: union('tooltip', 'node'),
         highlightedItem: itemHighlightOptionsDef,
-        unHighlightedItem: itemHighlightOptionsDef,
+        unhighlightedItem: itemHighlightOptionsDef,
     };
 }
 
@@ -271,9 +271,9 @@ export function multiSeriesHighlightOptionsDef<I, S>(itemHighlightOptionsDef: I,
         enabled: boolean,
         range: union('tooltip', 'node'),
         highlightedItem: itemHighlightOptionsDef,
-        unHighlightedItem: itemHighlightOptionsDef,
+        unhighlightedItem: itemHighlightOptionsDef,
         highlightedSeries: seriesHighlightOptionsDef,
-        unHighlightedSeries: seriesHighlightOptionsDef,
+        unhighlightedSeries: seriesHighlightOptionsDef,
     };
 }
 

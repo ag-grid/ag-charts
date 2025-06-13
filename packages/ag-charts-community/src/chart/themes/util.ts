@@ -155,13 +155,13 @@ export function multiSeriesHighlightStyle(
 ): WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> {
     return {
         highlightedItem: hasFill ? ITEM_HIGHLIGHT_STYLE : ITEM_HIGHLIGHT_BASE_STYLE,
-        unHighlightedItem: {
+        unhighlightedItem: {
             strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
         },
         highlightedSeries: {
             strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
         },
-        unHighlightedSeries: {
+        unhighlightedSeries: {
             opacity: { $path: ['../../highlightStyle/series/dimOpacity', undefined] },
         },
     };
@@ -172,7 +172,7 @@ export function singleSeriesHighlightStyle(
 ): WithThemeParams<AgHighlightOptions<AgHighlightStyleOptions>> {
     return {
         highlightedItem: hasFill ? ITEM_HIGHLIGHT_STYLE : ITEM_HIGHLIGHT_BASE_STYLE,
-        unHighlightedItem: {
+        unhighlightedItem: {
             strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
             opacity: { $path: ['../../highlightStyle/series/dimOpacity', undefined] },
         },

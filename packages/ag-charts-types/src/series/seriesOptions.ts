@@ -33,14 +33,14 @@ export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyle
     /** Options for the highlighted item.  */
     highlightedItem?: ItemHighlightStyleOptions;
     /** Options for the un-highlighted items when there is an active highlight. */
-    unHighlightedItem?: ItemHighlightStyleOptions;
+    unhighlightedItem?: ItemHighlightStyleOptions;
 }
 
 export interface AgSeriesHighlightOptions<SeriesHighlightStyleOptions> {
     /** Options for the highlighted series. */
     highlightedSeries?: SeriesHighlightStyleOptions;
     /** Options for the un-highlighted series when there is an active highlight. */
-    unHighlightedSeries?: SeriesHighlightStyleOptions;
+    unhighlightedSeries?: SeriesHighlightStyleOptions;
 }
 
 export interface AgHighlightStyleOptions extends AgBaseHighlightStyleOptions, FillOptions {}
