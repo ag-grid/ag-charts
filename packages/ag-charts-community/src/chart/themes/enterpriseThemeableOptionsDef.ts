@@ -8,6 +8,7 @@ import {
     colorUnion,
     fillOptionsDef,
     fontOptionsDef,
+    highlightOptionsDef,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
     multiSeriesHighlightOptionsDef,
@@ -220,6 +221,7 @@ export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeries
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
     ...lineDashOptionsDef,
+    highlight: highlightOptionsDef(lineHighlightOptionsDef),
 };
 
 export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeableOptions> = {

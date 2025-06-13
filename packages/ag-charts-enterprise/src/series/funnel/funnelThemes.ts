@@ -114,6 +114,7 @@ export const FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'funnel'>['themeTe
             yOffset: 3,
             blur: 5,
         },
+        highlight: _ModuleSupport.singleSeriesHighlightStyle(),
     },
     axes: {
         [CARTESIAN_AXIS_TYPE.NUMBER]: {

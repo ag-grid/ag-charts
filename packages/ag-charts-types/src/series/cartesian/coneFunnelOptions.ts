@@ -3,7 +3,12 @@ import type { ContextCallbackParams, DatumCallbackParams } from '../../chart/cal
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
+import type {
+    AgBaseCartesianThemeableOptions,
+    AgBaseHighlightStyleOptions,
+    AgBaseSeriesOptions,
+    AgHighlightOptions,
+} from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
@@ -58,6 +63,8 @@ export interface AgConeFunnelSeriesThemeableOptions<TDatum = TDatumDefault, TCon
     stageLabel?: AgConeFunnelSeriesStageLabelOptions<TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgConeFunnelSeriesTooltipRendererParams<TDatum, TContext>>;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgHighlightOptions<AgBaseHighlightStyleOptions>;
 }
 
 export interface AgConeFunnelSeriesOptionsKeys<TDatum = TDatumDefault> {
@@ -70,7 +77,7 @@ export interface AgConeFunnelSeriesOptionsKeys<TDatum = TDatumDefault> {
 export interface AgConeFunnelSeriesOptionsNames {}
 
 export interface AgConeFunnelSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgConeFunnelSeriesOptionsKeys<TDatum>,
         AgConeFunnelSeriesOptionsNames,
         AgConeFunnelSeriesThemeableOptions<TDatum, TContext> {
