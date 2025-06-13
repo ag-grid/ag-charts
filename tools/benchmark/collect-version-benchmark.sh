@@ -165,11 +165,11 @@ benchmark() {
 # Reset the working tree state if an error is encountered
 trap 'cleanup' ERR EXIT
 
+build
 for version in "${versions[@]}"; do
     # Checkout files in the specified input file set (removing any files that have been added since then)
     git restore --source "$version" -- ${included_files[@]}
-    # Build & benchmark
-    build
+    # Benchmark
     benchmark ${version}
     # Remove any untracked files created during this benchmark run
     git clean -fd

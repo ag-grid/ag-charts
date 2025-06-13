@@ -55,6 +55,13 @@ export class MockContext {
         this.registerCanvasInstance(nodeCanvas);
     }
 
+    reset() {
+        this.ctx.nodeCanvas ??= new ConfiguredCanvas(this.width, this.height);
+        this.canvasStack = [this.ctx.nodeCanvas];
+
+        this.registerCanvasInstance(this.ctx.nodeCanvas);
+    }
+
     snapshot() {
         return this.ctx.nodeCanvas
             .getContext('2d')
@@ -78,15 +85,19 @@ export class MockContext {
     }
 
     getActiveCanvasInstances() {
-        const instances = this.canvases.map((ref) => ref.deref());
-        this.canvases = this.canvases.filter((_ref, index) => instances[index] != null);
-        return instances.filter((value): value is NonNullable<typeof value> => value != null);
+        const instances = this.canvases.map((ref) => ref.deref()).filter((ref): ref is Canvas => ref != null);
+        const uniqueInstances = new Set(instances);
+        this.canvases = [...uniqueInstances].map((c) => new WeakRef(c));
+        return [...uniqueInstances];
     }
 
     getActiveOffscreenCanvasInstances() {
-        const instances = this.offscreenCanvases.map((ref) => ref.deref());
-        this.offscreenCanvases = this.offscreenCanvases.filter((_ref, index) => instances[index] != null);
-        return instances.filter((value): value is NonNullable<typeof value> => value != null);
+        const instances = this.offscreenCanvases
+            .map((ref) => ref.deref())
+            .filter((ref): ref is OffscreenCanvas => ref != null);
+        const uniqueInstances = new Set(instances);
+        this.offscreenCanvases = [...uniqueInstances].map((c) => new WeakRef(c));
+        return [...uniqueInstances];
     }
 
     destroy() {
@@ -115,16 +126,13 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
     let mockCtx: MockContext;
     if (opts instanceof MockContext) {
         mockCtx = opts;
+        mockCtx.reset();
     } else {
         const { width = 800, height = 600, document = window.document } = opts;
         mockCtx = new MockContext(width, height, document);
     }
 
     const { width, height, document } = mockCtx;
-
-    const nodeCanvas = new ConfiguredCanvas(width, height);
-    mockCtx.ctx.nodeCanvas = nodeCanvas;
-    mockCtx.canvasStack = [nodeCanvas];
 
     if (typeof window === 'undefined') {
         (global as any)['agChartsSceneRenderModel'] = 'composite';
