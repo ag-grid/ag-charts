@@ -410,6 +410,8 @@ export abstract class FlowProportionSeries<
         }
 
         this.contentGroup.visible = this.visible;
+        this.contentGroup.opacity =
+            highlightedDatum != null ? this.properties.highlight.unHighlightedItem.opacity ?? 1 : 1;
 
         this.labelSelection = this.updateLabelSelection({ labelData, labelSelection: this.labelSelection });
         this.updateLabelNodes({ labelSelection: this.labelSelection });
