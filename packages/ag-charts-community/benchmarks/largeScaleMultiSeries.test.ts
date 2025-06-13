@@ -1,6 +1,7 @@
 import { beforeEach, describe } from '@jest/globals';
 
-import { AgCartesianChartOptions } from '../src/main';
+import { AgCartesianChartOptions } from 'ag-charts-types';
+
 import { benchmark, setupBenchmark } from './benchmark';
 
 describe('large-scale multi-series benchmark', () => {
