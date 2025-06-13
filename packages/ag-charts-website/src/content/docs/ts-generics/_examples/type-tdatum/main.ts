@@ -30,9 +30,12 @@ const options: AgChartOptions<MyDatumType> = {
             legendItemKey: 'country',
             itemStyler: (params) => {
                 switch (params.datum.region) {
-                    case 'AMER': return { fill: 'red' };
-                    case 'APAC': return { fill: 'blue' };
-                    case 'EMEA': return { fill: 'green' };
+                    case 'AMER':
+                        return { fill: 'red' };
+                    case 'APAC':
+                        return { fill: 'blue' };
+                    case 'EMEA':
+                        return { fill: 'green' };
                     default:
                         // (unreachable code)
                         params.datum.region satisfies never;
