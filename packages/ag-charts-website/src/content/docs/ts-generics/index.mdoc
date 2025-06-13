@@ -12,7 +12,11 @@ and compile-time validation of row data and cell value properties.
 The `TData` (default: `any`) generic parameter is used to specify the interface
 of datums in the data.
 
-{% chartExampleRunner title="TDatum Generic Parameter" name="type-tdatum" type="generated" /%}
+{% chartExampleRunner
+    title="TDatum Generic Parameter"
+    name="type-tdatum"
+    type="generated"
+/%}
 
 ```ts
 type MyDatumType = {
@@ -67,3 +71,16 @@ the following:
 
 -   Automatically infers the type of `params.datum.region` in the `itemStyler`
     callback.
+
+## Type <TContext>
+
+The `TContext` type (default: `unknown`) generic parameter is used to specify the interface of the `context` properties.
+
+The `context` property is arbitrary user-defined data that will be passed to the callback as-is. This useful for attaching a custom state to your chart.
+
+{% chartExampleRunner
+    title="TContext Generic Parameter"
+    name="type-tcontext"
+    type="generated"
+    options={ "enterprise": true }
+/%}
