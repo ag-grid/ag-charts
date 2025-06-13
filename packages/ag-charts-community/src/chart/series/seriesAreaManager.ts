@@ -724,8 +724,7 @@ export class SeriesAreaManager extends BaseManager {
             const tooltipContent = this.getTooltipContent(focus.series, datum.datumIndex, datum);
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-            const tooltipEnabled = focus.series.tooltipEnabled ?? this.chart.tooltip.enabled;
-            if (tooltipEnabled) {
+            if (tooltipContent) {
                 this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
             } else {
                 this.chart.ctx.tooltipManager.removeTooltip(this.id);
@@ -738,7 +737,7 @@ export class SeriesAreaManager extends BaseManager {
                     (datumIndexDelta === 0 && otherIndexDelta === 0) ||
                     oldDatumIndex !== pick.datumIndex ||
                     oldOtherIndex !== (pick.otherIndex ?? focus.seriesIndex);
-                if (shouldAnnouncePick) {
+                if (shouldAnnouncePick && tooltipContent != null) {
                     this.swapChain.update(this.getDatumAriaText(datum, tooltipContent));
                 }
             }
@@ -871,8 +870,7 @@ export class SeriesAreaManager extends BaseManager {
         pagination?: TooltipPaginationState
     ) {
         const content = this.getTooltipContent(series, datumIndex, datum);
-        const tooltipEnabled = series.tooltipEnabled ?? this.chart.tooltip.enabled;
-        const shouldUpdateTooltip = tooltipEnabled && content != null;
+        const shouldUpdateTooltip = content != null;
         if (shouldUpdateTooltip) {
             const meta = TooltipManager.makeTooltipMeta(
                 { type: 'pointermove', canvasX, canvasY },
@@ -947,7 +945,17 @@ export class SeriesAreaManager extends BaseManager {
         return result;
     }
 
-    private getTooltipContent(series: any, datumIndex: any, datum: SeriesNodeDatum<unknown>): TooltipContent[] {
+    private getTooltipContent(
+        series: Series<unknown, any, any, any>,
+        datumIndex: any,
+        datum: SeriesNodeDatum<unknown>
+    ): TooltipContent[] | undefined {
+        const { chart } = this;
+        if (chart.tooltip.enabled === false || series.tooltipEnabled === false) {
+            this.cachedTooltipContent = undefined;
+            return;
+        }
+
         const { cachedTooltipContent } = this;
         if (
             cachedTooltipContent != null &&
