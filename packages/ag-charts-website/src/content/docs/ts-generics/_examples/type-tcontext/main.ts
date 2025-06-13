@@ -22,6 +22,7 @@ const options: AgChartOptions<TradeDatum, CurrencyConverter> = {
             closeKey: 'close',
             tooltip: {
                 renderer: ({ datum, context }) => {
+                    if (context == null) return {};
                     return {
                         title: datum.date.toDateString(),
                         data: [
@@ -45,7 +46,7 @@ const options: AgChartOptions<TradeDatum, CurrencyConverter> = {
             position: 'left',
             label: {
                 formatter: ({ value, context }) => {
-                    return context.formatUserCurrency(value);
+                    return context?.formatUserCurrency(value);
                 },
             },
         },
@@ -55,27 +56,27 @@ const options: AgChartOptions<TradeDatum, CurrencyConverter> = {
             {
                 showOn: 'series-node',
                 label: 'Log as USD',
-                action: ({ datum, context }) => console.log(context.formatLog(datum, 'USD')),
+                action: ({ datum, context }) => console.log(context?.formatLog(datum, 'USD')),
             },
             {
                 showOn: 'series-node',
                 label: 'Log as EUR',
-                action: ({ datum, context }) => console.log(context.formatLog(datum, 'EUR')),
+                action: ({ datum, context }) => console.log(context?.formatLog(datum, 'EUR')),
             },
             {
                 showOn: 'series-node',
                 label: 'Log as GBP',
-                action: ({ datum, context }) => console.log(context.formatLog(datum, 'GBP')),
+                action: ({ datum, context }) => console.log(context?.formatLog(datum, 'GBP')),
             },
             {
                 showOn: 'series-node',
                 label: 'Log as JPY',
-                action: ({ datum, context }) => console.log(context.formatLog(datum, 'JPY')),
+                action: ({ datum, context }) => console.log(context?.formatLog(datum, 'JPY')),
             },
             {
                 showOn: 'series-node',
                 label: 'Log as INR',
-                action: ({ datum, context }) => console.log(context.formatLog(datum, 'INR')),
+                action: ({ datum, context }) => console.log(context?.formatLog(datum, 'INR')),
             },
         ],
     },
