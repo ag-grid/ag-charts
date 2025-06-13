@@ -27,7 +27,7 @@ shift $((OPTIND - 1))
 
 base_name=${1:-latest}
 if [[ ${base_name} =~ ^b[0-9]+(\.[0-9]+){2}$ ]] ; then
-    base="origin/${base_name}"
+    base="${base_name}"
 else
     base=$(git merge-base HEAD origin/${base_name} || echo "origin/${base_name}")
 fi
