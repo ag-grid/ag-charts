@@ -74,9 +74,11 @@ the following:
 
 ## Type \<TContext>
 
-The `TContext` type (default: `unknown`) generic parameter is used to specify the interface of the `context` properties.
+The `TContext` type (default: `unknown`) generic parameter is used to specify
+the interface of the `context` properties.
 
-The `context` property is arbitrary user-defined data that will be passed to the callback as-is. This useful for attaching a custom state to your chart.
+The `context` property is arbitrary user-defined data that will be passed to the
+callback as-is. This useful for attaching a custom state to your chart.
 
 {% chartExampleRunner
     title="TContext Generic Parameter"
@@ -85,7 +87,9 @@ The `context` property is arbitrary user-defined data that will be passed to the
     options={ "enterprise": true }
 /%}
 
-This is example the `TContext` generic parameter is set to a `CurrencyConverter` object to convert stock prices from USD to a user-defined target currency is used by:
+In this example the `TContext` generic parameter is set to a `CurrencyConverter`
+object to convert stock prices from USD to a user-defined target currency is
+used by:
 
 -   The Tooltip
 -   The Y Axis
