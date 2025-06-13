@@ -25,7 +25,9 @@ import {
     waitForUpdate,
 } from './compatibility.ts';
 
-console.warn('Attempting to run against version: ', getVersion().join('.'));
+if (isHistoricBenchmarkTest()) {
+    console.warn('Attempting to run against version: ', getVersion().join('.'));
+}
 
 globalThis.agChartsDebugTimeout = 60_000; // Use Jest timeouts
 
@@ -96,13 +98,27 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
 
     async hover(x: number, y: number) {
         let selector = 'canvas';
-        if (isAtOrAfterVersion(10, 3, 0)) {
+        let offsetX = 0;
+        let offsetY = 0;
+        if (isAtOrAfterVersion(11, 0, 0)) {
             selector = '.ag-charts-series-area';
+        } else if (isAtOrAfterVersion(10, 3, 0)) {
+            // Workaround differences in coordinate calculation between 10.0 and 11.0.
+            selector = '.ag-charts-series-area';
+            offsetX = this.chart.chart.seriesAreaManager.seriesRect?.x ?? 0;
+            offsetY = this.chart.chart.seriesAreaManager.seriesRect?.y ?? 0;
         }
 
         const element = this.options.container?.querySelector(selector) as HTMLElement;
         if (!element) throw new Error('No series area element found');
-        const mockEvent = makeMockEvent({ target: element, offsetX: x, offsetY: y, clientX: x, clientY: y });
+        const elementBBox = element.getBoundingClientRect();
+        const mockEvent = makeMockEvent({
+            target: element,
+            offsetX: x + offsetX,
+            offsetY: y + offsetY,
+            clientX: x + elementBBox.x + offsetX,
+            clientY: y + elementBBox.y + offsetY,
+        });
         element.dispatchEvent(mouseMoveEvent(mockEvent, x, y));
         await this.waitForUpdate();
     }
