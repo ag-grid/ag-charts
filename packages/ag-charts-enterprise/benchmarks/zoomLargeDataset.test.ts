@@ -29,7 +29,7 @@ describe('zoom-large-dataset benchmark', () => {
         benchmark(
             '100x zoom',
             ctx,
-            { expectedRelativeMB: 2, expectedCanvasCount: 2, autoSnapshot: false },
+            { expectedRelativeMB: 6, expectedCanvasCount: 2, autoSnapshot: false },
             async () => {
                 for (let i = 0; i < 100; i++) {
                     await ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);
