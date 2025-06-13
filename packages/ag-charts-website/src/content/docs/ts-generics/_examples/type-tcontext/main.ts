@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts, AgTooltipRendererDataRow } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { Currency, CurrencyConverter } from './currencyConverter';
 import { TradeDatum, getData } from './data';
