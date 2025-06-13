@@ -1,7 +1,7 @@
 <div class="example-controls">
     <div class="controls-row">
         <label for="mySelect">User Currency: </label>
-        <select id="mySelect" onchange="onMySelectChange()">
+        <select id="mySelect" onchange="onMySelectChange(event.target.value)">
             <option value="EUR">🇪🇺 Euros (€)</option>
             <option value="USD">🇺🇸 US Dollars ($)</option>
             <option value="GBP">🇬🇧 Sterling Pound (£)</option>

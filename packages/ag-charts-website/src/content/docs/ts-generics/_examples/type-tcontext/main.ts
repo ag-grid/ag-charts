@@ -84,21 +84,7 @@ const options: AgChartOptions<TradeDatum, CurrencyConverter> = {
 
 const chart = AgCharts.create(options);
 
-function getMySelectValue(): Currency | undefined {
-    const mySelect = document.getElementById('mySelect');
-    if (mySelect instanceof HTMLSelectElement) {
-        const { value } = mySelect;
-        if (value === 'USD' || value === 'EUR' || value === 'GBP' || value === 'JPY' || value === 'INR') {
-            return value;
-        }
-    }
-    return undefined;
-}
-
-function onMySelectChange() {
-    const value = getMySelectValue();
-    if (value != null) {
-        myCurrencyConverter.userCurrency = value;
-        chart.updateDelta({});
-    }
+function onMySelectChange(value: Currency) {
+    myCurrencyConverter.userCurrency = value;
+    chart.updateDelta({});
 }
