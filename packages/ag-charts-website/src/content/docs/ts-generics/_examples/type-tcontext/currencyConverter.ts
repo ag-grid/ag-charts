@@ -42,8 +42,8 @@ export class CurrencyConverter {
 
 const USD_CONVERSION_RATES: { [key in Currency]: number } = {
     USD: 1,
-    EUR: 1.15,
-    GBP: 1.35,
-    JPY: 0.006966,
-    INR: 0.011616,
+    EUR: 0.87,
+    GBP: 0.74,
+    JPY: 144,
+    INR: 86.06,
 };
