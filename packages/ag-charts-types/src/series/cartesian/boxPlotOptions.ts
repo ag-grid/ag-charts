@@ -1,7 +1,11 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
+import type {
+    AgBaseCartesianThemeableOptions,
+    AgBaseSeriesOptions,
+    AgMultiSeriesHighlightOptions,
+} from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 interface BoxPlotOptionsKeys<TDatum = TDatumDefault> {
@@ -77,11 +81,17 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     tooltip?: AgSeriesTooltip<AgBoxPlotSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum, TContext>, AgBoxPlotSeriesStyle>;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgBoxPlotHighlightStyleOptions>;
+}
+export interface AgBoxPlotHighlightStyleOptions extends AgBoxPlotSeriesStyle {
+    /** The opacity of the whole series (line, fill, labels and markers, if any) */
+    opacity?: number;
 }
 
 export interface AgBoxPlotSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBoxPlotSeriesThemeableOptions<TDatum, TContext>,
-        AgBaseSeriesOptions<TDatum, TContext>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNames {
     /** Configuration for the Box Plot Series. */

@@ -8,6 +8,7 @@ import {
     fillOptionsDef,
     fontOptionsDef,
     lineDashOptionsDef,
+    multiSeriesHighlightOptionsDef,
     number,
     positiveNumber,
     ratio,
@@ -17,6 +18,7 @@ import {
 } from 'ag-charts-core';
 import type {
     AgBaseAxisLabelStyleOptions,
+    AgBoxPlotHighlightStyleOptions,
     AgBoxPlotSeriesStyle,
     AgBoxPlotSeriesThemeableOptions,
     AgCandlestickSeriesItemOptions,
@@ -73,10 +75,28 @@ import {
     tooltipOptionsDefs,
 } from '../commonOptionsDefs';
 
+export const boxPlotStyleOptionsDef: OptionsDefs<AgBoxPlotSeriesStyle> = {
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    cornerRadius: positiveNumber,
+    whisker: {
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    cap: {
+        lengthRatio: ratio,
+    },
+};
+
+export const boxPlotHighlightStyleOptionsDef: OptionsDefs<AgBoxPlotHighlightStyleOptions> = {
+    ...boxPlotStyleOptionsDef,
+    opacity: ratio,
+};
+
 export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
-    cornerRadius: positiveNumber,
     itemStyler: callbackDefs<AgBoxPlotSeriesStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,
@@ -90,18 +110,10 @@ export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemea
             lengthRatio: ratio,
         },
     }),
-    whisker: {
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-    },
-    cap: {
-        lengthRatio: ratio,
-    },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
-    ...fillOptionsDef,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
+    ...boxPlotStyleOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(boxPlotHighlightStyleOptionsDef, boxPlotHighlightStyleOptionsDef),
 };
 
 const candlestickSeriesItemOptionsDef: OptionsDefs<AgCandlestickSeriesItemOptions> = {

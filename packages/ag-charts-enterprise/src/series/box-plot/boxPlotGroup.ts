@@ -1,4 +1,4 @@
-import type { AgBoxPlotSeriesStyle } from 'ag-charts-community';
+import type { AgBoxPlotHighlightStyleOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { type DeepRequired, Logger } from 'ag-charts-core';
 
@@ -30,7 +30,7 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
 
     updateDatumStyles(
         datum: BoxPlotNodeDatum,
-        activeStyles: DeepRequired<AgBoxPlotSeriesStyle>,
+        activeStyles: DeepRequired<AgBoxPlotHighlightStyleOptions>,
         isVertical: boolean,
         isReversedValueAxis: boolean | undefined,
         fillBBox?: _ModuleSupport.ShapeFillBBox
@@ -57,6 +57,7 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
         };
 
         const {
+            opacity,
             fill,
             fillOpacity,
             stroke,
@@ -69,6 +70,7 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
             whisker: whiskerStyles,
         } = activeStyles;
 
+        this.opacity = opacity ?? 1;
         const selection = Selection.select(this, Rect);
         const [box] = selection.selectByTag<_ModuleSupport.Rect>(GroupTags.Box);
         const [outline] = selection.selectByTag<_ModuleSupport.Rect>(GroupTags.Outline);

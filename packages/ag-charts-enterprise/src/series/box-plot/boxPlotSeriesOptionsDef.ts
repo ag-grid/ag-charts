@@ -4,8 +4,8 @@ import { type OptionsDefs, boolean, constant, required, string } from 'ag-charts
 const { boxPlotSeriesThemeableOptionsDef, commonSeriesOptionsDefs } = _ModuleSupport;
 
 export const boxPlotSeriesOptionsDef: OptionsDefs<AgBoxPlotSeriesOptions> = {
-    ...boxPlotSeriesThemeableOptionsDef,
     ...commonSeriesOptionsDefs,
+    ...boxPlotSeriesThemeableOptionsDef,
     type: required(constant('box-plot')),
     xKey: required(string),
     minKey: required(string),
