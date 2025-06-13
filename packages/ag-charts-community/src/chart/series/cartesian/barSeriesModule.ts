@@ -9,7 +9,7 @@ import {
     DIRECTION_SWAP_AXES,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
-    MULTI_SERIES_HIGHLIGHT_STYLE,
+    multiSeriesHighlightStyle,
 } from '../../themes/util';
 import { BarSeries } from './barSeries';
 import { barSeriesOptionsDef } from './barSeriesOptionsDef';
@@ -76,7 +76,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
                     lengthRatio: 0.3,
                 },
             },
-            highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+            highlight: multiSeriesHighlightStyle(),
         },
     },
 };

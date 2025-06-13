@@ -4,8 +4,8 @@ import { type OptionsDefs, boolean, constant, number, required, string } from 'a
 const { commonSeriesOptionsDefs, radialColumnSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const radialColumnSeriesOptionsDef: OptionsDefs<AgRadialColumnSeriesOptions> = {
-    ...radialColumnSeriesThemeableOptionsDef,
     ...commonSeriesOptionsDefs,
+    ...radialColumnSeriesThemeableOptionsDef,
     type: required(constant('radial-column')),
     angleKey: required(string),
     radiusKey: required(string),

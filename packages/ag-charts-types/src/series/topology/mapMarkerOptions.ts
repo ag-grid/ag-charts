@@ -11,7 +11,13 @@ import type {
     TDatumDefault,
 } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type {
+    AgBaseSeriesOptions,
+    AgBaseSeriesThemeableOptions,
+    AgHighlightStyleOptions,
+    AgMultiSeriesHighlightOptions,
+    AgSeriesHighlightStyle,
+} from '../seriesOptions';
 
 export interface AgMapMarkerSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
@@ -96,10 +102,12 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = TDatumDefault, TCont
     itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<TDatum, TContext>, AgMapMarkerSeriesStyle>;
     /** Style overrides when a node is hovered. */
     highlightStyle?: AgMapMarkerSeriesHighlightStyle<TDatum>;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
 export interface AgMapMarkerSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'>,
         AgMapMarkerSeriesOptionsKeys<TDatum>,
         AgMapMarkerSeriesOptionsNames,
         AgMapMarkerSeriesThemeableOptions<TDatum, TContext> {

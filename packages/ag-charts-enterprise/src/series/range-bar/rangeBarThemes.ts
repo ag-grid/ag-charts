@@ -26,6 +26,7 @@ export const RANGE_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'range-bar'>['t
             color: { $ref: 'chartBackgroundColor' },
             placement: 'inside',
         },
+        highlight: _ModuleSupport.multiSeriesHighlightStyle(),
     },
     axes: {
         [_ModuleSupport.ThemeConstants.CARTESIAN_AXIS_TYPE.NUMBER]: {

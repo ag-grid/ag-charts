@@ -45,5 +45,6 @@ export const PYRAMID_SERIES_THEME: _ModuleSupport.SeriesModule<'pyramid'>['theme
             yOffset: 3,
             blur: 5,
         },
+        highlight: _ModuleSupport.singleSeriesHighlightStyle(),
     },
 };

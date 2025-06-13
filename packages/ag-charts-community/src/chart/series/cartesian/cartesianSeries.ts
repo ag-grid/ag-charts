@@ -519,7 +519,6 @@ export abstract class CartesianSeries<
             seriesHighlighted,
             itemId,
             paths,
-            opacity: opacity,
             visible: visible,
             animationEnabled,
         });
@@ -529,9 +528,9 @@ export abstract class CartesianSeries<
         }
 
         const strokeWidthChangesOnHighlight = this.properties.highlightStyle.series.strokeWidth != null;
-        const { highlight: { unHighlightedItem, highlightedSeries, unHighlightedSeries } = {} } = this.properties;
+        const { highlight: { unhighlightedItem, highlightedSeries, unhighlightedSeries } = {} } = this.properties;
         const changesOnHighlight =
-            unHighlightedItem != null || highlightedSeries != null || unHighlightedSeries != null;
+            unhighlightedItem != null || highlightedSeries != null || unhighlightedSeries != null;
         if (nodeRefresh || strokeWidthChangesOnHighlight || changesOnHighlight) {
             this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false });
             if (!this.usesPlacedLabels) {
@@ -1042,13 +1041,11 @@ export abstract class CartesianSeries<
         seriesHighlighted?: boolean;
         itemId?: string;
         paths: Path[];
-        opacity: number;
         visible: boolean;
         animationEnabled: boolean;
     }): void {
-        const { paths, opacity, visible } = opts;
+        const { paths, visible } = opts;
         for (const path of paths) {
-            path.opacity = opacity;
             path.visible = visible;
         }
     }

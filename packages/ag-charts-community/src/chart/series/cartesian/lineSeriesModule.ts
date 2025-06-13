@@ -7,8 +7,8 @@ import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants'
 import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
-    MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_STROKE_FILL_OPERATION,
+    multiSeriesHighlightStyle,
 } from '../../themes/util';
 import { LineSeries } from './lineSeries';
 import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
@@ -78,7 +78,7 @@ export const LineSeriesModule: SeriesModule<'line'> = {
                     anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
                 },
             },
-            highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+            highlight: multiSeriesHighlightStyle(),
         },
     },
 };

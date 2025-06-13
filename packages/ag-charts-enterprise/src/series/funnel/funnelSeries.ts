@@ -131,9 +131,9 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         };
     }
 
-    private getItemBaseStyle(highlighted: boolean): ItemStyle {
+    private getItemBaseStyle(isHighlight: boolean, datum?: FunnelNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
 
         return getShapeStyle(
             {
@@ -144,6 +144,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
                 strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+                opacity: highlightStyle?.opacity ?? 1,
             },
             properties.fillGradientDefaults,
             properties.fillPatternDefaults,
@@ -213,11 +214,11 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
-        const style = this.getItemBaseStyle(isHighlight);
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
             const { datumIndex } = datum;
+            const style = this.getItemBaseStyle(isHighlight, datum);
             const overrides = this.getItemStyleOverrides(
                 String(datum.datumIndex),
                 datum.datum,

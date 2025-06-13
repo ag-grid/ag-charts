@@ -526,10 +526,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return datumSelection.update(data);
     }
 
-    private getItemStyle(datumId: string, datum: any, itemId: AgWaterfallSeriesItemType, highlighted: boolean) {
+    private getItemStyle(
+        datumId: string,
+        datum: any,
+        itemId: AgWaterfallSeriesItemType,
+        isHighlight: boolean,
+        nodeDatum?: WaterfallNodeDatum
+    ) {
         const { id: seriesId, properties } = this;
         const item = properties.item[itemId === 'subtotal' ? 'total' : itemId];
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum);
 
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = item;
         const { xKey, yKey } = properties;
@@ -544,6 +550,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 lineDash: highlightStyle?.lineDash ?? item.lineDash ?? [],
                 lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
                 cornerRadius: item.cornerRadius,
+                opacity: highlightStyle?.opacity ?? 1,
             },
             fillGradientDefaults,
             fillPatternDefaults,
@@ -551,14 +558,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         );
 
         if (itemStyler != null) {
-            let itemStyle = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            let itemStyle = this.cachedDatumCallback(createDatumId(datumId, isHighlight ? 'highlight' : 'node'), () => {
                 return this.callWithContext(itemStyler, {
                     seriesId,
                     itemId,
                     datum,
                     xKey,
                     yKey,
-                    highlighted,
+                    highlighted: isHighlight,
                     ...format,
                 });
             });
@@ -583,7 +590,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection.each((rect, datum) => {
             const seriesItemType = datum.itemId;
 
-            const style = this.getItemStyle(String(datum.datumIndex), datum.datum, seriesItemType, isHighlight);
+            const style = this.getItemStyle(String(datum.datumIndex), datum.datum, seriesItemType, isHighlight, datum);
 
             applyShapeStyle(rect, style, undefined, fillBBox);
 

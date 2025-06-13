@@ -28,6 +28,7 @@ export const RADIAL_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-bar'>[
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'chartBackgroundColor' },
         },
+        highlight: _ModuleSupport.multiSeriesHighlightStyle(),
     },
     axes: {
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: {

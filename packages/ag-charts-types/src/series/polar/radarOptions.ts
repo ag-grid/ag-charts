@@ -1,10 +1,15 @@
 import type { ContextCallbackParams, DatumCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { TContextDefault, TDatumDefault } from '../../chart/types';
+import type { Opacity, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type {
+    AgBaseSeriesOptions,
+    AgBaseSeriesThemeableOptions,
+    AgHighlightStyleOptions,
+    AgMultiSeriesHighlightOptions,
+} from '../seriesOptions';
 import type { AgRadialSeriesOptionsKeys, AgRadialSeriesOptionsNames } from './radialOptions';
 
 export interface AgRadarSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
@@ -19,10 +24,17 @@ export interface AgRadarSeriesThemeableOptions<TDatum = TDatumDefault, TContext 
     tooltip?: AgSeriesTooltip<AgRadarSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgRadarLineHighlightStyleOptions>;
+}
+
+export interface AgRadarLineHighlightStyleOptions extends StrokeOptions, LineDashOptions {
+    /** The opacity of the whole series (line, fill, labels and markers, if any) */
+    opacity?: Opacity;
 }
 
 export interface AgBaseRadarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgRadarSeriesThemeableOptions<TDatum, TContext> {

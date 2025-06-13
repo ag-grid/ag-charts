@@ -90,7 +90,7 @@ export interface AgBarSeriesThemeableOptions<TDatum = TDatumDefault, TContext = 
 }
 
 export interface AgBarHighlightStyleOptions extends AgBarSeriesStyle {
-    /** The opacity of the whole series (area line, area fill, labels and markers, if any) */
+    /** The opacity of the whole series (line, fill, labels and markers, if any) */
     opacity?: Opacity;
 }
 

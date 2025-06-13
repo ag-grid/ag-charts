@@ -1,4 +1,4 @@
-import { type AgBoxPlotSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgBoxPlotHighlightStyleOptions, type AgBoxPlotSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { type DeepRequired } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
@@ -434,10 +434,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return opts.datumSelection.update(data);
     }
 
-    private getItemBaseStyle(highlighted: boolean): Required<AgBoxPlotSeriesStyle> {
+    private getItemBaseStyle(isHighlight: boolean): Required<AgBoxPlotSeriesStyle> {
         const { properties } = this;
         const { cornerRadius, cap, whisker, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight);
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
         return getShapeStyle(
@@ -452,6 +452,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 cornerRadius,
                 cap,
                 whisker,
+                opacity: highlightStyle?.opacity ?? 1,
             },
             fillGradientDefaults,
             fillPatternDefaults,
@@ -502,20 +503,19 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override updateDatumNodes({
         datumSelection,
-        isHighlight: highlighted,
+        isHighlight,
     }: {
         datumSelection: _ModuleSupport.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
         isHighlight: boolean;
     }) {
         const isVertical = this.isVertical();
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
-        const { highlightStyle } = this.properties;
         datumSelection.each((boxPlotGroup, nodeDatum) => {
-            let activeStyles = this.getFormattedStyles(nodeDatum, highlighted ? 'highlight' : 'node');
+            let activeStyles = this.getFormattedStyles(nodeDatum, isHighlight ? 'highlight' : 'node');
 
-            if (highlighted) {
-                activeStyles = mergeDefaults(highlightStyle.item, activeStyles);
-            }
+            const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum);
+
+            activeStyles = mergeDefaults(highlightStyle, activeStyles);
 
             const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = activeStyles;
 
@@ -530,7 +530,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             const fillBBox = this.getShapeFillBBox();
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
-                activeStyles as DeepRequired<AgBoxPlotSeriesStyle>,
+                activeStyles as DeepRequired<AgBoxPlotHighlightStyleOptions>,
                 isVertical,
                 isReversedValueAxis,
                 fillBBox

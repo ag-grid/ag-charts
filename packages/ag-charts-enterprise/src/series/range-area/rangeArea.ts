@@ -71,7 +71,9 @@ interface RangeAreaSpanPointDatum {
     low: _ModuleSupport.LineSpanPointDatum;
 }
 
-type ItemStyle = Required<FillOptions & StrokeOptions & LineDashOptions & { shape: AgMarkerShape; size: number }>;
+type ItemStyle = Required<
+    FillOptions & StrokeOptions & LineDashOptions & { shape: AgMarkerShape; size: number; opacity: number }
+>;
 
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     _ModuleSupport.Group,
@@ -409,30 +411,39 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     protected override updatePathNodes(opts: {
         paths: _ModuleSupport.Path[];
-        opacity: number;
         visible: boolean;
         animationEnabled: boolean;
     }) {
-        const { opacity, visible } = opts;
+        const { visible } = opts;
         const [fill, stroke] = opts.paths;
 
-        const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
+        const {
+            strokeWidth,
+            stroke: strokeColor,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            fill: fillColor,
+            fillOpacity,
+            opacity,
+        } = mergeDefaults(this.getHighlightStyle(), this.properties);
+
         stroke.setProperties({
             fill: undefined,
             lineCap: 'round',
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            stroke: this.properties.stroke,
+            stroke: strokeColor,
             strokeWidth,
-            strokeOpacity: this.properties.strokeOpacity,
-            lineDash: this.properties.lineDash,
-            lineDashOffset: this.properties.lineDashOffset,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
             opacity,
             visible,
         });
 
         const seriesFill = getShapeFill(
-            this.properties.fill,
+            fillColor,
             this.properties.fillGradientDefaults,
             this.properties.fillPatternDefaults,
             this.properties.fillImageDefaults
@@ -446,11 +457,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             {
                 stroke: undefined,
                 fill: seriesFill,
-                fillOpacity: this.properties.fillOpacity,
-                lineDash: this.properties.lineDash,
-                lineDashOffset: this.properties.lineDashOffset,
-                strokeOpacity: this.properties.strokeOpacity,
+                fillOpacity,
+                lineDash,
+                lineDashOffset,
+                strokeOpacity,
                 strokeWidth,
+                opacity,
             },
             undefined,
             fillBBox
@@ -515,11 +527,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
-    private getMarkerItemBaseStyle(highlighted: boolean): ItemStyle {
+    private getMarkerItemBaseStyle(isHighlight: boolean, datum?: RangeAreaMarkerDatum): ItemStyle {
         const { properties } = this;
         const { marker } = properties;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
-
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
         return {
             shape: marker.shape,
             size: marker.size,
@@ -530,6 +541,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? marker.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
+            opacity: highlightStyle.opacity ?? 1,
         };
     }
 
@@ -557,34 +569,35 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight: highlighted } = opts;
+        const { markerSelection, isHighlight } = opts;
         const { xKey, yLowKey, yHighKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity } =
             this.properties;
 
-        const baseStyle = mergeDefaults(highlighted && this.properties.highlightStyle.item, marker.getStyle(), {
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-        });
-
         const fillBBox = this.getShapeFillBBox();
+        const markerStyle = marker.getStyle();
 
         markerSelection.each((node, datum) => {
+            const baseStyle = mergeDefaults(this.getHighlightStyle(isHighlight, datum), markerStyle, {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            });
+
             this.updateMarkerStyle(
                 marker,
                 node,
                 datum.datum,
                 datum.point,
                 { xKey, yHighKey, yLowKey },
-                highlighted,
+                isHighlight,
                 baseStyle,
                 fillBBox
             );
         });
 
-        if (!highlighted) {
+        if (!isHighlight) {
             this.properties.marker.markClean();
         }
     }

@@ -1,24 +1,31 @@
 import {
     type OptionsDefs,
     arrayOf,
+    barHighlightOptionsDef,
     boolean,
     callbackDefs,
     color,
     colorUnion,
     fillOptionsDef,
     fontOptionsDef,
+    highlightOptionsDef,
     lineDashOptionsDef,
+    lineHighlightOptionsDef,
+    multiSeriesHighlightOptionsDef,
     number,
     positiveNumber,
     ratio,
+    shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
     union,
 } from 'ag-charts-core';
 import type {
     AgBaseAxisLabelStyleOptions,
+    AgBoxPlotHighlightStyleOptions,
     AgBoxPlotSeriesStyle,
     AgBoxPlotSeriesThemeableOptions,
+    AgCandlestickHighlightStyleOptions,
     AgCandlestickSeriesItemOptions,
     AgCandlestickSeriesThemeableOptions,
     AgChordSeriesLinkStyle,
@@ -73,10 +80,28 @@ import {
     tooltipOptionsDefs,
 } from '../commonOptionsDefs';
 
+export const boxPlotStyleOptionsDef: OptionsDefs<AgBoxPlotSeriesStyle> = {
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    cornerRadius: positiveNumber,
+    whisker: {
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    cap: {
+        lengthRatio: ratio,
+    },
+};
+
+export const boxPlotHighlightStyleOptionsDef: OptionsDefs<AgBoxPlotHighlightStyleOptions> = {
+    ...boxPlotStyleOptionsDef,
+    opacity: ratio,
+};
+
 export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
-    cornerRadius: positiveNumber,
     itemStyler: callbackDefs<AgBoxPlotSeriesStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,
@@ -90,18 +115,10 @@ export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemea
             lengthRatio: ratio,
         },
     }),
-    whisker: {
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-    },
-    cap: {
-        lengthRatio: ratio,
-    },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
-    ...fillOptionsDef,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
+    ...boxPlotStyleOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(boxPlotHighlightStyleOptionsDef, boxPlotHighlightStyleOptionsDef),
 };
 
 const candlestickSeriesItemOptionsDef: OptionsDefs<AgCandlestickSeriesItemOptions> = {
@@ -113,6 +130,11 @@ const candlestickSeriesItemOptionsDef: OptionsDefs<AgCandlestickSeriesItemOption
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+};
+
+const candlestickHighlightStyleOptionsDef: OptionsDefs<AgCandlestickHighlightStyleOptions> = {
+    ...candlestickSeriesItemOptionsDef,
+    opacity: ratio,
 };
 
 export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeriesThemeableOptions> = {
@@ -133,6 +155,7 @@ export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeri
     showInMiniChart: boolean,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
+    highlight: multiSeriesHighlightOptionsDef(candlestickHighlightStyleOptionsDef, candlestickHighlightStyleOptionsDef),
 };
 
 export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableOptions> = {
@@ -198,6 +221,7 @@ export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeries
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
     ...lineDashOptionsDef,
+    highlight: highlightOptionsDef(lineHighlightOptionsDef),
 };
 
 export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeableOptions> = {
@@ -273,6 +297,7 @@ export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOpt
     },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
+    highlight: multiSeriesHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
 };
 
 export const mapLineSeriesThemeableOptionsDef: OptionsDefs<AgMapLineSeriesThemeableOptions> = {
@@ -291,6 +316,7 @@ export const mapLineSeriesThemeableOptionsDef: OptionsDefs<AgMapLineSeriesThemea
         ...(commonSeriesThemeableOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
         ...strokeOptionsDef,
     },
+    highlight: multiSeriesHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
 };
 
 export const mapLineBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapLineBackgroundThemeableOptions> = {
@@ -315,6 +341,7 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
         ...fillOptionsDef,
         ...strokeOptionsDef,
     },
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThemeableOptions> = {
@@ -337,6 +364,7 @@ export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThem
         ...fillOptionsDef,
         ...strokeOptionsDef,
     },
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 export const mapShapeBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeBackgroundThemeableOptions> = {
@@ -360,6 +388,7 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
 export const pyramidSeriesThemeableOptionsDef: OptionsDefs<AgPyramidSeriesThemeableOptions> = {
@@ -397,6 +426,7 @@ export const radarAreaSeriesThemeableOptionsDef: OptionsDefs<AgRadarAreaSeriesTh
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemeableOptions> = {
@@ -407,6 +437,7 @@ export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemea
     ...commonSeriesThemeableOptionsDefs,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef),
 };
 
 export const radialBarSeriesThemeableOptionsDef: OptionsDefs<AgRadialBarSeriesThemeableOptions> = {
@@ -423,6 +454,7 @@ export const radialBarSeriesThemeableOptionsDef: OptionsDefs<AgRadialBarSeriesTh
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
 export const radialColumnSeriesThemeableOptionsDef: OptionsDefs<AgRadialColumnSeriesThemeableOptions> = {
@@ -441,6 +473,7 @@ export const radialColumnSeriesThemeableOptionsDef: OptionsDefs<AgRadialColumnSe
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
 export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesThemeableOptions> = {
@@ -459,6 +492,7 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThemeableOptions> = {
@@ -482,6 +516,7 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
 export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeableOptions> = {

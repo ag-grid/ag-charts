@@ -298,10 +298,4 @@ export abstract class PolarSeries<
 
         return series === this || (legendItemName != null && legendItemName === activeLegendItemName);
     }
-
-    protected override isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datum?: TDatum) {
-        // If this function is being invoked, we have already determined that the series is highlighted.
-        if (highlightedDatum?.itemId == null || datum?.itemId == null) return;
-        return highlightedDatum.itemId === datum.itemId;
-    }
 }

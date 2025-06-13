@@ -1,7 +1,11 @@
 import type { Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { TContextDefault, TDatumDefault } from '../../chart/types';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
+import type {
+    AgBaseCartesianThemeableOptions,
+    AgBaseSeriesOptions,
+    AgMultiSeriesHighlightOptions,
+} from '../seriesOptions';
 import type { AgBarSeriesStyle } from './barOptions';
 import type { AxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 import type {
@@ -45,11 +49,17 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum = TDatumDefault, TCo
     tooltip?: AgSeriesTooltip<AgCandlestickSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<TDatum, TContext>, AgCandlestickSeriesItemOptions>;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgCandlestickHighlightStyleOptions>;
+}
+export interface AgCandlestickHighlightStyleOptions extends AgCandlestickSeriesItemOptions {
+    /** The opacity of the whole series (line, fill, labels and markers, if any) */
+    opacity?: number;
 }
 
 export interface AgCandlestickSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgCandlestickSeriesThemeableOptions<TDatum, TContext>,
-        AgBaseSeriesOptions<TDatum, TContext>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgOhlcSeriesBaseOptions<TDatum>,
         Omit<AxisOptions<TDatum>, 'yKey'> {
     /** Configuration for the Candlestick Series. */

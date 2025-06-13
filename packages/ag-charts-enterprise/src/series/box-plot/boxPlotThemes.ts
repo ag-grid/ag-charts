@@ -1,7 +1,10 @@
 import { type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 import type { RequiredInternalAgGradientColor } from 'ag-charts-core';
 
-const { CARTESIAN_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
+const {
+    ThemeConstants: { CARTESIAN_AXIS_TYPE },
+    multiSeriesHighlightStyle,
+} = _ModuleSupport;
 
 export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['themeTemplate'] = {
     series: {
@@ -32,6 +35,7 @@ export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['the
         fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         strokeWidth: 2,
+        highlight: multiSeriesHighlightStyle(),
     },
     axes: {
         [CARTESIAN_AXIS_TYPE.NUMBER]: {

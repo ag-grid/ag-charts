@@ -45,7 +45,8 @@ interface HeatmapLabelDatum extends _ModuleSupport.Point {
     verticalAlign: VerticalAlign;
 }
 
-type ItemStyle = Pick<AgHeatmapSeriesStyle, 'fill'> & Required<Omit<AgHeatmapSeriesStyle, 'fill'>>;
+type ItemStyle = Pick<AgHeatmapSeriesStyle, 'fill'> &
+    Required<Omit<AgHeatmapSeriesStyle, 'fill'>> & { opacity: number };
 
 class HeatmapSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -337,16 +338,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return datumSelection.update(data);
     }
 
-    private getItemBaseStyle(highlighted: boolean): ItemStyle {
+    private getItemBaseStyle(isHighlight: boolean, datum?: HeatmapNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
-
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
         return {
             fill: highlightStyle?.fill,
             fillOpacity: highlightStyle?.fillOpacity ?? 1,
             stroke: highlightStyle?.stroke ?? properties.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            opacity: highlightStyle.opacity ?? 1,
         };
     }
 
@@ -392,24 +393,18 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, HeatmapNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { isHighlight: isDatumHighlighted } = opts;
+        const { isHighlight } = opts;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         const [visibleMin, visibleMax] = xAxis?.visibleRange ?? [];
         const isZoomed = visibleMin !== 0 || visibleMax !== 1;
         const crisp = !isZoomed;
 
-        const style = this.getItemBaseStyle(isDatumHighlighted);
-
         opts.datumSelection.each((rect, nodeDatum) => {
             const { datumIndex, colorValue, datum, point, width, height } = nodeDatum;
-            const overrides = this.getItemStyleOverrides(
-                String(datumIndex),
-                datum,
-                colorValue,
-                style,
-                isDatumHighlighted
-            );
+            const style = this.getItemBaseStyle(isHighlight, nodeDatum);
+
+            const overrides = this.getItemStyleOverrides(String(datumIndex), datum, colorValue, style, isHighlight);
 
             rect.crisp = crisp;
             rect.x = Math.floor(point.x - width / 2);

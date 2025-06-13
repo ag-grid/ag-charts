@@ -267,6 +267,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         this.updatePathSelections();
         this.updateMarkerSelection();
+
+        this.updatePathNodes();
         this.updateMarkers(this.itemSelection, false);
         this.updateMarkers(this.highlightSelection, true);
         this.updateLabels();
@@ -310,15 +312,15 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     protected updateMarkers(
         selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
-        highlight: boolean
+        isHighlight: boolean
     ) {
         const { visible } = this;
-        const { marker, stroke, strokeWidth, strokeOpacity, highlightStyle } = this.properties;
+        const { marker, stroke, strokeWidth, strokeOpacity } = this.properties;
 
         let selectionData: RadarNodeDatum[] = [];
 
         if (visible && marker.shape && marker.enabled) {
-            if (highlight) {
+            if (isHighlight) {
                 const highlighted = this.ctx.highlightManager?.getActiveHighlight();
                 if (highlighted?.datum) {
                     selectionData = [highlighted as RadarNodeDatum];
@@ -328,22 +330,25 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             }
         }
 
-        const baseStyle = mergeDefaults(highlight && highlightStyle.item, marker.getStyle(), {
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-        });
-
+        const markerStyle = marker.getStyle();
         const fillBBox = this.getShapeFillBBox();
 
         selection.update(selectionData).each((node, datum) => {
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+
+            const baseStyle = mergeDefaults(highlightStyle, markerStyle, {
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            });
+
             this.updateMarkerStyle(
                 marker,
                 node,
                 datum.datum,
                 datum.point,
                 this.getDatumStylerProperties(datum),
-                highlight,
+                isHighlight,
                 baseStyle,
                 fillBBox
             );
@@ -540,20 +545,30 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected beforePathAnimation() {
+        this.updatePathNodes();
+    }
+
+    protected updatePathNodes() {
         const lineNode = this.getLineNode();
         if (!lineNode) return;
 
-        lineNode.fill = undefined;
-        lineNode.lineJoin = 'round';
-        lineNode.lineCap = 'round';
-        lineNode.pointerEvents = PointerEvents.None;
+        const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = mergeDefaults(
+            this.getHighlightStyle(),
+            this.properties
+        );
 
-        lineNode.stroke = this.properties.stroke;
-        lineNode.strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
-        lineNode.strokeOpacity = this.properties.strokeOpacity;
-
-        lineNode.lineDash = this.properties.lineDash;
-        lineNode.lineDashOffset = this.properties.lineDashOffset;
+        lineNode.setProperties({
+            fill: undefined,
+            lineJoin: 'round',
+            lineCap: 'round',
+            pointerEvents: PointerEvents.None,
+            opacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        });
     }
 
     protected getLinePoints(): RadarPathPoint[] {

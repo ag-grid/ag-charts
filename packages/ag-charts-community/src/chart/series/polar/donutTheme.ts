@@ -1,7 +1,7 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
 import { FONT_SIZE_RATIO } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { SAFE_FILLS_OPERATION, SINGLE_SERIES_HIGHLIGHT_STYLE } from '../../themes/util';
+import { SAFE_FILLS_OPERATION, singleSeriesHighlightStyle } from '../../themes/util';
 
 export const donutTheme: ExtensibleTheme<'donut'> = {
     series: {
@@ -92,7 +92,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
                 },
             ],
         } as any,
-        highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
+        highlight: singleSeriesHighlightStyle(),
     },
     legend: { enabled: true },
 };

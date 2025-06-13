@@ -4,8 +4,8 @@ import { type OptionsDefs, boolean, constant, number, required, string, undocume
 const { commonSeriesOptionsDefs, ohlcSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {
-    ...ohlcSeriesThemeableOptionsDef,
     ...commonSeriesOptionsDefs,
+    ...ohlcSeriesThemeableOptionsDef,
     type: required(constant('ohlc')),
     xKey: required(string),
     openKey: required(string),

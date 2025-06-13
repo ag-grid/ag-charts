@@ -137,32 +137,44 @@ export function getSequentialColors(colors: { [key: string]: string }) {
     });
 }
 
-const ITEM_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
-    fill: { $path: ['../../highlightStyle/item/fill', `rgba(255,255,255, 0.33)`] },
+const ITEM_HIGHLIGHT_BASE_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
     stroke: { $path: ['../../highlightStyle/item/stroke', `rgba(0, 0, 0, 0.4)`] },
     strokeWidth: { $path: ['../../highlightStyle/item/strokeWidth', 2] },
-    fillOpacity: { $path: ['../../highlightStyle/item/fillOpacity', undefined] },
     strokeOpacity: { $path: ['../../highlightStyle/item/strokeOpacity', undefined] },
     opacity: { $path: ['../../highlightStyle/item/opacity', 1] },
 };
 
-export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
-    highlightedItem: ITEM_HIGHLIGHT_STYLE,
-    unHighlightedItem: {
-        strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
-    },
-    highlightedSeries: {
-        strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
-    },
-    unHighlightedSeries: {
-        opacity: { $path: ['../../highlightStyle/series/dimOpacity', undefined] },
-    },
+const ITEM_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
+    ...ITEM_HIGHLIGHT_BASE_STYLE,
+    fill: { $path: ['../../highlightStyle/item/fill', `rgba(255,255,255, 0.33)`] },
+    fillOpacity: { $path: ['../../highlightStyle/item/fillOpacity', undefined] },
 };
 
-export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<AgHighlightStyleOptions>> = {
-    highlightedItem: ITEM_HIGHLIGHT_STYLE,
-    unHighlightedItem: {
-        strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
-        opacity: { $path: ['../../highlightStyle/series/dimOpacity', undefined] },
-    },
-};
+export function multiSeriesHighlightStyle(
+    hasFill: boolean = true
+): WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> {
+    return {
+        highlightedItem: hasFill ? ITEM_HIGHLIGHT_STYLE : ITEM_HIGHLIGHT_BASE_STYLE,
+        unhighlightedItem: {
+            strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
+        },
+        highlightedSeries: {
+            strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
+        },
+        unhighlightedSeries: {
+            opacity: { $path: ['../../highlightStyle/series/dimOpacity', undefined] },
+        },
+    };
+}
+
+export function singleSeriesHighlightStyle(
+    hasFill: boolean = true
+): WithThemeParams<AgHighlightOptions<AgHighlightStyleOptions>> {
+    return {
+        highlightedItem: hasFill ? ITEM_HIGHLIGHT_STYLE : ITEM_HIGHLIGHT_BASE_STYLE,
+        unhighlightedItem: {
+            strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
+            opacity: { $path: ['../../highlightStyle/series/dimOpacity', undefined] },
+        },
+    };
+}

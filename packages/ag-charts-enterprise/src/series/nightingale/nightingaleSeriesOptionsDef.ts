@@ -4,8 +4,8 @@ import { type OptionsDefs, boolean, constant, number, required, string } from 'a
 const { commonSeriesOptionsDefs, nightingaleSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions> = {
-    ...nightingaleSeriesThemeableOptionsDef,
     ...commonSeriesOptionsDefs,
+    ...nightingaleSeriesThemeableOptionsDef,
     type: required(constant('nightingale')),
     angleKey: required(string),
     radiusKey: required(string),

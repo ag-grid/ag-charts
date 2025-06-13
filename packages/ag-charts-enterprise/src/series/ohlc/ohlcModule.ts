@@ -4,7 +4,10 @@ import type { SeriesModuleDefinition } from 'ag-charts-core';
 import { OhlcSeries } from './ohlcSeries';
 import { ohlcSeriesOptionsDef } from './ohlcSeriesOptionsDef';
 
-const { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } = _ModuleSupport.ThemeConstants;
+const {
+    ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
+    multiSeriesHighlightStyle,
+} = _ModuleSupport;
 
 export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
     type: 'series',
@@ -44,6 +47,7 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
             tooltip: {
                 range: { $path: ['/tooltip/range', 'nearest'] },
             },
+            highlight: multiSeriesHighlightStyle(false),
         },
         axes: {
             [CARTESIAN_AXIS_TYPE.NUMBER]: {

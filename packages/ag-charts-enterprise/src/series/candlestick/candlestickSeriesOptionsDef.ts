@@ -4,8 +4,8 @@ import { type OptionsDefs, boolean, constant, number, required, string, undocume
 const { commonSeriesOptionsDefs, candlestickSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions> = {
-    ...candlestickSeriesThemeableOptionsDef,
     ...commonSeriesOptionsDefs,
+    ...candlestickSeriesThemeableOptionsDef,
     type: required(constant('candlestick')),
     xKey: required(string),
     openKey: required(string),

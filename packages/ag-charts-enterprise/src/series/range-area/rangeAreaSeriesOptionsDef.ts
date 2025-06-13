@@ -4,8 +4,8 @@ import { type OptionsDefs, boolean, constant, number, required, string, undocume
 const { commonSeriesOptionsDefs, rangeAreaSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = {
-    ...rangeAreaSeriesThemeableOptionsDef,
     ...commonSeriesOptionsDefs,
+    ...rangeAreaSeriesThemeableOptionsDef,
     type: required(constant('range-area')),
     xKey: required(string),
     yLowKey: required(string),

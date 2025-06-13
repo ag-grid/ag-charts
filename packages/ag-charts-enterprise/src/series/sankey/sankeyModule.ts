@@ -42,6 +42,7 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
                     dimOpacity: 0.2,
                 },
             },
+            highlight: _ModuleSupport.singleSeriesHighlightStyle(),
             label: {
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },

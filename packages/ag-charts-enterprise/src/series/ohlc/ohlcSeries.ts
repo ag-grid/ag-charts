@@ -5,7 +5,7 @@ import { OhlcSeriesBase } from './ohlcSeriesBase';
 import type { OhlcNodeDatum } from './ohlcSeriesBase';
 import { OhlcSeriesProperties } from './ohlcSeriesProperties';
 
-const { createDatumId } = _ModuleSupport;
+const { createDatumId, applyShapeStyle } = _ModuleSupport;
 
 export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
     static readonly className = 'ohlc';
@@ -41,7 +41,6 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
             lineDash: downLineDash,
             lineDashOffset: downLineDashOffset,
         } = down;
-        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
 
         datumSelection.each((node, datum) => {
             const { isRising, centerX, width, y, height, yOpen, yClose, crisp } = datum;
@@ -79,18 +78,23 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
             node.yClose = yClose;
             node.crisp = crisp;
 
-            node.stroke = highlightStyle?.stroke ?? style?.stroke ?? (isRising ? upStroke : downStroke);
-            node.strokeWidth =
-                highlightStyle?.strokeWidth ?? style?.strokeWidth ?? (isRising ? upStrokeWidth : downStrokeWidth);
-            node.strokeOpacity =
-                highlightStyle?.strokeOpacity ??
-                style?.strokeOpacity ??
-                (isRising ? upStrokeOpacity : downStrokeOpacity);
-            node.lineDash = highlightStyle?.lineDash ?? style?.lineDash ?? (isRising ? upLineDash : downLineDash);
-            node.lineDashOffset =
-                highlightStyle?.lineDashOffset ??
-                style?.lineDashOffset ??
-                (isRising ? upLineDashOffset : downLineDashOffset);
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+
+            applyShapeStyle(node, {
+                stroke: highlightStyle?.stroke ?? style?.stroke ?? (isRising ? upStroke : downStroke),
+                strokeWidth:
+                    highlightStyle?.strokeWidth ?? style?.strokeWidth ?? (isRising ? upStrokeWidth : downStrokeWidth),
+                strokeOpacity:
+                    highlightStyle?.strokeOpacity ??
+                    style?.strokeOpacity ??
+                    (isRising ? upStrokeOpacity : downStrokeOpacity),
+                lineDash: highlightStyle?.lineDash ?? style?.lineDash ?? (isRising ? upLineDash : downLineDash),
+                lineDashOffset:
+                    highlightStyle?.lineDashOffset ??
+                    style?.lineDashOffset ??
+                    (isRising ? upLineDashOffset : downLineDashOffset),
+                opacity: highlightStyle?.opacity ?? 1,
+            });
 
             // Ignore highlight style
             node.strokeAlignment = (style?.strokeWidth ?? (isRising ? upStrokeWidth : downStrokeWidth)) / 2;

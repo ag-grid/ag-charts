@@ -88,33 +88,35 @@ export class HighlightProperties<T> extends BaseProperties {
     readonly highlightedItem: Partial<T> = {};
 
     @Property
-    readonly unHighlightedItem: Partial<T> = {};
+    readonly unhighlightedItem: Partial<T> = {};
 
     @Property
     readonly highlightedSeries: Partial<T> = {};
 
     @Property
-    readonly unHighlightedSeries: Partial<T> = {};
+    readonly unhighlightedSeries: Partial<T> = {};
 
     private getItemHighlightStyle(highlightState: HighlightState) {
         switch (highlightState) {
             case HighlightState.Item:
                 return this.highlightedItem;
             case HighlightState.OtherItem:
-                return this.unHighlightedItem;
+                return this.unhighlightedItem;
             case HighlightState.Series:
                 return this.highlightedSeries;
             case HighlightState.OtherSeries:
-                return this.unHighlightedSeries;
+                return this.unhighlightedSeries;
         }
     }
 
     private getSeriesHighlightStyle(highlightState: HighlightState) {
         switch (highlightState) {
+            case HighlightState.Item:
+            case HighlightState.OtherItem:
             case HighlightState.Series:
                 return this.highlightedSeries;
             case HighlightState.OtherSeries:
-                return this.unHighlightedSeries;
+                return this.unhighlightedSeries;
         }
     }
 

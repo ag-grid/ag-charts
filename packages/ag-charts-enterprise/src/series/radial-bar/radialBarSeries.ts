@@ -368,9 +368,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         this.animationState.transition('update');
     }
 
-    private getItemBaseStyle(highlighted: boolean): ItemStyle {
+    private getItemBaseStyle(isHighlight: boolean, datum?: RadialBarNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
 
         return getShapeStyle(
             {
@@ -382,6 +382,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius: properties.cornerRadius,
+                opacity: highlightStyle.opacity ?? 1,
             },
             this.defaultShapeStyle,
             properties.fillPatternDefaults,
@@ -418,10 +419,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     protected updateSectorSelection(
         selection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialBarNodeDatum>,
-        highlighted: boolean
+        isHighlight: boolean
     ) {
         let selectionData: RadialBarNodeDatum[] = [];
-        if (highlighted) {
+        if (isHighlight) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             if (activeHighlight?.datum && activeHighlight.series === this) {
                 selectionData.push(activeHighlight as RadialBarNodeDatum);
@@ -430,7 +431,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             selectionData = this.nodeData;
         }
 
-        const style = this.getItemBaseStyle(highlighted);
         const fillBBox = this.getShapeFillBBox();
 
         selection
@@ -439,7 +439,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 const { datumIndex } = nodeDatum;
                 const datum = readDatum(nodeDatum);
                 if (datum == null) return;
-                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, style, highlighted);
+
+                const style = this.getItemBaseStyle(isHighlight, nodeDatum);
+                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, style, isHighlight);
 
                 const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
 
@@ -459,7 +461,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 node.endInnerCornerRadius = datum.reversed ? 0 : cornerRadius;
                 node.endOuterCornerRadius = datum.reversed ? 0 : cornerRadius;
 
-                if (highlighted) {
+                if (isHighlight) {
                     node.startAngle = nodeDatum.startAngle;
                     node.endAngle = nodeDatum.endAngle;
                     node.clipSector = nodeDatum.clipSector;

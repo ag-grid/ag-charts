@@ -48,6 +48,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 fontWeight: 'bold',
                 overflowStrategy: 'hide',
             },
+            highlight: _ModuleSupport.multiSeriesHighlightStyle(),
         },
         tooltip: {
             range: 'exact',

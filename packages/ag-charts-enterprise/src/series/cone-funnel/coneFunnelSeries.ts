@@ -174,7 +174,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Line, FunnelNodeDatum>;
         isHighlight: boolean;
     }) {
-        const highlightStyle = opts.isHighlight ? this.properties.highlightStyle.item : undefined;
+        const highlightStyle = this.getHighlightStyle(opts.isHighlight);
 
         opts.datumSelection.each((line, datum) => {
             line.setProperties(resetLineSelectionsFn(line, datum));
@@ -183,6 +183,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
             line.strokeOpacity = highlightStyle?.strokeOpacity ?? 1;
             line.lineDash = highlightStyle?.lineDash;
             line.lineDashOffset = highlightStyle?.lineDashOffset ?? 0;
+            line.opacity = highlightStyle?.opacity ?? 1;
         });
     }
 

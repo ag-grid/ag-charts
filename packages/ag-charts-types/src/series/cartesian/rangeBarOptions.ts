@@ -2,8 +2,13 @@ import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../c
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type { Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type {
+    AgBaseCartesianThemeableOptions,
+    AgBaseSeriesOptions,
+    AgMultiSeriesHighlightOptions,
+    AgSeriesHighlightStyle,
+} from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgRangeBarSeriesItemStylerParams<
@@ -56,8 +61,14 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = TDatumDefault, TConte
     shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle>;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgRangeBarHighlightStyleOptions>;
 }
 
+export interface AgRangeBarHighlightStyleOptions extends AgRangeBarSeriesStyle {
+    /** The opacity of the whole series (line, fill, labels and markers, if any) */
+    opacity?: Opacity;
+}
 export type AgRangeBarSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgRangeBarSeriesOptionsKeys<TDatum> &
     AgRangeBarSeriesOptionsNames;
 
@@ -85,7 +96,7 @@ export interface AgRangeBarSeriesOptions<TDatum = TDatumDefault, TContext = TCon
     extends AgRangeBarSeriesOptionsKeys<TDatum>,
         AgRangeBarSeriesOptionsNames,
         AgRangeBarSeriesThemeableOptions<TDatum, TContext>,
-        AgBaseSeriesOptions<TDatum, TContext> {
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'> {
     /** Configuration for the Range Bar Series. */
     type: 'range-bar';
 }

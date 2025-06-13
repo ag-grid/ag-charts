@@ -5,9 +5,11 @@ import {
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
+    multiSeriesHighlightOptionsDef,
     number,
     positiveNumber,
     required,
+    shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
     union,
@@ -32,11 +34,12 @@ export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesTh
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 export const histogramSeriesOptionsDef: OptionsDefs<AgHistogramSeriesOptions> = {
-    ...histogramSeriesThemeableOptionsDef,
     ...commonSeriesOptionsDefs,
+    ...histogramSeriesThemeableOptionsDef,
     type: required(constant('histogram')),
     xKey: required(string),
     yKey: string,

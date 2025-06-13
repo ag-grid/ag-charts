@@ -2,7 +2,7 @@ import type { ContextCallbackParams } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { Opacity, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions } from '../markerOptions';
 import type {
@@ -40,12 +40,7 @@ export interface AgAreaSeriesThemeableOptions<TDatum = TDatumDefault, TContext =
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgAreaHighlightStyleOptions>;
-}
-
-export interface AgAreaHighlightStyleOptions extends FillOptions, StrokeOptions {
-    /** The opacity of the whole series (area line, area fill, labels and markers, if any) */
-    opacity?: Opacity;
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>;
 }
 
 export interface AgAreaSeriesOptionsKeys<TDatum = TDatumDefault> {

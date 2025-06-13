@@ -418,7 +418,6 @@ export class MapShapeSeries
         this.updateSelections();
 
         this.contentGroup.visible = this.visible;
-        this.contentGroup.opacity = this.getOpacity();
 
         let highlightedDatum: MapShapeNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
         const { legendItemName } = this.properties;
@@ -457,9 +456,9 @@ export class MapShapeSeries
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
 
-    private getItemBaseStyle(highlighted: boolean): ItemStyle {
+    private getItemBaseStyle(isHighlight: boolean, datum?: MapShapeNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
 
         return getShapeStyle(
             {
@@ -470,6 +469,7 @@ export class MapShapeSeries
                 strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+                opacity: highlightStyle?.opacity ?? 1,
             },
             this.properties.fillGradientDefaults,
             this.properties.fillPatternDefaults,
@@ -528,7 +528,6 @@ export class MapShapeSeries
     }) {
         const { datumSelection, isHighlight } = opts;
 
-        const style = this.getItemBaseStyle(isHighlight);
         const fillBBox = getTopologyShapeFillBBox(this.scale);
 
         datumSelection.each((geoGeometry, nodeDatum) => {
@@ -539,6 +538,7 @@ export class MapShapeSeries
                 return;
             }
 
+            const style = this.getItemBaseStyle(isHighlight, nodeDatum);
             const overrides = this.getItemStyleOverrides(String(datumIndex), datum, colorValue, style, isHighlight);
 
             geoGeometry.visible = true;

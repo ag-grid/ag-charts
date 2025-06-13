@@ -46,6 +46,7 @@ export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
+        highlight: _ModuleSupport.singleSeriesHighlightStyle(false),
     },
     seriesArea: {
         padding: {

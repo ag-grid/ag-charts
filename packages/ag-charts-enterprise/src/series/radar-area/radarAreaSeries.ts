@@ -3,8 +3,17 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { type RadarPathPoint, RadarSeries } from '../radar/radarSeries';
 import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
 
-const { Group, Path, PointerEvents, Selection, ChartAxisDirection, applyShapeStyle, getShapeFill, getShapeStyle } =
-    _ModuleSupport;
+const {
+    Group,
+    Path,
+    PointerEvents,
+    Selection,
+    ChartAxisDirection,
+    applyShapeStyle,
+    getShapeFill,
+    getShapeStyle,
+    mergeDefaults,
+} = _ModuleSupport;
 
 export class RadarAreaSeries extends RadarSeries {
     static override readonly className = 'RadarAreaSeries';
@@ -39,22 +48,36 @@ export class RadarAreaSeries extends RadarSeries {
         return highlightedStyle?.fill ?? this.properties.marker.fill ?? this.properties.fill;
     }
 
-    protected override beforePathAnimation() {
-        super.beforePathAnimation();
+    protected override updatePathNodes() {
+        super.updatePathNodes();
 
         const areaNode = this.getAreaNode();
 
-        const { fillOpacity, fill } = this.properties;
-        const style = getShapeStyle(
+        const { fill, fillOpacity, opacity } = mergeDefaults(this.getHighlightStyle(), this.properties);
+
+        const { fill: seriesFill, fillOpacity: seriesFillOpacity } = getShapeStyle(
             { fill, fillOpacity },
             this.properties.fillGradientDefaults,
             this.properties.fillPatternDefaults,
             this.properties.fillImageDefaults
         );
 
-        applyShapeStyle(areaNode, style, undefined, this.getShapeFillBBox());
-        areaNode.pointerEvents = PointerEvents.None;
-        areaNode.stroke = undefined;
+        applyShapeStyle(
+            areaNode,
+            {
+                fill: seriesFill,
+                fillOpacity: seriesFillOpacity,
+                stroke: undefined,
+            },
+            undefined,
+            this.getShapeFillBBox()
+        );
+
+        areaNode.setProperties({
+            lineJoin: 'round',
+            pointerEvents: PointerEvents.None,
+            opacity,
+        });
     }
 
     protected override animatePaths(ratio: number) {

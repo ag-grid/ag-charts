@@ -4,8 +4,8 @@ import { type OptionsDefs, constant, geoJson, required, string } from 'ag-charts
 const { commonSeriesOptionsDefs, mapMarkerSeriesThemeableOptionsDef, without } = _ModuleSupport;
 
 export const mapMarkerSeriesOptionsDef: OptionsDefs<AgMapMarkerSeriesOptions> = {
+    ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight']),
     ...mapMarkerSeriesThemeableOptionsDef,
-    ...without(commonSeriesOptionsDefs, ['highlightStyle']),
     type: required(constant('map-marker')),
     idKey: string,
     latitudeKey: string,

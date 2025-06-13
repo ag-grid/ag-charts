@@ -559,13 +559,8 @@ export class AreaSeries extends CartesianSeries<
         return this.properties.marker.isDirty();
     }
 
-    protected override updatePathNodes(opts: {
-        paths: Path[];
-        opacity: number;
-        visible: boolean;
-        animationEnabled: boolean;
-    }) {
-        const { opacity, visible, animationEnabled } = opts;
+    protected override updatePathNodes(opts: { paths: Path[]; visible: boolean; animationEnabled: boolean }) {
+        const { visible, animationEnabled } = opts;
         const [fill, stroke] = opts.paths;
         const crossFiltering = this.contextNodeData?.crossFiltering === true;
 
@@ -577,6 +572,7 @@ export class AreaSeries extends CartesianSeries<
             lineDashOffset,
             fill: fillColor,
             fillOpacity,
+            opacity,
         } = mergeDefaults(this.getHighlightStyle(), this.properties);
 
         stroke.setProperties({

@@ -1,6 +1,6 @@
 import type { AgSeriesListeners } from '../chart/eventOptions';
 import type { InteractionRange, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../chart/types';
-import type { FillOptions, StrokeOptions } from './cartesian/commonOptions';
+import type { FillOptions, LineDashOptions, StrokeOptions } from './cartesian/commonOptions';
 
 export type AgSeriesHighlightMarkerStyle = FillOptions & StrokeOptions;
 
@@ -33,20 +33,20 @@ export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyle
     /** Options for the highlighted item.  */
     highlightedItem?: ItemHighlightStyleOptions;
     /** Options for the un-highlighted items when there is an active highlight. */
-    unHighlightedItem?: ItemHighlightStyleOptions;
+    unhighlightedItem?: ItemHighlightStyleOptions;
 }
 
 export interface AgSeriesHighlightOptions<SeriesHighlightStyleOptions> {
     /** Options for the highlighted series. */
     highlightedSeries?: SeriesHighlightStyleOptions;
     /** Options for the un-highlighted series when there is an active highlight. */
-    unHighlightedSeries?: SeriesHighlightStyleOptions;
+    unhighlightedSeries?: SeriesHighlightStyleOptions;
 }
 
 export interface AgHighlightStyleOptions extends AgBaseHighlightStyleOptions, FillOptions {}
 
-export interface AgBaseHighlightStyleOptions extends StrokeOptions {
-    /** The opacity of the whole series (area line, area fill, labels and markers, if any) */
+export interface AgBaseHighlightStyleOptions extends StrokeOptions, LineDashOptions {
+    /** The opacity of the whole series (line, fill, labels and markers, if any) */
     opacity?: Opacity;
 }
 
