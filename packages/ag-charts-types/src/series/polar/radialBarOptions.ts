@@ -12,7 +12,7 @@ export type AgRadialBarSeriesThemeableOptions<
 > = AgBaseRadialSeriesThemeableOptions<TDatum, TContext>;
 
 export interface AgRadialBarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgBaseRadialSeriesThemeableOptions<TDatum, TContext> {

@@ -30,6 +30,7 @@ export const NIGHTINGALE_SERIES_THEME: _ModuleSupport.SeriesModule<'nightingale'
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'textColor' },
         },
+        highlight: _ModuleSupport.multiSeriesHighlightStyle(),
     },
     axes: {
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {

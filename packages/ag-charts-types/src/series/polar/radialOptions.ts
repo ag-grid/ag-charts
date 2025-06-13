@@ -1,9 +1,9 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgBaseSeriesThemeableOptions, AgMultiSeriesHighlightOptions } from '../seriesOptions';
 
 export interface AgBaseRadialSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
@@ -14,6 +14,13 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = TDatumDefault, TCon
     tooltip?: AgSeriesTooltip<AgRadialSeriesTooltipRendererParams<TDatum, TContext>>;
     /** A styler function for adjusting the styling of the radial columns. */
     itemStyler?: Styler<AgRadialSeriesItemStylerParams<TDatum, TContext>, AgRadialSeriesStyle>;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgRadialHighlightStyleOptions>;
+}
+
+export interface AgRadialHighlightStyleOptions extends AgRadialSeriesStyle {
+    /** The opacity of the whole series (area line, area fill, labels and markers, if any) */
+    opacity?: Opacity;
 }
 
 export interface AgRadialSeriesOptionsKeys<TDatum = TDatumDefault> {

@@ -388,9 +388,9 @@ export abstract class RadialColumnSeriesBase<
 
     protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
 
-    private getItemBaseStyle(highlighted: boolean): ItemStyle {
+    private getItemBaseStyle(isHighlight: boolean, datum?: RadialColumnNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
 
         return getShapeStyle(
             {
@@ -402,6 +402,7 @@ export abstract class RadialColumnSeriesBase<
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
                 cornerRadius: properties.cornerRadius,
+                opacity: highlightStyle?.opacity ?? 1,
             },
             properties.fillGradientDefaults,
             properties.fillPatternDefaults,
@@ -432,10 +433,10 @@ export abstract class RadialColumnSeriesBase<
 
     protected updateSectorSelection(
         selection: _ModuleSupport.Selection<ItemPathType, RadialColumnNodeDatum>,
-        highlighted: boolean
+        isHighlight: boolean
     ) {
         let selectionData: RadialColumnNodeDatum[] = [];
-        if (highlighted) {
+        if (isHighlight) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             if (activeHighlight?.datum && activeHighlight.series === this) {
                 selectionData.push(activeHighlight as RadialColumnNodeDatum);
@@ -449,14 +450,15 @@ export abstract class RadialColumnSeriesBase<
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
 
         const fillBBox = this.getShapeFillBBox();
-        const style = this.getItemBaseStyle(highlighted);
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const { datum, datumIndex, midPoint } = nodeDatum;
 
-                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, style, highlighted);
+                const style = this.getItemBaseStyle(isHighlight, nodeDatum);
+
+                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, style, isHighlight);
 
                 const fill = overrides?.fill ?? style.fill;
                 const itemBounds = isGradientFill(fill) && fill.bounds === 'item';
@@ -464,7 +466,7 @@ export abstract class RadialColumnSeriesBase<
                     ? { centerX: midPoint?.x ?? 0, centerY: midPoint?.y ?? 0 }
                     : { centerX: 0, centerY: 0, innerRadius: axisInnerRadius, outerRadius: axisOuterRadius };
 
-                this.updateItemPath(node, nodeDatum, highlighted);
+                this.updateItemPath(node, nodeDatum, isHighlight);
 
                 applyShapeStyle(node, style, overrides, fillBBox, fillParams);
 
