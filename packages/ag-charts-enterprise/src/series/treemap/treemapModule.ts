@@ -101,7 +101,20 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                     strokeWidth: 2,
                 },
             },
-            highlight: _ModuleSupport.singleSeriesHighlightStyle(),
+            highlight: {
+                highlightedItem: {
+                    fill: { $path: ['../../highlightStyle/tile/fill', `rgba(255,255,255, 0.33)`] },
+                    fillOpacity: { $path: ['../../highlightStyle/tile/fillOpacity', undefined] },
+                    stroke: { $path: ['../../highlightStyle/tile/stroke', `rgba(0, 0, 0, 0.4)`] },
+                    strokeWidth: { $path: ['../../highlightStyle/tile/strokeWidth', 2] },
+                    strokeOpacity: { $path: ['../../highlightStyle/tile/strokeOpacity', undefined] },
+                    opacity: 1,
+                },
+                unhighlightedItem: {
+                    strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
+                    opacity: { $path: ['../../highlightStyle/series/dimOpacity', undefined] },
+                },
+            },
         },
         gradientLegend: {
             enabled: true,
