@@ -96,6 +96,18 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
         await this.update();
     }
 
+    async blur() {
+        let selector = 'canvas';
+        if (isAtOrAfterVersion(10, 3, 0)) {
+            selector = '.ag-charts-series-area';
+        }
+
+        const element = this.options.container?.querySelector(selector) as HTMLElement;
+        if (!element) throw new Error('No series area element found');
+        element.dispatchEvent(new Event('blur'));
+        await this.waitForUpdate();
+    }
+
     async hover(x: number, y: number) {
         let selector = 'canvas';
         let offsetX = 0;

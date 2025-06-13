@@ -37,14 +37,16 @@ export function isAtOrAfterVersion(major: number, minor: number, patch: number) 
 export async function waitForUpdate(chart: any): Promise<void> {
     chart = chart.chart;
 
-    if (chart._pendingFactoryUpdatesCount > 0 || chart.performUpdateType !== 0) {
-        return new Promise((resolve) => {
+    return new Promise((resolve) => {
+        if (chart._pendingFactoryUpdatesCount > 0 || chart.performUpdateType !== 7) {
             const destroyFn = chart.ctx.updateService.addListener('update-complete', () => {
                 resolve();
                 destroyFn();
             });
-        });
-    }
+        } else {
+            resolve();
+        }
+    });
 }
 
 export function prepareTestOptions<T extends AgChartOptions>(options: T, container: HTMLElement, enterprise: boolean) {

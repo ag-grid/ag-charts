@@ -19,6 +19,10 @@ describe('simple-chart benchmark', () => {
             await addSeriesNodePoints(ctx, 2, 5);
         });
 
+        afterEach(async () => {
+            await ctx.blur();
+        });
+
         benchmark('1x legend toggle', ctx, { expectedRelativeMB: 5, expectedCanvasCount: 3 }, async () => {
             await ctx.legendToggle();
             await ctx.legendToggle();
