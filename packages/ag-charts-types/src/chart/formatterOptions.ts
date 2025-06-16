@@ -11,10 +11,11 @@ export type FormatterPropertyType =
     | 'label'
     | 'secondaryLabel'
     | 'calloutLabel'
-    | 'sectorLabel';
+    | 'sectorLabel'
+    | 'legendItem';
 
 export type SeriesFormatterSource = 'tooltip' | 'series-label';
-export type ChartFormatterSource = 'axis-label' | 'gradient-legend' | 'crosshair' | 'annotation-label';
+export type ChartFormatterSource = 'axis-label' | 'gradient-legend' | 'legend-label' | 'crosshair' | 'annotation-label';
 export type AnyFormatterSource = SeriesFormatterSource | ChartFormatterSource;
 
 interface FormatterBoundSeries {

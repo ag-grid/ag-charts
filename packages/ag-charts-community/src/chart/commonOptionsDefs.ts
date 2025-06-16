@@ -227,6 +227,7 @@ export const formatObjectValidator = optionsDefs<Record<FormatterPropertyType, (
     secondaryLabel: formatter,
     sectorLabel: formatter,
     calloutLabel: formatter,
+    legendItem: formatter,
 });
 
 export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, 'navigator'>> = {

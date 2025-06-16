@@ -1,3 +1,5 @@
+import type { AgTimeInterval } from 'ag-charts-types';
+
 export type ScaleType = 'number' | 'log' | 'time' | 'unit-time' | 'ordinal-time' | 'band' | 'mercator' | 'color';
 
 export interface ScaleTickParams<I> {
@@ -20,6 +22,8 @@ export interface ScaleTickResult<D> {
     // If you generated a tick every 2 between 0 and 5, you'd have 2.5 ticks
     // Use Math.floor to get the actual number of ticks rendered
     count: number | undefined;
+    // Used for continuous time scale ticks
+    timeInterval?: AgTimeInterval;
 }
 
 export interface Scale<D, R, I = number> {

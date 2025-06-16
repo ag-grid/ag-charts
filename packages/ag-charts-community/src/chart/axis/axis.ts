@@ -721,7 +721,7 @@ export abstract class Axis<
         const { formatManager } = moduleCtx;
         const boundSeries = this.getFormatterBoundSeries();
 
-        let inputFractionDigits: number;
+        let inputFractionDigits: number | undefined;
         switch (source) {
             case 'crosshair':
             case 'annotation-label':
@@ -732,6 +732,9 @@ export abstract class Axis<
                 break;
             case 'tooltip':
                 inputFractionDigits = 3;
+                break;
+            case 'legend-label':
+                inputFractionDigits = undefined;
                 break;
         }
 

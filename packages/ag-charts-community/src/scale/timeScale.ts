@@ -80,9 +80,16 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
         } else if (nice && tickCount === 1) {
             return { ticks: domain.slice(0, 1), count: undefined };
         }
+
+        const timeInterval = getTickTimeInterval(start, stop, tickCount, minTickCount, maxTickCount, {
+            weekStart: sunday,
+        });
+        if (timeInterval == null) return;
+
         return {
-            ticks: getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend }),
+            ticks: intervalRange(timeInterval, new Date(start), new Date(stop), { visibleRange, extend }),
             count: undefined,
+            timeInterval,
         };
     }
 }

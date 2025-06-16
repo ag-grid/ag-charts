@@ -52,6 +52,11 @@ describe('TimeScale', () => {
                 new Date(2022, 11, 1),
             ],
             count: undefined,
+            timeInterval: {
+                epoch: undefined,
+                step: 1,
+                unit: 'month',
+            },
         });
     });
 
