@@ -28,7 +28,7 @@ series: [
         marker: {
             itemStyler: (params) => {
                 if (params.datum.coal > params.datum.nuclear) return { fill: 'red', size: 15 };
-                else return { fill: p.fill, size: p.size };
+                else return { fill: params.fill, size: params.size };
             },
         },
     },
