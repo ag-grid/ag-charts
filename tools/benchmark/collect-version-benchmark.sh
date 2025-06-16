@@ -126,7 +126,7 @@ cleanup() {
 
 prebuild() {
     log_info "Building dependencies & test infrastructure"
-    run_silent nx run-many -t build -p ag-charts-core,ag-charts-test
+    run_silent yarn nx run-many -t build -p ag-charts-core,ag-charts-test
 }
 
 build() {
@@ -141,7 +141,7 @@ build() {
         mkdir -p packages/ag-charts-core/src
         touch packages/ag-charts-core/src/main.ts
     fi
-    run_silent nx run-many -t build -p ag-charts-core
+    run_silent yarn nx run-many -t build -p ag-charts-core
 }
 
 benchmark() {
