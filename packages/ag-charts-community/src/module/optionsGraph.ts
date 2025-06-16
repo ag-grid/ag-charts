@@ -125,6 +125,12 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.buildGraphFromObject(this.root, USER_OPTIONS_EDGE, without(userOptions, ['theme']));
         this.buildGraphFromObject(this.root, DEFAULTS_EDGE, without(config[seriesType], OptionsGraph.COMPLEX_KEYS));
 
+        // Build series overrides before common overrides as series take priority
+        const seriesOverrides = overrides ? without(overrides[seriesType], OptionsGraph.COMPLEX_KEYS) : {};
+        if (Object.keys(seriesOverrides).length > 0) {
+            this.buildGraphFromObject(this.root, OVERRIDES_EDGE, seriesOverrides);
+        }
+
         const commonOverrides = overrides ? without(overrides.common, OptionsGraph.COMPLEX_KEYS) : {};
         if (Object.keys(commonOverrides).length > 0) {
             this.buildGraphFromObject(
@@ -132,11 +138,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
                 OVERRIDES_EDGE,
                 chartTypes.isCartesian(seriesType) ? commonOverrides : without(commonOverrides, ['zoom', 'navigator'])
             );
-        }
-
-        const seriesOverrides = overrides ? without(overrides[seriesType], OptionsGraph.COMPLEX_KEYS) : {};
-        if (Object.keys(seriesOverrides).length > 0) {
-            this.buildGraphFromObject(this.root, OVERRIDES_EDGE, seriesOverrides);
         }
 
         // Build the theme parameters graph.
