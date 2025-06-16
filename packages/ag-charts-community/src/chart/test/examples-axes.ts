@@ -176,6 +176,28 @@ export const GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED.slice(0, 20),
 };
 
+export const GROUPED_CATEGORY_AXIS_EXAMPLE_WITH_CROSSLINES: AgCartesianChartOptions = {
+    ...examples.GROUPED_CATEGORY_AXIS_EXAMPLE,
+    data: DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED.slice(0, 20),
+    axes: [
+        {
+            type: 'grouped-category',
+            position: 'bottom',
+            crossLines: [
+                { type: 'line', value: DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED.at(2)?.grouping },
+                {
+                    type: 'range',
+                    range: DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED.slice(5, 7)?.map((i) => i.grouping) as [
+                        any,
+                        any,
+                    ],
+                },
+            ],
+        },
+        ...examples.GROUPED_CATEGORY_AXIS_EXAMPLE.axes!.slice(1),
+    ],
+};
+
 export const NUMBER_AXIS_NO_SERIES: AgCartesianChartOptions = {
     ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
     series: examples.SIMPLE_SCATTER_CHART_EXAMPLE.series?.map((s) => ({ ...s, visible: false })),
