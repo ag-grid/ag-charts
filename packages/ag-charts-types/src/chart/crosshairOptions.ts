@@ -31,20 +31,20 @@ export interface AgCrosshairLabelFormatterParams<TContext> {
     readonly context?: TContext;
 }
 
-export interface AgCrosshairLabel<TFormat, TContext = TContextDefault> extends AgBaseCrosshairLabel {
-    /** Function used to render crosshair labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
-    formatter?: Formatter<AgCrosshairLabelFormatterParams<TContext>>;
+export interface AgCrosshairLabel<TFormat, TContext = TContextDefault> extends AgBaseCrosshairLabel<TContext> {
     /** Format string used when rendering labels. */
     format?: TFormat;
 }
 
-export interface AgBaseCrosshairLabel {
+export interface AgBaseCrosshairLabel<TContext = TContextDefault> {
     /** Whether to show label when the crosshair is visible. */
     enabled?: boolean;
     /** The horizontal offset in pixels for the label. */
     xOffset?: PixelSize;
     /** The vertical offset in pixels for the label. */
     yOffset?: PixelSize;
+    /** Function used to render crosshair labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
+    formatter?: Formatter<AgCrosshairLabelFormatterParams<TContext>>;
     /** Function used to create the content for the label. */
     renderer?: Renderer<AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult>;
 }

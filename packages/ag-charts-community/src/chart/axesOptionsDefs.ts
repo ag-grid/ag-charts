@@ -250,6 +250,7 @@ export function cartesianAxisCrosshairOptions(
         enabled: boolean,
         xOffset: number,
         yOffset: number,
+        formatter: callbackOf(string),
         renderer: callbackOf(
             or(
                 string,
@@ -269,7 +270,6 @@ export function cartesianAxisCrosshairOptions(
     if (canFormat) {
         crosshairLabel = {
             ...baseCrosshairLabel,
-            formatter: callbackOf(string),
             format: timeFormat
                 ? or(
                       string,
