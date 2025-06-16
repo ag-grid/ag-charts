@@ -13,7 +13,7 @@
             },
             {
                 "text": "Typescript Generics",
-                "path": "./formatter/"
+                "path": "./formatters/"
             },
             {
                 "text": "`context` object"
