@@ -5,7 +5,7 @@ import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Weight vs Height)',
+        text: 'Weight vs Height',
     },
     subtitle: {
         text: 'With Name Labels',
