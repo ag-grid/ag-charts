@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import path from 'path';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 
@@ -14,10 +15,7 @@ export function toMatchImage(this: any, actual: ImageData, expected: ImageData, 
     const diff = new PNG({ width, height });
     const result = pixelmatch(actual.data, expected.data, diff.data, width, height, { threshold: 0.01 });
 
-    const diffOutputFilename = `${testPath.substring(
-        0,
-        testPath.lastIndexOf('/')
-    )}/__image_snapshots__/${currentTestName}-diff.png`;
+    const diffOutputFilename = `${path.dirname(testPath)}/__image_snapshots__/${currentTestName}-diff.png`;
     const diffPercentage = (result * 100) / (width * height);
     const pass = diffPercentage <= 0.05;
 
