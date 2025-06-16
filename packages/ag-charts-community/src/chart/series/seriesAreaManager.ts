@@ -950,8 +950,8 @@ export class SeriesAreaManager extends BaseManager {
         datumIndex: any,
         datum: SeriesNodeDatum<unknown>
     ): TooltipContent[] | undefined {
-        const { chart } = this;
-        if (chart.tooltip.enabled === false || series.tooltipEnabled === false) {
+        const tooltipEnabled = series.tooltipEnabled ?? this.chart.tooltip.enabled;
+        if (!tooltipEnabled) {
             this.cachedTooltipContent = undefined;
             return;
         }

@@ -120,7 +120,11 @@ export interface AgGroupedCategoryDepthOptions<TContext = TContextDefault> {
 }
 
 export interface AgCategoryAxisOptions<TContext = TContextDefault>
-    extends AgBaseCartesianAxisOptions<AgBaseCartesianAxisLabelOptions<TContext>, AgBaseCrosshairLabel, TContext> {
+    extends AgBaseCartesianAxisOptions<
+        AgBaseCartesianAxisLabelOptions<TContext>,
+        AgBaseCrosshairLabel<TContext>,
+        TContext
+    > {
     type: 'category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
@@ -136,7 +140,11 @@ type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;
 
 export interface AgGroupedCategoryAxisOptions<TContext = TContextDefault>
     extends Omit<
-        AgBaseCartesianAxisOptions<AgGroupedCategoryAxisLabelOptions<TContext>, AgBaseCrosshairLabel, TContext>,
+        AgBaseCartesianAxisOptions<
+            AgGroupedCategoryAxisLabelOptions<TContext>,
+            AgBaseCrosshairLabel<TContext>,
+            TContext
+        >,
         'tick'
     > {
     type: 'grouped-category';
