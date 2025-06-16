@@ -23,12 +23,12 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
         series: {
             shape: 'circle',
             maxSize: 30,
-            fill: { $palette: 'fill' },
-            stroke: { $palette: 'stroke' },
+            fill: { $mapPalette: 'fill' },
+            stroke: { $mapPalette: 'stroke' },
             colorRange: {
                 $if: [
-                    { $eq: [{ $palette: 'type' }, 'inbuilt'] },
-                    { $palette: 'divergingColors' },
+                    { $eq: [{ $mapPalette: 'type' }, 'inbuilt'] },
+                    { $mapPalette: 'divergingColors' },
                     _ModuleSupport.SAFE_RANGE2_OPERATION,
                 ],
             },
@@ -37,7 +37,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
                 type: 'gradient',
                 gradient: 'radial',
                 bounds: 'item',
-                colorStops: { $palette: 'gradient' },
+                colorStops: { $mapPalette: 'gradient' },
                 rotation: 0,
                 reverse: true,
             } satisfies WithThemeParams<RequiredInternalAgGradientColor>,

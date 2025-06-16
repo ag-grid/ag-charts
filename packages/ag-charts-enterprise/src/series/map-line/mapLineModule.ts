@@ -20,8 +20,8 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
             // @ts-expect-error undocumented option
             colorRange: {
                 $if: [
-                    { $eq: [{ $palette: 'type' }, 'inbuilt'] },
-                    { $palette: 'divergingColors' },
+                    { $eq: [{ $mapPalette: 'type' }, 'inbuilt'] },
+                    { $mapPalette: 'divergingColors' },
                     _ModuleSupport.SAFE_RANGE2_OPERATION,
                 ],
             },

@@ -355,6 +355,7 @@ function orOperation(graph: OptionsGraphInterface, vertex: VertexInterface, valu
 enum LocationOperation {
     IsUserOption = '$isUserOption',
     Palette = '$palette',
+    MapPalette = '$mapPalette',
     Path = '$path',
     PathString = '$pathString',
     Ref = '$ref',
@@ -366,6 +367,7 @@ const locationOperations: Record<LocationOperation, OperationFns> = {
         resolve: isUserOptionOperation,
     },
     $palette: paletteOperation,
+    $mapPalette: mapPaletteOperation,
     $path: {
         dependencies: pathOperationDependenciesFactory,
         resolve: pathOperation,
@@ -407,6 +409,45 @@ function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
 
     if (!isString(key)) return;
 
+    if (PALETTE_INDEX_KEYS.has(key)) {
+        const pathArray = graph.getPathArray(vertex);
+        const index = getPathLastIndex(pathArray);
+
+        if (isNaN(index)) return;
+
+        switch (key) {
+            case 'fill':
+                return circularSliceArray(graph.palette.fills, 1, index)[0];
+            case 'fillFallback':
+                return circularSliceArray(graph.palette.fillsFallback, 1, index)[0];
+            case 'stroke':
+                return circularSliceArray(graph.palette.strokes, 1, index)[0];
+            case 'gradient':
+                return circularSliceArray(graph.palette.sequentialColors, 1, index)[0];
+            case 'range2':
+                return circularSliceArray(graph.palette.fills, 2, index);
+        }
+
+        return;
+    }
+
+    if (key === 'gradients') {
+        return graph.palette.sequentialColors; // TODO: `gradients` as a $ref to sequentialColors within palette
+    }
+
+    const value = getPathSafe(graph.palette, key.split('.'));
+
+    // TODO: what is mutating the palette? see integratedChartsCrossFiltering.test.ts
+    if (Array.isArray(value)) return [...value];
+    if (typeof value === 'object') return { ...value };
+    return value;
+}
+
+function mapPaletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [keyVertex] = values;
+    const key = graph.resolveVertexValue(vertex, keyVertex);
+
+    if (!isString(key)) return;
     if (PALETTE_INDEX_KEYS.has(key)) {
         const pathArray = graph.getPathArray(vertex);
         let index = getPathLastIndex(pathArray);

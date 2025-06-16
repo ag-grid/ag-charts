@@ -16,12 +16,12 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
-            fill: { $palette: 'fill' },
+            fill: { $mapPalette: 'fill' },
             stroke: { $ref: 'chartBackgroundColor' },
             colorRange: {
                 $if: [
-                    { $eq: [{ $palette: 'type' }, 'inbuilt'] },
-                    { $palette: 'divergingColors' },
+                    { $eq: [{ $mapPalette: 'type' }, 'inbuilt'] },
+                    { $mapPalette: 'divergingColors' },
                     _ModuleSupport.SAFE_RANGE2_OPERATION,
                 ],
             },
@@ -30,7 +30,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 type: 'gradient',
                 gradient: 'linear',
                 bounds: 'item',
-                colorStops: { $palette: 'gradient' },
+                colorStops: { $mapPalette: 'gradient' },
                 rotation: 0,
                 reverse: false,
             } satisfies WithThemeParams<RequiredInternalAgGradientColor>,

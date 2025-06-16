@@ -71,6 +71,7 @@ type PaletteParam =
 type PathOperation =
     | { $isUserOption: [Leaf<string>, AnyLeaf, AnyLeaf] }
     | { $palette: PaletteParam }
+    | { $mapPalette: PaletteParam }
     | { $path: Leaf<string> | [Leaf<string>, AnyLeaf] | [Leaf<string>, AnyLeaf, AnyLeaf] }
     | { $ref: ThemeParam };
 

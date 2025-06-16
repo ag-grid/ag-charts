@@ -16,7 +16,7 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
-            fill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
+            fill: { $path: ['/1', { $mapPalette: 'fill' }, { $mapPalette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
             stroke: { $ref: 'chartBackgroundColor' },
             strokeWidth: 1,
             // @ts-expect-error undocumented-option
@@ -26,10 +26,18 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
                 bounds: 'item',
                 colorStops: [
                     {
-                        $mix: [{ $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, 'black', 0.15],
+                        $mix: [
+                            { $path: ['/1', { $mapPalette: 'fill' }, { $mapPalette: 'hierarchyColors' }] },
+                            'black',
+                            0.15,
+                        ],
                     },
                     {
-                        $mix: [{ $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, 'white', 0.15],
+                        $mix: [
+                            { $path: ['/1', { $mapPalette: 'fill' }, { $mapPalette: 'hierarchyColors' }] },
+                            'white',
+                            0.15,
+                        ],
                     },
                 ] as any,
                 rotation: 0,
@@ -37,8 +45,8 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
             } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
             fillPatternDefaults: {
                 ..._ModuleSupport.FILL_PATTERN_DEFAULTS,
-                fill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },
-                stroke: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },
+                fill: { $path: ['/1', { $mapPalette: 'fill' }, { $mapPalette: 'hierarchyColors' }] },
+                stroke: { $path: ['/1', { $mapPalette: 'fill' }, { $mapPalette: 'hierarchyColors' }] },
             },
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         },
