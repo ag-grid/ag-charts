@@ -87,6 +87,14 @@ const EXAMPLES: Record<string, TestCase> = {
             }),
             compare: ['grouped-category'],
         },
+        GROUPED_CATEGORY_AXIS_WITH_CROSSLINES: {
+            options: axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE_WITH_CROSSLINES,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['grouped-category', 'number'],
+                seriesTypes: ['bar'],
+            }),
+            compare: ['grouped-category'],
+        },
     }),
     INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE: {
         options: examples.INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE,
