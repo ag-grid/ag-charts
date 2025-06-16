@@ -20,6 +20,7 @@
       }
     },
     "build:package": {
+      "dependsOn": ["^build:package", "^build:types"],
       "options": {
         "main": "{projectRoot}/src/index.ts",
         "external": ["ag-charts-community", "vue"]
