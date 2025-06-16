@@ -147,7 +147,7 @@ jobs:
               id: benchmark-json
               if: github.event_name != 'issue_comment' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
               run: |
-                  ./tools/benchmark/compare-latest.sh -j ${{ steps.get-branch.outputs.base }}
+                  ./tools/benchmark/compare-latest.sh -j origin/${{ steps.get-branch.outputs.base }}
 
             - name: Notify Success
               uses: actions/github-script@v7
