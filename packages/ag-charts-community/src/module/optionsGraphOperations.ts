@@ -412,8 +412,10 @@ function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
         let index = getPathLastIndex(pathArray);
 
         let ignoreIndexOffset = 0;
+        const path = ['series', '0', 'type'];
         for (let i = 0; i < index; i++) {
-            const siblingSeriesType = graph.getResolvedPath(['series', `${i}`, 'type']) as string;
+            path[1] = `${i}`;
+            const siblingSeriesType = graph.getResolvedPath(path) as string;
             if ('map-shape-background' === siblingSeriesType || 'map-line-background' === siblingSeriesType) {
                 ignoreIndexOffset++;
             }
