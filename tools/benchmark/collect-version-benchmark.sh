@@ -201,7 +201,7 @@ trap 'cleanup' ERR EXIT
 prebuild
 for version in "${versions[@]}"; do
     # Checkout files in the specified input file set (removing any files that have been added since then)
-    run_silent git restore --source "$version" -- ${included_files[@]}
+    run_silent git restore --source "origin/$version" -- ${included_files[@]}
     build ${version}
     # Benchmark
     benchmark ${version}
