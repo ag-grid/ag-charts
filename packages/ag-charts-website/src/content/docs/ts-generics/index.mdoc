@@ -50,7 +50,6 @@ const options: AgChartOptions<MyDatumType> = {
                     case 'EMEA': return { fill: 'green' };
                     default:
                         // (unreachable code)
-                        params.datum.region satisfies never;
                         throw new Error();
                 }
             },

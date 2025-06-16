@@ -38,15 +38,15 @@ export function makeCurrencyConverter(userCurrency: Currency): CurrencyConverter
             }
         },
 
-        formatStockCurrency (stockPrice: number): string {
+        formatStockCurrency(stockPrice: number): string {
             return this.formatCurrency(stockPrice, 'USD');
         },
 
-        formatUserCurrency (stockPrice: number): string {
+        formatUserCurrency(stockPrice: number): string {
             return this.formatCurrency(stockPrice, this.userCurrency);
         },
 
-        formatBothCurrencies (stockPrice: number): string {
+        formatBothCurrencies(stockPrice: number): string {
             if (this.userCurrency === 'USD') {
                 return this.formatCurrency(stockPrice, 'USD');
             } else {
@@ -56,7 +56,7 @@ export function makeCurrencyConverter(userCurrency: Currency): CurrencyConverter
             }
         },
 
-        formatLog (datum: TradeDatum, currency: Currency): string {
+        formatLog(datum: TradeDatum, currency: Currency): string {
             return [
                 `Pricing in ${currency}:`,
                 `  Open  : ${this.formatCurrency(datum.open, currency)}`,
@@ -65,7 +65,7 @@ export function makeCurrencyConverter(userCurrency: Currency): CurrencyConverter
                 `  Close : ${this.formatCurrency(datum.close, currency)}`,
             ].join('\n');
         },
-    }
+    };
     return self;
 }
 

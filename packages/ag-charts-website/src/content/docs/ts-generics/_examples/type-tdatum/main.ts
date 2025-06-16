@@ -6,6 +6,10 @@ type MyDatumType = {
     region: 'AMER' | 'APAC' | 'EMEA';
 };
 
+function unreachable(_arg: never): never {
+    throw new Error();
+}
+
 const options: AgChartOptions<MyDatumType> = {
     container: document.getElementById('myChart'),
     title: {
@@ -37,9 +41,7 @@ const options: AgChartOptions<MyDatumType> = {
                     case 'EMEA':
                         return { fill: 'green' };
                     default:
-                        // (unreachable code)
-                        params.datum.region satisfies never;
-                        throw new Error();
+                        unreachable(params.datum.region);
                 }
             },
         },
