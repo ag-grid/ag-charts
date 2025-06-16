@@ -1,9 +1,10 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { Currency, CurrencyConverter } from './currencyConverter';
+import type { CurrencyConverter } from './currencyConverter';
+import { Currency, makeCurrencyConverter } from './currencyConverter';
 import { TradeDatum, getData } from './data';
 
-const myCurrencyConverter = new CurrencyConverter('EUR');
+const myCurrencyConverter = makeCurrencyConverter('EUR');
 
 const options: AgChartOptions<TradeDatum, CurrencyConverter> = {
     container: document.getElementById('myChart'),
