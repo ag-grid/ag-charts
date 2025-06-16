@@ -29,7 +29,7 @@ base_name=${1:-latest}
 if [[ ${base_name} =~ ^b[0-9]+(\.[0-9]+){2}$ ]] ; then
     base="${base_name}"
 else
-    base=$(git merge-base HEAD origin/${base_name} || echo "origin/${base_name}")
+    base=$(git merge-base HEAD ${base_name} || echo "${base_name}")
 fi
 head=$(git rev-parse HEAD)
 branch=$(git rev-parse --abbrev-ref HEAD)
