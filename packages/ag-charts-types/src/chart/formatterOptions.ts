@@ -43,33 +43,49 @@ export interface ChartFormatterParams<Value> {
 }
 
 interface BaseFormatterParams<TDatum, Value> {
+    /** The current value being formatted. */
     value: Value;
+    /** The datum associated with the value, if available. */
     datum: TDatum | undefined;
+    /** The ID of the series that the value belongs to, if available. */
     seriesId: string | undefined;
+    /** The key of the property associated with the datum, if available. */
     key: TDatum extends object ? keyof TDatum & string : string | undefined;
+    /** The source of the formatter, indicating where it is being used. */
     source: AnyFormatterSource;
+    /** The property being formatted, such as 'x', 'y', 'angle', etc. */
     property: FormatterPropertyType;
+    /** The formatter function to use for formatting the value, if available. */
     domain: any[];
+    /** A description of the key and name properties being formatted. */
     boundSeries: FormatterBoundSeries[];
 }
 
 export interface NumberFormatterParams<TDatum> extends BaseFormatterParams<TDatum, number> {
+    /** Configuration for a number-formatted value. */
     type: 'number';
+    /** The recommended precision to format the value. */
     fractionDigits: number | undefined;
 }
 
 export type DateFormatterStyle = 'long' | 'component';
 
 export interface DateFormatterParams<TDatum> extends BaseFormatterParams<TDatum, Date> {
+    /** Configuration for a date-formatted value. */
     type: 'date';
+    /** The precision to format the value. I.e. if given the unit `day`, you may format your day as '1 January 2020'. */
     unit: AgTimeIntervalUnit;
+    /** The frequency of `unit`. I.e. a unit of `day` and a step of `7` indicates a weekly interval. */
     step: number;
+    /** The date from which the time interval is relative to. For example, if you had weekly data, and your epoch was a Sunday, you would format every Sunday. */
     epoch: Date | undefined;
+    /** Date formatting style. Either `long` for the full date, such as '25 December 2020'; or `component` for just the unit component of the date, such as '25'. */
     style: DateFormatterStyle;
 }
 
 export interface CategoryFormatterParams<TDatum>
     extends BaseFormatterParams<TDatum, string | number | Date | string[]> {
+    /** Configuration for a category-formatted value. */
     type: 'category';
 }
 
