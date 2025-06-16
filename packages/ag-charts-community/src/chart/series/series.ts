@@ -902,6 +902,7 @@ export abstract class Series<
             case 'secondaryLabel':
             case 'calloutLabel':
             case 'sectorLabel':
+            case 'legendItem':
                 return format({ type: 'category', value, datum, seriesId, key, source, property, domain, boundSeries });
         }
     }

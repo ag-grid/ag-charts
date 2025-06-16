@@ -718,6 +718,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     const tickGeneration = scale.ticks(intervalTickParams, niceDomain, visibleRange);
                     rawTicks = tickGeneration?.ticks ?? [];
                     rawTickCount = tickGeneration?.count;
+                    if (TimeScale.is(scale) || DiscreteTimeScale.is(scale)) {
+                        timeInterval ??= tickParams.interval ?? tickGeneration?.timeInterval;
+                    }
                 }
             }
         }

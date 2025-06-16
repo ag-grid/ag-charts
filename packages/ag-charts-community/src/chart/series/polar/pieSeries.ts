@@ -490,10 +490,12 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         sectorLabelValue?: string,
         legendItemValue?: string
     ) {
-        const { calloutLabel, sectorLabel, legendItemKey } = this.properties;
+        const { id: seriesId, ctx, properties } = this;
+        const { formatManager } = ctx;
+        const { calloutLabel, sectorLabel, legendItemKey } = properties;
 
-        const calloutLabelKey = !skipDisabled || calloutLabel.enabled ? this.properties.calloutLabelKey : undefined;
-        const sectorLabelKey = !skipDisabled || sectorLabel.enabled ? this.properties.sectorLabelKey : undefined;
+        const calloutLabelKey = !skipDisabled || calloutLabel.enabled ? properties.calloutLabelKey : undefined;
+        const sectorLabelKey = !skipDisabled || sectorLabel.enabled ? properties.sectorLabelKey : undefined;
 
         if (!calloutLabelKey && !sectorLabelKey && !legendItemKey) {
             return {};
@@ -501,15 +503,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         const labelFormatterParams = {
             datum,
-            angleKey: this.properties.angleKey,
-            angleName: this.properties.angleName,
-            radiusKey: this.properties.radiusKey,
-            radiusName: this.properties.radiusName,
-            calloutLabelKey: this.properties.calloutLabelKey,
-            calloutLabelName: this.properties.calloutLabelName,
-            sectorLabelKey: this.properties.sectorLabelKey,
-            sectorLabelName: this.properties.sectorLabelName,
-            legendItemKey: this.properties.legendItemKey,
+            angleKey: properties.angleKey,
+            angleName: properties.angleName,
+            radiusKey: properties.radiusKey,
+            radiusName: properties.radiusName,
+            calloutLabelKey: properties.calloutLabelKey,
+            calloutLabelName: properties.calloutLabelName,
+            sectorLabelKey: properties.sectorLabelKey,
+            sectorLabelName: properties.sectorLabelName,
+            legendItemKey: properties.legendItemKey,
         };
 
         const result: {
@@ -552,7 +554,19 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         }
 
         if (legendItemKey != null && legendItemValue != null) {
-            result.legendItem = { key: legendItemKey, text: legendItemValue };
+            const text =
+                formatManager.format(this.callWithContext.bind(this), {
+                    type: 'category',
+                    value: legendItemValue,
+                    datum,
+                    seriesId,
+                    key: legendItemKey,
+                    source: 'legend-label',
+                    property: 'legendItem',
+                    domain: [],
+                    boundSeries: this.getFormatterContext('legendItem'),
+                }) ?? legendItemValue;
+            result.legendItem = { key: legendItemKey, text };
         }
 
         return result;
