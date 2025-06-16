@@ -9,7 +9,7 @@ export class AdjacencyListGraph<V, E = undefined> {
 
     // Stores edges in a way to optimise lookup of vertices adjacent by edge value to a vertex. This is less optimal
     // for iteration of all edges and deletion of vertices & edges, however this is less useful for our case.
-    private readonly _edges: Map<Vertex<V>, Map<E, Set<Vertex<V>>>> = new Map();
+    private readonly _edges: Map<Vertex<V>, Map<E, Vertex<V>[]>> = new Map();
 
     // Caches neighbours on a given edge value, optimised for lookup by the `to` vertex value.
     private readonly cachedNeighboursEdge?: E;
@@ -54,15 +54,15 @@ export class AdjacencyListGraph<V, E = undefined> {
 
         const edges = this._edges.get(from)!;
         if (!edges) {
-            this._edges.set(from, new Map().set(edge, new Set().add(to)));
+            this._edges.set(from, new Map().set(edge, [to]));
             return;
         }
 
         const vertices = edges.get(edge);
-        if (vertices) {
-            vertices.add(to);
-        } else {
-            edges.set(edge, new Set<Vertex<V>>().add(to));
+        if (vertices == null) {
+            edges.set(edge, [to]);
+        } else if (vertices.indexOf(to) === -1) {
+            vertices.push(to);
         }
     }
 
@@ -84,8 +84,9 @@ export class AdjacencyListGraph<V, E = undefined> {
         const edges = this._edges.get(from);
         if (!edges) return;
         for (const [edge, adjacentVertices] of edges) {
-            adjacentVertices.delete(to);
-            if (adjacentVertices.size === 0) {
+            const index = adjacentVertices.indexOf(to);
+            adjacentVertices.splice(index, 1);
+            if (adjacentVertices.length === 0) {
                 edges.delete(edge);
             }
         }
@@ -125,8 +126,8 @@ export class AdjacencyListGraph<V, E = undefined> {
     }
 
     // Get the set of neighbours along a given edge.
-    neighboursWithEdgeValue(from: Vertex<V>, edgeValue: E): Set<Vertex<V>> {
-        return this._edges.get(from)?.get(edgeValue) ?? new Set();
+    neighboursWithEdgeValue(from: Vertex<V>, edgeValue: E): Vertex<V>[] {
+        return this._edges.get(from)?.get(edgeValue) ?? [];
     }
 
     // Find the first neighbour along the given edge.
@@ -186,7 +187,7 @@ export class AdjacencyListGraph<V, E = undefined> {
         let numEdges = 0;
         for (const [, edges] of this._edges) {
             for (const adjacentVertices of edges.values()) {
-                numEdges += adjacentVertices.size;
+                numEdges += adjacentVertices.length;
             }
         }
 
@@ -197,7 +198,7 @@ export class AdjacencyListGraph<V, E = undefined> {
         const edges = this._edges.get(from);
         if (!edges) return false;
         for (const [_edge, adjacentVertices] of edges) {
-            if (adjacentVertices.has(to)) return true;
+            if (adjacentVertices.indexOf(to) !== -1) return true;
         }
         return false;
     }
