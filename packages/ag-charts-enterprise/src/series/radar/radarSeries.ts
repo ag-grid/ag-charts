@@ -334,7 +334,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const fillBBox = this.getShapeFillBBox();
 
         selection.update(selectionData).each((node, datum) => {
-            const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
 
             const baseStyle = mergeDefaults(highlightStyle, markerStyle, {
                 stroke,
@@ -371,6 +371,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 node.text = datum.label.text;
                 node.textAlign = datum.label.textAlign;
                 node.textBaseline = datum.label.textBaseline;
+                node.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
 
                 node.visible = true;
             } else {

@@ -530,7 +530,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     private getMarkerItemBaseStyle(isHighlight: boolean, datum?: RangeAreaMarkerDatum): ItemStyle {
         const { properties } = this;
         const { marker } = properties;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
         return {
             shape: marker.shape,
             size: marker.size,
@@ -577,7 +577,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const markerStyle = marker.getStyle();
 
         markerSelection.each((node, datum) => {
-            const baseStyle = mergeDefaults(this.getHighlightStyle(isHighlight, datum), markerStyle, {
+            const baseStyle = mergeDefaults(this.getHighlightStyle(isHighlight, datum?.datumIndex), markerStyle, {
                 fill,
                 fillOpacity,
                 stroke,
@@ -617,6 +617,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeAreaLabelDatum>;
     }) {
         opts.labelSelection.each((textNode, datum) => {
+            textNode.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
             updateLabelNode(textNode, this.properties.label, datum);
         });
     }

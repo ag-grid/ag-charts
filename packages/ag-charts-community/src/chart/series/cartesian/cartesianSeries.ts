@@ -482,7 +482,6 @@ export abstract class CartesianSeries<
         this.contentGroup.visible = animationEnabled || visible;
         this.highlightGroup.visible = (animationEnabled || visible) && seriesHighlighted;
 
-        const opacity = this.getOpacity();
         if (hasMarkers) {
             this.updateMarkerNodes({
                 markerSelection: highlightSelection as any,
@@ -509,10 +508,6 @@ export abstract class CartesianSeries<
 
         if (hasMarkers) {
             markerGroup.visible = visible;
-        }
-
-        if (labelGroup) {
-            labelGroup.opacity = opacity;
         }
 
         this.updatePathNodes({

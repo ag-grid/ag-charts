@@ -542,7 +542,7 @@ export class LineSeries extends CartesianSeries<
         const markerStyle = marker.getStyle();
 
         markerSelection.each((node, datum) => {
-            const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
             const baseStyle = mergeDefaults(highlightStyle, markerStyle, {
                 stroke,
                 strokeWidth,
@@ -590,6 +590,7 @@ export class LineSeries extends CartesianSeries<
                 text.y = datum.point.y - 10;
                 text.fill = color;
                 text.visible = true;
+                text.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
             } else {
                 text.visible = false;
             }

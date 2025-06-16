@@ -390,7 +390,7 @@ export abstract class RadialColumnSeriesBase<
 
     private getItemBaseStyle(isHighlight: boolean, datum?: RadialColumnNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
 
         return getShapeStyle(
             {
@@ -491,6 +491,7 @@ export abstract class RadialColumnSeriesBase<
                 node.text = datum.label.text;
                 node.textAlign = datum.label.textAlign;
                 node.textBaseline = datum.label.textBaseline;
+                node.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
 
                 node.visible = true;
             } else {

@@ -513,7 +513,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection.each((boxPlotGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, isHighlight ? 'highlight' : 'node');
 
-            const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum);
+            const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex);
 
             activeStyles = mergeDefaults(highlightStyle, activeStyles);
 

@@ -405,7 +405,7 @@ export class HistogramSeries extends CartesianSeries<
     private getItemBaseStyle(isHighlight: boolean, datum?: HistogramNodeDatum) {
         const { properties } = this;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
         return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? properties.fill,
@@ -479,6 +479,7 @@ export class HistogramSeries extends CartesianSeries<
                 text.fontSize = fontSize;
                 text.fill = color;
                 text.visible = true;
+                text.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
             } else {
                 text.visible = false;
             }

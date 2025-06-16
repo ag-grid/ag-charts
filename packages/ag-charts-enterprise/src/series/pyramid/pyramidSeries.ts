@@ -472,7 +472,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private getItemBaseStyle(isHighlight: boolean, datum?: PyramidNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
 
         return getShapeStyle(
             {
@@ -586,7 +586,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const { labelSelection, labelProperties } = opts;
         const { color: fill, fontSize, fontStyle, fontWeight, fontFamily } = labelProperties;
 
-        labelSelection.each((label, { visible, x, y, text, textAlign, textBaseline }) => {
+        labelSelection.each((label, { visible, x, y, text, textAlign, textBaseline }, datumIndex) => {
             label.visible = visible;
             label.x = x;
             label.y = y;
@@ -598,6 +598,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             label.fontFamily = fontFamily;
             label.textAlign = textAlign;
             label.textBaseline = textBaseline;
+            label.opacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
         });
     }
 

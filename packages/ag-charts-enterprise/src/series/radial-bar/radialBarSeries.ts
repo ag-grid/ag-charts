@@ -370,7 +370,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     private getItemBaseStyle(isHighlight: boolean, datum?: RadialBarNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
 
         return getShapeStyle(
             {
@@ -487,6 +487,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 node.text = datum.label.text;
                 node.textAlign = datum.label.textAlign;
                 node.textBaseline = datum.label.textBaseline;
+                node.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
 
                 node.visible = true;
             } else {

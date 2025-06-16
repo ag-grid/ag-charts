@@ -341,7 +341,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const fillBBox = this.getShapeFillBBox();
 
         markerSelection.each((node, datum) => {
-            const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
             const baseStyle = mergeDefaults(highlightStyle, markerStyle);
 
             this.updateMarkerStyle(
@@ -393,6 +393,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             text.fontFamily = label.fontFamily;
             text.textAlign = 'left';
             text.textBaseline = 'top';
+            text.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
         });
     }
 

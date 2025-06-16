@@ -391,7 +391,7 @@ export class SankeySeries extends FlowProportionSeries<
     protected getBaseNodeStyle(isHighlight: boolean, datum?: SankeyDatum): NodeStyle {
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.node;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
         return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? fill,
@@ -524,7 +524,7 @@ export class SankeySeries extends FlowProportionSeries<
     protected getBaseLinkStyle(isHighlight: boolean, datum?: SankeyDatum): LinkStyle {
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
         return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? fill,

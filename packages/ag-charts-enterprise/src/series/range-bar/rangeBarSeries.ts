@@ -502,7 +502,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     ): Required<AgRangeBarHighlightStyleOptions> {
         const { properties } = this;
         const { cornerRadius, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
 
         return getShapeStyle(
             {
@@ -594,6 +594,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected updateLabelNodes(opts: { labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text> }) {
         opts.labelSelection.each((textNode, datum) => {
+            textNode.opacity = this.getHighlightStyle(false, datum?.datumIndex).opacity ?? 1;
             updateLabelNode(textNode, this.properties.label, datum);
         });
     }

@@ -684,7 +684,7 @@ export class AreaSeries extends CartesianSeries<
         const markerStyle = marker.getStyle();
 
         markerSelection.each((node, datum) => {
-            const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
             const baseStyle = mergeDefaults(highlightStyle, markerStyle, {
                 stroke,
                 strokeWidth,
@@ -735,6 +735,7 @@ export class AreaSeries extends CartesianSeries<
                 text.y = y - 10;
                 text.fill = color;
                 text.visible = true;
+                text.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
             } else {
                 text.visible = false;
             }

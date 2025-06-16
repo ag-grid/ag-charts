@@ -458,7 +458,7 @@ export class MapShapeSeries
 
     private getItemBaseStyle(isHighlight: boolean, datum?: MapShapeNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
 
         return getShapeStyle(
             {
@@ -562,7 +562,7 @@ export class MapShapeSeries
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontFamily } = this.properties.label;
 
-        labelSelection.each((label, { x, y, text, fontSize, lineHeight }) => {
+        labelSelection.each((label, { x, y, text, fontSize, lineHeight }, datumIndex) => {
             label.visible = true;
             label.x = x;
             label.y = y;
@@ -575,6 +575,7 @@ export class MapShapeSeries
             label.fontFamily = fontFamily;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
+            label.opacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
         });
     }
 

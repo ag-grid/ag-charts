@@ -636,7 +636,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
     private getItemBaseStyle(isHighlight: boolean, datum?: BarNodeDatum): Required<AgBarSeriesStyle> {
         const { properties } = this;
         const { cornerRadius, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
 
         return getShapeStyle(
             {
@@ -735,6 +735,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, BarNodeDatum> }) {
         opts.labelSelection.each((textNode, datum) => {
+            textNode.opacity = this.getHighlightStyle(false, datum?.datumIndex).opacity ?? 1;
             updateLabelNode(textNode, this.properties.label, datum.label);
         });
     }
