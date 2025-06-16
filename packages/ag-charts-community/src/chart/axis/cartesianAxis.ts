@@ -184,7 +184,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     layoutCrossLines(): void {
         const anySeriesActive = this.isAnySeriesActive();
         this.crossLines.forEach((crossLine) => {
-            crossLine.calculateLayout?.(anySeriesActive, this.reverse);
+            crossLine.calculateLayout?.(anySeriesActive);
         });
     }
 

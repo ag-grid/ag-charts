@@ -247,7 +247,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         this._isRange = isRange;
     }
 
-    calculateLayout(visible: boolean, reversedAxis?: boolean) {
+    calculateLayout(visible: boolean) {
         this.data = undefined;
 
         if (!visible) return;
@@ -257,7 +257,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         const bandwidth = scale.bandwidth ?? 0;
         const step = scale.step ?? 0;
-        const rangePadding = (reversedAxis ? -1 : 1) * (scale instanceof BandScale ? (step - bandwidth) / 2 : 0);
+        const rangePadding = scale instanceof BandScale ? (step - bandwidth) / 2 : 0;
 
         const [clippedRange0, clippedRange1] = findMinMax(clippedRange);
 
