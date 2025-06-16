@@ -127,6 +127,7 @@ cleanup() {
 prebuild() {
     log_info "Building dependencies & test infrastructure"
     run_silent yarn nx run-many -t build -p ag-charts-core,ag-charts-test
+    run_silent yarn nx run-many -t benchmark -c build
 }
 
 build() {
