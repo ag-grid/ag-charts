@@ -648,7 +648,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
                 strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-                cornerRadius,
+                cornerRadius: highlightStyle?.cornerRadius ?? cornerRadius,
             },
             fillGradientDefaults,
             fillPatternDefaults,

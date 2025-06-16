@@ -549,7 +549,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 strokeOpacity: highlightStyle?.strokeOpacity ?? item.strokeOpacity,
                 lineDash: highlightStyle?.lineDash ?? item.lineDash ?? [],
                 lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
-                cornerRadius: item.cornerRadius,
+                cornerRadius: highlightStyle?.cornerRadius ?? item.cornerRadius,
                 opacity: highlightStyle?.opacity ?? 1,
             },
             fillGradientDefaults,

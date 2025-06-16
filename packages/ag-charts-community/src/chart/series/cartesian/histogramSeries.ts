@@ -415,7 +415,7 @@ export class HistogramSeries extends CartesianSeries<
                 strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash,
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-                cornerRadius: properties.cornerRadius,
+                cornerRadius: highlightStyle?.cornerRadius ?? properties.cornerRadius,
                 opacity: highlightStyle?.opacity ?? 1,
             },
             properties.fillGradientDefaults,

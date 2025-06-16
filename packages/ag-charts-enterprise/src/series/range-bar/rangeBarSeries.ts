@@ -513,7 +513,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-                cornerRadius,
+                cornerRadius: highlightStyle?.cornerRadius ?? cornerRadius,
                 opacity: highlightStyle?.opacity ?? 1,
             },
             fillGradientDefaults,
