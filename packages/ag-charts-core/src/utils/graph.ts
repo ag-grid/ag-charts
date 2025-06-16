@@ -15,13 +15,18 @@ export class AdjacencyListGraph<V, E = undefined> {
     private readonly _edgesByEdge: Map<E, [Vertex<V>, Vertex<V>][]> = new Map();
 
     // Caches neighbours on a given edge value, optimised for lookup by the `to` vertex value.
-    protected cachedNeighboursEdge?: E;
+    private readonly cachedNeighboursEdge?: E;
     private readonly _cachedNeighbours: Map<Vertex<V>, Map<V, Vertex<V>>> = new Map();
 
     // Stores edges that are pending processing on a given edge value, optimised for iteration of pairs of adjacent
     // vertices. Should call `.clear()` once the edges have been processed.
-    protected processedEdge?: E;
+    private readonly processedEdge?: E;
     protected readonly pendingProcessingEdges: Set<[Vertex<V>, Vertex<V>]> = new Set();
+
+    constructor(cachedNeighboursEdge?: E, processedEdge?: E) {
+        this.cachedNeighboursEdge = cachedNeighboursEdge;
+        this.processedEdge = processedEdge;
+    }
 
     clear() {
         this._vertices.clear();

@@ -94,10 +94,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         overrides: PlainObject = {},
         internalParams: Map<any, any> = new Map()
     ) {
-        super();
-
-        this.cachedNeighboursEdge = PATH_EDGE;
-        this.processedEdge = OPERATION_EDGE;
+        super(PATH_EDGE, OPERATION_EDGE);
 
         this.root = this.addVertex('root');
         this.params = this.addVertex('params');
