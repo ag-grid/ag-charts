@@ -42,7 +42,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             fillImageDefaults: FILL_IMAGE_DEFAULTS,
             fillOpacity: 1,
-            strokeWidth: 0,
+            strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
             lineDash: [0],
             lineDashOffset: 0,
             label: {

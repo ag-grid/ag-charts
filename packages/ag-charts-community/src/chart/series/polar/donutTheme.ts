@@ -66,7 +66,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         defaultPatternFills: SAFE_FILLS_OPERATION,
         fillOpacity: 1,
         strokeOpacity: 1,
-        strokeWidth: 0,
+        strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         lineDash: [0],
         lineDashOffset: 0,
         rotation: 0,

@@ -8,7 +8,7 @@ const {
 export const PYRAMID_SERIES_THEME: _ModuleSupport.SeriesModule<'pyramid'>['themeTemplate'] = {
     series: {
         direction: 'vertical',
-        strokeWidth: 0,
+        strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         spacing: 2,
         fills: { $palette: 'fills' },
         strokes: { $palette: 'strokes' },

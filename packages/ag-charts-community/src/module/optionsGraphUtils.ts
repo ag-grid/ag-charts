@@ -7,6 +7,7 @@ export interface OptionsGraphInterface {
 
     addEdge(from: VertexInterface, to: VertexInterface, edge?: string): void;
     addVertex(value: unknown): VertexInterface;
+    findNeighbour(vertex: VertexInterface, edge: string): unknown;
     findNeighbourValue(vertex: VertexInterface, edge: string): unknown;
     findNeighbourWithValue(vertex: VertexInterface, value: unknown, edge?: string): VertexInterface | undefined;
     findVertexAtPath(path: Array<string>): VertexInterface | undefined;
