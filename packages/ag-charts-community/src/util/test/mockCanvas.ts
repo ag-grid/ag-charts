@@ -1,49 +1,12 @@
-import * as fs from 'fs';
-import pixelmatch from 'pixelmatch';
-import { PNG } from 'pngjs';
 import { Canvas } from 'skia-canvas';
 
 import { resetIds } from 'ag-charts-core';
-import { mockCanvas } from 'ag-charts-test';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, mockCanvas } from 'ag-charts-test';
 
-export const CANVAS_WIDTH = 800;
-export const CANVAS_HEIGHT = 600;
-export const CANVAS_TO_BUFFER_DEFAULTS = { quality: 1 };
+export { CANVAS_HEIGHT, CANVAS_WIDTH, toMatchImage, mockCanvas } from 'ag-charts-test';
 
-export function extractImageData({
-    nodeCanvas,
-    bbox,
-}: {
-    nodeCanvas: Canvas;
-    bbox?: { x: number; y: number; width: number; height: number };
-}) {
-    let sourceCanvas = nodeCanvas;
-    if (bbox && nodeCanvas) {
-        const { x, y, width, height } = bbox;
-
-        // Canvas must have a valid size, otherwise node-canvas fails.
-        if (width < 0.5 || height < 0.5) {
-            throw new Error('Invalid image size provided, dimensions must be greater than zero.');
-        }
-
-        sourceCanvas = new mockCanvas.ConfiguredCanvas(width, height);
-        sourceCanvas
-            ?.getContext('2d')
-            .drawImage(
-                nodeCanvas,
-                Math.round(x),
-                Math.round(y),
-                Math.round(width),
-                Math.round(height),
-                0,
-                0,
-                Math.round(width),
-                Math.round(height)
-            );
-    }
-
-    return sourceCanvas?.toBufferSync('png', CANVAS_TO_BUFFER_DEFAULTS);
-}
+const { extractImageData, CANVAS_TO_BUFFER_DEFAULTS } = mockCanvas;
+export { extractImageData, CANVAS_TO_BUFFER_DEFAULTS };
 
 export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT } = {}): {
     nodeCanvas: Canvas;
@@ -66,29 +29,4 @@ export function setupMockCanvas({ width = CANVAS_WIDTH, height = CANVAS_HEIGHT }
     });
 
     return mockCtx.ctx;
-}
-
-export function toMatchImage(this: any, actual: ImageData, expected: ImageData, { writeDiff = true } = {}) {
-    // Grab values from enclosing Jest scope.
-    const { testPath, currentTestName } = this;
-
-    const width = CANVAS_WIDTH;
-    const height = CANVAS_HEIGHT;
-    const diff = new PNG({ width, height });
-    const result = pixelmatch(actual.data, expected.data, diff.data, width, height, { threshold: 0.01 });
-
-    const diffOutputFilename = `${testPath.substring(
-        0,
-        testPath.lastIndexOf('/')
-    )}/__image_snapshots__/${currentTestName}-diff.png`;
-    const diffPercentage = (result * 100) / (width * height);
-    const pass = diffPercentage <= 0.05;
-
-    if (!pass && writeDiff) {
-        fs.writeFileSync(diffOutputFilename, PNG.sync.write(diff));
-    } else if (fs.existsSync(diffOutputFilename)) {
-        fs.unlinkSync(diffOutputFilename);
-    }
-
-    return { message: () => `Images were ${result} (${diffPercentage.toFixed(2)}%) pixels different`, pass };
 }

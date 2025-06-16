@@ -2,6 +2,27 @@ import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
 import { type AnyFn, getDocument } from 'ag-charts-core';
+import {
+    CANVAS_HEIGHT,
+    CANVAS_WIDTH,
+    type MockEvent,
+    type MockTouch,
+    type MockTouchTypes,
+    WheelDeltaMode,
+    clickEvent,
+    contextMenuEvent,
+    dispatchEvent,
+    doubleClickEvent,
+    mouseDownEvent,
+    mouseEnterEvent,
+    mouseLeaveEvent,
+    mouseMoveEvent,
+    mouseUpEvent,
+    toMatchImage,
+    touchAverage,
+    touchEvent,
+    wheelEvent,
+} from 'ag-charts-test';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -15,18 +36,11 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
-import {
-    CANVAS_HEIGHT,
-    CANVAS_TO_BUFFER_DEFAULTS,
-    CANVAS_WIDTH,
-    extractImageData,
-    setupMockCanvas,
-    toMatchImage,
-} from '../../util/test/mockCanvas';
+import { CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
-import { type MockEvent, findChartTarget } from './findTarget';
+import { findChartTarget } from './findTarget';
 
 export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
@@ -223,169 +237,6 @@ export async function waitForChartStability<O extends AgChartOptions | AgFinanci
     } else if (animationAdvanceMs > 0) {
         throw new Error(`animationAdvancedMs is non-zero, but no animation mocks are present.`);
     }
-}
-
-type TMouseEvent =
-    | 'mousedown'
-    | 'mouseup'
-    | 'mouseenter'
-    | 'mouseleave'
-    | 'mousemove'
-    | 'click'
-    | 'dblclick'
-    | 'contextmenu';
-
-function makeMouseEvent<T extends TMouseEvent>(
-    type: T,
-    testTarget: MockEvent,
-    clientX: number,
-    clientY: number,
-    bubbles = true
-): MouseEvent {
-    const { offsetX, offsetY } = testTarget;
-    const event = new MouseEvent(type, { bubbles, clientX, clientY });
-    Object.assign(event, { offsetX, offsetY, pageX: clientX, pageY: clientY });
-    return event;
-}
-
-function mouseDownEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('mousedown', offsets, clientX, clientY);
-}
-
-function mouseUpEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('mouseup', offsets, clientX, clientY);
-}
-
-function mouseEnterEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('mouseenter', offsets, clientX, clientY);
-}
-
-function mouseLeaveEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('mouseleave', offsets, clientX, clientY);
-}
-
-function mouseMoveEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('mousemove', offsets, clientX, clientY);
-}
-
-function clickEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('click', offsets, clientX, clientY);
-}
-
-function doubleClickEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('dblclick', offsets, clientX, clientY);
-}
-
-function contextMenuEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('contextmenu', offsets, clientX, clientY, false);
-}
-
-function dispatchEvent({ bubbleChain, target }: MockEvent, event: Event) {
-    if (!event.bubbles && bubbleChain.length > 0) {
-        bubbleChain = [bubbleChain[0]];
-    }
-
-    bubbleChain.forEach((currentTarget) => {
-        Object.defineProperty(event, 'target', {
-            value: target,
-            writable: true,
-            configurable: true,
-        });
-        Object.defineProperty(event, 'currentTarget', {
-            value: currentTarget,
-            writable: true,
-            configurable: true,
-        });
-        currentTarget.dispatchEvent(event);
-        delete (event as any).target;
-        delete (event as any).currentTarget;
-    });
-}
-
-export enum WheelDeltaMode {
-    Pixels = 0,
-    Lines = 1,
-    Pages = 2,
-}
-
-type WheelEventData = {
-    deltaX: number;
-    deltaY: number;
-    deltaMode: WheelDeltaMode;
-};
-
-export function wheelEvent(mockEvent: MockEvent, { deltaX, deltaY, deltaMode }: WheelEventData): WheelEvent {
-    const { offsetX, offsetY, clientX, clientY } = mockEvent;
-    const event = new WheelEvent('wheel', { bubbles: true, clientX, clientY, deltaX, deltaY, deltaMode });
-    Object.assign(event, { offsetX, offsetY, pageX: clientX, pageY: clientY });
-    return event;
-}
-
-type MockTouch = {
-    identifier: number;
-    clientX: number;
-    clientY: number;
-    states: ('changed' | 'target')[];
-};
-type MockTouchTypes = 'touchstart' | 'touchmove' | 'touchend';
-
-function touchAverage(touches: MockTouch[]): Pick<MockTouch, 'clientX' | 'clientY'> {
-    expect(touches.length).not.toBe(0);
-    let sumX = 0,
-        sumY = 0;
-    touches.forEach((t) => {
-        sumX += t.clientX;
-        sumY += t.clientY;
-    });
-    return { clientX: sumX / touches.length, clientY: sumY / touches.length };
-}
-
-function touchEvent(type: MockTouchTypes, mockEvent: MockEvent, mockTouches: MockTouch[]): TouchEvent {
-    const targetTouches: Touch[] = [];
-    const changedTouches: Touch[] = [];
-    for (const mockTouch of mockTouches) {
-        const { identifier, clientX, clientY } = mockTouch;
-        if (mockTouch.states.includes('target')) {
-            targetTouches.push({
-                clientX,
-                clientY,
-                force: 0,
-                identifier,
-                pageX: clientX,
-                pageY: clientY,
-                radiusX: 0,
-                radiusY: 0,
-                rotationAngle: 0,
-                screenX: clientX,
-                screenY: clientY,
-                target: mockEvent.target,
-            });
-        }
-        if (mockTouch.states.includes('changed')) {
-            changedTouches.push({
-                clientX,
-                clientY,
-                force: 0,
-                identifier,
-                pageX: clientX,
-                pageY: clientY,
-                radiusX: 0,
-                radiusY: 0,
-                rotationAngle: 0,
-                screenX: clientX,
-                screenY: clientY,
-                target: mockEvent.target,
-            });
-        }
-    }
-
-    const event = new TouchEvent(type, { bubbles: true, targetTouches, changedTouches });
-    const originalPreventDefault = event.preventDefault.bind(event);
-    event.preventDefault = function () {
-        originalPreventDefault();
-        Object.defineProperty(event, 'defaultPrevented', { value: true, configurable: true });
-    };
-    return event;
 }
 
 export function cartesianChartAssertions(params?: { type?: string; axisTypes?: string[]; seriesTypes?: string[] }) {

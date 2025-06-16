@@ -244,6 +244,24 @@ module.exports = {
             to: { pathNot: ['ag-charts-core', 'ag-charts-types', '^src/(widget|util|core)/', 'node_modules'] },
         },
         {
+            name: 'ag-isolated-benchmarks',
+            comment: 'Benchmarks should be isolated.',
+            severity: 'error',
+            from: { path: '^benchmarks/' },
+            to: {
+                pathNot: [
+                    'benchmarks/',
+                    'ag-charts-test',
+                    'ag-charts-types',
+                    'node_modules',
+                    'src/main',
+                    'src/version',
+                    'path',
+                    'fs',
+                ],
+            },
+        },
+        {
             name: 'ag-avoid-bundles',
             comment: "Don't use top-level export bundles internally.",
             severity: 'error',

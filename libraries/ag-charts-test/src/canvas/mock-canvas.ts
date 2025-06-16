@@ -55,6 +55,13 @@ export class MockContext {
         this.registerCanvasInstance(nodeCanvas);
     }
 
+    reset() {
+        this.ctx.nodeCanvas ??= new ConfiguredCanvas(this.width, this.height);
+        this.canvasStack = [this.ctx.nodeCanvas];
+
+        this.registerCanvasInstance(this.ctx.nodeCanvas);
+    }
+
     snapshot() {
         return this.ctx.nodeCanvas
             .getContext('2d')
@@ -78,15 +85,19 @@ export class MockContext {
     }
 
     getActiveCanvasInstances() {
-        const instances = this.canvases.map((ref) => ref.deref());
-        this.canvases = this.canvases.filter((_ref, index) => instances[index] != null);
-        return instances.filter((value): value is NonNullable<typeof value> => value != null);
+        const instances = this.canvases.map((ref) => ref.deref()).filter((ref): ref is Canvas => ref != null);
+        const uniqueInstances = new Set(instances);
+        this.canvases = [...uniqueInstances].map((c) => new WeakRef(c));
+        return [...uniqueInstances];
     }
 
     getActiveOffscreenCanvasInstances() {
-        const instances = this.offscreenCanvases.map((ref) => ref.deref());
-        this.offscreenCanvases = this.offscreenCanvases.filter((_ref, index) => instances[index] != null);
-        return instances.filter((value): value is NonNullable<typeof value> => value != null);
+        const instances = this.offscreenCanvases
+            .map((ref) => ref.deref())
+            .filter((ref): ref is OffscreenCanvas => ref != null);
+        const uniqueInstances = new Set(instances);
+        this.offscreenCanvases = [...uniqueInstances].map((c) => new WeakRef(c));
+        return [...uniqueInstances];
     }
 
     destroy() {
@@ -115,16 +126,13 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
     let mockCtx: MockContext;
     if (opts instanceof MockContext) {
         mockCtx = opts;
+        mockCtx.reset();
     } else {
         const { width = 800, height = 600, document = window.document } = opts;
         mockCtx = new MockContext(width, height, document);
     }
 
     const { width, height, document } = mockCtx;
-
-    const nodeCanvas = new ConfiguredCanvas(width, height);
-    mockCtx.ctx.nodeCanvas = nodeCanvas;
-    mockCtx.canvasStack = [nodeCanvas];
 
     if (typeof window === 'undefined') {
         (global as any)['agChartsSceneRenderModel'] = 'composite';
@@ -175,4 +183,41 @@ export function teardown(mockContext: MockContext) {
         window.OffscreenCanvas = mockContext.realOffscreenCanvas;
     }
     mockContext.destroy();
+}
+
+export const CANVAS_TO_BUFFER_DEFAULTS = { quality: 1 };
+
+export function extractImageData({
+    nodeCanvas,
+    bbox,
+}: {
+    nodeCanvas: Canvas;
+    bbox?: { x: number; y: number; width: number; height: number };
+}) {
+    let sourceCanvas = nodeCanvas;
+    if (bbox && nodeCanvas) {
+        const { x, y, width, height } = bbox;
+
+        // Canvas must have a valid size, otherwise node-canvas fails.
+        if (width < 0.5 || height < 0.5) {
+            throw new Error('Invalid image size provided, dimensions must be greater than zero.');
+        }
+
+        sourceCanvas = new ConfiguredCanvas(width, height);
+        sourceCanvas
+            ?.getContext('2d')
+            .drawImage(
+                nodeCanvas,
+                Math.round(x),
+                Math.round(y),
+                Math.round(width),
+                Math.round(height),
+                0,
+                0,
+                Math.round(width),
+                Math.round(height)
+            );
+    }
+
+    return sourceCanvas?.toBufferSync('png', CANVAS_TO_BUFFER_DEFAULTS);
 }

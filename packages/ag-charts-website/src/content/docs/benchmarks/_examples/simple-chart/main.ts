@@ -19,6 +19,7 @@ const options: AgCartesianChartOptions = {
             yName: 'Children',
             stacked: true,
             tooltip: {},
+            marker: {},
         },
         {
             type: 'area',
@@ -27,6 +28,7 @@ const options: AgCartesianChartOptions = {
             yName: 'Adults',
             stacked: true,
             tooltip: {},
+            marker: {},
         },
         {
             type: 'bar',

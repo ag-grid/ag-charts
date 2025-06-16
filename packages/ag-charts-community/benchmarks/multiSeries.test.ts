@@ -1,7 +1,7 @@
 import { beforeEach, describe } from '@jest/globals';
 
-import { hoverAction } from '../src/chart/test/utils';
-import { AgCartesianChartOptions } from '../src/main';
+import { AgCartesianChartOptions } from 'ag-charts-types';
+
 import { addSeriesNodePoints, benchmark, setupBenchmark } from './benchmark';
 
 describe('multi-series benchmark', () => {
@@ -33,16 +33,14 @@ describe('multi-series benchmark', () => {
 
         benchmark('1x datum highlight', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 32 }, async () => {
             const point = ctx.nodePositions[0][2];
-            await hoverAction(point.x, point.y)(ctx.chart);
-            await ctx.waitForUpdate();
+            await ctx.hover(point.x, point.y);
         });
 
         benchmark('15x datum highlight', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 32 }, async () => {
             for (let nodeIdx = 0; nodeIdx < 5; nodeIdx++) {
                 for (let seriesIdx = 0; seriesIdx < 3; seriesIdx++) {
                     const point = ctx.nodePositions[seriesIdx][nodeIdx];
-                    await hoverAction(point.x, point.y)(ctx.chart);
-                    await ctx.waitForUpdate();
+                    await ctx.hover(point.x, point.y);
                 }
             }
         });

@@ -32,6 +32,10 @@ export function loadExampleOptions(
     exampleFile = `${exampleRootDir}charts-overview/examples/${name}/main.js`
 ): any {
     const { AgCharts, time, Marker } = agCharts;
+    if (!fs.existsSync(exampleFile)) {
+        console.error(`example file not found: ${exampleFile}`);
+        return [];
+    }
     const evalContent = [cleanJs(fs.readFileSync(exampleFile, 'utf8')), `return ${evalReturn};`].join('\n');
     const evalExpr = fs.existsSync(dataFile) ? `const data_1 = require('${dataFile}');\n${evalContent}` : evalContent;
 

@@ -1,7 +1,8 @@
 import { beforeEach, describe } from '@jest/globals';
 
-import { AgCartesianChartOptions } from '../src/main';
-import { benchmark, setupBenchmark } from './benchmark';
+import { AgCartesianChartOptions } from 'ag-charts-types';
+
+import { addSeriesNodePoints, benchmark, setupBenchmark } from './benchmark';
 
 describe('simple-chart benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('simple-chart').repeatCount(10);
@@ -13,6 +14,13 @@ describe('simple-chart benchmark', () => {
     describe('after load', () => {
         beforeEach(async () => {
             await ctx.create();
+            await addSeriesNodePoints(ctx, 0, 5);
+            await addSeriesNodePoints(ctx, 1, 5);
+            await addSeriesNodePoints(ctx, 2, 5);
+        });
+
+        afterEach(async () => {
+            await ctx.blur();
         });
 
         benchmark('1x legend toggle', ctx, { expectedRelativeMB: 5, expectedCanvasCount: 3 }, async () => {
@@ -27,20 +35,18 @@ describe('simple-chart benchmark', () => {
             }
         });
 
-        // benchmark('1x datum highlight', ctx, EXPECTATIONS, async () => {
-        //     const point = (ctx.chart as any).chart.series;
-        //     await hoverAction(point.x, point.y)(ctx.chart);
-        //     await ctx.waitForUpdate();
-        // });
+        benchmark('1x datum highlight', ctx, { expectedRelativeMB: 5.2, expectedCanvasCount: 3 }, async () => {
+            const point = ctx.nodePositions[0][1];
+            await ctx.hover(point.x, point.y);
+        });
 
-        // benchmark('15x datum highlight', ctx, EXPECTATIONS, async () => {
-        //     for (let nodeIdx = 0; nodeIdx < 5; nodeIdx++) {
-        //         for (let seriesIdx = 0; seriesIdx < 3; seriesIdx++) {
-        //             const point = ctx.nodePositions[seriesIdx][nodeIdx];
-        //             await hoverAction(point.x, point.y)(ctx.chart);
-        //             await ctx.waitForUpdate();
-        //         }
-        //     }
-        // });
+        benchmark('15x datum highlight', ctx, { expectedRelativeMB: 5.2, expectedCanvasCount: 3 }, async () => {
+            for (let nodeIdx = 0; nodeIdx < 5; nodeIdx++) {
+                for (let seriesIdx = 0; seriesIdx < 3; seriesIdx++) {
+                    const point = ctx.nodePositions[seriesIdx][nodeIdx];
+                    await ctx.hover(point.x, point.y);
+                }
+            }
+        });
     });
 });

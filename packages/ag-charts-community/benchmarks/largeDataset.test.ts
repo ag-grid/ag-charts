@@ -1,7 +1,7 @@
 import { describe } from '@jest/globals';
 
-import { hoverAction } from '../src/chart/test/utils';
-import { AgCartesianChartOptions } from '../src/main';
+import { AgCartesianChartOptions } from 'ag-charts-types';
+
 import { addSeriesNodePoints, benchmark, setupBenchmark } from './benchmark';
 
 describe('large-dataset benchmark', () => {
@@ -34,8 +34,7 @@ describe('large-dataset benchmark', () => {
 
         benchmark('1x datum highlight', ctx, { expectedRelativeMB: 45, expectedCanvasCount: 9 }, async () => {
             const point = ctx.nodePositions[0][1];
-            await hoverAction(point.x, point.y)(ctx.chart);
-            await ctx.waitForUpdate();
+            await ctx.hover(point.x, point.y);
         });
 
         benchmark(
@@ -44,8 +43,7 @@ describe('large-dataset benchmark', () => {
             { expectedRelativeMB: 45, expectedCanvasCount: 9 },
             async () => {
                 for (const point of ctx.nodePositions[0]) {
-                    await hoverAction(point.x, point.y)(ctx.chart);
-                    await ctx.waitForUpdate();
+                    await ctx.hover(point.x, point.y);
                 }
             },
             20_000
