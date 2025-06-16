@@ -97,7 +97,7 @@ const options: AgChartOptions = {
     formatter: {
         y(params) {
             const value = params.value as number;
-            if (params.source === 'axis') {
+            if (params.source === 'axis-label') {
                 return `${Math.floor(value / 60)}h`;
             }
             return `${Math.floor(value / 60)}h ${String(Math.round(value % 60)).padStart(2, '0')}m`;

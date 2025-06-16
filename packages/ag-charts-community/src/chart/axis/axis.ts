@@ -654,7 +654,7 @@ export abstract class Axis<
             datum: undefined,
             seriesId: undefined,
             key: undefined,
-            source: 'axis',
+            source: 'axis-label',
             property: this.direction,
             domain,
             boundSeries,
@@ -682,11 +682,11 @@ export abstract class Axis<
     }
 
     // For formatting arbitrary values between the ticks.
-    formatDatum(value: any, source: 'crosshair' | 'annotation'): string;
+    formatDatum(value: any, source: 'crosshair' | 'annotation-label'): string;
     formatDatum(value: any, source: 'tooltip' | 'series-label', datum: any, key: string): string;
     formatDatum<Params extends object>(
         value: any,
-        source: 'crosshair' | 'annotation',
+        source: 'crosshair' | 'annotation-label',
         datum: undefined,
         key: undefined,
         domain: undefined,
@@ -703,7 +703,7 @@ export abstract class Axis<
     ): string;
     formatDatum(
         input: any,
-        source: Exclude<AnyFormatterSource, 'axis' | 'gradient-legend'>,
+        source: Exclude<AnyFormatterSource, 'axis-label' | 'gradient-legend'>,
         datum?: any,
         key?: string,
         domain?: any[],
@@ -724,7 +724,7 @@ export abstract class Axis<
         let inputFractionDigits: number;
         switch (source) {
             case 'crosshair':
-            case 'annotation':
+            case 'annotation-label':
                 inputFractionDigits = this.layout.label.fractionDigits + 1;
                 break;
             case 'series-label':

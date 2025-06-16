@@ -97,7 +97,7 @@ const options: AgChartOptions = {
     ],
     formatter: {
         x(params) {
-            if (params.source === 'axis') {
+            if (params.source === 'axis-label') {
                 return (params.value as string).replace(' ', '\n');
             }
         },

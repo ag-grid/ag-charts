@@ -41,7 +41,7 @@ export interface AxisContext {
     scaleInvertNearest(position: number): any;
     formatScaleValue<FormatParams extends object = never>(
         value: unknown,
-        source: 'annotation' | 'crosshair',
+        source: 'annotation-label' | 'crosshair',
         label?: AxisFormattableLabel<FormatParams, FormatterParams<any>>
     ): string;
     attachLabel(node: Node): void;

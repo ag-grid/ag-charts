@@ -14,7 +14,7 @@ export type FormatterPropertyType =
     | 'sectorLabel';
 
 export type SeriesFormatterSource = 'tooltip' | 'series-label';
-export type ChartFormatterSource = 'axis' | 'gradient-legend' | 'crosshair' | 'annotation';
+export type ChartFormatterSource = 'axis-label' | 'gradient-legend' | 'crosshair' | 'annotation-label';
 export type AnyFormatterSource = SeriesFormatterSource | ChartFormatterSource;
 
 interface FormatterBoundSeries {
