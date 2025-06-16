@@ -75,7 +75,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 },
                 fill: undefined, // Override default fill
                 stroke: undefined, // Override default stroke
-                strokeWidth: 0,
+                strokeWidth: { $isUserOption: ['../strokes/0', 2, { $isUserOption: ['./stroke', 2, 0] }] },
                 padding: 3,
                 gap: 1,
             },

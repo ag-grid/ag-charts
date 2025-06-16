@@ -53,11 +53,11 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
             node: {
                 spacing: 20,
                 width: 10,
-                strokeWidth: 0,
+                strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
             },
             link: {
                 fillOpacity: 0.5,
-                strokeWidth: 0,
+                strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
             },
         },
         legend: {

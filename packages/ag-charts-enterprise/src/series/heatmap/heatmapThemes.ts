@@ -9,6 +9,7 @@ export const HEATMAP_SERIES_THEME: _ModuleSupport.SeriesModule<'heatmap'>['theme
                 { $path: ['/0', { $palette: 'stroke' }, { $palette: 'strokes' }] },
             ],
         },
+        strokeWidth: { $isUserOption: ['./stroke', 2, undefined] },
         // @ts-expect-error undocumented option
         colorRange: {
             $if: [

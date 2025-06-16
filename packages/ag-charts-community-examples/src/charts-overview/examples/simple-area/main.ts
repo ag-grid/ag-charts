@@ -29,7 +29,6 @@ const options: AgChartOptions = {
             xKey: 'date',
             yKey: 'Tate Modern',
             fill: '#c16068',
-            stroke: '#874349',
             yName: 'Tate Modern',
         },
         {
@@ -37,7 +36,6 @@ const options: AgChartOptions = {
             xKey: 'date',
             yKey: 'Tate Britain',
             fill: '#a2bf8a',
-            stroke: '#718661',
             yName: 'Tate Britain',
         },
         {
@@ -45,7 +43,6 @@ const options: AgChartOptions = {
             xKey: 'date',
             yKey: 'Tate Liverpool',
             fill: '#ebcc87',
-            stroke: '#a48f5f',
             yName: 'Tate Liverpool',
         },
         {
@@ -53,7 +50,6 @@ const options: AgChartOptions = {
             xKey: 'date',
             yKey: 'Tate St Ives',
             fill: '#80a0c3',
-            stroke: '#5a7088',
             yName: 'Tate St Ives',
         },
     ],

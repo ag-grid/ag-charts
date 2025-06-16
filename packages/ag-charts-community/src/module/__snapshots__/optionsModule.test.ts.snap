@@ -5025,7 +5025,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "xOffset": 3,
         "yOffset": 3,
       },
-      "stroke": "rgba(0, 117, 163, 0.9)",
+      "stroke": "#2b5c95",
       "strokeWidth": 0,
       "tooltip": {
         "position": {
@@ -12269,7 +12269,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "xOffset": 3,
         "yOffset": 3,
       },
-      "stroke": "#874349",
+      "stroke": "#2b5c95",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
@@ -12391,7 +12391,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "xOffset": 3,
         "yOffset": 3,
       },
-      "stroke": "#718661",
+      "stroke": "#cc6f10",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
@@ -12513,7 +12513,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "xOffset": 3,
         "yOffset": 3,
       },
-      "stroke": "#a48f5f",
+      "stroke": "#1e652e",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
@@ -12635,7 +12635,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "xOffset": 3,
         "yOffset": 3,
       },
-      "stroke": "#5a7088",
+      "stroke": "#18859e",
       "strokeOpacity": 1,
       "strokeWidth": 0,
       "tooltip": {
