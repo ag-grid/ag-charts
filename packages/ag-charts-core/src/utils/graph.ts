@@ -12,7 +12,7 @@ export class AdjacencyListGraph<V, E = undefined> {
     private readonly _edges: Map<Vertex<V>, Map<E, Set<Vertex<V>>>> = new Map();
 
     // Stores edges in a way to optimise lookup of pairs of adjacent vertices grouped by edge value.
-    private readonly _edgesByEdge: Map<E, Set<[Vertex<V>, Vertex<V>]>> = new Map();
+    private readonly _edgesByEdge: Map<E, [Vertex<V>, Vertex<V>][]> = new Map();
 
     // Caches neighbours on a given edge value, optimised for lookup by the `to` vertex value.
     protected cachedNeighboursEdge?: E;
@@ -40,9 +40,9 @@ export class AdjacencyListGraph<V, E = undefined> {
     addEdge(from: Vertex<V>, to: Vertex<V>, edge: E): void {
         const edgeByEdge = this._edgesByEdge.get(edge);
         if (edgeByEdge) {
-            edgeByEdge.add([from, to]);
+            edgeByEdge.push([from, to]);
         } else {
-            this._edgesByEdge.set(edge, new Set([[from, to]]));
+            this._edgesByEdge.set(edge, [[from, to]]);
         }
 
         if (edge === this.cachedNeighboursEdge) {
@@ -50,7 +50,7 @@ export class AdjacencyListGraph<V, E = undefined> {
             if (cache) {
                 cache.set(to.value, to);
             } else {
-                this._cachedNeighbours.set(from, new Map([[to.value, to]]));
+                this._cachedNeighbours.set(from, new Map().set(to.value, to));
             }
         }
 
@@ -58,17 +58,17 @@ export class AdjacencyListGraph<V, E = undefined> {
             this.pendingProcessingEdges.add([from, to]);
         }
 
-        if (!this._edges.has(from)) {
-            this._edges.set(from, new Map([[edge, new Set([to])]]));
+        const edges = this._edges.get(from)!;
+        if (!edges) {
+            this._edges.set(from, new Map().set(edge, new Set().add(to)));
             return;
         }
 
-        const edges = this._edges.get(from)!;
         const vertices = edges.get(edge);
         if (vertices) {
             vertices.add(to);
         } else {
-            edges.set(edge, new Set([to]));
+            edges.set(edge, new Set<Vertex<V>>().add(to));
         }
     }
 
@@ -109,8 +109,8 @@ export class AdjacencyListGraph<V, E = undefined> {
     }
 
     // Iterate the edges as a tuple of the 'from' vertex and 'to' vertex for a given edge.
-    edges(edgeValue: E): Set<[Vertex<V>, Vertex<V>]> {
-        return this._edgesByEdge.get(edgeValue) ?? new Set();
+    edges(edgeValue: E): [Vertex<V>, Vertex<V>][] {
+        return this._edgesByEdge.get(edgeValue) ?? [];
     }
 
     // Iterate all the neighbours of a given vertex.
