@@ -207,7 +207,10 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     const sep = menuWidget.addSeparator();
                     sep.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
                     sep.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-                    this.initTableCells(sep);
+                    const { cellArrow } = this.initTableCells(sep);
+                    // Don't show the chevron-right icon on separators.
+                    cellArrow.classList.toggle('ag-charts-context-menu__chevron-right', false);
+                    cellArrow.classList.toggle('ag-charts-context-menu__label', true);
                     break;
                 case 'action':
                     if (item.items.length === 0) {
