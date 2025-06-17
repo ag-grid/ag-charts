@@ -12,26 +12,25 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     readonly defaultTickCount = ContinuousScale.defaultTickCount;
 
     protected defaultClamp = false;
+    protected transform?: (x: D | number) => number;
+    protected transformInvert?: (x: number) => D;
 
     protected constructor(
         public domain: D[] = [],
-        public range: number[] = []
+        public range: number[] = [],
+        transform?: (x: D | number) => number,
+        transformInvert?: (x: number) => D
     ) {
         super();
+
+        this.transform = transform?.bind(this);
+        this.transformInvert = transformInvert?.bind(this);
     }
 
     abstract override toDomain(value: number): D;
 
     normalizeDomains(...domains: D[][]): NormalizedDomain<D> {
         return normalizeContinuousDomains(...domains);
-    }
-
-    protected transform(x: D) {
-        return x;
-    }
-
-    protected transformInvert(x: D) {
-        return x;
     }
 
     calcBandwidth(smallestInterval = 1, minWidth: 1 | 0 = 1) {
@@ -61,10 +60,11 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
             return NaN;
         }
 
+        const { transform } = this;
         const clamp = options?.clamp ?? this.defaultClamp;
-        const d0 = this.transform(domain[0])?.valueOf() ?? NaN;
-        const d1 = this.transform(domain[1])?.valueOf() ?? NaN;
-        const x = typeof value === 'number' ? value : this.transform(value)?.valueOf() ?? NaN;
+        const d0 = (transform ? transform(domain[0])?.valueOf() : domain[0]?.valueOf()) ?? NaN;
+        const d1 = (transform ? transform(domain[1])?.valueOf() : domain[1]?.valueOf()) ?? NaN;
+        const x = (transform ? transform(value)?.valueOf() : value?.valueOf()) ?? NaN;
 
         if (clamp) {
             const [start, stop] = findMinMax([d0, d1]);
@@ -88,7 +88,8 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     }
 
     invert(x: number, _nearest?: boolean) {
-        const domain = this.domain.map((d) => this.transform(d));
+        const { transform, transformInvert } = this;
+        const domain = transform ? this.domain.map(transform) : this.domain;
         const [d0, d1] = domain;
 
         const { range } = this;
@@ -101,7 +102,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
             d = this.toDomain(Number(d0) + ((x - r0) / (r1 - r0)) * (Number(d1) - Number(d0)));
         }
 
-        return this.transformInvert(d);
+        return transformInvert ? transformInvert(d) : d;
     }
 
     protected getPixelRange() {
