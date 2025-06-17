@@ -66,27 +66,25 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         const d1 = Number(this.transform(domain[1]));
         const x = Number(this.transform(value));
 
-        const { range } = this;
-        const [r0, r1] = range;
-
         if (clamp) {
             const [start, stop] = findMinMax([d0, d1]);
             if (x < start) {
-                return r0;
+                return this.range[0];
             } else if (x > stop) {
-                return r1;
+                return this.range[1];
             }
         }
 
         if (d0 === d1) {
-            return (r0 + r1) / 2;
+            return (this.range[0] + this.range[1]) / 2;
         } else if (x === d0) {
-            return r0;
+            return this.range[0];
         } else if (x === d1) {
-            return r1;
+            return this.range[1];
         }
 
-        return r0 + ((x - d0) / (d1 - d0)) * (r1 - r0);
+        const r0 = this.range[0];
+        return r0 + ((x - d0) / (d1 - d0)) * (this.range[1] - r0);
     }
 
     invert(x: number, _nearest?: boolean) {
