@@ -1,5 +1,30 @@
 [
     {
+        "version": "12.0.0",
+        "date": "June 24th, 2024",
+        "highlights": [
+            {
+                "text": "Axes Label Collision Avoidance",
+                "path": "./axes-labels/#collision-avoidance"
+            },
+            {
+                "text": "Global Formatter",
+                "path": "./formatters/"
+            },
+            {
+                "text": "Typescript Generics"
+            },
+            {
+                "text": "`context` object"
+            },
+            {
+                "text": "Improved Highlight Options",
+                "path": "./series-highlighting/"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-12"
+    },
+    {
         "version": "11.3.2"
     },
     {

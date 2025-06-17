@@ -1,0 +1,115 @@
+---
+title: 'Upgrade to AG Charts 12.0'
+description: "See what's new in AG Charts v11.0. View a full list of breaking changes, behaviour changes and depreciations. Read the release post for feature highlights."
+migrationVersion: '12.0.0'
+---
+
+## What's New
+
+See the [release post](https://blog.ag-grid.com/whats-new-in-ag-charts-12/) for feature highlights of what's new in this major version.
+
+Users of integrated charting on AG Grid, should refer to this migration guide when upgrading to AG Grid version {% gridVersion() %}.
+
+{% documentationArchiveSection version=migrationVersionPatch() /%}
+
+## Breaking Changes
+
+The full list of breaking changes across all features for version {% migrationVersion() %}.
+
+{% expandingSection headerText="Breaking Changes" %}
+
+This release includes the following breaking changes:
+
+{% if isFramework("angular") %}
+
+### Compatibility
+
+The minimum version of Angular you can use with AG Charts is now Angular 18.
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+### Compatibility
+
+The minimum version of Vue you can use with AG Charts is now Vue 3.5.
+
+{% /if %}
+
+### Series Changes
+
+-   `series.type` is now required.
+
+### Axes Changes
+
+-   `time` axis properties of `unit`, `paddingInner`, `paddingOuter`, `groupPaddingInner` are removed. Use the `unit-time` axis instead.
+
+### Miscellaneous
+
+-   `theme.params.padding` - removed, use `chartPadding` instead.
+-   All Series `series[].listeners[]`:
+    -   `.nodeClick` - removed, use `.seriesNodeClick` instead.
+    -   `.nodeDoubleClick` - removed, use `.seriesNodeDoubleClick` instead.
+
+{% /expandingSection %}
+
+## Behaviour Changes
+
+The full list of behaviour changes across all features for version {% migrationVersion() %}.
+
+{% expandingSection headerText="Behaviour Changes" %}
+
+This release includes the following behaviour changes:
+
+### Series
+
+-   When Bubble Series `labelKey` is not provided, the `sizeKey` is used for the label text instead of the `yKey`.
+
+### Axes
+
+-   Vertical `time` and `ordinal-time` axes are now sorted with the earliest date at the top. Use `reverse` to change this.
+-   Default label formats for `time` and `ordinal-time` axes have been improved.
+-   Axis `thickness` defaults to a maximum of 30% of the chart size.
+
+### Theme Defaults
+
+-   If the `stroke` property is provided, a default `strokeWidth` will be used to display a stroke.
+-   When the Mini Chart is enabled, the Navigator default height is 40px.
+-   `theme.params.foregroundColor` default is changed to `#181d1f`.
+
+### Other Changes
+
+-   `zoom.autoScaling` defaults to `true`. Use `enabled: false` to disable.
+-   "Reset Zoom" is added to the default Context Menu items. Provide explicit `contextMenu.items` change this.
+
+{% /expandingSection %}
+
+## Deprecations
+
+{% expandingSection headerText="Deprecations" %}
+
+This release includes the following deprecations:
+
+-   `time` import is deprecated. Use an `AgTimeInterval` string directly, or an `AgTimeIntervalUnit` object instead.
+-   `AgTimeInterval` of `utcYear`, `utcMonth`, `utcDay`, `utcHour` are removed, use an `AgTimeIntervalUnit` object with `utc: true` instead.
+-   `AgTimeInterval` of `week` is removed. Use an `AgTimeIntervalUnit` object with `{ unit: 'day', 'step: 7' }` and a format of `%a` or `%A` instead.
+
+{% /expandingSection %}
+
+## Removal of Deprecated Properties
+
+The following properties have been deprecated since version 11 and have now been removed.
+
+{% expandingSection headerText="Removed Deprecated Properties" %}
+
+-   `zoom.minVisibleItemsX` and `zoom.minVisibleItemsY` - removed. Use `zoom.minVisibleItems` instead.
+-   `tooltip.position.type` in both chart and series options - removed. Use `tooltip.position.anchorTo` and/or `tooltip.position.placement` instead.
+-   `minVisibleItemsX` and `minVisibleItemsY` have been removed in favour of `minVisibleItems`
+-   `contextMenu.extraActions[]`, `contextMenu.extraSeriesAreaActions[]`,
+    `contextMenu.extraNodeActions`, and `contextMenu.extraLegendItemActions` - removed. Use `contextMenu.items[]` with the appropriate showOn value instead.
+
+{% /expandingSection %}
+
+<!-- Changelog for the `migrationVersion` property -->
+
+{% changelogSection version=$migrationVersion /%}
