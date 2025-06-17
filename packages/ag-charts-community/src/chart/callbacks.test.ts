@@ -417,7 +417,9 @@ describe('callback cache', () => {
             theme: {
                 overrides: {
                     bar: {
-                        series: { highlightStyle: { item: { fillOpacity: 0, stroke: undefined, strokeWidth: 0 } } },
+                        series: {
+                            highlight: { highlightedItem: { fillOpacity: 0, stroke: undefined, strokeWidth: 0 } },
+                        },
                     },
                 },
             },

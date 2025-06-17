@@ -13,8 +13,8 @@ const options: AgCartesianChartOptions = {
             xKey: 'distance',
             stroke: 'white',
             fill: 'rgb(103,105,235)',
-            highlightStyle: {
-                item: {
+            highlight: {
+                highlightedItem: {
                     fill: 'white',
                     stroke: 'rgb(103,105,235)',
                 },

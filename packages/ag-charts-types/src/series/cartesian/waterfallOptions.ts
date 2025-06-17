@@ -66,7 +66,7 @@ export interface AgWaterfallSeriesThemeableOptions<TDatum = TDatumDefault, TCont
     line?: AgWaterfallSeriesLineOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams<TDatum, TContext>>;
-    /** Configuration for the waterfall series items when they are hovered over. */
+    /** @deprecated Configuration for the waterfall series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
 }
 

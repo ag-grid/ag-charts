@@ -156,8 +156,8 @@ describe('MapLineSeries', () => {
                 series: [
                     {
                         tooltip,
-                        highlightStyle: {
-                            item: {
+                        highlight: {
+                            highlightedItem: {
                                 stroke: 'lime',
                             },
                         },

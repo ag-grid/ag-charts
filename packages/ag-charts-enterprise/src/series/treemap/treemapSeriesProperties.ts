@@ -159,7 +159,7 @@ export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemap
     itemStyler?: Styler<AgTreemapSeriesItemStylerParams<unknown>, AgTreemapSeriesStyle>;
 
     @Property
-    override readonly highlightStyle = new TreemapSeriesHighlightStyle();
+    override readonly highlightStyle = new TreemapSeriesHighlightStyle(false);
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgTreemapSeriesTooltipRendererParams<any>>();

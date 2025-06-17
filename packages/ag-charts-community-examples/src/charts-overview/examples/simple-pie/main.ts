@@ -51,8 +51,8 @@ const options: AgChartOptions = {
         "#b7b5ba",
       ],
       strokeWidth: 0,
-      highlightStyle: {
-        item: {
+      highlight: {
+        highlightedItem: {
           fillOpacity: 0,
           stroke: "#535455",
           strokeWidth: 1,

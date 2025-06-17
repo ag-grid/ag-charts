@@ -16,10 +16,12 @@ const options: AgChartOptions = {
       bar: {
         series: {
           strokeWidth: 0,
-          highlightStyle: {
-            series: {
+          highlight: {
+            highlightedItem: {
               strokeWidth: 1,
-              dimOpacity: 0.3,
+            },
+            unhighlightedSeries: {
+              opacity: 0.3,
             },
           },
         },

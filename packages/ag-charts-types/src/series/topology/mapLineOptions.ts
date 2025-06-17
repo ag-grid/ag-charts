@@ -74,7 +74,7 @@ export interface AgMapLineSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     tooltip?: AgSeriesTooltip<AgMapLineSeriesTooltipRendererParams<TDatum, TContext>>;
     /** A callback function for adjusting the styles of a particular Map line based on the input parameters. */
     itemStyler?: Styler<AgMapLineSeriesItemStylerParams<TDatum, TContext>, AgMapLineSeriesStyle>;
-    /** Style overrides when a node is hovered. */
+    /** @deprecated Style overrides when a node is hovered. */
     highlightStyle?: AgMapLineSeriesHighlightStyle<TDatum>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgMapLineHighlightStyleOptions>;

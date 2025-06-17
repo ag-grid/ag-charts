@@ -19,8 +19,8 @@ const options: AgCartesianChartOptions = {
             type: 'histogram',
             yKey: 'bicycleHires',
             xKey: 'day',
-            highlightStyle: {
-                item: {
+            highlight: {
+                highlightedItem: {
                     fill: 'darkBlue',
                 },
             },

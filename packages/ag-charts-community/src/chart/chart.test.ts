@@ -104,7 +104,7 @@ describe('Chart', () => {
                 series: [
                     {
                         tooltip,
-                        highlightStyle: { item: { fill: 'lime' } },
+                        highlight: { highlightedItem: { fill: 'lime' } },
                         listeners,
                         ...nodeClickRangeParams,
                         ...testParams.seriesOptions,

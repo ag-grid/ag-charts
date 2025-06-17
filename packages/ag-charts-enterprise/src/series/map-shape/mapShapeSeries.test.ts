@@ -193,8 +193,8 @@ describe('MapShapeSeries', () => {
                 series: [
                     {
                         tooltip,
-                        highlightStyle: {
-                            item: {
+                        highlight: {
+                            highlightedItem: {
                                 fill: 'lime',
                             },
                         },

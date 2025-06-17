@@ -16,12 +16,12 @@ const options: AgCartesianChartOptions = {
         overrides: {
             line: {
                 series: {
-                    highlightStyle: {
-                        item: {
+                    highlight: {
+                        highlightedItem: {
                             strokeWidth: 5,
                         },
-                        series: {
-                            dimOpacity: 0.2,
+                        unhighlightedSeries: {
+                            opacity: 0.2,
                         },
                     },
                     interpolation: {

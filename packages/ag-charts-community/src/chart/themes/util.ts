@@ -154,6 +154,7 @@ export function multiSeriesHighlightStyle(
     hasFill: boolean = true
 ): WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> {
     return {
+        enabled: true,
         highlightedItem: hasFill ? ITEM_HIGHLIGHT_STYLE : ITEM_HIGHLIGHT_BASE_STYLE,
         unhighlightedItem: {
             strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },
@@ -171,6 +172,7 @@ export function singleSeriesHighlightStyle(
     hasFill: boolean = true
 ): WithThemeParams<AgHighlightOptions<AgHighlightStyleOptions>> {
     return {
+        enabled: true,
         highlightedItem: hasFill ? ITEM_HIGHLIGHT_STYLE : ITEM_HIGHLIGHT_BASE_STYLE,
         unhighlightedItem: {
             strokeWidth: { $path: ['../../highlightStyle/series/strokeWidth', undefined] },

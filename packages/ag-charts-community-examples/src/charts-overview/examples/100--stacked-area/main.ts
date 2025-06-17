@@ -9,10 +9,12 @@ const options: AgChartOptions = {
     overrides: {
       area: {
         series: {
-          highlightStyle: {
-            series: {
+          highlight: {
+            highlightedSeries: {
               strokeWidth: 4,
-              dimOpacity: 0.3,
+            },
+            unhighlightedSeries: {
+              opacity: 0.2,
             },
           },
         },

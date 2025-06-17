@@ -141,8 +141,8 @@ describe('MapMarkerSeries', () => {
                 series: [
                     {
                         tooltip,
-                        highlightStyle: {
-                            item: {
+                        highlight: {
+                            highlightedItem: {
                                 fill: 'lime',
                             },
                         },

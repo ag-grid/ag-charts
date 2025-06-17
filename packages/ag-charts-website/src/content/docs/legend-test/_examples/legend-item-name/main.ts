@@ -7,7 +7,7 @@ const options: AgCartesianChartOptions = {
     title: {
         text: "Apple's Revenue by Region",
     },
-    theme: { overrides: { bar: { series: { highlightStyle: { series: { dimOpacity: 0.3 } } } } } },
+    theme: { overrides: { bar: { series: { highlight: { unhighlightedSeries: { opacity: 0.3 } } } } } },
     subtitle: {
         text: 'In Billion U.S. Dollars',
     },
