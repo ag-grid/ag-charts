@@ -16,7 +16,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
-            stroke: _ModuleSupport.SAFE_STROKE_FILL_OPERATION,
+            stroke: applyMapPalette(_ModuleSupport.SAFE_STROKE_FILL_OPERATION),
             // @ts-expect-error undocumented option
             colorRange: {
                 $if: [
