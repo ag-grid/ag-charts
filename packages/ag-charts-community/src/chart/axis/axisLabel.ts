@@ -2,8 +2,8 @@ import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
     AgBaseAxisLabelStyleOptions,
-    AgTimeIntervalUnit,
     AgLabelCollisionAvoidance,
+    AgTimeIntervalUnit,
     DateFormatterStyle,
     FontStyle,
     FontWeight,
@@ -13,10 +13,8 @@ import type {
 } from 'ag-charts-types';
 
 import { objectsEqual } from '../../util/object';
-import { BaseProperties } from '../../util/properties';
-import { Property } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
 import { ProxyProperty } from '../../util/proxy';
-import { intervalStep, intervalUnit } from '../../util/time';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { FormatManager } from '../formatter/formatManager';
 

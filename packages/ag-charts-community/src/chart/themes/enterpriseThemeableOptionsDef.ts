@@ -7,12 +7,10 @@ import {
     color,
     colorUnion,
     fillOptionsDef,
-    fontOptionsDef,
     highlightOptionsDef,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
     multiSeriesHighlightOptionsDef,
-    number,
     positiveNumber,
     ratio,
     shapeHighlightOptionsDef,
@@ -21,7 +19,6 @@ import {
     union,
 } from 'ag-charts-core';
 import type {
-    AgBaseAxisLabelStyleOptions,
     AgBoxPlotHighlightStyleOptions,
     AgBoxPlotSeriesStyle,
     AgBoxPlotSeriesThemeableOptions,

@@ -1,4 +1,11 @@
-import { boxCollides, countFractionDigits, dropFirstWhile, dropLastWhile } from 'ag-charts-core';
+import {
+    type BoxBounds,
+    boxCollides,
+    countFractionDigits,
+    dropFirstWhile,
+    dropLastWhile,
+    isString,
+} from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
@@ -42,6 +49,7 @@ import {
 import type { AxisInterval } from './axisInterval';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
+
 export type AnyTimeInterval = AgTimeInterval | AgTimeIntervalUnit;
 
 export interface TickData<D = any> {
