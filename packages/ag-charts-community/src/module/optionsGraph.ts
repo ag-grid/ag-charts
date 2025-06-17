@@ -94,10 +94,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         overrides: PlainObject = {},
         internalParams: Map<any, any> = new Map()
     ) {
-        super();
-
-        this.cachedNeighboursEdge = PATH_EDGE;
-        this.processedEdge = OPERATION_EDGE;
+        super(PATH_EDGE, OPERATION_EDGE);
 
         this.root = this.addVertex('root');
         this.params = this.addVertex('params');
@@ -591,7 +588,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
             // Avoid setting an array value when the vertex has children with specific array index values and this is
             // not the highest priority edge
-            if (children.size > 0 && Array.isArray(value) && edgeValue !== highestPriority) continue;
+            if (children.length > 0 && Array.isArray(value) && edgeValue !== highestPriority) continue;
 
             if (pathArray.length === 0) {
                 if (value == null) continue;
@@ -648,7 +645,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
             // Do not resolve operations into objects that have multiple keys. This can happen when the theme config
             // defines a value as an operation, but the theme overrides defines the same value as some other object.
-            if (children.size > 1 && isKey(path, operations)) continue;
+            if (children.length > 1 && isKey(path, operations)) continue;
 
             // Prevent `_enabledFromTheme` from being resolved into the final object.
             if (path === '_enabledFromTheme') continue;

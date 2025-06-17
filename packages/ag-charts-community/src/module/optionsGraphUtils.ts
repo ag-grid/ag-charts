@@ -23,7 +23,7 @@ export interface OptionsGraphInterface {
         overridesPathArrays?: Array<Array<string> | undefined>
     ): void;
     graftValue(target: VertexInterface, path: string, operation: unknown, value: unknown): void;
-    neighboursWithEdgeValue(vertex: VertexInterface, edge: string): Set<VertexInterface>;
+    neighboursWithEdgeValue(vertex: VertexInterface, edge: string): Array<VertexInterface>;
     removeEdges(vertex: VertexInterface, edge: string): void;
     resolveValue$1(path: Array<string>): unknown;
     resolveVertexValue(vertex: VertexInterface, valueVertex: VertexInterface): unknown;

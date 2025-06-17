@@ -9,24 +9,25 @@ export class AdjacencyListGraph<V, E = undefined> {
 
     // Stores edges in a way to optimise lookup of vertices adjacent by edge value to a vertex. This is less optimal
     // for iteration of all edges and deletion of vertices & edges, however this is less useful for our case.
-    private readonly _edges: Map<Vertex<V>, Map<E, Set<Vertex<V>>>> = new Map();
-
-    // Stores edges in a way to optimise lookup of pairs of adjacent vertices grouped by edge value.
-    private readonly _edgesByEdge: Map<E, Set<[Vertex<V>, Vertex<V>]>> = new Map();
+    private readonly _edges: Map<Vertex<V>, Map<E, Vertex<V>[]>> = new Map();
 
     // Caches neighbours on a given edge value, optimised for lookup by the `to` vertex value.
-    protected cachedNeighboursEdge?: E;
+    private readonly cachedNeighboursEdge?: E;
     private readonly _cachedNeighbours: Map<Vertex<V>, Map<V, Vertex<V>>> = new Map();
 
     // Stores edges that are pending processing on a given edge value, optimised for iteration of pairs of adjacent
     // vertices. Should call `.clear()` once the edges have been processed.
-    protected processedEdge?: E;
+    private readonly processedEdge?: E;
     protected readonly pendingProcessingEdges: Set<[Vertex<V>, Vertex<V>]> = new Set();
+
+    constructor(cachedNeighboursEdge?: E, processedEdge?: E) {
+        this.cachedNeighboursEdge = cachedNeighboursEdge;
+        this.processedEdge = processedEdge;
+    }
 
     clear() {
         this._vertices.clear();
         this._edges.clear();
-        this._edgesByEdge.clear();
         this._cachedNeighbours.clear();
         this.pendingProcessingEdges.clear();
     }
@@ -38,19 +39,12 @@ export class AdjacencyListGraph<V, E = undefined> {
     }
 
     addEdge(from: Vertex<V>, to: Vertex<V>, edge: E): void {
-        const edgeByEdge = this._edgesByEdge.get(edge);
-        if (edgeByEdge) {
-            edgeByEdge.add([from, to]);
-        } else {
-            this._edgesByEdge.set(edge, new Set([[from, to]]));
-        }
-
         if (edge === this.cachedNeighboursEdge) {
             const cache = this._cachedNeighbours.get(from);
             if (cache) {
                 cache.set(to.value, to);
             } else {
-                this._cachedNeighbours.set(from, new Map([[to.value, to]]));
+                this._cachedNeighbours.set(from, new Map().set(to.value, to));
             }
         }
 
@@ -58,17 +52,17 @@ export class AdjacencyListGraph<V, E = undefined> {
             this.pendingProcessingEdges.add([from, to]);
         }
 
-        if (!this._edges.has(from)) {
-            this._edges.set(from, new Map([[edge, new Set([to])]]));
+        const edges = this._edges.get(from)!;
+        if (!edges) {
+            this._edges.set(from, new Map().set(edge, [to]));
             return;
         }
 
-        const edges = this._edges.get(from)!;
         const vertices = edges.get(edge);
-        if (vertices) {
-            vertices.add(to);
-        } else {
-            edges.set(edge, new Set([to]));
+        if (vertices == null) {
+            edges.set(edge, [to]);
+        } else if (vertices.indexOf(to) === -1) {
+            vertices.push(to);
         }
     }
 
@@ -90,8 +84,9 @@ export class AdjacencyListGraph<V, E = undefined> {
         const edges = this._edges.get(from);
         if (!edges) return;
         for (const [edge, adjacentVertices] of edges) {
-            adjacentVertices.delete(to);
-            if (adjacentVertices.size === 0) {
+            const index = adjacentVertices.indexOf(to);
+            adjacentVertices.splice(index, 1);
+            if (adjacentVertices.length === 0) {
                 edges.delete(edge);
             }
         }
@@ -106,11 +101,6 @@ export class AdjacencyListGraph<V, E = undefined> {
 
     getVertexValue(vertex: Vertex<V>): V {
         return vertex.value;
-    }
-
-    // Iterate the edges as a tuple of the 'from' vertex and 'to' vertex for a given edge.
-    edges(edgeValue: E): Set<[Vertex<V>, Vertex<V>]> {
-        return this._edgesByEdge.get(edgeValue) ?? new Set();
     }
 
     // Iterate all the neighbours of a given vertex.
@@ -136,8 +126,8 @@ export class AdjacencyListGraph<V, E = undefined> {
     }
 
     // Get the set of neighbours along a given edge.
-    neighboursWithEdgeValue(from: Vertex<V>, edgeValue: E): Set<Vertex<V>> {
-        return this._edges.get(from)?.get(edgeValue) ?? new Set();
+    neighboursWithEdgeValue(from: Vertex<V>, edgeValue: E): Vertex<V>[] {
+        return this._edges.get(from)?.get(edgeValue) ?? [];
     }
 
     // Find the first neighbour along the given edge.
@@ -197,7 +187,7 @@ export class AdjacencyListGraph<V, E = undefined> {
         let numEdges = 0;
         for (const [, edges] of this._edges) {
             for (const adjacentVertices of edges.values()) {
-                numEdges += adjacentVertices.size;
+                numEdges += adjacentVertices.length;
             }
         }
 
@@ -208,7 +198,7 @@ export class AdjacencyListGraph<V, E = undefined> {
         const edges = this._edges.get(from);
         if (!edges) return false;
         for (const [_edge, adjacentVertices] of edges) {
-            if (adjacentVertices.has(to)) return true;
+            if (adjacentVertices.indexOf(to) !== -1) return true;
         }
         return false;
     }

@@ -50,13 +50,13 @@ type OperationFns =
 type OperationDependenciesFactory = (
     graph: OptionsGraphInterface,
     vertex: VertexInterface,
-    values: Set<VertexInterface>
+    values: Array<VertexInterface>
 ) => void;
 
 type OperationResolver = (
     graph: OptionsGraphInterface,
     vertex: VertexInterface,
-    values: Set<VertexInterface>
+    values: Array<VertexInterface>
 ) => unknown;
 
 export function getOperation(value: unknown) {
@@ -126,7 +126,7 @@ const colorOperations: Record<ColorOperation, OperationFns> = {
 function foregroundBackgroundMixOperation(
     graph: OptionsGraphInterface,
     vertex: VertexInterface,
-    values: Set<VertexInterface>
+    values: Array<VertexInterface>
 ) {
     const [foregroundRatioVertex] = values;
     const foregroundRatio = graph.resolveVertexValue(vertex, foregroundRatioVertex);
@@ -151,7 +151,7 @@ function foregroundBackgroundMixOperation(
 function foregroundOpacityOperation(
     graph: OptionsGraphInterface,
     vertex: VertexInterface,
-    values: Set<VertexInterface>
+    values: Array<VertexInterface>
 ) {
     const [opacityVertex] = values;
     const opacity = graph.resolveVertexValue(vertex, opacityVertex);
@@ -169,7 +169,7 @@ function foregroundOpacityOperation(
     );
 }
 
-function interpolateOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function interpolateOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [colorsVertex, countVertex] = values;
     const colors = graph.resolveVertexValue(vertex, colorsVertex);
     const count = graph.resolveVertexValue(vertex, countVertex);
@@ -182,25 +182,25 @@ function interpolateOperation(graph: OptionsGraphInterface, vertex: VertexInterf
     ).map((color: any) => color.toString());
 }
 
-function isGradientOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function isGradientOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [valueVertex] = values;
     const value = graph.resolveVertexValue(vertex, valueVertex);
     return isGradientFill(value);
 }
 
-function isImageOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function isImageOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [valueVertex] = values;
     const value = graph.resolveVertexValue(vertex, valueVertex);
     return isImageFill(value);
 }
 
-function isPatternOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function isPatternOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [valueVertex] = values;
     const value = graph.resolveVertexValue(vertex, valueVertex);
     return isPatternFill(value);
 }
 
-function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [colorAVertex, colorBVertex, ratioVertex] = values;
     const colorA = graph.resolveVertexValue(vertex, colorAVertex);
     const colorB = graph.resolveVertexValue(vertex, colorBVertex);
@@ -258,7 +258,7 @@ const fontOperations: Record<FontOperation, OperationFns> = {
     $rem: remOperation,
 };
 
-function remOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function remOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [valueVertex] = values;
     const value = graph.getVertexValue(valueVertex);
     const fontSize = graph.getParamValue('fontSize');
@@ -294,7 +294,7 @@ const logicOperations: Record<LogicOperation, OperationFns> = {
     $or: orOperation,
 };
 
-function andOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function andOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     for (const valueVertex of values) {
         const value = graph.resolveVertexValue(vertex, valueVertex);
         if (!value) return false;
@@ -302,7 +302,7 @@ function andOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     return true;
 }
 
-function eqOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function eqOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     let compare;
     let first = true;
     for (const valueVertex of values) {
@@ -317,12 +317,12 @@ function eqOperation(graph: OptionsGraphInterface, vertex: VertexInterface, valu
     return true;
 }
 
-function greaterThanOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function greaterThanOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [value, compare] = values;
     return (graph.resolveVertexValue(vertex, value) as number) > (graph.resolveVertexValue(vertex, compare) as number);
 }
 
-function ifOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function ifOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [conditionVertex, thenVertex, elseVertex] = values;
 
     const condition = graph.resolveVertexValue(vertex, conditionVertex);
@@ -336,13 +336,13 @@ function ifOperation(graph: OptionsGraphInterface, vertex: VertexInterface, valu
     return graph.resolveVertexValue(vertex, valueVertex);
 }
 
-function notOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function notOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     for (const valueVertex of values) {
         return !graph.resolveVertexValue(vertex, valueVertex);
     }
 }
 
-function orOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function orOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     for (const valueVertex of values) {
         const value = graph.resolveVertexValue(vertex, valueVertex);
         if (value) return true;
@@ -355,6 +355,7 @@ function orOperation(graph: OptionsGraphInterface, vertex: VertexInterface, valu
 enum LocationOperation {
     IsUserOption = '$isUserOption',
     Palette = '$palette',
+    MapPalette = '$mapPalette',
     Path = '$path',
     PathString = '$pathString',
     Ref = '$ref',
@@ -366,6 +367,7 @@ const locationOperations: Record<LocationOperation, OperationFns> = {
         resolve: isUserOptionOperation,
     },
     $palette: paletteOperation,
+    $mapPalette: mapPaletteOperation,
     $path: {
         dependencies: pathOperationDependenciesFactory,
         resolve: pathOperation,
@@ -377,7 +379,7 @@ const locationOperations: Record<LocationOperation, OperationFns> = {
     $ref: refOperation,
 };
 
-function isUserOptionOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function isUserOptionOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [relativePathVertex, thenVertex, elseVertex] = values;
 
     const relativePath = graph.resolveVertexValue(vertex, relativePathVertex);
@@ -401,7 +403,7 @@ function isUserOptionOperation(graph: OptionsGraphInterface, vertex: VertexInter
 
 const PALETTE_INDEX_KEYS = new Set(['fill', 'fillFallback', 'stroke', 'gradient', 'range2']);
 
-function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [keyVertex] = values;
     const key = graph.resolveVertexValue(vertex, keyVertex);
 
@@ -409,13 +411,53 @@ function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
 
     if (PALETTE_INDEX_KEYS.has(key)) {
         const pathArray = graph.getPathArray(vertex);
+        const index = getPathLastIndex(pathArray);
+
+        if (isNaN(index)) return;
+
+        switch (key) {
+            case 'fill':
+                return circularSliceArray(graph.palette.fills, 1, index)[0];
+            case 'fillFallback':
+                return circularSliceArray(graph.palette.fillsFallback, 1, index)[0];
+            case 'stroke':
+                return circularSliceArray(graph.palette.strokes, 1, index)[0];
+            case 'gradient':
+                return circularSliceArray(graph.palette.sequentialColors, 1, index)[0];
+            case 'range2':
+                return circularSliceArray(graph.palette.fills, 2, index);
+        }
+
+        return;
+    }
+
+    if (key === 'gradients') {
+        return graph.palette.sequentialColors; // TODO: `gradients` as a $ref to sequentialColors within palette
+    }
+
+    const value = getPathSafe(graph.palette, key.split('.'));
+
+    // TODO: what is mutating the palette? see integratedChartsCrossFiltering.test.ts
+    if (Array.isArray(value)) return [...value];
+    if (typeof value === 'object') return { ...value };
+    return value;
+}
+
+function mapPaletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [keyVertex] = values;
+    const key = graph.resolveVertexValue(vertex, keyVertex);
+
+    if (!isString(key)) return;
+    if (PALETTE_INDEX_KEYS.has(key)) {
+        const pathArray = graph.getPathArray(vertex);
         let index = getPathLastIndex(pathArray);
 
-        const ignoreIndexSeries = new Set(['map-shape-background', 'map-line-background']);
         let ignoreIndexOffset = 0;
+        const path = ['series', '0', 'type'];
         for (let i = 0; i < index; i++) {
-            const siblingSeriesType = graph.getResolvedPath(['series', `${i}`, 'type']) as string;
-            if (ignoreIndexSeries.has(siblingSeriesType)) {
+            path[1] = `${i}`;
+            const siblingSeriesType = graph.getResolvedPath(path) as string;
+            if ('map-shape-background' === siblingSeriesType || 'map-line-background' === siblingSeriesType) {
                 ignoreIndexOffset++;
             }
         }
@@ -454,7 +496,7 @@ function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
 function pathOperationDependenciesFactory(
     graph: OptionsGraphInterface,
     vertex: VertexInterface,
-    values: Set<VertexInterface>
+    values: Array<VertexInterface>
 ) {
     const [relativePathVertex] = values;
 
@@ -476,9 +518,9 @@ function pathOperationDependenciesFactory(
     }
 }
 
-function pathOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
-    const hasDefaultValue = values.size > 1;
-    const hasCustomBranch = values.size > 2;
+function pathOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const hasDefaultValue = values.length > 1;
+    const hasCustomBranch = values.length > 2;
 
     const [relativePathVertex, defaultValueVertex, customBranchVertex] = values;
 
@@ -508,7 +550,7 @@ function pathOperation(graph: OptionsGraphInterface, vertex: VertexInterface, va
     // throw new Error(`dependency not found`);
 }
 
-function pathStringOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function pathStringOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [relativePathVertex, variablesVertex] = values;
     const relativePath = graph.resolveVertexValue(vertex, relativePathVertex);
 
@@ -530,7 +572,7 @@ function pathStringOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     return path;
 }
 
-function refOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, values: Set<VertexInterface>) {
+function refOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, values: Array<VertexInterface>) {
     const [value] = values;
     const paramKey = graph.getVertexValue(value) as string;
     return graph.getParamValue(paramKey);
@@ -562,7 +604,7 @@ const transformOperations: Record<TransformOperation, OperationFns> = {
     $value: valueOperation,
 };
 
-function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [objectVertex, defaultValueVertex, overridesPathVertex1, overridesPathVertex2] = values;
 
     const object = graph.resolveVertexValue(vertex, objectVertex);
@@ -577,12 +619,12 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         ? (graph.resolveVertexValue(vertex, overridesPathVertex2) as Array<string>)
         : undefined;
 
-    if (children.size === 0 && defaultValue != null) {
+    if (children.length === 0 && defaultValue != null) {
         graph.graftObject(vertex, defaultValue, [overridesPath1, overridesPath2]);
     }
 
     for (const child of children) {
-        if (graph.neighboursWithEdgeValue(child, PATH_EDGE).size === 0) {
+        if (graph.neighboursWithEdgeValue(child, PATH_EDGE).length === 0) {
             // Add a stub if we are applying to a child object with no keys, e.g. `gridLine: { styles: [{}] }`
             const stubVertex = graph.addVertex({});
             graph.addEdge(child, stubVertex, DEFAULTS_EDGE);
@@ -594,7 +636,7 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
     return RESOLVED_TO_BRANCH;
 }
 
-function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [fromPathVertex, variablesVertex, ignorePathsVertex] = values;
 
     let fromPaths = graph.getVertexValue(fromPathVertex);
@@ -623,14 +665,14 @@ function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     return RESOLVED_TO_BRANCH;
 }
 
-function findOperation(_graph: OptionsGraphInterface, _vertex: VertexInterface, _values: Set<VertexInterface>) {
+function findOperation(_graph: OptionsGraphInterface, _vertex: VertexInterface, _values: Array<VertexInterface>) {
     throw new Error('Not yet implemented');
 }
 
 function findFirstSiblingNotOperationOperation(
     graph: OptionsGraphInterface,
     vertex: VertexInterface,
-    values: Set<VertexInterface>
+    values: Array<VertexInterface>
 ) {
     const [defaultValueVertex] = values;
 
@@ -648,7 +690,7 @@ function findFirstSiblingNotOperationOperation(
 
     const siblings = graph.neighboursWithEdgeValue(parentVertex, PATH_EDGE);
 
-    for (let index = 0; index < siblings.size; index++) {
+    for (let index = 0; index < siblings.length; index++) {
         if (`${index}` === pathArray[indexIndex]) continue;
 
         const siblingChildPathArray = parentPathArray.concat([`${index}`, ...pathArray.slice(indexIndex + 1)]);
@@ -669,7 +711,7 @@ function findFirstSiblingNotOperationOperation(
     return graph.resolveVertexValue(vertex, defaultValueVertex);
 }
 
-function mapOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function mapOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [mapOperationVertex, mapValuesVertex] = values;
 
     const mapOperationFn = graph.getVertexValue(mapOperationVertex);
@@ -687,11 +729,11 @@ function mapOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     return RESOLVED_TO_BRANCH;
 }
 
-function mergeOperation(_graph: OptionsGraphInterface, _vertex: VertexInterface, _values: Set<VertexInterface>) {
+function mergeOperation(_graph: OptionsGraphInterface, _vertex: VertexInterface, _values: Array<VertexInterface>) {
     throw new Error('Not yet implemented');
 }
 
-function omitOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function omitOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [keysVertex, objectVertex] = values;
     const keys = graph.resolveVertexValue(vertex, keysVertex);
     const object = graph.resolveVertexValue(vertex, objectVertex);
@@ -700,14 +742,14 @@ function omitOperation(graph: OptionsGraphInterface, vertex: VertexInterface, va
     return without(object, keys);
 }
 
-function sizeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function sizeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [valueVertex] = values;
     const value = graph.resolveVertexValue(vertex, valueVertex);
     if (!isObjectLike(value)) return 0;
     return Object.keys(value).length;
 }
 
-function valueOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function valueOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [valueVertex] = values;
     const value = graph.getVertexValue(valueVertex);
     const pathArray = graph.getPathArray(vertex);
@@ -735,14 +777,14 @@ const numericOperations: Record<NumericOperation, OperationFns> = {
     $round: roundOperation,
 };
 
-function isEvenOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function isEvenOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [valueVertex] = values;
     const value = graph.resolveVertexValue(vertex, valueVertex);
     if (isNaN(Number(value))) return false;
     return Number(value) % 2 === 0;
 }
 
-function mulOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function mulOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     let result: number | undefined;
     for (const valueVertex of values) {
         const value = graph.resolveVertexValue(vertex, valueVertex);
@@ -755,7 +797,7 @@ function mulOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     return result;
 }
 
-function roundOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Set<VertexInterface>) {
+function roundOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     for (const valueVertex of values) {
         return Math.round(Number(graph.resolveVertexValue(vertex, valueVertex)));
     }
