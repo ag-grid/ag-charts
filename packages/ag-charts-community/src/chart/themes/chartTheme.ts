@@ -165,9 +165,9 @@ export class ChartTheme {
             textColor: { $ref: 'foregroundColor' },
 
             chromeBackgroundColor: { $foregroundBackgroundMix: [0.02] },
-            chromeFontFamily: { $ref: 'fontFamily' } as any,
-            chromeFontSize: { $ref: 'fontSize' },
-            chromeFontWeight: { $ref: 'fontWeight' },
+            chromeFontFamily: '"IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu',
+            chromeFontSize: 14,
+            chromeFontWeight: 500,
             chromeTextColor: { $ref: 'foregroundColor' },
             chromeSubtleTextColor: { $mix: [{ $ref: 'chromeTextColor' }, { $ref: 'backgroundColor' }, 0.38] },
 

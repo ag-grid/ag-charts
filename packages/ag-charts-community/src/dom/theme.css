@@ -21,9 +21,9 @@
     --ag-charts-text-color: #181d1f;
 
     --ag-charts-chrome-background-color: #fafafa;
-    --ag-charts-chrome-font-family: Verdana, sans-serif;
-    --ag-charts-chrome-font-size: 12px;
-    --ag-charts-chrome-font-weight: 400;
+    --ag-charts-chrome-font-family: "IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu;
+    --ag-charts-chrome-font-size: 14px;
+    --ag-charts-chrome-font-weight: 500;
     --ag-charts-chrome-subtle-text-color: #8c8c8c;
     --ag-charts-chrome-text-color: #181d1f;
 
