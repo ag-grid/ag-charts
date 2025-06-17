@@ -332,7 +332,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
     private getGroupBaseStyle(isHighlight: boolean, datum?: TreemapNode): ItemStyle {
         const { properties } = this;
         const { group } = properties;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
         return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? group.fill,
@@ -399,7 +399,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
     private getTileBaseStyle(isHighlight: boolean, datum?: TreemapNode): ItemStyle {
         const { properties } = this;
         const { tile } = properties;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
         return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? tile.fill,
@@ -801,6 +801,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             text.x = label.x;
             text.y = label.y;
             text.visible = true;
+            text.opacity = this.getHighlightStyle(highlighted, node.datumIndex)?.opacity ?? 1;
 
             text.zIndex = 1;
         };

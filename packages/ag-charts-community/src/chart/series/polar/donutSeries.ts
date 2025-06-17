@@ -711,7 +711,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             cornerRadius,
             opacity,
         } = mergeDefaults(
-            this.getHighlightStyle(isHighlight, nodeDatum, legendItemValues),
+            this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, legendItemValues),
             {
                 fill: defaultFill,
                 stroke: defaultStroke,
@@ -1435,6 +1435,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 text.y = datum.midSin * labelRadius;
                 text.textAlign = 'center';
                 text.textBaseline = 'middle';
+                text.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
 
                 const bbox = text.getBBox(false);
                 const corners = [

@@ -535,7 +535,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     ) {
         const { id: seriesId, properties } = this;
         const item = properties.item[itemId === 'subtotal' ? 'total' : itemId];
-        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex);
 
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = item;
         const { xKey, yKey } = properties;
@@ -549,7 +549,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 strokeOpacity: highlightStyle?.strokeOpacity ?? item.strokeOpacity,
                 lineDash: highlightStyle?.lineDash ?? item.lineDash ?? [],
                 lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
-                cornerRadius: item.cornerRadius,
+                cornerRadius: highlightStyle?.cornerRadius ?? item.cornerRadius,
                 opacity: highlightStyle?.opacity ?? 1,
             },
             fillGradientDefaults,
@@ -622,6 +622,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, WaterfallNodeDatum>;
     }) {
         opts.labelSelection.each((textNode, datum) => {
+            textNode.opacity = this.getHighlightStyle(false, datum.datumIndex)?.opacity ?? 1;
             updateLabelNode(textNode, this.getItemConfig(datum.itemId).label, datum.label);
         });
     }

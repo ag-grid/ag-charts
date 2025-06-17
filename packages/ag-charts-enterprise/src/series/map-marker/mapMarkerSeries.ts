@@ -558,7 +558,7 @@ export class MapMarkerSeries
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
 
-        labelSelection.each((label, { x, y, width, height, text }) => {
+        labelSelection.each((label, { x, y, width, height, text }, datumIndex) => {
             label.visible = true;
             label.x = x + width / 2;
             label.y = y + height / 2;
@@ -570,6 +570,7 @@ export class MapMarkerSeries
             label.fontFamily = fontFamily;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
+            label.opacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
         });
     }
 
@@ -586,7 +587,7 @@ export class MapMarkerSeries
 
     private getMarkerItemBaseStyle(isHighlight: boolean, datum?: MapMarkerNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
 
         return getShapeStyle(
             {

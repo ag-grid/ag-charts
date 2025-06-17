@@ -340,7 +340,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
     private getItemBaseStyle(isHighlight: boolean, datum?: HeatmapNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
         return {
             fill: highlightStyle?.fill,
             fillOpacity: highlightStyle?.fillOpacity ?? 1,
@@ -439,6 +439,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             text.fontFamily = datum.fontFamily;
             text.fontWeight = datum.fontWeight;
             text.fill = datum.color;
+            text.opacity = this.getHighlightStyle(false, datum.datumIndex)?.fillOpacity ?? 1;
 
             text.textAlign = datum.textAlign;
             text.textBaseline = datum.verticalAlign;

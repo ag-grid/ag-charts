@@ -449,7 +449,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
                 lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
                 lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-                cornerRadius,
+                cornerRadius: highlightStyle?.cornerRadius ?? cornerRadius,
                 cap,
                 whisker,
                 opacity: highlightStyle?.opacity ?? 1,
@@ -513,7 +513,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection.each((boxPlotGroup, nodeDatum) => {
             let activeStyles = this.getFormattedStyles(nodeDatum, isHighlight ? 'highlight' : 'node');
 
-            const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum);
+            const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex);
 
             activeStyles = mergeDefaults(highlightStyle, activeStyles);
 
