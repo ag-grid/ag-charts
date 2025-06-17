@@ -27,7 +27,7 @@ HTMLCollection [
           Download
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
       <div
@@ -45,7 +45,7 @@ HTMLCollection [
           Zoom to here
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
       <div
@@ -63,7 +63,7 @@ HTMLCollection [
           Pan to here
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
       <div
@@ -81,7 +81,7 @@ HTMLCollection [
           Reset zoom
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
     </div>
@@ -116,7 +116,7 @@ HTMLCollection [
           Download
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
       <div
@@ -134,7 +134,7 @@ HTMLCollection [
           Zoom to here
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
       <div
@@ -152,7 +152,7 @@ HTMLCollection [
           Pan to here
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
       <div
@@ -170,7 +170,7 @@ HTMLCollection [
           Reset zoom
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
     </div>
@@ -205,7 +205,7 @@ HTMLCollection [
           Download
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
       <div
@@ -223,7 +223,7 @@ HTMLCollection [
           Zoom to here
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
       <div
@@ -241,7 +241,7 @@ HTMLCollection [
           Pan to here
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
       <div
@@ -259,7 +259,7 @@ HTMLCollection [
           Reset zoom
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
     </div>

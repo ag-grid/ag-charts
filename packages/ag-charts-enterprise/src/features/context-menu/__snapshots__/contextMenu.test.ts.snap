@@ -36,7 +36,7 @@ HTMLCollection [
           Download
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
     </div>
@@ -71,7 +71,7 @@ HTMLCollection [
           Download
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
     </div>
@@ -106,7 +106,7 @@ HTMLCollection [
           Download
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
       <div
@@ -124,7 +124,7 @@ HTMLCollection [
           Toggle Visibility
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
     </div>
@@ -159,7 +159,7 @@ HTMLCollection [
           Download
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
       <div
@@ -177,7 +177,7 @@ HTMLCollection [
           Toggle Visibility
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__chevron-right"
         />
       </div>
     </div>

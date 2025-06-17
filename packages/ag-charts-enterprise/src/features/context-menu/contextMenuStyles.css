@@ -53,7 +53,7 @@
 
 .ag-charts-context-menu__icon,
 .ag-charts-context-menu__label,
-.ag-charts-context-menu__rightarrowhead {
+.ag-charts-context-menu__chevron-right {
     display: table-cell;
     vertical-align: middle;
 }
