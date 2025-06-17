@@ -33,18 +33,6 @@ function pow(base: number, domain: number[], x: number) {
     return start >= 0 ? fn(base, x) : -fn(base, -x);
 }
 
-function transform(this: LogScale, x: number) {
-    const [min, max] = findMinMax(this.domain);
-    if (min >= 0 !== max >= 0) return NaN;
-    return min >= 0 ? Math.log(x) : -Math.log(-x);
-}
-
-function transformInvert(this: LogScale, x: number) {
-    const [min, max] = findMinMax(this.domain);
-    if (min >= 0 !== max >= 0) return NaN;
-    return min >= 0 ? Math.exp(x) : -Math.exp(-x);
-}
-
 export class LogScale extends ContinuousScale<number> {
     static override is(value: unknown): value is LogScale {
         return value instanceof LogScale;
@@ -56,7 +44,19 @@ export class LogScale extends ContinuousScale<number> {
     protected override defaultClamp: boolean = true;
 
     public constructor(d: number[] = [1, 10], r: number[] = [0, 1]) {
-        super(d, r, transform, transformInvert);
+        super(d, r);
+    }
+
+    override transform(this: LogScale, x: number) {
+        const [min, max] = findMinMax(this.domain);
+        if (min >= 0 !== max >= 0) return NaN;
+        return min >= 0 ? Math.log(x) : -Math.log(-x);
+    }
+
+    override transformInvert(this: LogScale, x: number) {
+        const [min, max] = findMinMax(this.domain);
+        if (min >= 0 !== max >= 0) return NaN;
+        return min >= 0 ? Math.exp(x) : -Math.exp(-x);
     }
 
     toDomain(d: number): number {
