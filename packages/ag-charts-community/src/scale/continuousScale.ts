@@ -62,9 +62,9 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         }
 
         const clamp = options?.clamp ?? this.defaultClamp;
-        const d0 = Number(this.transform(domain[0]));
-        const d1 = Number(this.transform(domain[1]));
-        const x = Number(this.transform(value));
+        const d0 = this.transform(domain[0])?.valueOf() ?? NaN;
+        const d1 = this.transform(domain[1])?.valueOf() ?? NaN;
+        const x = this.transform(value)?.valueOf() ?? NaN;
 
         if (clamp) {
             const [start, stop] = findMinMax([d0, d1]);
