@@ -25,7 +25,7 @@ import type {
     AgCrossLineThemeOptions,
 } from './crossLineOptions';
 import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from './crosshairOptions';
-import type { Degree, PixelSize, Ratio, TContextDefault, TDatumDefault } from './types';
+import type { Degree, PixelSize, Ratio, TContextDefault, TDatumDefault, TextWrap } from './types';
 
 /** Configuration for axes in cartesian charts. */
 export interface AgBaseCartesianAxisOptions<
@@ -76,6 +76,18 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = TContextDefault> ext
     autoRotate?: boolean;
     /** If autoRotate is enabled, specifies the rotation angle to use when autoRotate is activated. Defaults to an angle of 335 degrees if unspecified. */
     autoRotateAngle?: Degree;
+    /**
+     * Text wrapping strategy for long text.
+     * - `'always'` will always wrap text to fit within the `maxWidth`.
+     * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
+     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'never'` disables text wrapping.
+     *
+     * Default: `'on-space'`
+     */
+    wrapping?: TextWrap;
+    /** If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text. */
+    truncate?: boolean;
 }
 
 export interface AgGroupedCategoryAxisLabelOptions<TContext = TContextDefault>

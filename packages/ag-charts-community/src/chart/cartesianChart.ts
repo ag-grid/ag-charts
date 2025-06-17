@@ -1,4 +1,4 @@
-import { Logger, entries, groupBy } from 'ag-charts-core';
+import { Logger, type Size, entries, groupBy } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { LayoutContext, ModuleInstance } from '../module/baseModule';
@@ -240,30 +240,34 @@ export class CartesianChart extends Chart {
             axisAreaBound.shrink(crossLinePadding);
         }
 
+        const { scene } = this.ctx;
         const seriesRect = axisAreaBound.clone().shrink(Object.fromEntries(axisAreaWidths));
 
         // Step 1) Calculate individual axis widths.
         for (const axis of this.axes) {
             const { position = 'left', direction } = axis;
+            const isVertical = direction === ChartAxisDirection.Y;
+            let axisWidth: number;
 
             this.sizeAxis(axis, seriesRect, position);
 
-            const isVertical = direction === ChartAxisDirection.Y;
+            if (axis.thickness == null) {
+                const availableSize = getSize(isVertical, scene);
+                axisWidth = availableSize * (axis.maxThicknessRatio ?? 1);
+            } else {
+                axisWidth = axis.thickness;
+            }
+
             const { primaryTickCount, bbox } = axis.calculateLayout(
                 axis.nice ? primaryTickCounts[direction] : undefined,
-                this.padding
+                { sizeLimit: axisWidth, padding: this.padding }
             );
 
             primaryTickCounts[direction] ??= primaryTickCount;
             clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
-            let axisWidth: number;
             if (axis.thickness == null) {
-                const { scene } = this.ctx;
-                const size = (isVertical ? bbox?.width : bbox?.height) ?? 0;
-                axisWidth = Math.min(size, (isVertical ? scene.width : scene.height) * (axis.maxThicknessRatio ?? 1));
-            } else {
-                axisWidth = axis.thickness;
+                axisWidth = Math.min(getSize(isVertical, bbox) ?? 0, axisWidth);
             }
             axisWidths.set(axis.id, Math.ceil(axisWidth));
         }
@@ -271,15 +275,12 @@ export class CartesianChart extends Chart {
         const axisGroups = groupBy(this.axes, (axis) => axis.position ?? 'left');
 
         // Step 2) calculate axis offsets and total depth for each position.
-        const { width, height, pixelRatio } = this.ctx.scene;
         const newAxisAreaWidths: AreaWidthMap = new Map();
         const axisOffsets = new Map<string, number>();
 
         for (const [position, axes] of entries(axisGroups)) {
-            const isVertical = position === 'left' || position === 'right';
-
             // Adjust offset for pixel ratio to prevent alignment issues with series rendering.
-            let currentOffset = isVertical ? height % pixelRatio : width % pixelRatio;
+            let currentOffset = getSize(position !== 'left' && position !== 'right', scene) % scene.pixelRatio;
             let totalAxisWidth = 0;
 
             for (const axis of axes ?? []) {
@@ -515,4 +516,10 @@ export class CartesianChart extends Chart {
                 break;
         }
     }
+}
+
+function getSize(isVertical: boolean, bounds: Size): number;
+function getSize(isVertical: boolean, bounds?: Size): number | undefined;
+function getSize(isVertical: boolean, bounds?: Size) {
+    return isVertical ? bounds?.width : bounds?.height;
 }
