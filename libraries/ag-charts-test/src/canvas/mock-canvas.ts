@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Canvas, CanvasRenderingContext2D, ExportFormat, Image } from 'skia-canvas';
 
-import { mockCanvasText } from './mock-canvas-text';
-
 export class ConfiguredCanvas extends Canvas {
     constructor(width: number, height: number) {
         super(width, height);
@@ -18,6 +16,18 @@ export class ConfiguredCanvas extends Canvas {
             value: () => {},
         });
         return bitmap;
+    }
+
+    private getTextPath(text: string, x: number, y: number, maxWidth?: number) {
+        return (this as any).outlineText(text, maxWidth).offset(x, y);
+    }
+
+    fillText(text: string, x: number, y: number, maxWidth?: number) {
+        (this as any).fill(this.getTextPath(text, x, y, maxWidth));
+    }
+
+    strokeText(text: string, x: number, y: number, maxWidth?: number) {
+        (this as any).stroke(this.getTextPath(text, x, y, maxWidth));
     }
 }
 
@@ -69,10 +79,7 @@ export class MockContext {
     }
 
     getRenderContext2D(): globalThis.CanvasRenderingContext2D {
-        let ctx = this.ctx.nodeCanvas.getContext('2d') as unknown as CanvasRenderingContext2D;
-        if (this.mockText) {
-            ctx = mockCanvasText(ctx as any) as any;
-        }
+        const ctx = this.ctx.nodeCanvas.getContext('2d') as unknown as CanvasRenderingContext2D;
         return ctx as unknown as globalThis.CanvasRenderingContext2D;
     }
 
@@ -108,17 +115,13 @@ export class MockContext {
     }
 }
 
-function proxyGetContext2D(mockCtx: MockContext, canvas: Canvas, target: any) {
+function proxyGetContext2D(canvas: Canvas, target: any) {
     if (target.__patched === true) return;
     target.__patched = true;
 
     const { getContext } = canvas;
     target.getContext = (type: '2d') => {
-        let ctx = getContext.call(canvas, type);
-        if (mockCtx.mockText) {
-            ctx = mockCanvasText(ctx as any) as any;
-        }
-        return ctx;
+        return getContext.call(canvas, type);
     };
 }
 
@@ -150,7 +153,7 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
             const nextCanvas = mockCtx.canvasStack.shift() ?? new ConfiguredCanvas(width, height);
             mockCtx.registerCanvasInstance(nextCanvas);
 
-            proxyGetContext2D(mockCtx, nextCanvas, mockedElement);
+            proxyGetContext2D(nextCanvas, mockedElement);
 
             mockedElement.toDataURL = (mimeType = 'image/png') => {
                 return nextCanvas.toDataURLSync(mimeType.split('/')[1] as ExportFormat);
@@ -169,7 +172,7 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
             constructor(w: number, h: number) {
                 super(w, h);
                 mockCtx.registerOffscreenCanvasInstance(this as any);
-                proxyGetContext2D(mockCtx, this as unknown as Canvas, this);
+                proxyGetContext2D(this as unknown as Canvas, this);
             }
         };
     }

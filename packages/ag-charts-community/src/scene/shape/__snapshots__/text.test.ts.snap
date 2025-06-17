@@ -2,32 +2,32 @@
 
 exports[`Text text measurements should measure text currently 1`] = `
 {
-  "height": 18.666666666666668,
+  "height": 16.81640625,
   "lineHeight": 24,
-  "width": 130.66666666666666,
+  "width": 123.30000305175781,
 }
 `;
 
 exports[`Text text measurements should measure text currently 2`] = `
 {
-  "height": 37.333333333333336,
+  "height": 33.890625,
   "lineHeight": 48,
-  "width": 357.3333333333333,
+  "width": 257.30078125,
 }
 `;
 
 exports[`Text text measurements should measure text size currently 1`] = `
 {
-  "height": 18.666666666666668,
+  "height": 16.81640625,
   "lineHeight": 24,
-  "width": 130.66666666666666,
+  "width": 123.30000305175781,
 }
 `;
 
 exports[`Text text measurements should measure text size currently 2`] = `
 {
-  "height": 37.333333333333336,
+  "height": 33.890625,
   "lineHeight": 48,
-  "width": 357.3333333333333,
+  "width": 257.29998779296875,
 }
 `;
