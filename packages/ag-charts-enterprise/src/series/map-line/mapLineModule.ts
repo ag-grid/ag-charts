@@ -1,7 +1,7 @@
 import { type AgMapLineSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
-import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
+import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
 import { MapLineSeries } from './mapLineSeries';
 import { mapLineSeriesOptionsDef } from './mapLineSeriesOptionsDef';
 
@@ -22,7 +22,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
                 $if: [
                     { $eq: [{ $mapPalette: 'type' }, 'inbuilt'] },
                     { $mapPalette: 'divergingColors' },
-                    _ModuleSupport.SAFE_RANGE2_OPERATION,
+                    applyMapPalette(_ModuleSupport.SAFE_RANGE2_OPERATION),
                 ],
             },
             strokeWidth: 1,
@@ -36,7 +36,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'textColor' },
             },
-            highlight: _ModuleSupport.multiSeriesHighlightStyle(false),
+            highlight: applyMapPalette(_ModuleSupport.multiSeriesHighlightStyle(false)),
         },
         tooltip: {
             range: 'exact',

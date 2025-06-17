@@ -1,4 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 export const MAP_THEME_DEFAULTS: _ModuleSupport.ExtensibleTheme<'map-shape' | 'map-line' | 'map-marker'> = {
     zoom: {
@@ -18,3 +18,16 @@ export const MAP_THEME_DEFAULTS: _ModuleSupport.ExtensibleTheme<'map-shape' | 'm
         enabled: false,
     },
 };
+
+export function applyMapPalette<T extends object>(object: T): T {
+    const clone = _ModuleSupport.deepClone(object);
+
+    _ModuleSupport.jsonWalk(clone, (value) => {
+        if (typeof value === 'object' && '$palette' in value) {
+            (value as any)['$mapPalette'] = value['$palette'];
+            delete value['$palette'];
+        }
+    });
+
+    return clone;
+}

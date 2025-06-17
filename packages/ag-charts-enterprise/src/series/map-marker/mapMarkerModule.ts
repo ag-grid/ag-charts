@@ -6,7 +6,7 @@ import {
     validate,
 } from 'ag-charts-core';
 
-import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
+import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
 import { MapMarkerSeries } from './mapMarkerSeries';
 import { mapMarkerSeriesOptionsDef } from './mapMarkerSeriesOptionsDef';
 
@@ -29,7 +29,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
                 $if: [
                     { $eq: [{ $mapPalette: 'type' }, 'inbuilt'] },
                     { $mapPalette: 'divergingColors' },
-                    _ModuleSupport.SAFE_RANGE2_OPERATION,
+                    applyMapPalette(_ModuleSupport.SAFE_RANGE2_OPERATION),
                 ],
             },
             // @ts-expect-error undocumented option
@@ -41,8 +41,8 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
                 rotation: 0,
                 reverse: true,
             } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
-            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-            fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
+            fillPatternDefaults: applyMapPalette(_ModuleSupport.FILL_PATTERN_DEFAULTS),
+            fillImageDefaults: applyMapPalette(_ModuleSupport.FILL_IMAGE_DEFAULTS),
             fillOpacity: 0.5,
             label: {
                 enabled: false,
@@ -51,7 +51,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'textColor' },
             },
-            highlight: _ModuleSupport.multiSeriesHighlightStyle(),
+            highlight: applyMapPalette(_ModuleSupport.multiSeriesHighlightStyle()),
         },
         tooltip: {
             range: 'exact',
