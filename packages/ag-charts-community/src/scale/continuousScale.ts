@@ -12,6 +12,8 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     readonly defaultTickCount = ContinuousScale.defaultTickCount;
 
     protected defaultClamp = false;
+    protected transform?(x: D | number): number;
+    protected transformInvert?(x: number): D;
 
     protected constructor(
         public domain: D[] = [],
@@ -24,14 +26,6 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
 
     normalizeDomains(...domains: D[][]): NormalizedDomain<D> {
         return normalizeContinuousDomains(...domains);
-    }
-
-    protected transform(x: D) {
-        return x;
-    }
-
-    protected transformInvert(x: D) {
-        return x;
     }
 
     calcBandwidth(smallestInterval = 1, minWidth: 1 | 0 = 1) {
@@ -55,42 +49,40 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         return rangeDistance / Math.max(1, bands);
     }
 
-    convert(value: D, options?: { clamp?: boolean }) {
+    convert(value: D | number, options?: { clamp?: boolean }) {
         const { domain } = this;
         if (!domain || domain.length < 2) {
             return NaN;
         }
 
         const clamp = options?.clamp ?? this.defaultClamp;
-        const d0 = Number(this.transform(domain[0]));
-        const d1 = Number(this.transform(domain[1]));
-        const x = Number(this.transform(value));
-
-        const { range } = this;
-        const [r0, r1] = range;
+        const d0 = (this.transform ? this.transform(domain[0])?.valueOf() : domain[0]?.valueOf()) ?? NaN;
+        const d1 = (this.transform ? this.transform(domain[1])?.valueOf() : domain[1]?.valueOf()) ?? NaN;
+        const x = (this.transform ? this.transform(value)?.valueOf() : value?.valueOf()) ?? NaN;
 
         if (clamp) {
             const [start, stop] = findMinMax([d0, d1]);
             if (x < start) {
-                return r0;
+                return this.range[0];
             } else if (x > stop) {
-                return r1;
+                return this.range[1];
             }
         }
 
         if (d0 === d1) {
-            return (r0 + r1) / 2;
+            return (this.range[0] + this.range[1]) / 2;
         } else if (x === d0) {
-            return r0;
+            return this.range[0];
         } else if (x === d1) {
-            return r1;
+            return this.range[1];
         }
 
-        return r0 + ((x - d0) / (d1 - d0)) * (r1 - r0);
+        const r0 = this.range[0];
+        return r0 + ((x - d0) / (d1 - d0)) * (this.range[1] - r0);
     }
 
     invert(x: number, _nearest?: boolean) {
-        const domain = this.domain.map((d) => this.transform(d));
+        const domain = this.transform ? this.domain.map((d) => this.transform!(d)) : this.domain;
         const [d0, d1] = domain;
 
         const { range } = this;
@@ -103,7 +95,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
             d = this.toDomain(Number(d0) + ((x - r0) / (r1 - r0)) * (Number(d1) - Number(d0)));
         }
 
-        return this.transformInvert(d);
+        return this.transformInvert ? this.transformInvert(d) : d;
     }
 
     protected getPixelRange() {
