@@ -55,7 +55,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         return rangeDistance / Math.max(1, bands);
     }
 
-    convert(value: D, options?: { clamp?: boolean }) {
+    convert(value: D | number, options?: { clamp?: boolean }) {
         const { domain } = this;
         if (!domain || domain.length < 2) {
             return NaN;
@@ -64,7 +64,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         const clamp = options?.clamp ?? this.defaultClamp;
         const d0 = this.transform(domain[0])?.valueOf() ?? NaN;
         const d1 = this.transform(domain[1])?.valueOf() ?? NaN;
-        const x = this.transform(value)?.valueOf() ?? NaN;
+        const x = typeof value === 'number' ? value : this.transform(value)?.valueOf() ?? NaN;
 
         if (clamp) {
             const [start, stop] = findMinMax([d0, d1]);
