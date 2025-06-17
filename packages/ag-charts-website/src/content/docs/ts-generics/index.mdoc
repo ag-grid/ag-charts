@@ -1,0 +1,96 @@
+---
+title: 'TypeScript Generics'
+hidePageMenu: true
+---
+
+AG Charts leverages TypeScript Generics for chart data and context. This
+significantly enhances the developer experience through improved code completion
+and compile-time validation of row data and cell value properties.
+
+## Type \<TData>
+
+The `TData` (default: `any`) generic parameter is used to specify the interface
+of datums in the data.
+
+{% chartExampleRunner
+    title="TDatum Generic Parameter"
+    name="type-tdatum"
+    type="generated"
+/%}
+
+```ts
+type MyDatumType = {
+    country: string;
+    gdp: number;
+    region: 'AMER' | 'APAC' | 'EMEA';
+};
+
+const options: AgChartOptions<MyDatumType> = {
+    data: [
+        { region: 'AMER', country: 'Brazil', gdp: 2200 },
+        { region: 'AMER', country: 'Canada', gdp: 2000 },
+        { region: 'AMER', country: 'United States', gdp: 25000 },
+        { region: 'APAC', country: 'China', gdp: 17000 },
+        { region: 'APAC', country: 'India', gdp: 3400 },
+        { region: 'APAC', country: 'Japan', gdp: 5000 },
+        { region: 'EMEA', country: 'France', gdp: 3000 },
+        { region: 'EMEA', country: 'Germany', gdp: 4000 },
+        { region: 'EMEA', country: 'South Africa', gdp: 900 },
+        { region: 'EMEA', country: 'United Kingdom', gdp: 3200 },
+    ],
+    series: [
+        {
+            type: 'pie',
+            angleKey: 'gdp',
+            legendItemKey: 'country',
+            itemStyler: (params) => {
+                switch (params.datum.region) {
+                    case 'AMER': return { fill: 'red' };
+                    case 'APAC': return { fill: 'blue' };
+                    case 'EMEA': return { fill: 'green' };
+                    default:
+                        // (unreachable code)
+                        throw new Error();
+                }
+            },
+        },
+    ],
+    ... /* other options */
+};
+```
+
+This is example, specifying the `TDatum = MyDatumType` generic parameter does
+the following:
+
+-   Enables compile-time checks & auto-complete for the elements of the `data[]`
+    property.
+
+-   Enforces type-safety for the `series[].angleKey` and
+    `series[].legendItemKey`. These properties must be keys of the `MyDatumType`
+    type.
+
+-   Automatically infers the type of `params.datum.region` in the `itemStyler`
+    callback.
+
+## Type \<TContext>
+
+The `TContext` type (default: `unknown`) generic parameter is used to specify
+the interface of the `context` properties.
+
+The `context` property is arbitrary user-defined data that will be passed to the
+callback as-is. This useful for attaching a custom state to your chart.
+
+{% chartExampleRunner
+    title="TContext Generic Parameter"
+    name="type-tcontext"
+    type="generated"
+    options={ "enterprise": true }
+/%}
+
+In this example the `TContext` generic parameter is set to a `CurrencyConverter`
+object to convert stock prices from USD to a user-defined target currency is
+used by:
+
+-   The Tooltip
+-   The Y Axis
+-   Context Menu Items on Candlestick Node Datums
