@@ -22,12 +22,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Download
         </div>
         <div
-          class="ag-charts-context-menu__chevron-right"
+          class="ag-charts-context-menu__cell"
         />
       </div>
       <div
@@ -40,12 +40,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Zoom to here
         </div>
         <div
-          class="ag-charts-context-menu__chevron-right"
+          class="ag-charts-context-menu__cell"
         />
       </div>
       <div
@@ -58,12 +58,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Pan to here
         </div>
         <div
-          class="ag-charts-context-menu__chevron-right"
+          class="ag-charts-context-menu__cell"
         />
       </div>
       <div
@@ -76,12 +76,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Reset zoom
         </div>
         <div
-          class="ag-charts-context-menu__chevron-right"
+          class="ag-charts-context-menu__cell"
         />
       </div>
     </div>
@@ -111,12 +111,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Download
         </div>
         <div
-          class="ag-charts-context-menu__chevron-right"
+          class="ag-charts-context-menu__cell"
         />
       </div>
       <div
@@ -129,12 +129,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Zoom to here
         </div>
         <div
-          class="ag-charts-context-menu__chevron-right"
+          class="ag-charts-context-menu__cell"
         />
       </div>
       <div
@@ -147,12 +147,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Pan to here
         </div>
         <div
-          class="ag-charts-context-menu__chevron-right"
+          class="ag-charts-context-menu__cell"
         />
       </div>
       <div
@@ -165,12 +165,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Reset zoom
         </div>
         <div
-          class="ag-charts-context-menu__chevron-right"
+          class="ag-charts-context-menu__cell"
         />
       </div>
     </div>
@@ -200,12 +200,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Download
         </div>
         <div
-          class="ag-charts-context-menu__chevron-right"
+          class="ag-charts-context-menu__cell"
         />
       </div>
       <div
@@ -218,12 +218,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Zoom to here
         </div>
         <div
-          class="ag-charts-context-menu__chevron-right"
+          class="ag-charts-context-menu__cell"
         />
       </div>
       <div
@@ -236,12 +236,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Pan to here
         </div>
         <div
-          class="ag-charts-context-menu__chevron-right"
+          class="ag-charts-context-menu__cell"
         />
       </div>
       <div
@@ -254,12 +254,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Reset zoom
         </div>
         <div
-          class="ag-charts-context-menu__chevron-right"
+          class="ag-charts-context-menu__cell"
         />
       </div>
     </div>
