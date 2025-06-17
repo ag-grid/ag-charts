@@ -105,6 +105,18 @@ interface DonutNodeDatum extends DataModelSeriesNodeDatum {
     enabled: boolean;
 }
 
+interface ProcessedDataValues {
+    angleValues: number[];
+    angleRawValues: number[];
+    angleFilterValues: number[] | undefined;
+    angleFilterRawValues: number[] | undefined;
+    radiusValues: number[] | undefined;
+    radiusRawValues: number[] | undefined;
+    calloutLabelValues: string[] | undefined;
+    sectorLabelValues: string[] | undefined;
+    legendItemValues: string[] | undefined;
+}
+
 enum DonutNodeTag {
     Callout,
     Label,
@@ -391,6 +403,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         if (!dataModel || processedData?.type !== 'ungrouped') return;
 
+        const processedDataValues = this.getProcessedDataValues(dataModel, processedData);
         const {
             angleValues,
             angleRawValues,
@@ -398,10 +411,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             angleFilterRawValues,
             radiusValues,
             radiusRawValues,
-            calloutLabelValues,
-            sectorLabelValues,
             legendItemValues,
-        } = this.getProcessedDataValues(dataModel, processedData);
+        } = processedDataValues;
 
         const useFilterAngles =
             angleFilterRawValues?.some((filterRawValue, index) => {
@@ -435,15 +446,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             const radiusValue = radiusRawValues?.[datumIndex];
             const legendItemValue = legendItemValues?.[datumIndex];
 
-            const nodeLabels = this.getLabels(
-                datum,
-                midAngle,
-                span,
-                true,
-                calloutLabelValues?.[datumIndex],
-                sectorLabelValues?.[datumIndex],
-                legendItemValue
-            );
+            const nodeLabels = this.getLabels(datumIndex, datum, midAngle, span, processedDataValues);
             const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
 
             const node = {
@@ -492,80 +495,68 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         };
     }
 
-    private getLabels(
+    private getLabelContent(
+        datumIndex: number,
         datum: any,
-        midAngle: number,
-        span: number,
-        skipDisabled: boolean,
-        calloutLabelValue?: string,
-        sectorLabelValue?: string,
-        legendItemValue?: string
+        values: Pick<ProcessedDataValues, 'calloutLabelValues' | 'sectorLabelValues' | 'legendItemValues'>
     ) {
         const { id: seriesId, ctx, properties } = this;
         const { formatManager } = ctx;
-        const { calloutLabel, sectorLabel, legendItemKey } = properties;
+        const { calloutLabel, sectorLabel, calloutLabelKey, sectorLabelKey, legendItemKey } = properties;
 
-        const calloutLabelKey = !skipDisabled || calloutLabel.enabled ? properties.calloutLabelKey : undefined;
-        const sectorLabelKey = !skipDisabled || sectorLabel.enabled ? properties.sectorLabelKey : undefined;
-
-        if (!calloutLabelKey && !sectorLabelKey && !legendItemKey) {
-            return {};
-        }
+        const calloutLabelValue = values.calloutLabelValues?.[datumIndex];
+        const sectorLabelValue = values.sectorLabelValues?.[datumIndex];
+        const legendItemValue = values.legendItemValues?.[datumIndex];
 
         const labelFormatterParams = {
             datum,
-            angleKey: properties.angleKey,
-            angleName: properties.angleName,
-            radiusKey: properties.radiusKey,
-            radiusName: properties.radiusName,
-            calloutLabelKey: properties.calloutLabelKey,
-            calloutLabelName: properties.calloutLabelName,
-            sectorLabelKey: properties.sectorLabelKey,
-            sectorLabelName: properties.sectorLabelName,
-            legendItemKey: properties.legendItemKey,
+            angleKey: this.properties.angleKey,
+            angleName: this.properties.angleName,
+            radiusKey: this.properties.radiusKey,
+            radiusName: this.properties.radiusName,
+            calloutLabelKey: this.properties.calloutLabelKey,
+            calloutLabelName: this.properties.calloutLabelName,
+            sectorLabelKey: this.properties.sectorLabelKey,
+            sectorLabelName: this.properties.sectorLabelName,
+            legendItemKey: this.properties.legendItemKey,
         };
 
         const result: {
-            calloutLabel?: DonutLabelDatum;
-            sectorLabel?: { text: string };
-            legendItem?: { key: string; text: string };
-        } = {};
+            callout: string | undefined;
+            sector: string | undefined;
+            legendItem: string | undefined;
+        } = {
+            callout: undefined,
+            sector: undefined,
+            legendItem: undefined,
+        };
 
-        if (calloutLabelKey && span >= toRadians(calloutLabel.minAngle)) {
-            result.calloutLabel = {
-                ...this.getTextAlignment(midAngle),
-                text: this.getLabelText<AgDonutSeriesLabelFormatterParams>(
-                    calloutLabelValue,
-                    datum,
-                    calloutLabelKey,
-                    'calloutLabel',
-                    [],
-                    calloutLabel,
-                    { ...labelFormatterParams, value: calloutLabelValue }
-                ),
-                hidden: false,
-                collisionTextAlign: undefined,
-                collisionOffsetY: 0,
-                box: undefined,
-            };
+        if (calloutLabelKey) {
+            result.callout = this.getLabelText<AgDonutSeriesLabelFormatterParams>(
+                calloutLabelValue,
+                datum,
+                calloutLabelKey,
+                'calloutLabel',
+                [],
+                calloutLabel,
+                { ...labelFormatterParams, value: calloutLabelValue }
+            );
         }
 
         if (sectorLabelKey) {
-            result.sectorLabel = {
-                text: this.getLabelText<AgDonutSeriesLabelFormatterParams>(
-                    sectorLabelValue,
-                    datum,
-                    sectorLabelKey,
-                    'sectorLabel',
-                    [],
-                    sectorLabel,
-                    { ...labelFormatterParams, value: sectorLabelValue }
-                ),
-            };
+            result.sector = this.getLabelText<AgDonutSeriesLabelFormatterParams>(
+                sectorLabelValue,
+                datum,
+                sectorLabelKey,
+                'sectorLabel',
+                [],
+                sectorLabel,
+                { ...labelFormatterParams, value: sectorLabelValue }
+            );
         }
 
         if (legendItemKey != null && legendItemValue != null) {
-            const text =
+            result.legendItem =
                 formatManager.format(this.callWithContext.bind(this), {
                     type: 'category',
                     value: legendItemValue,
@@ -577,7 +568,39 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                     domain: [],
                     boundSeries: this.getFormatterContext('legendItem'),
                 }) ?? legendItemValue;
-            result.legendItem = { key: legendItemKey, text };
+        }
+
+        return result;
+    }
+
+    private getLabels(datumIndex: number, datum: any, midAngle: number, span: number, values: ProcessedDataValues) {
+        const { properties } = this;
+        const { calloutLabel, sectorLabel, legendItemKey } = properties;
+
+        const formats = this.getLabelContent(datumIndex, datum, values);
+        const result: {
+            calloutLabel?: DonutLabelDatum;
+            sectorLabel?: { text: string };
+            legendItem?: { key: string; text: string };
+        } = {};
+
+        if (calloutLabel.enabled && formats.callout && span >= toRadians(calloutLabel.minAngle)) {
+            result.calloutLabel = {
+                ...this.getTextAlignment(midAngle),
+                text: formats.callout,
+                hidden: false,
+                collisionTextAlign: undefined,
+                collisionOffsetY: 0,
+                box: undefined,
+            };
+        }
+
+        if (sectorLabel.enabled && formats.sector) {
+            result.sectorLabel = { text: formats.sector };
+        }
+
+        if (legendItemKey && formats.legendItem) {
+            result.legendItem = { key: legendItemKey, text: formats.legendItem };
         }
 
         return result;
@@ -1511,17 +1534,12 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         if (!dataModel || !processedData) return;
 
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
-        const { angleRawValues, legendItemValues, calloutLabelValues, sectorLabelValues } = this.getProcessedDataValues(
-            dataModel,
-            processedData
-        );
+        const processedDataValues = this.getProcessedDataValues(dataModel, processedData);
+        const { angleRawValues } = processedDataValues;
         const angleRawValue = angleRawValues[datumIndex];
 
-        const label =
-            legendItemValues?.[datumIndex] ??
-            (calloutLabelKey === angleKey ? undefined : calloutLabelValues?.[datumIndex]) ??
-            (sectorLabelKey === angleKey ? undefined : sectorLabelValues?.[datumIndex]) ??
-            angleName;
+        const labelValues = this.getLabelContent(datumIndex, datum, processedDataValues);
+        const label = labelValues.legendItem ?? labelValues.callout ?? labelValues.sector ?? angleName;
 
         const domain = dataModel.getDomain(this, `angleRaw`, 'value', processedData);
         const angleContent =
@@ -1609,10 +1627,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         )
             return [];
 
-        const { angleRawValues, calloutLabelValues, sectorLabelValues, legendItemValues } = this.getProcessedDataValues(
-            dataModel,
-            processedData
-        );
+        const processedDataValues = this.getProcessedDataValues(dataModel, processedData);
+        const { angleRawValues } = processedDataValues;
 
         const titleText = this.properties.title?.showInLegend && this.properties.title.text;
         const legendData: CategoryLegendDatum[] = [];
@@ -1632,22 +1648,14 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             if (titleText) {
                 labelParts.push(titleText);
             }
-            const labels = this.getLabels(
-                datum,
-                2 * Math.PI,
-                2 * Math.PI,
-                false,
-                calloutLabelValues?.[datumIndex],
-                sectorLabelValues?.[datumIndex],
-                legendItemValues?.[datumIndex]
-            );
+            const labels = this.getLabelContent(datumIndex, datum, processedDataValues);
 
             if (legendItemKey && labels.legendItem !== undefined) {
-                labelParts.push(labels.legendItem.text);
-            } else if (calloutLabelKey && calloutLabelKey !== angleKey && labels.calloutLabel?.text !== undefined) {
-                labelParts.push(labels.calloutLabel?.text);
-            } else if (sectorLabelKey && sectorLabelKey !== angleKey && labels.sectorLabel?.text !== undefined) {
-                labelParts.push(labels.sectorLabel?.text);
+                labelParts.push(labels.legendItem);
+            } else if (calloutLabelKey && calloutLabelKey !== angleKey && labels.callout !== undefined) {
+                labelParts.push(labels.callout);
+            } else if (sectorLabelKey && sectorLabelKey !== angleKey && labels.sector !== undefined) {
+                labelParts.push(labels.sector);
             }
 
             if (labelParts.length === 0) continue;
