@@ -9,6 +9,7 @@ env:
     NX_NO_CLOUD: true
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
     NX_BRANCH: ${{ github.ref }}
+    AG_SKIP_NATIVE_DEP_VERSION_CHECK: true
 
 jobs:
     bump_version_and_tag:
