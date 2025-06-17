@@ -52,8 +52,7 @@
 }
 
 .ag-charts-context-menu__icon,
-.ag-charts-context-menu__label,
-.ag-charts-context-menu__chevron-right {
+.ag-charts-context-menu__cell {
     display: table-cell;
     vertical-align: middle;
 }

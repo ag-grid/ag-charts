@@ -207,10 +207,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     const sep = menuWidget.addSeparator();
                     sep.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
                     sep.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
-                    const { cellArrow } = this.initTableCells(sep);
-                    // Don't show the chevron-right icon on separators.
-                    cellArrow.classList.toggle('ag-charts-context-menu__chevron-right', false);
-                    cellArrow.classList.toggle('ag-charts-context-menu__label', true);
+                    this.initTableCells(sep);
                     break;
                 case 'action':
                     if (item.items.length === 0) {
@@ -286,9 +283,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const cellIcon = createElement('div');
         const cellLabel = createElement('div');
         const cellArrow = createElement('div');
-        cellIcon.classList.toggle('ag-charts-context-menu__icon', true);
-        cellLabel.classList.toggle('ag-charts-context-menu__label', true);
-        cellArrow.classList.toggle('ag-charts-context-menu__chevron-right', true);
+        cellIcon.classList.toggle(`${DEFAULT_CONTEXT_MENU_CLASS}__icon`, true);
+        cellLabel.classList.toggle(`${DEFAULT_CONTEXT_MENU_CLASS}__cell`, true);
+        cellArrow.classList.toggle(`${DEFAULT_CONTEXT_MENU_CLASS}__cell`, true);
         cellIcon.ariaHidden = 'true';
         cellLabel.role = 'presentation';
         cellArrow.ariaHidden = 'true';
@@ -303,6 +300,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const label = this.ctx.localeManager.t(item.label);
 
         const cellPaddingClass = `${DEFAULT_CONTEXT_MENU_CLASS}__cellpadding`;
+        const chevronRightClass = `${DEFAULT_CONTEXT_MENU_CLASS}__chevron-right`;
         const { cellIcon, cellLabel, cellArrow } = this.initTableCells(button.getElement());
         cellLabel.textContent = label;
         cellLabel.classList.add(cellPaddingClass);
@@ -313,7 +311,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             cellIcon.classList.add(cellPaddingClass);
         }
         if (item.items.length > 0) {
-            cellArrow.classList.add(cellPaddingClass);
+            cellArrow.classList.add(chevronRightClass, cellPaddingClass);
         }
 
         const { showOn, action } = item;
