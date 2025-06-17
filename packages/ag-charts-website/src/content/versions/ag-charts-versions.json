@@ -9,11 +9,10 @@
             },
             {
                 "text": "Global Formatter",
-                "path": "./formatter/"
+                "path": "./formatters/"
             },
             {
-                "text": "Typescript Generics",
-                "path": "./formatters/"
+                "text": "Typescript Generics"
             },
             {
                 "text": "`context` object"
