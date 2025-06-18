@@ -32,10 +32,12 @@ export class SeriesStateManager {
     public registerSeries({ internalId, seriesGrouping, visible, type }: SeriesLike) {
         if (!seriesGrouping) return;
 
-        if (!this.groups.has(type)) {
-            this.groups.set(type, new Map());
+        let group = this.groups.get(type);
+        if (group == null) {
+            group = new Map();
+            this.groups.set(type, group);
         }
-        this.groups.get(type)?.set(internalId, { grouping: seriesGrouping, visible });
+        group.set(internalId, { grouping: seriesGrouping, visible });
     }
 
     public updateSeries({ internalId, seriesGrouping, visible, type }: SeriesLike) {
