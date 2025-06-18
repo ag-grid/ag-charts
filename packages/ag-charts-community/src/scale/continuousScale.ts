@@ -12,7 +12,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     readonly defaultTickCount = ContinuousScale.defaultTickCount;
 
     protected defaultClamp = false;
-    protected transform?(x: D | number): number;
+    protected transform?(x: number): number;
     protected transformInvert?(x: number): D;
 
     protected constructor(
@@ -51,48 +51,62 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
 
     convert(value: D | number, options?: { clamp?: boolean }) {
         const { domain } = this;
-        if (!domain || domain.length < 2) {
+        if (!domain || domain.length < 2 || value == null) {
             return NaN;
         }
 
+        const { range } = this;
         const clamp = options?.clamp ?? this.defaultClamp;
-        const d0 = (this.transform ? this.transform(domain[0])?.valueOf() : domain[0]?.valueOf()) ?? NaN;
-        const d1 = (this.transform ? this.transform(domain[1])?.valueOf() : domain[1]?.valueOf()) ?? NaN;
-        const x = (this.transform ? this.transform(value)?.valueOf() : value?.valueOf()) ?? NaN;
+
+        let d0: number = domain[0].valueOf();
+        let d1: number = domain[1].valueOf();
+        let x = value.valueOf();
+        if (this.transform) {
+            d0 = this.transform(d0);
+            d1 = this.transform(d1);
+            x = this.transform(x);
+        }
 
         if (clamp) {
             const [start, stop] = findMinMax([d0, d1]);
             if (x < start) {
-                return this.range[0];
+                return range[0];
             } else if (x > stop) {
-                return this.range[1];
+                return range[1];
             }
         }
 
         if (d0 === d1) {
-            return (this.range[0] + this.range[1]) / 2;
+            return (range[0] + range[1]) / 2;
         } else if (x === d0) {
-            return this.range[0];
+            return range[0];
         } else if (x === d1) {
-            return this.range[1];
+            return range[1];
         }
 
-        const r0 = this.range[0];
-        return r0 + ((x - d0) / (d1 - d0)) * (this.range[1] - r0);
+        const r0 = range[0];
+        return r0 + ((x - d0) / (d1 - d0)) * (range[1] - r0);
     }
 
     invert(x: number, _nearest?: boolean) {
-        const domain = this.transform ? this.domain.map((d) => this.transform!(d)) : this.domain;
-        const [d0, d1] = domain;
+        const { domain } = this;
+        if (domain.length < 2) return;
+
+        let d0: number = domain[0].valueOf();
+        let d1: number = domain[1].valueOf();
+        if (this.transform) {
+            d0 = this.transform(d0);
+            d1 = this.transform(d1);
+        }
 
         const { range } = this;
         const [r0, r1] = range;
 
         let d: any;
         if (r0 === r1) {
-            d = this.toDomain((Number(d0) + Number(d1)) / 2);
+            d = this.toDomain((d0 + d1) / 2);
         } else {
-            d = this.toDomain(Number(d0) + ((x - r0) / (r1 - r0)) * (Number(d1) - Number(d0)));
+            d = this.toDomain(d0 + ((x - r0) / (r1 - r0)) * (d1 - d0));
         }
 
         return this.transformInvert ? this.transformInvert(d) : d;

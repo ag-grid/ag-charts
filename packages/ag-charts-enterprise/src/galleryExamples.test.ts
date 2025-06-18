@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartOptions } from 'ag-charts-community';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
 import {
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -27,7 +27,7 @@ const ENTERPRISE_GALLERY_EXAMPLES = Object.entries(GALLERY_EXAMPLES)
 describe('Gallery Examples', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: AgChartInstance<AgChartOptions>;
     afterEach(() => {
         if (chart) {
             chart.destroy();
@@ -96,7 +96,7 @@ describe('Gallery Examples', () => {
                 });
 
                 it(`it should update chart instance as expected`, async () => {
-                    chart.update(options);
+                    await chart.update(options);
                     await waitForChartStability(chart);
 
                     await example.assertions(chart);
@@ -109,10 +109,10 @@ describe('Gallery Examples', () => {
                         return ctx.snapshot();
                     };
 
-                    chart.update(options);
+                    await chart.update(options);
 
                     const before = await snapshot();
-                    chart.update(options);
+                    await chart.update(options);
                     const after = await snapshot();
 
                     expect(after).toMatchImage(before);

@@ -60,10 +60,20 @@ export function lowestGranularityUnitForValue(value: Date | number): AgTimeInter
     return 'year';
 }
 
-export function domainSpansMultipleYears(domain: (Date | number)[]): boolean {
+export function dateTruncationForDomain(domain: (Date | number)[]): 'year' | 'month' | 'day' | undefined {
     const [d0, d1] =
         domain.length === 0 ? [0, 0] : findMinMax([domain[0].valueOf(), domain[domain.length - 1].valueOf()]);
     const startYear = new Date(d0).getFullYear();
     const stopYear = new Date(d1).getFullYear();
-    return stopYear - startYear > 0;
+    if (startYear !== stopYear) return;
+
+    const startMonth = new Date(d0).getMonth();
+    const stopMonth = new Date(d1).getMonth();
+    if (startMonth !== stopMonth) return 'year';
+
+    const startDate = new Date(d0).getDate();
+    const stopDate = new Date(d1).getDate();
+    if (startDate !== stopDate) return 'month';
+
+    return 'day';
 }

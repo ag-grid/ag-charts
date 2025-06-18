@@ -535,4 +535,22 @@ describe('OrdinalTimeScale', () => {
         );
         expect(datesSortOrder(domain)).toBe(1);
     });
+
+    describe('empty domain', () => {
+        test('convert does not throw', () => {
+            const scale = new OrdinalTimeScale();
+            scale.domain = [];
+            scale.range = [0, 100];
+
+            expect(() => scale.convert(new Date())).not.toThrow();
+        });
+
+        test('convert does not throw', () => {
+            const scale = new OrdinalTimeScale();
+            scale.domain = [];
+            scale.range = [0, 100];
+
+            expect(() => scale.invert(50)).not.toThrow();
+        });
+    });
 });
