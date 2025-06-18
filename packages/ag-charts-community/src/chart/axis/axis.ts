@@ -91,7 +91,7 @@ export type AxisTickFormatParams =
           unit: AgTimeIntervalUnit;
           step: number;
           epoch: Date | undefined;
-          includeYear?: boolean;
+          truncateDate?: 'year' | 'month' | 'day';
       }
     | {
           type: 'category';
@@ -638,13 +638,13 @@ export abstract class Axis<
 
         let fractionDigits: number | undefined;
         let timeInterval: AgTimeInterval | undefined;
-        let includeYear = false;
+        let truncateDate: 'year' | 'month' | 'day' | undefined;
         if (tickFormatParams.type === 'number') {
             fractionDigits = tickFormatParams.fractionDigits;
         } else if (tickFormatParams.type === 'date') {
             const { unit, step, epoch } = tickFormatParams;
             timeInterval = { unit, step, epoch };
-            includeYear = tickFormatParams.includeYear ?? false;
+            truncateDate = tickFormatParams.truncateDate;
         }
 
         const f = this.callWithContext.bind(this);
@@ -664,7 +664,7 @@ export abstract class Axis<
 
         const options = {
             specifier: FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
-            includeYear,
+            truncateDate,
         };
 
         return (value: any, index: number): string => {
@@ -673,7 +673,7 @@ export abstract class Axis<
             formatParams.value = value;
 
             return (
-                currentLabel.formatValue(f, formatParams, index, { specifier, dateStyle, includeYear }) ??
+                currentLabel.formatValue(f, formatParams, index, { specifier, dateStyle, truncateDate }) ??
                 formatManager.format(f, formatParams, options) ??
                 formatManager.defaultFormat(formatParams, options)
             );

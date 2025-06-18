@@ -21,7 +21,7 @@ type Specifier = Record<AgTimeIntervalUnit, string> | string;
 
 interface FormatParams {
     specifier?: Record<string, string> | string;
-    includeYear?: boolean;
+    truncateDate?: 'year' | 'month' | 'day';
 }
 
 export class FormatManager extends Listeners<'format-changed', () => void> {
@@ -32,10 +32,10 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
             specifier: Specifier | undefined,
             unit: AgTimeIntervalUnit,
             style: DateFormatterStyle,
-            includeYear: boolean
+            truncateDate: FormatParams['truncateDate']
         ) => {
             const mergedFormatter = FormatManager.mergeSpecifiers(propertyFormatter, specifier) ?? defaultTimeFormats;
-            return FormatManager.getFormatter('date', mergedFormatter, unit, style, { includeYear });
+            return FormatManager.getFormatter('date', mergedFormatter, unit, style, { truncateDate });
         }
     );
     formatter: FormatterConfiguration<any> | undefined = undefined;
@@ -60,7 +60,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         specifier: string | Partial<Record<AgTimeIntervalUnit, string>>,
         unit?: AgTimeIntervalUnit,
         style: DateFormatterStyle = 'long',
-        { includeYear = true } = {}
+        { truncateDate }: { truncateDate?: FormatParams['truncateDate'] } = {}
     ): ((value: any, fractionDigits?: number) => string) | undefined {
         if (isPlainObject(specifier)) {
             if (type !== 'date') {
@@ -73,7 +73,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
             const fullFormat =
                 style === 'component'
                     ? specifier?.[unit] ?? defaultTimeFormats[unit]
-                    : deriveTimeSpecifier(specifier, unit, includeYear);
+                    : deriveTimeSpecifier(specifier, unit, truncateDate);
 
             return buildDateFormatter(fullFormat) as (value: any) => string;
         }
@@ -102,7 +102,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
     format(
         formatInContext: ContextFormatter,
         params: FormatterParams<any>,
-        { specifier, includeYear = true }: FormatParams = {}
+        { specifier, truncateDate }: FormatParams = {}
     ): string | undefined {
         if (params.value == null) return;
 
@@ -121,7 +121,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
             return value != null ? String(value) : undefined;
         } else if (params.type === 'date') {
             const { unit, style } = params;
-            const dateFormatter = this.dateFormatter(propertyFormatter, specifier, unit, style, includeYear);
+            const dateFormatter = this.dateFormatter(propertyFormatter, specifier, unit, style, truncateDate);
             return dateFormatter?.(params.value);
         }
 
@@ -136,7 +136,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         return valueFormatter?.(params.value, params.type === 'number' ? params.fractionDigits : undefined);
     }
 
-    defaultFormat(params: FormatterParams<any>, { specifier, includeYear = true }: FormatParams = {}): string {
+    defaultFormat(params: FormatterParams<any>, { specifier, truncateDate }: FormatParams = {}): string {
         const { formatter } = this;
         const propertyFormatter = typeof formatter === 'function' ? undefined : formatter?.[params.property];
 
@@ -147,7 +147,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
                     propertyFormatter != null && typeof propertyFormatter !== 'function'
                         ? propertyFormatter
                         : undefined;
-                const dateFormatter = this.dateFormatter(propertySpecifier, specifier, unit, style, includeYear);
+                const dateFormatter = this.dateFormatter(propertySpecifier, specifier, unit, style, truncateDate);
                 return dateFormatter?.(params.value) ?? String(params.value);
             }
 
