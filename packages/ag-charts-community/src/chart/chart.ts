@@ -17,6 +17,7 @@ import type {
     AgChartOptions,
     AgColorType,
     AgInitialStateLegendOptions,
+    AgMiniChartSeriesOptions,
     AgPolarAxisOptions,
     FormatterConfiguration,
 } from 'ag-charts-types';
@@ -1309,7 +1310,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         const miniChart = navigatorModule?.miniChart;
-        const miniChartSeries = newOpts.navigator?.miniChart?.series ?? newOpts.series;
+        const miniChartSeries =
+            (newOpts.navigator?.miniChart?.series as Required<AgMiniChartSeriesOptions>[]) ?? newOpts.series;
         if (miniChart?.enabled === true && miniChartSeries != null) {
             this.applyMiniChartOptions(miniChart, miniChartSeries, newOpts, oldOpts);
         } else if (miniChart?.enabled === false) {
@@ -1413,7 +1415,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         completeOptions: AgChartOptions,
         oldOpts: AgChartOptions & { type?: SeriesOptionsTypes['type'] }
     ) {
-        const oldSeries = oldOpts?.navigator?.miniChart?.series ?? oldOpts?.series;
+        const oldSeries =
+            (oldOpts?.navigator?.miniChart?.series as Required<AgMiniChartSeriesOptions>[]) ?? oldOpts?.series;
         const miniChartSeriesStatus = this.applySeries(
             miniChart,
             this.filterMiniChartSeries(miniChartSeries),

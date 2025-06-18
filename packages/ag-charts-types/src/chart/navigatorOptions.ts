@@ -89,79 +89,83 @@ export type CommonIgnoredProperties =
     | 'xName'
     | 'yName';
 
+export type BarIgnoredProperties = CommonIgnoredProperties | 'errorBar' | 'label' | 'legendItemName' | 'direction';
+export type BoxPlotIgnoredProperties =
+    | CommonIgnoredProperties
+    | 'direction'
+    | 'legendItemName'
+    | 'minName'
+    | 'q1Name'
+    | 'medianName'
+    | 'q3Name'
+    | 'maxName';
+export type BubbleIgnoredProperties =
+    | CommonIgnoredProperties
+    | 'title'
+    | 'label'
+    | 'labelKey'
+    | 'labelName'
+    | 'sizeName';
+export type HeatmapIgnoredProperties =
+    | CommonIgnoredProperties
+    | 'title'
+    | 'label'
+    | 'colorName'
+    | 'textAlign'
+    | 'verticalAlign'
+    | 'itemPadding'
+    | 'colorRange';
+export type HistogramIgnoredProperties = CommonIgnoredProperties | 'label';
+export type LineIgnoredProperties = CommonIgnoredProperties | 'errorBar' | 'title' | 'label';
+export type RangeAreaIgnoredProperties = CommonIgnoredProperties | 'label' | 'yLowName' | 'yHighName';
+export type RangeBarIgnoredProperties = CommonIgnoredProperties | 'label' | 'direction' | 'yLowName' | 'yHighName';
+export type ScatterIgnoredProperties =
+    | CommonIgnoredProperties
+    | 'errorBar'
+    | 'title'
+    | 'label'
+    | 'labelKey'
+    | 'labelName';
+export type WaterfallIgnoredProperties = CommonIgnoredProperties | 'direction';
+
 export interface AgLineMiniChartSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgLineSeriesOptions<TDatum, TContext>, CommonIgnoredProperties | 'errorBar' | 'title' | 'label'> {}
+    extends Partial<Omit<AgLineSeriesOptions<TDatum, TContext>, LineIgnoredProperties>> {}
 
 export interface AgScatterMiniChartSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<
-        AgScatterSeriesOptions<TDatum, TContext>,
-        CommonIgnoredProperties | 'errorBar' | 'title' | 'label' | 'labelKey' | 'labelName'
-    > {}
+    extends Partial<Omit<AgScatterSeriesOptions<TDatum, TContext>, ScatterIgnoredProperties>> {}
 
 export interface AgBubbleMiniChartSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<
-        AgBubbleSeriesOptions<TDatum, TContext>,
-        CommonIgnoredProperties | 'title' | 'label' | 'labelKey' | 'labelName' | 'sizeName'
-    > {}
+    extends Partial<Omit<AgBubbleSeriesOptions<TDatum, TContext>, BubbleIgnoredProperties>> {}
 
 export interface AgAreaMiniChartSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgAreaSeriesOptions<TDatum, TContext>, CommonIgnoredProperties> {}
+    extends Partial<Omit<AgAreaSeriesOptions<TDatum, TContext>, CommonIgnoredProperties>> {}
 
 export interface AgBarMiniChartSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<
-        AgBarSeriesOptions<TDatum, TContext>,
-        CommonIgnoredProperties | 'errorBar' | 'label' | 'legendItemName' | 'direction'
-    > {}
+    extends Partial<Omit<AgBarSeriesOptions<TDatum, TContext>, BarIgnoredProperties>> {}
 
 export interface AgBoxPlotMiniChartSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<
-        AgBoxPlotSeriesOptions<TDatum, TContext>,
-        | CommonIgnoredProperties
-        | 'direction'
-        | 'legendItemName'
-        | 'minName'
-        | 'q1Name'
-        | 'medianName'
-        | 'q3Name'
-        | 'maxName'
-    > {}
+    extends Partial<Omit<AgBoxPlotSeriesOptions<TDatum, TContext>, BoxPlotIgnoredProperties>> {}
 
 export interface AgHistogramMiniChartSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgHistogramSeriesOptions<TDatum, TContext>, CommonIgnoredProperties | 'label'> {}
+    extends Partial<Omit<AgHistogramSeriesOptions<TDatum, TContext>, HistogramIgnoredProperties>> {}
 
 export interface AgHeatmapMiniChartSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<
-        AgHeatmapSeriesOptions<TDatum, TContext>,
-        | CommonIgnoredProperties
-        | 'title'
-        | 'label'
-        | 'colorName'
-        | 'textAlign'
-        | 'verticalAlign'
-        | 'itemPadding'
-        | 'colorRange'
-    > {}
+    extends Partial<Omit<AgHeatmapSeriesOptions<TDatum, TContext>, HeatmapIgnoredProperties>> {}
 
 export interface AgWaterfallMiniChartSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgWaterfallSeriesOptions<TDatum, TContext>, CommonIgnoredProperties | 'direction'> {}
+    extends Partial<Omit<AgWaterfallSeriesOptions<TDatum, TContext>, WaterfallIgnoredProperties>> {}
 
 export interface AgRangeBarMiniChartSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<
-        AgRangeBarSeriesOptions<TDatum, TContext>,
-        CommonIgnoredProperties | 'label' | 'direction' | 'yLowName' | 'yHighName'
-    > {}
+    extends Partial<Omit<AgRangeBarSeriesOptions<TDatum, TContext>, RangeBarIgnoredProperties>> {}
 
 export interface AgRangeAreaMiniChartSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<
-        AgRangeAreaSeriesOptions<TDatum, TContext>,
-        CommonIgnoredProperties | 'label' | 'yLowName' | 'yHighName'
-    > {}
+    extends Partial<Omit<AgRangeAreaSeriesOptions<TDatum, TContext>, RangeAreaIgnoredProperties>> {}
 
 export interface AgCandlestickMiniChartSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgCandlestickSeriesOptions<TDatum, TContext>, CommonIgnoredProperties> {}
+    extends Partial<Omit<AgCandlestickSeriesOptions<TDatum, TContext>, CommonIgnoredProperties>> {}
 
 export interface AgOhlcMiniChartSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgOhlcSeriesOptions<TDatum, TContext>, CommonIgnoredProperties> {}
+    extends Partial<Omit<AgOhlcSeriesOptions<TDatum, TContext>, CommonIgnoredProperties>> {}
 
 export type AgMiniChartSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault> =
     | AgLineMiniChartSeriesOptions<TDatum, TContext>

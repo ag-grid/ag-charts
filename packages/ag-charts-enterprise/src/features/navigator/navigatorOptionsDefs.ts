@@ -16,7 +16,17 @@ import type {
     AgMiniChartSeriesOptions,
     AgNavigatorHandleOptions,
     AgNavigatorOptions,
+    BarIgnoredProperties,
+    BoxPlotIgnoredProperties,
+    BubbleIgnoredProperties,
     CommonIgnoredProperties,
+    HeatmapIgnoredProperties,
+    HistogramIgnoredProperties,
+    LineIgnoredProperties,
+    RangeAreaIgnoredProperties,
+    RangeBarIgnoredProperties,
+    ScatterIgnoredProperties,
+    WaterfallIgnoredProperties,
 } from 'ag-charts-types';
 
 import { BoxPlotSeriesModule } from '../../series/box-plot';
@@ -48,7 +58,7 @@ export const navigatorHandleOptionsDef: OptionsDefs<AgNavigatorHandleOptions> = 
     cornerRadius: positiveNumber,
 };
 
-const commonIgnoredMiniChartProperties: CommonIgnoredProperties[] = [
+export const commonIgnoredMiniChartProperties: CommonIgnoredProperties[] = [
     'cursor',
     'highlightStyle',
     'listeners',
@@ -59,6 +69,77 @@ const commonIgnoredMiniChartProperties: CommonIgnoredProperties[] = [
     'visible',
     'xName',
     'yName',
+];
+
+export const barIgnoredMiniChartProperties: BarIgnoredProperties[] = [
+    ...commonIgnoredMiniChartProperties,
+    'errorBar',
+    'label',
+    'legendItemName',
+    'direction',
+];
+export const boxPlotIngnoredMiniChartProperties: BoxPlotIgnoredProperties[] = [
+    ...commonIgnoredMiniChartProperties,
+    'direction',
+    'legendItemName',
+    'minName',
+    'q1Name',
+    'medianName',
+    'q3Name',
+    'maxName',
+];
+export const bubbleIgnoredMiniChartProperties: BubbleIgnoredProperties[] = [
+    ...commonIgnoredMiniChartProperties,
+    'title',
+    'label',
+    'labelKey',
+    'labelName',
+    'sizeName',
+];
+export const heatmapIgnoredMiniChartProperties: HeatmapIgnoredProperties[] = [
+    ...commonIgnoredMiniChartProperties,
+    'title',
+    'label',
+    'colorName',
+    'textAlign',
+    'verticalAlign',
+    'itemPadding',
+    'colorRange',
+];
+export const histogramIgnoredMiniChartProperties: HistogramIgnoredProperties[] = [
+    ...commonIgnoredMiniChartProperties,
+    'label',
+];
+export const lineIgnoredMiniChartProperties: LineIgnoredProperties[] = [
+    ...commonIgnoredMiniChartProperties,
+    'errorBar',
+    'title',
+    'label',
+];
+export const rangeAreaIgnoredMiniChartProperties: RangeAreaIgnoredProperties[] = [
+    ...commonIgnoredMiniChartProperties,
+    'label',
+    'yLowName',
+    'yHighName',
+];
+export const rangeBarIgnoredMiniChartProperties: RangeBarIgnoredProperties[] = [
+    ...commonIgnoredMiniChartProperties,
+    'direction',
+    'label',
+    'yLowName',
+    'yHighName',
+];
+export const scatterIgnoredMiniChartProperties: ScatterIgnoredProperties[] = [
+    ...commonIgnoredMiniChartProperties,
+    'errorBar',
+    'title',
+    'label',
+    'labelKey',
+    'labelName',
+];
+export const waterfallIgnoredMiniChartProperties: WaterfallIgnoredProperties[] = [
+    ...commonIgnoredMiniChartProperties,
+    'direction',
 ];
 
 export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
@@ -97,79 +178,28 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
         series: arrayOfDefs(
             typeUnion<Required<AgMiniChartSeriesOptions>>(
                 {
-                    area: without(NewAreaSeriesModule.options, commonIgnoredMiniChartProperties),
-                    bar: without(NewBarSeriesModule.options, [
+                    area: without(NewAreaSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type']),
+                    bar: without(NewBarSeriesModule.options, [...barIgnoredMiniChartProperties, 'type']),
+                    'box-plot': without(BoxPlotSeriesModule.options, [...boxPlotIngnoredMiniChartProperties, 'type']),
+                    bubble: without(NewBubbleSeriesModule.options, [...bubbleIgnoredMiniChartProperties, 'type']),
+                    candlestick: without(CandlestickSeriesModule.options, [
                         ...commonIgnoredMiniChartProperties,
-                        'errorBar',
-                        'label',
-                        'legendItemName',
-                        'direction',
+                        'type',
                     ]),
-                    'box-plot': without(BoxPlotSeriesModule.options, [
-                        ...commonIgnoredMiniChartProperties,
-                        'direction',
-                        'legendItemName',
-                        'minName',
-                        'q1Name',
-                        'medianName',
-                        'q3Name',
-                        'maxName',
-                    ]),
-                    bubble: without(NewBubbleSeriesModule.options, [
-                        ...commonIgnoredMiniChartProperties,
-                        'title',
-                        'label',
-                        'labelKey',
-                        'labelName',
-                        'sizeName',
-                    ]),
-                    candlestick: without(CandlestickSeriesModule.options, commonIgnoredMiniChartProperties),
-                    heatmap: without(HeatmapSeriesModule.options, [
-                        ...commonIgnoredMiniChartProperties,
-                        'title',
-                        'label',
-                        'colorName',
-                        'textAlign',
-                        'verticalAlign',
-                        'itemPadding',
-                        'colorRange',
-                    ]),
+                    heatmap: without(HeatmapSeriesModule.options, [...heatmapIgnoredMiniChartProperties, 'type']),
                     histogram: without(NewHistogramSeriesModule.options, [
-                        ...commonIgnoredMiniChartProperties,
-                        'label',
+                        ...histogramIgnoredMiniChartProperties,
+                        'type',
                     ]),
-                    line: without(NewLineSeriesModule.options, [
-                        ...commonIgnoredMiniChartProperties,
-                        'errorBar',
-                        'title',
-                        'label',
-                    ]),
-                    ohlc: without(OhlcSeriesModule.options, commonIgnoredMiniChartProperties),
+                    line: without(NewLineSeriesModule.options, [...lineIgnoredMiniChartProperties, 'type']),
+                    ohlc: without(OhlcSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type']),
                     'range-area': without(RangeAreaSeriesModule.options, [
-                        ...commonIgnoredMiniChartProperties,
-                        'label',
-                        'yLowName',
-                        'yHighName',
+                        ...rangeAreaIgnoredMiniChartProperties,
+                        'type',
                     ]),
-                    'range-bar': without(RangeBarSeriesModule.options, [
-                        ...commonIgnoredMiniChartProperties,
-                        'direction',
-                        'label',
-                        'yLowName',
-                        'yHighName',
-                    ]),
-                    scatter: without(NewScatterSeriesModule.options, [
-                        ...commonIgnoredMiniChartProperties,
-                        'errorBar',
-                        'title',
-                        'label',
-                        'labelKey',
-                        'labelName',
-                    ]),
-                    waterfall: without(WaterfallSeriesModule.options, [
-                        ...commonIgnoredMiniChartProperties,
-                        'direction',
-                    ]),
+                    'range-bar': without(RangeBarSeriesModule.options, [...rangeBarIgnoredMiniChartProperties, 'type']),
+                    scatter: without(NewScatterSeriesModule.options, [...scatterIgnoredMiniChartProperties, 'type']),
+                    waterfall: without(WaterfallSeriesModule.options, [...waterfallIgnoredMiniChartProperties, 'type']),
                 },
                 'miniChart series options'
             )

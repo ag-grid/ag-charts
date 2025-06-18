@@ -20,6 +20,7 @@ import {
 import {
     type AgChartOptions,
     type AgChartThemeParams,
+    type AgMiniChartSeriesOptions,
     type AgPresetOptions,
     type AgPresetOverrides,
 } from 'ag-charts-types';
@@ -27,7 +28,7 @@ import {
 import { removeUnusedEnterpriseOptions, removeUsedEnterpriseOptions } from '../chart/factory/processEnterpriseOptions';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import { getChartTheme } from '../chart/mapping/themes';
-import { type SeriesOptionsTypes } from '../chart/mapping/types';
+import { type SeriesOptionsTypes, type SeriesType } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
 import { Debug } from '../util/debug';
 import { type CloneOptions, deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
@@ -58,7 +59,7 @@ type GroupingOptions = {
         stackCount: number;
     };
 };
-type GroupingSeriesOptions = SeriesOptionsTypes & GroupingOptions & { xKey?: string };
+type GroupingSeriesOptions = GroupingOptions & { type: SeriesType; xKey?: string };
 type SeriesGroup = { groupType: GroupingType; seriesType: string; series: GroupingSeriesOptions[]; groupId: string };
 
 enum GroupingType {
@@ -454,7 +455,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const miniChartSeries = options.navigator?.miniChart?.series;
         if (miniChartSeries == null) return;
 
-        options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
+        options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(
+            miniChartSeries as Required<AgMiniChartSeriesOptions>[]
+        ) as any;
     }
 
     private getSeriesGroupingOptions(series: SeriesOptionsTypes & GroupingOptions) {

@@ -205,18 +205,28 @@ export class AdjacencyListGraph<V, E = undefined> {
 
     debug() {
         let string = '';
-        for (const [from, edges] of this._edges) {
-            let f: any = this.getVertexValue(from);
-            if (isObject(f)) f = `{${Object.keys(f).join(',')}}`;
-            string += `${f}\n`;
-            for (const [edge, tos] of edges) {
-                for (const to of tos) {
-                    let t: any = this.getVertexValue(to);
-                    if (isObject(t)) t = `{${Object.keys(t).join(',')}}`;
-                    string += `  -> ${edge as any} -> ${t}\n`;
-                }
+        for (const from of this._edges.keys()) {
+            string += this.debugVertex(from);
+        }
+        return string;
+    }
+
+    debugVertex(vertex: Vertex<V>) {
+        let string = '';
+        const edges = this._edges.get(vertex);
+        if (!edges) return string;
+
+        let f: any = this.getVertexValue(vertex);
+        if (isObject(f)) f = `{${Object.keys(f).join(',')}}`;
+        string += `${f}\n`;
+        for (const [edge, tos] of edges) {
+            for (const to of tos) {
+                let t: any = this.getVertexValue(to);
+                if (isObject(t)) t = `{${Object.keys(t).join(',')}}`;
+                string += `  -> ${edge as any} -> ${t}\n`;
             }
         }
+
         return string;
     }
 }

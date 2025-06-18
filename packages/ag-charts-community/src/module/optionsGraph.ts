@@ -7,7 +7,7 @@ import { deepClone } from '../util/json';
 import { simpleMemorize } from '../util/memo';
 import { pick, without } from '../util/object';
 import { paletteType } from './coreModulesTypes';
-import { getOperation, operations } from './optionsGraphOperations';
+import { type Operation, getOperation, operations } from './optionsGraphOperations';
 import {
     AUTO_ENABLE_EDGE,
     AUTO_ENABLE_VALUE_EDGE,
@@ -84,7 +84,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private value$1: PlainObject = {};
 
-    private readonly cachedPathVertices = new Map();
+    private readonly cachedPathVertices: Map<string, Vertex<unknown>> = new Map();
 
     constructor(
         config: PlainObject = {},
@@ -228,6 +228,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             return this.cachedPathVertices.get(key);
         }
         const vertex = this.findVertexAlongEdge(this.root, path, PATH_EDGE);
+        if (!vertex) return;
         this.cachedPathVertices.set(key, vertex);
         return vertex;
     }
@@ -366,12 +367,10 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     // Resolve a branch as if it were a child of the context vertex, but without attaching it to the resolved root.
     graftAndResolveOrphan(context: Vertex<unknown>, branch: Vertex<unknown>) {
         const orphan: PlainObject = {};
-
         const orphanVertex = this.addVertex(orphan);
-
         const contextPathArray = this.getPathArray(context);
-        this.graftAndResolveChildren(context, branch, orphanVertex, contextPathArray, []);
 
+        this.graftAndResolveChildren(branch, orphanVertex, contextPathArray, []);
         this.resolveVertex(orphanVertex, orphan);
 
         return getPathSafe(orphan, contextPathArray);
@@ -389,10 +388,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         if (operation) {
             const valueVertex = this.addVertex(object);
             this.addEdge(parentVertex, valueVertex, edgeValue);
-            this.addEdge(valueVertex, this.addVertex(operation.operation), OPERATION_EDGE);
-            for (const operationValue of operation.values) {
-                this.buildGraphFromOperationValue(valueVertex, operationValue, edgeValue, pathArrayVertex);
-            }
+            this.buildGraphFromOperation(valueVertex, edgeValue, operation, pathArrayVertex);
             return;
         }
 
@@ -492,10 +488,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             const valueVertex = this.addVertex(value);
             this.addEdge(pathVertex, valueVertex, edgeValue);
             this.addEdge(valueVertex, pathArrayVertex, PATH_ARRAY_EDGE);
-            this.addEdge(valueVertex, this.addVertex(operation.operation), OPERATION_EDGE);
-            for (const operationValue of operation.values) {
-                this.buildGraphFromOperationValue(valueVertex, operationValue, edgeValue, pathArrayVertex);
-            }
+            this.buildGraphFromOperation(valueVertex, edgeValue, operation, pathArrayVertex);
         } else if (isObjectLike(value)) {
             this.buildGraphFromObject(pathVertex, edgeValue, value, pathArrayVertex, shallowPaths);
         } else {
@@ -523,6 +516,19 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.addEdge(pathVertex, valueVertex, edgeValue);
     }
 
+    private buildGraphFromOperation(
+        valueVertex: Vertex<unknown>,
+        edgeValue: string,
+        operation: { operation: Operation; values: Array<Vertex<unknown>> },
+        pathArrayVertex?: Vertex<unknown>
+    ) {
+        const operationVertex = this.addVertex(operation.operation);
+        this.addEdge(valueVertex, operationVertex, OPERATION_EDGE);
+        for (const operationValue of operation.values) {
+            this.buildGraphFromOperationValue(valueVertex, operationValue, edgeValue, pathArrayVertex);
+        }
+    }
+
     private buildGraphFromOperationValue(
         valueVertex: Vertex<unknown>,
         operationValue: unknown,
@@ -537,15 +543,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
         const innerOperation = getOperation(operationValue);
         if (innerOperation) {
-            this.addEdge(operationValueVertex, this.addVertex(innerOperation.operation), OPERATION_EDGE);
-            for (const innerOperationValue of innerOperation.values) {
-                this.buildGraphFromOperationValue(
-                    operationValueVertex,
-                    innerOperationValue,
-                    edgeValue,
-                    pathArrayVertex
-                );
-            }
+            this.buildGraphFromOperation(operationValueVertex, edgeValue, innerOperation, pathArrayVertex);
         } else if (isObjectLike(operationValue)) {
             this.buildGraphFromObject(operationValueVertex, edgeValue, operationValue, pathArrayVertex);
         }
@@ -662,7 +660,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     }
 
     private graftAndResolveChildren(
-        contextBranch: Vertex<unknown>,
         remoteBranch: Vertex<unknown>,
         orphanBranch: Vertex<unknown>,
         contextPathArray: Array<string>,
@@ -707,7 +704,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             }
 
             this.graftAndResolveChildren(
-                contextBranch,
                 remoteChild,
                 orphanChildPathVertex,
                 childContextPathArray,
