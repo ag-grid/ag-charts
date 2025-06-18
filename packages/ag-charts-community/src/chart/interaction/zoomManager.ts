@@ -13,7 +13,6 @@ import {
     number,
     or,
     ratio as ratioValidator,
-    string,
     union,
     validate,
 } from 'ag-charts-core';
@@ -139,8 +138,11 @@ export class ZoomManager extends BaseManager {
         const primaryY = this.getPrimaryAxis(ChartAxisDirection.Y);
 
         const zoomMementoDefs: OptionsDefs<ZoomMemento> = {
-            rangeX: { start: and(or(number, string, date), rangeValidator(primaryX)), end: or(number, string, date) },
-            rangeY: { start: and(or(number, string, date), rangeValidator(primaryY)), end: or(number, string, date) },
+            // @todo(AG-13954) - revisit category ratios
+            // rangeX: { start: and(or(number, string, date), rangeValidator(primaryX)), end: or(number, string, date) },
+            // rangeY: { start: and(or(number, string, date), rangeValidator(primaryY)), end: or(number, string, date) },
+            rangeX: { start: and(or(number, date), rangeValidator(primaryX)), end: or(number, date) },
+            rangeY: { start: and(or(number, date), rangeValidator(primaryY)), end: or(number, date) },
             ratioX: { start: and(ratioValidator, lessThan('end')), end: ratioValidator },
             ratioY: { start: and(ratioValidator, lessThan('end')), end: ratioValidator },
             autoScaledAxes: arrayOf(union('y')),
@@ -597,8 +599,9 @@ export class ZoomManager extends BaseManager {
         const [d0, d1] = extents;
 
         const { scale } = axis;
-        let r0 = range.start == null ? d0 : scale.convert?.(range.start);
-        let r1 = range.end == null ? d1 : scale.convert?.(range.end) + (scale.bandwidth ?? 0);
+
+        let r0 = range.start == null ? d0 : scale.convert(range.start);
+        let r1 = range.end == null ? d1 : scale.convert(range.end) + (scale.bandwidth ?? 0);
 
         if (!isFiniteNumber(r0) || !isFiniteNumber(r1)) return;
 
@@ -606,14 +609,14 @@ export class ZoomManager extends BaseManager {
 
         if (r0 < dMin || r0 > dMax) {
             Logger.warnOnce(
-                `Invalid range start [${range.start}], expecting a value between [${scale.invert?.(d0)}] and [${scale.invert?.(d1)}], ignoring.`
+                `Invalid range start [${range.start}], expecting a value between [${scale.invert(d0)}] and [${scale.invert?.(d1)}], ignoring.`
             );
             return;
         }
 
         if (r1 < dMin || r1 > dMax) {
             Logger.warnOnce(
-                `Invalid range end [${range.end}], expecting a value between [${scale.invert?.(d0)}] and [${scale.invert?.(d1)}], ignoring.`
+                `Invalid range end [${range.end}], expecting a value between [${scale.invert(d0)}] and [${scale.invert?.(d1)}], ignoring.`
             );
             return;
         }
