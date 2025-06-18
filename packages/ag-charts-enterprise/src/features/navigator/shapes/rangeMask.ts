@@ -76,11 +76,15 @@ export class RangeMask<D = any> extends Path<D> {
             bottomLeft: cornerRadius,
         };
 
-        clippedRoundRect(path, ax, ay, aw, ah, cornerRadiusParams, new BBox(ax, ay, minX - ax, ah));
-        clippedRoundRect(path, ax, ay, aw, ah, cornerRadiusParams, new BBox(maxX, ay, aw + ax - maxX, ah));
-        if (maxX - minX > 1) {
-            clippedRoundRect(visiblePath, ax, ay, aw, ah, cornerRadiusParams, new BBox(minX, ay, maxX - minX, ah));
-        }
+        const drawRect = (p: _ModuleSupport.ExtendedPath2D, x0: number, x1: number) => {
+            if (x1 - x0 < 1) return;
+            const bbox = new BBox(x0, ay, x1 - x0, ah);
+            clippedRoundRect(p, ax, ay, aw, ah, cornerRadiusParams, bbox);
+        };
+
+        drawRect(path, ax, minX);
+        drawRect(path, maxX, aw + ax);
+        drawRect(visiblePath, minX, maxX);
     }
 
     protected override renderStroke(ctx: _ModuleSupport.CanvasContext, path?: Path2D): void {

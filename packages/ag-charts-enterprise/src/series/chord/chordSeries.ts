@@ -369,7 +369,7 @@ export class ChordSeries extends FlowProportionSeries<
     protected getBaseNodeStyle(isHighlight: boolean, datum?: ChordDatum): NodeStyle {
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.node;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
         return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? fill,
@@ -496,7 +496,7 @@ export class ChordSeries extends FlowProportionSeries<
     protected getBaseLinkStyle(isHighlight: boolean, datum?: ChordDatum): LinkStyle {
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, tension } = properties.link;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
 
         return getShapeStyle(
             {

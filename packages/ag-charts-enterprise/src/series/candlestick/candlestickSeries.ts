@@ -105,7 +105,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             const risingStyle = isRising ? upStyle : downStyle;
             const risingWickStyle = isRising ? up.wick : down.wick;
 
-            const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
 
             applyShapeStyle(
                 node,

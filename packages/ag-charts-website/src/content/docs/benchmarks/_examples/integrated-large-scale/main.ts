@@ -11,4 +11,9 @@ const options: AgCartesianChartOptions = {
 };
 /* @ag-options-end */
 
-var chart = AgCharts.create(options);
+const start = performance.now();
+const chart = AgCharts.create(options);
+
+chart.waitForUpdate().then(() => {
+    console.log('Total update time: ', performance.now() - start);
+});

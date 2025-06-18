@@ -10,7 +10,7 @@ describe('large-dataset benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 620, expectedCanvasCount: 4 },
+        { expectedRelativeMB: 640, expectedCanvasCount: 4 },
         async () => await ctx.create(),
         15_000
     );

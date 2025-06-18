@@ -575,7 +575,11 @@ export abstract class Series<
         return strokeWidth;
     }
 
-    protected getHighlightState(isHighlight?: boolean, datum?: TDatum, legendItemValues?: string[]): HighlightState {
+    protected getHighlightState(
+        isHighlight?: boolean,
+        datumIndex?: TDatumIndex,
+        legendItemValues?: string[]
+    ): HighlightState {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
 
         if (isHighlight) {
@@ -587,7 +591,7 @@ export abstract class Series<
         }
 
         if (this.isSeriesHighlighted(highlightedDatum, legendItemValues)) {
-            const itemHighlighted = this.isItemHighlighted(highlightedDatum, datum);
+            const itemHighlighted = this.isItemHighlighted(highlightedDatum, datumIndex);
             if (itemHighlighted == null) {
                 return HighlightState.Series;
             }
@@ -604,14 +608,14 @@ export abstract class Series<
         return highlightedDatum?.series === this;
     }
 
-    protected isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datum?: TDatum) {
+    protected isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datumIndex?: TDatumIndex) {
         // If this function is being invoked, we have already determined that the series is highlighted.
-        if (highlightedDatum?.datumIndex == null || datum?.datumIndex == null) return;
-        return highlightedDatum.datumIndex === datum.datumIndex;
+        if (highlightedDatum?.datumIndex == null || datumIndex == null) return;
+        return highlightedDatum.datumIndex === datumIndex;
     }
 
-    protected getHighlightStyle(isHighlight?: boolean, datum?: TDatum, legendItemValues?: string[]) {
-        const highlightState = this.getHighlightState(isHighlight, datum, legendItemValues);
+    protected getHighlightStyle(isHighlight?: boolean, datumIndex?: TDatumIndex, legendItemValues?: string[]) {
+        const highlightState = this.getHighlightState(isHighlight, datumIndex, legendItemValues);
         return this.properties.highlight.getStyle(highlightState);
     }
 

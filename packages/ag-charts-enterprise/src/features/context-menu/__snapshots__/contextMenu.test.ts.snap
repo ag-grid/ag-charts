@@ -31,12 +31,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Download
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__cell"
         />
       </div>
     </div>
@@ -66,12 +66,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Download
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__cell"
         />
       </div>
     </div>
@@ -101,12 +101,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Download
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__cell"
         />
       </div>
       <div
@@ -119,12 +119,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Toggle Visibility
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__cell"
         />
       </div>
     </div>
@@ -154,12 +154,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Download
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__cell"
         />
       </div>
       <div
@@ -172,12 +172,12 @@ HTMLCollection [
           class="ag-charts-context-menu__icon"
         />
         <div
-          class="ag-charts-context-menu__label ag-charts-context-menu__cellpadding"
+          class="ag-charts-context-menu__cell ag-charts-context-menu__cellpadding"
         >
           Toggle Visibility
         </div>
         <div
-          class="ag-charts-context-menu__rightarrowhead"
+          class="ag-charts-context-menu__cell"
         />
       </div>
     </div>

@@ -78,7 +78,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
             node.yClose = yClose;
             node.crisp = crisp;
 
-            const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
 
             applyShapeStyle(node, {
                 stroke: highlightStyle?.stroke ?? style?.stroke ?? (isRising ? upStroke : downStroke),

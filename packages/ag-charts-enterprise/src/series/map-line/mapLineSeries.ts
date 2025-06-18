@@ -389,7 +389,7 @@ export class MapLineSeries extends TopologySeries<
 
     private getItemBaseStyle(isHighlight: boolean, datum?: MapLineNodeDatum): ItemStyle {
         const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
 
         return {
             stroke: highlightStyle?.stroke ?? properties.stroke,
@@ -497,7 +497,7 @@ export class MapLineSeries extends TopologySeries<
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
 
-        labelSelection.each((label, { x, y, width, height, text }) => {
+        labelSelection.each((label, { x, y, width, height, text }, datumIndex) => {
             label.visible = true;
             label.x = x + width / 2;
             label.y = y + height / 2;
@@ -509,6 +509,7 @@ export class MapLineSeries extends TopologySeries<
             label.fontFamily = fontFamily;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
+            label.opacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
         });
     }
 
