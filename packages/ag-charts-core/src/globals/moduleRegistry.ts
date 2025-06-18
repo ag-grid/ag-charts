@@ -1,5 +1,3 @@
-import { Logger } from 'ag-charts-core';
-
 import {
     type AxisModuleDefinition,
     type ChartModuleDefinition,
@@ -9,6 +7,7 @@ import {
     type PresetModuleDefinition,
     type SeriesModuleDefinition,
 } from '../interfaces/moduleDefinition';
+import * as Logger from './logger';
 
 const registeredModules: Map<string, { def: ModuleDefinition; version: string }> = new Map();
 
