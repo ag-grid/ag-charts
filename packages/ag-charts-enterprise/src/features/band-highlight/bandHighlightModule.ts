@@ -11,6 +11,7 @@ export const BandHighlightModule: _ModuleSupport.AxisOptionModule = {
     moduleFactory: (ctx) => new BandHighlight(ctx),
     themeTemplate: {
         bandHighlight: {
+            enabled: false,
             strokeWidth: 0,
             lineDash: [],
             fill: { $foregroundBackgroundMix: [0.05] },

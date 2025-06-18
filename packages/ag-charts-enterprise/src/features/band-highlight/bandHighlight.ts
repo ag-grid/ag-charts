@@ -40,6 +40,9 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
     fill: InternalAgColorType = '#c16068';
 
     @Property
+    fillOpacity: number = 1;
+
+    @Property
     readonly fillGradientDefaults = new FillGradientDefaults();
 
     @Property
@@ -167,6 +170,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
             strokeOpacity,
             lineDash,
             fill,
+            fillOpacity,
             fillGradientDefaults,
             fillPatternDefaults,
             fillImageDefaults,
@@ -182,6 +186,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
         node.lineDash = lineDash;
         node.lineDashOffset = lineDashOffset;
         node.fill = getShapeFill(fill, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+        node.fillOpacity = fillOpacity;
         node.startLine = true;
         node.endLine = true;
     }
