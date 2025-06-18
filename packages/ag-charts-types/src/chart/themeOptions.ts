@@ -296,7 +296,9 @@ export interface AgLinearGaugeThemeOverrides<TDatum = TDatumDefault, TContext = 
     targets?: AgLinearGaugeTargetTheme;
 }
 
-export interface AgCommonThemeableAxisOptions<TContext = TContextDefault> extends AgCartesianAxesTheme<TContext>, AgPolarAxesTheme<TContext> {}
+export interface AgCommonThemeableAxisOptions<TContext = TContextDefault>
+    extends AgCartesianAxesTheme<TContext>,
+        AgPolarAxesTheme<TContext> {}
 
 export interface AgCommonThemeableChartOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseThemeableChartOptions<TDatum, TContext> {

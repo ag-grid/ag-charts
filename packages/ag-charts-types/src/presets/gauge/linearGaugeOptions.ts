@@ -99,7 +99,8 @@ export interface AgLinearGaugeLabelOptions extends AgChartAutoSizedLabelOptions<
     placement?: AgLinearGaugeLabelPlacement;
 }
 
-export interface AgLinearGaugeThemeableOptions<TContext =TContextDefault> extends AgBaseGaugeThemeableOptions<TContext> {
+export interface AgLinearGaugeThemeableOptions<TContext = TContextDefault>
+    extends AgBaseGaugeThemeableOptions<TContext> {
     /** Direction to display the gauge in. */
     direction?: Direction;
     /** Width of the gauge, or the height if `direction` is `horizontal`. */

@@ -34,8 +34,9 @@ export interface AgBaseGaugeThemeableOptions<TContext = TContextDefault> {
 // Verification checks for completeness/correctness.
 const __THEMEABLE_OPTIONS = undefined as any as Required<AgBaseGaugeThemeableOptions<unknown>>;
 // @ts-expect-error TS6133 - this is used to validate completeness by the compiler, but is deliberately unused.
-let __VERIFY_THEMEABLE_OPTIONS: Required<Omit<AgBaseSeriesThemeableOptions<any, unknown>, 'showInLegend' | 'listeners'>> =
-    undefined as any;
+let __VERIFY_THEMEABLE_OPTIONS: Required<
+    Omit<AgBaseSeriesThemeableOptions<any, unknown>, 'showInLegend' | 'listeners'>
+> = undefined as any;
 __VERIFY_THEMEABLE_OPTIONS = __THEMEABLE_OPTIONS;
 
 export interface AgGaugeScaleLabel<TContext> {

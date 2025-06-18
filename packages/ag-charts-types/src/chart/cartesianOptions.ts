@@ -315,7 +315,10 @@ export interface AgCartesianAxesTheme<TContext = TContextDefault> {
     'unit-time'?: AgUnitTimeAxisThemeOptions<AgBaseCrossLineLabelOptions, TContext>;
 }
 
-export type AgContinuousCartesianAxesTheme<TContext = TContextDefault> = Pick<AgCartesianAxesTheme<TContext>, 'number' | 'log' | 'time'>;
+export type AgContinuousCartesianAxesTheme<TContext = TContextDefault> = Pick<
+    AgCartesianAxesTheme<TContext>,
+    'number' | 'log' | 'time'
+>;
 
 type ThemeOmittedAxisOptions = 'type' | 'crossLines';
 
