@@ -17,7 +17,7 @@ import { Property } from '../../util/properties';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { FormatManager } from '../formatter/formatManager';
 
-type FormatterCacheKey = `${DateFormatterStyle}:${boolean}`;
+type FormatterCacheKey = `${DateFormatterStyle}:${'year' | 'month' | 'day' | 'none'}`;
 
 interface FormatterCache {
     type: string;
@@ -126,10 +126,14 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     format?: string | Record<string, string>;
 
     private _formatters: Record<FormatterCacheKey, FormatterCache | undefined> = {
-        'component:true': undefined,
-        'component:false': undefined,
-        'long:true': undefined,
-        'long:false': undefined,
+        'component:year': undefined,
+        'component:month': undefined,
+        'component:day': undefined,
+        'component:none': undefined,
+        'long:year': undefined,
+        'long:month': undefined,
+        'long:day': undefined,
+        'long:none': undefined,
     };
     formatValue(
         callWithContext: (
@@ -141,10 +145,10 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
         options: {
             specifier?: string | Record<string, string>;
             dateStyle: DateFormatterStyle;
-            includeYear: boolean;
+            truncateDate: 'year' | 'month' | 'day' | undefined;
         } = {
             dateStyle: 'long',
-            includeYear: true,
+            truncateDate: undefined,
         }
     ) {
         const { formatter, format } = this;
@@ -159,8 +163,8 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
         }
 
         if (format != null) {
-            const { specifier, dateStyle, includeYear } = options;
-            const cacheKey: FormatterCacheKey = `${dateStyle}:${includeYear}`;
+            const { specifier, dateStyle, truncateDate } = options;
+            const cacheKey: FormatterCacheKey = `${dateStyle}:${truncateDate ?? 'none'}`;
             let valueFormatter = this._formatters[cacheKey];
 
             const mergedFormat = FormatManager.mergeSpecifiers(specifier, format);

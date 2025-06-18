@@ -1,4 +1,4 @@
-import { type AnyFn, CleanupRegistry, createId } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, WeakCache, createId } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -32,7 +32,7 @@ import { Selection } from '../../scene/selection';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
-import { mergeDefaults } from '../../util/object';
+import { deepFreeze, mergeDefaults } from '../../util/object';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
@@ -91,7 +91,7 @@ export type AxisTickFormatParams =
           unit: AgTimeIntervalUnit;
           step: number;
           epoch: Date | undefined;
-          includeYear?: boolean;
+          truncateDate?: 'year' | 'month' | 'day';
       }
     | {
           type: 'category';
@@ -394,6 +394,7 @@ export abstract class Axis<
      * Creates/removes/updates the scene graph nodes that constitute the axis.
      */
     update() {
+        this.formatterBoundSeries.clear();
         this.updatePosition();
         this.updateSelections();
 
@@ -634,17 +635,17 @@ export abstract class Axis<
         const primaryLabel = primary ? this.primaryLabel : undefined;
 
         const tickFormatParams = this.tickFormatParams(domain, ticks, inputFractionDigits, inputTimeInterval);
-        const boundSeries = this.getFormatterBoundSeries();
+        const boundSeries = this.formatterBoundSeries.get();
 
         let fractionDigits: number | undefined;
         let timeInterval: AgTimeInterval | undefined;
-        let includeYear = false;
+        let truncateDate: 'year' | 'month' | 'day' | undefined;
         if (tickFormatParams.type === 'number') {
             fractionDigits = tickFormatParams.fractionDigits;
         } else if (tickFormatParams.type === 'date') {
             const { unit, step, epoch } = tickFormatParams;
             timeInterval = { unit, step, epoch };
-            includeYear = tickFormatParams.includeYear ?? false;
+            truncateDate = tickFormatParams.truncateDate;
         }
 
         const f = this.callWithContext.bind(this);
@@ -664,7 +665,7 @@ export abstract class Axis<
 
         const options = {
             specifier: FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
-            includeYear,
+            truncateDate,
         };
 
         return (value: any, index: number): string => {
@@ -673,7 +674,7 @@ export abstract class Axis<
             formatParams.value = value;
 
             return (
-                currentLabel.formatValue(f, formatParams, index, { specifier, dateStyle, includeYear }) ??
+                currentLabel.formatValue(f, formatParams, index, { specifier, dateStyle, truncateDate }) ??
                 formatManager.format(f, formatParams, options) ??
                 formatManager.defaultFormat(formatParams, options)
             );
@@ -718,7 +719,7 @@ export abstract class Axis<
         const { moduleCtx, direction, dataDomain } = this;
         domain ??= dataDomain.domain;
         const { formatManager } = moduleCtx;
-        const boundSeries = this.getFormatterBoundSeries();
+        const boundSeries = this.formatterBoundSeries.get();
 
         let inputFractionDigits: number | undefined;
         switch (source) {
@@ -777,14 +778,14 @@ export abstract class Axis<
         this.gridGroup.setClipRect(new BBox(x, y, width, height));
     }
 
-    private getFormatterBoundSeries(): AgAxisBoundSeries[] {
-        const { direction } = this;
-        return this.boundSeries.flatMap((series) => series.getFormatterContext(direction));
-    }
+    private readonly formatterBoundSeries = new WeakCache<AgAxisBoundSeries[]>(() => {
+        const { direction, boundSeries } = this;
+        return deepFreeze(boundSeries.flatMap((series) => series.getFormatterContext(direction)));
+    });
 
     protected getTitleFormatterParams(domain: D[]) {
         const { direction } = this;
-        const boundSeries = this.getFormatterBoundSeries();
+        const boundSeries = this.formatterBoundSeries.get();
         return { domain, direction, boundSeries, defaultValue: this.title?.text };
     }
 

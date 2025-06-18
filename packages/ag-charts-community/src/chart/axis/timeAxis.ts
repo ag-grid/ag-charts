@@ -8,7 +8,7 @@ import { BaseProperties, Property } from '../../util/properties';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { intervalEpoch, intervalFloor, intervalMilliseconds, intervalStep, intervalUnit } from '../../util/time';
 import {
-    domainSpansMultipleYears,
+    dateTruncationForDomain,
     lowestGranularityForInterval,
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
@@ -89,11 +89,11 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         timeInterval?: AgTimeInterval | AgTimeIntervalUnit
     ): AxisTickFormatParams {
         timeInterval ??= lowestGranularityUnitForTicks(ticks);
-        const includeYear = domainSpansMultipleYears(domain);
+        const truncateDate = dateTruncationForDomain(domain);
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
         const epoch = intervalEpoch(timeInterval);
-        return { type: 'date', unit, step, epoch, includeYear };
+        return { type: 'date', unit, step, epoch, truncateDate };
     }
 
     override datumFormatParams(

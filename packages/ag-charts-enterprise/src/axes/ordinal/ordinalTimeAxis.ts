@@ -13,7 +13,7 @@ const {
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
     minimumTimeAxisDatumGranularity,
-    domainSpansMultipleYears,
+    dateTruncationForDomain,
     intervalUnit,
     intervalStep,
     intervalEpoch,
@@ -55,11 +55,11 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
         timeInterval?: AgTimeInterval | AgTimeIntervalUnit
     ): _ModuleSupport.AxisTickFormatParams {
         timeInterval ??= lowestGranularityUnitForTicks(ticks);
-        const includeYear = domainSpansMultipleYears(domain);
+        const truncateDate = dateTruncationForDomain(domain);
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
         const epoch = intervalEpoch(timeInterval);
-        return { type: 'date', unit, step, epoch, includeYear };
+        return { type: 'date', unit, step, epoch, truncateDate };
     }
 
     override datumFormatParams(

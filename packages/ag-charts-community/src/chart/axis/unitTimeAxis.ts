@@ -7,7 +7,7 @@ import { Property } from '../../util/properties';
 import { intervalEpoch, intervalFloor, intervalStep, intervalUnit } from '../../util/time';
 import { buildDateFormatter } from '../../util/timeFormat';
 import {
-    domainSpansMultipleYears,
+    dateTruncationForDomain,
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
 } from '../../util/timeFormatDefaults';
@@ -101,11 +101,11 @@ export class UnitTimeAxis extends CategoryAxis<UnitTimeScale> {
         timeInterval?: AgTimeInterval | AgTimeIntervalUnit
     ): AxisTickFormatParams {
         timeInterval ??= lowestGranularityUnitForTicks(ticks);
-        const includeYear = domainSpansMultipleYears(domain);
+        const truncateDate = dateTruncationForDomain(domain);
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
         const epoch = intervalEpoch(timeInterval);
-        return { type: 'date', unit, step, epoch, includeYear };
+        return { type: 'date', unit, step, epoch, truncateDate };
     }
 
     override datumFormatParams(
