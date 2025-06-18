@@ -7,21 +7,56 @@ import {
     type PresetModuleDefinition,
     type SeriesModuleDefinition,
 } from '../interfaces/moduleDefinition';
+import * as Logger from './logger';
 
-const registeredModules: Map<string, ModuleDefinition> = new Map();
+const registeredModules: Map<string, { def: ModuleDefinition; version: string }> = new Map();
 
-export function register(definition: ModuleDefinition): void {
+export function register(definition: ModuleDefinition, version: string): void {
     // Allow enterprise modules to overwrite community modules definition.
-    const existingDefinition = registeredModules.get(definition.name);
-    if (existingDefinition && (existingDefinition.enterprise || !definition.enterprise)) {
-        throw new Error(`AG Charts - Module '${definition.name}' already registered`);
+    const { def: existingDefinition, version: existingVersion } = registeredModules.get(definition.name) ?? {};
+
+    if (!existingDefinition) {
+        // New registration case.
+        registeredModules.set(definition.name, { def: definition, version });
+        return;
     }
-    registeredModules.set(definition.name, definition);
+
+    if (!existingDefinition.enterprise && definition.enterprise && version === existingVersion) {
+        // Enterprise module overwriting community module case.
+        registeredModules.set(definition.name, { def: definition, version });
+        return;
+    }
+
+    // Module already registered with the same version - work out appropriate error handling.
+    if (existingVersion === version) {
+        // Probably due to duplicate module loading - users should be aware of this because it's not a good idea.
+        Logger.warn(
+            [
+                `AG Charts - Module '${definition.name}' already registered,',
+                'ignoring (version: ${existingVersion}).`,
+                `Check your code for duplicate loading of charts NPM modules.`,
+            ].join(' ')
+        );
+        return;
+    }
+
+    // Module already registered with a different version - this is a problem with the users NPM dependencies.
+    throw new Error(
+        [
+            `AG Charts - Module '${definition.name}' already registered with different version:`,
+            `${existingVersion} vs ${version}`,
+            ``,
+            `Check your package.json for conflicting dependencies - depending on your package manager`,
+            `one of these commands may help:`,
+            `- npm ls ag-charts-community`,
+            `- yarn why ag-charts-community`,
+        ].join('\n')
+    );
 }
 
-export function registerMany(definitions: ModuleDefinition[]): void {
+export function registerMany(definitions: ModuleDefinition[], version: string): void {
     for (const definition of definitions) {
-        register(definition);
+        register(definition, version);
     }
 }
 
@@ -35,16 +70,16 @@ export function hasModule(moduleName: string): boolean {
 
 export function* listModulesByType<T extends ModuleType>(moduleType: T): Generator<ModuleTypeSwitch<T>> {
     for (const definition of registeredModules.values()) {
-        if (isModuleType(moduleType, definition)) {
-            yield definition;
+        if (isModuleType(moduleType, definition.def)) {
+            yield definition.def;
         }
     }
 }
 
 export function detectChartDefinition(options: object): ChartModuleDefinition<any> {
     for (const definition of registeredModules.values()) {
-        if (isModuleType(ModuleType.Chart, definition) && definition.detect(options)) {
-            return definition;
+        if (isModuleType(ModuleType.Chart, definition.def) && definition.def.detect(options)) {
+            return definition.def;
         }
     }
     throw new Error(
@@ -54,22 +89,22 @@ export function detectChartDefinition(options: object): ChartModuleDefinition<an
 
 export function getAxisModule(moduleName: string): AxisModuleDefinition<any> | undefined {
     const definition = registeredModules.get(moduleName);
-    if (isModuleType(ModuleType.Axis, definition)) {
-        return definition;
+    if (isModuleType(ModuleType.Axis, definition?.def)) {
+        return definition?.def;
     }
 }
 
 export function getPresetModule(moduleName: string): PresetModuleDefinition<any> | undefined {
     const definition = registeredModules.get(moduleName);
-    if (isModuleType(ModuleType.Preset, definition)) {
-        return definition;
+    if (isModuleType(ModuleType.Preset, definition?.def)) {
+        return definition?.def;
     }
 }
 
 export function getSeriesModule(moduleName: string): SeriesModuleDefinition<any> | undefined {
     const definition = registeredModules.get(moduleName);
-    if (isModuleType(ModuleType.Series, definition)) {
-        return definition;
+    if (isModuleType(ModuleType.Series, definition?.def)) {
+        return definition?.def;
     }
 }
 
