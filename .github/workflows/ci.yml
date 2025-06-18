@@ -494,11 +494,6 @@ jobs:
                   # Disabling shallow clones is recommended for improving the relevancy of reporting
                   fetch-depth: 0
 
-            - name: Fetch Refs
-              run: |
-                  git fetch origin --depth 1 latest
-                  git fetch origin --depth 1 tag latest-success
-
             - name: SonarQube Scan
               uses: sonarsource/sonarqube-scan-action@master
               with:
