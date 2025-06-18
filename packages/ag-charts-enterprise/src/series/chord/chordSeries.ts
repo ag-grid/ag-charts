@@ -684,6 +684,7 @@ export class ChordSeries extends FlowProportionSeries<
                 value: size,
                 datum,
                 seriesId,
+                legendItemName: undefined,
                 key: sizeKey,
                 source: 'tooltip',
                 property: 'size',

@@ -138,6 +138,7 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
                 value,
                 datum: undefined,
                 seriesId: undefined,
+                legendItemName: undefined,
                 key: undefined,
                 source: 'gradient-legend',
                 property: 'color',

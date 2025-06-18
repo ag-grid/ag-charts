@@ -84,7 +84,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
             }
         }
 
-        const { datum, seriesId, key, source, property, domain, boundSeries } = params;
+        const { datum, seriesId, legendItemName, key, source, property, domain, boundSeries } = params;
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
         const epoch = intervalEpoch(timeInterval);
@@ -93,6 +93,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
             value,
             datum,
             seriesId,
+            legendItemName,
             key,
             source,
             property,

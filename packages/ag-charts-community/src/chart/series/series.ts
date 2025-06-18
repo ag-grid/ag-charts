@@ -849,8 +849,9 @@ export abstract class Series<
     ): string {
         if (value == null) return '';
 
-        const { axes, canHaveAxes, ctx } = this;
+        const { axes, canHaveAxes, ctx, id: seriesId, properties } = this;
         const { formatManager } = ctx;
+        const legendItemName = 'legendItemName' in properties ? (properties.legendItemName as string) : undefined;
         const source = 'series-label';
         const params: AgChartLabelFormatterParams<any> & RequireOptional<TParams> = {
             seriesId: this.id,
@@ -880,7 +881,6 @@ export abstract class Series<
         }
 
         const boundSeries = this.getFormatterContext(property);
-        const seriesId = this.id;
         switch (property) {
             case 'y':
             case 'color':
@@ -891,6 +891,7 @@ export abstract class Series<
                     value,
                     datum,
                     seriesId,
+                    legendItemName,
                     key,
                     source,
                     property,
@@ -907,7 +908,18 @@ export abstract class Series<
             case 'calloutLabel':
             case 'sectorLabel':
             case 'legendItem':
-                return format({ type: 'category', value, datum, seriesId, key, source, property, domain, boundSeries });
+                return format({
+                    type: 'category',
+                    value,
+                    datum,
+                    seriesId,
+                    legendItemName,
+                    key,
+                    source,
+                    property,
+                    domain,
+                    boundSeries,
+                });
         }
     }
 

@@ -653,6 +653,7 @@ export abstract class Axis<
         const params: FormatDatumParams = {
             datum: undefined,
             seriesId: undefined,
+            legendItemName: undefined,
             key: undefined,
             source: 'axis-label',
             property: this.direction,
@@ -740,7 +741,16 @@ export abstract class Axis<
 
         const formatParams = this.datumFormatParams(
             input,
-            { source, datum, seriesId: undefined, key, property: direction, domain, boundSeries },
+            {
+                source,
+                datum,
+                seriesId: undefined,
+                legendItemName: undefined,
+                key,
+                property: direction,
+                domain,
+                boundSeries,
+            },
             inputFractionDigits,
             undefined,
             'long'
