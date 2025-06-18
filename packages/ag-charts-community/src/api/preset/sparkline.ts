@@ -203,12 +203,12 @@ export function sparklineDataPreset(data: any[] | undefined): {
     datumKey?: string;
 } {
     if (Array.isArray(data) && data.length !== 0) {
-        const firstItem = data[0];
+        const firstItem = data.find((v) => v != null);
         if (typeof firstItem === 'number') {
             const mappedData = data.map((y, x) => ({ x, y }));
             return { data: mappedData, series: [{ xKey: 'x', yKey: 'y' }], datumKey: 'y' };
         } else if (Array.isArray(firstItem)) {
-            const mappedData = data.map((datum) => ({ x: datum[0], y: datum[1], datum }));
+            const mappedData = data.map((datum) => ({ x: datum?.[0], y: datum?.[1], datum }));
             return { data: mappedData, series: [{ xKey: 'x', yKey: 'y' }], datumKey: 'datum' };
         }
     }
