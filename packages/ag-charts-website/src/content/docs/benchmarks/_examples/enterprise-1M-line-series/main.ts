@@ -13,6 +13,7 @@ const options: AgChartOptions = {
         enabled: true,
         anchorPointX: 'pointer',
         anchorPointY: 'pointer',
+        minVisibleItems: 0,
     },
     navigator: {
         enabled: true,
