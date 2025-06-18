@@ -97,7 +97,7 @@ runs:
                   external/*/node_modules/
               key: node_modules-${{ runner.os }}-${{hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json', 'libraries/*/package.json', 'external/*/package.json')}}
               restore-keys: node_modules-${{ runner.os }}- # Take any latest cache if failed to find it for current yarn.lock
-              fail-on-cache-miss: true
+              # fail-on-cache-miss: true
 
         - name: Cache node_modules
           if: inputs.cache_mode == 'rw'
@@ -133,7 +133,7 @@ runs:
                   .nx/workspace-data
               key: cache-nx-v20-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
               restore-keys: cache-nx-v20-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
-              fail-on-cache-miss: true
+              # fail-on-cache-miss: true
 
         - name: Tidy Nx Cache (Post Job)
           uses: ./.github/actions/tidy-nx-cache
@@ -165,7 +165,7 @@ runs:
               yarn check --integrity || yarn install --ci
 
         - name: yarn install (skipping postinstall)
-          if: inputs.yarn_postinstall == 'no-install'
+          if: inputs.yarn_postinstall == 'no-install' && steps.cache_ro.outputs.cache-hit != 'false'
           id: yarn_install_check
           shell: bash
           run: |
