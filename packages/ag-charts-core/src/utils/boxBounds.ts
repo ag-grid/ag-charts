@@ -1,9 +1,14 @@
-export interface BoxBounds {
-    x: number;
-    y: number;
+export interface Size {
     width: number;
     height: number;
 }
+
+export interface Point {
+    x: number;
+    y: number;
+}
+
+export interface BoxBounds extends Size, Point {}
 
 export function boxCollides(b: BoxBounds, x: number, y: number, w: number, h: number): boolean {
     return x < b.x + b.width && x + w > b.x && y < b.y + b.height && y + h > b.y;

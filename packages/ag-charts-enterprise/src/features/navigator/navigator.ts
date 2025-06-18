@@ -152,14 +152,15 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         if (!this.canDrag()) return;
 
         const { panStart, x, width } = this;
+        const { minRange } = this.domProxy;
         let { _min: min, _max: max } = this.domProxy;
 
         const ratio = (offsetX - x) / width;
 
         if (dragging === 'min') {
-            min = clamp(0, ratio, max);
+            min = clamp(0, ratio, max - minRange);
         } else if (dragging === 'max') {
-            max = clamp(min, ratio, 1);
+            max = clamp(min + minRange, ratio, 1);
         } else if (dragging === 'pan' && panStart != null) {
             const span = max - min;
             min = clamp(0, ratio - panStart, 1 - span);

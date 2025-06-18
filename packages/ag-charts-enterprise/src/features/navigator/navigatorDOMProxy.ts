@@ -176,12 +176,12 @@ export class NavigatorDOMProxy {
     }
 
     private onMinSliderChange() {
-        this._min = this.sliders[0].clampValueRatio(0, this._max);
+        this._min = this.sliders[0].clampValueRatio(0, this._max - this.minRange);
         this.updateZoom();
     }
 
     private onMaxSliderChange() {
-        this._max = this.sliders[2].clampValueRatio(this._min, 1);
+        this._max = this.sliders[2].clampValueRatio(this._min + this.minRange, 1);
         this.updateZoom();
     }
 }

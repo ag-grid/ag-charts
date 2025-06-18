@@ -305,9 +305,6 @@ export class LineSeries extends CartesianSeries<
 
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
-        const xPosition = (index: number) => xScale.convert(xValues[index]) + xOffset;
-        const yPosition = (index: number) => yScale.convert(yCumulativeValues[index]) + yOffset;
-
         const capDefaults = {
             lengthRatioMultiplier: this.properties.marker.getDiameter(),
             lengthMax: Infinity,
@@ -322,8 +319,8 @@ export class LineSeries extends CartesianSeries<
             const yEndDatum = yEndValues?.[datumIndex];
             const selected = selectionValues?.[datumIndex];
 
-            const x = xPosition(datumIndex);
-            const y = yPosition(datumIndex);
+            const x = xScale.convert(xDatum) + xOffset;
+            const y = yScale.convert(yCumulativeValues[datumIndex]) + yOffset;
 
             if (!Number.isFinite(x)) return;
 

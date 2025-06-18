@@ -74,14 +74,14 @@ output=${root}/reports/benchmark.log
 if [[ ${format} == "json" ]] ; then
     output=${root}/reports/benchmark.json
 fi
-if [[ ${base} == "origin/${base_name}" && ${format} != "json" ]] ; then
+if [[ ${base#origin/} == ${base_name#origin/} && ${format} != "json" ]] ; then
     logStarBox "No merge-base found, comparing '${branch}' against '${base_name}' branch directly" >${output}
 elif [[ -f ${output} ]] ; then
     rm ${output}
 fi
 node ${tools_dir}/compare-versions.js \
     --report-only \
-    --base ${base} \
+    --base ${base#origin/} \
     --compare ${head} \
     --format ${format} \
     >>${output}

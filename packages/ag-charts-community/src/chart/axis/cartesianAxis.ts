@@ -14,13 +14,13 @@ import { Line } from '../../scene/shape/line';
 import { TransformableText } from '../../scene/shape/text';
 import { normalizeAngle360 } from '../../util/angle';
 import { findMinMax } from '../../util/number';
-import type { Padding } from '../../util/padding';
 import { Property } from '../../util/properties';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import { StateMachine } from '../../util/stateMachine';
 import { TextUtils } from '../../util/textMeasurer';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
+import type { ChartLayout } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
@@ -176,9 +176,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         }
     }
 
-    override calculateLayout(primaryTickCount?: AxisPrimaryTickCount, chartPadding?: Padding) {
+    override calculateLayout(primaryTickCount?: AxisPrimaryTickCount, chartLayout?: ChartLayout) {
         this.updateDirection();
-        return super.calculateLayout(primaryTickCount, chartPadding);
+        return super.calculateLayout(primaryTickCount, chartLayout);
     }
 
     layoutCrossLines(): void {
@@ -255,7 +255,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             labelX,
             sideFlag,
             removeOverflowLabels,
-            removeOverflowThreshold: this.chartPadding?.right,
+            removeOverflowThreshold: this.chartLayout?.padding.right,
+            sizeLimit: this.chartLayout?.sizeLimit,
         });
 
         const { tickData } = tickGenerationResult;

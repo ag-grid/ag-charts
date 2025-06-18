@@ -384,7 +384,8 @@ export class Tooltip extends BaseProperties {
                 callback,
                 listener: (popoverEvent: FocusEvent | MouseEvent): void => {
                     const isLeaving =
-                        popoverEvent.relatedTarget instanceof Node && !this.contains(popoverEvent.relatedTarget);
+                        popoverEvent.relatedTarget == null ||
+                        (popoverEvent.relatedTarget instanceof Node && !this.contains(popoverEvent.relatedTarget));
                     if (isLeaving) {
                         this.popInteractiveLeaveCallback();
                     }

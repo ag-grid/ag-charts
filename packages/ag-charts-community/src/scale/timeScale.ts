@@ -25,9 +25,8 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
         return new Date(d);
     }
 
-    override convert(value: Date, options?: { clamp: boolean }): number {
-        if (!(value instanceof Date)) value = new Date(value as any);
-        return super.convert(value, options);
+    override convert(value: Date | number, options?: { clamp: boolean }): number {
+        return super.convert(value?.valueOf() ?? NaN, options);
     }
 
     override invert(value: number): Date {

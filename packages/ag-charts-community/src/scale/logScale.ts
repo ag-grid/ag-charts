@@ -47,23 +47,23 @@ export class LogScale extends ContinuousScale<number> {
         super(d, r);
     }
 
-    toDomain(d: number): number {
-        return d;
-    }
-
-    base = 10;
-
-    protected override transform(x: any) {
+    override transform(this: LogScale, x: number) {
         const [min, max] = findMinMax(this.domain);
         if (min >= 0 !== max >= 0) return NaN;
         return min >= 0 ? Math.log(x) : -Math.log(-x);
     }
 
-    protected override transformInvert(x: any) {
+    override transformInvert(this: LogScale, x: number) {
         const [min, max] = findMinMax(this.domain);
         if (min >= 0 !== max >= 0) return NaN;
         return min >= 0 ? Math.exp(x) : -Math.exp(-x);
     }
+
+    toDomain(d: number): number {
+        return d;
+    }
+
+    base = 10;
 
     private readonly log = (x: number) => log(this.base, this.domain, x);
     private readonly pow = (x: number) => pow(this.base, this.domain, x);

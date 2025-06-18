@@ -7,6 +7,7 @@ import type {
     Formatter,
     FormatterParams,
     Styler,
+    TextWrap,
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../core/eventsHub';
@@ -53,11 +54,16 @@ export interface AxisGroups {
 
 export type FormatDatumParams = Omit<FormatterParams<any>, 'type' | 'value'>;
 
+export interface ChartLayout {
+    padding: Padding;
+    sizeLimit: number;
+}
+
 export interface ChartAxis {
     attachAxis(opts: AxisGroups): void;
     calculateLayout(
         primaryTickCount?: AxisPrimaryTickCount,
-        chartPadding?: Padding
+        chartLayout?: ChartLayout
     ): { primaryTickCount?: AxisPrimaryTickCount; bbox?: BBox };
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
@@ -141,4 +147,6 @@ export interface ChartAxisLabel extends FontOptions {
     spacing: number;
     parallel: boolean;
     rotation?: number;
+    truncate?: boolean;
+    wrapping?: TextWrap;
 }
