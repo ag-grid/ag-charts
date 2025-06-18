@@ -1,4 +1,4 @@
-import { type AnyFn, CleanupRegistry, createId } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, WeakCache, createId } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -394,7 +394,7 @@ export abstract class Axis<
      * Creates/removes/updates the scene graph nodes that constitute the axis.
      */
     update() {
-        this._cachedFormatterBoundSeries = undefined;
+        this.formatterBoundSeries.clear();
         this.updatePosition();
         this.updateSelections();
 
@@ -635,7 +635,7 @@ export abstract class Axis<
         const primaryLabel = primary ? this.primaryLabel : undefined;
 
         const tickFormatParams = this.tickFormatParams(domain, ticks, inputFractionDigits, inputTimeInterval);
-        const boundSeries = this.getFormatterBoundSeries();
+        const boundSeries = this.formatterBoundSeries.get();
 
         let fractionDigits: number | undefined;
         let timeInterval: AgTimeInterval | undefined;
@@ -719,7 +719,7 @@ export abstract class Axis<
         const { moduleCtx, direction, dataDomain } = this;
         domain ??= dataDomain.domain;
         const { formatManager } = moduleCtx;
-        const boundSeries = this.getFormatterBoundSeries();
+        const boundSeries = this.formatterBoundSeries.get();
 
         let inputFractionDigits: number | undefined;
         switch (source) {
@@ -778,20 +778,14 @@ export abstract class Axis<
         this.gridGroup.setClipRect(new BBox(x, y, width, height));
     }
 
-    private _cachedFormatterBoundSeries?: WeakRef<AgAxisBoundSeries[]>;
-    private getFormatterBoundSeries(): AgAxisBoundSeries[] {
-        let result = this._cachedFormatterBoundSeries?.deref();
-        if (!result) {
-            const { direction } = this;
-            result = deepFreeze(this.boundSeries.flatMap((series) => series.getFormatterContext(direction)));
-            this._cachedFormatterBoundSeries = new WeakRef(result);
-        }
-        return result;
-    }
+    private readonly formatterBoundSeries = new WeakCache<AgAxisBoundSeries[]>(() => {
+        const { direction, boundSeries } = this;
+        return deepFreeze(boundSeries.flatMap((series) => series.getFormatterContext(direction)));
+    });
 
     protected getTitleFormatterParams(domain: D[]) {
         const { direction } = this;
-        const boundSeries = this.getFormatterBoundSeries();
+        const boundSeries = this.formatterBoundSeries.get();
         return { domain, direction, boundSeries, defaultValue: this.title?.text };
     }
 
