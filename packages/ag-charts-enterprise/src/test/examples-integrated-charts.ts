@@ -1820,6 +1820,54 @@ const CATEGORY_LINE_ANIMATION: AgCartesianChartOptions = {
     mode: 'integrated' as const,
 };
 
+const RADAR_LINE_BASIC: AgPolarChartOptions = {
+    ...COMMON,
+    data: [
+        {
+            division: addToString({ id: 0, value: 'Sales' }),
+            recurring: 485829,
+            individual: 263971,
+        },
+        {
+            division: addToString({ id: 1, value: 'Finance' }),
+            recurring: 291245,
+            individual: 46821,
+        },
+        {
+            division: addToString({ id: 2, value: 'Consultancy' }),
+            recurring: 315284,
+            individual: 216473,
+        },
+        {
+            division: addToString({ id: 3, value: 'Operations' }),
+            recurring: 154319,
+            individual: 29867,
+        },
+        {
+            division: addToString({ id: 4, value: 'Media' }),
+            recurring: 215284,
+            individual: 61473,
+        },
+    ],
+    axes: [{ type: 'angle-category' }, { type: 'radius-number' }],
+    series: [
+        {
+            type: 'radar-line',
+            angleKey: 'division',
+            angleName: 'Division',
+            radiusKey: 'recurring',
+            radiusName: 'Recurring revenue',
+        },
+        {
+            type: 'radar-line',
+            angleKey: 'division',
+            angleName: 'Division',
+            radiusKey: 'individual',
+            radiusName: 'Individual sales',
+        },
+    ],
+};
+
 type TestCase = {
     options: AgChartOptions;
     enterpriseCharts?: boolean;
@@ -1851,4 +1899,5 @@ export const EXAMPLES: Record<string, TestCase> = {
     CROSSFILTER_BAR_FILTERED: { options: CROSSFILTER_BAR_FILTERED },
     CROSSFILTER_COLUMN_FILTERED: { options: CROSSFILTER_COLUMN_FILTERED },
     CATEGORY_LINE_ANIMATION: { options: CATEGORY_LINE_ANIMATION },
+    RADAR_LINE_BASIC: { options: RADAR_LINE_BASIC, enterpriseCharts: true },
 };
