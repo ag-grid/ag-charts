@@ -484,6 +484,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 value: colorValue,
                 datum,
                 seriesId,
+                legendItemName,
                 key: colorKey!,
                 source: 'tooltip',
                 property: 'color',

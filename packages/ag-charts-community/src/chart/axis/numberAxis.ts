@@ -44,12 +44,13 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
     }
 
     override datumFormatParams(value: any, params: FormatDatumParams, fractionDigits?: number): FormatterParams<any> {
-        const { datum, seriesId, key, source, property, domain, boundSeries } = params;
+        const { datum, seriesId, legendItemName, key, source, property, domain, boundSeries } = params;
         return {
             type: 'number',
             value,
             datum,
             seriesId,
+            legendItemName,
             key,
             source,
             property,

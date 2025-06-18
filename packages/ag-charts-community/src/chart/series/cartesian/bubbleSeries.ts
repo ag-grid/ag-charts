@@ -400,7 +400,20 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties, ctx } = this;
         const { formatManager } = ctx;
-        const { xKey, xName, yKey, yName, sizeKey, sizeName, labelKey, labelName, title, tooltip, marker } = properties;
+        const {
+            xKey,
+            xName,
+            yKey,
+            yName,
+            sizeKey,
+            sizeName,
+            labelKey,
+            labelName,
+            title,
+            tooltip,
+            marker,
+            legendItemName,
+        } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -422,6 +435,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 value,
                 datum,
                 seriesId,
+                legendItemName,
                 key: labelKey,
                 source: 'tooltip',
                 property: 'label',
@@ -444,6 +458,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 value,
                 datum,
                 seriesId,
+                legendItemName,
                 key: sizeKey,
                 source: 'tooltip',
                 property: 'size',

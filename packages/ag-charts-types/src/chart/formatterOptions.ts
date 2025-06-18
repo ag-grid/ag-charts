@@ -28,6 +28,7 @@ interface FormatterBoundSeries {
 export interface SeriesFormatterParams<TDatum, Value> {
     value: Value;
     datum: TDatum | undefined;
+    legendItemName: string | undefined;
     seriesId: string | undefined;
     key: TDatum extends object ? keyof TDatum & string : string | undefined;
     source: SeriesFormatterSource;
@@ -37,6 +38,7 @@ export interface SeriesFormatterParams<TDatum, Value> {
 export interface ChartFormatterParams<Value> {
     value: Value;
     datum: undefined;
+    legendItemName: string | undefined;
     seriesId: undefined;
     key: undefined;
     source: ChartFormatterSource;
@@ -48,6 +50,8 @@ interface BaseFormatterParams<TDatum, Value> {
     value: Value;
     /** The datum associated with the value, if available. */
     datum: TDatum | undefined;
+    /** The legendItemName of the series that the value belongs to, if available. */
+    legendItemName: string | undefined;
     /** The ID of the series that the value belongs to, if available. */
     seriesId: string | undefined;
     /** The key of the property associated with the datum, if available. */

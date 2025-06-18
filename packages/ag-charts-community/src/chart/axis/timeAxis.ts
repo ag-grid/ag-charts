@@ -118,7 +118,7 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
             }
         }
 
-        const { datum, seriesId, key, source, property, domain, boundSeries } = params;
+        const { datum, seriesId, legendItemName, key, source, property, domain, boundSeries } = params;
         const unit = intervalUnit(timeInterval);
         const step = intervalStep(timeInterval);
         const epoch = intervalEpoch(timeInterval);
@@ -127,6 +127,7 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
             value,
             datum,
             seriesId,
+            legendItemName,
             key,
             source,
             property,
