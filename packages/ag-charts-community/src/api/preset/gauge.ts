@@ -75,6 +75,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         scale = {},
         startAngle,
         endAngle,
+        // eslint-disable-next-line sonarjs/deprecation
         highlightStyle,
         highlight,
         segmentation,
@@ -176,6 +177,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         scale = {},
         direction = 'vertical',
         thickness,
+        // eslint-disable-next-line sonarjs/deprecation
         highlightStyle,
         highlight,
         segmentation,
