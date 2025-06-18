@@ -289,7 +289,7 @@ export interface AgRadialGaugeThemeOverrides<TDatum = TDatumDefault, TContext = 
 }
 
 type AgLinearGaugeTheme<TDatum, TContext> = AgBaseGaugePresetThemeOptions<TDatum, TContext> &
-    AgLinearGaugeThemeableOptions;
+    AgLinearGaugeThemeableOptions<TContext>;
 export interface AgLinearGaugeTargetTheme extends Omit<AgLinearGaugeTarget, 'value' | 'text'> {}
 export interface AgLinearGaugeThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgLinearGaugeTheme<TDatum, TContext> {
