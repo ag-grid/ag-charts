@@ -14,10 +14,12 @@ const options: AgChartOptions = {
       area: {
         series: {
           fillOpacity: 0.6,
-          highlightStyle: {
-            series: {
+          highlight: {
+            highlightedSeries: {
               strokeWidth: 3,
-              dimOpacity: 0.1,
+            },
+            unhighlightedSeries: {
+              opacity: 0.1,
             },
           },
         },

@@ -6,9 +6,9 @@ import { getData } from './data';
 const count = 100_000;
 
 const highlightTheme = {
-    highlightStyle: {
-        series: {
-            dimOpacity: 0.2,
+    highlight: {
+        unhighlightedSeries: {
+            opacity: 0.2,
         },
     },
 };

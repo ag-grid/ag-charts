@@ -270,8 +270,8 @@ describe('PolarSeries', () => {
                     overrides: {
                         pie: {
                             series: {
-                                highlightStyle: {
-                                    item: {
+                                highlight: {
+                                    highlightedItem: {
                                         fill: 'red',
                                     },
                                 },
@@ -330,8 +330,8 @@ describe('PolarSeries', () => {
                 container: document.body,
                 series: [
                     {
-                        highlightStyle: {
-                            item: {
+                        highlight: {
+                            highlightedItem: {
                                 fill: 'lime',
                             },
                         },

@@ -31,15 +31,17 @@ const options: AgChartOptions = {
         overrides: {
             bar: {
                 series: {
-                    highlightStyle: {
-                        item: {
+                    highlight: {
+                        highlightedItem: {
                             fill: 'red',
                             stroke: 'maroon',
                             strokeWidth: 4,
                         },
-                        series: {
-                            dimOpacity: 0.2,
+                        highlightedSeries: {
                             strokeWidth: 2,
+                        },
+                        unhighlightedSeries: {
+                            opacity: 0.2,
                         },
                     },
                 },

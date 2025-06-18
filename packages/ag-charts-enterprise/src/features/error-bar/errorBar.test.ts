@@ -585,7 +585,7 @@ describe('ErrorBars', () => {
         chart = await createEnterpriseChart({
             series: [
                 { type: 'line', ...SERIES_CANADA },
-                { type: 'line', ...SERIES_AUSTRALIA, highlightStyle: { series: { dimOpacity: 0.3 } } },
+                { type: 'line', ...SERIES_AUSTRALIA, highlight: { unhighlightedSeries: { opacity: 0.3 } } },
             ],
         });
 

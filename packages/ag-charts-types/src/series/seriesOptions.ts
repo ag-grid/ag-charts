@@ -53,6 +53,7 @@ export interface AgBaseHighlightStyleOptions extends StrokeOptions, LineDashOpti
 export interface AgBaseSeriesThemeableOptions<TDatum, TContext = TContextDefault> {
     /** The cursor to use for hovered markers. This config is identical to the CSS `cursor` property. */
     cursor?: string;
+    /** @deprecated Configuration for highlighting when a series or legend item is hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgHighlightOptions<AgHighlightStyleOptions>;

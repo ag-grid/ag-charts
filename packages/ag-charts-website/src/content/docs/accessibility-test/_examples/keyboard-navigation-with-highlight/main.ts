@@ -8,7 +8,16 @@ const options: AgCartesianChartOptions = {
         text: `Renewable sources used to generate electricity for transport fuels`,
     },
     theme: {
-        overrides: { bar: { series: { highlightStyle: { series: { dimOpacity: 0.05, strokeWidth: 4 } } } } },
+        overrides: {
+            bar: {
+                series: {
+                    highlight: {
+                        highlightedSeries: { strokeWidth: 4 },
+                        unhighlightedSeries: { opacity: 0.05 },
+                    },
+                },
+            },
+        },
     },
     data: getData(),
     animation: { enabled: false },

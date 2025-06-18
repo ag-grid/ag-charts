@@ -1,4 +1,6 @@
 /* @ag-options-extract */
+import { highlight } from 'prismjs';
+
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getLargeScaleData } from './data';
@@ -8,10 +10,9 @@ import { getLargeScaleData } from './data';
 const size = 100_000;
 const highlightTheme = {
     series: {
-        highlightStyle: {
-            series: {
-                dimOpacity: 0.2,
-                // strokeWidth: 4,
+        highlight: {
+            unhighlightedSeries: {
+                opacity: 0.2,
             },
         },
     },

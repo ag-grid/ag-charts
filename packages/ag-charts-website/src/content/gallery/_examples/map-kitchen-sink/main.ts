@@ -33,8 +33,8 @@ const options: AgChartOptions = {
             idKey: 'name',
             fill: '#668799',
             fillOpacity: 0.4,
-            highlightStyle: {
-                item: {
+            highlight: {
+                highlightedItem: {
                     fillOpacity: 1,
                 },
             },
@@ -48,8 +48,8 @@ const options: AgChartOptions = {
             data: getCurrencyData(currency),
             fill,
             fillOpacity: 0.4,
-            highlightStyle: {
-                item: {
+            highlight: {
+                highlightedItem: {
                     fillOpacity: 1,
                 },
             },

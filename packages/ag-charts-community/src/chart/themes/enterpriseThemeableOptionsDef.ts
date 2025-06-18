@@ -297,6 +297,7 @@ export const mapLineSeriesThemeableOptionsDef: OptionsDefs<AgMapLineSeriesThemea
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     highlightStyle: {
+        // eslint-disable-next-line sonarjs/deprecation
         ...(commonSeriesThemeableOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
         ...strokeOptionsDef,
     },
@@ -321,6 +322,7 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
     ...without(markerOptionsDefs, ['enabled']),
     // TODO Remove in next major version
     highlightStyle: {
+        // eslint-disable-next-line sonarjs/deprecation
         ...(commonSeriesThemeableOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
         ...fillOptionsDef,
         ...strokeOptionsDef,
@@ -344,6 +346,7 @@ export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThem
     ...lineDashOptionsDef,
     // TODO Remove in next major version
     highlightStyle: {
+        // eslint-disable-next-line sonarjs/deprecation
         ...(commonSeriesThemeableOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
         ...fillOptionsDef,
         ...strokeOptionsDef,

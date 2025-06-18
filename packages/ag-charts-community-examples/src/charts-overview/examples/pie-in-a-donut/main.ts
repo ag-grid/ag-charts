@@ -26,8 +26,8 @@ const sharedSeriesOptions: AgPieSeriesOptions = {
   fills: ["#49afda", "#57cc8b", "#f4b944", "#fb7451", "#b7b5ba"],
   strokeWidth: 0,
   legendItemKey: "browser",
-  highlightStyle: {
-    item: {
+  highlight: {
+    highlightedItem: {
       fillOpacity: 0,
       stroke: "#535455",
       strokeWidth: 1,

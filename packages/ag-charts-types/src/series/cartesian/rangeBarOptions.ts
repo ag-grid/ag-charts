@@ -53,7 +53,7 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = TDatumDefault, TConte
     direction?: 'horizontal' | 'vertical';
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<TDatum, TContext>>;
-    /** Configuration for the range series items when they are hovered over. */
+    /** @deprecated Configuration for the range series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */
     label?: AgRangeBarSeriesLabelOptions<TDatum, TContext>;

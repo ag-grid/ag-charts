@@ -13,9 +13,9 @@ const options: AgChartOptions = {
     overrides: {
       bar: {
         series: {
-          highlightStyle: {
-            series: {
-              dimOpacity: 0.3,
+          highlight: {
+            unhighlightedSeries: {
+              opacity: 0.3,
             },
           },
         },

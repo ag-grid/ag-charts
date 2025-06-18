@@ -119,8 +119,8 @@ describe('ConeFunnelSeries', () => {
                 series: [
                     {
                         tooltip,
-                        highlightStyle: {
-                            item: {
+                        highlight: {
+                            highlightedItem: {
                                 stroke: 'lime',
                             },
                         },

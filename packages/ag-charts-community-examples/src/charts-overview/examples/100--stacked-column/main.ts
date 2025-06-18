@@ -21,9 +21,9 @@ const options: AgChartOptions = {
       bar: {
         series: {
           strokeWidth: 0,
-          highlightStyle: {
-            series: {
-              dimOpacity: 0.3,
+          highlight: {
+            unhighlightedSeries: {
+              opacity: 0.3,
             },
           },
         },

@@ -31,8 +31,8 @@ const marketCapOptions: AgSparklineOptions = {
     xKey: 'index',
     yKey: 'marketCap',
     direction: 'horizontal',
-    highlightStyle: {
-        item: {
+    highlight: {
+        highlightedItem: {
             fillOpacity: 0,
             strokeOpacity: 0,
         },

@@ -15,9 +15,9 @@ const options: AgChartOptions = {
             area: {
                 series: {
                     marker: { enabled: true },
-                    highlightStyle: {
-                        series: {
-                            dimOpacity: 0.2,
+                    highlight: {
+                        unhighlightedSeries: {
+                            opacity: 0.2,
                         },
                     },
                 },

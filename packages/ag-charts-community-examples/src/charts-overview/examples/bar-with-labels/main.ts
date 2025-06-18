@@ -20,8 +20,8 @@ const options: AgChartOptions = {
       xKey: "job",
       yKey: "change",
       fill: "rgba(0, 117, 163, 0.9)",
-      highlightStyle: {
-        item: {
+      highlight: {
+        highlightedItem: {
           fill: "#0ab9ff",
         },
       },

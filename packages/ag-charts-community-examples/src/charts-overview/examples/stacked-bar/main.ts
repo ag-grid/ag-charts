@@ -20,10 +20,12 @@ const options: AgChartOptions = {
     overrides: {
       bar: {
         series: {
-          highlightStyle: {
-            series: {
+          highlight: {
+            highlightedSeries: {
               strokeWidth: 1,
-              dimOpacity: 0.3,
+            },
+            unhighlightedSeries: {
+              opacity: 0.3,
             },
           },
         },

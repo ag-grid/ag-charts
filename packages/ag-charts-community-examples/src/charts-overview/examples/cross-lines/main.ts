@@ -31,13 +31,13 @@ const options: AgChartOptions = {
                     },
                 },
                 series: {
-                    highlightStyle: {
-                        item: {
+                    highlight: {
+                        highlightedItem: {
                             fill: 'rgb(40,40,40)',
                             strokeWidth: 0,
                         },
-                        series: {
-                            dimOpacity: 0.3,
+                        unhighlightedSeries: {
+                            opacity: 0.3,
                         },
                     },
                 },

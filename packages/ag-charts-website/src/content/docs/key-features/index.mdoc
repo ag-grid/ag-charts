@@ -328,13 +328,13 @@ Use `highlightStyles` to [customise](./series-highlighting/#customisation) highl
 ```js
 highlightStyle: {
     // Attributes that apply to individual items within a single series.
-    item: {
+    highlightedItem: {
         strokeWidth: 5,
     },
     // Attributes that apply to the entire series containing the highlighted item.
-    series: {
-        dimOpacity: 0.2,
-    }
+    unhighlightedSeries: {
+        opacity: 0.2,
+    },
 }
 ```
 

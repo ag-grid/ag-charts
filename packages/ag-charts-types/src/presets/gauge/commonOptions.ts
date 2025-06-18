@@ -20,7 +20,7 @@ import type {
 export interface AgBaseGaugeThemeableOptions {
     /** The cursor to use for the gauge. This config is identical to the CSS `cursor` property. */
     cursor?: string;
-    /** Configuration for marker and series highlighting when a series or legend item is hovered over. */
+    /** @deprecated Configuration for marker and series highlighting when a series or legend item is hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgHighlightOptions<AgHighlightStyleOptions>;

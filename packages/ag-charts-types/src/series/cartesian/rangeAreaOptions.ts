@@ -45,7 +45,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = TDatumDefault, TCont
     marker?: AgSeriesMarkerOptions<TDatum, AgRangeAreaSeriesOptionsKeys<TDatum>>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
-    /** Configuration for the range series items when they are hovered over. */
+    /** @deprecated Configuration for the range series items when they are hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */
     label?: AgRangeAreaSeriesLabelOptions<TDatum, AgRangeAreaSeriesLabelFormatterParams<TDatum>, TContext>;

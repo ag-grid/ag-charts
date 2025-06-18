@@ -85,4 +85,9 @@ export class CandlestickSeriesProperties<T extends AgOhlcSeriesBaseOptions> exte
 
     @Property
     itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;
+
+    constructor() {
+        super();
+        this.highlightStyle.deprecated = false;
+    }
 }

@@ -61,8 +61,8 @@ const options: AgChartOptions = {
           fontSize: 16,
         },
       ],
-      highlightStyle: {
-        item: {
+      highlight: {
+        highlightedItem: {
           fillOpacity: 0,
           stroke: "#535455",
           strokeWidth: 1,

@@ -177,4 +177,9 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatumDefault>>();
+
+    constructor() {
+        super();
+        this.highlightStyle.deprecated = false;
+    }
 }

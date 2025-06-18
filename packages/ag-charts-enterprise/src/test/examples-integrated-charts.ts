@@ -1417,8 +1417,8 @@ const CROSSFILTER_BAR: AgCartesianChartOptions = {
             xName: 'Handset',
             yKey: 'sale',
             yName: 'Sale Price',
-            highlightStyle: {
-                item: {},
+            highlight: {
+                highlightedItem: {},
             },
             fill: '#f3622d',
             stroke: '#aa4520',
@@ -1432,8 +1432,8 @@ const CROSSFILTER_BAR: AgCartesianChartOptions = {
             xName: 'Handset',
             yKey: 'sale-filtered-out',
             yName: 'Sale Price',
-            highlightStyle: {
-                item: {},
+            highlight: {
+                highlightedItem: {},
             },
             fill: 'rgba(243, 98, 45, 0.3)',
             stroke: 'rgba(170, 69, 32, 0.3)',
@@ -1524,8 +1524,8 @@ const CROSSFILTER_COLUMN: AgCartesianChartOptions = {
             xName: 'Quarter',
             yKey: 'sale',
             yName: 'Sale Price',
-            highlightStyle: {
-                item: {},
+            highlight: {
+                highlightedItem: {},
             },
             fill: '#f3622d',
             stroke: '#aa4520',
@@ -1539,8 +1539,8 @@ const CROSSFILTER_COLUMN: AgCartesianChartOptions = {
             xName: 'Quarter',
             yKey: 'sale-filtered-out',
             yName: 'Sale Price',
-            highlightStyle: {
-                item: {},
+            highlight: {
+                highlightedItem: {},
             },
             fill: 'rgba(243, 98, 45, 0.3)',
             stroke: 'rgba(170, 69, 32, 0.3)',
@@ -1634,8 +1634,8 @@ const CROSSFILTER_PIE_FILTERED: AgPolarChartOptions = {
             calloutLabel: {
                 enabled: false,
             },
-            highlightStyle: {
-                item: {},
+            highlight: {
+                highlightedItem: {},
             },
             radiusKey: 'sale-filtered-out',
             radiusMin: 0,
@@ -1673,8 +1673,8 @@ const CROSSFILTER_PIE_FILTERED: AgPolarChartOptions = {
             calloutLabel: {
                 enabled: false,
             },
-            highlightStyle: {
-                item: {},
+            highlight: {
+                highlightedItem: {},
             },
             radiusKey: 'sale',
             radiusMin: 0,

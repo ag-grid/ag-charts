@@ -9,10 +9,12 @@ const options: AgCartesianChartOptions = {
         overrides: {
             line: {
                 series: {
-                    highlightStyle: {
-                        series: {
-                            dimOpacity: 0.2,
+                    highlight: {
+                        highlightedSeries: {
                             strokeWidth: 4,
+                        },
+                        unhighlightedSeries: {
+                            opacity: 0.2,
                         },
                     },
                 },
