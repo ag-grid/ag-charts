@@ -498,6 +498,7 @@ commonChartOptionsDefs.sync.domainMode = undocumented(union('direction', 'positi
 
 export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeableOptions<any>> = {
     cursor: string,
+    context: () => true,
     showInLegend: boolean,
     nodeClickRange: rangeValidator,
     listeners: {

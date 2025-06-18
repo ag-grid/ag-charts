@@ -31,6 +31,18 @@ import {
 describe('AG-13024 API context', () => {
     setupMockConsole();
     setupMockCanvas();
+    const myTest: AgCartesianChartOptions<any, number> = {
+        theme: {
+            overrides: {
+                common: {
+                    axes: {
+                        number: {},
+                    },
+                },
+            },
+        },
+    };
+    myTest satisfies any;
 
     type TDatum = { quarter: 'q1' | 'q2' | 'q3' | 'q4'; Toyota: number; Ford: number; BMW: number };
     type TContext = { name: string };
