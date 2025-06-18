@@ -38,5 +38,11 @@ const options: AgChartOptions = {
         { type: 'number', keys: ['volume'], position: 'right' },
     ],
 };
+/* @ag-options-end */
 
-AgCharts.create(options);
+const start = performance.now();
+const chart = AgCharts.create(options);
+
+chart.waitForUpdate().then(() => {
+    console.log('Total update time: ', performance.now() - start);
+});
