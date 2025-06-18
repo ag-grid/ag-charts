@@ -12955,6 +12955,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
 
 exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
+  "axes": [],
   "background": {
     "fill": "white",
     "visible": true,
@@ -13696,6 +13697,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
 
 exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
+  "axes": [],
   "background": {
     "fill": "white",
     "visible": true,
