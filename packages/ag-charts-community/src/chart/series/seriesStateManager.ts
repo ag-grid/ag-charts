@@ -21,27 +21,27 @@ type SeriesLike = SeriesIdLike & {
     visible: boolean;
 };
 
+type SeriesGroupingEntry = {
+    grouping: SeriesGrouping;
+    visible: boolean;
+};
+
 export class SeriesStateManager {
-    private readonly groups: {
-        [type: string]: {
-            [id: string]: {
-                grouping: SeriesGrouping;
-                visible: boolean;
-            };
-        };
-    } = {};
+    private readonly groups: Map<string, Map<string, SeriesGroupingEntry>> = new Map();
 
     public registerSeries({ internalId, seriesGrouping, visible, type }: SeriesLike) {
         if (!seriesGrouping) return;
 
-        this.groups[type] ??= {};
-        this.groups[type][internalId] = { grouping: seriesGrouping, visible };
+        if (!this.groups.has(type)) {
+            this.groups.set(type, new Map());
+        }
+        this.groups.get(type)?.set(internalId, { grouping: seriesGrouping, visible });
     }
 
     public updateSeries({ internalId, seriesGrouping, visible, type }: SeriesLike) {
         if (!seriesGrouping) return;
 
-        const entry = this.groups[type]?.[internalId];
+        const entry = this.groups.get(type)?.get(internalId);
         if (entry) {
             entry.grouping = seriesGrouping;
             entry.visible = visible;
@@ -49,11 +49,12 @@ export class SeriesStateManager {
     }
 
     public deregisterSeries({ internalId, type }: SeriesIdLike) {
-        if (this.groups[type]) {
-            delete this.groups[type][internalId];
-        }
-        if (this.groups[type] && Object.keys(this.groups[type]).length === 0) {
-            delete this.groups[type];
+        const group = this.groups.get(type);
+        if (group == null) return;
+
+        group.delete(internalId);
+        if (group.size === 0) {
+            this.groups.delete(type);
         }
     }
 
@@ -64,7 +65,8 @@ export class SeriesStateManager {
 
         const visibleGroupsSet = new Set<number>();
         const visibleSameStackSet = new Set<number>();
-        for (const entry of Object.values(this.groups[type] ?? {})) {
+        const group = this.groups.get(type);
+        for (const entry of group?.values() ?? []) {
             if (!entry.visible) continue;
 
             visibleGroupsSet.add(entry.grouping.groupIndex);
