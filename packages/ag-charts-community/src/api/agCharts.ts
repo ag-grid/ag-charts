@@ -26,7 +26,7 @@ import { MementoCaretaker } from './state/memento';
 
 // Temporarily set here, in the future users will register modules manually
 // Remember to remove dep-cruiser exception for main-modules imports when removed
-ModuleRegistry.registerMany(AllCommunityModules);
+ModuleRegistry.registerMany(AllCommunityModules, VERSION);
 
 const debug = Debug.create(true, 'opts');
 

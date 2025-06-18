@@ -1,4 +1,4 @@
-import { type AgChartOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgChartOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 
 import { AngleCategoryAxisModule } from './axes/angle-category/main';
 import { AngleNumberAxisModule } from './axes/angle-number/main';
@@ -56,7 +56,7 @@ import { WaterfallModule } from './series/waterfall/main';
 import styles from './styles.css';
 
 // Temporarily set here, in the future users will register modules manually
-_ModuleSupport.ModuleRegistry.registerMany(AllEnterpriseModules);
+_ModuleSupport.ModuleRegistry.registerMany(AllEnterpriseModules, VERSION);
 
 export function setupEnterpriseModules() {
     _ModuleSupport.moduleRegistry.register(
