@@ -113,7 +113,6 @@ function updatePath(pathData: string, path: AgPath, scale: number, x: number, y:
     }
 }
 
-// eslint-disable-next-line sonarjs/no-skipped-test
 describe.skip('Legend', () => {
     setupMockConsole();
     let chart: Chart;
