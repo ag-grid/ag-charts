@@ -114,8 +114,8 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
         // Apply the default axes of the primary series type if none are provided by the user.
         const defaultAxes = seriesRegistry.cloneDefaultAxes(seriesType);
-        if (userOptions.axes == null && defaultAxes) {
-            userOptions.axes = defaultAxes.axes;
+        if (userOptions.axes == null) {
+            userOptions.axes = defaultAxes?.axes ?? [];
         }
 
         // Build the initial user options, defaults, common and series overrides graphs on the root.

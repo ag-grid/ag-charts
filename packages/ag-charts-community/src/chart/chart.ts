@@ -1606,7 +1606,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         skip: string[] = []
     ) {
         if (!('axes' in options) || !options.axes) {
-            chart.axes = [];
             return false;
         }
 
