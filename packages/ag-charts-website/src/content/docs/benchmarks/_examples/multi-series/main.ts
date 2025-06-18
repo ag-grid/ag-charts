@@ -13,7 +13,7 @@ const options: AgCartesianChartOptions = {
             line: {
                 series: {
                     highlight: {
-                        highlightedItem: {
+                        highlightedSeries: {
                             strokeWidth: 4,
                         },
                         unhighlightedSeries: {
