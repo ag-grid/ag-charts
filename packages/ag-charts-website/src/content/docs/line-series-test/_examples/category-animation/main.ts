@@ -1,13 +1,14 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions } from 'ag-charts-types';
 
 const data = [
-    { quarter: 'week 3', week: 3, iphone: 60 },
-    { quarter: 'week 4', week: 4, iphone: 185 },
-    { quarter: 'week 5', week: 5, iphone: 148 },
-    { quarter: 'week 6', week: 6, iphone: 130 },
-    { quarter: 'week 9', week: 9, iphone: 62 },
-    { quarter: 'week 10', week: 10, iphone: 137 },
-    { quarter: 'week 11', week: 11, iphone: 121 },
+    { time: 'week 3', week: 3, iphone: 60 },
+    { time: 'week 4', week: 4, iphone: 185 },
+    { time: 'week 5', week: 5, iphone: 148 },
+    { time: 'week 6', week: 6, iphone: 130 },
+    { time: 'week 9', week: 9, iphone: 62 },
+    { time: 'week 10', week: 10, iphone: 137 },
+    { time: 'week 11', week: 11, iphone: 121 },
 ];
 
 const options: AgCartesianChartOptions = {
@@ -19,7 +20,7 @@ const options: AgCartesianChartOptions = {
     series: [
         {
             type: 'line',
-            xKey: 'quarter',
+            xKey: 'time',
             yKey: 'iphone',
             label: {
                 formatter: ({ value }) => String(value),
@@ -53,7 +54,7 @@ function actionAddEndWeek() {
     options.data = [
         ...data,
         {
-            quarter: `week ${nextWeek}`,
+            time: `week ${nextWeek}`,
             week: nextWeek,
             iphone: 78 * (Math.random() - 0.5),
         },
@@ -66,7 +67,7 @@ function actionAddStartWeek() {
     const prevWeek = data[0].week - 1;
     options.data = [
         {
-            quarter: `week ${prevWeek}`,
+            time: `week ${prevWeek}`,
             week: prevWeek,
             iphone: 78 * (Math.random() - 0.5),
         },
@@ -77,9 +78,9 @@ function actionAddStartWeek() {
 
 function actionAddWeek12and13() {
     options.data = [
-        ...(options.data ?? []),
-        { quarter: 'week 12', week: 12, iphone: 78 },
-        { quarter: 'week 13', week: 13, iphone: 138 },
+        ...(options.data ?? []).filter((d) => d.week !== 12 && d.week !== 13),
+        { time: 'week 12', week: 12, iphone: 78 },
+        { time: 'week 13', week: 13, iphone: 138 },
     ];
     options.data.sort((a: any, b: any) => a.week - b.week);
     chart.update(options);
@@ -87,9 +88,9 @@ function actionAddWeek12and13() {
 
 function actionAddWeek7and8() {
     options.data = [
-        ...(options.data ?? []),
-        { quarter: 'week 7', week: 7, iphone: 142 },
-        { quarter: 'week 8', week: 8, iphone: 87 },
+        ...(options.data ?? []).filter((d) => d.week !== 7 && d.week !== 8),
+        { time: 'week 7', week: 7, iphone: 142 },
+        { time: 'week 8', week: 8, iphone: 87 },
     ];
     options.data.sort((a: any, b: any) => a.week - b.week);
     chart.update(options);
@@ -105,12 +106,12 @@ function reorder() {
 
 function rapidUpdate() {
     chart.updateDelta({
-        data: [...data, { quarter: 'week 12', iphone: 78 }],
+        data: [...data, { time: 'week 12', iphone: 78 }],
     });
 
     chart.waitForUpdate().then(() => {
         chart.updateDelta({
-            data: [...data, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }],
+            data: [...data, { time: 'week 12', iphone: 78 }, { time: 'week 13', iphone: 138 }],
         });
     });
 }
