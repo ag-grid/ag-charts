@@ -32,7 +32,11 @@ export function register(definition: ModuleDefinition, version: string): void {
     if (existingVersion === version) {
         // Probably due to duplicate module loading - users should be aware of this because it's not a good idea.
         Logger.warn(
-            `AG Charts - Module '${definition.name}' already registered, ignoring (version: ${existingVersion})`
+            [
+                `AG Charts - Module '${definition.name}' already registered,',
+                'ignoring (version: ${existingVersion}).`,
+                `Check your code for duplicate loading of charts NPM modules.`,
+            ].join(' ')
         );
         return;
     }
@@ -40,9 +44,11 @@ export function register(definition: ModuleDefinition, version: string): void {
     // Module already registered with a different version - this is a problem with the users NPM dependencies.
     throw new Error(
         [
-            `AG Charts - Module '${definition.name}' already registered with different version: ${existingVersion} vs, ${version}`,
+            `AG Charts - Module '${definition.name}' already registered with different version:`,
+            `${existingVersion} vs ${version}`,
             ``,
-            `Check your package.json for conflicting dependencies - depending on your package manager, one of these commands may help:`,
+            `Check your package.json for conflicting dependencies - depending on your package manager`,
+            `one of these commands may help:`,
             `- npm ls ag-charts-community`,
             `- yarn why ag-charts-community`,
         ].join('\n')
