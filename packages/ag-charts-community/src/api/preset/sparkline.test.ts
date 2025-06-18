@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
+import { expectWarningsCalls } from 'ag-charts-test';
 import type { AgChartInstance, AgSparklineOptions } from 'ag-charts-types';
 
 import {
@@ -87,6 +88,18 @@ describe('Sparkline Preset', () => {
             await compare();
         });
 
+        it('should render a basic sparkline from single value data when first value is undefined', async () => {
+            const options = prepareSparklineOptions({
+                type: 'line',
+                data: [undefined, -0.81, -0.18, 0.66, -0.45],
+            });
+
+            chart = AgCharts.__createSparkline(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
         it('should render a basic sparkline from tuples', async () => {
             const options = prepareSparklineOptions({
                 type: 'line',
@@ -101,6 +114,31 @@ describe('Sparkline Preset', () => {
 
             chart = AgCharts.__createSparkline(options);
             await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('should render a basic sparkline from tuples when first value is undefined', async () => {
+            const options = prepareSparklineOptions({
+                type: 'line',
+                data: [undefined, [1, -0.81], [2, -0.18], [3, 0.66], [4, -0.45]],
+            });
+
+            chart = AgCharts.__createSparkline(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [LineSeries-1 / xKey] ignored:",
+    "[undefined]",
+  ],
+  [
+    "AG Charts - invalid value of type [undefined] for [LineSeries-1 / xValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
 
             await compare();
         });
