@@ -47,18 +47,20 @@ const applyDarkmode = () => {
     return charts.length !== 0;
 };
 
-if (!applyDarkmode()) {
-    /* React defers updates. Rather than try and hook into the API, just wait until the darkmode is applied. */
-    const observer = new MutationObserver(() => {
-        if (applyDarkmode()) {
-            observer.disconnect();
-        }
-    });
-    observer.observe(document.body, {
-        attributes: true,
-        childList: true,
-        subtree: true,
-    });
+if (darkmode) {
+    if (!applyDarkmode()) {
+        /* React defers updates. Rather than try and hook into the API, just wait until the darkmode is applied. */
+        const observer = new MutationObserver(() => {
+            if (applyDarkmode()) {
+                observer.disconnect();
+            }
+        });
+        observer.observe(document.body, {
+            attributes: true,
+            childList: true,
+            subtree: true,
+        });
+    }
 }
 window.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'color-scheme-change') {
