@@ -32,7 +32,7 @@ import { Selection } from '../../scene/selection';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
-import { mergeDefaults } from '../../util/object';
+import { deepFreeze, mergeDefaults } from '../../util/object';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
@@ -394,6 +394,7 @@ export abstract class Axis<
      * Creates/removes/updates the scene graph nodes that constitute the axis.
      */
     update() {
+        this._cachedFormatterBoundSeries = undefined;
         this.updatePosition();
         this.updateSelections();
 
@@ -777,9 +778,15 @@ export abstract class Axis<
         this.gridGroup.setClipRect(new BBox(x, y, width, height));
     }
 
+    private _cachedFormatterBoundSeries?: WeakRef<AgAxisBoundSeries[]>;
     private getFormatterBoundSeries(): AgAxisBoundSeries[] {
-        const { direction } = this;
-        return this.boundSeries.flatMap((series) => series.getFormatterContext(direction));
+        let result = this._cachedFormatterBoundSeries?.deref();
+        if (!result) {
+            const { direction } = this;
+            result = deepFreeze(this.boundSeries.flatMap((series) => series.getFormatterContext(direction)));
+            this._cachedFormatterBoundSeries = new WeakRef(result);
+        }
+        return result;
     }
 
     protected getTitleFormatterParams(domain: D[]) {
