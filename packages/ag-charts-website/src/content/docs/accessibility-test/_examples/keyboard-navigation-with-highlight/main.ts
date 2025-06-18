@@ -10,7 +10,12 @@ const options: AgCartesianChartOptions = {
     theme: {
         overrides: {
             bar: {
-                series: { highlight: { highlightedItem: { strokeWidth: 4 }, unhighlightedSeries: { opacity: 0.05 } } },
+                series: {
+                    highlight: {
+                        highlightedSeries: { strokeWidth: 4 },
+                        unhighlightedSeries: { opacity: 0.05 },
+                    },
+                },
             },
         },
     },
