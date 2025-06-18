@@ -471,6 +471,7 @@ describe('ChartOptions', () => {
       "width": 10,
     },
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -562,6 +563,7 @@ describe('ChartOptions', () => {
       "width": 10,
     },
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -653,6 +655,7 @@ describe('ChartOptions', () => {
       "width": 10,
     },
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -744,6 +747,7 @@ describe('ChartOptions', () => {
       "width": 10,
     },
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -796,6 +800,7 @@ describe('ChartOptions', () => {
   },
   {
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -879,6 +884,7 @@ describe('ChartOptions', () => {
   },
   {
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -1012,6 +1018,7 @@ describe('ChartOptions', () => {
       "width": 10,
     },
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -1103,6 +1110,7 @@ describe('ChartOptions', () => {
       "width": 10,
     },
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -1194,6 +1202,7 @@ describe('ChartOptions', () => {
       "width": 10,
     },
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -1285,6 +1294,7 @@ describe('ChartOptions', () => {
       "width": 10,
     },
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -1337,6 +1347,7 @@ describe('ChartOptions', () => {
   },
   {
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -1420,6 +1431,7 @@ describe('ChartOptions', () => {
   },
   {
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -1553,6 +1565,7 @@ describe('ChartOptions', () => {
       "width": 10,
     },
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -1644,6 +1657,7 @@ describe('ChartOptions', () => {
       "width": 10,
     },
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -1735,6 +1749,7 @@ describe('ChartOptions', () => {
       "width": 10,
     },
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -1826,6 +1841,7 @@ describe('ChartOptions', () => {
       "width": 10,
     },
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -1878,6 +1894,7 @@ describe('ChartOptions', () => {
   },
   {
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
@@ -1961,6 +1978,7 @@ describe('ChartOptions', () => {
   },
   {
     "highlight": {
+      "enabled": true,
       "highlightedItem": {
         "fill": "rgba(255,255,255, 0.33)",
         "opacity": 1,
