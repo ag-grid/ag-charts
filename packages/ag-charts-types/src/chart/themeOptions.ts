@@ -151,7 +151,7 @@ export interface AgOhlcSeriesThemeOverrides<TDatum = TDatumDefault, TContext = T
 
 export interface AgHistogramSeriesThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseCartesianThemeOptions<TDatum, TContext> {
-    axes?: AgContinuousCartesianAxesTheme;
+    axes?: AgContinuousCartesianAxesTheme<TContext>;
     series?: AgHistogramSeriesThemeableOptions<TDatum, TContext>;
 }
 
@@ -289,18 +289,20 @@ export interface AgRadialGaugeThemeOverrides<TDatum = TDatumDefault, TContext = 
 }
 
 type AgLinearGaugeTheme<TDatum, TContext> = AgBaseGaugePresetThemeOptions<TDatum, TContext> &
-    AgLinearGaugeThemeableOptions;
+    AgLinearGaugeThemeableOptions<TContext>;
 export interface AgLinearGaugeTargetTheme extends Omit<AgLinearGaugeTarget, 'value' | 'text'> {}
 export interface AgLinearGaugeThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgLinearGaugeTheme<TDatum, TContext> {
     targets?: AgLinearGaugeTargetTheme;
 }
 
-export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
+export interface AgCommonThemeableAxisOptions<TContext = TContextDefault>
+    extends AgCartesianAxesTheme<TContext>,
+        AgPolarAxesTheme<TContext> {}
 
 export interface AgCommonThemeableChartOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseThemeableChartOptions<TDatum, TContext> {
-    axes?: AgCommonThemeableAxisOptions;
+    axes?: AgCommonThemeableAxisOptions<TContext>;
     annotations?: AgAnnotationsThemeableOptions;
     chartToolbar?: AgChartToolbarThemeableOptions;
     initialState?: AgInitialStateThemeableOptions;

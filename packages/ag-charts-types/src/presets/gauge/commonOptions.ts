@@ -9,6 +9,7 @@ import type {
     FontWeight,
     InteractionRange,
     PixelSize,
+    TContextDefault,
 } from '../../chart/types';
 import type {
     AgBaseSeriesThemeableOptions,
@@ -17,9 +18,11 @@ import type {
     AgSeriesHighlightStyle,
 } from '../../series/seriesOptions';
 
-export interface AgBaseGaugeThemeableOptions {
+export interface AgBaseGaugeThemeableOptions<TContext = TContextDefault> {
     /** The cursor to use for the gauge. This config is identical to the CSS `cursor` property. */
     cursor?: string;
+    /** Context object to use in callbacks */
+    context?: TContext;
     /** @deprecated Configuration for marker and series highlighting when a series or legend item is hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for highlighting when a series or legend item is hovered over. */
@@ -29,10 +32,11 @@ export interface AgBaseGaugeThemeableOptions {
 }
 
 // Verification checks for completeness/correctness.
-const __THEMEABLE_OPTIONS = undefined as any as Required<AgBaseGaugeThemeableOptions>;
+const __THEMEABLE_OPTIONS = undefined as any as Required<AgBaseGaugeThemeableOptions<unknown>>;
 // @ts-expect-error TS6133 - this is used to validate completeness by the compiler, but is deliberately unused.
-let __VERIFY_THEMEABLE_OPTIONS: Required<Omit<AgBaseSeriesThemeableOptions<any>, 'showInLegend' | 'listeners'>> =
-    undefined as any;
+let __VERIFY_THEMEABLE_OPTIONS: Required<
+    Omit<AgBaseSeriesThemeableOptions<any, unknown>, 'showInLegend' | 'listeners'>
+> = undefined as any;
 __VERIFY_THEMEABLE_OPTIONS = __THEMEABLE_OPTIONS;
 
 export interface AgGaugeScaleLabel<TContext> {

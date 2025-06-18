@@ -102,7 +102,8 @@ export interface AgRadialGaugeSecondaryLabelOptions
     text?: string;
 }
 
-export interface AgRadialGaugeThemeableOptions<TContext = TContextDefault> extends AgBaseGaugeThemeableOptions {
+export interface AgRadialGaugeThemeableOptions<TContext = TContextDefault>
+    extends AgBaseGaugeThemeableOptions<TContext> {
     /** Outer radius of the gauge. */
     outerRadius?: PixelSize;
     /** Inner radius of the gauge. */
