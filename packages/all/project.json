@@ -201,6 +201,13 @@
       "outputs": [],
       "cache": false
     },
+    "blt:ci": {
+      "executor": "nx:noop",
+      "dependsOn": ["blt", "^test:e2e", "^test:package"],
+      "inputs": [],
+      "outputs": [],
+      "cache": false
+    },
     "clean": {
       "cache": false,
       "command": "./tools/clean.sh"
