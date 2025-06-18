@@ -1,25 +1,24 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import type { AgChartOptions } from 'ag-charts-types';
-
-import { AgCharts } from '../api/agCharts';
-import { CATEGORY_LINE_ANIMATION_QUARTERS, EXAMPLES } from './test/examples-integrated-charts';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
-    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
     waitForChartStability,
-} from './test/utils';
-import type { ChartOrProxy } from './test/utils';
+} from 'ag-charts-community-test';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+
+import { AgCharts } from './main';
+import { CATEGORY_LINE_ANIMATION_QUARTERS, EXAMPLES } from './test/examples-integrated-charts';
+import { prepareEnterpriseTestOptions } from './test/utils';
 
 describe('Integrated Charts Examples', () => {
     setupMockConsole();
     const ctx = setupMockCanvas();
 
-    let chart: ChartOrProxy;
+    let chart: AgChartInstance<AgChartOptions>;
 
     afterEach(() => {
         if (chart) {
@@ -42,16 +41,14 @@ describe('Integrated Charts Examples', () => {
     describe('Changing Chart Type', () => {
         let index = 0;
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
-            if (example.enterpriseCharts) continue;
-
             index++;
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
                 const startingOptions: AgChartOptions = EXAMPLES[Object.keys(EXAMPLES)[index - 1]]?.options ?? {};
-                prepareTestOptions(startingOptions);
+                prepareEnterpriseTestOptions(startingOptions);
 
                 const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
+                prepareEnterpriseTestOptions(options);
 
                 chart = AgCharts.create(startingOptions);
                 await waitForChartStability(chart);
@@ -60,6 +57,26 @@ describe('Integrated Charts Examples', () => {
                 await compare();
             });
         }
+    });
+
+    describe('Switching between charts with and without axes', () => {
+        const examples = [EXAMPLES.PIE_BASIC, EXAMPLES.RADAR_LINE_BASIC];
+
+        it('should switch between charts with and without axes', async () => {
+            const options: AgChartOptions = { ...examples.at(-1)?.options };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            for (const _ of [0, 1]) {
+                for (const example of examples) {
+                    const updatedOptions = prepareEnterpriseTestOptions({ ...example.options });
+                    await chart.update(updatedOptions);
+                    await compare();
+                }
+            }
+        });
     });
 
     describe('line series animation', () => {
@@ -71,7 +88,7 @@ describe('Integrated Charts Examples', () => {
                     animate(1000, ratio);
 
                     const options: AgChartOptions = { ...EXAMPLES.CATEGORY_LINE_ANIMATION.options };
-                    prepareTestOptions(options);
+                    prepareEnterpriseTestOptions(options);
 
                     chart = AgCharts.create(options);
                     await waitForChartStability(chart);
@@ -88,7 +105,7 @@ describe('Integrated Charts Examples', () => {
                     animate(1000, 1);
 
                     const options: AgChartOptions = { ...EXAMPLES.CATEGORY_LINE_ANIMATION.options };
-                    prepareTestOptions(options);
+                    prepareEnterpriseTestOptions(options);
 
                     chart = AgCharts.create(options);
                     await waitForChartStability(chart);
@@ -118,7 +135,7 @@ describe('Integrated Charts Examples', () => {
                     animate(1000, 1);
 
                     const options: AgChartOptions = { ...EXAMPLES.CATEGORY_LINE_ANIMATION.options };
-                    prepareTestOptions(options);
+                    prepareEnterpriseTestOptions(options);
 
                     chart = AgCharts.create(options);
                     await waitForChartStability(chart);
@@ -147,7 +164,7 @@ describe('Integrated Charts Examples', () => {
                     animate(1000, 1);
 
                     const options: AgChartOptions = { ...EXAMPLES.CATEGORY_LINE_ANIMATION.options };
-                    prepareTestOptions(options);
+                    prepareEnterpriseTestOptions(options);
 
                     chart = AgCharts.create(options);
                     await waitForChartStability(chart);
@@ -176,7 +193,7 @@ describe('Integrated Charts Examples', () => {
                     animate(1000, 1);
 
                     const options: AgChartOptions = { ...EXAMPLES.CATEGORY_LINE_ANIMATION.options };
-                    prepareTestOptions(options);
+                    prepareEnterpriseTestOptions(options);
 
                     chart = AgCharts.create(options);
                     await waitForChartStability(chart);
