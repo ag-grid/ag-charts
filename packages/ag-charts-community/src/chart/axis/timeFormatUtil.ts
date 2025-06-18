@@ -41,7 +41,7 @@ const YEAR_FORMAT = /^%[-_0]?[Yy]$/;
 export function deriveTimeSpecifier(
     format: string | Partial<Record<string, string>> | undefined,
     unit: AgTimeIntervalUnit,
-    includeYear = true
+    truncateDate?: 'year' | 'month' | 'day'
 ): string {
     if (typeof format === 'string') return format;
 
@@ -57,11 +57,12 @@ export function deriveTimeSpecifier(
     } = format;
     const formatOrder = FORMAT_ORDERS[unit];
     const hardcodedTimeFormat = hardCodedTimeFormats[unit];
+    const truncationOrder = truncateDate ? FORMAT_ORDERS[truncateDate] : -1;
 
     if (
-        (includeYear && formatOrder >= FORMAT_ORDERS.year && !YEAR_FORMAT.test(year)) ||
-        (formatOrder >= FORMAT_ORDERS.month && !MONTH_FORMAT.test(month)) ||
-        (formatOrder >= FORMAT_ORDERS.day && !DAY_FORMAT.test(day))
+        (truncationOrder < FORMAT_ORDERS.year && formatOrder >= FORMAT_ORDERS.year && !YEAR_FORMAT.test(year)) ||
+        (truncationOrder < FORMAT_ORDERS.month && formatOrder >= FORMAT_ORDERS.month && !MONTH_FORMAT.test(month)) ||
+        (truncationOrder < FORMAT_ORDERS.day && formatOrder >= FORMAT_ORDERS.day && !DAY_FORMAT.test(day))
     ) {
         return hardcodedTimeFormat;
     }
@@ -71,9 +72,10 @@ export function deriveTimeSpecifier(
         case 'year':
             return year;
         case 'month':
-            return includeYear ? `${month} ${year}` : month;
+            return truncationOrder < FORMAT_ORDERS.year ? `${month} ${year}` : month;
         case 'day':
-            return includeYear ? `${month} ${day} ${year}` : `${month} ${day}`;
+            // AG-15156 - no format for just days
+            return truncationOrder < FORMAT_ORDERS.year ? `${month} ${day} ${year}` : `${month} ${day}`;
         case 'hour':
             timeFormat = hour;
             break;
@@ -99,6 +101,12 @@ export function deriveTimeSpecifier(
         return hardcodedTimeFormat;
     }
 
-    const dateFormat = includeYear ? `${month} ${day} ${year}` : `${month} ${day}`;
-    return `${timeFormat} ${dateFormat}`;
+    let dateFormat: string | undefined;
+    if (truncationOrder < FORMAT_ORDERS.year) {
+        dateFormat = `${month} ${day} ${year}`;
+    } else if (truncationOrder < FORMAT_ORDERS.month) {
+        dateFormat = `${month} ${day}`;
+    }
+    // AG-15156 - no format for just days
+    return dateFormat ? `${timeFormat} ${dateFormat}` : timeFormat;
 }
