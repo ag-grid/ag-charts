@@ -280,4 +280,22 @@ describe('LinearScale', () => {
         expect(singlePointFormat(1234.567890123, 'f')).toEqual('1234.57');
         expect(singlePointFormat(1234.567890123, ' ')).toEqual('1234.56789012');
     });
+
+    describe('empty domain', () => {
+        test('convert does not throw', () => {
+            const scale = new LinearScale();
+            scale.domain = [];
+            scale.range = [0, 100];
+
+            expect(() => scale.convert(50)).not.toThrow();
+        });
+
+        test('convert does not throw', () => {
+            const scale = new LinearScale();
+            scale.domain = [];
+            scale.range = [0, 100];
+
+            expect(() => scale.invert(50)).not.toThrow();
+        });
+    });
 });

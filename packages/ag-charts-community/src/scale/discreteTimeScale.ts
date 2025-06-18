@@ -63,6 +63,8 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         this.refresh();
 
         const { domain, bands } = this;
+        if (domain.length <= 0) return;
+
         const reversed = domain[0].valueOf() > domain[domain.length - 1].valueOf();
 
         let index: number | undefined;
