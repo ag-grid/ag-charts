@@ -32,47 +32,7 @@ export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { col
 
 export type ShapeColor = string | ShapeGradientColor | AgPatternColor | AgImageFill;
 
-export interface DefaultStyles {
-    fill?: ShapeColor;
-    stroke?: ShapeColor;
-    strokeWidth: number;
-    lineDash?: number[];
-    lineDashOffset: number;
-    lineCap?: ShapeLineCap;
-    lineJoin?: ShapeLineJoin;
-    opacity: number;
-    fillShadow?: DropShadow;
-}
-
 export abstract class Shape<D = any> extends Node<D> {
-    /**
-     * Defaults for style properties. Note that properties that affect the position
-     * and shape of the node are not considered style properties, for example:
-     * `x`, `y`, `width`, `height`, `radius`, `rotation`, etc.
-     * Can be used to reset to the original styling after some custom styling
-     * has been applied (using the `restoreOwnStyles` method).
-     * These static defaults are meant to be inherited by subclasses.
-     */
-    protected static readonly defaultStyles: DefaultStyles = {
-        fill: 'black',
-        stroke: undefined,
-        strokeWidth: 0,
-        lineDash: undefined,
-        lineDashOffset: 0,
-        lineCap: undefined,
-        lineJoin: undefined,
-        opacity: 1,
-        fillShadow: undefined,
-    };
-
-    /**
-     * Restores the default styles introduced by this subclass.
-     */
-    protected restoreOwnStyles() {
-        const { defaultStyles } = this.constructor as typeof Shape;
-        Object.assign(this, defaultStyles);
-    }
-
     @SceneChangeDetection()
     fillOpacity: number = 1;
 
@@ -80,7 +40,7 @@ export abstract class Shape<D = any> extends Node<D> {
     strokeOpacity: number = 1;
 
     @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onFillChange() })
-    fill: ShapeColor | undefined = Shape.defaultStyles.fill;
+    fill: ShapeColor | undefined = 'black';
 
     private getGradient(fill: ShapeColor | undefined) {
         if (isGradientFill(fill)) return this.createGradient(fill);
@@ -150,16 +110,16 @@ export abstract class Shape<D = any> extends Node<D> {
      * unless specific looks that is achieved by having an invisible stroke is desired.
      */
     @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onStrokeChange() })
-    stroke?: ShapeColor = Shape.defaultStyles.stroke;
+    stroke?: ShapeColor;
 
     protected onStrokeChange() {
         this.strokeGradient = this.getGradient(this.stroke);
     }
 
-    protected strokeGradient: Gradient | undefined;
+    protected strokeGradient?: Gradient;
 
     @SceneChangeDetection()
-    strokeWidth: number = Shape.defaultStyles.strokeWidth;
+    strokeWidth: number = 0;
 
     /**
      * Returns a device-pixel aligned coordinate (or length if length is supplied).
@@ -172,25 +132,25 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     @SceneArrayChangeDetection()
-    lineDash?: readonly number[] = Shape.defaultStyles.lineDash;
+    lineDash?: readonly number[];
 
     @SceneChangeDetection()
-    lineDashOffset: number = Shape.defaultStyles.lineDashOffset;
+    lineDashOffset: number = 0;
 
     @SceneChangeDetection()
-    lineCap?: ShapeLineCap = Shape.defaultStyles.lineCap;
+    lineCap?: ShapeLineCap;
 
     @SceneChangeDetection()
-    lineJoin?: ShapeLineJoin = Shape.defaultStyles.lineJoin;
+    lineJoin?: ShapeLineJoin;
 
     @SceneChangeDetection()
-    miterLimit?: number = undefined;
+    miterLimit?: number;
 
-    @SceneChangeDetection({ convertor: (v: number) => clamp(0, v ?? Shape.defaultStyles.opacity, 1) })
-    opacity: number = Shape.defaultStyles.opacity;
+    @SceneChangeDetection({ convertor: (v: number) => clamp(0, v ?? 1, 1) })
+    opacity: number = 1;
 
     @SceneObjectChangeDetection({ equals: TRIPLE_EQ, checkDirtyOnAssignment: true })
-    fillShadow: DropShadow | undefined = Shape.defaultStyles.fillShadow;
+    fillShadow: DropShadow | undefined;
 
     @SceneObjectChangeDetection({ equals: boxesEqual, changeCb: (s: Shape) => s.onFillChange() })
     fillBBox?: BBox;

@@ -6,7 +6,7 @@ import { SceneChangeDetection, SceneObjectChangeDetection } from '../changeDetec
 import { ExtendedPath2D } from '../extendedPath2D';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
-import { type CanvasContext, Shape } from './shape';
+import { type CanvasContext } from './shape';
 
 interface CornerRadii {
     topLeft: number;
@@ -285,7 +285,7 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
 
     private borderClipPath?: ExtendedPath2D;
 
-    private lastUpdatePathStrokeWidth: number = Shape.defaultStyles.strokeWidth;
+    private lastUpdatePathStrokeWidth: number = this.strokeWidth;
 
     protected override isDirtyPath() {
         return (
@@ -294,7 +294,7 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         );
     }
 
-    private effectiveStrokeWidth: number = Shape.defaultStyles.strokeWidth;
+    private effectiveStrokeWidth: number = this.strokeWidth;
 
     private hittester = super.isPointInPath.bind(this);
     private distanceCalculator = super.distanceSquaredTransformedPoint.bind(this);

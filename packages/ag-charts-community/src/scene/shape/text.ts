@@ -28,15 +28,7 @@ export class Text<D = any> extends Shape<D> {
 
     private static readonly debug = Debug.create(true, DebugSelectors.SCENE_TEXT);
 
-    static override readonly defaultStyles = {
-        ...Shape.defaultStyles,
-        textAlign: 'start' as CanvasTextAlign,
-        fontStyle: undefined,
-        fontWeight: undefined,
-        fontSize: 10,
-        fontFamily: 'sans-serif',
-        textBaseline: 'alphabetic' as CanvasTextBaseline,
-    };
+    private static readonly defaultFontSize = 10;
 
     @SceneChangeDetection()
     x: number = 0;
@@ -62,16 +54,16 @@ export class Text<D = any> extends Shape<D> {
     fontWeight?: FontWeight;
 
     @SceneChangeDetection()
-    fontSize: number = 10;
+    fontSize: number = Text.defaultFontSize;
 
     @SceneChangeDetection()
     fontFamily?: string = 'sans-serif';
 
     @SceneChangeDetection()
-    textAlign: CanvasTextAlign = Text.defaultStyles.textAlign;
+    textAlign: CanvasTextAlign = 'start';
 
     @SceneChangeDetection()
-    textBaseline: CanvasTextBaseline = Text.defaultStyles.textBaseline;
+    textBaseline: CanvasTextBaseline = 'alphabetic';
 
     // TextMetrics are used if lineHeight is not defined.
     @SceneChangeDetection()
@@ -259,7 +251,7 @@ export class Text<D = any> extends Shape<D> {
 
     setFont(props: TextSizeProperties) {
         this.fontFamily = props.fontFamily;
-        this.fontSize = props.fontSize ?? Text.defaultStyles.fontSize;
+        this.fontSize = props.fontSize ?? Text.defaultFontSize;
         this.fontStyle = props.fontStyle;
         this.fontWeight = props.fontWeight;
     }

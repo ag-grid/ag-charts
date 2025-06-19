@@ -10,11 +10,10 @@ import { Shape } from './shape';
 export class Line extends Shape implements DistantObject {
     static readonly className = 'Line';
 
-    protected static override defaultStyles = { ...Shape.defaultStyles, fill: undefined, strokeWidth: 1 };
-
     constructor(opts: NodeOptions = {}) {
         super(opts);
-        this.restoreOwnStyles();
+        this.fill = undefined;
+        this.strokeWidth = 1;
     }
 
     @SceneChangeDetection()

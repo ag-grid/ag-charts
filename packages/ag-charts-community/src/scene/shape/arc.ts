@@ -17,11 +17,6 @@ enum ArcType {
 export class Arc<D = any> extends Path<D> {
     static override readonly className = 'Arc';
 
-    constructor() {
-        super();
-        this.restoreOwnStyles();
-    }
-
     @SceneChangeDetection()
     centerX: number = 0;
 
