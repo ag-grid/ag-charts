@@ -67,6 +67,11 @@ export class AdjacencyListGraph<V, E = undefined> {
 
     removeVertex(vertex: Vertex<V>): void {
         this._vertexCount--;
+        const edges = this._edges.get(vertex);
+        if (!edges) return;
+        for (const [_edge, adjacentVertices] of edges) {
+            this._vertexCount -= adjacentVertices.length;
+        }
         this._edges.delete(vertex);
 
         // TODO: iterate all edges and their vertices to find and delete references to `vertex`
