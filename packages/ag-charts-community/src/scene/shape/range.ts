@@ -1,19 +1,14 @@
 import { BBox } from '../bbox';
 import type { NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
-import { type DefaultStyles, Shape } from './shape';
+import { Shape } from './shape';
 
 export class Range<D = any> extends Shape<D> {
     static readonly className = 'Range';
 
-    protected static override defaultStyles: DefaultStyles = {
-        ...Shape.defaultStyles,
-        strokeWidth: 1,
-    };
-
     constructor(opts: NodeOptions = {}) {
         super(opts);
-        this.restoreOwnStyles();
+        this.strokeWidth = 1;
     }
 
     @SceneChangeDetection()
