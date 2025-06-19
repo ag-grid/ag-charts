@@ -37,6 +37,7 @@
     border: none;
     box-sizing: border-box;
     color: inherit;
+    cursor: pointer;
     display: table-row;
     font: inherit;
     justify-content: space-between;
