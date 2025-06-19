@@ -181,7 +181,7 @@ class AgChartsInternal {
         let mutableOptions = userOptions;
         if (AgCharts.optionsMutationFn && mutableOptions) {
             mutableOptions = AgCharts.optionsMutationFn(
-                deepClone(mutableOptions, ChartOptions.OPTIONS_CLONE_OPTS),
+                deepClone(mutableOptions, ChartOptions.OPTIONS_CLONE_OPTS_FAST),
                 presetType
             );
             debug(() => ['>>> AgCharts.createOrUpdate() MUTATED user options', deepClone(mutableOptions)]);
@@ -284,7 +284,7 @@ class AgChartsInternal {
     }
 
     static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>) {
-        deltaOptions = deepClone(deltaOptions, ChartOptions.OPTIONS_CLONE_OPTS);
+        deltaOptions = deepClone(deltaOptions, ChartOptions.OPTIONS_CLONE_OPTS_FAST);
 
         const stripSymbols = jsonWalk(
             deltaOptions,
