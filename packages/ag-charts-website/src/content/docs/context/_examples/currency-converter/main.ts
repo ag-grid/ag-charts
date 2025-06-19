@@ -4,11 +4,9 @@ import type { CurrencyConverter } from './currencyConverter';
 import { Currency, makeCurrencyConverter } from './currencyConverter';
 import { TradeDatum, getData } from './data';
 
-const myCurrencyConverter = makeCurrencyConverter('EUR');
-
 const options: AgCartesianChartOptions<TradeDatum, CurrencyConverter> = {
     container: document.getElementById('myChart'),
-    context: myCurrencyConverter,
+    context: makeCurrencyConverter('EUR'),
     title: {
         text: 'Stock Prices',
     },
@@ -86,6 +84,6 @@ const options: AgCartesianChartOptions<TradeDatum, CurrencyConverter> = {
 const chart = AgCharts.create(options);
 
 function onMySelectChange(value: Currency) {
-    myCurrencyConverter.userCurrency = value;
+    options.context = makeCurrencyConverter(value)
     chart.update(options);
 }
