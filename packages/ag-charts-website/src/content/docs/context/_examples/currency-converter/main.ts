@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import type { CurrencyConverter } from './currencyConverter';
 import { Currency, makeCurrencyConverter } from './currencyConverter';
@@ -6,7 +6,7 @@ import { TradeDatum, getData } from './data';
 
 const myCurrencyConverter = makeCurrencyConverter('EUR');
 
-const options: AgChartOptions<TradeDatum, CurrencyConverter> = {
+const options: AgCartesianChartOptions<TradeDatum, CurrencyConverter> = {
     container: document.getElementById('myChart'),
     context: myCurrencyConverter,
     title: {
