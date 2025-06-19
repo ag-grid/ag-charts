@@ -32,7 +32,7 @@ import {
     resolvePath,
 } from './optionsGraphUtils';
 
-type Operation =
+export type Operation =
     | ColorOperation
     | FontOperation
     | LocationOperation
@@ -67,6 +67,22 @@ export function getOperation(value: unknown) {
         operation,
         values: Array.isArray(value[operation]) ? value[operation] : [value[operation]],
     };
+}
+
+function getOperationTargetVertex(graph: OptionsGraphInterface, vertex: VertexInterface, valueVertex: VertexInterface) {
+    const operation = getOperation(graph.getVertexValue(valueVertex));
+
+    switch (operation?.operation) {
+        case LocationOperation.Path:
+            const [relativePath] = operation.values;
+            const pathArray = graph.getPathArray(vertex);
+            const path = resolvePath(pathArray, relativePath);
+            if (path === UNRESOLVABLE_PATH) return;
+            return graph.findVertexAtPath(path);
+
+        case TransformOperation.Value:
+            return vertex;
+    }
 }
 
 // --- CHART ---
@@ -283,6 +299,7 @@ enum LogicOperation {
     If = '$if',
     Not = '$not',
     Or = '$or',
+    Switch = '$switch',
 }
 
 const logicOperations: Record<LogicOperation, OperationFns> = {
@@ -292,6 +309,7 @@ const logicOperations: Record<LogicOperation, OperationFns> = {
     $if: ifOperation,
     $not: notOperation,
     $or: orOperation,
+    $switch: switchOperation,
 };
 
 function andOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -348,6 +366,25 @@ function orOperation(graph: OptionsGraphInterface, vertex: VertexInterface, valu
         if (value) return true;
     }
     return false;
+}
+
+function switchOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [conditionValueVertex, defaultValueVertex, ...caseVertices] = values;
+    const conditionValue = graph.resolveVertexValue(vertex, conditionValueVertex);
+
+    for (const caseVertex of caseVertices) {
+        const caseValue = graph.getVertexValue(caseVertex);
+        if (!Array.isArray(caseValue)) continue;
+        const [caseConditionValue, caseResultValue] = caseValue;
+        if (
+            conditionValue === caseConditionValue ||
+            (Array.isArray(caseConditionValue) && caseConditionValue.includes(conditionValue))
+        ) {
+            return caseResultValue;
+        }
+    }
+
+    return graph.getVertexValue(defaultValueVertex);
 }
 
 // --- LOCATION ---
@@ -607,7 +644,7 @@ const transformOperations: Record<TransformOperation, OperationFns> = {
 function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [objectVertex, defaultValueVertex, overridesPathVertex1, overridesPathVertex2] = values;
 
-    const object = graph.resolveVertexValue(vertex, objectVertex);
+    const object = graph.getVertexValue(objectVertex);
     if (!isPlainObject(object)) return;
 
     const defaultValue = defaultValueVertex ? graph.getVertexValue(defaultValueVertex) : undefined;
@@ -620,7 +657,14 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         : undefined;
 
     if (children.length === 0 && defaultValue != null) {
-        graph.graftObject(vertex, defaultValue, [overridesPath1, overridesPath2]);
+        if (getOperation(defaultValue)) {
+            const resolvedDefaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
+            if (isPlainObject(resolvedDefaultValue)) {
+                graph.graftObject(vertex, resolvedDefaultValue, [overridesPath1, overridesPath2]);
+            }
+        } else {
+            graph.graftObject(vertex, defaultValue, [overridesPath1, overridesPath2]);
+        }
     }
 
     for (const child of children) {
@@ -729,13 +773,25 @@ function mapOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     return RESOLVED_TO_BRANCH;
 }
 
-function mergeOperation(_graph: OptionsGraphInterface, _vertex: VertexInterface, _values: Array<VertexInterface>) {
-    throw new Error('Not yet implemented');
+function mergeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    for (const valueVertex of values) {
+        const value = graph.resolveVertexValue(vertex, valueVertex);
+        if (!isPlainObject(value)) continue;
+        graph.graftObject(vertex, value);
+    }
+
+    return RESOLVED_TO_BRANCH;
 }
 
 function omitOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [keysVertex, objectVertex] = values;
-    const keys = graph.resolveVertexValue(vertex, keysVertex);
+
+    let keys = graph.getVertexValue(keysVertex);
+    if (!Array.isArray(keys)) {
+        const targetVertex = getOperationTargetVertex(graph, vertex, objectVertex);
+        if (!targetVertex) return;
+        keys = graph.resolveVertexValue(targetVertex, keysVertex);
+    }
     const object = graph.resolveVertexValue(vertex, objectVertex);
     if (!Array.isArray(keys) || !isPlainObject(object)) return;
 

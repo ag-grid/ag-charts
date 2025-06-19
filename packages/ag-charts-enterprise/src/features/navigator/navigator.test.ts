@@ -16,7 +16,7 @@ import {
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
-const xyData = (ys: number[]) => ys.map((y, x) => ({ x, y }));
+const xyData = (ys: number[], key = 'y') => ys.map((y, x) => ({ x, [key]: y }));
 
 const NAVIGATOR_MINICHART_EXAMPLES: Record<string, CartesianTestCase> = {
     SINGLE_LINE_SERIES: {
@@ -67,25 +67,21 @@ const NAVIGATOR_MINICHART_EXAMPLES: Record<string, CartesianTestCase> = {
                     data: xyData([5, 7, 8, 3, 0, 2, 6, 8, 10, 9, 6]),
                     strokeWidth: 3,
                 },
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'z',
+                    data: xyData([3, 2, 1, 1, 1, 0, 2, 3, 4, 3, 4], 'z'),
+                    marker: { enabled: true },
+                },
             ],
             navigator: {
                 miniChart: {
-                    series: [
-                        {
-                            type: 'line',
-                            xKey: 'x',
-                            yKey: 'y',
-                            data: xyData([5, 7, 8, 3, 0, 2, 6, 8, 10, 9, 6]),
-                            strokeWidth: 1,
-                            marker: {
-                                enabled: false,
-                            },
-                        },
-                    ],
+                    series: [{ strokeWidth: 1, stroke: 'blue' }, { stroke: 'green' }],
                 },
             },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line'] }),
+        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line', 'line'] }),
     },
     MINI_CHART_NAVIGATOR_HANDLES: {
         options: {

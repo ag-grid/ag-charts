@@ -14,7 +14,7 @@ export type Operation =
 type Leaf<T extends ExcludeLeaves | object> = Operation | T;
 type AnyLeaf = Leaf<ExcludeLeaves>;
 
-type ExcludeLeaves = string | symbol | number | undefined | AgGradientColor | AgPatternColor | AgImageFill;
+type ExcludeLeaves = string | symbol | number | boolean | undefined | AgGradientColor | AgPatternColor | AgImageFill;
 
 /**
  * Modify a type T by extending it's leaves with the type V, excluding any leaf that extends E.
@@ -86,9 +86,10 @@ type LogicOperation =
 type NumericOperation = { $even: [Leaf<number>] } | { $mul: [Leaf<number>, Leaf<number>] } | { $round: [Leaf<number>] };
 
 type TransformOperation =
-    | { $map: [AnyLeaf, AnyLeaf] }
+    | { $apply: [Leaf<object>] | [Leaf<object>, Leaf<Array<object>>] }
     | { $find: [AnyLeaf, AnyLeaf] }
     | { $findFirstSiblingNotOperation: [AnyLeaf] }
+    | { $map: [AnyLeaf, AnyLeaf] }
     | { $merge: Leaf<object>[] }
     | { $omit: [Leaf<Array<string>>, Leaf<object>] }
     | { $value: '$1' | '$index' };

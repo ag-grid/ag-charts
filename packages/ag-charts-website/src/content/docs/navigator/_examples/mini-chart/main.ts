@@ -1,9 +1,4 @@
-import {
-    AgCartesianChartOptions,
-    AgCartesianSeriesTooltipRendererParams,
-    AgCharts,
-    AgSeriesTooltip,
-} from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
@@ -32,25 +27,16 @@ const options: AgCartesianChartOptions = {
             type: 'line',
             xKey: 'date',
             yKey: 'AAPL',
-            marker: {
-                enabled: false,
-            },
         },
         {
             type: 'line',
             xKey: 'date',
             yKey: 'MSFT',
-            marker: {
-                enabled: false,
-            },
         },
         {
             type: 'line',
             xKey: 'date',
             yKey: 'AMZN',
-            marker: {
-                enabled: false,
-            },
         },
     ],
     axes: [
@@ -95,4 +81,4 @@ const options: AgCartesianChartOptions = {
     },
 };
 
-const chart = AgCharts.create(options);
+AgCharts.create(options);

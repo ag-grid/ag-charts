@@ -589,6 +589,28 @@ describe('OptionsGraph', () => {
                 axes: expect.any(Array),
             });
         });
+
+        it('should resolve `$switch` operations', () => {
+            const themeConfig = {
+                line: {
+                    one: {
+                        $switch: [
+                            { $path: '/two' },
+                            'default-value',
+                            ['case-a', 'case-a-value'],
+                            ['case-b', 'case-b-value'],
+                        ],
+                    },
+                    two: 'case-a',
+                },
+            };
+            const options = new OptionsGraph(themeConfig).resolve();
+            expect(options).toStrictEqual({
+                one: 'case-a-value',
+                two: 'case-a',
+                axes: expect.any(Array),
+            });
+        });
     });
 
     describe('transform operations', () => {
@@ -670,8 +692,32 @@ describe('OptionsGraph', () => {
             });
         });
 
-        describe('$omit', () => {
-            it('should ...', () => {});
+        it('should resolve `$omit` operation', () => {
+            const themeConfig = {
+                line: {
+                    one: { $omit: [['three', 'five'], { $path: '/two' }] },
+                    two: {
+                        three: 'three-value',
+                        four: 'four-value',
+                        five: 'five-value',
+                        six: 'six-value',
+                    },
+                },
+            };
+            const options = new OptionsGraph(themeConfig).resolve();
+            expect(options).toStrictEqual({
+                one: {
+                    four: 'four-value',
+                    six: 'six-value',
+                },
+                two: {
+                    three: 'three-value',
+                    four: 'four-value',
+                    five: 'five-value',
+                    six: 'six-value',
+                },
+                axes: expect.any(Array),
+            });
         });
 
         describe('$map', () => {
@@ -825,6 +871,46 @@ describe('OptionsGraph', () => {
             expect(options).toStrictEqual({
                 one: 1,
                 two: 2,
+                axes: expect.any(Array),
+            });
+        });
+    });
+
+    describe('combinations', () => {
+        it('should resolve `$omit` with `$switch`', () => {
+            const themeConfig = {
+                line: {
+                    two: {
+                        child: 'child-value',
+                        other: 'other-value',
+                        third: 'third-value',
+                    },
+                    one: {
+                        $omit: [
+                            {
+                                $switch: [
+                                    { $path: 'child' },
+                                    ['child', 'other'],
+                                    ['child-value', ['other']],
+                                    ['other-value', ['child']],
+                                ],
+                            },
+                            { $path: '/two' },
+                        ],
+                    },
+                },
+            };
+            const options = new OptionsGraph(themeConfig).resolve();
+            expect(options).toStrictEqual({
+                one: {
+                    child: 'child-value',
+                    third: 'third-value',
+                },
+                two: {
+                    child: 'child-value',
+                    other: 'other-value',
+                    third: 'third-value',
+                },
                 axes: expect.any(Array),
             });
         });

@@ -49,7 +49,7 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
     ...lineSeriesThemeableOptionsDef,
     ...commonSeriesOptionsDefs,
     highlight,
-    type: constant('line'),
+    type: required(constant('line')),
     xKey: required(string),
     yKey: required(string),
     xName: string,

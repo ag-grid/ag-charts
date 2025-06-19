@@ -1,4 +1,110 @@
-import { type AgNavigatorOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgMiniChartSeriesOptions,
+    type AgNavigatorOptions,
+    type WithThemeParams,
+    _ModuleSupport,
+} from 'ag-charts-community';
+
+import {
+    barIgnoredMiniChartProperties,
+    boxPlotIngnoredMiniChartProperties,
+    bubbleIgnoredMiniChartProperties,
+    commonIgnoredMiniChartProperties,
+    heatmapIgnoredMiniChartProperties,
+    histogramIgnoredMiniChartProperties,
+    lineIgnoredMiniChartProperties,
+    rangeAreaIgnoredMiniChartProperties,
+    rangeBarIgnoredMiniChartProperties,
+    scatterIgnoredMiniChartProperties,
+    waterfallIgnoredMiniChartProperties,
+} from './navigatorOptionsDefs';
+
+const validMiniChartSeriesTypes: AgMiniChartSeriesOptions['type'][] = [
+    'area',
+    'bar',
+    'bubble',
+    'candlestick',
+    'heatmap',
+    'histogram',
+    'line',
+    'ohlc',
+    'range-area',
+    'range-bar',
+    'scatter',
+    'waterfall',
+];
+
+// TODO: This is deeply hacky. The priceVolume preset area series is mapped to a line series with various additional
+// options that need to be omitted. This needs some kind of remap operation that takes the union of options between
+// the two series instead of a simple omit list.
+const priceVolumePresetIgnoredMiniChartProperties = [
+    'itemStyler',
+    'fastDataProcessing',
+    'direction',
+    'fill',
+    'fillGradientDefaults',
+    'fillPatternDefaults',
+    'fillImageDefaults',
+    'fillOpacity',
+    'shadow',
+    'focusPriority',
+    'seriesGrouping',
+    'highlight',
+    'lineDash',
+    'lineDashOffset',
+    'strokeWidth',
+];
+
+function miniChartSeriesTheme(seriesPath: object, typePath: object) {
+    return {
+        $merge: [
+            {
+                $switch: [
+                    typePath,
+                    {},
+                    [
+                        ['area', 'line', 'range-area'],
+                        {
+                            marker: {
+                                enabled: {
+                                    $isUserOption: [
+                                        '/series/$index/marker/enabled',
+                                        { $path: ['/series/$index/marker/enabled', false] },
+                                        false,
+                                    ],
+                                },
+                            },
+                        },
+                    ],
+                ],
+            },
+            {
+                $omit: [
+                    {
+                        $switch: [
+                            typePath,
+                            commonIgnoredMiniChartProperties,
+                            ['bar', barIgnoredMiniChartProperties],
+                            ['box-plot', boxPlotIngnoredMiniChartProperties],
+                            ['bubble', bubbleIgnoredMiniChartProperties],
+                            ['heatmap', heatmapIgnoredMiniChartProperties],
+                            ['histogram', histogramIgnoredMiniChartProperties],
+                            [
+                                'line',
+                                [...lineIgnoredMiniChartProperties, ...priceVolumePresetIgnoredMiniChartProperties],
+                            ],
+                            ['range-area', rangeAreaIgnoredMiniChartProperties],
+                            ['range-bar', rangeBarIgnoredMiniChartProperties],
+                            ['scatter', scatterIgnoredMiniChartProperties],
+                            ['waterfall', waterfallIgnoredMiniChartProperties],
+                        ],
+                    },
+                    seriesPath,
+                ],
+            },
+        ],
+    };
+}
 
 export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
     enabled: false,
@@ -39,46 +145,35 @@ export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
             top: 0,
             bottom: 0,
         },
-        /* TODO: AG-10781 Breaking Change
         series: {
-            $map: [
+            $apply: [
+                miniChartSeriesTheme(
+                    { $path: '/series/$index' },
+                    {
+                        $path: [
+                            '/navigator/miniChart/series/$index/type',
+                            { $path: ['type', { $path: '/series/$index/type' }] },
+                        ],
+                    }
+                ),
                 {
+                    // TODO: this should be a $switch but switches can not resolve the case value yet
                     $if: [
                         {
-                            $or: [
-                                { $eq: [{ $path: '/series/$index/type' }, 'area'] },
-                                { $eq: [{ $path: '/series/$index/type' }, 'line'] },
-                                { $eq: [{ $path: '/series/$index/type' }, 'range-area'] },
-                            ],
+                            $or: validMiniChartSeriesTypes.map((type) => ({
+                                $eq: [{ $path: '/series/0/type' }, type],
+                            })),
                         },
                         {
-                            $merge: [
-                                {
-                                    label: { enabled: false },
-                                    marker: { enabled: { $path: ['/series/$index/marker/enabled', false] } },
-                                },
-                                { $value: '$1' },
+                            $map: [
+                                miniChartSeriesTheme({ $value: '$1' }, { $path: '/series/$index/type' }),
+                                { $path: '/series' },
                             ],
                         },
-                        {
-                            $if: [
-                                {
-                                    $or: [
-                                        { $eq: [{ $path: '/series/$index/type' }, 'bar'] },
-                                        { $eq: [{ $path: '/series/$index/type' }, 'bubble'] },
-                                        { $eq: [{ $path: '/series/$index/type' }, 'range-bar'] },
-                                        { $eq: [{ $path: '/series/$index/type' }, 'scatter'] },
-                                    ],
-                                },
-                                { $merge: [{ label: { enabled: false } }, { $value: '$1' }] },
-                                { $value: '$1' },
-                            ],
-                        },
+                        undefined,
                     ],
                 },
-                { $path: '/series' },
             ],
-        },
-        */
+        } as any,
     },
 };
