@@ -677,7 +677,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
         const overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
             return this.callWithContext(itemStyler, {
                 seriesId,
-                ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
+                ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
                 datum,
                 xValue,
                 yValue,
