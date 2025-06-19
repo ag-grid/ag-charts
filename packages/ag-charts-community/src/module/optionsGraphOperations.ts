@@ -72,33 +72,51 @@ export function getOperation(value: unknown) {
 // --- CHART ---
 
 enum ChartOperation {
-    IsCartesianChart = '$isCartesianChart',
-    IsPolarChart = '$isPolarChart',
-    IsStandaloneChart = '$isStandaloneChart',
+    HasSeriesType = '$hasSeriesType',
+    IsChartType = '$isChartType',
+    IsSeriesType = '$isSeriesType',
 }
 
 const chartOperations: Record<ChartOperation, OperationFns> = {
-    $isCartesianChart: isCartesianChartOperation,
-    $isPolarChart: isPolarChartOperation,
-    $isStandaloneChart: isStandaloneChartOperation,
+    $hasSeriesType: hasSeriesTypeOperation,
+    $isChartType: isChartTypeOperation,
+    $isSeriesType: isSeriesTypeOperation,
 };
 
-function isCartesianChartOperation(graph: OptionsGraphInterface) {
-    const seriesType = graph.getResolvedPath(['series', '0', 'type']);
-    if (typeof seriesType !== 'string') return false;
-    return chartTypes.isCartesian(seriesType);
+function hasSeriesTypeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [valueVertex] = values;
+    const value = graph.resolveVertexValue(vertex, valueVertex);
+    const series = graph.getResolvedPath(['series']);
+    if (!Array.isArray(series)) return false;
+    for (const s of series) {
+        if (s.type === value) return true;
+    }
+    return false;
 }
 
-function isPolarChartOperation(graph: OptionsGraphInterface) {
+function isSeriesTypeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [valueVertex] = values;
+    const value = graph.resolveVertexValue(vertex, valueVertex);
     const seriesType = graph.getResolvedPath(['series', '0', 'type']);
-    if (typeof seriesType !== 'string') return false;
-    return chartTypes.isPolar(seriesType);
+    return seriesType === value;
 }
 
-function isStandaloneChartOperation(graph: OptionsGraphInterface) {
+function isChartTypeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [valueVertex] = values;
+    const value = graph.resolveVertexValue(vertex, valueVertex);
     const seriesType = graph.getResolvedPath(['series', '0', 'type']);
     if (typeof seriesType !== 'string') return false;
-    return chartTypes.isStandalone(seriesType);
+
+    switch (value) {
+        case 'cartesian':
+            return chartTypes.isCartesian(seriesType);
+        case 'polar':
+            return chartTypes.isPolar(seriesType);
+        case 'standalone':
+            return chartTypes.isStandalone(seriesType);
+    }
+
+    return false;
 }
 
 // --- COLOR ---
@@ -281,6 +299,7 @@ enum LogicOperation {
     Eq = '$eq',
     GreaterThan = '$greaterThan',
     If = '$if',
+    LessThan = '$lessThan',
     Not = '$not',
     Or = '$or',
 }
@@ -290,6 +309,7 @@ const logicOperations: Record<LogicOperation, OperationFns> = {
     $eq: eqOperation,
     $greaterThan: greaterThanOperation,
     $if: ifOperation,
+    $lessThan: lessThanOperation,
     $not: notOperation,
     $or: orOperation,
 };
@@ -334,6 +354,11 @@ function ifOperation(graph: OptionsGraphInterface, vertex: VertexInterface, valu
     }
 
     return graph.resolveVertexValue(vertex, valueVertex);
+}
+
+function lessThanOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [value, compare] = values;
+    return (graph.resolveVertexValue(vertex, value) as number) < (graph.resolveVertexValue(vertex, compare) as number);
 }
 
 function notOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {

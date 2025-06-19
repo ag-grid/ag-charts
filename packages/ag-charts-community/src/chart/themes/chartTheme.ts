@@ -363,13 +363,13 @@ export class ChartTheme {
                         { $greaterThan: [{ $size: [{ $path: '/series' }] }, 1] },
                         {
                             $or: [
-                                { $isCartesianChart: true },
-                                { $isStandaloneChart: true },
+                                { $isChartType: 'cartesian' },
+                                { $isChartType: 'standalone' },
                                 {
                                     $and: [
-                                        { $isPolarChart: true },
-                                        { $not: [{ $eq: [{ $path: '/series/0/type' }, 'pie'] }] },
-                                        { $not: [{ $eq: [{ $path: '/series/0/type' }, 'donut'] }] },
+                                        { $isChartType: 'polar' },
+                                        { $not: [{ $isSeriesType: 'pie' }] },
+                                        { $not: [{ $isSeriesType: 'donut' }] },
                                     ],
                                 },
                             ],
@@ -418,6 +418,21 @@ export class ChartTheme {
                 darkTheme: IS_DARK_THEME,
                 delay: 0,
                 pagination: false,
+                mode: {
+                    $if: [
+                        {
+                            $and: [
+                                { $isChartType: 'cartesian' },
+                                { $not: [{ $hasSeriesType: 'bubble' }] },
+                                { $not: [{ $hasSeriesType: 'scatter' }] },
+                                { $greaterThan: [{ $size: [{ $path: '/series' }] }, 1] },
+                                { $lessThan: [{ $size: [{ $path: '/series' }] }, 4] },
+                            ],
+                        },
+                        'shared',
+                        'single',
+                    ],
+                },
             },
             overlays: { darkTheme: IS_DARK_THEME },
             listeners: {},
