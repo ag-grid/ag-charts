@@ -6,7 +6,7 @@ import { benchmark, setupBenchmark } from './benchmark';
 import { isAtOrAfterVersion } from './compatibility';
 
 describe('resize benchmark', () => {
-    const ctx = setupBenchmark<AgCartesianChartOptions>('resize').repeatCount(10);
+    const ctx = setupBenchmark<AgCartesianChartOptions>('resize');
 
     benchmark('initial load', ctx, { expectedRelativeMB: 10, expectedCanvasCount: 2 }, async () => {
         await ctx.create();

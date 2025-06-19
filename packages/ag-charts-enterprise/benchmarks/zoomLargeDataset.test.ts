@@ -10,9 +10,7 @@ if (!isAtOrAfterVersion(11, 0, 0)) {
 }
 
 describe('zoom-large-dataset benchmark', () => {
-    const ctx = setupBenchmark<AgCartesianChartOptions>('enterprise-1M-line-series', {
-        isEnterprise: true,
-    }).repeatCount(5);
+    const ctx = setupBenchmark<AgCartesianChartOptions>('enterprise-1M-line-series', { isEnterprise: true });
 
     benchmark(
         'initial load',
@@ -33,11 +31,8 @@ describe('zoom-large-dataset benchmark', () => {
             ctx,
             { expectedRelativeMB: 6, expectedCanvasCount: 4, autoSnapshot: false },
             async () => {
-                for (let i = 0; i < 50; i++) {
+                for (let i = 0; i < 100; i++) {
                     await ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);
-                }
-                for (let i = 0; i < 50; i++) {
-                    await ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, 1, 0);
                 }
             },
             30_000

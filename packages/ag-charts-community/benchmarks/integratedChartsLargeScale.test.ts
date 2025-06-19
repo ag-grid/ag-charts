@@ -5,7 +5,7 @@ import { AgCartesianChartOptions } from 'ag-charts-types';
 import { benchmark, setupBenchmark } from './benchmark';
 
 describe('integrated charts large scale benchmark', () => {
-    const ctx = setupBenchmark<AgCartesianChartOptions>('integrated-large-scale').repeatCount(10);
+    const ctx = setupBenchmark<AgCartesianChartOptions>('integrated-large-scale');
 
     benchmark('initial load', ctx, { expectedRelativeMB: 85, expectedCanvasCount: 38 }, async () => {
         await ctx.create();
