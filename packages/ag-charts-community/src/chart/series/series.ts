@@ -492,12 +492,15 @@ export abstract class Series<
         return this.getPropertyValues(axisDirectionProperty(direction), this.propertyNames);
     }
 
-    getFormatterContext(property: FormatterPropertyType): Array<{ key: string; name: string | undefined }> {
+    getFormatterContext(
+        property: FormatterPropertyType
+    ): Array<{ seriesId: string; key: string; name: string | undefined }> {
+        const { id: seriesId } = this;
         const keys = this.getPropertyValues(property, this.propertyKeys);
         const names = this.getPropertyValues(property, this.propertyNames);
-        const out: Array<{ key: string; name: string | undefined }> = [];
+        const out: Array<{ seriesId: string; key: string; name: string | undefined }> = [];
         for (let idx = 0; idx < keys.length; idx++) {
-            out.push({ key: keys[idx], name: names[idx] });
+            out.push({ seriesId, key: keys[idx], name: names[idx] });
         }
         return out;
     }

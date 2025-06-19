@@ -56,7 +56,9 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     getKeys(direction: ChartAxisDirection): string[];
     getKeyProperties(direction: ChartAxisDirection): string[];
     getNames(direction: ChartAxisDirection): (string | undefined)[];
-    getFormatterContext(direction: ChartAxisDirection): Array<{ key: string; name: string | undefined }>;
+    getFormatterContext(
+        direction: ChartAxisDirection
+    ): Array<{ seriesId: string; key: string; name: string | undefined }>;
     datumMidPoint?<T extends SeriesNodeDatum<unknown>>(datum: T): Point | undefined;
     isEnabled(): boolean;
     type: string;
