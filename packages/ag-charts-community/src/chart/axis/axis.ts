@@ -395,6 +395,8 @@ export abstract class Axis<
      */
     update() {
         this.formatterBoundSeries.clear();
+        this.unzoomedTickLayout = undefined;
+
         this.updatePosition();
         this.updateSelections();
 
