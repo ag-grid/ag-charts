@@ -13,6 +13,7 @@ import {
     AgChartOptions,
     AgCharts,
     AgContextMenuItemShowOn,
+    AgGaugeOptions,
     AgLinearGaugeOptions,
     AgNodeClickEvent,
     AgNodeContextMenuActionEvent,
@@ -438,11 +439,13 @@ describe('AG-13024 API context gauges', () => {
     type TDatum = unknown;
     type TContext = object;
     type TMock = MockChartLabelFormatter<TDatum, TContext>;
-    let chart: AgChartInstance;
+    let chart: AgChartInstance<AgGaugeOptions>;
     let rootContext: object;
     const chartLabelFormatter = newFreezableMock<TDatum, TContext, TMock>((_params) => undefined);
 
-    async function createChart(options: AgRadialGaugeOptions | AgLinearGaugeOptions): Promise<AgChartInstance> {
+    async function createChart(
+        options: AgRadialGaugeOptions | AgLinearGaugeOptions
+    ): Promise<AgChartInstance<AgGaugeOptions>> {
         prepareEnterpriseTestOptions(options);
         chart = AgCharts.createGauge(options);
         await waitForChartStability(chart);

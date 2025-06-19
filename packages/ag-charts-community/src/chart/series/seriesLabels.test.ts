@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import type { TestCase } from '../test/utils';
+import type { ChartTestCase } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -18,7 +18,7 @@ import {
 } from '../test/utils';
 import * as examples from './test/examples';
 
-const EXAMPLES: Record<string, TestCase> = {
+const EXAMPLES: Record<string, ChartTestCase> = {
     COLUMN_SERIES_LABELS: {
         options: examples.COLUMN_SERIES_LABELS,
         assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['bar'] }),

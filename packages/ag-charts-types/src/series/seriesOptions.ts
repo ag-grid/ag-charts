@@ -22,27 +22,21 @@ export interface AgSeriesHighlightStyle {
 export interface AgMultiSeriesHighlightOptions<
     ItemHighlightStyleOptions,
     SeriesHighlightStyleOptions = ItemHighlightStyleOptions,
-> extends AgHighlightOptions<ItemHighlightStyleOptions>,
-        AgSeriesHighlightOptions<SeriesHighlightStyleOptions> {}
-
-export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyleOptions> {
-    /** Set to `false` to disable highlighting. */
-    enabled?: boolean;
-    /** By default, nodes will be highlighted when the cursor is within the `tooltip.range`. Set this to `'node'` to highlight nodes when within the `series[].nodeClickRange`. */
-    range?: 'tooltip' | 'node';
-    /** Options for the highlighted item.  */
-    highlightedItem?: ItemHighlightStyleOptions;
-    /** Options for the un-highlighted items when there is an active highlight. */
-    unhighlightedItem?: ItemHighlightStyleOptions;
-}
-
-export interface AgSeriesHighlightOptions<SeriesHighlightStyleOptions> {
+> extends AgHighlightOptions<ItemHighlightStyleOptions> {
     /** Options for the highlighted series. */
     highlightedSeries?: SeriesHighlightStyleOptions;
     /** Options for the un-highlighted series when there is an active highlight. */
     unhighlightedSeries?: SeriesHighlightStyleOptions;
 }
 
+export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyleOptions> {
+    /** Set to `false` to disable highlighting. */
+    enabled?: boolean;
+    /** Options for the highlighted item.  */
+    highlightedItem?: ItemHighlightStyleOptions;
+    /** Options for the un-highlighted items when there is an active highlight. */
+    unhighlightedItem?: ItemHighlightStyleOptions;
+}
 export interface AgHighlightStyleOptions extends AgBaseHighlightStyleOptions, FillOptions {}
 
 export interface AgBaseHighlightStyleOptions extends StrokeOptions, LineDashOptions {

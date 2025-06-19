@@ -1,4 +1,4 @@
-import type { AgChartOptions } from 'ag-charts-types';
+import type { AgChartOptions, AgGaugeOptions } from 'ag-charts-types';
 
 import * as examples from './examples';
 import {
@@ -12,15 +12,25 @@ import {
 } from './utils';
 import type { ChartOrProxy, IMAGE_SNAPSHOT_DEFAULTS } from './utils';
 
-export type TestCase = {
-    type?: 'chart' | 'gauge';
-    options: AgChartOptions;
+interface BaseTestCase<Options extends AgChartOptions | AgGaugeOptions> {
+    options: Options;
+    assertions: (chart: ChartOrProxy<Options>) => void | Promise<void>;
+    extraScreenshotActions?: (chart: ChartOrProxy<Options>) => Promise<void>;
     enterprise: boolean;
-    assertions: (chart: ChartOrProxy) => void | Promise<void>;
-    extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
     imageSnapshotDefaults?: typeof IMAGE_SNAPSHOT_DEFAULTS;
-};
-export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
+}
+
+export interface ChartTestCase extends BaseTestCase<AgChartOptions> {
+    type?: 'chart';
+}
+
+export interface GaugeTestCase extends BaseTestCase<AgGaugeOptions> {
+    type: 'gauge';
+}
+
+export type TestCase = ChartTestCase | GaugeTestCase;
+
+export const COMMUNITY_AND_ENTERPRISE_EXAMPLES = {
     BAR_CHART_EXAMPLE: {
         options: examples.BAR_CHART_EXAMPLE,
         assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 1) }),
@@ -195,11 +205,14 @@ export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {
         assertions: gaugeAssertions(),
         enterprise: true,
     },
-};
+} satisfies Record<string, TestCase>;
 
-export const EXAMPLES = Object.keys(COMMUNITY_AND_ENTERPRISE_EXAMPLES)
-    .filter((k) => !COMMUNITY_AND_ENTERPRISE_EXAMPLES[k].enterprise)
-    .reduce<typeof COMMUNITY_AND_ENTERPRISE_EXAMPLES>((pv, k) => {
-        pv[k] = COMMUNITY_AND_ENTERPRISE_EXAMPLES[k];
+export const EXAMPLES: Record<string, ChartTestCase> = Object.keys(COMMUNITY_AND_ENTERPRISE_EXAMPLES)
+    .filter((k) => !(COMMUNITY_AND_ENTERPRISE_EXAMPLES as Record<string, TestCase>)[k].enterprise)
+    .reduce<Record<string, ChartTestCase>>((pv, k) => {
+        const testCase = (COMMUNITY_AND_ENTERPRISE_EXAMPLES as Record<string, TestCase>)[k];
+        if (testCase.type !== 'gauge') {
+            pv[k] = testCase;
+        }
         return pv;
     }, {});

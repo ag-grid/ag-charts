@@ -24,7 +24,7 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
-import type { CartesianOrPolarTestCase, TestCase } from '../../test/utils';
+import type { CartesianOrPolarTestCase, ChartTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -281,7 +281,7 @@ const EXAMPLES: Record<
     },
 };
 
-const INVALID_DATA_EXAMPLES: Record<string, TestCase> = {
+const INVALID_DATA_EXAMPLES: Record<string, ChartTestCase> = {
     AREA_CATEGORY_X_AXIS_INVALID_DOMAIN_LOG_Y_AXIS: buildLogAxisTestCase(DATA_INVALID_DOMAIN_LOG_AXIS),
 };
 

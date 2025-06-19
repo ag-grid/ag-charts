@@ -4,7 +4,7 @@ import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
-import { COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES, type TestCase } from '../../test/examples-gallery';
+import { type ChartTestCase, COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES } from '../../test/examples-gallery';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -25,7 +25,7 @@ import {
     HISTOGRAM_SERIES_LABELS,
 } from '../test/examples';
 
-const EXAMPLES: Record<string, TestCase> = {
+const EXAMPLES: Record<string, ChartTestCase> = {
     SIMPLE_HISTOGRAM: GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE,
     HISTOGRAM_WITH_SPECIFIED_BINS: GALLERY_EXAMPLES.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE,
     XY_HISTOGRAM_WITH_MEAN: GALLERY_EXAMPLES.XY_HISTOGRAM_WITH_MEAN_EXAMPLE,
