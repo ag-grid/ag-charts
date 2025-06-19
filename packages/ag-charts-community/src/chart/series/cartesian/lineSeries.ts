@@ -484,6 +484,8 @@ export class LineSeries extends CartesianSeries<
     private getMarkerItemStyleOverrides(
         datumId: string,
         datum: any,
+        xValue: any,
+        yValue: any,
         format: RequireOptional<AgSeriesMarkerStyle>,
         highlighted: boolean
     ) {
@@ -499,7 +501,7 @@ export class LineSeries extends CartesianSeries<
             const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
             return this.callWithContext(itemStyler, {
                 seriesId,
-                ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
+                ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
                 datum,
                 highlighted,
                 ...format,
@@ -539,6 +541,7 @@ export class LineSeries extends CartesianSeries<
         const markerStyle = marker.getStyle();
 
         markerSelection.each((node, datum) => {
+            const { xValue, yValue } = datum;
             const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
             const baseStyle = mergeDefaults(highlightStyle, markerStyle, {
                 stroke,
@@ -551,7 +554,7 @@ export class LineSeries extends CartesianSeries<
                 node,
                 datum.datum,
                 datum.point,
-                datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
+                datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
                 isHighlight,
                 baseStyle,
                 fillBBox,
@@ -609,7 +612,10 @@ export class LineSeries extends CartesianSeries<
         if (xValue == null) return;
 
         const format = this.getMarkerItemBaseStyle(false);
-        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, format, false));
+        Object.assign(
+            format,
+            this.getMarkerItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format, false)
+        );
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -824,12 +830,13 @@ export class LineSeries extends CartesianSeries<
 
     public getFormattedMarkerStyle(datum: LineNodeDatum) {
         const { xKey, yKey } = this.properties;
+        const { xValue, yValue } = datum;
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
         return this.getMarkerStyle(
             this.properties.marker,
             datum.datum,
-            datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
+            datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
             true
         );
     }

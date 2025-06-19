@@ -3,7 +3,7 @@ import { type BoxBounds, findMaxIndex, findMinIndex } from 'ag-charts-core';
 import { Transformable } from '../../scene/transformable';
 import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from './seriesTypes';
 
-function datumBoundaryPoints(datum: any, domain: any[]) {
+function datumBoundaryPoints(datum: any, domain: any[]): [boolean, boolean] {
     if (datum == null || domain.length === 0) {
         return [false, false];
     }
@@ -26,14 +26,14 @@ function datumBoundaryPoints(datum: any, domain: any[]) {
     return [datumValue === min, datumValue === max];
 }
 
-export function datumStylerProperties<TDatum extends { xValue: any; yValue: any }>(
-    datum: TDatum,
+export function datumStylerProperties(
+    xValue: any,
+    yValue: any,
     xKey: string,
     yKey: string,
     xDomain: any[],
     yDomain: any[]
 ) {
-    const { xValue, yValue } = datum;
     const [min, max] = datumBoundaryPoints(yValue, yDomain);
     const [first, last] = datumBoundaryPoints(xValue, xDomain);
     return {

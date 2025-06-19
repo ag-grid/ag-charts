@@ -611,4 +611,38 @@ describe('LineSeries', () => {
             expect(imageData).toMatchImageSnapshot();
         });
     });
+
+    describe('item styler', () => {
+        it('calculates first, last, min, max values', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'a', y: 100 },
+                    { x: 'b', y: -100 },
+                    { x: 'c', y: 200 },
+                    { x: 'd', y: 100 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: {
+                            size: 20,
+                            itemStyler: (params) => {
+                                if (params.first) return { fill: 'red' };
+                                if (params.min) return { fill: 'yellow' };
+                                if (params.max) return { fill: 'green' };
+                                if (params.last) return { fill: 'blue' };
+                            },
+                        },
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });

@@ -684,6 +684,7 @@ export class AreaSeries extends CartesianSeries<
         const markerStyle = marker.getStyle();
 
         markerSelection.each((node, datum) => {
+            const { xValue, yValue } = datum;
             const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
             const baseStyle = mergeDefaults(highlightStyle, markerStyle, {
                 stroke,
@@ -695,7 +696,7 @@ export class AreaSeries extends CartesianSeries<
                 node,
                 datum.datum,
                 datum.point,
-                datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
+                datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
                 isHighlight,
                 baseStyle,
                 fillBBox,
@@ -763,15 +764,10 @@ export class AreaSeries extends CartesianSeries<
 
         const style = marker.getStyle();
 
-        const nodeDatum = {
-            datum,
-            xValue,
-            yValue,
-        };
         const activeStyle = this.getMarkerStyle(
             marker,
             datum,
-            datumStylerProperties(nodeDatum, xKey, yKey, xDomain, yDomain),
+            datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
             false,
             undefined,
             style
@@ -967,13 +963,13 @@ export class AreaSeries extends CartesianSeries<
     }
 
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum): AgSeriesMarkerStyle & { size: number } {
-        const { xKey, yKey } = datum;
+        const { xValue, yValue, xKey, yKey } = datum;
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
         return this.getMarkerStyle(
             this.properties.marker,
             datum.datum,
-            datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
+            datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
             true
         );
     }
