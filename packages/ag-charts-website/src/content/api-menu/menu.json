@@ -25,6 +25,10 @@
             "path": "/[framework]/api-state"
         },
         {
+            "title": "Context API",
+            "path": "/[framework]/context"
+        },
+        {
             "title": "TypeScript Generics",
             "path": "/[framework]/ts-generics"
         }

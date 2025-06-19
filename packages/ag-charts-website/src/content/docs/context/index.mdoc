@@ -1,0 +1,94 @@
+---
+title: Context API
+hidePageMenu: true
+---
+
+This section covers how user-defined Context Objects are passed around in
+callbacks.
+
+## Overview
+
+The Context Object is passed to call callbacks and event handlers through the
+`context` property. The purpose of the Context Object is to attach additional
+information to custom callbacks such as [Formatters](./formatters/) and [Tooltip Renderers](./tooltips/#using-custom-tooltips).
+
+## Context Object Overrides
+
+The Context Object can be set using the `context` property either at the root of
+the chart options, or on individual series and axes. The options
+`series[].context` and `axes[].context` will be used for callbacks related to
+the target series or axis, but will fallback to the root `context` property if
+not set.
+
+```js
+{
+    context: 'my root context',
+    series: [
+        {
+            marker: {
+                itemStyler: ({ context }) => {
+                    console.log(context); // prints 'my root context'
+                },
+            },
+        },
+        {
+            context: 'my series context',
+            marker: {
+                itemStyler: ({ context }) => {
+                    console.log(context); // prints 'my series context'
+                },
+            },
+        },
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'bottom',
+            label: {
+                formatter: ({ context }) => {
+                    console.log(context); // prints 'my root context'
+                },
+            },
+        },
+        {
+            type: 'number',
+            position: 'left',
+            context: 'my axis context',
+            label: {
+                formatter: ({ context }) => {
+                    console.log(context); // prints 'my axis context'
+                },
+            },
+        },
+    ],
+};
+```
+
+In this example:
+
+-   `series[0]` and `axes[0]` do not have the `context` defined, so the
+    callbacks use the `context` defined at the root.
+
+-   `series[1]` and `axes[1]` have custom `context` values defined, which is
+    what is used in the callbacks.
+
+## Context Object Example
+
+The example below shows how the Context Object can be used.
+
+Changing the User Currency in the dropdown updates the Context Object
+state. Note that the Context Object is used by the following callbacks:
+
+-   The Y-axis Label Formatter, to convert USD values to the preferred User Currency.
+
+-   The Tooltip Renderer, to render both the stock prices in USD and the User
+    Currency (if applicable).
+
+-   The Context Menu Actions, to log converted stock prices in the console.
+
+{% chartExampleRunner
+    title="Currency Converter"
+    name="currency-converter"
+    type="generated"
+    options={ "enterprise": true }
+/%}

@@ -1,0 +1,36 @@
+export type TradeDatum = { date: Date; open: number; high: number; low: number; close: number };
+
+export function getData() {
+    return [
+        { date: new Date(2024, 0, 1), open: 1200, high: 1220, low: 1180, close: 1210 },
+        { date: new Date(2024, 0, 2), open: 1210, high: 1240, low: 1200, close: 1220 },
+        { date: new Date(2024, 0, 3), open: 1220, high: 1230, low: 1190, close: 1200 },
+        { date: new Date(2024, 0, 4), open: 1200, high: 1210, low: 1170, close: 1180 },
+        { date: new Date(2024, 0, 5), open: 1180, high: 1190, low: 1150, close: 1170 },
+        { date: new Date(2024, 0, 6), open: 1170, high: 1200, low: 1160, close: 1190 },
+        { date: new Date(2024, 0, 7), open: 1190, high: 1230, low: 1180, close: 1220 },
+        { date: new Date(2024, 0, 8), open: 1220, high: 1250, low: 1210, close: 1240 },
+        { date: new Date(2024, 0, 9), open: 1240, high: 1270, low: 1230, close: 1260 },
+        { date: new Date(2024, 0, 10), open: 1260, high: 1280, low: 1250, close: 1270 },
+        { date: new Date(2024, 0, 11), open: 1270, high: 1290, low: 1240, close: 1250 },
+        { date: new Date(2024, 0, 12), open: 1250, high: 1260, low: 1220, close: 1230 },
+        { date: new Date(2024, 0, 13), open: 1230, high: 1240, low: 1200, close: 1220 },
+        { date: new Date(2024, 0, 14), open: 1220, high: 1250, low: 1210, close: 1240 },
+        { date: new Date(2024, 0, 15), open: 1240, high: 1280, low: 1230, close: 1270 },
+        { date: new Date(2024, 0, 16), open: 1270, high: 1300, low: 1250, close: 1260 },
+        { date: new Date(2024, 0, 17), open: 1260, high: 1270, low: 1230, close: 1240 },
+        { date: new Date(2024, 0, 18), open: 1240, high: 1250, low: 1200, close: 1210 },
+        { date: new Date(2024, 0, 19), open: 1210, high: 1230, low: 1180, close: 1190 },
+        { date: new Date(2024, 0, 20), open: 1190, high: 1200, low: 1150, close: 1160 },
+        { date: new Date(2024, 0, 21), open: 1160, high: 1180, low: 1130, close: 1140 },
+        { date: new Date(2024, 0, 22), open: 1140, high: 1170, low: 1120, close: 1160 },
+        { date: new Date(2024, 0, 23), open: 1160, high: 1190, low: 1150, close: 1180 },
+        { date: new Date(2024, 0, 24), open: 1180, high: 1210, low: 1170, close: 1200 },
+        { date: new Date(2024, 0, 25), open: 1200, high: 1230, low: 1190, close: 1210 },
+        { date: new Date(2024, 0, 26), open: 1210, high: 1250, low: 1200, close: 1240 },
+        { date: new Date(2024, 0, 27), open: 1240, high: 1270, low: 1230, close: 1260 },
+        { date: new Date(2024, 0, 28), open: 1260, high: 1290, low: 1240, close: 1250 },
+        { date: new Date(2024, 0, 29), open: 1250, high: 1260, low: 1210, close: 1230 },
+        { date: new Date(2024, 0, 30), open: 1230, high: 1240, low: 1200, close: 1220 },
+    ];
+}
