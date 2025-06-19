@@ -19,33 +19,43 @@ By default, only item highlighting is activated. The above example has custom co
 {% chartExampleRunner title="Column Series with Custom Highlight Style" name="basic-column" type="generated" /%}
 
 ```js
-highlightStyle: {
-    // Attributes that apply to individual items within a single series.
-    item: {
-      fill: 'red',
-      stroke: 'maroon',
-      strokeWidth: 4,
+highlight: {
+    // Attributes that apply to the currently highlighted item.
+    highlightedItem: {
+        fill: 'yellow',
+        stroke: 'gold',
+        strokeWidth: 2,
+    },
+    // Attributes that apply to the unhighlighted items within the highlighted series.
+    unhighlightedItem: {
+        fill: 'maroon',
+        strokeWidth: 0,
     },
     // Attributes that apply to the entire series containing the highlighted item.
-    series: {
-        dimOpacity: 0.2, // series opacity when dimmed (while another series is hovered)
-        strokeWidth: 2
-    }
+    highlightedSeries: {
+        fill: 'red',
+        stroke: 'maroon',
+        strokeWidth: 2,
+    },
+    // Attributes that apply to all other series.
+    unhighlightedSeries: {
+        opacity: 0.2,
+    },
 }
 ```
 
-In this configuration, the highlight style of the hovered item is customised, and both the series highlighting and series dimming options are enabled.
+In this configuration, the highlight style of the markers and series are customised.
 
 Note the following when a bar segment is hovered:
 
--   The hovered item is highlighted using the `highlightStyle.item` configuration. This changes the `fill` to `red`, and the `stroke` to `maroon` with a `strokeWidth` of `4`.
--   The other segments from the highlighted series are highlighted using the `highlightStyle.series.strokeWidth` configuration and have a `strokeWidth` of `2`.
--   All segments belonging to the other series are dimmed with an applied opacity of `0.2`.
--   When a legend item is hovered, the hovered series shows the `strokeWidth` of `2`, and the other series are dimmed. No individual item is highlighted as none are hovered.
+-   The hovered marker is highlighted using the `highlight.highlightedItem` configuration. This changes the `fill` to `gold`, the `stroke` to `yellow`, and the `strokeWidth` to `2`.
+-   The non-hovered markers within the hovered series are styled using the `highlight.unhighlightedItem` configuration. This changes the `fill` to to `maroon`, and removes the stroke by setting the `strokeWidth` to `0`.
+-   The hovered Area Series is highlighted using `highlight.highlightedSeries`. This changes the `fill` and `stroke` to shades of red, with a `strokeWidth` of `2`.
+-   Non-highlighted series are dimmed with an applied opacity of `0.2` using `highlight.unhighlightedSeries`.
 
-In the above example we provided the same `highlightStyle` for all of the series, but the style can be unique to each series.
+In the above example we provided the same `highlight` for all of the series, but the style can be unique to each series.
 
-For simplicity, we provided the `highlightStyle` once within a chart [Theme](./themes/), rather than repeating it on each series.
+For simplicity, we provided the `highlight` once within a chart [Theme](./themes/), rather than repeating it on each series.
 
 ## API Reference
 
