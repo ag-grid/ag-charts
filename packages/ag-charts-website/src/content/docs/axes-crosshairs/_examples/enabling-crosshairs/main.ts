@@ -13,25 +13,12 @@ const options: AgCartesianChartOptions = {
             type: 'line',
             yKey: 'population',
             xKey: 'year',
-            stroke: '#6769EB',
-            marker: {
-                fill: '#6769EB',
-                stroke: '#6769EB',
-            },
         },
     ],
     axes: [
         {
             type: 'number',
             position: 'left',
-            label: {
-                formatter: ({ value }) => {
-                    return `${Number(value).toLocaleString('en-GB', {
-                        notation: 'compact',
-                        maximumFractionDigits: 1,
-                    })}`;
-                },
-            },
             crosshair: {
                 enabled: true,
             },
@@ -46,6 +33,14 @@ const options: AgCartesianChartOptions = {
     ],
     tooltip: {
         enabled: false,
+    },
+    formatter: {
+        y: ({ value }) => {
+            return `${Number(value).toLocaleString('en-GB', {
+                notation: 'compact',
+                maximumFractionDigits: 1,
+            })}`;
+        },
     },
 };
 

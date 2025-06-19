@@ -20,7 +20,7 @@ const options: AgCartesianChartOptions = {
             type: 'number',
             position: 'left',
             crosshair: {
-                snap: false,
+                enabled: false,
             },
         },
         {
@@ -29,14 +29,11 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Year',
             },
-            crosshair: {
-                snap: false,
+            bandHighlight: {
+                enabled: true,
             },
         },
     ],
-    tooltip: {
-        enabled: false,
-    },
     formatter: {
         y: ({ value }) => {
             return `${Number(value).toLocaleString('en-GB', {

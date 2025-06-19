@@ -52,7 +52,7 @@ Crosshair styles such as `stroke`, `strokeWidth` and `lineDash` are customisable
 
 ```js
 crosshair: {
-    stroke: 'rgb(103,105,235)',
+    stroke: '#2b5c95',
     strokeWidth: 2,
     lineDash: [5, 10],
 },
@@ -171,12 +171,39 @@ Note that:
 
 {% chartExampleRunner title="Crosshair Custom Label" name="crosshair-custom-label" type="generated" /%}
 
+## Band Highlight
+
+Band Highlights shade the selected category or date on the chart, rather than a single line. Unlike Crosshairs, they do not render an additional label.
+
+Band Highlights with with `category`, `unit-time`, and `ordinal-time` axes.
+
+To enable the Band Highlight feature for a compatible axis, use the `bandHighlight` property on the `axes` options object as shown below:
+
+```js
+axes: [
+    {
+        type: 'category',
+        bandHighlight: {
+            enabled: true,
+        },
+    },
+],
+```
+
+{% chartExampleRunner title="Band Highlighting" name="band-highlight" type="generated" /%}
+
+See the [Band Highlight API Reference](#reference-AgBandHighlightOptions) for more details on the available options.
+
 ## API Reference
 
 {% tabs %}
 
 {% tabItem id="AgCrosshairOptions" label="Crosshair" %}
 {% apiReference id="AgCrosshairOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgBandHighlightOptions" label="Band Highlight" %}
+{% apiReference id="AgBandHighlightOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}

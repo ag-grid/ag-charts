@@ -9,16 +9,11 @@ const options: AgCartesianChartOptions = {
         {
             type: 'bubble',
             sizeKey: 'planetRadius',
+            sizeName: 'Planet Radius',
             yKey: 'equilibriumTemp',
-            xKey: 'distance',
-            stroke: 'white',
-            fill: 'rgb(103,105,235)',
-            highlight: {
-                highlightedItem: {
-                    fill: 'white',
-                    stroke: 'rgb(103,105,235)',
-                },
-            },
+            yName: 'Equilibrium Temperature',
+            xKey: 'planetRadius',
+            xName: 'Planet Radius',
         },
     ],
     axes: [
