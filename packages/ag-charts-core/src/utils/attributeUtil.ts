@@ -38,7 +38,7 @@ export type BaseAttributeTypeMap = {
     'aria-live': 'assertive' | 'polite';
     'aria-orientation': Direction;
     'aria-selected': boolean;
-    'data-focus-override': boolean;
+    'data-hover-override': boolean;
     'data-focus-visible-override': boolean;
     'data-preventdefault': boolean;
     class: string;
@@ -77,7 +77,7 @@ const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string
     'aria-live': stringParser<BaseAttributeTypeMap['aria-live']>,
     'aria-orientation': stringParser<Direction>,
     'aria-selected': booleanParser,
-    'data-focus-override': booleanParser,
+    'data-hover-override': booleanParser,
     'data-focus-visible-override': booleanParser,
     'data-preventdefault': booleanParser,
     class: stringParser,

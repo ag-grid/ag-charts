@@ -37,6 +37,7 @@
     border: none;
     box-sizing: border-box;
     color: inherit;
+    cursor: pointer;
     display: table-row;
     font: inherit;
     justify-content: space-between;
@@ -69,14 +70,15 @@
     padding-right: 0;
 }
 
-.ag-charts-context-menu__item[data-focus-override='true'],
-.ag-charts-context-menu__item:focus,
+.ag-charts-context-menu__item[data-hover-override='true'],
+.ag-charts-context-menu__item:hover,
 .ag-charts-context-menu__item:active {
     background: var(--ag-charts-focus-color);
 }
 
 .ag-charts-context-menu__item[data-focus-visible-override='true']:focus,
 .ag-charts-context-menu__item:focus-visible {
+    background: var(--ag-charts-focus-color);
     outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
     z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
@@ -107,9 +109,5 @@
 .ag-charts-context-menu__divider > div::after {
     content: '';
     display: block;
-    border-top: 1px solid #babfc7;
-}
-
-.ag-charts-context-menu__divider.ag-charts-dark-context-menu {
-    background: rgb(33, 150, 243, 0.1);
+    border-top: 1px solid var(--ag-charts-border-color);
 }

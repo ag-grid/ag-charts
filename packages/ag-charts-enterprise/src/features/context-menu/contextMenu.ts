@@ -3,7 +3,7 @@ import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import { Logger, clamp, createElement } from 'ag-charts-core';
 
 import { ContextMenuItem, expandItems } from './contextMenuItem';
-import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
+import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuCallback = _ModuleSupport.ContextMenuCallback<AgContextMenuItemShowOn>;
@@ -123,7 +123,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     private show(widgetEvent: ContextMenuEvent['widgetEvent'], expandedItems: ContextMenuItem[]) {
         this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
-        this.element.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         this.element.style.display = 'block';
 
         const overrideFocusVisible = widgetEvent.sourceEvent.pointerType === 'touch' ? false : undefined;
@@ -148,7 +147,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onSubMenuOpen(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
         const bounds = button.getBounds();
-        button.setFocusOverride(true);
+        button.setHoverOverride(true);
         button.getElement().insertAdjacentElement('afterend', menu.getElement());
         menu.getElement().style.position = 'absolute';
 
@@ -184,7 +183,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
     private onSubMenuClose(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
-        button.setFocusOverride(undefined);
+        button.setHoverOverride(undefined);
         // AG-14931 Removing HTML elements can fire a 'focusout' event with `relatedTarget: null` and dismiss the whole
         // context menu, we want to avoid that.
         this.closingSubMenus++;
@@ -195,7 +194,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private createMenu(expandedItems: ContextMenuItem[]) {
         const { menuWidget } = this;
         menuWidget.clear();
-        menuWidget.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         menuWidget.setTabIndex(-1);
         this.createMenuItems(menuWidget, expandedItems);
     }
@@ -206,7 +204,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 case 'separator':
                     const sep = menuWidget.addSeparator();
                     sep.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
-                    sep.classList.toggle(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
                     this.initTableCells(sep);
                     break;
                 case 'action':
@@ -295,7 +292,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     private initButtonElement(button: _Widget.MenuItemWidget, item: ContextMenuItem) {
         button.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
-        button.toggleClass(DEFAULT_CONTEXT_MENU_DARK_CLASS, this.darkTheme);
         button.setEnabled(item.enabled);
         const label = this.ctx.localeManager.t(item.label);
 
