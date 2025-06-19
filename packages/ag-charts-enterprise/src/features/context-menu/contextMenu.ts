@@ -148,7 +148,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onSubMenuOpen(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
         const bounds = button.getBounds();
-        button.setFocusOverride(true);
+        button.setHoverOverride(true);
         button.getElement().insertAdjacentElement('afterend', menu.getElement());
         menu.getElement().style.position = 'absolute';
 
@@ -184,7 +184,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
     private onSubMenuClose(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
-        button.setFocusOverride(undefined);
+        button.setHoverOverride(undefined);
         // AG-14931 Removing HTML elements can fire a 'focusout' event with `relatedTarget: null` and dismiss the whole
         // context menu, we want to avoid that.
         this.closingSubMenus++;
