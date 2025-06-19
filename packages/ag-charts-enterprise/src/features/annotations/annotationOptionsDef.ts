@@ -9,15 +9,19 @@ import {
 } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    and,
+    arrayOf,
     arrayOfDefs,
     boolean,
     constant,
-    defined,
+    greaterThan,
+    lessThan,
     number,
     numberRange,
     optionsDefs,
     or,
     positiveNumber,
+    ratio,
     required,
     string,
     typeUnion,
@@ -193,6 +197,23 @@ export const initialStateOptionsDef: OptionsDefs<AgInitialStateOptions> = {
         },
         'legend state array'
     ),
-    // Validated by the zoom module
-    zoom: defined,
+    zoom: {
+        rangeX: {
+            start: or(number, serializableDate),
+            end: or(number, serializableDate),
+        },
+        rangeY: {
+            start: or(number, serializableDate),
+            end: or(number, serializableDate),
+        },
+        ratioX: {
+            start: and(ratio, lessThan('end')),
+            end: and(ratio, greaterThan('start')),
+        },
+        ratioY: {
+            start: and(ratio, lessThan('end')),
+            end: and(ratio, greaterThan('start')),
+        },
+        autoScaledAxes: arrayOf(constant('y')),
+    },
 };
