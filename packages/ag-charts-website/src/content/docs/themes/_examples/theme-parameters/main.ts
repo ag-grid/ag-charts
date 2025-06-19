@@ -18,10 +18,10 @@ const paperTheme: AgChartTheme = {
         foregroundColor: '#262a33',
         backgroundColor: '#fff1e5',
         accentColor: '#0d7680',
-        chromeBackgroundColor: '#fff7ef',
-        chromeTextColor: '#262a33',
         fontFamily: [{ googleFont: 'DM Serif Text' }, 'Georgia', 'sans-serif'],
         fontSize: 14,
+        tooltipBackgroundColor: '#fff7ef',
+        tooltipTextColor: '#262a33',
     },
 };
 
@@ -62,12 +62,12 @@ const neonTheme: AgChartTheme = {
         foregroundColor: '#00ff1e',
         backgroundColor: '#000000',
         accentColor: '#ff00dd',
-        chromeBackgroundColor: '#00ff1e',
-        chromeTextColor: '#000000',
         fontFamily: [{ googleFont: 'IBM Plex Mono' }, 'monospace'],
         fontSize: 12,
         axisColor: '#00ff1e',
         gridLineColor: '#00ff1e',
+        tooltipBackgroundColor: '#00ff1e',
+        tooltipTextColor: '#000000',
     },
 };
 

@@ -76,7 +76,7 @@ The `params` object is used to set styles across the whole chart in one place.
 
 -   Set the font with `fontFamily` and `fontSize`.
 -   Use `foregroundColor`, `backgroundColor` and `accentColor` to set the main colours on the chart. All other colours will default to a mix of these three.
--   Use `chromeBackgroundColor` and `chromeTextColor` to adjust tooltips, menus, dialogs, toolbars, buttons and text inputs.
+-   Use specific params to adjust tooltips, menus, panels, toolbars, buttons and text inputs, for example `tooltipBackgroundColor`. Please see the [Themes API reference](/themes-api/#reference-AgChartTheme-params) for the full list of available options.
 
 {% chartExampleRunner title="Theme Parameters" name="theme-parameters" type="generated"  /%}
 
@@ -90,10 +90,10 @@ const myTheme = {
         foregroundColor: '#262a33',
         backgroundColor: '#fff1e5',
         accentColor: '#0d7680',
-        chromeBackgroundColor: '#fff7ef',
-        chromeTextColor: '#262a33',
-        fontFamily: 'Georgia, serif',
+        fontFamily: [{ googleFont: 'DM Serif Text' }, 'Georgia', 'sans-serif'],
         fontSize: 14,
+        tooltipBackgroundColor: '#fff7ef',
+        tooltipTextColor: '#262a33',
     },
 };
 ```
