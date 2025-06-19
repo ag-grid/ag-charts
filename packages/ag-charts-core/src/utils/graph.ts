@@ -4,8 +4,7 @@ import { isObject } from './typeGuards';
  * A graph that is optimised for vertex lookup and adjacency by edge value.
  */
 export class AdjacencyListGraph<V, E = undefined> {
-    // Store vertices as a flat set to optimise vertex lookup.
-    private readonly _vertices: Set<Vertex<V>> = new Set();
+    private _vertexCount = 0;
 
     // Stores edges in a way to optimise lookup of vertices adjacent by edge value to a vertex. This is less optimal
     // for iteration of all edges and deletion of vertices & edges, however this is less useful for our case.
@@ -26,7 +25,7 @@ export class AdjacencyListGraph<V, E = undefined> {
     }
 
     clear() {
-        this._vertices.clear();
+        this._vertexCount = 0;
         this._edges.clear();
         this._cachedNeighbours.clear();
         this.pendingProcessingEdges.clear();
@@ -34,7 +33,7 @@ export class AdjacencyListGraph<V, E = undefined> {
 
     addVertex(value: V): Vertex<V> {
         const vertex = new Vertex(value);
-        this._vertices.add(vertex);
+        this._vertexCount++;
         return vertex;
     }
 
@@ -67,14 +66,7 @@ export class AdjacencyListGraph<V, E = undefined> {
     }
 
     removeVertex(vertex: Vertex<V>): void {
-        this._vertices.delete(vertex);
-        const edges = this._edges.get(vertex);
-        if (!edges) return;
-        for (const [_edge, adjacentVertices] of edges) {
-            for (const adjacentVertex of adjacentVertices) {
-                this._vertices.delete(adjacentVertex);
-            }
-        }
+        this._vertexCount--;
         this._edges.delete(vertex);
 
         // TODO: iterate all edges and their vertices to find and delete references to `vertex`
@@ -183,7 +175,6 @@ export class AdjacencyListGraph<V, E = undefined> {
     }
 
     density(): number {
-        const numVertices = this._vertices.size;
         let numEdges = 0;
         for (const [, edges] of this._edges) {
             for (const adjacentVertices of edges.values()) {
@@ -191,7 +182,7 @@ export class AdjacencyListGraph<V, E = undefined> {
             }
         }
 
-        return numEdges / (numVertices * (numVertices - 1));
+        return numEdges / (this._vertexCount * (this._vertexCount - 1));
     }
 
     adjacent(from: Vertex<V>, to: Vertex<V>): boolean {
