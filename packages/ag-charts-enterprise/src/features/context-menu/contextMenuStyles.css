@@ -70,6 +70,9 @@
 .ag-charts-context-menu__item:active {
     background: var(--ag-charts-focus-color);
 }
+.ag-charts-context-menu__item[data-focus-override='false'] {
+    background: inherit;
+}
 
 .ag-charts-context-menu__item[data-focus-visible-override='true']:focus,
 .ag-charts-context-menu__item:focus-visible {

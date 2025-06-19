@@ -316,6 +316,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             button.addListener('click', this.createButtonOnClick(showOn, action));
         }
         button.addListener('mousemove', () => button.focus({ preventScroll: true }));
+        if (item.items.length === 0) {
+            // AG-14807 Design clear hover state
+            button.addListener('mouseleave', () => button.setFocusOverride(false));
+            button.addListener('focus', () => button.setFocusOverride(undefined));
+        }
     }
 
     private reposition() {
