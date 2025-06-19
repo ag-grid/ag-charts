@@ -361,7 +361,7 @@ export class SeriesAreaManager extends BaseManager {
         if (relatedTarget?.className === 'ag-charts-text-input__textarea') {
             return;
         }
-        if (this.chart.ctx.tooltipManager.maybeEnterInteractiveTooltip(this.id, event.sourceEvent)) {
+        if (this.maybeEnterInteractiveTooltip(event.sourceEvent)) {
             return;
         }
 
@@ -473,7 +473,7 @@ export class SeriesAreaManager extends BaseManager {
     private onBlur(event: FocusEvent) {
         if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = 'pointer';
-        if (!this.chart.ctx.tooltipManager.maybeEnterInteractiveTooltip(this.id, event)) {
+        if (!this.maybeEnterInteractiveTooltip(event)) {
             this.clearAll();
         }
         this.focusIndicator?.overrideFocusVisible(undefined);
@@ -882,6 +882,12 @@ export class SeriesAreaManager extends BaseManager {
         } else {
             this.chart.ctx.tooltipManager.removeTooltip(this.id);
         }
+    }
+
+    private maybeEnterInteractiveTooltip(event: FocusEvent | MouseEvent) {
+        return this.chart.tooltip.maybeEnterInteractiveTooltip(event, () => {
+            this.chart.ctx.tooltipManager.removeTooltip(this.id);
+        });
     }
 
     private changeHighlightDatum(event: HighlightChangeEvent) {
