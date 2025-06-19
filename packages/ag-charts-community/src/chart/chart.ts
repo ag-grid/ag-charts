@@ -1238,10 +1238,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     applyOptions(newChartOptions: ChartOptions) {
+        const minimumUpdateType = ChartUpdateType.PERFORM_LAYOUT;
         const deltaOptions = this.firstApply
             ? newChartOptions.processedOptions
             : newChartOptions.diffOptions(this.chartOptions);
-        if (deltaOptions == null || Object.keys(deltaOptions).length === 0) return;
+        if (deltaOptions == null || Object.keys(deltaOptions).length === 0) {
+            debug('Chart.applyOptions() - no delta, forcing re-layout', deltaOptions);
+            this.update(minimumUpdateType, { apiUpdate: true, newAnimationBatch: true });
+            return;
+        }
 
         const oldOpts = this.firstApply ? {} : this.chartOptions.processedOptions;
         const newOpts = newChartOptions.processedOptions;
@@ -1323,7 +1328,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
         const majorChange = forceNodeDataRefresh || modulesChanged;
-        const updateType = majorChange ? ChartUpdateType.FULL : ChartUpdateType.PERFORM_LAYOUT;
+        const updateType = majorChange ? ChartUpdateType.FULL : minimumUpdateType;
         this.maybeResetAnimations(seriesStatus);
 
         if (this.shouldClearLegendData(newOpts, oldOpts, seriesStatus)) {

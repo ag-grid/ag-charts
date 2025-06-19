@@ -71,9 +71,13 @@ enum GroupingType {
 const stringFormat = (value: string) => `'${value}'`;
 
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
-    public static readonly OPTIONS_CLONE_OPTS: CloneOptions = {
+    public static readonly OPTIONS_CLONE_OPTS_SLOW: CloneOptions = {
         shallow: new Set(['data', 'container']),
         assign: new Set(['context', 'theme']),
+    };
+    public static readonly OPTIONS_CLONE_OPTS_FAST: CloneOptions = {
+        shallow: new Set(['container']),
+        assign: new Set(['data', 'context', 'theme']),
     };
     public static readonly JSON_DIFF_OPTS = new Set<any>(['data']);
 
@@ -133,13 +137,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
 
             this.userOptions = deepClone(merge(deltaOptions, baseChartOptions.userOptions), {
-                ...ChartOptions.OPTIONS_CLONE_OPTS,
+                ...ChartOptions.OPTIONS_CLONE_OPTS_SLOW,
                 seen: [],
             }) as T;
         } else {
             // Full update case.
             this.userOptions = deepClone(currentUserOptions ?? newUserOptions, {
-                ...ChartOptions.OPTIONS_CLONE_OPTS,
+                ...ChartOptions.OPTIONS_CLONE_OPTS_SLOW,
                 seen: [],
             });
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
@@ -216,7 +220,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T> | null, stripSymbols = false) {
-        let options = deepClone(this.userOptions, ChartOptions.OPTIONS_CLONE_OPTS) as T & { type?: string };
+        let options = deepClone(this.userOptions, ChartOptions.OPTIONS_CLONE_OPTS_FAST) as T & { type?: string };
 
         if (deltaOptions) {
             options = mergeDefaults(deltaOptions, options) as T;

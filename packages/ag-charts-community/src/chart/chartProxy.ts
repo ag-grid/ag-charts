@@ -10,7 +10,7 @@ import type {
 import type { MementoCaretaker, MementoOriginator } from '../api/state/memento';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { moduleRegistry } from '../module/module';
-import type { ChartInternalOptionMetadata, ChartSpecialOverrides } from '../module/optionsModule';
+import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { Debug } from '../util/debug';
 import { deepClone } from '../util/json';
 import { ActionOnSet } from '../util/proxy';
@@ -91,7 +91,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
     getOptions() {
         if (!this.chart) throw new Error(DESTROYED_ERROR);
 
-        const options = deepClone(this.chart.getOptions());
+        const options = deepClone(this.chart.getOptions(), ChartOptions.OPTIONS_CLONE_OPTS_FAST);
         for (const key of Object.keys(options)) {
             if (key.startsWith('_')) {
                 delete (options as any)[key];

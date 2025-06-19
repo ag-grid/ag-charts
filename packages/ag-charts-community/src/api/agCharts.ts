@@ -69,6 +69,7 @@ export abstract class AgCharts {
         optionsMetadata?: ChartInternalOptionMetadata
     ): AgChartInstance<O> {
         return debug.group('AgCharts.create()', () => {
+            // deepClone should clone EVERYTHING here, so we can detect mutations in development mode.
             userOptions = Debug.inDevelopmentMode(() => deepFreeze(deepClone(userOptions))) ?? userOptions;
             this.licenseCheck(userOptions);
             const chart = AgChartsInternal.createOrUpdate({
@@ -172,15 +173,17 @@ class AgChartsInternal {
         } = opts;
         const styles = enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : [];
 
-        const { presetType } = optionsMetadata;
-
         AgChartsInternal.initialiseModules();
 
         debug(() => ['>>> AgCharts.createOrUpdate() user options', deepClone(userOptions)]);
 
+        const { presetType } = optionsMetadata;
         let mutableOptions = userOptions;
         if (AgCharts.optionsMutationFn && mutableOptions) {
-            mutableOptions = AgCharts.optionsMutationFn(deepClone(mutableOptions), presetType);
+            mutableOptions = AgCharts.optionsMutationFn(
+                deepClone(mutableOptions, ChartOptions.OPTIONS_CLONE_OPTS_FAST),
+                presetType
+            );
             debug(() => ['>>> AgCharts.createOrUpdate() MUTATED user options', deepClone(mutableOptions)]);
         }
 
@@ -281,7 +284,7 @@ class AgChartsInternal {
     }
 
     static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>) {
-        deltaOptions = deepClone(deltaOptions, ChartOptions.OPTIONS_CLONE_OPTS);
+        deltaOptions = deepClone(deltaOptions, ChartOptions.OPTIONS_CLONE_OPTS_FAST);
 
         const stripSymbols = jsonWalk(
             deltaOptions,
