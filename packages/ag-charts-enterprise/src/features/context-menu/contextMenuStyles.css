@@ -108,7 +108,7 @@
 .ag-charts-context-menu__divider > div::after {
     content: '';
     display: block;
-    border-top: 1px solid #babfc7;
+    border-top: 1px solid var(--ag-charts-border-color);
 }
 
 .ag-charts-context-menu__divider.ag-charts-dark-context-menu {
