@@ -189,8 +189,8 @@ export abstract class Widget<
         this.elem.focus(opts);
     }
 
-    setHoverOverride(focus: boolean | undefined) {
-        setAttribute(this.elem, 'data-hover-override', focus);
+    setFocusOverride(focus: boolean | undefined) {
+        setAttribute(this.elem, 'data-focus-override', focus);
     }
 
     setPreventsDefault(preventDefault: boolean) {

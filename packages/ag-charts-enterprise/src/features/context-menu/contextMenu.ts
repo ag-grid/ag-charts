@@ -8,7 +8,7 @@ import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuCallback = _ModuleSupport.ContextMenuCallback<AgContextMenuItemShowOn>;
 
-const { Property, ContextMenuRegistry, callWithContext } = _ModuleSupport;
+const { Property, ContextMenuRegistry, callWithContext, getIconClassNames } = _ModuleSupport;
 
 type UnknownSeries = _ModuleSupport.ISeries<unknown, unknown, _ModuleSupport.SeriesProperties<object>, unknown>;
 type Caller = { context?: unknown } | undefined;
@@ -147,7 +147,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onSubMenuOpen(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
         const bounds = button.getBounds();
-        button.setHoverOverride(true);
+        button.setFocusOverride(true);
         button.getElement().insertAdjacentElement('afterend', menu.getElement());
         menu.getElement().style.position = 'absolute';
 
@@ -183,7 +183,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
     private onSubMenuClose(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
-        button.setHoverOverride(undefined);
+        button.setFocusOverride(undefined);
         // AG-14931 Removing HTML elements can fire a 'focusout' event with `relatedTarget: null` and dismiss the whole
         // context menu, we want to avoid that.
         this.closingSubMenus++;
@@ -296,7 +296,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         const label = this.ctx.localeManager.t(item.label);
 
         const cellPaddingClass = `${DEFAULT_CONTEXT_MENU_CLASS}__cellpadding`;
-        const chevronRightClass = `${DEFAULT_CONTEXT_MENU_CLASS}__chevron-right`;
         const { cellIcon, cellLabel, cellArrow } = this.initTableCells(button.getElement());
         cellLabel.textContent = label;
         cellLabel.classList.add(cellPaddingClass);
@@ -307,7 +306,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             cellIcon.classList.add(cellPaddingClass);
         }
         if (item.items.length > 0) {
-            cellArrow.classList.add(chevronRightClass, cellPaddingClass);
+            const span = createElement('span', getIconClassNames('chevron-right'));
+            cellArrow.append(span);
+            cellArrow.classList.add(cellPaddingClass);
         }
 
         const { showOn, action } = item;
@@ -315,6 +316,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             button.addListener('click', this.createButtonOnClick(showOn, action));
         }
         button.addListener('mousemove', () => button.focus({ preventScroll: true }));
+        if (item.items.length === 0) {
+            // AG-14807 Design clear hover state
+            button.addListener('mouseleave', () => button.setFocusOverride(false));
+            button.addListener('focus', () => button.setFocusOverride(undefined));
+        }
     }
 
     private reposition() {
