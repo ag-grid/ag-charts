@@ -19,9 +19,11 @@ export type ChartFormatterSource = 'axis-label' | 'gradient-legend' | 'legend-la
 export type AnyFormatterSource = SeriesFormatterSource | ChartFormatterSource;
 
 interface FormatterBoundSeries {
-    /** Key used by the series for values on the related axis. */
+    /** ID used by the series for values. */
+    seriesId: string;
+    /** Key used by the series for values. */
     key: string;
-    /** Optional name used by the series for values on the related axis. */
+    /** Optional name used by the series for values. */
     name?: string;
 }
 
