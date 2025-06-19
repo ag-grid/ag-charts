@@ -84,6 +84,6 @@ const options: AgCartesianChartOptions<TradeDatum, CurrencyConverter> = {
 const chart = AgCharts.create(options);
 
 function onMySelectChange(value: Currency) {
-    options.context = makeCurrencyConverter(value)
+    options.context = makeCurrencyConverter(value);
     chart.update(options);
 }
