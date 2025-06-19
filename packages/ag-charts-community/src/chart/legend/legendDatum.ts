@@ -45,6 +45,8 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
 }
 
 interface FormatterBoundSeries {
+    /** ID of the series for values on the related axis. */
+    seriesId: string;
     /** Key used by the series for values on the related axis. */
     key: string;
     /** Optional name used by the series for values on the related axis. */
