@@ -38,7 +38,6 @@ const baseChartOptions: AgCartesianChartOptions = {
             yKey: 'petrol',
             stroke: '#01c185',
             marker: {
-                stroke: '#01c185',
                 fill: '#01c185',
             },
         },
@@ -48,7 +47,6 @@ const baseChartOptions: AgCartesianChartOptions = {
             yKey: 'diesel',
             stroke: '#000000',
             marker: {
-                stroke: '#000000',
                 fill: '#000000',
             },
         },

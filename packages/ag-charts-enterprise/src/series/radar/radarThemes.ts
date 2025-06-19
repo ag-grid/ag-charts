@@ -34,7 +34,7 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
             shape: 'circle',
             size: 6,
             strokeOpacity: 1,
-            strokeWidth: 0,
+            strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         },
         highlight: _ModuleSupport.multiSeriesHighlightStyle(),
     },
