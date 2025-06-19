@@ -39,6 +39,7 @@ const options: AgChartOptions = {
             marker: {
                 stroke: '#01c185',
                 fill: '#01c185',
+                strokeWidth: 0
             },
         },
         {
@@ -49,6 +50,7 @@ const options: AgChartOptions = {
             marker: {
                 stroke: '#000000',
                 fill: '#000000',
+                strokeWidth: 0
             },
         },
     ],

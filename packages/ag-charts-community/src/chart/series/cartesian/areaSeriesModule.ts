@@ -62,7 +62,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 enabled: false,
                 shape: 'circle',
                 size: 7,
-                strokeWidth: 0,
+                strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
                 fill: { $palette: 'fill' },
                 stroke: { $palette: 'stroke' },
                 // @ts-expect-error undocumented option
