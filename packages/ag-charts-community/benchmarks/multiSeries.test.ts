@@ -5,7 +5,7 @@ import { AgCartesianChartOptions } from 'ag-charts-types';
 import { addSeriesNodePoints, benchmark, setupBenchmark } from './benchmark';
 
 describe('multi-series benchmark', () => {
-    const ctx = setupBenchmark<AgCartesianChartOptions>('multi-series');
+    const ctx = setupBenchmark<AgCartesianChartOptions>('multi-series').repeatCount(10);
 
     benchmark('initial load', ctx, { expectedRelativeMB: 75, expectedCanvasCount: 32 }, async () => {
         await ctx.create();
