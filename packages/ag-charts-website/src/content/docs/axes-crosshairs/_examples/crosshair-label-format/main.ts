@@ -6,16 +6,6 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     animation: { enabled: false },
-    theme: {
-        palette: {
-            strokes: ['#AC9BF5', '#5984C2', '#36A883', '#F5CA46'],
-            fills: ['#AC9BF5', '#5984C2', '#36A883', '#F5CA46'],
-        },
-    },
-    padding: {
-        left: 50,
-        right: 50,
-    },
     series: [
         {
             type: 'line',
@@ -46,9 +36,6 @@ const options: AgCartesianChartOptions = {
         {
             position: 'bottom',
             type: 'unit-time',
-            gridLine: {
-                style: [],
-            },
             crosshair: {
                 enabled: true,
             },
@@ -58,9 +45,6 @@ const options: AgCartesianChartOptions = {
             type: 'number',
             title: {
                 text: `kilotonnes of oil equivalent (ktoe)`,
-            },
-            label: {
-                formatter: (params) => `${params.value / 1000}K`,
             },
             line: {
                 enabled: false,
@@ -72,6 +56,9 @@ const options: AgCartesianChartOptions = {
     ],
     tooltip: {
         enabled: false,
+    },
+    formatter: {
+        y: (params) => `${(params.value as number) / 1000}K`,
     },
 };
 

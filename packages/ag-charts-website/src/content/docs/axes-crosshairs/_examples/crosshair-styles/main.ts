@@ -5,18 +5,15 @@ import { getData } from './data';
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        palette: {
-            fills: ['rgba(103,105,235,0.3)'],
-            strokes: ['rgb(103,105,235)'],
-        },
-    },
     series: [
         {
             type: 'bubble',
             sizeKey: 'planetRadius',
+            sizeName: 'Planet Radius',
             yKey: 'eccentricity',
+            yName: 'Eccentricity',
             xKey: 'distance',
+            xName: 'Distance',
         },
     ],
     axes: [
@@ -27,7 +24,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Eccentricity',
             },
             crosshair: {
-                stroke: 'rgb(103,105,235)',
+                stroke: '#2b5c95',
                 strokeWidth: 2,
                 lineDash: [5, 10],
             },
@@ -39,7 +36,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Distance [pc]',
             },
             crosshair: {
-                stroke: 'rgb(103,105,235)',
+                stroke: '#2b5c95',
                 strokeWidth: 2,
                 lineDash: [5, 10],
             },

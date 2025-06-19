@@ -5,22 +5,15 @@ import { getData } from './data';
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        palette: {
-            fills: ['rgba(103,105,235,0.3)'],
-            strokes: ['rgb(103,105,235)'],
-        },
-    },
-    padding: {
-        left: 45,
-        bottom: 45,
-    },
     series: [
         {
             type: 'bubble',
             sizeKey: 'planetRadius',
+            sizeName: 'Planet Radius',
             yKey: 'equilibriumTemp',
+            yName: 'Equilibrium Temperature',
             xKey: 'planetRadius',
+            xName: 'Planet Radius',
         },
     ],
     axes: [

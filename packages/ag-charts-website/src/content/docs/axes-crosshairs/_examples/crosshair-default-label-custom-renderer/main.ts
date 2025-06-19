@@ -2,7 +2,7 @@ import { AgCartesianChartOptions, AgCharts, AgCrosshairLabelRendererParams } fro
 
 import { getData } from './data';
 
-const corsshairLabelRenderer = ({ value }: AgCrosshairLabelRendererParams) => {
+const crosshairLabelRenderer = ({ value }: AgCrosshairLabelRendererParams) => {
     return {
         text: `${(value / 1000000).toFixed(1)}M`,
         color: 'aliceBlue',
@@ -18,17 +18,9 @@ const options: AgCartesianChartOptions = {
         {
             type: 'histogram',
             yKey: 'bicycleHires',
+            yName: 'Bicycle Hires',
             xKey: 'day',
-            highlight: {
-                highlightedItem: {
-                    fill: 'darkBlue',
-                },
-            },
-            fill: '#5470C6',
-            strokeWidth: 0,
-            shadow: {
-                color: 'aliceBlue',
-            },
+            xName: 'Day',
         },
     ],
     axes: [
@@ -38,13 +30,10 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Number of Bicycle Hires',
             },
-            label: {
-                formatter: (params) => `${params.value / 1000000}M`,
-            },
             crosshair: {
                 label: {
                     xOffset: 50,
-                    renderer: corsshairLabelRenderer,
+                    renderer: crosshairLabelRenderer,
                 },
             },
         },
@@ -58,6 +47,9 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
+    formatter: {
+        y: (params) => `${(params.value as number) / 1000000}M`,
+    },
 };
 
 AgCharts.create(options);
