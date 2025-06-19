@@ -1,4 +1,4 @@
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, AgGaugeOptions } from 'ag-charts-community';
 import { Chart, deproxy, prepareTestOptions, waitForChartStability } from 'ag-charts-community-test';
 
 import { setupEnterpriseModules } from '../setup';
@@ -7,13 +7,18 @@ setupEnterpriseModules();
 
 export function prepareEnterpriseTestOptions<T extends AgChartOptions<any, any>>(
     options: T,
+    container?: HTMLElement
+): T;
+export function prepareEnterpriseTestOptions<T extends AgGaugeOptions>(options: T, container?: HTMLElement): T;
+export function prepareEnterpriseTestOptions<T extends AgChartOptions<any, any> | AgGaugeOptions>(
+    options: T,
     container = document.body
 ) {
     if (!options.animation) {
         // Default to animation off.
         options.animation ??= { enabled: false };
     }
-    return prepareTestOptions(options, container);
+    return prepareTestOptions(options as any, container);
 }
 
 export async function createEnterpriseChart<T extends AgChartOptions<any, any>>(options: T): Promise<Chart> {

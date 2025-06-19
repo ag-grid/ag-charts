@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
+import type { AgChartInstance, AgChartOptions, AgGaugeOptions } from 'ag-charts-community';
 import {
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
+    TestCase,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
@@ -16,18 +17,15 @@ import { prepareEnterpriseTestOptions } from './test/utils';
 
 const ENTERPRISE_GALLERY_EXAMPLES = Object.entries(GALLERY_EXAMPLES)
     .filter(([, v]) => v.enterprise)
-    .reduce(
-        (pv, [k, v]) => {
-            pv[k] = v;
-            return pv;
-        },
-        {} as typeof GALLERY_EXAMPLES
-    );
+    .reduce<Record<string, TestCase>>((pv, [k, v]) => {
+        pv[k] = v;
+        return pv;
+    }, {});
 
 describe('Gallery Examples', () => {
     setupMockConsole();
 
-    let chart: AgChartInstance<AgChartOptions>;
+    let chart: AgChartInstance<AgChartOptions | AgGaugeOptions>;
     afterEach(() => {
         if (chart) {
             chart.destroy();
@@ -44,8 +42,10 @@ describe('Gallery Examples', () => {
 
         for (const [exampleName, example] of Object.entries(ENTERPRISE_GALLERY_EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                const options: AgChartOptions = prepareEnterpriseTestOptions(example.options);
-                chart = example.type === 'gauge' ? AgCharts.createGauge(options as any) : AgCharts.create(options);
+                chart =
+                    example.type === 'gauge'
+                        ? AgCharts.createGauge(prepareEnterpriseTestOptions(example.options))
+                        : AgCharts.create(prepareEnterpriseTestOptions(example.options));
                 await waitForChartStability(chart);
                 await example.assertions(chart);
             });
@@ -58,10 +58,10 @@ describe('Gallery Examples', () => {
                     expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
                 };
 
-                const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = example.type === 'gauge' ? AgCharts.createGauge(options as any) : AgCharts.create(options);
+                chart =
+                    example.type === 'gauge'
+                        ? AgCharts.createGauge(prepareTestOptions({ ...example.options }))
+                        : AgCharts.create(prepareTestOptions({ ...example.options }));
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -85,13 +85,16 @@ describe('Gallery Examples', () => {
 
         for (const [exampleName, example] of Object.entries(ENTERPRISE_GALLERY_EXAMPLES)) {
             describe(`for ${exampleName}`, () => {
-                let options: AgChartOptions;
+                let options: AgChartOptions | AgGaugeOptions;
 
                 beforeEach(async () => {
                     options = { ...example.options };
-                    prepareEnterpriseTestOptions(options);
+                    prepareEnterpriseTestOptions(options as any);
 
-                    chart = example.type === 'gauge' ? AgCharts.createGauge(options as any) : AgCharts.create(options);
+                    chart =
+                        example.type === 'gauge'
+                            ? AgCharts.createGauge(options as any)
+                            : AgCharts.create(options as any);
                     await waitForChartStability(chart);
                 });
 

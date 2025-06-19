@@ -29,6 +29,7 @@ import type {
     AgChartOptions,
     AgChartTheme,
     AgFinancialChartOptions,
+    AgGaugeOptions,
     AgPolarChartOptions,
     AgSparklineOptions,
 } from 'ag-charts-types';
@@ -46,12 +47,11 @@ export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
 export * from '../../util/test/mockConsole';
 
-export type ChartOrProxy<O extends AgChartOptions | AgFinancialChartOptions | AgSparklineOptions = AgChartOptions> =
-    | AgChartInstance<O>
-    | AgChartProxy
-    | Chart;
+export type ChartOrProxy<
+    O extends AgChartOptions | AgGaugeOptions | AgFinancialChartOptions | AgSparklineOptions = AgChartOptions,
+> = AgChartInstance<O> | AgChartProxy | Chart;
 
-export interface TestCase {
+export interface ChartTestCase {
     options: AgChartOptions;
     assertions: (chart: ChartOrProxy) => Promise<void> | void;
     extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
@@ -59,15 +59,15 @@ export interface TestCase {
     imageSnapshotDefaults?: MatchImageSnapshotOptions;
 }
 
-export interface CartesianOrPolarTestCase extends TestCase {
+export interface CartesianOrPolarTestCase extends ChartTestCase {
     options: AgCartesianChartOptions | AgPolarChartOptions;
 }
 
-export interface CartesianTestCase extends TestCase {
+export interface CartesianTestCase extends ChartTestCase {
     options: AgCartesianChartOptions;
 }
 
-export interface PolarTestCase extends TestCase {
+export interface PolarTestCase extends ChartTestCase {
     options: AgPolarChartOptions;
 }
 
@@ -115,7 +115,10 @@ export function prepareFinancialTestOptions(options: AgFinancialChartOptions, co
     return options;
 }
 
-export function prepareTestOptions<T extends AgChartOptions<any, any> | AgSparklineOptions<any>>(
+export function prepareTestOptions<T extends AgChartOptions<any, any>>(options: T, container?: HTMLElement): T;
+export function prepareTestOptions<T extends AgGaugeOptions>(options: T, container?: HTMLElement): T;
+export function prepareTestOptions<T extends AgSparklineOptions<any>>(options: T, container?: HTMLElement): T;
+export function prepareTestOptions<T extends AgChartOptions<any, any> | AgGaugeOptions | AgSparklineOptions<any>>(
     options: T,
     container = getDocument('body')
 ) {
@@ -211,10 +214,9 @@ export function dateRange(start: Date, end: Date, step = 24 * 60 * 60 * 1000): D
     return result;
 }
 
-export async function waitForChartStability<O extends AgChartOptions | AgFinancialChartOptions | AgSparklineOptions>(
-    chartOrProxy: ChartOrProxy<O>,
-    animationAdvanceMs = 0
-): Promise<void> {
+export async function waitForChartStability<
+    O extends AgChartOptions | AgGaugeOptions | AgFinancialChartOptions | AgSparklineOptions,
+>(chartOrProxy: ChartOrProxy<O>, animationAdvanceMs = 0): Promise<void> {
     const timeoutMs = 5000;
     const chart = deproxy(chartOrProxy);
     const chartAny = chart as any; // to access private properties
@@ -307,7 +309,7 @@ export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
 }
 
 export function gaugeAssertions() {
-    return (chartOrProxy: ChartOrProxy) => {
+    return (chartOrProxy: ChartOrProxy<AgGaugeOptions>) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('GaugeChart');
     };

@@ -4,7 +4,7 @@ import type { AgCartesianAxisOptions, AgCartesianChartOptions, AgChartInstance, 
 
 import { AgCharts } from '../api/agCharts';
 import * as examples from './test/examples';
-import type { TestCase } from './test/utils';
+import type { ChartTestCase } from './test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -16,7 +16,7 @@ import {
     waitForChartStability,
 } from './test/utils';
 
-const EXAMPLES: Record<string, TestCase> = {
+const EXAMPLES: Record<string, ChartTestCase> = {
     TRUNCATED_LEGEND_ITEMS: {
         options: examples.TRUNCATED_LEGEND_ITEMS,
         assertions: cartesianChartAssertions({
