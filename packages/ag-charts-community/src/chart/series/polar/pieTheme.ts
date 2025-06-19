@@ -1,7 +1,7 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
 import { FONT_SIZE_RATIO } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { SAFE_FILLS_OPERATION, singleSeriesHighlightStyle } from '../../themes/util';
+import { SAFE_FILLS_OPERATION, multiSeriesHighlightStyle } from '../../themes/util';
 
 export const pieTheme: ExtensibleTheme<'pie'> = {
     series: {
@@ -78,7 +78,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
             yOffset: 3,
             blur: 5,
         },
-        highlight: singleSeriesHighlightStyle(),
+        highlight: multiSeriesHighlightStyle(),
     },
     legend: { enabled: true },
 };

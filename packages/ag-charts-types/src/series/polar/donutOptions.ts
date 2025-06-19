@@ -11,7 +11,12 @@ import type {
     StrokeOptions,
     Toggleable,
 } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type {
+    AgBaseSeriesOptions,
+    AgBaseSeriesThemeableOptions,
+    AgHighlightStyleOptions,
+    AgMultiSeriesHighlightOptions,
+} from '../seriesOptions';
 
 export interface AgDonutSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
     extends AgChartLabelOptions<TDatum, TParams, TContext> {
@@ -133,13 +138,15 @@ export interface AgDonutSeriesThemeableOptions<TDatum = TDatumDefault, TContext 
     hideZeroValueSectorsInLegend?: boolean;
     /** A styler function for adjusting the styling of the Donut sectors. */
     itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum, TContext>, AgDonutSeriesStyle>;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>;
 }
 
 export interface AgDonutSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends Omit<AgDonutSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
         AgDonutSeriesOptionsKeys<TDatum>,
         AgDonutSeriesOptionsNames,
-        AgBaseSeriesOptions<TDatum, TContext> {
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'> {
     /** Configuration for Donut Series. */
     type: 'donut';
     /** Configuration for the text lines to display inside the series. */

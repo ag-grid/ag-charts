@@ -11,7 +11,12 @@ import type {
     StrokeOptions,
     Toggleable,
 } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type {
+    AgBaseSeriesOptions,
+    AgBaseSeriesThemeableOptions,
+    AgHighlightStyleOptions,
+    AgMultiSeriesHighlightOptions,
+} from '../seriesOptions';
 
 export interface AgPieSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
     extends AgChartLabelOptions<TDatum, TParams, TContext> {
@@ -105,13 +110,15 @@ export interface AgPieSeriesThemeableOptions<TDatum = TDatumDefault, TContext = 
     hideZeroValueSectorsInLegend?: boolean;
     /** A styler function for adjusting the styling of the pie sectors. */
     itemStyler?: Styler<AgPieSeriesItemStylerParams<TDatum, TContext>, AgPieSeriesStyle>;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>;
 }
 
 export interface AgPieSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends Omit<AgPieSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
         AgPieSeriesOptionsKeys<TDatum>,
         AgPieSeriesOptionsNames,
-        AgBaseSeriesOptions<TDatum, TContext> {
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'> {
     /** Configuration for Pie Series. */
     type: 'pie';
 }

@@ -10,10 +10,12 @@ import {
     fillOptionsDef,
     fontOptionsDef,
     lineDashOptionsDef,
+    multiSeriesHighlightOptionsDef,
     number,
     positiveNumber,
     ratio,
     required,
+    shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
     undocumented,
@@ -28,7 +30,10 @@ import {
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
+const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
+
 export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptions> = {
+    ...commonSeriesThemeableOptionsDefs,
     radiusMin: positiveNumber,
     radiusMax: positiveNumber,
     rotation: number,
@@ -76,7 +81,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
     strokes: arrayOf(color),
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
-    ...commonSeriesThemeableOptionsDefs,
+    highlight,
     ...lineDashOptionsDef,
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
@@ -95,6 +100,7 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     radiusName: string,
     calloutLabelName: string,
     sectorLabelName: string,
+    highlight,
 };
 
 // @ts-expect-error undocumented option
