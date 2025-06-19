@@ -886,7 +886,9 @@ export class SeriesAreaManager extends BaseManager {
 
     private maybeEnterInteractiveTooltip(event: FocusEvent | MouseEvent) {
         return this.chart.tooltip.maybeEnterInteractiveTooltip(event, () => {
+            this.tooltip.lastHover = undefined;
             this.chart.ctx.tooltipManager.removeTooltip(this.id);
+            this.chart.ctx.highlightManager.updateHighlight(this.id);
         });
     }
 
