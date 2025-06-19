@@ -11,10 +11,10 @@ const myTheme: AgChartTheme = {
         foregroundColor: '#262a33',
         backgroundColor: '#fff1e5',
         accentColor: '#0d7680',
-        chromeBackgroundColor: '#fff7ef',
-        chromeTextColor: '#262a33',
         fontFamily: 'Georgia, serif',
         fontSize: 14,
+        tooltipBackgroundColor: '#fff7ef',
+        tooltipTextColor: '#262a33',
     },
     overrides: {
         common: {
