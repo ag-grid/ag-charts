@@ -142,6 +142,16 @@ describe('Sparkline Preset', () => {
 
             await compare();
         });
+
+        it('should render a basic sparkline from empty data', async () => {
+            const options = prepareSparklineOptions({
+                type: 'line',
+                data: [],
+            });
+
+            chart = AgCharts.__createSparkline(options);
+            await waitForChartStability(chart);
+        });
     });
 
     describe('#updateDelta', () => {

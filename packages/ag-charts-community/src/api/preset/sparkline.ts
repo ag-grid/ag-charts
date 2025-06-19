@@ -211,6 +211,8 @@ export function sparklineDataPreset(data: any[] | undefined): {
             const mappedData = data.map((datum) => ({ x: datum?.[0], y: datum?.[1], datum }));
             return { data: mappedData, series: [{ xKey: 'x', yKey: 'y' }], datumKey: 'datum' };
         }
+    } else if (data?.length === 0) {
+        return { data, series: [{ xKey: 'x', yKey: 'y' }], datumKey: 'y' };
     }
     return { data };
 }
