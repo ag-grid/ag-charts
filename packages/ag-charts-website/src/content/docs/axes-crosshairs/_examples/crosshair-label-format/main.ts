@@ -49,9 +49,6 @@ const options: AgCartesianChartOptions = {
             gridLine: {
                 style: [],
             },
-            interval: {
-                step: { unit: 'month', step: 6 },
-            },
             crosshair: {
                 enabled: true,
             },
