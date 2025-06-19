@@ -3,17 +3,10 @@ import {
     Logger,
     type OptionsDefs,
     type RequireOptional,
-    and,
-    arrayOf,
     attachDescription,
-    date,
+    defined,
     isFiniteNumber,
     isObject,
-    lessThan,
-    number,
-    or,
-    ratio as ratioValidator,
-    union,
     validate,
 } from 'ag-charts-core';
 import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
@@ -55,8 +48,6 @@ export type ChartAxisLike = {
     min?: number;
     max?: number;
 };
-
-const expectedMementoKeys: Array<keyof ZoomMemento> = ['rangeX', 'rangeY', 'ratioX', 'ratioY', 'autoScaledAxes'];
 
 class ZoomManagerAutoScaleAxis {
     enabled = false;
@@ -128,24 +119,16 @@ export class ZoomManager extends BaseManager {
         if (blob == null) return true;
         if (!isObject(blob)) return false;
 
-        for (const key of Object.keys(blob)) {
-            if (!expectedMementoKeys.includes(key as keyof ZoomMemento)) {
-                return false;
-            }
-        }
-
         const primaryX = this.getPrimaryAxis(ChartAxisDirection.X);
         const primaryY = this.getPrimaryAxis(ChartAxisDirection.Y);
 
+        // Already validated by the optionsModule validator
         const zoomMementoDefs: OptionsDefs<ZoomMemento> = {
-            // @todo(AG-13954) - revisit category ratios
-            // rangeX: { start: and(or(number, string, date), rangeValidator(primaryX)), end: or(number, string, date) },
-            // rangeY: { start: and(or(number, string, date), rangeValidator(primaryY)), end: or(number, string, date) },
-            rangeX: { start: and(or(number, date), rangeValidator(primaryX)), end: or(number, date) },
-            rangeY: { start: and(or(number, date), rangeValidator(primaryY)), end: or(number, date) },
-            ratioX: { start: and(ratioValidator, lessThan('end')), end: ratioValidator },
-            ratioY: { start: and(ratioValidator, lessThan('end')), end: ratioValidator },
-            autoScaledAxes: arrayOf(union('y')),
+            rangeX: { start: rangeValidator(primaryX), end: defined },
+            rangeY: { start: rangeValidator(primaryY), end: defined },
+            ratioX: { start: defined, end: defined },
+            ratioY: { start: defined, end: defined },
+            autoScaledAxes: defined,
         };
 
         const { invalid } = validate(blob, zoomMementoDefs);
