@@ -14,7 +14,17 @@ information to custom callbacks such as [Formatters](./formatters/) and [Tooltip
 
 ## Context Object Example
 
-TODO: Write me.
+The example below shows how the Context Object can be used.
+
+Changing the User Currency in the dropdown updates the Context Object
+state. Note that the Context Object is used by the following callbacks:
+
+-   The Y-axis Label Formatter, to convert USD values to the preferred User Currency.
+
+-   The Tooltip Renderer, to render both the stock prices in USD and the User
+    Currency (if applicable).
+
+-   The Context Menu Actions, to log converted stock prices in the console.
 
 {% chartExampleRunner
     title="Currency Converter"
