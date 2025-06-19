@@ -1036,6 +1036,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const calloutStrokeWidth = strokeWidth;
         const calloutColors = isStringFillArray(colors) ? colors ?? this.properties.strokes : strokes;
         const { offset } = this.properties.calloutLabel;
+        const opacity = this.getHighlightStyle(false).opacity ?? 1;
 
         this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.Callout).forEach((line) => {
             const datum = line.closestDatum() as DonutNodeDatum;
@@ -1045,6 +1046,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 line.visible = true;
                 line.strokeWidth = calloutStrokeWidth;
                 line.stroke = calloutColors[datumIndex % calloutColors.length];
+                line.strokeOpacity = opacity;
                 line.fill = undefined;
 
                 const x1 = datum.midCos * outerRadius;
@@ -1266,6 +1268,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const { calloutLabel, calloutLine } = this.properties;
         const calloutLength = calloutLine.length;
         const { offset, color } = calloutLabel;
+        const opacity = this.getHighlightStyle(false).opacity ?? 1;
 
         const tempTextNode = new Text();
 
@@ -1310,6 +1313,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             text.setFont(this.properties.calloutLabel);
             text.setAlign(align);
             text.fill = color;
+            text.fillOpacity = opacity;
             text.visible = visible;
         });
     }
