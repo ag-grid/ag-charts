@@ -30,6 +30,7 @@ function addYNames() {
 }
 
 function showNumSeries(num: number) {
+    const hasYNames = (options.series![0] as AgBarSeriesOptions).yName != null;
     if (num === 1) {
         options.series = [{ type: 'bar', xKey: 'month', stacked: true, yKey: 'value1', yName: 'Sweaters Made' }];
     } else if (num === 2) {
@@ -45,6 +46,11 @@ function showNumSeries(num: number) {
             { type: 'bar', xKey: 'month', stacked: true, yKey: 'socks_made', yName: 'Socks Made' },
             { type: 'bar', xKey: 'month', stacked: true, yKey: 'sunglasses_made', yName: 'Sunglasses Made' },
         ];
+    }
+    if (!hasYNames) {
+        for (const series of options.series ?? []) {
+            (series as AgBarSeriesOptions).yName = undefined;
+        }
     }
     chart.update(options);
 }
