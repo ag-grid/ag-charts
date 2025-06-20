@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] έως ${max}[percent0to2dp]',
     contextMenuDownload: 'Λήψη',
     contextMenuPanToCursor: 'Μετακίνηση εδώ',
+    contextMenuResetZoom: 'Επαναφορά ζουμ',
     contextMenuToggleOtherSeries: 'Εναλλαγή άλλων σειρών',
     contextMenuToggleSeriesVisibility: 'Εναλλαγή Ορατότητας',
     contextMenuZoomToCursor: 'Ζουμ εδώ',
@@ -89,8 +90,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     overlayLoadingData: 'Φόρτωση δεδομένων...',
     overlayNoData: 'Δεν υπάρχουν δεδομένα για εμφάνιση',
     overlayNoVisibleSeries: 'Δεν υπάρχει ορατή σειρά',
-    overlayUnsupportedBrowser:
-        'Μη συμβατή έκδοση προγράμματος περιήγησης. Παρακαλώ αναβαθμίστε το πρόγραμμα περιήγησής σας.',
+    overlayUnsupportedBrowser: 'Μη συμβατή έκδοση προγράμματος περιήγησης. Παρακαλώ αναβαθμίστε το πρόγραμμα περιήγησής σας.',
     seriesHistogramTooltipCount: '${yName} (πλήθος)',
     seriesHistogramTooltipFrequency: 'Συχνότητα',
     seriesHistogramTooltipMean: '${yName} (μέσος όρος)',
@@ -158,5 +158,5 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     toolbarZoomReset: 'Επαναφορά της εστίασης',
     toolbarZoomZoomIn: 'Μεγέθυνση',
     toolbarZoomZoomOut: 'Σμίκρυνση',
-    tooltipPaginationStatus: '${index}[number] από ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] από ${count}[number]'
 };

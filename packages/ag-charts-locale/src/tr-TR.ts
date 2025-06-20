@@ -35,9 +35,10 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaLabelRangesToolbar: 'Aralıklar',
     ariaLabelSettingsTabBar: 'Ayarlar',
     ariaLabelZoomToolbar: 'Yakınlaştır',
-    ariaValuePanRange: '${min}[percent0to2dp] ile ${max}[percent0to2dp] arası',
+    ariaValuePanRange: '${entry.localeKeys[key]}',
     contextMenuDownload: 'İndir',
     contextMenuPanToCursor: 'Buraya kaydır',
+    contextMenuResetZoom: 'Yakınlaştırmayı sıfırla',
     contextMenuToggleOtherSeries: 'Diğer Serileri Değiştir',
     contextMenuToggleSeriesVisibility: 'Görünürlüğü Değiştir',
     contextMenuZoomToCursor: 'Buraya yakınlaştır',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     toolbarZoomReset: 'Yakınlaştırmayı sıfırla',
     toolbarZoomZoomIn: 'Yakınlaştır',
     toolbarZoomZoomOut: 'Uzaklaştır',
-    tooltipPaginationStatus: '${index}[number] / ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] / ${count}[number]'
 };

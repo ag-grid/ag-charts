@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] til ${max}[percent0to2dp]',
     contextMenuDownload: 'Last ned',
     contextMenuPanToCursor: 'Panorer til dette punktet',
+    contextMenuResetZoom: 'Tilbakestill zoom',
     contextMenuToggleOtherSeries: 'Slå av/på andre serier',
     contextMenuToggleSeriesVisibility: 'Veksle synlighet',
     contextMenuZoomToCursor: 'Zoom hit',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     toolbarZoomReset: 'Tilbakestill zoom',
     toolbarZoomZoomIn: 'Zoom inn',
     toolbarZoomZoomOut: 'Zoom ut',
-    tooltipPaginationStatus: '${index}[number] av ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] av ${count}[number]'
 };

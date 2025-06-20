@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] до ${max}[percent0to2dp]',
     contextMenuDownload: 'Изтегляне',
     contextMenuPanToCursor: 'Премести тук',
+    contextMenuResetZoom: 'Нулиране на мащаба',
     contextMenuToggleOtherSeries: 'Превключване на други серии',
     contextMenuToggleSeriesVisibility: 'Превключване на видимостта',
     contextMenuZoomToCursor: 'Увеличи до тук',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     toolbarZoomReset: 'Нулиране на увеличението',
     toolbarZoomZoomIn: 'Приближаване',
     toolbarZoomZoomOut: 'Намаляване на мащаба',
-    tooltipPaginationStatus: '${index}[number] от ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] от ${count}[number]'
 };

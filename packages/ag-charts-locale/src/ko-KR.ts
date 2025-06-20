@@ -35,9 +35,10 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaLabelRangesToolbar: '범위',
     ariaLabelSettingsTabBar: '설정',
     ariaLabelZoomToolbar: '확대',
-    ariaValuePanRange: '${min}[percent0to2dp]에서 ${max}[percent0to2dp]까지',
+    ariaValuePanRange: '${min}[percent0to2dp]에서 ${max}[percent0to2dp]',
     contextMenuDownload: '다운로드',
     contextMenuPanToCursor: '여기로 이동',
+    contextMenuResetZoom: '줌 재설정',
     contextMenuToggleOtherSeries: '다른 계열 전환',
     contextMenuToggleSeriesVisibility: '가시성 전환',
     contextMenuZoomToCursor: '여기로 확대',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     toolbarZoomReset: '줌 리셋',
     toolbarZoomZoomIn: '확대',
     toolbarZoomZoomOut: '축소',
-    tooltipPaginationStatus: '${index}[number] / ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] / ${count}[number]'
 };

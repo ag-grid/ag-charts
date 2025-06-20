@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] až ${max}[percent0to2dp]',
     contextMenuDownload: 'Stáhnout',
     contextMenuPanToCursor: 'Posunout sem',
+    contextMenuResetZoom: 'Obnovit přiblížení',
     contextMenuToggleOtherSeries: 'Přepnout ostatní série',
     contextMenuToggleSeriesVisibility: 'Přepnout viditelnost',
     contextMenuZoomToCursor: 'Přiblížit sem',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     toolbarZoomReset: 'Obnovit zoom',
     toolbarZoomZoomIn: 'Přiblížit',
     toolbarZoomZoomOut: 'Oddálit',
-    tooltipPaginationStatus: '${index}[number] z ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] z ${count}[number]'
 };

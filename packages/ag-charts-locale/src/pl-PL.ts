@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_PL_PL: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] do ${max}[percent0to2dp]',
     contextMenuDownload: 'Pobierz',
     contextMenuPanToCursor: 'Przesuń do tutaj',
+    contextMenuResetZoom: 'Zresetuj powiększenie',
     contextMenuToggleOtherSeries: 'Przełącz inne serie',
     contextMenuToggleSeriesVisibility: 'Przełącz widoczność',
     contextMenuZoomToCursor: 'Powiększ tutaj',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_PL_PL: Record<string, string> = {
     toolbarZoomReset: 'Resetuj powiększenie',
     toolbarZoomZoomIn: 'Powiększ',
     toolbarZoomZoomOut: 'Oddal',
-    tooltipPaginationStatus: '${index}[number] z ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] z ${count}[number]'
 };

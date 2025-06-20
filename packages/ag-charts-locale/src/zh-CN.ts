@@ -35,9 +35,10 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     ariaLabelRangesToolbar: '范围',
     ariaLabelSettingsTabBar: '设置',
     ariaLabelZoomToolbar: '缩放',
-    ariaValuePanRange: '${min}[percent0to2dp] 至 ${max}[percent0to2dp]',
+    ariaValuePanRange: '${min}[percent0to2dp] 到 ${max}[percent0to2dp]',
     contextMenuDownload: '下载',
     contextMenuPanToCursor: '平移到此处',
+    contextMenuResetZoom: '重置缩放',
     contextMenuToggleOtherSeries: '切换其他系列',
     contextMenuToggleSeriesVisibility: '切换可见性',
     contextMenuZoomToCursor: '缩放到此处',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     toolbarZoomReset: '重置缩放',
     toolbarZoomZoomIn: '放大',
     toolbarZoomZoomOut: '缩小',
-    tooltipPaginationStatus: '${index}[number] / ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] / ${count}[number]'
 };

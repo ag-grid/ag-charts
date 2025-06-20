@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] do ${max}[percent0to2dp]',
     contextMenuDownload: 'Preuzmi',
     contextMenuPanToCursor: 'Pomakni ovdje',
+    contextMenuResetZoom: 'Poništi zumiranje',
     contextMenuToggleOtherSeries: 'Prebaci ostale serije',
     contextMenuToggleSeriesVisibility: 'Prebaci vidljivost',
     contextMenuZoomToCursor: 'Povećaj ovdje',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     toolbarZoomReset: 'Resetiraj povećanje',
     toolbarZoomZoomIn: 'Povećaj',
     toolbarZoomZoomOut: 'Umanji',
-    tooltipPaginationStatus: '${index}[number] od ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] od ${count}[number]'
 };

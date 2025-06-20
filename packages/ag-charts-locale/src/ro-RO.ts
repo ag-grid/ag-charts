@@ -35,9 +35,10 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaLabelRangesToolbar: 'Intervale',
     ariaLabelSettingsTabBar: 'Setări',
     ariaLabelZoomToolbar: 'Zoomare',
-    ariaValuePanRange: '${min}[percent0to2dp] la ${max}[percent0to2dp]',
+    ariaValuePanRange: '${min}[percent0to2dp] până la ${max}[percent0to2dp]',
     contextMenuDownload: 'Descărcare',
     contextMenuPanToCursor: 'Mută vizualizarea aici',
+    contextMenuResetZoom: 'Resetează zoom',
     contextMenuToggleOtherSeries: 'Comută alte serii',
     contextMenuToggleSeriesVisibility: 'Comutare Vizibilitate',
     contextMenuZoomToCursor: 'Zoom la acest punct',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     toolbarZoomReset: 'Resetează zoom-ul',
     toolbarZoomZoomIn: 'Mărire',
     toolbarZoomZoomOut: 'Micșorează',
-    tooltipPaginationStatus: '${index}[number] din ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] din ${count}[number]'
 };

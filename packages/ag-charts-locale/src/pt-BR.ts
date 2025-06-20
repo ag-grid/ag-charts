@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_PT_BR: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] a ${max}[percent0to2dp]',
     contextMenuDownload: 'Baixar',
     contextMenuPanToCursor: 'Mover para aqui',
+    contextMenuResetZoom: 'Redefinir zoom',
     contextMenuToggleOtherSeries: 'Alternar Outras Séries',
     contextMenuToggleSeriesVisibility: 'Alternar Visibilidade',
     contextMenuZoomToCursor: 'Dar zoom aqui',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_PT_BR: Record<string, string> = {
     toolbarZoomReset: 'Redefinir o zoom',
     toolbarZoomZoomIn: 'Aproximar',
     toolbarZoomZoomOut: 'Diminuir zoom',
-    tooltipPaginationStatus: '${index}[number] de ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] de ${count}[number]'
 };

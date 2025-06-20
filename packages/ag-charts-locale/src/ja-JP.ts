@@ -35,9 +35,10 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaLabelRangesToolbar: '範囲',
     ariaLabelSettingsTabBar: '設定',
     ariaLabelZoomToolbar: 'ズーム',
-    ariaValuePanRange: '${min}[percent0to2dp] から ${max}[percent0to2dp]',
+    ariaValuePanRange: '${min}[percent0to2dp] から ${max}[percent0to2dp] まで',
     contextMenuDownload: 'ダウンロード',
     contextMenuPanToCursor: 'ここにパンする',
+    contextMenuResetZoom: 'ズームリセット',
     contextMenuToggleOtherSeries: '他のシリーズを切り替える',
     contextMenuToggleSeriesVisibility: '表示を切り替える',
     contextMenuZoomToCursor: 'ここにズーム',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     toolbarZoomReset: 'ズームをリセット',
     toolbarZoomZoomIn: 'ズームイン',
     toolbarZoomZoomOut: 'ズームアウト',
-    tooltipPaginationStatus: '${index}[number] の ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] の ${count}[number]'
 };

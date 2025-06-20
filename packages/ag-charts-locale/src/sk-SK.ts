@@ -35,9 +35,10 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     ariaLabelRangesToolbar: 'Rozsahy',
     ariaLabelSettingsTabBar: 'Nastavenia',
     ariaLabelZoomToolbar: 'Priblížiť',
-    ariaValuePanRange: '${min}[percent0to2dp] do ${max}[percent0to2dp]',
+    ariaValuePanRange: '${min}[percent0to2dp] až ${max}[percent0to2dp]',
     contextMenuDownload: 'Stiahnuť',
     contextMenuPanToCursor: 'Posunúť sem',
+    contextMenuResetZoom: 'Obnoviť priblíženie',
     contextMenuToggleOtherSeries: 'Prepnúť iné série',
     contextMenuToggleSeriesVisibility: 'Prepnúť viditeľnosť',
     contextMenuZoomToCursor: 'Priblížiť sem',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     toolbarZoomReset: 'Obnoviť priblíženie',
     toolbarZoomZoomIn: 'Priblížiť',
     toolbarZoomZoomOut: 'Oddialiť',
-    tooltipPaginationStatus: '${index}[number] z ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] z ${count}[number]'
 };

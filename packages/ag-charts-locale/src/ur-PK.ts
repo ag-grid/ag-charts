@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] سے ${max}[percent0to2dp]',
     contextMenuDownload: 'ڈاؤن لوڈ کریں',
     contextMenuPanToCursor: 'یہاں تک گھمائیں',
+    contextMenuResetZoom: 'زوم ری سیٹ کریں',
     contextMenuToggleOtherSeries: 'دیگر سیریز کو ٹوگل کریں',
     contextMenuToggleSeriesVisibility: 'مرئی ہونے کو ٹوگل کریں',
     contextMenuZoomToCursor: 'یہاں زوم کریں',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     toolbarZoomReset: 'زوم ری سیٹ کریں',
     toolbarZoomZoomIn: 'زوم ان',
     toolbarZoomZoomOut: 'زوم آؤٹ',
-    tooltipPaginationStatus: '${index}[number] میں سے ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] میں سے ${count}[number]'
 };

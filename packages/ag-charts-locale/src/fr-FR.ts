@@ -35,9 +35,10 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     ariaLabelRangesToolbar: 'Plages',
     ariaLabelSettingsTabBar: 'Paramètres',
     ariaLabelZoomToolbar: 'Zoom',
-    ariaValuePanRange: '${min}[percent0to2dp] à ${max}[percent0to2dp]',
+    ariaValuePanRange: '${min}[pourcent0à2dp] à ${max}[pourcent0à2dp]',
     contextMenuDownload: 'Télécharger',
     contextMenuPanToCursor: "Panoramique jusqu'ici",
+    contextMenuResetZoom: 'Réinitialiser le zoom',
     contextMenuToggleOtherSeries: 'Basculer les autres séries',
     contextMenuToggleSeriesVisibility: 'Basculer la visibilité',
     contextMenuZoomToCursor: 'Zoomer ici',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     toolbarZoomReset: 'Réinitialiser le zoom',
     toolbarZoomZoomIn: 'Agrandir',
     toolbarZoomZoomOut: 'Dézoomer',
-    tooltipPaginationStatus: '${index}[number] sur ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] sur ${count}[number]'
 };

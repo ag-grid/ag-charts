@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] - ${max}[percent0to2dp]',
     contextMenuDownload: 'Lataa',
     contextMenuPanToCursor: 'Siirry tähän',
+    contextMenuResetZoom: 'Nollaa zoom',
     contextMenuToggleOtherSeries: 'Vaihda muiden sarjojen näkyvyyttä',
     contextMenuToggleSeriesVisibility: 'Vaihda näkyvyyttä',
     contextMenuZoomToCursor: 'Zoomaa tähän',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     toolbarZoomReset: 'Palauta zoomaus',
     toolbarZoomZoomIn: 'Lähennä',
     toolbarZoomZoomOut: 'Loitonna',
-    tooltipPaginationStatus: '${index}[number] / ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] / ${count}[number]'
 };

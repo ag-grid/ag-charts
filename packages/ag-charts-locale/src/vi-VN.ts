@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] đến ${max}[percent0to2dp]',
     contextMenuDownload: 'Tải về',
     contextMenuPanToCursor: 'Chuyển đến đây',
+    contextMenuResetZoom: 'Đặt lại thu phóng',
     contextMenuToggleOtherSeries: 'Chuyển đổi các dòng khác',
     contextMenuToggleSeriesVisibility: 'Chuyển đổi Hiển thị',
     contextMenuZoomToCursor: 'Thu phóng tới đây',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     toolbarZoomReset: 'Đặt lại thu phóng',
     toolbarZoomZoomIn: 'Thu nhỏ',
     toolbarZoomZoomOut: 'Thu nhỏ',
-    tooltipPaginationStatus: '${index}[number] trong số ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] trong số ${count}[number]'
 };

@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] إلى ${max}[percent0to2dp]',
     contextMenuDownload: 'تنزيل',
     contextMenuPanToCursor: 'تحريك إلى هنا',
+    contextMenuResetZoom: 'إعادة ضبط التكبير',
     contextMenuToggleOtherSeries: 'تبديل السلاسل الأخرى',
     contextMenuToggleSeriesVisibility: 'تبديل الرؤية',
     contextMenuZoomToCursor: 'التكبير إلى هنا',
@@ -157,5 +158,5 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     toolbarZoomReset: 'إعادة تعيين التكبير',
     toolbarZoomZoomIn: 'تكبير',
     toolbarZoomZoomOut: 'تصغير',
-    tooltipPaginationStatus: '${index}[number] من ${count}[number]',
+    tooltipPaginationStatus: '${index}[number] من ${count}[number]'
 };
