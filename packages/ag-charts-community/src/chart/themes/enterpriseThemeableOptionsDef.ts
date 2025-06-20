@@ -557,7 +557,7 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     },
     secondaryLabel: autoSizedLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
-    ...commonSeriesThemeableOptionsDefs,
+    ...without(commonSeriesThemeableOptionsDefs, ['highlight']),
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
     // TODO Remove in next major version
@@ -619,7 +619,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         ...strokeOptionsDef,
     },
     tooltip: tooltipOptionsDefs,
-    ...commonSeriesThemeableOptionsDefs,
+    ...without(commonSeriesThemeableOptionsDefs, ['highlight']),
     // TODO Remove in next major version
     highlightStyle: {
         group: {
