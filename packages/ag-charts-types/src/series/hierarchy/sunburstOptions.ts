@@ -68,7 +68,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = TDatumDefault, TConte
 }
 
 export interface AgSunburstSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle'>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle'>,
         AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames,
         AgSunburstSeriesThemeableOptions<TDatum, TContext> {

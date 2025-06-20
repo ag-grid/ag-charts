@@ -329,10 +329,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         return undefined;
     }
 
-    private getGroupBaseStyle(isHighlight: boolean, datum?: TreemapNode): ItemStyle {
+    private getGroupBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const { group } = properties;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
+        const highlightStyle = highlighted ? properties.highlightStyle.group : undefined;
         return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? group.fill,
@@ -340,7 +340,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
                 stroke: highlightStyle?.stroke ?? group.stroke,
                 strokeWidth: highlightStyle?.strokeWidth ?? group.strokeWidth,
                 strokeOpacity: highlightStyle?.strokeOpacity ?? group.strokeOpacity,
-                opacity: highlightStyle?.opacity ?? 1,
             },
             properties.fillGradientDefaults,
             properties.fillPatternDefaults,
@@ -396,10 +395,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         );
     }
 
-    private getTileBaseStyle(isHighlight: boolean, datum?: TreemapNode): ItemStyle {
+    private getTileBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const { tile } = properties;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
+        const highlightStyle = highlighted ? properties.highlightStyle.tile : undefined;
         return getShapeStyle(
             {
                 fill: highlightStyle?.fill ?? tile.fill,
@@ -407,7 +406,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
                 stroke: highlightStyle?.stroke ?? tile.stroke,
                 strokeWidth: highlightStyle?.strokeWidth ?? tile.strokeWidth,
                 strokeOpacity: highlightStyle?.strokeOpacity ?? tile.strokeOpacity,
-                opacity: highlightStyle?.opacity ?? 1,
             },
             properties.fillGradientDefaults,
             properties.fillPatternDefaults,
@@ -752,15 +750,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             rect.visible = true;
         };
 
-        this.datumSelection.each((rect, datum) => {
-            const baseGroupFormat = this.getGroupBaseStyle(false, datum);
-            const baseTileFormat = this.getTileBaseStyle(false, datum);
-            updateRectFn(datum, rect, baseGroupFormat, baseTileFormat, false);
-        });
+        const baseGroupFormat = this.getGroupBaseStyle(false);
+        const baseTileFormat = this.getTileBaseStyle(false);
+        this.datumSelection.each((rect, datum) => updateRectFn(datum, rect, baseGroupFormat, baseTileFormat, false));
+
+        const highlightGroupFormat = this.getGroupBaseStyle(true);
+        const highlightTileFormat = this.getTileBaseStyle(true);
 
         this.highlightSelection.each((rect, datum) => {
-            const highlightGroupFormat = this.getGroupBaseStyle(true, datum);
-            const highlightTileFormat = this.getTileBaseStyle(true, datum);
             updateRectFn(datum, rect, highlightGroupFormat, highlightTileFormat, true);
         });
 
@@ -801,7 +798,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             text.x = label.x;
             text.y = label.y;
             text.visible = true;
-            text.opacity = this.getHighlightStyle(highlighted, node.datumIndex)?.opacity ?? 1;
 
             text.zIndex = 1;
         };
