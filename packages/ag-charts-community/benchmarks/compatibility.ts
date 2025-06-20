@@ -34,6 +34,10 @@ export function isAtOrAfterVersion(major: number, minor: number, patch: number) 
     return patch === current[2];
 }
 
+export function isBeforeVersion(major: number, minor: number, patch: number) {
+    return !isAtOrAfterVersion(major, minor, patch);
+}
+
 export async function waitForUpdate(chart: any): Promise<void> {
     chart = chart.chart;
 
@@ -52,6 +56,18 @@ export async function waitForUpdate(chart: any): Promise<void> {
 export function prepareTestOptions<T extends AgChartOptions>(options: T, container: HTMLElement, enterprise: boolean) {
     if (!isAtOrAfterVersion(10, 0, 0)) {
         (options as any).autoSize = false;
+    }
+    if (isHistoricBenchmarkTest() && isBeforeVersion(12, 0, 0)) {
+        // highlightStyle => highlight for 12.
+        for (const seriesType of Object.values((options as any).theme?.overrides ?? {})) {
+            const { series } = seriesType as any;
+            if (!series?.highlight) continue;
+
+            series.highlightStyle ??= {
+                series: { dimOpacity: series.highlight?.unhighlightedSeries?.opacity },
+            };
+            delete series.highlight;
+        }
     }
     options.width = 800;
     options.height = 600;
