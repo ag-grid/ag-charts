@@ -356,34 +356,34 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             {
                 label: minName,
                 fallbackLabel: minKey,
-                value: yAxis.formatDatum(minValue, 'tooltip', datum, minKey),
+                value: yAxis.formatDatum(minValue, 'tooltip', seriesId, legendItemName, datum, minKey),
             },
             {
                 label: q1Name,
                 fallbackLabel: q1Key,
-                value: yAxis.formatDatum(q1Value, 'tooltip', datum, q1Key),
+                value: yAxis.formatDatum(q1Value, 'tooltip', seriesId, legendItemName, datum, q1Key),
             },
             {
                 label: medianName,
                 fallbackLabel: medianKey,
-                value: yAxis.formatDatum(medianValue, 'tooltip', datum, medianKey),
+                value: yAxis.formatDatum(medianValue, 'tooltip', seriesId, legendItemName, datum, medianKey),
             },
             {
                 label: q3Name,
                 fallbackLabel: q3Key,
-                value: yAxis.formatDatum(q3Value, 'tooltip', datum, q3Key),
+                value: yAxis.formatDatum(q3Value, 'tooltip', seriesId, legendItemName, datum, q3Key),
             },
             {
                 label: maxName,
                 fallbackLabel: maxKey,
-                value: yAxis.formatDatum(maxValue, 'tooltip', datum, maxKey),
+                value: yAxis.formatDatum(maxValue, 'tooltip', seriesId, legendItemName, datum, maxKey),
             },
         ];
 
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue, 'tooltip', datum, xKey),
+                heading: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
                 title: legendItemName ?? yName,
                 symbol: this.legendItemSymbol(),
                 data: data,

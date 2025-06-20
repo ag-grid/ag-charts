@@ -601,7 +601,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
-        const { xKey, xName, yName, yLowKey, yHighKey, yLowName, yHighName, tooltip } = properties;
+        const { xKey, xName, yName, yLowKey, yHighKey, yLowName, yHighName, tooltip, legendItemName } = properties;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -619,11 +619,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const format = this.getItemBaseStyle(false);
         Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format, false));
 
-        const value = `${yAxis.formatDatum(yLowValue, 'tooltip', datum, yLowKey)} - ${yAxis.formatDatum(yHighValue, 'tooltip', datum, yHighKey)}`;
+        const value = `${yAxis.formatDatum(yLowValue, 'tooltip', seriesId, legendItemName, datum, yLowKey)} - ${yAxis.formatDatum(yHighValue, 'tooltip', seriesId, legendItemName, datum, yHighKey)}`;
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue, 'tooltip', datum, xKey),
+                heading: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
                 symbol: this.legendItemSymbol(),
                 data: [{ label: yName, fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`, value }],
             },
