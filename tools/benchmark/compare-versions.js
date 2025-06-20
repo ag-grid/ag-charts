@@ -174,7 +174,7 @@ if (argv.format === 'table') {
 
     if (baseline.length > 0) {
         console.log('Baseline');
-        console.table(baseline, ['test', 'beforeMs', 'afterMs']);
+        console.table(baseline, ['test', 'pctTimeChange', 'beforeMs', 'afterMs']);
     }
 
     console.log('Time');
