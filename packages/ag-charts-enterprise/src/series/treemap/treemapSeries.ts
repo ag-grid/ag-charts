@@ -793,6 +793,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             text.fontFamily = label.fontFamily;
             text.fontWeight = label.fontWeight;
             text.fill = highlightedColor ?? label.color;
+            text.fillOpacity = this.getHighlightStyle(highlighted, node.datumIndex)?.opacity ?? 1;
             text.textAlign = label.textAlign;
             text.textBaseline = label.verticalAlign;
             text.x = label.x;

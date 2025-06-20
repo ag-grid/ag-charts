@@ -617,7 +617,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeAreaLabelDatum>;
     }) {
         opts.labelSelection.each((textNode, datum) => {
-            textNode.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
+            textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
             updateLabelNode(textNode, this.properties.label, datum);
         });
     }

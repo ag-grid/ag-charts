@@ -314,7 +314,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             text.fontFamily = label.fontFamily;
             text.textAlign = 'left';
             text.textBaseline = 'top';
-            text.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
+            text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
         });
     }
 

@@ -598,7 +598,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             label.fontFamily = fontFamily;
             label.textAlign = textAlign;
             label.textBaseline = textBaseline;
-            label.opacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
+            label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
         });
     }
 

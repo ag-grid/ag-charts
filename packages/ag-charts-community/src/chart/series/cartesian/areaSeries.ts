@@ -735,8 +735,8 @@ export class AreaSeries extends CartesianSeries<
                 text.x = x;
                 text.y = y - 10;
                 text.fill = color;
+                text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
                 text.visible = true;
-                text.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
             } else {
                 text.visible = false;
             }
