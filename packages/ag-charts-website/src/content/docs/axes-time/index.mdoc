@@ -39,19 +39,33 @@ The Unit Time Axis does not aggregate data, so you should ensure that each serie
 ### Custom Unit
 
 The Unit Time Axis assumes that data is is provided with one item per unit, and will infer a `unit` based on the data.
+
+For datasets missing data points, it may be necessary to specify the `unit` explicitly.
 To explicitly set the `unit`, provide a `AgTimeInterval` string or `AgTimeIntervalUnit` object.
 
-For example, if you want to display data in months, you can set the `unit` property to `'month'`:
+{% chartExampleRunner title="Unit Time (Custom Unit)" name="unit-time-unit" type="generated" /%}
 
 ```js
 {
     type: 'unit-time',
     position: 'bottom',
-    unit: 'month',
+    unit: {
+        unit: 'day',
+        step: 7,
+        epoch: new Date(2024, 0, 1),
+    },
 }
 ```
 
-In this example of `unit: 'month'`, any units smaller than 'month' will be ignored. This means that values for 01 Jan and 28 Feb will be displayed identically to values of 31 Jan and 01 Feb.
+In this configuration:
+
+-   `unit` must be one of `millisecond`, `second`, `minute`, `hour`, `day`, `week`, `month`, or `year`.
+-   `step` is an optional number that specifies the multiple of the unit to use. For example, `step: 7` combined with `unit: 'day'` will display weekly data.
+-   `epoch` is an optional `Date` that specifies the starting point for the interval. For example, an epoch landing on Monday with weekly data will display data every Monday.
+
+In this example of `unit: { unit: 'day', step: 7, ew Date(2024, 0, 1) }`, any units smaller than a week will be ignored. This means that values for 2024-01-01 and 2024-01-03 will both be displayed in the same band as the week of 2024-01-01.
+
+For cases where the step is 1, a string may be used instead of an object. For example, `unit: 'day'` is equivalent to `unit: { unit: 'day', step: 1 }`.
 
 See [Time Interval](#reference-AgTimeInterval) for more information on the `unit` property.
 
@@ -122,6 +136,8 @@ In this configuration:
 -   `epoch` is an optional `Date` that specifies the starting point for the interval.
 
 If the `step` property of a time axis is set to a `number`, this will be interpreted as milliseconds.
+
+For cases where the step is 1, a string may be used instead of an object. For example, `unit: 'day'` is equivalent to `unit: { unit: 'day', step: 1 }`.
 
 See [Time Interval](#reference-AgTimeInterval) for more information on the `step` property.
 

@@ -45,9 +45,6 @@ const options: AgChartOptions = {
     ],
     zoom: {
         enabled: true,
-        autoScaling: {
-            enabled: true,
-        },
     },
     navigator: {
         enabled: true,
