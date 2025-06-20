@@ -528,7 +528,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             text.fontFamily = label.fontFamily;
             text.fontWeight = label.fontWeight;
             text.fill = highlightedColor ?? label.color;
-            text.opacity = this.getHighlightStyle(highlighted, node.datumIndex)?.opacity ?? 1;
+            text.fillOpacity = this.getHighlightStyle(highlighted, node.datumIndex)?.opacity ?? 1;
 
             switch (labelPlacement) {
                 case LabelPlacement.CenterCircle:

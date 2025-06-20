@@ -622,7 +622,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, WaterfallNodeDatum>;
     }) {
         opts.labelSelection.each((textNode, datum) => {
-            textNode.opacity = this.getHighlightStyle(false, datum.datumIndex)?.opacity ?? 1;
+            textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex)?.opacity ?? 1;
             updateLabelNode(textNode, this.getItemConfig(datum.itemId).label, datum.label);
         });
     }

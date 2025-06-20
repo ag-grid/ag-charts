@@ -439,7 +439,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             text.fontFamily = datum.fontFamily;
             text.fontWeight = datum.fontWeight;
             text.fill = datum.color;
-            text.opacity = this.getHighlightStyle(false, datum.datumIndex)?.fillOpacity ?? 1;
+            text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex)?.opacity ?? 1;
 
             text.textAlign = datum.textAlign;
             text.textBaseline = datum.verticalAlign;

@@ -575,7 +575,7 @@ export class MapShapeSeries
             label.fontFamily = fontFamily;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
-            label.opacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
+            label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
         });
     }
 

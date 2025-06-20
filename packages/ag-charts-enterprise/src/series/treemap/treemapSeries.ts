@@ -801,7 +801,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             text.x = label.x;
             text.y = label.y;
             text.visible = true;
-            text.opacity = this.getHighlightStyle(highlighted, node.datumIndex)?.opacity ?? 1;
+            text.fillOpacity = this.getHighlightStyle(highlighted, node.datumIndex)?.opacity ?? 1;
 
             text.zIndex = 1;
         };

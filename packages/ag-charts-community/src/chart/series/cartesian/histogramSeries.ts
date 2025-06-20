@@ -479,7 +479,7 @@ export class HistogramSeries extends CartesianSeries<
                 text.fontSize = fontSize;
                 text.fill = color;
                 text.visible = true;
-                text.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
+                text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
             } else {
                 text.visible = false;
             }
