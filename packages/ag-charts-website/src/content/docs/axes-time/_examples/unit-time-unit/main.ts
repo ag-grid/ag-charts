@@ -46,6 +46,9 @@ const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } 
                 step: 7,
                 epoch: new Date(2024, 0, 1),
             },
+            parentLevel: {
+                enabled: false,
+            },
         },
         {
             type: 'number',
@@ -59,6 +62,16 @@ const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } 
     },
     tooltip: {
         mode: 'shared',
+    },
+    formatter: {
+        x(params) {
+            if (params.type === 'date' && params.unit === 'day' && params.step === 7 && params.epoch != null) {
+                const { value, epoch } = params;
+                const weekDuration = 7 * 24 * 60 * 60 * 1000;
+                const week = Math.floor((value.getTime() - epoch.getTime()) / weekDuration);
+                return `Week ${week + 1}`;
+            }
+        },
     },
 };
 
