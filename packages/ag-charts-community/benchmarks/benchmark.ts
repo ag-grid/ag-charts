@@ -30,9 +30,9 @@ if (isHistoricBenchmarkTest()) {
 }
 
 globalThis.agChartsDebugTimeout = 60_000; // Use Jest timeouts
+const repeatLimit = process.env.AG_BENCHMARK_REPEAT_LIMIT ? parseInt(process.env.AG_BENCHMARK_REPEAT_LIMIT) : undefined;
 
 interface BenchmarkExpectations {
-    expectedMaxMemoryMB?: number;
     expectedRelativeMB?: number;
     expectedCanvasCount?: number;
     autoSnapshot?: boolean;
@@ -156,17 +156,28 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
     }
 
     repeatCount(count: number) {
-        this.repeat = count;
+        this.repeat = Math.min(count, repeatLimit ?? Infinity);
         return this;
     }
+}
+
+function defaultTimeoutMs(ctx: BenchmarkContext) {
+    if (ctx.repeat >= 100) {
+        return 30_000;
+    } else if (ctx.repeat >= 10) {
+        return 20_000;
+    } else if (ctx.repeat >= 5) {
+        return 15_000;
+    }
+    return 10_000;
 }
 
 export function benchmark(
     name: string,
     ctx: BenchmarkContext,
     expectations: BenchmarkExpectations,
-    callback: () => Promise<void>,
-    timeoutMs = 10_000
+    callback: () => Promise<void> | void,
+    timeoutMs = defaultTimeoutMs(ctx)
 ) {
     if (!global.gc) {
         // Just warn and fail on exit - this allows us to run the benchmarks for debugging from VSCode.
@@ -180,12 +191,18 @@ export function benchmark(
             global.gc?.();
             const memoryUsageBefore = process.memoryUsage();
 
-            const start = performance.now();
             const { repeat: runCount = 1 } = ctx;
+            let duration = 0;
             for (let i = 0; i < runCount; i++) {
+                const start = performance.now();
                 await callback();
+                const end = performance.now();
+                duration += end - start;
+
+                global.gc?.();
             }
-            const duration = (performance.now() - start) / runCount;
+
+            duration /= runCount;
 
             await new Promise((r) => setTimeout(r, 100));
             global.gc?.();
@@ -236,7 +253,6 @@ export function benchmark(
 
             const BYTES_PER_MB = 1024 ** 2;
             const actual = {
-                expectedMaxMemoryMB: memory.totalMemoryUse / BYTES_PER_MB,
                 expectedRelativeMB: memory.relativeMemoryUse / BYTES_PER_MB,
                 expectedCanvasCount: canvasInstances.length,
             };

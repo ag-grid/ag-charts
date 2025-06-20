@@ -48,6 +48,7 @@ export function logTimings() {
         heapUsed: measurement.memory ? formatBytes(measurement.memory.after.heapUsed) : null,
         relativeUsage: measurement.memory ? formatBytes(getRelativeMemoryUsage(measurement.memory)) : null,
         ...memoryUse(measurement.memory, true),
+        runCount: measurement.runCount,
     }));
     for (const [suitePath, results] of timings) {
         console.log(suitePath);

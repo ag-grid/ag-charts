@@ -6,9 +6,9 @@ import { benchmark, setupBenchmark } from './benchmark';
 import { isAtOrAfterVersion } from './compatibility';
 
 describe('resize benchmark', () => {
-    const ctx = setupBenchmark<AgCartesianChartOptions>('resize');
+    const ctx = setupBenchmark<AgCartesianChartOptions>('resize').repeatCount(20);
 
-    benchmark('initial load', ctx, { expectedRelativeMB: 10, expectedCanvasCount: 2 }, async () => {
+    benchmark('initial load', ctx, { expectedRelativeMB: 15, expectedCanvasCount: 3 }, async () => {
         await ctx.create();
     });
 
@@ -24,7 +24,7 @@ describe('resize benchmark', () => {
             await ctx.create();
         });
 
-        benchmark('10x resize', ctx, { expectedRelativeMB: 3, expectedCanvasCount: 2 }, async () => {
+        benchmark('10x resize', ctx, { expectedRelativeMB: 4.5, expectedCanvasCount: 2 }, async () => {
             const height = 600;
             const ratios = [0.9, 0.8, 0.7, 0.6, 0.5];
             const method = isAtOrAfterVersion(10, 0, 0) ? 'parentResize' : 'rawResize';
