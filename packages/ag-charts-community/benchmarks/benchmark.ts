@@ -161,12 +161,23 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
     }
 }
 
+function defaultTimeoutMs(ctx: BenchmarkContext) {
+    if (ctx.repeat >= 100) {
+        return 30_000;
+    } else if (ctx.repeat >= 10) {
+        return 20_000;
+    } else if (ctx.repeat >= 5) {
+        return 15_000;
+    }
+    return 10_000;
+}
+
 export function benchmark(
     name: string,
     ctx: BenchmarkContext,
     expectations: BenchmarkExpectations,
     callback: () => Promise<void>,
-    timeoutMs = 10_000
+    timeoutMs = defaultTimeoutMs(ctx)
 ) {
     if (!global.gc) {
         // Just warn and fail on exit - this allows us to run the benchmarks for debugging from VSCode.

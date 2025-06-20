@@ -7,15 +7,9 @@ import { benchmark, setupBenchmark } from './benchmark';
 describe('large-scale multi-series benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('large-scale-multi-series').repeatCount(10);
 
-    benchmark(
-        'initial load',
-        ctx,
-        { expectedRelativeMB: 65, expectedCanvasCount: 4 },
-        async () => {
-            await ctx.create();
-        },
-        20_000
-    );
+    benchmark('initial load', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 4 }, async () => {
+        await ctx.create();
+    });
 
     describe('after load', () => {
         beforeEach(async () => {
@@ -27,17 +21,11 @@ describe('large-scale multi-series benchmark', () => {
             await ctx.legendToggle();
         });
 
-        benchmark(
-            '4x legend toggle',
-            ctx,
-            { expectedRelativeMB: 7, expectedCanvasCount: 3 },
-            async () => {
-                for (let i = 0; i < 2; i++) {
-                    await ctx.legendToggle(i);
-                    await ctx.legendToggle(i);
-                }
-            },
-            20_000
-        );
+        benchmark('4x legend toggle', ctx, { expectedRelativeMB: 7, expectedCanvasCount: 3 }, async () => {
+            for (let i = 0; i < 2; i++) {
+                await ctx.legendToggle(i);
+                await ctx.legendToggle(i);
+            }
+        });
     });
 });
