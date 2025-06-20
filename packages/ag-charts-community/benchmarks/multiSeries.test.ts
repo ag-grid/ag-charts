@@ -5,9 +5,9 @@ import { AgCartesianChartOptions } from 'ag-charts-types';
 import { addSeriesNodePoints, benchmark, setupBenchmark } from './benchmark';
 
 describe('multi-series benchmark', () => {
-    const ctx = setupBenchmark<AgCartesianChartOptions>('multi-series');
+    const ctx = setupBenchmark<AgCartesianChartOptions>('multi-series').repeatCount(20);
 
-    benchmark('initial load', ctx, { expectedRelativeMB: 75, expectedCanvasCount: 32 }, async () => {
+    benchmark('initial load', ctx, { expectedRelativeMB: 25, expectedCanvasCount: 4 }, async () => {
         await ctx.create();
     });
 
@@ -19,24 +19,24 @@ describe('multi-series benchmark', () => {
             await addSeriesNodePoints(ctx, 5, 5);
         });
 
-        benchmark('1x legend toggle', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 32 }, async () => {
+        benchmark('1x legend toggle', ctx, { expectedRelativeMB: 6, expectedCanvasCount: 3 }, async () => {
             await ctx.legendToggle();
             await ctx.legendToggle();
         });
 
-        benchmark('10x legend toggle', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 32 }, async () => {
+        benchmark('10x legend toggle', ctx, { expectedRelativeMB: 6, expectedCanvasCount: 3 }, async () => {
             for (let i = 0; i < 5; i++) {
                 await ctx.legendToggle(i);
                 await ctx.legendToggle(i);
             }
         });
 
-        benchmark('1x datum highlight', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 32 }, async () => {
+        benchmark('1x datum highlight', ctx, { expectedRelativeMB: 4.5, expectedCanvasCount: 3 }, async () => {
             const point = ctx.nodePositions[0][2];
             await ctx.hover(point.x, point.y);
         });
 
-        benchmark('15x datum highlight', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 32 }, async () => {
+        benchmark('15x datum highlight', ctx, { expectedRelativeMB: 4.5, expectedCanvasCount: 3 }, async () => {
             for (let nodeIdx = 0; nodeIdx < 5; nodeIdx++) {
                 for (let seriesIdx = 0; seriesIdx < 3; seriesIdx++) {
                     const point = ctx.nodePositions[seriesIdx][nodeIdx];

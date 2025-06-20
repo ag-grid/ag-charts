@@ -180,12 +180,18 @@ export function benchmark(
             global.gc?.();
             const memoryUsageBefore = process.memoryUsage();
 
-            const start = performance.now();
             const { repeat: runCount = 1 } = ctx;
+            let duration = 0;
             for (let i = 0; i < runCount; i++) {
+                const start = performance.now();
                 await callback();
+                const end = performance.now();
+                duration += end - start;
+
+                global.gc?.();
             }
-            const duration = (performance.now() - start) / runCount;
+
+            duration /= runCount;
 
             await new Promise((r) => setTimeout(r, 100));
             global.gc?.();
