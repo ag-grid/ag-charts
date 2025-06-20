@@ -1,9 +1,11 @@
-import { type PlainObject, isNumber, isObjectLike } from 'ag-charts-core';
+import * as core from 'ag-charts-core';
+
+const { isNumber, isObjectLike } = core;
 
 export interface VertexInterface {}
 
 export interface OptionsGraphInterface {
-    readonly palette: PlainObject;
+    readonly palette: core.PlainObject;
 
     addEdge(from: VertexInterface, to: VertexInterface, edge?: string): void;
     addVertex(value: unknown): VertexInterface;
@@ -19,7 +21,7 @@ export interface OptionsGraphInterface {
     graftConfig(target: VertexInterface, configPathArray: Array<string>, ignorePaths: Set<string>): void;
     graftObject(
         target: VertexInterface,
-        object: PlainObject,
+        object: core.PlainObject,
         overridesPathArrays?: Array<Array<string> | undefined>
     ): void;
     graftValue(target: VertexInterface, path: string, operation: unknown, value: unknown): void;
@@ -62,7 +64,7 @@ export function isRatio(value: unknown): value is number {
     return isNumber(value) && value >= 0 && value <= 1;
 }
 
-export function getPathSafe(object: PlainObject, path: string[]) {
+export function getPathSafe(object: core.PlainObject, path: string[]) {
     let result = object;
     for (const part of path) {
         // Since this is called so often on large multi series charts, inline the check for `isKey`
@@ -77,20 +79,32 @@ export function getPathSafe(object: PlainObject, path: string[]) {
     return result as unknown;
 }
 
-export function setPathSafe(object: PlainObject, path: (string | number)[], value: any) {
+export function setPathSafe(object: core.PlainObject, path: (string | number)[], value: any) {
+    const pathLength = path.length;
+    if (pathLength === 0) return;
+
     let result = object;
-    for (let i = 0; i < path.length - 1; i++) {
+    const lastIndex = pathLength - 1;
+    const lastPart = path[lastIndex];
+
+    for (let i = 0; i < lastIndex; i++) {
         const part = path[i];
-        result[part] ??= isNaN(Number(path[i + 1])) ? {} : [];
-        // TODO: this is not the best fix, this happens when a default value is a string and the user value is an object
-        if (!isObjectLike(result[part])) {
-            result[part] = {};
-            result = result[part];
-            break;
+        const nextPart = path[i + 1];
+        let currentValue = result[part];
+
+        if (currentValue == null) {
+            currentValue = isNaN(Number(nextPart)) ? {} : [];
+            result[part] = currentValue;
+        } else if (!isObjectLike(currentValue)) {
+            // TODO: this is not the best fix, this happens when a default value is a string and the user value is an object
+            currentValue = {};
+            result[part] = currentValue;
         }
-        result = result[part];
+
+        result = currentValue;
     }
-    result[path[path.length - 1]] = value;
+
+    result[lastPart] = value;
 }
 
 export function getPathLastIndexIndex(pathArray: Array<string>) {
@@ -102,7 +116,7 @@ export function getPathLastIndex(pathArray: Array<string>) {
     return Number(pathArray[indexIndex]);
 }
 
-export function resolvePath(currentPath: string[], path: string, variables?: PlainObject) {
+export function resolvePath(currentPath: string[], path: string, variables?: core.PlainObject) {
     const relativePathParts = path.split('/');
     let resolvedPath = [...currentPath];
     if (path.startsWith('/')) {

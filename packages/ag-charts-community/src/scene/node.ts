@@ -264,14 +264,8 @@ export abstract class Node<D = any> {
         this.parentNode?.removeChild(this);
     }
 
-    setProperties<T>(this: T, styles: { [K in keyof T]?: T[K] }, pickKeys?: (keyof T)[]) {
-        if (pickKeys) {
-            for (const key of pickKeys) {
-                (this as any)[key] = styles[key];
-            }
-        } else {
-            Object.assign(this as any, styles);
-        }
+    setProperties<T>(this: T, styles: { [K in keyof T]?: T[K] }) {
+        Object.assign(this as any, styles);
         return this;
     }
 

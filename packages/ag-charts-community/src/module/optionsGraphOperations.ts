@@ -1,13 +1,5 @@
-import {
-    Logger,
-    type PlainObject,
-    circularSliceArray,
-    isArray,
-    isNumber,
-    isObjectLike,
-    isPlainObject,
-    isString,
-} from 'ag-charts-core';
+import { type PlainObject } from 'ag-charts-core';
+import * as core from 'ag-charts-core';
 
 import { chartTypes } from '../chart/factory/chartTypes';
 import { isGradientFill, isImageFill, isPatternFill } from '../scene/util/fill';
@@ -27,10 +19,11 @@ import {
     getPathLastIndex,
     getPathLastIndexIndex,
     getPathSafe,
-    isKey,
     isRatio,
     resolvePath,
 } from './optionsGraphUtils';
+
+const { Logger, circularSliceArray, isArray, isNumber, isObjectLike, isPlainObject, isString } = core;
 
 export type Operation =
     | ColorOperation
@@ -60,12 +53,19 @@ type OperationResolver = (
 ) => unknown;
 
 export function getOperation(value: unknown) {
-    if (!isPlainObject(value)) return;
-    const [operation] = Object.keys(value) as Array<Operation>;
-    if (!isKey(operation, operations)) return;
+    if (value == null || typeof value !== 'object' || Array.isArray(value)) return;
+
+    // Get the first key more efficiently than Object.keys()
+    const keys = Object.getOwnPropertyNames(value);
+    if (keys.length === 0) return;
+
+    const operation = keys[0] as Operation;
+    if (!operationTypes.has(operation)) return;
     return {
         operation,
-        values: Array.isArray(value[operation]) ? value[operation] : [value[operation]],
+        values: Array.isArray((value as PlainObject)[operation])
+            ? (value as PlainObject)[operation]
+            : [(value as PlainObject)[operation]],
     };
 }
 
@@ -898,3 +898,5 @@ export const operations: Record<Operation, OperationFns> = {
     ...numericOperations,
     ...transformOperations,
 };
+
+const operationTypes = new Set(Object.keys(operations));

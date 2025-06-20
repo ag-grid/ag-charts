@@ -10,8 +10,8 @@ export class CollidableLine extends _ModuleSupport.Line {
 
     protected clipMask: Map<string, ShapeClipMask> = new Map();
 
-    override setProperties<T>(styles: { [K in keyof T]?: T[K] | undefined }, pickKeys?: (keyof T)[]): T {
-        super.setProperties(styles, pickKeys);
+    override setProperties<T>(styles: { [K in keyof T]?: T[K] | undefined }): T {
+        super.setProperties(styles);
         this.updateCollisionBBox();
         return this as unknown as T;
     }

@@ -1,8 +1,10 @@
-import { Logger, isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from 'ag-charts-core';
 import type { DeepPartial, PlainObject } from 'ag-charts-core';
+import * as core from 'ag-charts-core';
 
 import { SKIP_JS_BUILTINS } from './object';
 import { isProperties } from './properties';
+
+const { Logger, isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } = core;
 
 type StringSet = { has(value: string): boolean };
 export type CloneOptions = { shallow?: StringSet; assign?: StringSet; seen?: unknown[] };
