@@ -1036,7 +1036,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const calloutStrokeWidth = strokeWidth;
         const calloutColors = isStringFillArray(colors) ? colors ?? this.properties.strokes : strokes;
         const { offset } = this.properties.calloutLabel;
-        const opacity = this.getHighlightStyle(false).opacity ?? 1;
 
         this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.Callout).forEach((line) => {
             const datum = line.closestDatum() as DonutNodeDatum;
@@ -1046,7 +1045,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 line.visible = true;
                 line.strokeWidth = calloutStrokeWidth;
                 line.stroke = calloutColors[datumIndex % calloutColors.length];
-                line.strokeOpacity = opacity;
+                line.strokeOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
                 line.fill = undefined;
 
                 const x1 = datum.midCos * outerRadius;
@@ -1268,7 +1267,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const { calloutLabel, calloutLine } = this.properties;
         const calloutLength = calloutLine.length;
         const { offset, color } = calloutLabel;
-        const opacity = this.getHighlightStyle(false).opacity ?? 1;
 
         const tempTextNode = new Text();
 
@@ -1313,7 +1311,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             text.setFont(this.properties.calloutLabel);
             text.setAlign(align);
             text.fill = color;
-            text.fillOpacity = opacity;
+            text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
             text.visible = visible;
         });
     }
@@ -1431,6 +1429,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 const labelRadius = innerRadius * (1 - positionRatio) + outerRadius * positionRatio + positionOffset;
 
                 text.fill = color;
+                text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
                 text.fontSize = fontSize;
@@ -1440,7 +1439,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 text.y = datum.midSin * labelRadius;
                 text.textAlign = 'center';
                 text.textBaseline = 'middle';
-                text.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
 
                 const bbox = text.getBBox(false);
                 const corners = [
