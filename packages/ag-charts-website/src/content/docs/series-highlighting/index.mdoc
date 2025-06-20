@@ -46,12 +46,12 @@ highlight: {
 
 In this configuration, the highlight style of the markers and series are customised.
 
-Note the following when a bar segment is hovered:
+Note the following when a marker is highlighted:
 
--   The hovered marker is highlighted using the `highlight.highlightedItem` configuration. This changes the `fill` to `gold`, the `stroke` to `yellow`, and the `strokeWidth` to `2`.
--   The non-hovered markers within the hovered series are styled using the `highlight.unhighlightedItem` configuration. This changes the `fill` to to `maroon`, and removes the stroke by setting the `strokeWidth` to `0`.
--   The hovered Area Series is highlighted using `highlight.highlightedSeries`. This changes the `fill` and `stroke` to shades of red, with a `strokeWidth` of `2`.
--   Non-highlighted series are dimmed with an applied opacity of `0.2` using `highlight.unhighlightedSeries`.
+-   The hovered marker is highlighted using the `highlightedItem` configuration. This changes the `fill` to `gold`, the `stroke` to `yellow`, and the `strokeWidth` to `2`.
+-   The non-hovered markers within the hovered series are styled using the `unhighlightedItem` configuration. This changes the `fill` to to `maroon`, and removes the stroke by setting the `strokeWidth` to `0`.
+-   The hovered series is highlighted using the `highlightedSeries` configuration. This changes the `fill` and `stroke` to shades of red, with a `strokeWidth` of `2`.
+-   The non-highlighted series are dimmed with an applied opacity of `0.2` using the `unhighlightedSeries` configuration.
 
 In the above example we provided the same `highlight` for all of the series, but the style can be unique to each series.
 
@@ -61,8 +61,8 @@ For simplicity, we provided the `highlight` once within a chart [Theme](./themes
 
 {% tabs %}
 
-{% tabItem id="AgSeriesHighlightStyle" label="Highlight Style" %}
-{% apiReference id="AgSeriesHighlightStyle" /%}
+{% tabItem id="AgSeriesHighlightStyle" label="Highlight Options" %}
+{% apiReference id="AgMultiSeriesHighlightOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}
