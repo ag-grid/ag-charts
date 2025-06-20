@@ -37,17 +37,17 @@
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^18.0.0",
-    "@angular/cli": "^18.0.0",
-    "@angular/compiler-cli": "^18.0.0",
-    "@angular/animations": "^18.0.0",
-    "@angular/common": "^18.0.0",
-    "@angular/compiler": "^18.0.0",
-    "@angular/core": "^18.0.0",
-    "@angular/forms": "^18.0.0",
-    "@angular/platform-browser": "^18.0.0",
-    "@angular/platform-browser-dynamic": "^18.0.0",
-    "@angular/router": "^18.0.0",
+    "@angular-devkit/build-angular": "^17.0.0",
+    "@angular/cli": "^17.0.0",
+    "@angular/compiler-cli": "^17.0.0",
+    "@angular/animations": "^17.0.0",
+    "@angular/common": "^17.0.0",
+    "@angular/compiler": "^17.0.0",
+    "@angular/core": "^17.0.0",
+    "@angular/forms": "^17.0.0",
+    "@angular/platform-browser": "^17.0.0",
+    "@angular/platform-browser-dynamic": "^17.0.0",
+    "@angular/router": "^17.0.0",
     "@types/jasmine": "~4.0.0",
     "@types/node": "^18.18.10",
     "jasmine-core": "~4.3.0",
@@ -62,7 +62,7 @@
     "zone.js": "~0.14.10"
   },
   "peerDependencies": {
-    "@angular/common": ">= 18.0.0",
-    "@angular/core": ">= 18.0.0"
+    "@angular/common": ">= 17.0.0",
+    "@angular/core": ">= 17.0.0"
   }
 }
