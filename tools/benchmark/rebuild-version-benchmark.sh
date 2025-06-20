@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
  
-./tools/benchmark/collect-version-benchmark.sh -a -r 3 $@
+./tools/benchmark/collect-version-benchmark.sh -a $@

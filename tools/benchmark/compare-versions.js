@@ -116,6 +116,10 @@ function cleanTestName(name) {
     return name.replace(' benchmark', '');
 }
 
+function isBaseline(result) {
+    return result.test.startsWith('baseline');
+}
+
 function isCritical(result) {
     const { test, beforeMB, afterMB, beforeMs, afterMs } = result;
     if (test.indexOf('sparkline') < 0) {
@@ -128,7 +132,7 @@ function isCritical(result) {
     return false;
 }
 
-const result = [];
+let result = [];
 for (const test of Object.keys(baseData.results)) {
     const base = baseData.results[test];
     const compare = compareData.results[test];
@@ -148,9 +152,12 @@ for (const test of Object.keys(baseData.results)) {
     });
 }
 
+const baseline = result.filter(isBaseline);
+const critical = result.filter(isCritical);
+result = result.filter((r) => !isBaseline(r));
+
 const rankedByTime = result.toSorted((a, b) => a.pctTimeChange - b.pctTimeChange);
 const rankedByMemory = result.toSorted((a, b) => a.pctMemoryChange - b.pctMemoryChange);
-const critical = result.filter(isCritical);
 
 if (argv.format === 'table') {
     console.log(`Comparing ${argv.base} (baseline) vs. ${argv.compare}`);
@@ -163,6 +170,11 @@ if (argv.format === 'table') {
             console.table(critical, ['test', 'beforeMs', 'afterMs', 'beforeMB', 'afterMB']);
             process.exitCode = 1;
         }
+    }
+
+    if (baseline.length > 0) {
+        console.log('Baseline');
+        console.table(baseline, ['test', 'beforeMs', 'afterMs', 'beforeMB', 'afterMB']);
     }
 
     console.log('Time');

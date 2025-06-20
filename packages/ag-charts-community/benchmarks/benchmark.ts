@@ -176,7 +176,7 @@ export function benchmark(
     name: string,
     ctx: BenchmarkContext,
     expectations: BenchmarkExpectations,
-    callback: () => Promise<void>,
+    callback: () => Promise<void> | void,
     timeoutMs = defaultTimeoutMs(ctx)
 ) {
     if (!global.gc) {
