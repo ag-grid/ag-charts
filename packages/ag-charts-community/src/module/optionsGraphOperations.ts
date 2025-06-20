@@ -416,8 +416,8 @@ function switchOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
 
 enum LocationOperation {
     IsUserOption = '$isUserOption',
-    Palette = '$palette',
     MapPalette = '$mapPalette',
+    Palette = '$palette',
     Path = '$path',
     PathString = '$pathString',
     Ref = '$ref',
@@ -645,7 +645,6 @@ function refOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, va
 enum TransformOperation {
     Apply = '$apply',
     ApplyTheme = '$applyTheme',
-    Find = '$find',
     FindFirstSiblingNotOperation = '$findFirstSiblingNotOperation',
     Map = '$map',
     Merge = '$merge',
@@ -657,7 +656,6 @@ enum TransformOperation {
 const transformOperations: Record<TransformOperation, OperationFns> = {
     $apply: applyOperation,
     $applyTheme: applyThemeOperation,
-    $find: findOperation,
     $findFirstSiblingNotOperation: findFirstSiblingNotOperationOperation,
     $map: mapOperation,
     $merge: mergeOperation,
@@ -732,10 +730,6 @@ function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     }
 
     return RESOLVED_TO_BRANCH;
-}
-
-function findOperation(_graph: OptionsGraphInterface, _vertex: VertexInterface, _values: Array<VertexInterface>) {
-    throw new Error('Not yet implemented');
 }
 
 function findFirstSiblingNotOperationOperation(
