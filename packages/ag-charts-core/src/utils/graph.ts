@@ -38,27 +38,30 @@ export class AdjacencyListGraph<V, E = undefined> {
     }
 
     addEdge(from: Vertex<V>, to: Vertex<V>, edge: E): void {
+        // Optimize cached neighbours handling
         if (edge === this.cachedNeighboursEdge) {
-            const cache = this._cachedNeighbours.get(from);
-            if (cache) {
-                cache.set(to.value, to);
-            } else {
-                this._cachedNeighbours.set(from, new Map().set(to.value, to));
+            let cache = this._cachedNeighbours.get(from);
+            if (!cache) {
+                cache = new Map();
+                this._cachedNeighbours.set(from, cache);
             }
+            cache.set(to.value, to);
         }
 
         if (edge === this.processedEdge) {
             this.pendingProcessingEdges.push([from, to]);
         }
 
-        const edges = this._edges.get(from)!;
+        // Optimize edges handling - single lookup with fallback
+        let edges = this._edges.get(from);
         if (!edges) {
-            this._edges.set(from, new Map().set(edge, [to]));
-            return;
+            edges = new Map();
+            this._edges.set(from, edges);
         }
 
+        // Optimize vertices handling - single lookup with fallback
         const vertices = edges.get(edge);
-        if (vertices == null) {
+        if (!vertices) {
             edges.set(edge, [to]);
         } else if (vertices.indexOf(to) === -1) {
             vertices.push(to);
@@ -129,10 +132,7 @@ export class AdjacencyListGraph<V, E = undefined> {
 
     // Find the first neighbour along the given edge.
     findNeighbour(from: Vertex<V>, edgeValue: E): Vertex<V> | undefined {
-        const neighbours = this._edges.get(from)?.get(edgeValue);
-        if (!neighbours) return;
-        const [neighbour] = neighbours;
-        return neighbour;
+        return this._edges.get(from)?.get(edgeValue)?.[0];
     }
 
     // Find the value of the first neighbour along the given edge.
@@ -194,7 +194,7 @@ export class AdjacencyListGraph<V, E = undefined> {
         const edges = this._edges.get(from);
         if (!edges) return false;
         for (const [_edge, adjacentVertices] of edges) {
-            if (adjacentVertices.indexOf(to) !== -1) return true;
+            if (adjacentVertices.includes(to)) return true;
         }
         return false;
     }
