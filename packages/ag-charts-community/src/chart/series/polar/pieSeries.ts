@@ -1004,6 +1004,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 line.visible = true;
                 line.strokeWidth = calloutStrokeWidth;
                 line.stroke = calloutColors[datumIndex % calloutColors.length];
+                line.strokeOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
                 line.fill = undefined;
 
                 const x1 = datum.midCos * outerRadius;
@@ -1225,7 +1226,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const { calloutLabel, calloutLine } = this.properties;
         const calloutLength = calloutLine.length;
         const { offset, color } = calloutLabel;
-        const opacity = this.getHighlightStyle(false).opacity ?? 1;
 
         const tempTextNode = new Text();
 
@@ -1270,7 +1270,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             text.setFont(this.properties.calloutLabel);
             text.setAlign(align);
             text.fill = color;
-            text.fillOpacity = opacity;
+            text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
             text.visible = visible;
         });
     }
@@ -1382,7 +1382,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         const isDonut = innerRadius > 0;
         const singleVisibleSector = this.ctx.legendManager.getData(this.id)?.filter((d) => d.enabled).length === 1;
-        const opacity = this.getHighlightStyle(false).opacity ?? 1;
 
         const updateSectorLabel = (text: Text, datum: PieNodeDatum) => {
             const { sectorLabel, outerRadius, startAngle, endAngle } = datum;
@@ -1392,7 +1391,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 const labelRadius = innerRadius * (1 - positionRatio) + outerRadius * positionRatio + positionOffset;
 
                 text.fill = color;
-                text.fillOpacity = opacity;
+                text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
                 text.fontSize = fontSize;
@@ -1408,7 +1407,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 }
                 text.textAlign = 'center';
                 text.textBaseline = 'middle';
-                text.opacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
 
                 const bbox = text.getBBox(false);
                 const corners = [
