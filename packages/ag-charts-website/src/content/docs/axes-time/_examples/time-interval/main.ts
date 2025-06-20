@@ -32,12 +32,6 @@ const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } 
             },
         },
     ],
-    padding: {
-        top: 20,
-        right: 40,
-        bottom: 20,
-        left: 20,
-    },
     data: [
         { date: new Date('2025-01-01'), temp: 4.2 },
         { date: new Date('2025-01-08'), temp: 4.9 },

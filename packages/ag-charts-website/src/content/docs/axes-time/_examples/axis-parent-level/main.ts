@@ -30,9 +30,6 @@ const options: AgCartesianChartOptions = {
     ],
     zoom: {
         enabled: true,
-        autoScaling: {
-            enabled: true,
-        },
     },
     navigator: {
         enabled: true,
