@@ -20,14 +20,6 @@ The full list of breaking changes across all features for version {% migrationVe
 
 This release includes the following breaking changes:
 
-{% if isFramework("angular") %}
-
-### Compatibility
-
-The minimum version of Angular you can use with AG Charts is now Angular 18.
-
-{% /if %}
-
 {% if isFramework("vue") %}
 
 ### Compatibility
@@ -38,7 +30,7 @@ The minimum version of Vue you can use with AG Charts is now Vue 3.5.
 
 ### Series Changes
 
--   `series.type` is now required.
+-   `series[].type` is now required.
 
 ### Axes Changes
 
@@ -75,7 +67,18 @@ This release includes the following behaviour changes:
 
 -   If the `stroke` property is provided, a default `strokeWidth` will be used to display a stroke.
 -   When the Mini Chart is enabled, the Navigator default height is 40px.
--   `theme.params.foregroundColor` default is changed to `#181d1f`.
+-   The following `theme.params` defaults have changed which will result in very slight colour changes.
+    -   `foregroundColor` is changed from `#464646` to `#181d1f`.
+    -   `axisColor` is changed from `#c3c3c3` to `#b4b6b6`.
+    -   `borderColor` is changed from `#dddddd` to `rgba(24, 29, 31, 0.15)`.
+    -   `chromeBackgroundColor` is changed from `#fafafa` to `#fafafb`.
+    -   `crosshairLabelBackgroundColor` is changed from `#464646` to `#181d1f`.
+    -   `foregroundColor` is changed from `#464646` to `#181d1f`.
+    -   `gridLineColor` is changed from `#e0eaf2` to `#e8e8e9`.
+    -   `inputTextColor` is changed from `#464646` to `#181d1f`.
+    -   `subtleTextColor` is changed from `#8c8c8c` to `#707374`.
+    -   `textColor` is changed from `#464646` to `#181d1f`.
+-   New `popupShadow` and `focusShadow` are added to `theme.params` and will appear around popup dialogues.
 
 ### Other Changes
 
@@ -93,6 +96,7 @@ This release includes the following deprecations:
 -   `time` import is deprecated. Use an `AgTimeInterval` string directly, or an `AgTimeIntervalUnit` object instead.
 -   `AgTimeInterval` of `utcYear`, `utcMonth`, `utcDay`, `utcHour` are removed, use an `AgTimeIntervalUnit` object with `utc: true` instead.
 -   `AgTimeInterval` of `week` is removed. Use an `AgTimeIntervalUnit` object with `{ unit: 'day', 'step: 7' }` and a format of `%a` or `%A` instead.
+-   `highlightStyle` is removed from all series except `treemap` and `sunburst`. Use `highlight` options instead.
 
 {% /expandingSection %}
 
