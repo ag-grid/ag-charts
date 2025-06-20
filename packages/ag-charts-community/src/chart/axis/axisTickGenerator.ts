@@ -792,7 +792,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             let tickLabel = primary ? axisPrimaryTickFormatter?.(tick, i) : axisTickFormatter?.(tick, i);
 
             if (label.avoidCollisions) {
-                tickLabel = TextWrapper.wrapText(tickLabel ?? tick, wrapOptions);
+                tickLabel = TextWrapper.wrapText(tickLabel ?? tick, wrapOptions) || tickLabel;
             }
 
             let tickId: string;
