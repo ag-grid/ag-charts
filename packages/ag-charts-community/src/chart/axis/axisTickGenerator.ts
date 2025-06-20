@@ -1,11 +1,4 @@
-import {
-    type BoxBounds,
-    boxCollides,
-    countFractionDigits,
-    dropFirstWhile,
-    dropLastWhile,
-    isString,
-} from 'ag-charts-core';
+import { type BoxBounds, boxCollides, countFractionDigits, dropFirstWhile, dropLastWhile } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
@@ -669,7 +662,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 : domain;
         let tickDomain: D[] = niceDomain;
         let rawTicks: any[] | undefined;
-        let enrichedTicks: any[] | undefined;
         let rawTickCount: number | undefined;
         let timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined;
         let primaryTicksIndices: Set<number> | undefined;
@@ -747,22 +739,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                             : tickParams;
                     const tickGeneration = scale.ticks(intervalTickParams, niceDomain, visibleRange);
 
-                    if (tickGeneration && label.avoidCollisions) {
-                        const isVertical = this.axis.direction === ChartAxisDirection.Y;
-                        const maxBand = (BandScale.is(scale) ? scale.bandwidth : null) ?? Infinity;
-                        const { fontFamily, fontSize, fontStyle, fontWeight } = label;
-                        const wrapOptions: WrapOptions = {
-                            maxWidth: isVertical ? sizeLimit : maxBand,
-                            maxHeight: isVertical ? maxBand : sizeLimit,
-                            font: { fontFamily, fontSize, fontStyle, fontWeight },
-                            overflow: label.truncate ? 'ellipsis' : 'hide',
-                            textWrap: label.wrapping,
-                        };
-                        enrichedTicks = tickGeneration.ticks.map((tick) =>
-                            isString(tick) ? TextWrapper.wrapText(tick, wrapOptions) : tick
-                        );
-                    }
-
                     rawTicks = tickGeneration?.ticks ?? [];
                     rawTickCount = tickGeneration?.count;
                     if (TimeScale.is(scale) || DiscreteTimeScale.is(scale)) {
@@ -783,27 +759,41 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         const dateStyle: DateFormatterStyle = generatePrimaryTicks ? 'component' : 'long';
         const axisTickFormatter = label.enabled
-            ? this.axis.tickFormatter(niceDomain, rawTicks, false, fractionDigits, timeInterval, dateStyle)
+            ? axis.tickFormatter(niceDomain, rawTicks, false, fractionDigits, timeInterval, dateStyle)
             : undefined;
         const parentInterval = timeInterval != null ? intervalHierarchy(timeInterval) : undefined;
         const axisPrimaryTickFormatter = generatePrimaryTicks
-            ? this.axis.tickFormatter(niceDomain, rawTicks, true, fractionDigits, parentInterval, dateStyle)
+            ? axis.tickFormatter(niceDomain, rawTicks, true, fractionDigits, parentInterval, dateStyle)
             : undefined;
 
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
         const continuous = TimeScale.is(scale) || DiscreteTimeScale.is(scale);
         const idGenerator = createIdsGenerator();
+        const isVertical = axis.direction === ChartAxisDirection.Y;
+        const maxBand = (BandScale.is(scale) ? scale.bandwidth : null) ?? Infinity;
+        const wrapOptions: WrapOptions = {
+            font: label,
+            maxWidth: isVertical ? sizeLimit : maxBand,
+            maxHeight: isVertical ? maxBand : sizeLimit,
+            overflow: label.truncate ? 'ellipsis' : 'hide',
+            textWrap: label.wrapping,
+        };
+
         for (let i = 0; i < rawTicks.length; i++) {
-            const tick = enrichedTicks?.[i] || rawTicks[i];
-            const translation = scale.convert(rawTicks[i], { interpolate }) + halfBandwidth;
-            const primary = primaryTicksIndices?.has(i) ?? false;
+            const tick = rawTicks[i];
+            const translation = scale.convert(tick, { interpolate }) + halfBandwidth;
 
             // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
             // instead hide ticks based on their translation.
             if (range.length > 0 && !axis.inRange(translation, 0.001)) continue;
 
-            const tickLabel = primary ? axisPrimaryTickFormatter?.(tick, i) : axisTickFormatter?.(tick, i);
+            const primary = primaryTicksIndices?.has(i) ?? false;
+            let tickLabel = primary ? axisPrimaryTickFormatter?.(tick, i) : axisTickFormatter?.(tick, i);
+
+            if (label.avoidCollisions) {
+                tickLabel = TextWrapper.wrapText(tickLabel ?? String(tick), wrapOptions) || tickLabel;
+            }
 
             let tickId: string;
             const continuousValue = continuous ? tick?.valueOf() : undefined;

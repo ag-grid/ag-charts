@@ -512,7 +512,7 @@ export class ChartTheme {
             {
                 keys: [],
                 groupPaddingInner: 0,
-                label: { autoRotate: false },
+                label: { autoRotate: false, wrapping: 'never' },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: true },
             },

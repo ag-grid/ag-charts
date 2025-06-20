@@ -162,7 +162,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
             result = callWithContext(formatter, { value, index, domain, fractionDigits, unit, step, boundSeries });
         }
 
-        if (format != null) {
+        if (format != null && result == null) {
             const { specifier, dateStyle, truncateDate } = options;
             const cacheKey: FormatterCacheKey = `${dateStyle}:${truncateDate ?? 'none'}`;
             let valueFormatter = this._formatters[cacheKey];
@@ -184,7 +184,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
                 this._formatters[cacheKey] = valueFormatter;
             }
 
-            result ??= valueFormatter.formatter?.(value, fractionDigits);
+            result = valueFormatter.formatter?.(value, fractionDigits);
         }
 
         return result != null ? String(result) : undefined;
