@@ -907,7 +907,7 @@ export class Legend extends BaseProperties {
             return false;
         }
 
-        const { legendType, seriesId, itemId, enabled } = datum;
+        const { legendType, seriesId, itemId, enabled, legendItemName } = datum;
         const series = chartService.series.find((s) => s.id === seriesId);
         if (!series) {
             return false;
@@ -937,7 +937,7 @@ export class Legend extends BaseProperties {
                 series,
                 itemId,
                 enabled: newEnabled,
-                legendItemName: datum.legendItemName,
+                legendItemName,
             });
         }
 
@@ -947,6 +947,7 @@ export class Legend extends BaseProperties {
                 itemId,
                 datum: undefined,
                 datumIndex: undefined,
+                legendItemName,
             });
         } else {
             highlightManager.updateHighlight(this.id);
