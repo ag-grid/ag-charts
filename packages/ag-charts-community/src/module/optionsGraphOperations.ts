@@ -1,13 +1,5 @@
-import {
-    Logger,
-    type PlainObject,
-    circularSliceArray,
-    isArray,
-    isNumber,
-    isObjectLike,
-    isPlainObject,
-    isString,
-} from 'ag-charts-core';
+import { type PlainObject } from 'ag-charts-core';
+import * as core from 'ag-charts-core';
 
 import { chartTypes } from '../chart/factory/chartTypes';
 import { isGradientFill, isImageFill, isPatternFill } from '../scene/util/fill';
@@ -30,6 +22,8 @@ import {
     isRatio,
     resolvePath,
 } from './optionsGraphUtils';
+
+const { Logger, circularSliceArray, isArray, isNumber, isObjectLike, isPlainObject, isString } = core;
 
 export type Operation =
     | ColorOperation
