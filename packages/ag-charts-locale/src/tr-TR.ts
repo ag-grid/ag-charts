@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] ile ${max}[percent0to2dp] arası',
     contextMenuDownload: 'İndir',
     contextMenuPanToCursor: 'Buraya kaydır',
+    contextMenuResetZoom: 'Yakınlaştırmayı sıfırla',
     contextMenuToggleOtherSeries: 'Diğer Serileri Değiştir',
     contextMenuToggleSeriesVisibility: 'Görünürlüğü Değiştir',
     contextMenuZoomToCursor: 'Buraya yakınlaştır',

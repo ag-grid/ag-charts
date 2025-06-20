@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] till ${max}[percent0to2dp]',
     contextMenuDownload: 'Ladda ner',
     contextMenuPanToCursor: 'Panorera hit',
+    contextMenuResetZoom: 'Återställ zoom',
     contextMenuToggleOtherSeries: 'Växla andra serier',
     contextMenuToggleSeriesVisibility: 'Växla synlighet',
     contextMenuZoomToCursor: 'Zooma hit',

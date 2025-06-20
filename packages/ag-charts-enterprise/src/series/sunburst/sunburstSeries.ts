@@ -140,9 +140,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.labelSelection.update(descendants, updateLabelGroup, (node) => this.getDatumId(node));
     }
 
-    private getItemBaseStyle(isHighlight: boolean, datum?: SunburstNode): ItemStyle {
+    private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
+        const highlightStyle = highlighted ? properties.highlightStyle : undefined;
 
         return getShapeStyle(
             {
@@ -151,7 +151,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 stroke: highlightStyle?.stroke,
                 strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
                 strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-                opacity: highlightStyle?.opacity ?? 1,
             },
             properties.fillGradientDefaults,
             properties.fillPatternDefaults,
@@ -486,14 +485,13 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             sector.cornerRadius = cornerRadius;
         };
 
-        this.datumSelection.each((sector, datum) => {
-            const baseFormat = this.getItemBaseStyle(false, datum);
+        const baseFormat = this.getItemBaseStyle(false);
 
+        this.datumSelection.each((sector, datum) => {
             updateSector(datum, sector, baseFormat, false);
         });
+        const highlightFormat = this.getItemBaseStyle(true);
         this.highlightSelection.each((rect, datum) => {
-            const highlightFormat = this.getItemBaseStyle(true, datum);
-
             updateSector(datum, rect, highlightFormat, true);
         });
 

@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] تا ${max}[percent0to2dp]',
     contextMenuDownload: 'دانلود',
     contextMenuPanToCursor: 'حرکت به اینجا',
+    contextMenuResetZoom: 'بازنشانی بزرگنمایی',
     contextMenuToggleOtherSeries: 'تغییر وضعیت سایر سری‌ها',
     contextMenuToggleSeriesVisibility: 'تغییر نمایش',
     contextMenuZoomToCursor: 'زوم به اینجا',

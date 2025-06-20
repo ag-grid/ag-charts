@@ -69,6 +69,13 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
             delete series.highlight;
         }
     }
+    if (isHistoricBenchmarkTest() && isBeforeVersion(11, 1, 0)) {
+        // zoom.minVisibleItemsX => zoom.minVisibleItems for 11.1.
+        if ((options as any).zoom?.minVisibleItemsX != null) {
+            (options as any).zoom.minVisibleItems = (options as any).zoom.minVisibleItemsX;
+            delete (options as any).zoom.minVisibleItemsX;
+        }
+    }
     options.width = 800;
     options.height = 600;
     options.container = container;

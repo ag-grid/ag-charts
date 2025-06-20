@@ -261,9 +261,21 @@ for (let i = 2; i <= 3; i++) {
 }
 /* @ag-options-end */
 
-const start = performance.now();
-const chart = AgCharts.create(options);
+async function main() {
+    const start = performance.now();
 
-chart.waitForUpdate().then(() => {
-    console.log('Total update time: ', performance.now() - start);
-});
+    const count = 100;
+    let chart, previousChart;
+    for (let i = 0; i < count; i++) {
+        previousChart = chart;
+        chart = AgCharts.create(options);
+
+        await chart.waitForUpdate();
+        previousChart?.destroy();
+    }
+    const duration = performance.now() - start;
+    console.log('Total update time: ', duration);
+    console.log('Average update time: ', duration / count);
+}
+
+main().catch((e) => console.error(e));

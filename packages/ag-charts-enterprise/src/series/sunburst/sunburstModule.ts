@@ -64,16 +64,6 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
                 stroke: `rgba(0, 0, 0, 0.4)`,
                 strokeWidth: 2,
             },
-            highlight: {
-                highlightedItem: {
-                    fill: { $path: ['../../highlightStyle/fill', `rgba(255,255,255, 0.33)`] },
-                    fillOpacity: { $path: ['../../highlightStyle/fillOpacity', undefined] },
-                    stroke: { $path: ['../../highlightStyle/stroke', `rgba(0, 0, 0, 0.4)`] },
-                    strokeWidth: { $path: ['../../highlightStyle/strokeWidth', 2] },
-                    strokeOpacity: { $path: ['../../highlightStyle/strokeOpacity', undefined] },
-                    opacity: 1,
-                },
-            },
         },
         gradientLegend: {
             enabled: true,

@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_ZH_HK: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] 至 ${max}[percent0to2dp]',
     contextMenuDownload: '下載',
     contextMenuPanToCursor: '平移到這裡',
+    contextMenuResetZoom: '重設縮放',
     contextMenuToggleOtherSeries: '切換其他系列',
     contextMenuToggleSeriesVisibility: '切換顯示',
     contextMenuZoomToCursor: '放大至此處',

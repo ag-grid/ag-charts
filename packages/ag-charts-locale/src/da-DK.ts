@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] til ${max}[percent0to2dp]',
     contextMenuDownload: 'Download',
     contextMenuPanToCursor: 'Panorer hertil',
+    contextMenuResetZoom: 'Nulstil zoom',
     contextMenuToggleOtherSeries: 'Skift Andre Serier',
     contextMenuToggleSeriesVisibility: 'Skift synlighed',
     contextMenuZoomToCursor: 'Zoom til her',

@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] tot ${max}[percent0to2dp]',
     contextMenuDownload: 'Downloaden',
     contextMenuPanToCursor: 'Naar hier pannen',
+    contextMenuResetZoom: 'Zoom opnieuw instellen',
     contextMenuToggleOtherSeries: 'Andere series in-/uitschakelen',
     contextMenuToggleSeriesVisibility: 'Zichtbaarheid Wijzigen',
     contextMenuZoomToCursor: 'Hier inzoomen',
