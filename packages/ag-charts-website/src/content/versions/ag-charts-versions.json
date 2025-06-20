@@ -4,22 +4,28 @@
         "date": "June 24th, 2024",
         "highlights": [
             {
-                "text": "Axes Label Collision Avoidance",
+                "text": "Axis Band Highlight",
+                "path": "./axes-crosshairs/#band-highlight"
+            },
+            {
+                "text": "Axis Label Automatic Wrapping",
                 "path": "./axes-labels/#collision-avoidance"
             },
             {
                 "text": "Global Formatter",
-                "path": "./formatters/"
+                "path": "./formatters"
             },
             {
-                "text": "Typescript Generics"
+                "text": "`context` Object",
+                "path": "./context"
             },
             {
-                "text": "`context` object"
+                "text": "Typescript Generics for Data and Context",
+                "path": "./ts-generics"
             },
             {
-                "text": "Improved Highlight Options",
-                "path": "./series-highlighting/"
+                "text": "Improved Series Highlight Options",
+                "path": "./series-highlighting"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-12"

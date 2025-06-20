@@ -210,7 +210,7 @@
                         },
                         {
                             "type": "item",
-                            "title": "Crosshairs",
+                            "title": "Crosshairs & Band Highlight",
                             "path": "axes-crosshairs",
                             "isEnterprise": true
                         },

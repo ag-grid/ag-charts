@@ -1,12 +1,14 @@
 ---
-title: 'Crosshairs'
+title: 'Crosshairs and Band Highlight'
 enterprise: true
 ---
 
-Crosshairs show a reference line on the chart, along with the corresponding axis value at a specific position.
+Crosshairs and band highlights provide visual references on the chart to indicate specific values or categories.
 
-When hovering over the chart, the crosshairs can either follow the mouse pointer position or snap to the highlighted
-item's position to display the axis value at that specific point.
+Crosshairs show a reference line and corresponding axis value at a specific position, either following the mouse
+or snapping to a highlighted item. Band highlights emphasize the entire category band.
+
+{% chartExampleRunner title="Enabling Crosshairs" name="enabling-crosshairs" type="generated" /%}
 
 ## Enabling Crosshairs
 
@@ -23,8 +25,6 @@ axes: [
     },
 ],
 ```
-
-{% chartExampleRunner title="Enabling Crosshairs" name="enabling-crosshairs" type="generated" /%}
 
 ## Snap
 
@@ -173,11 +173,11 @@ Note that:
 
 ## Band Highlight
 
-Band Highlights shade the selected category or date on the chart, rather than a single line. Unlike Crosshairs, they do not render an additional label.
+Band highlights shade the entire hovered category or date on the chart.
 
-Band Highlights with with `category`, `unit-time`, and `ordinal-time` axes.
+{% chartExampleRunner title="Band Highlighting" name="band-highlight" type="generated" /%}
 
-To enable the Band Highlight feature for a compatible axis, use the `bandHighlight` property on the `axes` options object as shown below:
+To enable the band highlight for a given axis, use the `bandHighlight` property in the `axes` options object.
 
 ```js
 axes: [
@@ -190,9 +190,13 @@ axes: [
 ],
 ```
 
-{% chartExampleRunner title="Band Highlighting" name="band-highlight" type="generated" /%}
+In the above example:
 
-See the [Band Highlight API Reference](#reference-AgBandHighlightOptions) for more details on the available options.
+-   Hovering the chart shows a gray band highlight for the hovered category.
+-   Unlike crosshairs, band highlights do not render an additional label.
+-   Band highlights are available for `category`, `unit-time`, and `ordinal-time` axes.
+
+See the [Band Highlight API Reference](#reference-AgBandHighlightOptions) for more details on the available customisation options.
 
 ## API Reference
 

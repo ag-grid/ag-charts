@@ -1,6 +1,7 @@
 // Source: https://www.gov.uk/government/statistical-data-sets/oil-and-petroleum-products-weekly-statistics
 export function getData() {
     return [
+        { date: new Date(2019, 0, 1), petrol: 126.47, diesel: 137.32 },
         { date: new Date(2019, 0, 7), petrol: 125.27, diesel: 136.33 },
         { date: new Date(2019, 0, 14), petrol: 124.53, diesel: 135.47 },
         { date: new Date(2019, 0, 21), petrol: 124.12, diesel: 135.46 },
