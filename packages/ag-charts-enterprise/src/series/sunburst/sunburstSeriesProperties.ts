@@ -13,6 +13,10 @@ import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel'
 const { HierarchySeriesProperties, HighlightStyle, makeSeriesTooltip, Property } = _ModuleSupport;
 
 class SunburstSeriesTileHighlightStyle extends HighlightStyle {
+    constructor() {
+        super(false);
+    }
+
     @Property
     fill?: string;
 
@@ -67,7 +71,7 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
     itemStyler?: Styler<AgSunburstSeriesItemStylerParams<unknown>, AgSunburstSeriesStyle>;
 
     @Property
-    override highlightStyle = new SunburstSeriesTileHighlightStyle(false);
+    override highlightStyle = new SunburstSeriesTileHighlightStyle();
 
     @Property
     readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
