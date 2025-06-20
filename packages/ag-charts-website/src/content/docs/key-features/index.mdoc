@@ -125,7 +125,7 @@ axes: [
 
 ### Value Formatting
 
-Data values are displayed in many places, such as series and axes labels. Use the `formatter` callbacks to set the format of these.
+Data values are displayed in many places, such as series and axes labels. Use the chart-level or item-level `formatter` callbacks to set the format of these.
 
 The `params` contain contextual information necessary to identify the item, and the callback should return a `String` object.
 
@@ -204,7 +204,7 @@ series: [
 
 Each series type has its own [series specific styling options](/options/#reference-AgChartOptions-series) depending on the visualisation, with the most common properties being `fill` and `stroke`.
 
-Fills can be a solid colour, a gradient or a pattern.
+[Series Fills](./fills) can be a solid colour, [a gradient](./fills/#gradients), [a pattern](./fills/#patterns) or [an image](./fills/#images).
 
 Strokes can have a `stroke` colour, as well as a `strokeWidth` and a `lineDash[]` array.
 
@@ -323,15 +323,15 @@ Use the `tooltip.renderer` callback function to customise the content of the too
 
 Items and Series are [highlighted](./series-highlighting/) when hovered.
 
-Use `highlightStyles` to [customise](./series-highlighting/#customisation) highlighted items and series:
+Use `highlight` options to [customise](./series-highlighting/#customisation) highlighted and unhighlighted items and series:
 
 ```js
-highlightStyle: {
-    // Attributes that apply to individual items within a single series.
+highlight: {
+    // Attributes that apply to the highlighted item only.
     highlightedItem: {
         strokeWidth: 5,
     },
-    // Attributes that apply to the entire series containing the highlighted item.
+    // Attributes that apply to all other series.
     unhighlightedSeries: {
         opacity: 0.2,
     },
@@ -436,7 +436,7 @@ zoom: {
 
 See the [Zoom Options](/options/#reference-AgChartOptions-zoom) for further customisation options, including enabling specific zoom methods, controlling the anchor point, scrolling step, and many more.
 
-To allow the y-axis to automatically adjust to fit the visible items, enable the `autoScaling` option.
+The y-axis will automatically adjust to fit the visible items. This is controlled by the `autoScaling` option.
 
 ```js
 zoom: {
@@ -463,14 +463,26 @@ navigator: {
 
 ### Context Menu {% enterpriseIcon /%}
 
-The [Context Menu](./context-menu/) provides [Zoom](./zoom/) and [Download](./api-download/) functionality, as well as allowing [custom actions](./context-menu/#custom-actions).
+The [Context Menu](./context-menu/) provides [Zoom](./zoom/) and [Download](./api-download/) functionality, as well as allowing element specific [custom actions](./context-menu/#custom-actions).
 
 ```js
 contextMenu: {
     enabled: true,
-    extraActions: [
-        { label: 'Say hello', action: () => console.log('Hello world') },
-    ],
+    items: [
+        {
+            showOn: 'always',
+            label: 'Say hello',
+            action: () => log('Hello world!'),
+        },
+        "separator",
+        {
+            showOn: "series-node",
+            label: "Say hello to a node",
+            action: ({ datum, yKey }) => {
+               console.log(`Hello ${yKey} in ${datum.month}!`);
+            },
+        }
+    ]
 }
 ```
 
