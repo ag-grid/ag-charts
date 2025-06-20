@@ -38,6 +38,7 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     ariaValuePanRange: '${min}[percent0to2dp] до ${max}[percent0to2dp]',
     contextMenuDownload: 'Завантажити',
     contextMenuPanToCursor: 'Прокрутити сюди',
+    contextMenuResetZoom: 'Скинути масштаб',
     contextMenuToggleOtherSeries: 'Переключити інші серії',
     contextMenuToggleSeriesVisibility: 'Перемкнути видимість',
     contextMenuZoomToCursor: 'Збільшити сюди',
