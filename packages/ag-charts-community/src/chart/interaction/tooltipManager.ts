@@ -126,8 +126,4 @@ export class TooltipManager {
 
         return meta;
     }
-
-    public maybeEnterInteractiveTooltip(callerId: string, event: FocusEvent | MouseEvent): boolean {
-        return this.tooltip.maybeEnterInteractiveTooltip(event, () => this.removeTooltip(callerId));
-    }
 }
