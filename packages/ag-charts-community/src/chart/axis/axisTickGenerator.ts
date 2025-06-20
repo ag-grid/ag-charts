@@ -1,11 +1,4 @@
-import {
-    type BoxBounds,
-    boxCollides,
-    countFractionDigits,
-    dropFirstWhile,
-    dropLastWhile,
-    isString,
-} from 'ag-charts-core';
+import { type BoxBounds, boxCollides, countFractionDigits, dropFirstWhile, dropLastWhile } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
@@ -798,8 +791,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             const primary = primaryTicksIndices?.has(i) ?? false;
             let tickLabel = primary ? axisPrimaryTickFormatter?.(tick, i) : axisTickFormatter?.(tick, i);
 
-            if (label.avoidCollisions && (tickLabel != null || isString(tick))) {
-                tickLabel = TextWrapper.wrapText(tickLabel ?? tick, wrapOptions) || tickLabel;
+            if (label.avoidCollisions) {
+                tickLabel = TextWrapper.wrapText(tickLabel ?? String(tick), wrapOptions) || tickLabel;
             }
 
             let tickId: string;
