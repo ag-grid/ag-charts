@@ -14,7 +14,7 @@ The Context Object is accessible via the `context` property in all callback and 
 ## Context Object
 
 The Context Object can be set using the `context` property either at the root of
-the chart options, or on an individual series or axes. The
+the chart options, or on an individual series or axis. The
 `series[].context` and `axes[].context` values will be used for callbacks related to
 the target series or axis, but will fallback to the root `context` property if they are
 not set.
@@ -85,6 +85,6 @@ state, which updates the tooltip and the axis labels.
 Note that the Context Object is used by the following callbacks:
 
 -   The Y-axis [Label Formatter](./axes-labels/#formatter), to convert USD values to the preferred User Currency.
--   The [Tooltip Renderer](./tooltips//#modifying-content), to render both the stock prices in USD and the User
+-   The [Tooltip Renderer](./tooltips/#modifying-content), to render both the stock prices in USD and the User
     Currency (if applicable).
 -   The [Context Menu Actions](./context-menu/#custom-actions), to log converted stock prices to the console.
