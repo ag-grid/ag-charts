@@ -158,5 +158,5 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     toolbarZoomReset: 'Palauta zoomaus',
     toolbarZoomZoomIn: 'Lähennä',
     toolbarZoomZoomOut: 'Loitonna',
-    tooltipPaginationStatus: '${index}[number] / ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] / ${count}[number]',
 };

@@ -158,5 +158,5 @@ export const AG_CHARTS_LOCALE_DE_DE: Record<string, string> = {
     toolbarZoomReset: 'Zoom zurücksetzen',
     toolbarZoomZoomIn: 'Vergrößern',
     toolbarZoomZoomOut: 'Verkleinern',
-    tooltipPaginationStatus: '${index}[number] von ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] von ${count}[number]',
 };

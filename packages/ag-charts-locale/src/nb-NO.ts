@@ -158,5 +158,5 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     toolbarZoomReset: 'Tilbakestill zoom',
     toolbarZoomZoomIn: 'Zoom inn',
     toolbarZoomZoomOut: 'Zoom ut',
-    tooltipPaginationStatus: '${index}[number] av ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] av ${count}[number]',
 };

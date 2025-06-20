@@ -158,5 +158,5 @@ export const AG_CHARTS_LOCALE_ZH_HK: Record<string, string> = {
     toolbarZoomReset: '重設縮放',
     toolbarZoomZoomIn: '放大',
     toolbarZoomZoomOut: '縮小',
-    tooltipPaginationStatus: '${index}[number] 的 ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] 的 ${count}[number]',
 };

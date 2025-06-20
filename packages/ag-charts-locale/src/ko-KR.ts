@@ -158,5 +158,5 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     toolbarZoomReset: '줌 리셋',
     toolbarZoomZoomIn: '확대',
     toolbarZoomZoomOut: '축소',
-    tooltipPaginationStatus: '${index}[number] / ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] / ${count}[number]',
 };

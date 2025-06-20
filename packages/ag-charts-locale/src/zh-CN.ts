@@ -158,5 +158,5 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     toolbarZoomReset: '重置缩放',
     toolbarZoomZoomIn: '放大',
     toolbarZoomZoomOut: '缩小',
-    tooltipPaginationStatus: '${index}[number] / ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] / ${count}[number]',
 };
