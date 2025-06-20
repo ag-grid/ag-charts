@@ -78,19 +78,31 @@ export function getPathSafe(object: PlainObject, path: string[]) {
 }
 
 export function setPathSafe(object: PlainObject, path: (string | number)[], value: any) {
+    const pathLength = path.length;
+    if (pathLength === 0) return;
+
     let result = object;
-    for (let i = 0; i < path.length - 1; i++) {
+    const lastIndex = pathLength - 1;
+    const lastPart = path[lastIndex];
+
+    for (let i = 0; i < lastIndex; i++) {
         const part = path[i];
-        result[part] ??= isNaN(Number(path[i + 1])) ? {} : [];
-        // TODO: this is not the best fix, this happens when a default value is a string and the user value is an object
-        if (!isObjectLike(result[part])) {
-            result[part] = {};
-            result = result[part];
-            break;
+        const nextPart = path[i + 1];
+        let currentValue = result[part];
+
+        if (currentValue == null) {
+            currentValue = isNaN(Number(nextPart)) ? {} : [];
+            result[part] = currentValue;
+        } else if (!isObjectLike(currentValue)) {
+            // TODO: this is not the best fix, this happens when a default value is a string and the user value is an object
+            currentValue = {};
+            result[part] = currentValue;
         }
-        result = result[part];
+
+        result = currentValue;
     }
-    result[path[path.length - 1]] = value;
+
+    result[lastPart] = value;
 }
 
 export function getPathLastIndexIndex(pathArray: Array<string>) {
