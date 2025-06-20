@@ -399,13 +399,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: angleAxis.formatDatum(angleValue, 'tooltip', datum, angleKey),
+                heading: angleAxis.formatDatum(angleValue, 'tooltip', seriesId, undefined, datum, angleKey),
                 symbol: this.legendItemSymbol(),
                 data: [
                     {
                         label: radiusName,
                         fallbackLabel: radiusKey,
-                        value: radiusAxis.formatDatum(radiusValue, 'tooltip', datum, radiusKey),
+                        value: radiusAxis.formatDatum(radiusValue, 'tooltip', seriesId, undefined, datum, radiusKey),
                     },
                 ],
             },

@@ -446,8 +446,16 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         }
 
         data.push(
-            { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue, 'tooltip', datum, xKey) },
-            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey) }
+            {
+                label: xName,
+                fallbackLabel: xKey,
+                value: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
+            },
+            {
+                label: yName,
+                fallbackLabel: yKey,
+                value: yAxis.formatDatum(yValue, 'tooltip', seriesId, legendItemName, datum, yKey),
+            }
         );
 
         if (sizeKey != null) {

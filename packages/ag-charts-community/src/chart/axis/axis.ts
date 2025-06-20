@@ -686,10 +686,19 @@ export abstract class Axis<
 
     // For formatting arbitrary values between the ticks.
     formatDatum(value: any, source: 'crosshair' | 'annotation-label'): string;
-    formatDatum(value: any, source: 'tooltip' | 'series-label', datum: any, key: string): string;
+    formatDatum(
+        value: any,
+        source: 'tooltip' | 'series-label',
+        seriesId: string,
+        legendItemName: string | undefined,
+        datum: any,
+        key: string
+    ): string;
     formatDatum<Params extends object>(
         value: any,
         source: 'crosshair' | 'annotation-label',
+        seriesId: undefined,
+        legendItemName: undefined,
         datum: undefined,
         key: undefined,
         domain: undefined,
@@ -698,6 +707,8 @@ export abstract class Axis<
     formatDatum<Params extends object>(
         value: any,
         source: 'tooltip' | 'series-label',
+        seriesId: string,
+        legendItemName: string | undefined,
         datum: any,
         key: string,
         domain: any[],
@@ -707,6 +718,8 @@ export abstract class Axis<
     formatDatum(
         input: any,
         source: Exclude<AnyFormatterSource, 'axis-label' | 'gradient-legend'>,
+        seriesId?: string,
+        legendItemName?: string,
         datum?: any,
         key?: string,
         domain?: any[],
@@ -746,8 +759,8 @@ export abstract class Axis<
             {
                 source,
                 datum,
-                seriesId: undefined,
-                legendItemName: undefined,
+                seriesId,
+                legendItemName,
                 key,
                 property: direction,
                 domain,
@@ -850,7 +863,7 @@ export abstract class Axis<
             scaleInvert: (val) => scale.invert(val, true),
             scaleInvertNearest: (val) => scale.invert(val, true),
             formatScaleValue: (value, source, label) =>
-                this.formatDatum(value, source, undefined, undefined, undefined, label),
+                this.formatDatum(value, source, undefined, undefined, undefined, undefined, undefined, label),
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),

@@ -599,7 +599,7 @@ export class LineSeries extends CartesianSeries<
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { xKey, xName, yKey, yName, tooltip } = properties;
+        const { xKey, xName, yKey, yName, tooltip, legendItemName } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -620,13 +620,13 @@ export class LineSeries extends CartesianSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue, 'tooltip', datum, xKey),
+                heading: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
                 symbol: this.legendItemSymbol(),
                 data: [
                     {
                         label: yName,
                         fallbackLabel: yKey,
-                        value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey),
+                        value: yAxis.formatDatum(yValue, 'tooltip', seriesId, legendItemName, datum, yKey),
                     },
                 ],
             },

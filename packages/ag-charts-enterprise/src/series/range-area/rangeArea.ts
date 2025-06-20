@@ -643,7 +643,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         removeThisDatum: RangeAreaMarkerDatum | undefined
     ): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { xName, yName, yLowKey, yLowName, xKey, yHighKey, yHighName, tooltip } = properties;
+        const { xName, yName, yLowKey, yLowName, xKey, yHighKey, yHighName, tooltip, legendItemName } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -659,11 +659,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const format = this.getMarkerItemBaseStyle(false);
         Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
-        const value = `${yAxis.formatDatum(yLowValue, 'tooltip', datum, yLowKey)} - ${yAxis.formatDatum(yHighValue, 'tooltip', datum, yHighKey)}`;
+        const value = `${yAxis.formatDatum(yLowValue, 'tooltip', seriesId, legendItemName, datum, yLowKey)} - ${yAxis.formatDatum(yHighValue, 'tooltip', seriesId, legendItemName, datum, yHighKey)}`;
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue, 'tooltip', datum, xKey),
+                heading: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
                 symbol: this.legendItemSymbol(),
                 data: [{ label: yName, fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`, value }],
             },

@@ -293,7 +293,7 @@ export class HistogramSeries extends CartesianSeries<
 
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
-        const { xKey, yKey, xName, yName } = this.properties;
+        const { xKey, yKey, xName, yName, legendItemName } = this.properties;
         const labelFormatter = this.properties.label.formatter;
 
         const nodeData: HistogramNodeDatum[] = [];
@@ -346,7 +346,7 @@ export class HistogramSeries extends CartesianSeries<
                                 xName,
                                 yName,
                             })
-                        ) ?? yAxis.formatDatum(total, 'series-label', datum, yKey!),
+                        ) ?? yAxis.formatDatum(total, 'series-label', seriesId, legendItemName, datum, yKey!),
                 };
             }
 
@@ -506,7 +506,7 @@ export class HistogramSeries extends CartesianSeries<
             properties,
             ctx: { localeManager },
         } = this;
-        const { xKey, xName, yKey, yName, tooltip } = properties;
+        const { xKey, xName, yKey, yName, tooltip, legendItemName } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -532,11 +532,11 @@ export class HistogramSeries extends CartesianSeries<
             {
                 label: xName,
                 fallbackLabel: xKey,
-                value: `${xAxis.formatDatum(rangeMin, 'tooltip', datum, xKey)} - ${xAxis.formatDatum(rangeMax, 'tooltip', datum, xKey)}`,
+                value: `${xAxis.formatDatum(rangeMin, 'tooltip', seriesId, legendItemName, datum, xKey)} - ${xAxis.formatDatum(rangeMax, 'tooltip', seriesId, legendItemName, datum, xKey)}`,
             },
             {
                 label: localeManager.t('seriesHistogramTooltipFrequency'),
-                value: yAxis.formatDatum(frequency, 'tooltip', datum, yKey!),
+                value: yAxis.formatDatum(frequency, 'tooltip', seriesId, legendItemName, datum, yKey!),
             },
         ];
 
@@ -554,7 +554,10 @@ export class HistogramSeries extends CartesianSeries<
                     break;
             }
 
-            data.push({ label, value: yAxis.formatDatum(aggregatedValue, 'tooltip', datum, yKey) });
+            data.push({
+                label,
+                value: yAxis.formatDatum(aggregatedValue, 'tooltip', seriesId, legendItemName, datum, yKey),
+            });
         }
 
         return this.formatTooltipWithContext(

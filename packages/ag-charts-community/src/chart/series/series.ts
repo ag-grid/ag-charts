@@ -874,6 +874,8 @@ export abstract class Series<
             return axis.formatDatum<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>(
                 value,
                 source,
+                seriesId,
+                legendItemName,
                 datum,
                 key,
                 domain,

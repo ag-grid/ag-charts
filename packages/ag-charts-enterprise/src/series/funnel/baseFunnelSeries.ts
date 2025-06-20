@@ -553,7 +553,7 @@ export abstract class BaseFunnelSeries<
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
-        const { stageKey, valueKey, tooltip } = properties;
+        const { stageKey, valueKey, tooltip, legendItemName } = properties;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -571,8 +571,8 @@ export abstract class BaseFunnelSeries<
                 symbol: this.legendItemSymbol(datumIndex),
                 data: [
                     {
-                        label: xAxis.formatDatum(xValue, 'tooltip', datum, stageKey),
-                        value: yAxis.formatDatum(yValue, 'tooltip', datum, valueKey),
+                        label: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, stageKey),
+                        value: yAxis.formatDatum(yValue, 'tooltip', seriesId, legendItemName, datum, valueKey),
                     },
                 ],
             },

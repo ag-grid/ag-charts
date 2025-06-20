@@ -550,13 +550,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: radiusAxis.formatDatum(radiusValue, 'tooltip', datum, radiusKey),
+                heading: radiusAxis.formatDatum(radiusValue, 'tooltip', seriesId, undefined, datum, radiusKey),
                 symbol: this.legendItemSymbol(),
                 data: [
                     {
                         label: angleName,
                         fallbackLabel: angleKey,
-                        value: angleAxis.formatDatum(angleValue, 'tooltip', datum, angleKey),
+                        value: angleAxis.formatDatum(angleValue, 'tooltip', seriesId, undefined, datum, angleKey),
                     },
                 ],
             },

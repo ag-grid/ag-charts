@@ -629,7 +629,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
-        const { xKey, xName, yKey, yName, tooltip } = properties;
+        const { xKey, xName, yKey, yName, tooltip, legendItemName } = properties;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -672,9 +672,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue, 'tooltip', datum, xKey),
+                heading: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
                 symbol: this.legendItemSymbol(seriesItemType),
-                data: [{ label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(total, 'tooltip', datum, yKey) }],
+                data: [
+                    {
+                        label: yName,
+                        fallbackLabel: yKey,
+                        value: yAxis.formatDatum(total, 'tooltip', seriesId, legendItemName, datum, yKey),
+                    },
+                ],
             },
             { seriesId, datum, title: yName, itemId: seriesItemType, xKey, xName, yKey, yName, ...format }
         );

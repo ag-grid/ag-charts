@@ -72,10 +72,19 @@ export interface ChartAxis {
     destroy(): void;
     detachAxis(opts: AxisGroups): void;
     formatDatum(value: any, source: 'crosshair' | 'annotation-label'): string;
-    formatDatum(value: any, source: 'tooltip' | 'series-label', datum: any, key: string): string;
+    formatDatum(
+        value: any,
+        source: 'tooltip' | 'series-label',
+        seriesId: string,
+        legendItemName: string | undefined,
+        datum: any,
+        key: string
+    ): string;
     formatDatum<Params extends object>(
         value: any,
         source: 'crosshair' | 'annotation-label',
+        seriesId: undefined,
+        legendItemName: undefined,
         datum: undefined,
         key: undefined,
         domain: undefined,
@@ -86,6 +95,8 @@ export interface ChartAxis {
     formatDatum<Params extends object>(
         value: any,
         source: 'tooltip' | 'series-label',
+        seriesId: string,
+        legendItemName: string | undefined,
         datum: any,
         key: string,
         domain: any[],

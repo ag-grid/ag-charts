@@ -496,8 +496,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         }
 
         data.push(
-            { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue, 'tooltip', datum, xKey) },
-            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue, 'tooltip', datum, yKey) }
+            {
+                label: xName,
+                fallbackLabel: xKey,
+                value: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
+            },
+            {
+                label: yName,
+                fallbackLabel: yKey,
+                value: yAxis.formatDatum(yValue, 'tooltip', seriesId, legendItemName, datum, yKey),
+            }
         );
 
         const format = this.getItemBaseStyle(false);
