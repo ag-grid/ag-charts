@@ -8,7 +8,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         title: {
             enabled: true,
             fontWeight: { $ref: 'fontWeight' },
-            fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
+            fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
             fontFamily: { $ref: 'fontFamily' },
             color: { $ref: 'subtleTextColor' },
             spacing: 5,
@@ -40,9 +40,9 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
                         $if: [
                             {
                                 $or: [
-                                    { $isGradient: [{ $value: '$1' }] },
-                                    { $isPattern: [{ $value: '$1' }] },
-                                    { $isImage: [{ $value: '$1' }] },
+                                    { $isGradient: { $value: '$1' } },
+                                    { $isPattern: { $value: '$1' } },
+                                    { $isImage: { $value: '$1' } },
                                 ],
                             },
                             { $path: ['../../strokes/$index', { $ref: 'foregroundColor' }] },
@@ -82,15 +82,13 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
             blur: 5,
         },
         innerLabels: {
-            $apply: [
-                {
-                    fontSize: { $ref: 'fontSize' },
-                    fontFamily: { $ref: 'fontFamily' },
-                    fontWeight: { $ref: 'fontWeight' },
-                    color: { $ref: 'textColor' },
-                    spacing: 2,
-                },
-            ],
+            $apply: {
+                fontSize: { $ref: 'fontSize' },
+                fontFamily: { $ref: 'fontFamily' },
+                fontWeight: { $ref: 'fontWeight' },
+                color: { $ref: 'textColor' },
+                spacing: 2,
+            },
         } as any,
         highlight: singleSeriesHighlightStyle(),
     },

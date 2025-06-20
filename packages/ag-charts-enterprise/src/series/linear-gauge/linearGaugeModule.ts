@@ -72,7 +72,7 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 placement: 'inside-start',
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $rem: [2] },
+                fontSize: { $rem: 2 },
                 minimumFontSize: _ModuleSupport.FONT_SIZE.SMALL,
                 spacing: 18,
                 color: { $ref: 'chartBackgroundColor' },

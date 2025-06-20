@@ -34,7 +34,7 @@ export const NIGHTINGALE_SERIES_THEME: _ModuleSupport.SeriesModule<'nightingale'
     },
     axes: {
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {
-            shape: { $findFirstSiblingNotOperation: [POLAR_AXIS_SHAPE.CIRCLE] },
+            shape: { $findFirstSiblingNotOperation: POLAR_AXIS_SHAPE.CIRCLE },
             groupPaddingInner: 0,
             paddingInner: 0,
             label: {
@@ -42,7 +42,7 @@ export const NIGHTINGALE_SERIES_THEME: _ModuleSupport.SeriesModule<'nightingale'
             },
         },
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: {
-            shape: { $findFirstSiblingNotOperation: [POLAR_AXIS_SHAPE.CIRCLE] },
+            shape: { $findFirstSiblingNotOperation: POLAR_AXIS_SHAPE.CIRCLE },
         },
     },
 };

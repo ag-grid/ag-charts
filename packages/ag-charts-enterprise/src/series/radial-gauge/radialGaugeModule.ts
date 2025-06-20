@@ -84,7 +84,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             secondaryLabel: {
                 enabled: true,
                 fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
+                fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
                 minimumFontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },
                 color: { $ref: 'subtleTextColor' },

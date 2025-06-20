@@ -4,12 +4,12 @@ import type { AgChartThemeParams } from './themeParamsOptions';
 export type WithThemeParams<T> = ExtendLiteralLeaves<T, Operation, ExcludeLeaves>;
 
 export type Operation =
-    | PathOperation
+    | ColorOperation
+    | FontOperation
+    | LocationOperation
     | LogicOperation
     | NumericOperation
-    | TransformOperation
-    | FontOperation
-    | ColorOperation;
+    | TransformOperation;
 
 type Leaf<T extends ExcludeLeaves | object> = Operation | T;
 type AnyLeaf = Leaf<ExcludeLeaves>;
@@ -68,39 +68,42 @@ type PaletteParam =
     | 'neutral.fill'
     | 'neutral.stroke';
 
-type PathOperation =
-    | { $isUserOption: [Leaf<string>, AnyLeaf, AnyLeaf] }
-    | { $palette: PaletteParam }
-    | { $mapPalette: PaletteParam }
-    | { $path: Leaf<string> | [Leaf<string>, AnyLeaf] | [Leaf<string>, AnyLeaf, AnyLeaf] }
-    | { $ref: ThemeParam };
+type ColorOperation =
+    | { $foregroundBackgroundMix: Leaf<number> } // Ratio of background (0 to 1)
+    | { $foregroundOpacity: Leaf<number> } // Opacity (0 to 1)
+    | { $interpolate: [AnyLeaf, Leaf<number>] } // Array of colours | Length of interpolated array
+    | { $isGradient: AnyLeaf } // Target vertex
+    | { $isImage: AnyLeaf } // Target vertex
+    | { $isPattern: AnyLeaf } // Target vertex
+    | { $mix: [Leaf<string>, Leaf<string>, Leaf<number>] }; // Colour A | Colour B | Ratio of Colour B (0 to 1)
+
+type FontOperation = { $rem: AnyLeaf }; // Ratio of base font size
+
+type LocationOperation =
+    | { $isUserOption: [Leaf<string>, AnyLeaf, AnyLeaf] } // Target vertex | Value if true | Value if false
+    | { $mapPalette: PaletteParam } // Palette param
+    | { $palette: PaletteParam } // Palette param
+    | { $path: Leaf<string> | [Leaf<string>, AnyLeaf] | [Leaf<string>, AnyLeaf, AnyLeaf] } // Relative path to vertex | Default if path undefined | Custom branch on which to find the path
+    | { $pathString: Leaf<string> } // Relative path to vertex
+    | { $ref: ThemeParam }; // Theme param
 
 type LogicOperation =
-    | { $if: [AnyLeaf, AnyLeaf, AnyLeaf] }
-    | { $or: AnyLeaf[] }
-    | { $and: AnyLeaf[] }
-    | { $eq: [AnyLeaf, AnyLeaf] }
-    | { $not: [AnyLeaf] }
-    | { $switch: [AnyLeaf] };
+    | { $if: [AnyLeaf, AnyLeaf, AnyLeaf] } // Condition | Value if true | Value if false
+    | { $or: AnyLeaf[] } // Array of values that are truthy
+    | { $and: AnyLeaf[] } // Array of values that are truthy
+    | { $eq: AnyLeaf[] } // Array of values that are truthy
+    | { $not: AnyLeaf } // Target vertex that is truthy
+    | { $switch: AnyLeaf }; // Conditional value | Default value if no case matches | ...One to many cases of [match | match[], value if matched]
 
-type NumericOperation = { $even: [Leaf<number>] } | { $mul: [Leaf<number>, Leaf<number>] } | { $round: [Leaf<number>] };
+type NumericOperation =
+    | { $even: Leaf<number> } // Number
+    | { $mul: [Leaf<number>, Leaf<number>] } // Number A | Number B
+    | { $round: Leaf<number> }; // Number
 
 type TransformOperation =
-    | { $apply: [Leaf<object>] | [Leaf<object>, Leaf<Array<object>>] }
-    | { $find: [AnyLeaf, AnyLeaf] }
-    | { $findFirstSiblingNotOperation: [AnyLeaf] }
-    | { $map: [AnyLeaf, AnyLeaf] }
-    | { $merge: Leaf<object>[] }
-    | { $omit: [Leaf<Array<string>>, Leaf<object>] }
-    | { $value: '$1' | '$index' };
-
-type FontOperation = { $rem: [AnyLeaf] | [AnyLeaf, AnyLeaf] };
-
-type ColorOperation =
-    | { $mix: [Leaf<string>, Leaf<string>, Leaf<number>] }
-    | { $foregroundBackgroundMix: [Leaf<number>] }
-    | { $foregroundOpacity: [Leaf<number>] }
-    | { $interpolate: [AnyLeaf, Leaf<number>] }
-    | { $isGradient: [AnyLeaf] }
-    | { $isPattern: [AnyLeaf] }
-    | { $isImage: [AnyLeaf] };
+    | { $apply: Leaf<object> | [Leaf<object>, Leaf<object[]>] } // Object to merge with each item in the array | Default if no user options supplied
+    | { $findFirstSiblingNotOperation: AnyLeaf } // Default value if no non-operation sibling found
+    | { $map: [AnyLeaf, AnyLeaf] } // Operation to apply to each item in the array | Target array
+    | { $merge: Leaf<object>[] } // Array of objects to merge
+    | { $omit: [Leaf<string[]>, Leaf<object>] } // Array of keys to omit | Object from which to omit keys
+    | { $value: '$1' | '$index' }; // '$1' nearest ancestor value that is not an operation | '$index' nearest ancestor numeric path segment

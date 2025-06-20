@@ -60,7 +60,7 @@ export class FinancialDark extends DarkTheme {
         return {
             ...super.getPublicParameters(),
             chartPadding: 0,
-            gridLineColor: { $foregroundBackgroundMix: [0.12] },
+            gridLineColor: { $foregroundBackgroundMix: 0.12 },
         };
     }
 
