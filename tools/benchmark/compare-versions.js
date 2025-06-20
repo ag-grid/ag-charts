@@ -138,11 +138,11 @@ for (const test of Object.keys(baseData.results)) {
     result.push({
         test: cleanTestName(test),
         pctTimeChange: Math.round(((compare.timeMs - base.timeMs) / base.timeMs) * 1000) / 10,
-        pctMemoryChange: Math.round(((compare.memoryUsage - base.memoryUsage) / base.memoryUsage) * 1000) / 10,
+        pctMemoryChange: Math.round(((compare.relativeUsage - base.relativeUsage) / base.relativeUsage) * 1000) / 10,
         base,
         compare,
-        beforeMB: Math.floor(base.memoryUsage / 1024 ** 2),
-        afterMB: Math.floor(compare.memoryUsage / 1024 ** 2),
+        beforeMB: Math.floor(base.relativeUsage / 1024 ** 2),
+        afterMB: Math.floor(compare.relativeUsage / 1024 ** 2),
         beforeMs: timeFormat(base.timeMs),
         afterMs: timeFormat(compare.timeMs),
     });
