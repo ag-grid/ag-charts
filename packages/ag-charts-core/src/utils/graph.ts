@@ -59,23 +59,18 @@ export class AdjacencyListGraph<V, E = undefined> {
         for (const [_edge, adjacentVertices] of edges) {
             this._vertexCount -= adjacentVertices.length;
         }
-        vertex.edges.clear();
+        vertex.clear();
 
         // TODO: iterate all edges and their vertices to find and delete references to `vertex`
     }
 
     removeEdge(from: Vertex<V>, to: Vertex<V>): void {
-        const edges = from.edges;
-        if (!edges) return;
-        for (const [edge, adjacentVertices] of edges) {
+        for (const [edge, adjacentVertices] of from.edges) {
             const index = adjacentVertices.indexOf(to);
             adjacentVertices.splice(index, 1);
             if (adjacentVertices.length === 0) {
-                edges.delete(edge);
+                from.edges.delete(edge);
             }
-        }
-        if (edges.size === 0) {
-            from.edges.clear();
         }
     }
 
@@ -175,4 +170,9 @@ export class Vertex<V, E = unknown> {
     public cachedNeighbours: Map<V, Vertex<V>> = new Map();
 
     constructor(public value: V) {}
+
+    clear() {
+        this.edges.clear();
+        this.cachedNeighbours.clear();
+    }
 }
