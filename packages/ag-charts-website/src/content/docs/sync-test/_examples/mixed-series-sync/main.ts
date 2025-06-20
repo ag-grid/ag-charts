@@ -5,6 +5,7 @@ import { formatBytes, formatMillis, labelFormatter } from './utils';
 
 const commonOptions = {
     sync: { axes: 'xy' },
+    tooltip: { mode: 'single' },
     series: [
         {
             type: 'bar',
