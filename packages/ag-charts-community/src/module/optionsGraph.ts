@@ -192,6 +192,11 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         // Once the full "static" version of the graph has been built, then graft on the dependencies. This ensures all
         // the dependents have been established and so the edges can be built in a single pass.
         this.buildDependencyGraph();
+
+        console.log((this as any)._edges.size);
+        for (const [edge, edgeVertices] of (this as any)._edges) {
+            console.log(edge, edgeVertices.size);
+        }
     }
 
     override clear() {
