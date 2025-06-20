@@ -30,9 +30,9 @@ if (isHistoricBenchmarkTest()) {
 }
 
 globalThis.agChartsDebugTimeout = 60_000; // Use Jest timeouts
+const repeatLimit = process.env.AG_BENCHMARK_REPEAT_LIMIT ? parseInt(process.env.AG_BENCHMARK_REPEAT_LIMIT) : undefined;
 
 interface BenchmarkExpectations {
-    expectedMaxMemoryMB?: number;
     expectedRelativeMB?: number;
     expectedCanvasCount?: number;
     autoSnapshot?: boolean;
@@ -156,7 +156,7 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
     }
 
     repeatCount(count: number) {
-        this.repeat = count;
+        this.repeat = Math.min(count, repeatLimit ?? Infinity);
         return this;
     }
 }
@@ -253,7 +253,6 @@ export function benchmark(
 
             const BYTES_PER_MB = 1024 ** 2;
             const actual = {
-                expectedMaxMemoryMB: memory.totalMemoryUse / BYTES_PER_MB,
                 expectedRelativeMB: memory.relativeMemoryUse / BYTES_PER_MB,
                 expectedCanvasCount: canvasInstances.length,
             };
