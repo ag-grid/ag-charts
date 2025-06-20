@@ -94,10 +94,21 @@ enum ChartOperation {
 }
 
 const chartOperations: Record<ChartOperation, OperationFns> = {
-    $hasSeriesType: hasSeriesTypeOperation,
-    $isChartType: isChartTypeOperation,
-    $isSeriesType: isSeriesTypeOperation,
+    $hasSeriesType: { dependencies: seriesTypeDependencyFactory, resolve: hasSeriesTypeOperation },
+    $isChartType: { dependencies: seriesTypeDependencyFactory, resolve: isChartTypeOperation },
+    $isSeriesType: { dependencies: seriesTypeDependencyFactory, resolve: isSeriesTypeOperation },
 };
+
+function seriesTypeDependencyFactory(
+    graph: OptionsGraphInterface,
+    vertex: VertexInterface,
+    _values: Array<VertexInterface>
+) {
+    const dependencyVertex = graph.findVertexAtPath(['series', '0', 'type']);
+    if (dependencyVertex) {
+        graph.addEdge(vertex, dependencyVertex, DEPENDENCY_EDGE);
+    }
+}
 
 function hasSeriesTypeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [valueVertex] = values;
