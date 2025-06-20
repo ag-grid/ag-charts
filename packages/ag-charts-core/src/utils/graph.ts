@@ -38,14 +38,20 @@ export class AdjacencyListGraph<V, E = undefined> {
     }
 
     addEdge(from: Vertex<V>, to: Vertex<V>, edge: E): void {
+        let cachedNeighbours;
+        let edges;
+        if (!from.graphInitialised) {
+            cachedNeighbours = new Map();
+            edges = new Map();
+            this._cachedNeighbours.set(from, cachedNeighbours);
+            this._edges.set(from, edges);
+            from.graphInitialised = true;
+        }
+
         // Optimize cached neighbours handling
         if (edge === this.cachedNeighboursEdge) {
-            let cache = this._cachedNeighbours.get(from);
-            if (!cache) {
-                cache = new Map();
-                this._cachedNeighbours.set(from, cache);
-            }
-            cache.set(to.value, to);
+            cachedNeighbours ??= this._cachedNeighbours.get(from);
+            cachedNeighbours?.set(to.value, to);
         }
 
         if (edge === this.processedEdge) {
@@ -53,16 +59,10 @@ export class AdjacencyListGraph<V, E = undefined> {
         }
 
         // Optimize edges handling - single lookup with fallback
-        let edges = this._edges.get(from);
-        if (!edges) {
-            edges = new Map();
-            this._edges.set(from, edges);
-        }
-
-        // Optimize vertices handling - single lookup with fallback
-        const vertices = edges.get(edge);
+        edges ??= this._edges.get(from);
+        const vertices = edges?.get(edge);
         if (!vertices) {
-            edges.set(edge, [to]);
+            edges?.set(edge, [to]);
         } else if (vertices.indexOf(to) === -1) {
             vertices.push(to);
         }
