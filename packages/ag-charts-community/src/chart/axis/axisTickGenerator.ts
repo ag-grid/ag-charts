@@ -722,7 +722,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 if (
                     minTimeInterval != null &&
                     timeInterval != null &&
-                    intervalMilliseconds(minTimeInterval) > intervalMilliseconds(timeInterval)
+                    // Prefer UnitTimeAxis.unit over this interval, because the user may have defined an epoch
+                    intervalMilliseconds(minTimeInterval) >= intervalMilliseconds(timeInterval)
                 ) {
                     timeInterval = minTimeInterval;
                 }
