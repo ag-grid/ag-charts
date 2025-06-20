@@ -558,7 +558,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             dependenciesFn?.(this, valueVertex, operationValues);
         }
 
-        this.pendingProcessingEdges.clear();
+        this.pendingProcessingEdges = [];
     }
 
     private resolveVertex(vertex: Vertex<unknown>, object: PlainObject = this.resolved!) {
