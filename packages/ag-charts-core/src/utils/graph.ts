@@ -17,7 +17,7 @@ export class AdjacencyListGraph<V, E = undefined> {
     // Stores edges that are pending processing on a given edge value, optimised for iteration of pairs of adjacent
     // vertices. Should call `.clear()` once the edges have been processed.
     private readonly processedEdge?: E;
-    protected readonly pendingProcessingEdges: Set<[Vertex<V>, Vertex<V>]> = new Set();
+    protected pendingProcessingEdges: [Vertex<V>, Vertex<V>][] = [];
 
     constructor(cachedNeighboursEdge?: E, processedEdge?: E) {
         this.cachedNeighboursEdge = cachedNeighboursEdge;
@@ -28,7 +28,7 @@ export class AdjacencyListGraph<V, E = undefined> {
         this._vertexCount = 0;
         this._edges.clear();
         this._cachedNeighbours.clear();
-        this.pendingProcessingEdges.clear();
+        this.pendingProcessingEdges = [];
     }
 
     addVertex(value: V): Vertex<V> {
@@ -48,7 +48,7 @@ export class AdjacencyListGraph<V, E = undefined> {
         }
 
         if (edge === this.processedEdge) {
-            this.pendingProcessingEdges.add([from, to]);
+            this.pendingProcessingEdges.push([from, to]);
         }
 
         const edges = this._edges.get(from)!;
