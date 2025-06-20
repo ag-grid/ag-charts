@@ -16,7 +16,7 @@ const { commonSeriesOptionsDefs, treemapSeriesThemeableOptionsDef, without } = _
 
 export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
     ...treemapSeriesThemeableOptionsDef,
-    ...without(commonSeriesOptionsDefs, ['highlightStyle']),
+    ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight']),
     type: required(constant('treemap')),
     labelKey: string,
     secondaryLabelKey: string,

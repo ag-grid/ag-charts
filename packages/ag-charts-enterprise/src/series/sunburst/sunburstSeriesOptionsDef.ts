@@ -5,7 +5,7 @@ const { commonSeriesOptionsDefs, sunburstSeriesThemeableOptionsDef, without } = 
 
 export const sunburstSeriesOptionsDef: OptionsDefs<AgSunburstSeriesOptions> = {
     ...sunburstSeriesThemeableOptionsDef,
-    ...without(commonSeriesOptionsDefs, ['highlightStyle']),
+    ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight']),
     type: required(constant('sunburst')),
     labelKey: string,
     secondaryLabelKey: string,
