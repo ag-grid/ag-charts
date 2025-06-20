@@ -136,7 +136,7 @@ export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
         enabled: false,
         label: {
             color: { $ref: 'textColor' },
-            fontSize: { $rem: [_ModuleSupport.FONT_SIZE_RATIO.SMALLER] },
+            fontSize: { $rem: _ModuleSupport.FONT_SIZE_RATIO.SMALLER },
             fontFamily: { $ref: 'fontFamily' } as any,
             fontWeight: { $ref: 'fontWeight' },
             spacing: 5,

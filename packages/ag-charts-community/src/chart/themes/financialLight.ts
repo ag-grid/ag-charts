@@ -51,7 +51,7 @@ export class FinancialLight extends ChartTheme {
         return {
             ...super.getPublicParameters(),
             chartPadding: 0,
-            gridLineColor: { $foregroundBackgroundMix: [0.06] },
+            gridLineColor: { $foregroundBackgroundMix: 0.06 },
         };
     }
 

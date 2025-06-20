@@ -29,7 +29,7 @@ const handle = {
 
 const font: WithThemeParams<FontOptions> = {
     color: { $ref: 'chartBackgroundColor' },
-    fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
+    fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
     fontFamily: { $ref: 'fontFamily' },
 };
 
@@ -220,7 +220,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         label: {
             ...font,
             color: undefined,
-            fontSize: { $rem: [FONT_SIZE_RATIO.SMALLER] },
+            fontSize: { $rem: FONT_SIZE_RATIO.SMALLER },
         },
     },
 
@@ -233,7 +233,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         label: {
             ...font,
             color: undefined,
-            fontSize: { $rem: [FONT_SIZE_RATIO.SMALLER] },
+            fontSize: { $rem: FONT_SIZE_RATIO.SMALLER },
         },
     },
 

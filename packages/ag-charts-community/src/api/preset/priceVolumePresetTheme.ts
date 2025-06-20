@@ -43,7 +43,7 @@ const lineText = {
 
 const font: WithThemeParams<FontOptions> = {
     color: DEFAULT_TEXT_ANNOTATION_COLOR,
-    fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
+    fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
     fontFamily: { $ref: 'fontFamily' },
 };
 
@@ -122,7 +122,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         label: {
             ...font,
             color: undefined,
-            fontSize: { $rem: [FONT_SIZE_RATIO.SMALLER] },
+            fontSize: { $rem: FONT_SIZE_RATIO.SMALLER },
         },
     },
 
@@ -135,7 +135,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         label: {
             ...font,
             color: undefined,
-            fontSize: { $rem: [FONT_SIZE_RATIO.SMALLER] },
+            fontSize: { $rem: FONT_SIZE_RATIO.SMALLER },
         },
     },
 

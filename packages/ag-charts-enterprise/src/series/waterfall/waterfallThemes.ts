@@ -22,9 +22,9 @@ function itemTheme(
                 $if: [
                     {
                         $or: [
-                            { $isGradient: [{ $palette: `${key}.fill` }] },
-                            { $isPattern: [{ $palette: `${key}.fill` }] },
-                            { $isImage: [{ $palette: `${key}.fill` }] },
+                            { $isGradient: { $palette: `${key}.fill` } },
+                            { $isPattern: { $palette: `${key}.fill` } },
+                            { $isImage: { $palette: `${key}.fill` } },
                         ],
                     },
                     {

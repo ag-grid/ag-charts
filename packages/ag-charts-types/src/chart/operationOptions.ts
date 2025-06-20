@@ -80,15 +80,15 @@ type LogicOperation =
     | { $or: AnyLeaf[] }
     | { $and: AnyLeaf[] }
     | { $eq: [AnyLeaf, AnyLeaf] }
-    | { $not: [AnyLeaf] }
+    | { $not: AnyLeaf }
     | { $switch: [AnyLeaf] };
 
-type NumericOperation = { $even: [Leaf<number>] } | { $mul: [Leaf<number>, Leaf<number>] } | { $round: [Leaf<number>] };
+type NumericOperation = { $even: Leaf<number> } | { $mul: [Leaf<number>, Leaf<number>] } | { $round: Leaf<number> };
 
 type TransformOperation =
-    | { $apply: [Leaf<object>] | [Leaf<object>, Leaf<Array<object>>] }
+    | { $apply: Leaf<object> | [Leaf<object>, Leaf<object[]>] }
     | { $find: [AnyLeaf, AnyLeaf] }
-    | { $findFirstSiblingNotOperation: [AnyLeaf] }
+    | { $findFirstSiblingNotOperation: AnyLeaf }
     | { $map: [AnyLeaf, AnyLeaf] }
     | { $merge: Leaf<object>[] }
     | { $omit: [Leaf<Array<string>>, Leaf<object>] }
@@ -98,9 +98,9 @@ type FontOperation = { $rem: [AnyLeaf] | [AnyLeaf, AnyLeaf] };
 
 type ColorOperation =
     | { $mix: [Leaf<string>, Leaf<string>, Leaf<number>] }
-    | { $foregroundBackgroundMix: [Leaf<number>] }
-    | { $foregroundOpacity: [Leaf<number>] }
+    | { $foregroundBackgroundMix: Leaf<number> }
+    | { $foregroundOpacity: Leaf<number> }
     | { $interpolate: [AnyLeaf, Leaf<number>] }
-    | { $isGradient: [AnyLeaf] }
-    | { $isPattern: [AnyLeaf] }
-    | { $isImage: [AnyLeaf] };
+    | { $isGradient: AnyLeaf }
+    | { $isPattern: AnyLeaf }
+    | { $isImage: AnyLeaf };

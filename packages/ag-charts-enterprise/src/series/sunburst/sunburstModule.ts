@@ -34,8 +34,8 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
             label: {
                 fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
-                minimumFontSize: { $rem: [9 / BASE_FONT_SIZE] },
+                fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
+                minimumFontSize: { $rem: 9 / BASE_FONT_SIZE },
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'chartBackgroundColor' },
                 overflowStrategy: 'ellipsis',
@@ -44,8 +44,8 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             },
             secondaryLabel: {
                 fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $rem: [FONT_SIZE_RATIO.SMALLEST] },
-                minimumFontSize: { $rem: [7 / BASE_FONT_SIZE] },
+                fontSize: { $rem: FONT_SIZE_RATIO.SMALLEST },
+                minimumFontSize: { $rem: 7 / BASE_FONT_SIZE },
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'chartBackgroundColor' },
                 overflowStrategy: 'ellipsis',

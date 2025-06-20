@@ -34,7 +34,7 @@ export const RADIAL_COLUMN_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-col
     },
     axes: {
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {
-            shape: { $findFirstSiblingNotOperation: [POLAR_AXIS_SHAPE.CIRCLE] },
+            shape: { $findFirstSiblingNotOperation: POLAR_AXIS_SHAPE.CIRCLE },
             groupPaddingInner: 0,
             paddingInner: 0,
             label: {
@@ -42,7 +42,7 @@ export const RADIAL_COLUMN_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-col
             },
         },
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: {
-            shape: { $findFirstSiblingNotOperation: [POLAR_AXIS_SHAPE.CIRCLE] },
+            shape: { $findFirstSiblingNotOperation: POLAR_AXIS_SHAPE.CIRCLE },
             innerRadiusRatio: 0.5,
         },
     },

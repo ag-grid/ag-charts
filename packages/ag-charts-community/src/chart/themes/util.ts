@@ -40,9 +40,9 @@ export const SAFE_FILL_OPERATION: any = {
     $if: [
         {
             $or: [
-                { $isGradient: [{ $palette: 'fill' }] },
-                { $isPattern: [{ $palette: 'fill' }] },
-                { $isImage: [{ $value: '$1' }] },
+                { $isGradient: { $palette: 'fill' } },
+                { $isPattern: { $palette: 'fill' } },
+                { $isImage: { $value: '$1' } },
             ],
         },
         { $palette: 'fillFallback' },
@@ -54,9 +54,9 @@ export const SAFE_FILLS_OPERATION: any = {
     $if: [
         {
             $or: [
-                { $isGradient: [{ $palette: 'fill' }] },
-                { $isPattern: [{ $palette: 'fill' }] },
-                { $isImage: [{ $value: '$1' }] },
+                { $isGradient: { $palette: 'fill' } },
+                { $isPattern: { $palette: 'fill' } },
+                { $isImage: { $value: '$1' } },
             ],
         },
         { $palette: 'fillsFallback' },
@@ -66,11 +66,11 @@ export const SAFE_FILLS_OPERATION: any = {
 
 export const SAFE_STROKE_FILL_OPERATION: any = {
     $if: [
-        { $isGradient: [{ $palette: 'fill' }] },
+        { $isGradient: { $palette: 'fill' } },
         { $palette: 'fillFallback' },
         {
             $if: [
-                { $isPattern: [{ $palette: 'fill' }] },
+                { $isPattern: { $palette: 'fill' } },
                 { $path: ['/stroke', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
                 { $palette: 'fill' },
             ],
@@ -82,9 +82,9 @@ export const SAFE_RANGE2_OPERATION: any = {
     $if: [
         {
             $or: [
-                { $isGradient: [{ $palette: 'fill' }] },
-                { $isPattern: [{ $palette: 'fill' }] },
-                { $isImage: [{ $value: '$1' }] },
+                { $isGradient: { $palette: 'fill' } },
+                { $isPattern: { $palette: 'fill' } },
+                { $isImage: { $value: '$1' } },
             ],
         },
         [{ $palette: 'fillFallback' }, { $palette: 'fillFallback' }],
@@ -100,11 +100,11 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
     padding: 2,
     fill: {
         $if: [
-            { $or: [{ $isGradient: [{ $palette: 'fill' }] }, { $isImage: [{ $palette: 'fill' }] }] },
+            { $or: [{ $isGradient: { $palette: 'fill' } }, { $isImage: { $palette: 'fill' } }] },
             { $palette: 'fillFallback' },
             {
                 $if: [
-                    { $isPattern: [{ $palette: 'fill' }] },
+                    { $isPattern: { $palette: 'fill' } },
                     { $path: ['/fill', { $palette: 'fillFallback' }, { $palette: 'fill' }] },
                     { $palette: 'fill' },
                 ],

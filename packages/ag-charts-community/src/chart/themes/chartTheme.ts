@@ -148,9 +148,9 @@ export class ChartTheme {
     public static getDefaultPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
         return {
             accentColor: '#2196f3',
-            axisColor: { $foregroundBackgroundMix: [0.325] },
+            axisColor: { $foregroundBackgroundMix: 0.325 },
             backgroundColor: DEFAULT_BACKGROUND_FILL,
-            borderColor: { $foregroundOpacity: [0.15] },
+            borderColor: { $foregroundOpacity: 0.15 },
             borderRadius: 4,
             chartBackgroundColor: { $ref: 'backgroundColor' },
             chartPadding: 20,
@@ -159,12 +159,12 @@ export class ChartTheme {
             fontFamily: 'Verdana, sans-serif',
             fontSize: BASE_FONT_SIZE,
             fontWeight: 400,
-            gridLineColor: { $foregroundBackgroundMix: [0.1] },
+            gridLineColor: { $foregroundBackgroundMix: 0.1 },
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.15)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.38] },
             textColor: { $ref: 'foregroundColor' },
 
-            chromeBackgroundColor: { $foregroundBackgroundMix: [0.02] },
+            chromeBackgroundColor: { $foregroundBackgroundMix: 0.02 },
             chromeFontFamily: { $ref: 'fontFamily' } as any,
             chromeFontSize: { $ref: 'fontSize' },
             chromeFontWeight: { $ref: 'fontWeight' },
@@ -206,7 +206,7 @@ export class ChartTheme {
                     text: 'Axis Title',
                     spacing: 25,
                     fontWeight: { $ref: 'fontWeight' },
-                    fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM] },
+                    fontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
                     fontFamily: { $ref: 'fontFamily' },
                     color: { $ref: 'textColor' },
                 },
@@ -326,7 +326,7 @@ export class ChartTheme {
                 text: 'Title',
                 spacing: { $if: [{ $path: '../subtitle/enabled' }, 10, 20] },
                 fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $rem: [FONT_SIZE_RATIO.LARGEST] },
+                fontSize: { $rem: FONT_SIZE_RATIO.LARGEST },
                 fontFamily: { $ref: 'fontFamily' },
                 color: { $ref: 'textColor' },
                 wrapping: 'hyphenate',
@@ -338,7 +338,7 @@ export class ChartTheme {
                 text: 'Subtitle',
                 spacing: 20,
                 fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM] },
+                fontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
                 fontFamily: { $ref: 'fontFamily' },
                 color: { $ref: 'subtleTextColor' },
                 wrapping: 'hyphenate',
@@ -349,7 +349,7 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Footnote',
                 spacing: 20,
-                fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM] },
+                fontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'subtleTextColor' },
@@ -368,8 +368,8 @@ export class ChartTheme {
                                 {
                                     $and: [
                                         { $isChartType: 'polar' },
-                                        { $not: [{ $isSeriesType: 'pie' }] },
-                                        { $not: [{ $isSeriesType: 'donut' }] },
+                                        { $not: { $isSeriesType: 'pie' } },
+                                        { $not: { $isSeriesType: 'donut' } },
                                     ],
                                 },
                             ],
@@ -399,7 +399,7 @@ export class ChartTheme {
                     showSeriesStroke: true,
                     label: {
                         color: { $ref: 'textColor' },
-                        fontSize: { $rem: [FONT_SIZE_RATIO.SMALL] },
+                        fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
                         fontFamily: { $ref: 'fontFamily' },
                         fontWeight: { $ref: 'fontWeight' },
                     },
@@ -423,8 +423,8 @@ export class ChartTheme {
                         {
                             $and: [
                                 { $isChartType: 'cartesian' },
-                                { $not: [{ $hasSeriesType: 'bubble' }] },
-                                { $not: [{ $hasSeriesType: 'scatter' }] },
+                                { $not: { $hasSeriesType: 'bubble' } },
+                                { $not: { $hasSeriesType: 'scatter' } },
                                 { $greaterThan: [{ $size: [{ $path: '/series' }] }, 1] },
                                 { $lessThan: [{ $size: [{ $path: '/series' }] }, 4] },
                             ],
@@ -522,7 +522,7 @@ export class ChartTheme {
             {
                 label: { spacing: 5 },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                shape: { $findFirstSiblingNotOperation: [undefined] },
+                shape: { $findFirstSiblingNotOperation: undefined },
             },
             { title: false, time: false }
         ),
@@ -544,7 +544,7 @@ export class ChartTheme {
             {
                 positionAngle: 0,
                 line: { enabled: false },
-                shape: { $findFirstSiblingNotOperation: [undefined] },
+                shape: { $findFirstSiblingNotOperation: undefined },
             },
             { title: true, time: false }
         ),

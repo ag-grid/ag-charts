@@ -13,9 +13,9 @@ export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['the
             $if: [
                 {
                     $or: [
-                        { $isGradient: [{ $palette: 'fill' }] },
-                        { $isPattern: [{ $palette: 'fill' }] },
-                        { $isImage: [{ $palette: 'fill' }] },
+                        { $isGradient: { $palette: 'fill' } },
+                        { $isPattern: { $palette: 'fill' } },
+                        { $isImage: { $palette: 'fill' } },
                     ],
                 },
                 { $palette: 'fill' },

@@ -8,7 +8,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
         title: {
             enabled: true,
             fontWeight: { $ref: 'fontWeight' },
-            fontSize: { $rem: [FONT_SIZE_RATIO.LARGE] },
+            fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
             fontFamily: { $ref: 'fontFamily' },
             color: { $ref: 'subtleTextColor' },
             spacing: 5,
@@ -40,9 +40,9 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
                         $if: [
                             {
                                 $or: [
-                                    { $isGradient: [{ $value: '$1' }] },
-                                    { $isPattern: [{ $value: '$1' }] },
-                                    { $isImage: [{ $value: '$1' }] },
+                                    { $isGradient: { $value: '$1' } },
+                                    { $isPattern: { $value: '$1' } },
+                                    { $isImage: { $value: '$1' } },
                                 ],
                             },
                             { $path: ['../../strokes/$index', { $ref: 'foregroundColor' }] },
