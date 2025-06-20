@@ -233,7 +233,7 @@ export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault, TContext = 
     dataSource?: AgDataSourceOptions<TDatum, TContext>;
     /** Configuration for the context menu. */
     contextMenu?: AgContextMenuOptions<TDatum, TContext>;
-    /** Context object to use in callbacks */
+    /** Context object to use in callbacks. */
     context?: TContext;
     /** Configuration for localisation. */
     locale?: AgLocaleOptions;
