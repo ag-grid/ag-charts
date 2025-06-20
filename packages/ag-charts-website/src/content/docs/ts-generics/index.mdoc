@@ -5,7 +5,7 @@ hidePageMenu: true
 
 AG Charts leverages TypeScript Generics for chart data and context. This
 significantly enhances the developer experience through improved code completion
-and compile-time validation of row data and cell value properties.
+and compile-time validation.
 
 ## Type \<TData>
 
@@ -59,14 +59,14 @@ const options: AgChartOptions<MyDatumType> = {
 };
 ```
 
-This is example, specifying the `TDatum = MyDatumType` generic parameter does
+In this example, specifying the `TDatum = MyDatumType` generic parameter does
 the following:
 
 -   Enables compile-time checks & auto-complete for the elements of the `data[]`
     property.
 
--   Enforces type-safety for the `series[].angleKey` and
-    `series[].legendItemKey`. These properties must be keys of the `MyDatumType`
+-   Enforces type-safety for the `series[].xKey` and
+    `series[].yKey`. These properties must be keys of the `MyDatumType`
     type.
 
 -   Automatically infers the type of `params.datum.region` in the `itemStyler`
@@ -77,8 +77,8 @@ the following:
 The `TContext` type (default: `unknown`) generic parameter is used to specify
 the interface of the `context` properties.
 
-The `context` property is arbitrary user-defined data that will be passed to the
-callback as-is. This useful for attaching a custom state to your chart.
+The [Context Object](./context) is arbitrary user-defined data that will be passed to all
+callbacks. This useful for attaching a custom state to your chart.
 
 {% chartExampleRunner
     title="TContext Generic Parameter"
@@ -88,9 +88,11 @@ callback as-is. This useful for attaching a custom state to your chart.
 /%}
 
 In this example the `TContext` generic parameter is set to a `CurrencyConverter`
-object to convert stock prices from USD to a user-defined target currency is
-used by:
+object to convert stock prices from USD to a user-defined target currency.
 
--   The Tooltip
--   The Y Axis
--   Context Menu Items on Candlestick Node Datums
+This is used by:
+
+-   The Y-axis [Label Formatter](./axes-labels/#formatter), to convert USD values to the preferred User Currency.
+-   The [Tooltip Renderer](./tooltips/#modifying-content), to render both the stock prices in USD and the User
+    Currency (if applicable).
+-   The [Context Menu Actions](./context-menu/#custom-actions), to log converted stock prices to the console.

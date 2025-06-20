@@ -47,7 +47,7 @@ export interface AgBaseHighlightStyleOptions extends StrokeOptions, LineDashOpti
 export interface AgBaseSeriesThemeableOptions<TDatum, TContext = TContextDefault> {
     /** The cursor to use for hovered markers. This config is identical to the CSS `cursor` property. */
     cursor?: string;
-    /** Context object to use in callbacks */
+    /** Context object to use in callbacks. */
     context?: TContext;
     /** @deprecated Configuration for highlighting when a series or legend item is hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
@@ -75,7 +75,7 @@ export interface AgBaseSeriesOptions<TDatum = TDatumDefault, TContext = TContext
      * Default: `auto-generated value`
      */
     id?: string;
-    /** Context object to use in callbacks */
+    /** Context object to use in callbacks. */
     context?: TContext;
     /** The data to use when rendering the series. If this is not supplied, data must be set on the chart instead. */
     data?: TDatum[];

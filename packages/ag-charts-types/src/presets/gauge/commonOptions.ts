@@ -21,7 +21,7 @@ import type {
 export interface AgBaseGaugeThemeableOptions<TContext = TContextDefault> {
     /** The cursor to use for the gauge. This config is identical to the CSS `cursor` property. */
     cursor?: string;
-    /** Context object to use in callbacks */
+    /** Context object to use in callbacks. */
     context?: TContext;
     /** @deprecated Configuration for marker and series highlighting when a series or legend item is hovered over. */
     highlightStyle?: AgSeriesHighlightStyle;
