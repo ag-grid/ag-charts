@@ -384,8 +384,10 @@ export abstract class CartesianSeries<
         const resize = this.checkResize(seriesRect);
         const highlightItems = this.updateHighlightSelection(seriesHighlighted);
 
-        const dataChanged = this.updateSelections(visible);
-        this.updateNodes(highlightItems, seriesHighlighted, visible, resize || dataChanged);
+        this.contentGroup.batchedUpdate(() => {
+            const dataChanged = this.updateSelections(visible);
+            this.updateNodes(highlightItems, seriesHighlighted, visible, resize || dataChanged);
+        });
 
         const animationData = this.getAnimationData(seriesRect, previousContextData);
         if (!animationData) return;
@@ -436,9 +438,13 @@ export abstract class CartesianSeries<
 
         this.updatePaths({ seriesHighlighted, itemId, contextData, paths });
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
-        this.labelSelection = this.updateLabelSelection({ labelData, labelSelection }) ?? labelSelection;
+        this.labelGroup.batchedUpdate(() => {
+            this.labelSelection = this.updateLabelSelection({ labelData, labelSelection }) ?? labelSelection;
+        });
         if (this.opts.hasMarkers) {
-            this.markerSelection = this.updateMarkerSelection({ nodeData, markerSelection });
+            this.markerGroup.batchedUpdate(() => {
+                this.markerSelection = this.updateMarkerSelection({ nodeData, markerSelection });
+            });
         }
     }
 
@@ -483,11 +489,13 @@ export abstract class CartesianSeries<
         this.highlightGroup.visible = (animationEnabled || visible) && seriesHighlighted;
 
         if (hasMarkers) {
-            this.updateMarkerNodes({
-                markerSelection: highlightSelection as any,
-                isHighlight: true,
+            this.markerGroup.batchedUpdate(() => {
+                this.updateMarkerNodes({
+                    markerSelection: highlightSelection as any,
+                    isHighlight: true,
+                });
+                this.animationState.transition('highlightMarkers', highlightSelection as any);
             });
-            this.animationState.transition('highlightMarkers', highlightSelection as any);
         } else {
             this.updateDatumNodes({
                 datumSelection: highlightSelection,
@@ -497,7 +505,9 @@ export abstract class CartesianSeries<
         }
 
         if (hasHighlightedLabels) {
-            this.updateLabelNodes({ labelSelection: highlightLabelSelection });
+            this.labelGroup.batchedUpdate(() => {
+                this.updateLabelNodes({ labelSelection: highlightLabelSelection });
+            });
         }
 
         const { dataNodeGroup, markerGroup, datumSelection, labelSelection, markerSelection, paths, labelGroup } = this;
@@ -529,10 +539,14 @@ export abstract class CartesianSeries<
         if (nodeRefresh || strokeWidthChangesOnHighlight || changesOnHighlight) {
             this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false });
             if (!this.usesPlacedLabels) {
-                this.updateLabelNodes({ labelSelection });
+                this.labelGroup.batchedUpdate(() => {
+                    this.updateLabelNodes({ labelSelection });
+                });
             }
             if (hasMarkers) {
-                this.updateMarkerNodes({ markerSelection, isHighlight: false });
+                this.markerGroup.batchedUpdate(() => {
+                    this.updateMarkerNodes({ markerSelection, isHighlight: false });
+                });
             }
         }
     }

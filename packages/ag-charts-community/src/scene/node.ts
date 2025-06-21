@@ -136,6 +136,9 @@ export abstract class Node<D = any> {
     })
     zIndex: ZIndex = 0;
 
+    protected batchLevel = 0;
+    private batchDirty = false;
+
     constructor(options?: NodeOptions) {
         this.name = options?.name;
         this.tag = options?.tag ?? NaN;
@@ -186,6 +189,10 @@ export abstract class Node<D = any> {
         this.childNodeCounts.nonGroups = 1; // Assume this node isn't a group.
         this.childNodeCounts.complexity = thisComplexity;
         this.childNodeCounts.thisComplexity = thisComplexity;
+
+        if (this.batchLevel > 0 || this.batchDirty) {
+            throw new Error('AG Charts - illegal rendering state; batched update in progress');
+        }
 
         return this.childNodeCounts;
     }
@@ -264,8 +271,25 @@ export abstract class Node<D = any> {
         this.parentNode?.removeChild(this);
     }
 
-    setProperties<T>(this: T, styles: { [K in keyof T]?: T[K] }) {
+    batchedUpdate(fn: () => void) {
+        this.batchLevel++;
+        fn();
+        this.batchLevel--;
+        if (this.batchLevel === 0 && this.batchDirty) {
+            this.markDirty();
+            this.batchDirty = false;
+        }
+    }
+
+    setProperties<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }) {
+        this.batchLevel++;
         Object.assign(this as any, styles);
+        this.batchLevel--;
+
+        if (this.batchLevel === 0 && this.batchDirty) {
+            this.markDirty();
+            this.batchDirty = false;
+        }
         return this;
     }
 
@@ -307,6 +331,11 @@ export abstract class Node<D = any> {
     }
 
     markDirty(property?: string) {
+        if (this.batchLevel > 0) {
+            this.batchDirty = true;
+            return;
+        }
+
         if (property != null && this._debugDirtyProperties) {
             this.markDebugProperties(property);
         }

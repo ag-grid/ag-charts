@@ -55,14 +55,15 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
         private [TRANSFORM_MATRIX] = new Matrix();
 
         private _dirtyTransform = true;
-        markDirtyTransform() {
-            this._dirtyTransform = true;
-            this.markDirty();
-        }
-
         override onChangeDetection(property: string): void {
             super.onChangeDetection(property);
-            this.markDirtyTransform();
+            this._dirtyTransform = true;
+
+            if (this.batchLevel > 0) {
+                return;
+            }
+
+            this.markDirty('transform');
         }
 
         updateMatrix(_matrix: Matrix) {
