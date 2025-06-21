@@ -71,9 +71,9 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     }
     if (isHistoricBenchmarkTest() && isBeforeVersion(11, 1, 0)) {
         // zoom.minVisibleItemsX => zoom.minVisibleItems for 11.1.
-        if ((options as any).zoom?.minVisibleItemsX != null) {
-            (options as any).zoom.minVisibleItems = (options as any).zoom.minVisibleItemsX;
-            delete (options as any).zoom.minVisibleItemsX;
+        if ((options as any).zoom?.minVisibleItems != null) {
+            (options as any).zoom.minVisibleItemsX = Math.max(1, (options as any).zoom.minVisibleItems);
+            delete (options as any).zoom.minVisibleItems;
         }
     }
     options.width = 800;
