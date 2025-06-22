@@ -15,7 +15,8 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
      * Maps datum to its index in the {@link domain} array.
      * Used to check for duplicate data (not allowed).
      */
-    protected index: Map<D, number> | undefined = undefined;
+    protected index: Map<D, number> = new Map();
+    protected indexInitialised = false;
 
     /**
      * Contains unique data only.
@@ -26,7 +27,8 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
 
         this.invalid = true;
         this._domain = values;
-        this.index = undefined;
+        this.index.clear();
+        this.indexInitialised = false;
     }
 
     get domain(): D[] {
@@ -82,15 +84,14 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
     }
 
     findIndex(value: D) {
-        let { index } = this;
-        if (index == null) {
+        const { index, indexInitialised } = this;
+        if (!indexInitialised) {
             const { domain } = this;
-            index = new Map<D, number>();
             for (let i = 0; i < domain.length; i++) {
                 index.set(dateToNumber(domain[i]) as D, i);
             }
 
-            this.index = index;
+            this.indexInitialised = true;
         }
 
         return index.get(dateToNumber(value));

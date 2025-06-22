@@ -282,12 +282,17 @@ function findSuggestions(value: string, suggestions: string[], maxDistance: numb
 export function attachDescription(validator: Validator, description: string): Validator;
 export function attachDescription<T>(optionsDefs: OptionsDefs<T>, description: string): OptionsDefs<T>;
 export function attachDescription<T extends Validator | OptionsDefs<any>>(validatorOrDefs: T, description: string): T {
-    return Object.assign(
-        isFunction(validatorOrDefs)
-            ? (value: unknown, context: ValidatorContext) => validatorOrDefs(value, context)
-            : ({ ...validatorOrDefs } as any),
-        { [descriptionSymbol]: description }
-    );
+    if (isFunction(validatorOrDefs)) {
+        // Create a shallow clone of the function to avoid mutating shared references
+        function clonedValidator(value: unknown, context: ValidatorContext) {
+            return (validatorOrDefs as Validator)(value, context);
+        }
+        (clonedValidator as any)[descriptionSymbol] = description;
+        return clonedValidator as T;
+    } else {
+        // Create a shallow clone of the object to avoid mutating shared references
+        return { ...validatorOrDefs, [descriptionSymbol]: description };
+    }
 }
 
 /**

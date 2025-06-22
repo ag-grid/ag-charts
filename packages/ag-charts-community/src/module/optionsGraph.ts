@@ -530,11 +530,13 @@ export class OptionsGraph extends core.AdjacencyListGraph<unknown, string> imple
         }
     }
 
+    private readonly EMPTY_PATH_ARRAY_VERTEX = this.addVertex([]);
+
     private buildGraphFromOperationValue(
         valueVertex: Vertex<unknown>,
         operationValue: unknown,
         edgeValue: string,
-        pathArrayVertex: Vertex<unknown> = this.addVertex([])
+        pathArrayVertex: Vertex<unknown> = this.EMPTY_PATH_ARRAY_VERTEX
     ) {
         // TODO: check for circular from a 'root' vertex given from the 'buildGraphFromValue()' fn
 
