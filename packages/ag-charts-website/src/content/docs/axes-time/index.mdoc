@@ -13,7 +13,7 @@ There are three methods of displaying time along an axis.
 -   [Ordinal Time Axis](#ordinal-time) - Only provided values are shown, with missing values omitted.
 -   [Continuous Time Axis](#continuous-time) - Data is shown on a continuous scale.
 
-The difference between a [Unit Time Axis](#unit-time), an [Ordinal Time Axis](#ordinal-time), and continuous [Continuous Time Axis](#continuous-time) is demonstrated in the following example:
+The difference between a [Unit Time Axis](#unit-time), an [Ordinal Time Axis](#ordinal-time), and a [Continuous Time Axis](#continuous-time) is demonstrated in the following example:
 
 {% chartExampleRunner title="Time Axis Types" name="time-vs-unit-time-vs-ordinal-time" type="generated" /%}
 
@@ -38,10 +38,33 @@ The Unit Time Axis does not aggregate data, so you should ensure that each serie
 
 ### Custom Unit
 
-The Unit Time Axis assumes that data is is provided with one item per unit, and will infer a `unit` based on the data.
+The Unit Time Axis assumes that data is provided with one item per unit, and will infer a `unit` based on the data.
 
-For datasets missing data points, it may be necessary to specify the `unit` explicitly.
-To explicitly set the `unit`, provide a `AgTimeInterval` string or `AgTimeIntervalUnit` object.
+For some scenarios - such as datasets with missing data points - it may be necessary to specify the `unit` explicitly.
+To explicitly set the `unit`, provide an `AgTimeInterval` string or `AgTimeIntervalUnit` object.
+
+```js
+{
+    type: 'unit-time',
+    position: 'bottom',
+    unit:  'day', // every day
+}
+```
+
+In this configuration:
+
+-   `unit` must be one of `millisecond`, `second`, `minute`, `hour`, `day`, `week`, `month`, or `year`.
+
+{% note %}
+
+The `axes[].unit` property controls how time is bucketed for display.
+See [Time Interval](#reference-AgTimeInterval) for to control the spacing of ticks, grid lines, and labels.
+
+{% /note %}
+
+### Weekly Data Example
+
+The `AgTimeIntervalUnit` object supports advanced configuration for more complex `unit` requirements such as weekly data.
 
 {% chartExampleRunner title="Unit Time (Custom Unit)" name="unit-time-unit" type="generated" /%}
 
@@ -51,23 +74,17 @@ To explicitly set the `unit`, provide a `AgTimeInterval` string or `AgTimeInterv
     position: 'bottom',
     unit: {
         unit: 'day',
-        step: 7,
-        epoch: new Date(2024, 0, 1),
+        step: 7, //every 7 days (weekly)
+        epoch: new Date(2024, 0, 1), //start the week on Monday
     },
 }
 ```
 
-In this configuration:
+In this example:
 
--   `unit` must be one of `millisecond`, `second`, `minute`, `hour`, `day`, `week`, `month`, or `year`.
--   `step` is an optional number that specifies the multiple of the unit to use. For example, `step: 7` combined with `unit: 'day'` will display weekly data.
--   `epoch` is an optional `Date` that specifies the starting point for the interval. For example, an epoch landing on Monday with weekly data will display data every Monday.
-
-In this example of `unit: { unit: 'day', step: 7, ew Date(2024, 0, 1) }`, any units smaller than a week will be ignored. This means that values for 2024-01-01 and 2024-01-03 will both be displayed in the same band as the week of 2024-01-01.
-
-For cases where the step is 1, a string may be used instead of an object. For example, `unit: 'day'` is equivalent to `unit: { unit: 'day', step: 1 }`.
-
-See [Time Interval](#reference-AgTimeInterval) for more information on the `unit` property.
+-   `step` specifies the multiple of the unit to use. In this example, `step: 7` combined with `unit: 'day'` will display one data point for any provided date within each week.
+-   `epoch` is an optional `Date` that specifies the starting point for the unit. In this example, the week runs from Monday to Monday.
+-   In this example, a [Formatter](./formatters) is used to format the labels as numbered weeks of the year.
 
 For a full list of configuration options see [Unit Time Axis Options](#reference-AgUnitTimeAxisOptions).
 
@@ -108,7 +125,7 @@ For a full list of configuration options see [Continuous Time Axis Options](#ref
 
 ## Time Intervals
 
-The interval of Time Axes can be customised with the `interval.step` parameter, which should be a
+The [Axis Interval](./axes-intervals) of Time Axes labels, grid lines and ticks can be customised with the `interval.step` parameter, which should be a
 `AgTimeInterval` or `AgTimeIntervalUnit`.
 
 {% chartExampleRunner title="Time Axis Interval" name="time-interval" type="generated" /%}
@@ -116,7 +133,7 @@ The interval of Time Axes can be customised with the `interval.step` parameter, 
 ```js
 {
     interval: {
-        step: { unit: 'day', step: 7, new Date('2025-01-01') },
+        step: 'month',
     },
 }
 ```
@@ -124,7 +141,11 @@ The interval of Time Axes can be customised with the `interval.step` parameter, 
 ```js
 {
     interval: {
-        step: 'month',
+            step: {
+                unit: 'day',
+                step: 7,  // every 7 days (weekly)
+                new Date('2024-01-01') //start the week on a Monday
+            },
     },
 }
 ```
@@ -135,16 +156,19 @@ In this configuration:
 -   `step` is an optional number that specifies the multiple of the unit to use.
 -   `epoch` is an optional `Date` that specifies the starting point for the interval.
 
-If the `step` property of a time axis is set to a `number`, this will be interpreted as milliseconds.
+{% note %}
 
-For cases where the step is 1, a string may be used instead of an object. For example, `unit: 'day'` is equivalent to `unit: { unit: 'day', step: 1 }`.
+The `interval.step` property controls the spacing of ticks, grid lines, and labels.
+Use a [Unit Time Axis](#unit-time) to control how time is bucketed for display.
 
-See [Time Interval](#reference-AgTimeInterval) for more information on the `step` property.
+{% /note %}
+
+See [Time Interval](#reference-AgTimeInterval) for more information on the `interval.step` property.
 
 ## Parent Levels
 
 The `parentLevel` option allows displaying labels and ticks for the parent level of the time axes. For example, if the axis is showing monthly data, the parent level would be the years.
-These levels are based on the data displayed, and change as the user zooms in and out.
+These levels are based on the data displayed, and adjust dynamically as the user zooms in and out.
 
 It is enabled by default for the [Unit Time Axis](#unit-time), and can be opted into for the
 [Continuous Time Axis](#continuous-time) and [Ordinal Time Axis](#ordinal-time).

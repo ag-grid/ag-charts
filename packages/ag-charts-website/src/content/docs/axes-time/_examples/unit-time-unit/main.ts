@@ -60,6 +60,7 @@ const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } 
     navigator: {
         enabled: true,
     },
+    initialState: { zoom: { ratioX: { start: 0.8 } } },
     tooltip: {
         mode: 'shared',
     },
