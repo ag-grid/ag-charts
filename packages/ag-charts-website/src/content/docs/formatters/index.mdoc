@@ -2,12 +2,32 @@
 title: 'Formatters'
 ---
 
-Formatters allow customisation of the representation of numbers and dates.
+Formatters make it easy to customise the text shown for data across all chart elements, such as series labels, tooltips, and axes.
+
+## Global Formatter
+
+The chart level `formatter` is a callback called by all textual elements displaying data-based text.
+It should return a `string` to display, or `undefined` to fallback to [the next available option](#inheritance-and-precedence).
+
+The parameters provided to the callback differ based on whether the text is coming from a [Number](#reference-NumberFormatterParams), [Date](#reference-DateFormatterParams) or [Category](#reference-CategoryFormatterParams) domain.
+
+These properties provide enough context and information to tailor the formatting to your specific needs across different chart elements and scenarios.
+
+These include:
+
+-   `type` - whether the value is coming from a category, number, or date domain. This should not be confused with the `type` of the value - use `typeOf` to determine that.
+-   `value` - the raw value to be formatted.
+-   `source` - the chart element, such as `axes-label` or `tooltip`.
+-   `property` - the data visualisation property, such as `x`, `y`, `size`. These mirror the `_Key` properties.
+-   `context` - the user provided [Context Object](./context).
+-   Properties to tie the value to the series and data used, such as `seriesId`, `boundSeries`, `domain`, `datum`.
+-   Date domains also include properties such as `unit`, `step`, `epoch`.
+
+See the [API Reference](#api-reference) for a full list.
 
 ## Property Formatters
 
-The `formatter` property on the chart can be specified to customise formatting throughout the chart. It can be an
-object keyed by the property to format.
+For ease of use, the formatter can also be an object keyed by property, providing a separate callback for each data visualisation property. This allows specifying a format for every place this property is used.
 
 {% chartExampleRunner title="Formatter" name="formatter" type="generated" /%}
 
@@ -33,22 +53,24 @@ object keyed by the property to format.
 
 In this configuration:
 
--   `x` formats the x-axis values as a either a full date, or a year; depending on the granularity requested.
+-   `x` formats the x-axis values as a either a full date for the tooltip and crosshair, or year for the axis labels. It does this based on the `unit` value.
 -   `y` formats the y-axis values as values on the Richter scale, with one decimal place of precision.
 -   `size` formats the size values as a decimal number with no fractional digits.
--   `label` formats the label values removing additional information when it is a series label, otherwise returns the value as-is.
+-   `label` formats the label values removing additional information when it is a series label, otherwise returns the value as-is for the tooltip. It does this based on the `source` value.
 
-The available properties are `x`, `y`, `angle`, `radius`, `size`, `color`, `label`, `secondaryLabel`, `calloutLabel`, and `sectorLabel`.
+The available properties are `x`, `y`, `angle`, `radius`, `size`, `color`, `label`, `secondaryLabel`, `calloutLabel`, and `sectorLabel`. These mirror the `_Key` properties
 
-Each function will either be called with [Number Formatter Parameters](#reference-NumberFormatterParams),
-[Date Formatter Parameters](#reference-DateFormatterParams), or
-[Category Formatter Parameters](#reference-CategoryFormatterParams) depending on the configuration of the axis, and
-property being formatted.
+## Inheritance and Precedence
 
-Label formatters take precedence over the chart's formatter. For example, `axis.crosshair.label.format` will take precedence.
+Each chart element has a `formatter` callback within its options, and these take precedence over the chart level `formatter`.
 
-Returning `undefined` from a formatter function will result in value being provided by the relevant axis formatter; or
-a default format being used if no axis exists (e.g. for `size`), or no axis formatter is defined.
+For example an axis label will be formatted as follows:
+
+1. `axes[].label.formatter` - if provided and not returning `undefined`.
+2. Chart `formatter` - if provided and not returning `undefined`.
+3. AG Chart defaults.
+
+Additionally, if only an `axes[].label.formatter` is provided in the chart, the tooltip and crosshair formats will inherit based on this.
 
 ## Format Strings
 

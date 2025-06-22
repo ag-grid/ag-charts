@@ -58,13 +58,13 @@ interface BaseFormatterParams<TDatum, Value> {
     seriesId: string | undefined;
     /** The key of the property associated with the datum, if available. */
     key: TDatum extends object ? keyof TDatum & string : string | undefined;
-    /** The source of the formatter, indicating where it is being used. */
+    /** The source of the formatter, indicating the element where it is being used. */
     source: AnyFormatterSource;
     /** The property being formatted, such as 'x', 'y', 'angle', etc. */
     property: FormatterPropertyType;
-    /** The formatter function to use for formatting the value, if available. */
+    /** The data domain of the series that the value belongs to, if available.. */
     domain: any[];
-    /** A description of the key and name properties being formatted. */
+    /** A description of the key and name properties of the series associated with the element being formatted. */
     boundSeries: FormatterBoundSeries[];
 }
 
@@ -80,7 +80,7 @@ export type DateFormatterStyle = 'long' | 'component';
 export interface DateFormatterParams<TDatum> extends BaseFormatterParams<TDatum, Date> {
     /** Configuration for a date-formatted value. */
     type: 'date';
-    /** The precision to format the value. I.e. if given the unit `day`, you may format your day as '1 January 2020'. */
+    /** The interval used for the formatted element. I.e. if given the unit `day`, you may format your day as '1 January 2020'. */
     unit: AgTimeIntervalUnit;
     /** The frequency of `unit`. I.e. a unit of `day` and a step of `7` indicates a weekly interval. */
     step: number;
