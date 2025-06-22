@@ -241,6 +241,7 @@ export class ChartTheme {
                     spacing: 11,
                     color: { $ref: 'textColor' },
                     avoidCollisions: true,
+                    wrapping: 'never',
                 },
                 line: {
                     enabled: true,
@@ -472,7 +473,7 @@ export class ChartTheme {
             {
                 keys: [],
                 groupPaddingInner: 0.1,
-                label: { autoRotate: true },
+                label: { autoRotate: true, wrapping: 'on-space' },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: false },
             },
@@ -512,7 +513,7 @@ export class ChartTheme {
             {
                 keys: [],
                 groupPaddingInner: 0,
-                label: { autoRotate: false, wrapping: 'never' },
+                label: { autoRotate: false },
                 gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
                 crosshair: { enabled: true },
             },
