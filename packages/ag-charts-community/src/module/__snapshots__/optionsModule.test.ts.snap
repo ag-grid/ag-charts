@@ -41,6 +41,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "fontWeight": "bold",
         "rotation": -30,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": true,
@@ -102,6 +103,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "fontSize": 14,
         "fontWeight": "bold",
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": true,
@@ -529,6 +531,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -576,6 +579,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -622,6 +626,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -1059,6 +1064,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontWeight": 400,
         "rotation": -30,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -1103,6 +1109,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -1900,6 +1907,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -1944,6 +1952,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -2845,6 +2854,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -2888,6 +2898,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -3092,6 +3103,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "fontWeight": 400,
         "format": "%d/%m",
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": true,
@@ -3153,6 +3165,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -3660,6 +3673,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -3703,6 +3717,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -4515,6 +4530,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -4558,6 +4574,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -4775,6 +4792,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -4818,6 +4836,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -5040,6 +5059,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 5,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -5082,6 +5102,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 5,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -5286,6 +5307,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -5332,6 +5354,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -5541,6 +5564,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -5584,6 +5608,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -5939,6 +5964,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -5982,6 +6008,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -6343,6 +6370,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -6387,6 +6415,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -7227,6 +7256,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -7270,6 +7300,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -8896,6 +8927,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "fontWeight": 400,
         "format": ",.0f",
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -8939,6 +8971,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "fontSize": 10,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -9148,6 +9181,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -9192,6 +9226,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontWeight": 400,
         "format": "#{.0f}%",
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -10319,6 +10354,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "fontWeight": 400,
         "rotation": -30,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -10363,6 +10399,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "fontWeight": 400,
         "format": ".0%",
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -10824,6 +10861,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -10868,6 +10906,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "fontWeight": 400,
         "format": "#{.0f}%",
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -11611,6 +11650,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": true,
@@ -11673,6 +11713,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -12332,6 +12373,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -12376,6 +12418,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -12908,6 +12951,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": true,
@@ -12970,6 +13014,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -13560,6 +13605,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -13603,6 +13649,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -13805,6 +13852,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "fontWeight": 400,
         "format": "%b",
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": true,
@@ -13867,6 +13915,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -14832,6 +14881,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -14875,6 +14925,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "fontSize": 12,
         "fontWeight": 400,
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,
@@ -15432,6 +15483,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "fontWeight": 400,
         "rotation": 30,
         "spacing": 11,
+        "wrapping": "on-space",
       },
       "line": {
         "enabled": true,
@@ -15476,6 +15528,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "fontWeight": 400,
         "formatter": [Function],
         "spacing": 11,
+        "wrapping": "never",
       },
       "line": {
         "enabled": false,

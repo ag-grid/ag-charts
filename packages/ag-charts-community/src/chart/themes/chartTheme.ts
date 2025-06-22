@@ -241,7 +241,6 @@ export class ChartTheme {
                     spacing: 11,
                     color: { $ref: 'textColor' },
                     avoidCollisions: true,
-                    wrapping: 'never',
                 },
                 line: {
                     enabled: true,
