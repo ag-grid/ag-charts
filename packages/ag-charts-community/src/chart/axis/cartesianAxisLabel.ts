@@ -18,7 +18,7 @@ export class CartesianAxisLabel extends AxisLabel {
     autoRotateAngle: number = 335;
 
     @Property
-    wrapping: TextWrap = 'on-space';
+    wrapping: TextWrap = 'never';
 
     @Property
     truncate: boolean = false;
