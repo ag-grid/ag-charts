@@ -6,7 +6,7 @@ import type {
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
-import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { AgColorType, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 /* All the label properties that can be changed without affecting the layout. */
@@ -48,7 +48,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = TDatumDefault, TConte
     /** Minimum distance between text and the edges of the sectors. */
     padding?: PixelSize;
     /** The colours to cycle through for the fills of the sectors. */
-    fills?: CssColor[];
+    fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the sectors. */
     strokes?: CssColor[];
     /** The opacity of the fill for the sectors. */

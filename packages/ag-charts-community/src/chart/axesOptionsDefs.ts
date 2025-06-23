@@ -93,7 +93,7 @@ export const commonCrossLineOptionsDefs = attachDescription<AgBaseCrossLineOptio
             defined
         ),
         label: commonCrossLineLabelOptionsDefs,
-        fill: string,
+        fill: color,
         fillOpacity: ratio,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
