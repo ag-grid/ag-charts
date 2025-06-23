@@ -3,7 +3,7 @@ import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, DatumKey, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
-import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 
 export type AgPyramidSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault> = AgChartLabelOptions<
@@ -40,7 +40,7 @@ export interface AgPyramidSeriesTooltipRendererParams<TDatum = TDatumDefault, TC
 export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends LineDashOptions {
     /** The colours to cycle through for the fills of the stages. */
-    fills?: CssColor[];
+    fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the stages. */
     strokes?: CssColor[];
     /** The opacity of the fill for the stages. */

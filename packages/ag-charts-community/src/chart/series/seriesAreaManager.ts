@@ -198,12 +198,12 @@ export class SeriesAreaManager extends BaseManager {
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label2'),
             seriesWidget.addListener('focus', () => this.swapChain.focus()),
-            seriesWidget.addListener('mousemove', (event) => this.onHover(event)),
+            seriesWidget.addListener('mousemove', (event) => this.onHover(event, seriesWidget)),
             seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
             seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
             seriesWidget.addListener('keydown', (event) => this.onKeyDown(event)),
             seriesWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
-            seriesDragInterpreter.events.on('drag-move', (event) => this.onDragMove(event)),
+            seriesDragInterpreter.events.on('drag-move', (event) => this.onDragMove(event, seriesWidget)),
             seriesDragInterpreter.events.on('click', (event) => this.onClick(event, seriesWidget)),
             seriesDragInterpreter.events.on('dblclick', (event) => this.onClick(event, seriesWidget)),
             containerWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
@@ -376,25 +376,29 @@ export class SeriesAreaManager extends BaseManager {
         this.previousInputDevice = 'pointer';
     }
 
-    private onDragMove(event: DragWidgetEvent<'drag-move'>): void {
+    private onDragMove(event: DragWidgetEvent<'drag-move'>, current: Widget): void {
         if (!this.isState(InteractionState.Clickable)) return;
         this.focusIndicator?.overrideFocusVisible(false);
-        this.onHoverLikeEvent(event);
+        this.onHoverLikeEvent(event, current);
     }
 
-    private onHover(event: MouseWidgetEvent<'mousemove'>): void {
+    private onHover(event: MouseWidgetEvent<'mousemove'>, current: Widget): void {
         if (!this.isState(InteractionState.Clickable)) return;
-        this.onHoverLikeEvent(event);
+        this.onHoverLikeEvent(event, current);
     }
 
-    private onHoverLikeEvent(event: HoverLikeEvent): void {
+    private onHoverLikeEvent(event: HoverLikeEvent, current: Widget): void {
         if (this.isIgnoredTouch(event)) return;
+
+        if (event.device === 'touch' && this.chart.ctx.chartService.touch.dragAction === 'hover') {
+            event.sourceEvent.preventDefault();
+        }
+
+        // Ignore hover events outside the series-area for the purpose of tooltips + highlights.
+        if (current !== this.chart.ctx.widgets.seriesWidget) return;
 
         if (event.device === 'touch' || excludesType(event, 'drag-move')) {
             this.tooltip.lastHover = event;
-        }
-        if (event.device === 'touch' && this.chart.ctx.chartService.touch.dragAction === 'hover') {
-            event.sourceEvent.preventDefault();
         }
 
         this.hoverDevice = 'pointer';
@@ -447,7 +451,7 @@ export class SeriesAreaManager extends BaseManager {
 
         this.focusIndicator?.overrideFocusVisible(false);
 
-        this.onHoverLikeEvent(event);
+        this.onHoverLikeEvent(event, current);
 
         // Do not run chartOptions click handlers if an annotation is selected.
         if (!this.isState(InteractionState.Default)) return;

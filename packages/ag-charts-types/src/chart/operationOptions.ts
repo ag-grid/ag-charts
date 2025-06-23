@@ -106,4 +106,6 @@ type TransformOperation =
     | { $map: [AnyLeaf, AnyLeaf] } // Operation to apply to each item in the array | Target array
     | { $merge: Leaf<object>[] } // Array of objects to merge
     | { $omit: [Leaf<string[]>, Leaf<object>] } // Array of keys to omit | Object from which to omit keys
+    | { $size: AnyLeaf } // Target vertex
+    | { $shallow: Leaf<Array<any>> } // Array value to treat as a shallow value in the graph
     | { $value: '$1' | '$index' }; // '$1' nearest ancestor value that is not an operation | '$index' nearest ancestor numeric path segment
