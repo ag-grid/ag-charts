@@ -38,7 +38,6 @@ const options: AgChartOptions = {
     formatter: {
         color: (params) => {
             const value = params.value as number;
-            console.log(params);
             return params.source === 'tooltip'
                 ? `${numberFormatter.format(value)} million`
                 : `$${Math.floor(value / 1e6)}T`;
