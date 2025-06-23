@@ -38,6 +38,7 @@ ag-financial-charts {
     border-radius: 8px;
     background-color: var(--chart-bg);
     border: 1px solid var(--chart-border);
+    transform: translate3d(0, 0, 0);
     overflow: hidden;
 }
 `;
