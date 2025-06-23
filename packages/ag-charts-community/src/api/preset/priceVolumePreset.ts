@@ -218,7 +218,7 @@ export function priceVolume(
                         padding: {
                             top: 6,
                             right: 8,
-                            bottom: 5,
+                            bottom: 6,
                         },
                         chartToolbar: {
                             enabled: toolbar,
