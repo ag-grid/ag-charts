@@ -37,6 +37,9 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         },
         highlight: _ModuleSupport.multiSeriesHighlightStyle(),
+        tooltip: {
+            range: { $path: ['/tooltip/range', 'nearest'] },
+        },
     },
     axes: {
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {
@@ -87,9 +90,6 @@ export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>[
                     } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
                     fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
                     fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
-                },
-                tooltip: {
-                    range: { $path: ['/tooltip/range', 'nearest'] },
                 },
             },
         },
