@@ -1,11 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
+import { AnnotationShape } from './annotationShape';
+
 type InvariantHandleStyles = { x: number; y: number } & {
-    [K in keyof _ModuleSupport.Marker]?: _ModuleSupport.Marker[K];
+    [K in keyof AnnotationShape]?: AnnotationShape[K];
 };
 type UnivariantHandleStyles = { x: number; y: number } & { [K in keyof _ModuleSupport.Rect]?: _ModuleSupport.Rect[K] };
 type DivariantHandleStyles = { x: number; y: number } & {
-    [K in keyof _ModuleSupport.Marker]?: _ModuleSupport.Marker[K];
+    [K in keyof AnnotationShape]?: AnnotationShape[K];
 };
 
 export abstract class Handle extends _ModuleSupport.Group {
@@ -13,8 +15,8 @@ export abstract class Handle extends _ModuleSupport.Group {
     public static readonly GLOW_SIZE: number;
     public static readonly INACTIVE_STROKE_WIDTH = 2;
 
-    abstract handle: _ModuleSupport.Rect | _ModuleSupport.Marker;
-    protected abstract glow: _ModuleSupport.Rect | _ModuleSupport.Marker;
+    abstract handle: _ModuleSupport.Rect | AnnotationShape;
+    protected abstract glow: _ModuleSupport.Rect | AnnotationShape;
     protected active = false;
     protected locked = false;
 
@@ -22,7 +24,7 @@ export abstract class Handle extends _ModuleSupport.Group {
     override zIndex = 1;
 
     public abstract update(styles: {
-        [K in keyof (_ModuleSupport.Rect | _ModuleSupport.Marker)]?: (_ModuleSupport.Rect | _ModuleSupport.Marker)[K];
+        [K in keyof (_ModuleSupport.Rect | AnnotationShape)]?: (_ModuleSupport.Rect | AnnotationShape)[K];
     }): void;
 
     public drag(target: _ModuleSupport.Vec2): { point: _ModuleSupport.Vec2; offset: _ModuleSupport.Vec2 } {
@@ -75,8 +77,8 @@ class InvariantHandle extends Handle {
     static override readonly HANDLE_SIZE = 7;
     static override readonly GLOW_SIZE = 9;
 
-    override handle = new _ModuleSupport.Marker({ shape: 'circle' });
-    override glow = new _ModuleSupport.Marker({ shape: 'circle' });
+    override handle = new AnnotationShape({ shape: 'circle' });
+    override glow = new AnnotationShape({ shape: 'circle' });
 
     constructor() {
         super();
@@ -208,8 +210,8 @@ export class DivariantHandle extends Handle {
     static override readonly HANDLE_SIZE = 11;
     static override readonly GLOW_SIZE = 17;
 
-    override handle = new _ModuleSupport.Marker({ shape: 'circle' });
-    override glow = new _ModuleSupport.Marker({ shape: 'circle' });
+    override handle = new AnnotationShape({ shape: 'circle' });
+    override glow = new AnnotationShape({ shape: 'circle' });
 
     private cachedStyles?: DivariantHandleStyles;
 

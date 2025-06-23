@@ -3,10 +3,11 @@ import type { _ModuleSupport } from 'ag-charts-community';
 import { type AnnotationContext } from '../annotationTypes';
 import type { ShapePointProperties } from '../properties/shapePointProperties';
 import { convertPoint } from '../utils/values';
+import type { AnnotationShape } from './annotationShape';
 import { PointScene } from './pointScene';
 
 export abstract class ShapePointScene<Datum extends ShapePointProperties> extends PointScene<Datum> {
-    protected abstract shape: _ModuleSupport.Marker;
+    protected abstract shape: AnnotationShape;
 
     constructor() {
         super();
