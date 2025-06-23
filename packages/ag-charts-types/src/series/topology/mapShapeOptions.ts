@@ -1,7 +1,7 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, GeoJSON, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { CssColor, DatumKey, GeoJSON, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
@@ -34,11 +34,11 @@ export type AgMapShapeSeriesItemStylerParams<
 
 export interface AgMapShapeSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The name of the node key containing the id value. */
-    idKey?: TDatum extends object ? keyof TDatum & string : string;
+    idKey?: DatumKey<TDatum>;
     /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the segment colour. */
-    colorKey?: TDatum extends object ? keyof TDatum & string : string;
+    colorKey?: DatumKey<TDatum>;
     /** The key to use to retrieve values from the data to use as labels inside shapes. */
-    labelKey?: TDatum extends object ? keyof TDatum & string : string;
+    labelKey?: DatumKey<TDatum>;
 }
 
 export interface AgMapShapeSeriesOptionsNames {

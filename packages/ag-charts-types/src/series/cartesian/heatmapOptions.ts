@@ -1,7 +1,7 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { PixelSize, TContextDefault, TDatumDefault, TextAlign, VerticalAlign } from '../../chart/types';
+import type { DatumKey, PixelSize, TContextDefault, TDatumDefault, TextAlign, VerticalAlign } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
 
@@ -47,11 +47,11 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = TDatumDefault, TContex
 
 export interface AgHeatmapSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: TDatum extends object ? keyof TDatum & string : string;
+    xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-values from the data. */
-    yKey: TDatum extends object ? keyof TDatum & string : string;
+    yKey: DatumKey<TDatum>;
     /** The name of the node key containing the colour value. This value (along with `colorRange` configs) will be used to determine the cell colour. */
-    colorKey?: TDatum extends object ? keyof TDatum & string : string;
+    colorKey?: DatumKey<TDatum>;
 }
 
 export interface AgHeatmapSeriesOptionsNames {

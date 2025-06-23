@@ -2,7 +2,7 @@ import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../c
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { LabelPlacement, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { DatumKey, LabelPlacement, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type {
     AgBaseCartesianThemeableOptions,
@@ -61,11 +61,11 @@ export interface AgScatterSeriesThemeableOptions<TDatum = TDatumDefault, TContex
 
 export interface AgScatterSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: TDatum extends object ? keyof TDatum & string : string;
+    xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-values from the data. */
-    yKey: TDatum extends object ? keyof TDatum & string : string;
+    yKey: DatumKey<TDatum>;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
-    labelKey?: TDatum extends object ? keyof TDatum & string : string;
+    labelKey?: DatumKey<TDatum>;
 }
 
 export interface AgScatterSeriesOptionsNames {

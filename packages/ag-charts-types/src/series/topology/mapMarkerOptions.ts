@@ -4,6 +4,7 @@ import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart
 import type {
     AgMarkerShape,
     CssColor,
+    DatumKey,
     GeoJSON,
     LabelPlacement,
     PixelSize,
@@ -40,17 +41,17 @@ export type AgMapMarkerSeriesItemStylerParams<
 
 export interface AgMapMarkerSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The name of the node key containing the id value. */
-    idKey?: TDatum extends object ? keyof TDatum & string : string;
+    idKey?: DatumKey<TDatum>;
     /** The key to use to retrieve latitude values from the data, used to control the position of the markers. */
-    latitudeKey?: TDatum extends object ? keyof TDatum & string : string;
+    latitudeKey?: DatumKey<TDatum>;
     /** The key to use to retrieve longitude values from the data, used to control the position of the markers. */
-    longitudeKey?: TDatum extends object ? keyof TDatum & string : string;
+    longitudeKey?: DatumKey<TDatum>;
     /** The key to use to retrieve size values from the data, used to control the size of the markers. */
-    sizeKey?: TDatum extends object ? keyof TDatum & string : string;
+    sizeKey?: DatumKey<TDatum>;
     /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the colour of the markers. */
-    colorKey?: TDatum extends object ? keyof TDatum & string : string;
+    colorKey?: DatumKey<TDatum>;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
-    labelKey?: TDatum extends object ? keyof TDatum & string : string;
+    labelKey?: DatumKey<TDatum>;
 }
 
 export interface AgMapMarkerSeriesOptionsNames {

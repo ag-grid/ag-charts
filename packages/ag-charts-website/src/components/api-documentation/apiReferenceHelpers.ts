@@ -52,6 +52,7 @@ const hiddenInterfaces = [
     'Degree',
     'DurationMs',
     'AgTimeInterval',
+    'DatumKey',
 ];
 
 export const INDEXED_SEARCH_FIELD = 'searchable';

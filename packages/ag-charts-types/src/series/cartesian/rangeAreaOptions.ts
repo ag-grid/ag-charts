@@ -1,7 +1,7 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { DatumKey, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type {
@@ -61,11 +61,11 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = TDatumDefault, TCont
 
 export interface AgRangeAreaSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: TDatum extends object ? keyof TDatum & string : string;
+    xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-low-values from the data. */
-    yLowKey: TDatum extends object ? keyof TDatum & string : string;
+    yLowKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-high-values from the data. */
-    yHighKey: TDatum extends object ? keyof TDatum & string : string;
+    yHighKey: DatumKey<TDatum>;
 }
 
 export interface AgRangeAreaSeriesOptionsNames {
