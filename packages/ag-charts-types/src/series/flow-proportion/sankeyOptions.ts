@@ -2,7 +2,7 @@ import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../c
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
-import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgSankeySeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
@@ -36,7 +36,7 @@ export interface AgSankeySeriesThemeableOptions<TDatum = TDatumDefault, TContext
     /** Options for the label for each node. */
     label?: AgSankeySeriesLabelOptions<TDatum, TContext>;
     /** The colours to cycle through for the fills of the nodes and links. */
-    fills?: CssColor[];
+    fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the nodes and links. */
     strokes?: CssColor[];
     /** Options for the links. */
