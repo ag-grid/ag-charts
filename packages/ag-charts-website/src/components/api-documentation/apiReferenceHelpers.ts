@@ -41,6 +41,7 @@ export interface NavigationPath {
 
 const hiddenInterfaces = [
     'CssColor',
+    'CssShadow',
     'FontStyle',
     'FontWeight',
     'FontSize',
