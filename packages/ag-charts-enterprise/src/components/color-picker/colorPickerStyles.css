@@ -1,6 +1,7 @@
 .ag-charts-color-picker {
     width: 190px;
     padding: 8px;
+    cursor: default;
 
     --h: 0;
     --s: 0;
