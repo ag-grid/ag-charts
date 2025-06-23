@@ -4,7 +4,6 @@ import type { AgCartesianAxisPosition, FormatterParams } from 'ag-charts-types';
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { Scale } from '../scale/scale';
 import type { Node } from '../scene/node';
-import type { Point } from '../scene/point';
 
 export type ContextFormatter<Params> = (
     fn: (params: Params) => string | undefined,
@@ -18,13 +17,6 @@ export interface AxisFormattableLabel<FormatParams extends object, Params extend
         value: any,
         params: Params
     ): string | undefined;
-}
-
-export interface AxisBandDatum {
-    readonly id: string;
-    readonly value: any;
-    readonly band: [number, number];
-    readonly position: number;
 }
 
 export interface AxisContext {
@@ -47,5 +39,4 @@ export interface AxisContext {
     attachLabel(node: Node): void;
     inRange(value: number, tolerance?: number): boolean;
     getRangeOverflow(value: number): number;
-    pickBand(point: Point): AxisBandDatum | undefined;
 }

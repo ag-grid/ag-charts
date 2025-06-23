@@ -11,9 +11,18 @@ const {
     FillGradientDefaults,
     FillImageDefaults,
     FillPatternDefaults,
+    BandScale,
     getShapeFill,
+    clampArray,
     InteractionState,
 } = _ModuleSupport;
+
+interface AxisBandDatum {
+    readonly id: string;
+    readonly value: any;
+    readonly band: [number, number];
+    readonly position: number;
+}
 
 export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     readonly id = createId(this);
@@ -61,7 +70,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
     });
     private readonly rangeNode: _ModuleSupport.Range<any> = this.bandHighlightGroup.appendChild(new Range());
 
-    private activeAxisHighlight?: _ModuleSupport.AxisBandDatum = undefined;
+    private activeAxisHighlight?: AxisBandDatum = undefined;
     constructor(private readonly ctx: _ModuleSupport.ModuleContextWithParent<_ModuleSupport.AxisContext>) {
         super();
 
@@ -91,7 +100,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
             animationManager.addListener('animation-start', () => this.clearAllHighlight()),
 
             eventsHub.on('layout:complete', (event) => this.layout(event)),
-            eventsHub.on('series:focus-change', () => this.onKeyPress()),
+            eventsHub.on('highlight:change', (event) => this.highlightChange(event)),
             eventsHub.on('zoom:pan-start', () => this.clearAllHighlight()),
             eventsHub.on('zoom:change', () => this.clearAllHighlight()),
             eventsHub.on('dom:resize', () => this.clearAllHighlight()),
@@ -123,9 +132,9 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
         this.onHighlightChange();
     }
 
-    private onKeyPress() {
-        if (this.ctx.interactionManager.isState(InteractionState.Default)) {
-            this.onHighlightChange();
+    private highlightChange(event: _ModuleSupport.HighlightChangeEvent) {
+        if (event.currentHighlight) {
+            this.onHighlightChange(this.getBand((event.currentHighlight as any).xValue));
         }
     }
 
@@ -140,7 +149,32 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
 
         const { currentX: x, currentY: y } = event;
 
-        this.onHighlightChange(this.axisCtx.pickBand({ x, y }));
+        const { axisCtx } = this;
+        const isVertical = axisCtx.direction === ChartAxisDirection.Y;
+        const value = axisCtx.scale.invert(isVertical ? y : x, true);
+        const band = value != null ? this.getBand(value) : undefined;
+        this.onHighlightChange(band);
+    }
+
+    private getBand(value: any): AxisBandDatum | undefined {
+        const { scale } = this.axisCtx;
+
+        if (!BandScale.is(scale)) return;
+
+        const { bandwidth = 0, step = 0, range } = scale;
+        const offset = (step - bandwidth) / 2;
+
+        const position = scale.convert(value);
+
+        const start = position - offset;
+        const end = position + bandwidth + offset;
+
+        return {
+            id: this.id,
+            value,
+            band: [clampArray(start, range), clampArray(end, range)],
+            position,
+        };
     }
 
     private layout({ series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
@@ -195,15 +229,15 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
         return this.axisCtx.direction === ChartAxisDirection.X;
     }
 
-    private onHighlightChange(axisBandDatum?: _ModuleSupport.AxisBandDatum) {
+    private onHighlightChange(axisBandDatum?: AxisBandDatum) {
         if (!this.enabled) return;
 
         this.activeAxisHighlight = axisBandDatum;
 
-        if (!this.activeAxisHighlight) {
-            this.hideBand();
-        } else {
+        if (this.activeAxisHighlight) {
             this.showBand();
+        } else {
+            this.hideBand();
         }
 
         this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
@@ -212,7 +246,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
     private updateBandPosition() {
         const { rangeNode, bounds } = this;
 
-        const { band } = this.activeAxisHighlight ?? {};
+        const band = this.activeAxisHighlight?.band;
 
         if (band == undefined) {
             this.hideBand();
