@@ -44,7 +44,7 @@ const headings = [
     showDocsNav={true}
     showSearchBar={true}
 >
-    <div class:list={['contentViewport layout-grid']}>
+    <div class:list={[docsStyles.contentViewport, 'layout-grid']}>
         <DocsNavFromLocalStorage client:load menuData={docsNavData} pageName={pageName} />
 
         <div class={docsStyles.docPage}>
