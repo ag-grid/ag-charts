@@ -3,7 +3,7 @@ import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../c
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Opacity, PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { CssColor, DatumKey, Opacity, PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -71,9 +71,9 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = TDatumDefault, TContext
 
 export interface AgFunnelSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve stage values from the data. */
-    stageKey: TDatum extends object ? keyof TDatum & string : string;
+    stageKey: DatumKey<TDatum>;
     /** The key to use to retrieve values from the data. */
-    valueKey: TDatum extends object ? keyof TDatum & string : string;
+    valueKey: DatumKey<TDatum>;
 }
 
 export interface AgFunnelSeriesOptionsNames {}

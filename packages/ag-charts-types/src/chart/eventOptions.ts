@@ -1,6 +1,6 @@
 import type { AgAnnotation } from './annotationsOptions';
 import type { Listener } from './callbackOptions';
-import type { Ratio, TContextDefault, TDatumDefault } from './types';
+import type { DatumKey, Ratio, TContextDefault, TDatumDefault } from './types';
 import type { AgAutoScaledAxes } from './zoomOptions';
 
 interface AgChartEvent<T extends string, TContext = TContextDefault> {
@@ -24,23 +24,23 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = TCon
     /** Datum from the chart or series data array. */
     datum: TDatum;
     /** xKey as specified on series options */
-    xKey?: TDatum extends object ? keyof TDatum & string : string;
+    xKey?: DatumKey<TDatum>;
     /** yKey as specified on series options */
-    yKey?: TDatum extends object ? keyof TDatum & string : string;
+    yKey?: DatumKey<TDatum>;
     /** sizeKey as specified on series options */
-    sizeKey?: TDatum extends object ? keyof TDatum & string : string;
+    sizeKey?: DatumKey<TDatum>;
     /** labelKey as specified on series options */
-    labelKey?: TDatum extends object ? keyof TDatum & string : string;
+    labelKey?: DatumKey<TDatum>;
     /** colorKey as specified on series options */
-    colorKey?: TDatum extends object ? keyof TDatum & string : string;
+    colorKey?: DatumKey<TDatum>;
     /** angleKey as specified on series options */
-    angleKey?: TDatum extends object ? keyof TDatum & string : string;
+    angleKey?: DatumKey<TDatum>;
     /** calloutLabelKey as specified on series options */
-    calloutLabelKey?: TDatum extends object ? keyof TDatum & string : string;
+    calloutLabelKey?: DatumKey<TDatum>;
     /** sectorLabelKey as specified on series options */
-    sectorLabelKey?: TDatum extends object ? keyof TDatum & string : string;
+    sectorLabelKey?: DatumKey<TDatum>;
     /** radiusKey as specified on series options */
-    radiusKey?: TDatum extends object ? keyof TDatum & string : string;
+    radiusKey?: DatumKey<TDatum>;
 }
 
 export interface AgSeriesVisibilityChange<TContext = TContextDefault> {

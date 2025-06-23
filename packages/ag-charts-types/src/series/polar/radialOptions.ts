@@ -1,7 +1,7 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { DatumKey, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesThemeableOptions, AgMultiSeriesHighlightOptions } from '../seriesOptions';
 
@@ -25,9 +25,9 @@ export interface AgRadialHighlightStyleOptions extends AgRadialSeriesStyle {
 
 export interface AgRadialSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve angle values from the data. */
-    angleKey: TDatum extends object ? keyof TDatum & string : string;
+    angleKey: DatumKey<TDatum>;
     /** The key to use to retrieve radius values from the data. */
-    radiusKey: TDatum extends object ? keyof TDatum & string : string;
+    radiusKey: DatumKey<TDatum>;
 }
 
 export interface AgRadialSeriesOptionsNames {

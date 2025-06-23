@@ -2,7 +2,16 @@ import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../c
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Degree, Opacity, PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
+import type {
+    CssColor,
+    DatumKey,
+    Degree,
+    Opacity,
+    PixelSize,
+    Ratio,
+    TContextDefault,
+    TDatumDefault,
+} from '../../chart/types';
 import type {
     AgColorType,
     FillOptions,
@@ -125,15 +134,15 @@ export interface AgPieSeriesOptions<TDatum = TDatumDefault, TContext = TContextD
 
 export interface AgPieSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve angle values from the data. */
-    angleKey: TDatum extends object ? keyof TDatum & string : string;
+    angleKey: DatumKey<TDatum>;
     /** The key to use to retrieve radius values from the data. */
-    radiusKey?: TDatum extends object ? keyof TDatum & string : string;
+    radiusKey?: DatumKey<TDatum>;
     /** The key to use to retrieve label values from the data. */
-    calloutLabelKey?: TDatum extends object ? keyof TDatum & string : string;
+    calloutLabelKey?: DatumKey<TDatum>;
     /** The key to use to retrieve sector label values from the data. */
-    sectorLabelKey?: TDatum extends object ? keyof TDatum & string : string;
+    sectorLabelKey?: DatumKey<TDatum>;
     /** The key to use to retrieve legend item labels from the data. If multiple pie series share this key they will be merged in the legend. */
-    legendItemKey?: TDatum extends object ? keyof TDatum & string : string;
+    legendItemKey?: DatumKey<TDatum>;
 }
 
 export interface AgPieSeriesOptionsNames {

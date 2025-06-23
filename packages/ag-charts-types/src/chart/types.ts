@@ -101,3 +101,5 @@ export type GeoJSON = any;
 export type TDatumDefault = any;
 
 export type TContextDefault = unknown;
+
+export type DatumKey<TDatum> = TDatum extends object ? keyof TDatum & string : string;

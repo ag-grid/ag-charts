@@ -2,7 +2,7 @@ import type { ContextCallbackParams, DatumItemCallbackParams, Renderer, Styler }
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
-import type { CssColor, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { CssColor, DatumKey, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
@@ -72,9 +72,9 @@ export interface AgWaterfallSeriesThemeableOptions<TDatum = TDatumDefault, TCont
 
 export interface AgWaterfallSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: TDatum extends object ? keyof TDatum & string : string;
+    xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-values from the data. */
-    yKey: TDatum extends object ? keyof TDatum & string : string;
+    yKey: DatumKey<TDatum>;
 }
 
 export interface AgWaterfallSeriesOptionsNames {

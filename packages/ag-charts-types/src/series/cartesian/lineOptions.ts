@@ -2,7 +2,7 @@ import type { ContextCallbackParams } from '../../chart/callbackOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { Opacity, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { DatumKey, Opacity, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type {
@@ -54,9 +54,9 @@ export interface AgLineHighlightStyleOptions extends StrokeOptions, LineDashOpti
 
 export interface AgLineSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: TDatum extends object ? keyof TDatum & string : string;
+    xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-values from the data. */
-    yKey: TDatum extends object ? keyof TDatum & string : string;
+    yKey: DatumKey<TDatum>;
 }
 
 export interface AgLineSeriesMarkerItemStylerParams<TDatum = TDatumDefault, TContext = TContextDefault>
