@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Canvas, CanvasRenderingContext2D, ExportFormat, Image } from 'skia-canvas';
+import * as SkiaCanvas from 'skia-canvas';
+import { Canvas, ExportFormat } from 'skia-canvas';
 
 import { mockCanvasText } from './mock-canvas-text';
+
+// Something is causing this to not be imported as a value
+const { CanvasRenderingContext2D } = SkiaCanvas as any;
 
 export class ConfiguredCanvas extends Canvas {
     constructor(width: number, height: number) {
@@ -20,6 +24,16 @@ export class ConfiguredCanvas extends Canvas {
         return bitmap;
     }
 }
+
+// https://github.com/samizdatco/skia-canvas/issues/241
+const superCreateConicGradient = CanvasRenderingContext2D.prototype.createConicGradient;
+Object.defineProperty(CanvasRenderingContext2D.prototype, 'createConicGradient', {
+    value: function (this: CanvasRenderingContext2D, angle: number, x: number, y: number) {
+        return superCreateConicGradient.call(this, angle + Math.PI / 2, x, y);
+    },
+    writable: true,
+    configurable: true,
+});
 
 export class MockContext {
     ctx: {
