@@ -41,7 +41,7 @@ export class RadarAreaSeries extends RadarSeries {
     }
 
     protected getAreaNode() {
-        return this.areaSelection.at(0)!;
+        return this.areaSelection.at(0);
     }
 
     protected override getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
@@ -50,8 +50,6 @@ export class RadarAreaSeries extends RadarSeries {
 
     protected override updatePathNodes() {
         super.updatePathNodes();
-
-        const areaNode = this.getAreaNode();
 
         const { fill, fillOpacity, opacity } = mergeDefaults(this.getHighlightStyle(), this.properties);
 
@@ -62,27 +60,34 @@ export class RadarAreaSeries extends RadarSeries {
             this.properties.fillImageDefaults
         );
 
-        applyShapeStyle(
-            areaNode,
-            {
-                fill: seriesFill,
-                fillOpacity: seriesFillOpacity,
-                stroke: undefined,
-            },
-            undefined,
-            this.getShapeFillBBox()
-        );
+        const areaNode = this.getAreaNode();
+        if (areaNode) {
+            applyShapeStyle(
+                areaNode,
+                {
+                    fill: seriesFill,
+                    fillOpacity: seriesFillOpacity,
+                    stroke: undefined,
+                },
+                undefined,
+                this.getShapeFillBBox()
+            );
 
-        areaNode.setProperties({
-            lineJoin: 'round',
-            pointerEvents: PointerEvents.None,
-            opacity,
-        });
+            areaNode.setProperties({
+                lineJoin: 'round',
+                pointerEvents: PointerEvents.None,
+                opacity,
+            });
+        }
     }
 
     protected override animatePaths(ratio: number) {
         super.animatePaths(ratio);
-        this.animateSinglePath(this.getAreaNode(), this.getAreaPoints(), ratio);
+
+        const areaNode = this.getAreaNode();
+        if (areaNode) {
+            this.animateSinglePath(areaNode, this.getAreaPoints(), ratio);
+        }
     }
 
     private getAreaPoints(): RadarPathPoint[] {
