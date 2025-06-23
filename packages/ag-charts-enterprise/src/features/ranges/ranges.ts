@@ -73,7 +73,9 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
 
         const { value } = button;
 
-        if (typeof value === 'number') {
+        if (value == null) {
+            zoomManager.resetZoom('zoom-buttons');
+        } else if (typeof value === 'number') {
             zoomManager.extendToEnd('zoom-buttons', ChartAxisDirection.X, value);
         } else if (Array.isArray(value)) {
             zoomManager.updateWith('zoom-buttons', ChartAxisDirection.X, () => value);

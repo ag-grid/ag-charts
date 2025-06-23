@@ -10,6 +10,6 @@ export interface AgRangesButton extends ToolbarButton {
     value: AgRangesButtonValue;
 }
 
-export type AgRangesButtonValue = number | AgRangesButtonValuePair | AgRangesButtonValueFunction;
+export type AgRangesButtonValue = number | AgRangesButtonValuePair | AgRangesButtonValueFunction | undefined;
 export type AgRangesButtonValuePair = [Date | number, Date | number];
 export type AgRangesButtonValueFunction = (start: Date | number, end: Date | number) => [Date | number, Date | number];
