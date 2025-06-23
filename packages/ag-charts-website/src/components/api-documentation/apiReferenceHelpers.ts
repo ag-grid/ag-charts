@@ -155,7 +155,8 @@ export function processMembers(
                 memberType = memberTypeArguments[0];
                 omit = memberTypeArguments[1];
             }
-            return genericsMap.has(memberType) ? { ...member, type: genericsMap.get(memberType), omit } : member;
+            const genericType = resolveGenericType(memberType, genericsMap);
+            return genericType ? { ...member, type: genericType, omit } : member;
         }
         return member;
     });
@@ -469,19 +470,10 @@ export function extractSearchData(
     return [];
 }
 
-type RequiredRefs =
-    | { typeNamesNotFound: string[] }
-    | {
-          axesRef: ApiReferenceNode;
-          seriesRef: ApiReferenceNode;
-          annotationRef: ApiReferenceNode;
-          miniChartSeriesRef: ApiReferenceNode;
-      };
-
-function findRequiredRefs(reference: ApiReferenceType): RequiredRefs {
+function findRequiredRefs(reference: ApiReferenceType) {
     const typeNamesNotFound: string[] = [];
     const tryGet = (typeName: string) => {
-        const result: ApiReferenceNode | undefined = reference.get(typeName);
+        const result = reference.get(typeName);
         if (result == null) {
             typeNamesNotFound.push(typeName);
         }
@@ -493,11 +485,10 @@ function findRequiredRefs(reference: ApiReferenceType): RequiredRefs {
     const annotationRef = tryGet('AgAnnotation')!;
     const miniChartSeriesRef = tryGet('AgMiniChartSeriesOptions')!;
 
-    if (axesRef && seriesRef && annotationRef && miniChartSeriesRef) {
-        return { axesRef, seriesRef, annotationRef, miniChartSeriesRef };
-    } else {
-        return { typeNamesNotFound };
+    if (!axesRef || !seriesRef || !annotationRef || !miniChartSeriesRef) {
+        throw new Error(`Cannot find types: ${typeNamesNotFound.join(', ')}`);
     }
+    return { axesRef, seriesRef, annotationRef, miniChartSeriesRef };
 }
 
 export function getOptionsStaticPaths(reference: ApiReferenceType) {
@@ -530,12 +521,7 @@ export function getOptionsStaticPaths(reference: ApiReferenceType) {
         };
     };
 
-    const requiredRefs = findRequiredRefs(reference);
-    if ('typeNamesNotFound' in requiredRefs) {
-        throw new Error('Cannot find types: ' + requiredRefs.typeNamesNotFound.join(', '));
-    }
-    const { axesRef, seriesRef, annotationRef, miniChartSeriesRef } = requiredRefs;
-
+    const { axesRef, seriesRef, annotationRef, miniChartSeriesRef } = findRequiredRefs(reference);
     return [
         ...getSubTypes(axesRef).map(createPageMapper('axes')),
         ...getSubTypes(seriesRef).map(createPageMapper('series')),
@@ -555,4 +541,14 @@ export function getThemesApiStaticPaths(reference: ApiReferenceType) {
         params: { memberName: member.name.replaceAll("'", '') },
         props: { pageInterface: member.type, pageTitle: { name: member.name.replaceAll("'", '') } },
     }));
+}
+
+function resolveGenericType(type: string, genericsMap: Map<unknown, unknown>): string | null {
+    let resolvedType = type;
+    while (genericsMap.has(resolvedType)) {
+        const genericType = genericsMap.get(resolvedType);
+        if (genericType === resolvedType) break;
+        resolvedType = genericType as string;
+    }
+    return resolvedType === type ? null : resolvedType;
 }
