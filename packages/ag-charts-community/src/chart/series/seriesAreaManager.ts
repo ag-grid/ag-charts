@@ -176,7 +176,8 @@ export class SeriesAreaManager extends BaseManager {
         datum: undefined as SeriesNodeDatum<unknown> | undefined,
     };
 
-    private cachedTooltipContent: { series: any; datumIndex: any; content: TooltipContent[] } | undefined = undefined;
+    private cachedTooltipContent: { series: any; datumIndex: any; content: TooltipContent[] | undefined } | undefined =
+        undefined;
 
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
@@ -869,8 +870,8 @@ export class SeriesAreaManager extends BaseManager {
         canvasY: number,
         pagination?: TooltipPaginationState
     ) {
-        const content = this.getTooltipContent(series, datumIndex, datum);
-        const shouldUpdateTooltip = content != null;
+        const tooltipContent = this.getTooltipContent(series, datumIndex, datum);
+        const shouldUpdateTooltip = tooltipContent != null;
         if (shouldUpdateTooltip) {
             const meta = TooltipManager.makeTooltipMeta(
                 { type: 'pointermove', canvasX, canvasY },
@@ -878,7 +879,7 @@ export class SeriesAreaManager extends BaseManager {
                 datum,
                 undefined
             );
-            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content, pagination);
+            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent, pagination);
         } else {
             this.chart.ctx.tooltipManager.removeTooltip(this.id);
         }
@@ -972,7 +973,8 @@ export class SeriesAreaManager extends BaseManager {
         ) {
             return cachedTooltipContent.content;
         } else {
-            const content = this.chart.getTooltipContent(series, datumIndex, datum);
+            let content: TooltipContent[] | undefined = this.chart.getTooltipContent(series, datumIndex, datum);
+            if (content.length === 0) content = undefined;
             this.cachedTooltipContent = { series, datumIndex, content };
             return content;
         }
