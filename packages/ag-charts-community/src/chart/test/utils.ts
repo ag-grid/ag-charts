@@ -657,7 +657,7 @@ export function spyOnAnimationManager() {
                 const { animationDelay } = PHASE_METADATA[phase];
 
                 // Account for phase notional starting offset.
-                let updateBy = animateParameters[0] * animateParameters[1];
+                let updateBy = Math.max(animateParameters[0] * animateParameters[1], 0.0001);
                 updateBy -= animationDelay * defaultDuration;
 
                 controller.update(updateBy);
