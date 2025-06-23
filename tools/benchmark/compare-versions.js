@@ -26,6 +26,12 @@ const argv = yargs(hideBin(process.argv))
         default: currentBranchName() ?? 'latest',
         description: 'Version to compare.',
     })
+    .option('full', {
+        alias: 'F',
+        type: 'boolean',
+        default: false,
+        description: 'Include all tests results.',
+    })
     .option('report-only', {
         type: 'boolean',
         default: false,
@@ -126,6 +132,7 @@ function isCritical(result) {
         return false;
     }
 
+    if (argv.full) return true;
     if (afterMs > beforeMs) return true;
     if (afterMB > beforeMB) return true;
 
@@ -177,17 +184,15 @@ if (argv.format === 'table') {
         console.table(baseline, ['test', 'pctTimeChange', 'beforeMs', 'afterMs']);
     }
 
+    const rankedByTimeOutput = argv.full ? rankedByTime : [...rankedByTime.slice(0, 5), {}, ...rankedByTime.slice(-5)];
     console.log('Time');
-    console.table(
-        [...rankedByTime.slice(0, 5), {}, ...rankedByTime.slice(-5)],
-        ['test', 'pctTimeChange', 'beforeMs', 'afterMs']
-    );
+    console.table(rankedByTimeOutput, ['test', 'pctTimeChange', 'beforeMs', 'afterMs']);
 
+    const rankedByMemoryOutput = argv.full
+        ? rankedByMemory
+        : [...rankedByMemory.slice(0, 5), {}, ...rankedByMemory.slice(-5)];
     console.log('Memory');
-    console.table(
-        [...rankedByMemory.slice(0, 5), {}, ...rankedByMemory.slice(-5)],
-        ['test', 'pctMemoryChange', 'beforeMB', 'afterMB']
-    );
+    console.table(rankedByMemoryOutput, ['test', 'pctMemoryChange', 'beforeMB', 'afterMB']);
 } else if (argv.format === 'json') {
     console.log(
         JSON.stringify(
