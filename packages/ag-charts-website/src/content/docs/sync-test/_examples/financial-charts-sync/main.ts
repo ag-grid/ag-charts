@@ -2,8 +2,6 @@ import { AgCharts, AgFinancialChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-(window as any).agChartsDebug = 'sync';
-
 const commonOptions: AgFinancialChartOptions = {
     minWidth: 0,
     minHeight: 0,
