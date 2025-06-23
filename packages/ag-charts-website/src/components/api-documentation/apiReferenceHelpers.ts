@@ -546,7 +546,9 @@ export function getThemesApiStaticPaths(reference: ApiReferenceType) {
 function resolveGenericType(type: string, genericsMap: Map<unknown, unknown>): string | null {
     let resolvedType = type;
     while (genericsMap.has(resolvedType)) {
-        resolvedType = genericsMap.get(resolvedType) as string;
+        const genericType = genericsMap.get(resolvedType);
+        if (genericType === resolvedType) break;
+        resolvedType = genericType as string;
     }
     return resolvedType === type ? null : resolvedType;
 }
