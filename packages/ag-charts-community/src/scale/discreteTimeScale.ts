@@ -75,7 +75,7 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
                 const p = this.ordinalRange(i);
                 return p >= position;
             });
-            index = closestIndex ?? 0;
+            index = closestIndex ?? bands.length - 1;
         }
 
         return bands[reversed ? bands.length - 1 - index : index];
