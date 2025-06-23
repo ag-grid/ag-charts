@@ -329,7 +329,7 @@ export function getData() {
             volume: 14417900,
         },
         {
-            date: new Date(2024, 3),
+            date: new Date(2024, 5, 3),
             open: 202.309998,
             high: 202.419998,
             low: 199.190002,
@@ -337,7 +337,7 @@ export function getData() {
             volume: 6444300,
         },
         {
-            date: new Date(2024, 4),
+            date: new Date(2024, 5, 4),
             open: 200.160004,
             high: 201.979996,
             low: 198.279999,
@@ -345,7 +345,7 @@ export function getData() {
             volume: 6848300,
         },
         {
-            date: new Date(2024, 5),
+            date: new Date(2024, 5, 5),
             open: 199.759995,
             high: 199.820007,
             low: 196.919998,
@@ -353,7 +353,7 @@ export function getData() {
             volume: 8351600,
         },
         {
-            date: new Date(2024, 6),
+            date: new Date(2024, 5, 6),
             open: 197.259995,
             high: 198.020004,
             low: 195.330002,
@@ -361,7 +361,7 @@ export function getData() {
             volume: 7640300,
         },
         {
-            date: new Date(2024, 7),
+            date: new Date(2024, 5, 7),
             open: 197.429993,
             high: 200.919998,
             low: 197.009995,
@@ -369,7 +369,7 @@ export function getData() {
             volume: 6964500,
         },
         {
-            date: new Date(2024, 6, 10),
+            date: new Date(2024, 5, 10),
             open: 199.240005,
             high: 200.839996,
             low: 198.440002,
@@ -377,7 +377,7 @@ export function getData() {
             volume: 6071200,
         },
         {
-            date: new Date(2024, 6, 11),
+            date: new Date(2024, 5, 11),
             open: 197.910004,
             high: 197.940002,
             low: 193.600006,
@@ -385,7 +385,7 @@ export function getData() {
             volume: 9235300,
         },
         {
-            date: new Date(2024, 6, 12),
+            date: new Date(2024, 5, 12),
             open: 196,
             high: 196.720001,
             low: 191.309998,
@@ -393,7 +393,7 @@ export function getData() {
             volume: 12751300,
         },
         {
-            date: new Date(2024, 6, 13),
+            date: new Date(2024, 5, 13),
             open: 192.320007,
             high: 194.580002,
             low: 190.880005,
@@ -401,7 +401,7 @@ export function getData() {
             volume: 8587800,
         },
         {
-            date: new Date(2024, 6, 14),
+            date: new Date(2024, 5, 14),
             open: 191.449997,
             high: 194.860001,
             low: 191.419998,
@@ -409,7 +409,7 @@ export function getData() {
             volume: 6874000,
         },
         {
-            date: new Date(2024, 6, 17),
+            date: new Date(2024, 5, 17),
             open: 193.479996,
             high: 195.580002,
             low: 192.639999,
@@ -417,7 +417,7 @@ export function getData() {
             volume: 8725400,
         },
         {
-            date: new Date(2024, 6, 18),
+            date: new Date(2024, 5, 18),
             open: 194.600006,
             high: 197.960007,
             low: 194.130005,
@@ -425,7 +425,7 @@ export function getData() {
             volume: 9023000,
         },
         {
-            date: new Date(2024, 6, 20),
+            date: new Date(2024, 5, 20),
             open: 196.389999,
             high: 199.449997,
             low: 196.110001,
@@ -433,7 +433,7 @@ export function getData() {
             volume: 8731100,
         },
         {
-            date: new Date(2024, 6, 21),
+            date: new Date(2024, 5, 21),
             open: 196.710007,
             high: 197.169998,
             low: 194.220001,
@@ -441,7 +441,7 @@ export function getData() {
             volume: 20972500,
         },
         {
-            date: new Date(2024, 6, 24),
+            date: new Date(2024, 5, 24),
             open: 197.809998,
             high: 199.229996,
             low: 197.100006,
@@ -449,7 +449,7 @@ export function getData() {
             volume: 9785900,
         },
         {
-            date: new Date(2024, 6, 25),
+            date: new Date(2024, 5, 25),
             open: 198.089996,
             high: 200.070007,
             low: 197.740005,
@@ -457,7 +457,7 @@ export function getData() {
             volume: 6915900,
         },
         {
-            date: new Date(2024, 6, 26),
+            date: new Date(2024, 5, 26),
             open: 197.449997,
             high: 197.940002,
             low: 196.279999,
@@ -465,7 +465,7 @@ export function getData() {
             volume: 7758600,
         },
         {
-            date: new Date(2024, 6, 27),
+            date: new Date(2024, 5, 27),
             open: 197.440002,
             high: 199.860001,
             low: 196.899994,
@@ -473,7 +473,7 @@ export function getData() {
             volume: 7913500,
         },
         {
-            date: new Date(2024, 6, 28),
+            date: new Date(2024, 5, 28),
             open: 200.009995,
             high: 202.600006,
             low: 199.300003,
