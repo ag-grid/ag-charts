@@ -162,14 +162,21 @@ export class GroupedCategoryAxis extends CategoryAxis {
     private computeLayout() {
         this.updateDirection();
         this.updateScale();
+
+        const { step } = this.scale;
+        const { title, label, range, depthOptions, horizontal, line } = this;
+
+        this.lineNode.datum = horizontal
+            ? { x1: range[0], x2: range[1], y1: 0, y2: 0 }
+            : { x1: 0, x2: 0, y1: range[0], y2: range[1] };
+        this.lineNode.setProperties({ stroke: line.stroke, strokeWidth: line.enabled ? line.width : 0 });
+
         this.resizeTickTree();
 
         if (!this.tickTreeLayout?.depth) {
             return { bbox: BBox.zero, spacing: 0, separatorLayout: [], tickLabelLayout: [] };
         }
 
-        const { step } = this.scale;
-        const { title, label, range, depthOptions, horizontal } = this;
         const { depth: maxDepth, nodes: treeLabels } = this.tickTreeLayout;
 
         const keepEvery = Math.ceil(label.fontSize / step);
@@ -326,12 +333,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
             });
             labelBBoxes.set(index, Transformable.toCanvas(tempText));
         });
-
-        const { enabled, stroke, width } = this.line;
-        this.lineNode.datum = horizontal
-            ? { x1: range[0], x2: range[1], y1: 0, y2: 0 }
-            : { x1: 0, x2: 0, y1: range[0], y2: range[1] };
-        this.lineNode.setProperties({ stroke, strokeWidth: enabled ? width : 0 });
 
         const separatorLayout = [...separatorData.values()];
         separatorLayout.push(separatorLayout[0]);
