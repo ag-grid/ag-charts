@@ -203,47 +203,49 @@ export class AnimationManager {
 
         let prevTime: number;
         const onAnimationFrame = async (time: number) => {
-            const executeAnimationFrame = () => {
-                const deltaTime = time - (prevTime ?? time);
+            await this.debug.group('AnimationManager.onAnimationFrame()', async () => {
+                const executeAnimationFrame = () => {
+                    const deltaTime = time - (prevTime ?? time);
 
-                prevTime = time;
+                    prevTime = time;
 
-                this.debug('AnimationManager - onAnimationFrame()', {
-                    controllersCount: this.batch.size,
-                    deltaTime,
-                });
+                    this.debug('AnimationManager', {
+                        controllersCount: this.batch.size,
+                        deltaTime,
+                    });
 
-                this.interactionManager.pushState(InteractionState.Animation);
+                    this.interactionManager.pushState(InteractionState.Animation);
 
-                try {
-                    this.batch.progress(deltaTime);
-                } catch (error: unknown) {
-                    this.failsafeOnError(error);
+                    try {
+                        this.batch.progress(deltaTime);
+                    } catch (error: unknown) {
+                        this.failsafeOnError(error);
+                    }
+
+                    this.events.emit('animation-frame', {
+                        type: 'animation-frame',
+                        deltaMs: deltaTime,
+                    });
+                };
+
+                if (this.isSkippingFrames()) {
+                    // Only run the animation frame if we can acquire the chart update mutex immediately.
+                    await this.chartUpdateMutex.acquireImmediately(executeAnimationFrame);
+                } else {
+                    // Wait for the next available point we can execute.
+                    await this.chartUpdateMutex.acquire(executeAnimationFrame);
                 }
 
-                this.events.emit('animation-frame', {
-                    type: 'animation-frame',
-                    deltaMs: deltaTime,
-                });
-            };
-
-            if (this.isSkippingFrames()) {
-                // Only run the animation frame if we can acquire the chart update mutex immediately.
-                await this.chartUpdateMutex.acquireImmediately(executeAnimationFrame);
-            } else {
-                // Wait for the next available point we can execute.
-                await this.chartUpdateMutex.acquire(executeAnimationFrame);
-            }
-
-            if (this.batch.isActive()) {
-                this.scheduleAnimationFrame(onAnimationFrame);
-            } else {
-                this.batch.stop();
-                this.events.emit('animation-stop', {
-                    type: 'animation-stop',
-                    deltaMs: this.batch.consumedTimeMs,
-                });
-            }
+                if (this.batch.isActive()) {
+                    this.scheduleAnimationFrame(onAnimationFrame);
+                } else {
+                    this.batch.stop();
+                    this.events.emit('animation-stop', {
+                        type: 'animation-stop',
+                        deltaMs: this.batch.consumedTimeMs,
+                    });
+                }
+            });
         };
 
         this.events.emit('animation-start', {

@@ -1,5 +1,5 @@
 import type { AnimationManager } from '../chart/interaction/animationManager';
-import type { Path } from '../scene/shape/path';
+import { Path } from '../scene/shape/path';
 import * as easing from './easing';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from './fromToMotion';
 
@@ -23,16 +23,19 @@ export function pathMotion(
         removePhaseFn: (ratio: number, path: Path) => void;
     }
 ) {
-    const { addPhaseFn, updatePhaseFn, removePhaseFn } = fns;
-
-    const animate = (phase: NodeUpdateState, path: Path, updateFn: (ratio: number, path: Path) => void) => {
+    const animate = (
+        phase: NodeUpdateState,
+        path: Path,
+        collapsable: boolean,
+        updateFn: (ratio: number, path: Path) => void
+    ) => {
         animationManager.animate({
             id: `${groupId}_${subId}_${path.id}_${phase}`,
             groupId,
-            from: 0,
+            from: collapsable ? 1 : 0,
             to: 1,
             ease: easing.easeOut,
-            collapsable: false,
+            collapsable,
             onUpdate(ratio, preInit) {
                 if (preInit && phase !== 'removed') return;
 
@@ -51,11 +54,22 @@ export function pathMotion(
         });
     };
 
+    const tempPath = new Path();
+    const resultsChange = (updateFn: (ratio: number, path: Path) => void) => {
+        tempPath.resetPathDirty();
+        updateFn(0, tempPath);
+        tempPath.resetPathDirty();
+        updateFn(1, tempPath);
+        tempPath.checkPathDirty();
+        return tempPath.isPathDirty();
+    };
+
+    const { addPhaseFn, updatePhaseFn, removePhaseFn } = fns;
     for (const path of paths) {
         if (!animationManager.isSkipped()) {
-            animate('removed', path, removePhaseFn);
-            animate('updated', path, updatePhaseFn);
+            animate('removed', path, !resultsChange(removePhaseFn), removePhaseFn);
+            animate('updated', path, !resultsChange(updatePhaseFn), updatePhaseFn);
         }
-        animate('added', path, addPhaseFn);
+        animate('added', path, !resultsChange(addPhaseFn), addPhaseFn);
     }
 }
