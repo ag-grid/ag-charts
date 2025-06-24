@@ -130,6 +130,8 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
             }
             return member;
         }),
+        typeParams: undefined,
+        genericsMap: undefined,
     };
 
     reference.set('AgChartOptions', altInterface);
