@@ -4,6 +4,7 @@ import sonarjs from 'eslint-plugin-sonarjs';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+import lintChangeDetection from './eslint-rules/change-detection.mjs';
 import requireExplicitGeneric from './eslint-rules/require-explicit-generic.mjs';
 
 let env = 'unknown';
@@ -111,6 +112,7 @@ export default [
             aglint: {
                 rules: {
                     'require-explicit-generic': requireExplicitGeneric,
+                    'change-detection': lintChangeDetection,
                 },
             },
         },

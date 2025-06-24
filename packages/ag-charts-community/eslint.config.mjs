@@ -9,6 +9,7 @@ export default [
         rules: {
             ...testDefaults.rules,
             'sonarjs/no-empty-test-file': 0,
+            'aglint/change-detection': 2,
         },
     },
 ];
