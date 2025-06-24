@@ -4,6 +4,7 @@ import {
     AgCategoryAxisOptions,
     AgCharts,
     AgNumberAxisOptions,
+    TextWrap,
 } from 'ag-charts-community';
 
 import { getData } from './data';
@@ -115,10 +116,10 @@ function autoCollisionDetection() {
     chart.update(options);
 }
 
-function wrapChange(e) {
+function wrapChange(e: Event) {
     const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
     const numberAxis = options.axes![1] as AgNumberAxisOptions;
-    const value = e.target.value;
+    const value = (e.target as HTMLInputElement).value as TextWrap;
 
     categoryAxis.label!.wrapping = value;
     numberAxis.label!.wrapping = value;
