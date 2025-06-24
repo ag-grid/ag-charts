@@ -938,4 +938,34 @@ describe('AreaSeries', () => {
             await compare();
         });
     });
+
+    describe('CRT-859', () => {
+        it('should render undefined points correctly', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: -6 },
+                    { x: 1, y: 0 },
+                    { x: 2, y: undefined },
+                    { x: 3, y: -2 },
+                    { x: 4, y: -6 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        strokeWidth: 2,
+                        marker: {
+                            enabled: true,
+                        },
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });

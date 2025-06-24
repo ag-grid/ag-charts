@@ -86,7 +86,11 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = TContextDefault> ext
      * Default: `'on-space'`
      */
     wrapping?: TextWrap;
-    /** If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text. */
+    /**
+     * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
+     *
+     * @experimental
+     */
     truncate?: boolean;
 }
 
@@ -170,6 +174,13 @@ export interface AgGroupedCategoryAxisOptions<TContext = TContextDefault>
     tick?: AgGroupedCategoryAxisTickOptions;
     /** Configuration for the axis band highlight. */
     bandHighlight?: AgBandHighlightOptions;
+    /**
+     * The maximum thickness of the axis, as a ratio of the chart's width or height depending on axis direction.
+     * Used to prevent the axis from growing too large when labels or content are oversized.
+     *
+     * Default: `0.5`
+     */
+    maxThicknessRatio?: Ratio;
 }
 
 export interface AgTimeAxisOptions<TContext = TContextDefault>
