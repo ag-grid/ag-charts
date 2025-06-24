@@ -1,5 +1,5 @@
 import type { AgTimeIntervalUnit } from './axisOptions';
-import type { DatumKey, ContextDefault, DatumDefault } from './types';
+import type { ContextDefault, DatumDefault, DatumKey } from './types';
 
 export type FormatterPropertyType =
     | 'x'
