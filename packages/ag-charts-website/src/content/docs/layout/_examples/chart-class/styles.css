@@ -10,5 +10,4 @@
     background-color: color-mix(in srgb, var(--chart-bg), var(--chart-border) 10%);
     border: 1px solid var(--chart-border);
     overflow: hidden;
-    transform: translate3d(0, 0, 0);
 }
