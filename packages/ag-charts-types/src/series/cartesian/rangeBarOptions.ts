@@ -63,6 +63,8 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = TDatumDefault, TConte
     itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgRangeBarHighlightStyleOptions>;
+    /** Whether to group together (adjacently) separate bars. */
+    grouped?: boolean;
 }
 
 export interface AgRangeBarHighlightStyleOptions extends AgRangeBarSeriesStyle {

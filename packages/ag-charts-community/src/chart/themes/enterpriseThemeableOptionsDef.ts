@@ -484,6 +484,7 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
 
 export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
+    grouped: boolean,
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
     itemStyler: callbackDefs<AgRangeBarSeriesStyle>({
