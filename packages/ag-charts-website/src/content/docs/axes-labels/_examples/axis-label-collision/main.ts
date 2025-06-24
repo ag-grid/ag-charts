@@ -92,7 +92,7 @@ function shortLabels() {
 }
 
 function longLabels() {
-    (options.series![0] as AgBarSeriesOptions).xKey = 'athlete';
+    (options.series![0] as AgBarSeriesOptions).xKey = 'sportStar';
     chart.update(options);
 }
 
