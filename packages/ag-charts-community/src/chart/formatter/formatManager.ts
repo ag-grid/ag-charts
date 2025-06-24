@@ -1,9 +1,11 @@
 import { Logger, createNumberFormatter, isPlainObject, parseNumberFormat } from 'ag-charts-core';
 import {
     type AgTimeIntervalUnit,
+    type CategoryFormatterParams,
+    type DateFormatterParams,
     type DateFormatterStyle,
     type FormatterConfiguration,
-    type FormatterParams,
+    type NumberFormatterParams,
 } from 'ag-charts-types';
 
 import { formatValue } from '../../util/format.util';
@@ -12,9 +14,14 @@ import { simpleMemorize2 } from '../../util/memo';
 import { buildDateFormatter } from '../../util/timeFormat';
 import { defaultTimeFormats, deriveTimeSpecifier } from '../axis/timeFormatUtil';
 
+export type ContextlessFormatterParams =
+    | Omit<NumberFormatterParams<any, any>, 'context'>
+    | Omit<DateFormatterParams<any, any>, 'context'>
+    | Omit<CategoryFormatterParams<any, any>, 'context'>;
+
 export type ContextFormatter = (
-    fn: (params: FormatterParams<any>) => string | undefined,
-    params: FormatterParams<any>
+    fn: (params: ContextlessFormatterParams) => string | undefined,
+    params: ContextlessFormatterParams
 ) => string | undefined;
 
 type Specifier = Record<AgTimeIntervalUnit, string> | string;
@@ -101,7 +108,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
 
     format(
         formatInContext: ContextFormatter,
-        params: FormatterParams<any>,
+        params: ContextlessFormatterParams,
         { specifier, truncateDate }: FormatParams = {}
     ): string | undefined {
         if (params.value == null) return;
@@ -136,7 +143,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         return valueFormatter?.(params.value, params.type === 'number' ? params.fractionDigits : undefined);
     }
 
-    defaultFormat(params: FormatterParams<any>, { specifier, truncateDate }: FormatParams = {}): string {
+    defaultFormat(params: ContextlessFormatterParams, { specifier, truncateDate }: FormatParams = {}): string {
         const { formatter } = this;
         const propertyFormatter = typeof formatter === 'function' ? undefined : formatter?.[params.property];
 
