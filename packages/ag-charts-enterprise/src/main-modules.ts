@@ -8,7 +8,6 @@ import {
     RadiusCategoryAxisModule,
     RadiusNumberAxisModule,
 } from './axes/axisModules';
-import { FlowProportionChartModule } from './charts/flowProportionChartModule';
 import { StandaloneChartModule } from './charts/standaloneChartModule';
 import { TopologyChartModule } from './charts/topologyChartModule';
 import { AnnotationsModule, InitialStateModule, NavigatorModule } from './features/sync/pluginModules';
@@ -61,7 +60,6 @@ export {
     RadarLineSeriesModule,
     RadialBarSeriesModule,
     RadialColumnSeriesModule,
-    FlowProportionChartModule,
     ChordSeriesModule,
     SankeySeriesModule,
     LinearGaugeSeriesModule,
@@ -103,8 +101,6 @@ export const AllPolarEnterpriseModules = [
     RadialColumnSeriesModule,
 ];
 
-export const AllFlowProportionEnterpriseModules = [FlowProportionChartModule, ChordSeriesModule, SankeySeriesModule];
-
 export const AllStandaloneEnterpriseModules = [
     StandaloneChartModule,
     PyramidSeriesModule,
@@ -112,6 +108,8 @@ export const AllStandaloneEnterpriseModules = [
     RadialGaugeSeriesModule,
     SunburstSeriesModule,
     TreemapSeriesModule,
+    ChordSeriesModule,
+    SankeySeriesModule,
 ];
 
 export const AllTopologyEnterpriseModules = [
@@ -126,7 +124,6 @@ export const AllTopologyEnterpriseModules = [
 export const AllEnterpriseModules = [
     ...AllCartesianEnterpriseModules,
     ...AllPolarEnterpriseModules,
-    ...AllFlowProportionEnterpriseModules,
     ...AllStandaloneEnterpriseModules,
     ...AllTopologyEnterpriseModules,
 

@@ -61,9 +61,9 @@ export * from './series/cartesian/rangeAreaOptions';
 export * from './series/cartesian/rangeBarOptions';
 export * from './series/cartesian/scatterOptions';
 export * from './series/cartesian/waterfallOptions';
-export * from './series/flow-proportion/chordOptions';
-export * from './series/flow-proportion/flowProportionOptions';
-export * from './series/flow-proportion/sankeyOptions';
+export * from './series/standalone/chordOptions';
+export * from './series/standalone/flowProportionOptions';
+export * from './series/standalone/sankeyOptions';
 export * from './series/standalone/standaloneOptions';
 export * from './series/standalone/hierarchyOptions'; // Legacy
 export * from './series/standalone/pyramidOptions';

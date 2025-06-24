@@ -6,6 +6,6 @@ export const BackgroundModule: _ModuleSupport.RootModule = {
     type: 'root',
     optionsKey: 'background',
     packageType: 'enterprise',
-    chartTypes: ['cartesian', 'polar', 'topology', 'flow-proportion', 'standalone'],
+    chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
     moduleFactory: (ctx) => new Background(ctx),
 };

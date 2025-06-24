@@ -8,7 +8,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
-    chartTypes: ['flow-proportion'],
+    chartTypes: ['standalone'],
     solo: true,
 
     identifier: 'chord',
@@ -64,7 +64,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
 export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
     type: 'series',
     name: 'chord',
-    chartType: 'flow-proportion',
+    chartType: 'standalone',
     enterprise: true,
 
     options: chordSeriesOptionsDef,

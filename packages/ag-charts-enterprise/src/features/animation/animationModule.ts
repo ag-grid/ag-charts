@@ -6,7 +6,7 @@ export const AnimationModule: _ModuleSupport.Module = {
     type: 'root',
     optionsKey: 'animation',
     packageType: 'enterprise',
-    chartTypes: ['cartesian', 'polar', 'topology', 'flow-proportion', 'standalone'],
+    chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
     moduleFactory: (ctx) => new Animation(ctx),
     themeTemplate: {
         animation: {

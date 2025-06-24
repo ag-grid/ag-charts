@@ -1,20 +1,9 @@
 import { type ChartModuleDefinition } from 'ag-charts-core';
 
-import { isAgFlowProportionChartOptions, isAgStandaloneChartOptions, isAgTopologyChartOptions } from './mapping/types';
+import { isAgStandaloneChartOptions, isAgTopologyChartOptions } from './mapping/types';
 
 const placeholderCreate = () => {
     throw new Error('Enterprise module placeholder cannot be initialised');
-};
-
-export const FlowProportionChartModule: ChartModuleDefinition<any> = {
-    type: 'chart',
-    name: 'flow-proportion',
-    placeholder: true,
-
-    options: {},
-
-    detect: isAgFlowProportionChartOptions,
-    create: placeholderCreate,
 };
 
 export const StandaloneChartModule: ChartModuleDefinition<any> = {

@@ -2,8 +2,6 @@ import type {
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
     AgChartOptions,
-    AgFlowProportionChartOptions,
-    AgFlowProportionSeriesOptions,
     AgGaugeOptions,
     AgPolarChartOptions,
     AgPolarSeriesOptions,
@@ -16,7 +14,6 @@ import type {
 import { chartTypes } from '../factory/chartTypes';
 import {
     isEnterpriseCartesian,
-    isEnterpriseFlowProportion,
     isEnterprisePolar,
     isEnterpriseStandalone,
     isEnterpriseTopology,
@@ -26,7 +23,6 @@ export type SeriesOptionsTypes =
     | AgCartesianSeriesOptions
     | AgPolarSeriesOptions
     | AgTopologySeriesOptions
-    | AgFlowProportionSeriesOptions
     | AgStandaloneSeriesOptions
     | AgGaugeOptions;
 
@@ -50,11 +46,6 @@ export function isAgPolarChartOptions(input: AgChartOptions): input is AgPolarCh
 export function isAgTopologyChartOptions(input: AgChartOptions): input is AgTopologyChartOptions {
     const specifiedType = optionsType(input);
     return chartTypes.isTopology(specifiedType) || isEnterpriseTopology(specifiedType);
-}
-
-export function isAgFlowProportionChartOptions(input: AgChartOptions): input is AgFlowProportionChartOptions {
-    const specifiedType = optionsType(input);
-    return chartTypes.isFlowProportion(specifiedType) || isEnterpriseFlowProportion(specifiedType);
 }
 
 export function isAgStandaloneChartOptions(input: AgChartOptions): input is AgStandaloneChartOptions {

@@ -80,9 +80,6 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
     get topology(): ChartTypeConfig {
         return { seriesTypes: chartTypes.topologyTypes, commonOptions: [] };
     },
-    get 'flow-proportion'(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.flowProportionTypes, commonOptions: [] };
-    },
     get standalone(): ChartTypeConfig {
         return { seriesTypes: chartTypes.standaloneTypes, commonOptions: [] };
     },
@@ -630,7 +627,6 @@ export class ChartTheme {
             getOverridesByType('cartesian', chartTypes.cartesianTypes),
             getOverridesByType('polar', chartTypes.polarTypes),
             getOverridesByType('topology', chartTypes.topologyTypes),
-            getOverridesByType('flow-proportion', chartTypes.flowProportionTypes),
             getOverridesByType('standalone', chartTypes.standaloneTypes)
         );
     }

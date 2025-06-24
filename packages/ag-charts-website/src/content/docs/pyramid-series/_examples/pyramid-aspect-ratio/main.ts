@@ -1,4 +1,4 @@
-import { AgCharts, AgStandaloneChartOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgPyramidSeriesOptions, AgStandaloneChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -30,11 +30,11 @@ const options: AgStandaloneChartOptions = {
 const chart = AgCharts.create(options);
 
 function setDirection(direction: 'horizontal' | 'vertical') {
-    options.series![0].direction = direction;
+    (options.series![0] as AgPyramidSeriesOptions).direction = direction;
     chart.update(options);
 }
 
 function setAspectRatio(aspectRatio: number) {
-    options.series![0].aspectRatio = aspectRatio;
+    (options.series![0] as AgPyramidSeriesOptions).aspectRatio = aspectRatio;
     chart.update(options);
 }

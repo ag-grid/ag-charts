@@ -5,7 +5,7 @@ export const CommunityLegendModule: LegendModule = {
     type: 'legend',
     optionsKey: 'legend',
     identifier: 'category',
-    chartTypes: ['cartesian', 'polar', 'topology', 'flow-proportion', 'standalone'],
+    chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
     moduleFactory: (ctx) => new Legend(ctx),
     packageType: 'community',
     removable: 'standalone-only',

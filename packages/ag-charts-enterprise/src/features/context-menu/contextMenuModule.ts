@@ -5,7 +5,7 @@ import { ContextMenu } from './contextMenu';
 export const ContextMenuModule: _ModuleSupport.Module = {
     type: 'root',
     packageType: 'enterprise',
-    chartTypes: ['cartesian', 'polar', 'topology', 'flow-proportion', 'standalone'],
+    chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
     optionsKey: 'contextMenu',
     moduleFactory: (ctx) => new ContextMenu(ctx),
     themeTemplate: {

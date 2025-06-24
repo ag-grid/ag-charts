@@ -291,7 +291,7 @@ export function flowProportionChartAssertions(params?: { seriesTypes?: string[] 
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toEqual('FlowProportionChart');
+        expect(chart?.constructor?.name).toEqual('StandaloneChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };

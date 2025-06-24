@@ -18,12 +18,6 @@ import type { AgRangeAreaSeriesThemeableOptions } from '../series/cartesian/rang
 import type { AgRangeBarSeriesThemeableOptions } from '../series/cartesian/rangeBarOptions';
 import type { AgScatterSeriesThemeableOptions } from '../series/cartesian/scatterOptions';
 import type { AgWaterfallSeriesThemeableOptions } from '../series/cartesian/waterfallOptions';
-import type { AgChordSeriesThemeableOptions } from '../series/flow-proportion/chordOptions';
-import type {
-    AgBaseFlowProportionThemeOptions,
-    AgFlowProportionSeriesOptions,
-} from '../series/flow-proportion/flowProportionOptions';
-import type { AgSankeySeriesThemeableOptions } from '../series/flow-proportion/sankeyOptions';
 import type { AgDonutSeriesThemeableOptions } from '../series/polar/donutOptions';
 import type { AgNightingaleSeriesThemeableOptions } from '../series/polar/nightingaleOptions';
 import type { AgPieSeriesThemeableOptions } from '../series/polar/pieOptions';
@@ -31,7 +25,10 @@ import type { AgRadarAreaSeriesThemeableOptions } from '../series/polar/radarAre
 import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
+import type { AgChordSeriesThemeableOptions } from '../series/standalone/chordOptions';
+import type { AgFlowProportionSeriesOptions } from '../series/standalone/flowProportionOptions';
 import type { AgPyramidSeriesThemeableOptions } from '../series/standalone/pyramidOptions';
+import type { AgSankeySeriesThemeableOptions } from '../series/standalone/sankeyOptions';
 import type { AgBaseStandaloneThemeOptions, AgStandaloneSeriesOptions } from '../series/standalone/standaloneOptions';
 import type { AgSunburstSeriesThemeableOptions } from '../series/standalone/sunburstOptions';
 import type { AgTreemapSeriesThemeableOptions } from '../series/standalone/treemapOptions';
@@ -238,12 +235,12 @@ export interface AgMapLineBackgroundThemeOverrides<TDatum = TDatumDefault, TCont
 }
 
 export interface AgSankeyThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseFlowProportionThemeOptions<TDatum, TContext> {
+    extends AgBaseStandaloneThemeOptions<TDatum, TContext> {
     series?: AgSankeySeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgChordThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseFlowProportionThemeOptions<TDatum, TContext> {
+    extends AgBaseStandaloneThemeOptions<TDatum, TContext> {
     series?: AgChordSeriesThemeableOptions<TDatum, TContext>;
 }
 
