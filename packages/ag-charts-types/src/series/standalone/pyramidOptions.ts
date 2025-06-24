@@ -83,6 +83,6 @@ export interface AgPyramidSeriesOptions<TDatum = TDatumDefault, TContext = TCont
         AgPyramidSeriesOptionsKeys<TDatum>,
         AgPyramidSeriesOptionsNames,
         AgPyramidSeriesThemeableOptions<TDatum, TContext> {
-    /** Configuration for the Funnel Series. */
+    /** Configuration for the Pyramid Series. */
     type: 'pyramid';
 }

@@ -11,12 +11,12 @@ export function patchDocInterfaces(resolvedEntries: ApiReferenceNode[]) {
 }
 
 function getTypeUnion(typeRef: ApiReferenceNode | undefined): string[] {
-    const result: string[] = [];
     if (typeRef?.kind === 'typeAlias') {
         if (typeof typeRef.type === 'string') {
             return [typeRef.type];
         }
         if (typeof typeRef.type === 'object' && typeRef.type.kind === 'union') {
+            const result: string[] = [];
             const unsupportedSubtypes: typeof typeRef.type.type = [];
             for (const subType of typeRef.type.type) {
                 if (typeof subType === 'string') {
@@ -31,9 +31,12 @@ function getTypeUnion(typeRef: ApiReferenceNode | undefined): string[] {
                 console.error(`unsupported 'typeRef.type.type' values detected`, unsupportedSubtypes);
                 throw new Error(`failed to get types of ${typeRef.name}`);
             }
+            return result;
         }
+    } else if (typeRef?.kind === 'interface') {
+        return [typeRef.name];
     }
-    return result;
+    return [];
 }
 
 function readMemberName(member: MemberNode): string | undefined {
