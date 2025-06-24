@@ -17,6 +17,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaDescriptionLegendItem: 'Press Space or Enter to toggle visibility',
     // Screen reader for the '+' horizontal line button on the Y-axis
     ariaLabelAddHorizontalLine: 'Add Horizontal Line',
+    // Screen reader text for annotations toolbar
+    ariaLabelAnnotationsToolbar: 'Annotations',
     // Screen reader text for annotation-options toolbar
     ariaLabelAnnotationOptionsToolbar: 'Annotation Options',
     // Screen reader text for annotation-settings dialog

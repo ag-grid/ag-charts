@@ -121,7 +121,11 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     readonly events = new EventEmitter<EventMap>();
     private visibleButtons: Array<AnnotationOptionsButtonProperties> = [];
 
-    private readonly toolbar = new FloatingAnnotationOptionsToolbar(this.ctx, 'annotation-options');
+    private readonly toolbar = new FloatingAnnotationOptionsToolbar(
+        this.ctx,
+        'ariaLabelAnnotationOptionsToolbar',
+        'annotation-options'
+    );
     private readonly colorPicker = new ColorPicker(this.ctx);
     private readonly textSizeMenu = new Menu(this.ctx, 'text-size');
     private readonly lineStyleTypeMenu = new Menu(this.ctx, 'annotations-line-style-type');

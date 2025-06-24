@@ -47,7 +47,7 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
     }
 
     private createSharedToolbar() {
-        this.sharedToolbar = new _ModuleSupport.Toolbar(this.ctx.localeManager, 'vertical');
+        this.sharedToolbar = new _ModuleSupport.Toolbar(this.ctx, 'ariaLabelAnnotationsToolbar', 'vertical');
         this.sharedToolbar.addClass('ag-charts-shared-toolbar');
 
         this.container.append(this.sharedToolbar.getElement());

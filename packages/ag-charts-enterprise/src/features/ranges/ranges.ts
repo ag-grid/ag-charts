@@ -21,7 +21,7 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
         this.container = ctx.domManager.addChild('canvas-overlay', 'range-buttons');
         this.container.role = 'presentation';
 
-        this.toolbar = new Toolbar(this.ctx.localeManager);
+        this.toolbar = new Toolbar(this.ctx, 'ariaLabelRangesToolbar', 'horizontal');
         this.toolbar.addClass('ag-charts-range-buttons');
         this.container.append(this.toolbar.getElement());
 
