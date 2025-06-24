@@ -3,6 +3,7 @@
  */
 import { ESLintUtils } from '@typescript-eslint/utils';
 import path from 'path';
+import ts from 'typescript';
 
 const SCENE_DECORATORS = new Set(['SceneChangeDetection', 'SceneArrayChangeDetection', 'SceneObjectChangeDetection']);
 
@@ -28,7 +29,6 @@ export default {
         const checker = parserServices.program.getTypeChecker();
 
         function isAllowedPrimitive(type) {
-            const ts = parserServices.program.getTypeChecker().constructor;
             const flags = ts.TypeFlags;
             const allowed =
                 flags.Number |
@@ -192,7 +192,7 @@ export default {
                             decorator: decoratorName,
                             property: node.key.name || '<unknown>',
                             type: typeString,
-                            suggestions: suggestions.map((s) => `* ${s}\n`).join(''),
+                            suggestions: suggestions.map((s) => `* ${s}`).join('\n'),
                         },
                     });
                 }
