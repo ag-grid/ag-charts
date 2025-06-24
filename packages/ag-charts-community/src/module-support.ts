@@ -7,8 +7,6 @@ export type { TransferableResources } from './chart/chart';
 export { NumberAxis } from './chart/axis/numberAxis';
 export {
     isAgFlowProportionChartOptions,
-    isAgGaugeChartOptions,
-    isAgHierarchyChartOptions,
     isAgStandaloneChartOptions,
     isAgTopologyChartOptions,
 } from './chart/mapping/types';

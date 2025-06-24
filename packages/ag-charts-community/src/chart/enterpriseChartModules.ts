@@ -1,12 +1,6 @@
 import { type ChartModuleDefinition } from 'ag-charts-core';
 
-import {
-    isAgFlowProportionChartOptions,
-    isAgGaugeChartOptions,
-    isAgHierarchyChartOptions,
-    isAgStandaloneChartOptions,
-    isAgTopologyChartOptions,
-} from './mapping/types';
+import { isAgFlowProportionChartOptions, isAgStandaloneChartOptions, isAgTopologyChartOptions } from './mapping/types';
 
 const placeholderCreate = () => {
     throw new Error('Enterprise module placeholder cannot be initialised');
@@ -20,28 +14,6 @@ export const FlowProportionChartModule: ChartModuleDefinition<any> = {
     options: {},
 
     detect: isAgFlowProportionChartOptions,
-    create: placeholderCreate,
-};
-
-export const GaugeChartModule: ChartModuleDefinition<any> = {
-    type: 'chart',
-    name: 'gauge',
-    placeholder: true,
-
-    options: {},
-
-    detect: isAgGaugeChartOptions,
-    create: placeholderCreate,
-};
-
-export const HierarchyChartModule: ChartModuleDefinition<any> = {
-    type: 'chart',
-    name: 'hierarchy',
-    placeholder: true,
-
-    options: {},
-
-    detect: isAgHierarchyChartOptions,
     create: placeholderCreate,
 };
 

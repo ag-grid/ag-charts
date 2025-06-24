@@ -3,14 +3,13 @@ import type { AgChartOptions } from 'ag-charts-types';
 
 import type { LegendModule, RootModule } from '../../module/coreModules';
 import { moduleRegistry } from '../../module/module';
-import { isAgGaugeChartOptions } from '../mapping/types';
 import { chartTypes } from './chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './expectedEnterpriseModules';
 
 export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(options: T, silent?: boolean) {
     let usedOptions: string[] = [];
-    const isGaugeChart = isAgGaugeChartOptions(options);
     const optsType = options?.series?.[0]?.type;
+    const isGaugeChart = (optsType as string) === 'linear-gauge' || (optsType as string) === 'radial-gauge';
     const optionsChartType = optsType ? chartTypes.get(optsType) : 'unknown';
     for (const module of EXPECTED_ENTERPRISE_MODULES) {
         if (optionsChartType !== 'unknown' && !module.chartTypes.includes(optionsChartType)) continue;

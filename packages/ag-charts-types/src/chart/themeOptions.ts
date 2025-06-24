@@ -19,11 +19,11 @@ import type { AgRangeBarSeriesThemeableOptions } from '../series/cartesian/range
 import type { AgScatterSeriesThemeableOptions } from '../series/cartesian/scatterOptions';
 import type { AgWaterfallSeriesThemeableOptions } from '../series/cartesian/waterfallOptions';
 import type { AgChordSeriesThemeableOptions } from '../series/flow-proportion/chordOptions';
-import type { AgBaseFlowProportionThemeOptions } from '../series/flow-proportion/flowProportionOptions';
-import type { AgSankeySeriesOptions, AgSankeySeriesThemeableOptions } from '../series/flow-proportion/sankeyOptions';
-import type { AgBaseHierarchyThemeOptions, AgHierarchySeriesOptions } from '../series/hierarchy/hierarchyOptions';
-import type { AgSunburstSeriesThemeableOptions } from '../series/hierarchy/sunburstOptions';
-import type { AgTreemapSeriesThemeableOptions } from '../series/hierarchy/treemapOptions';
+import type {
+    AgBaseFlowProportionThemeOptions,
+    AgFlowProportionSeriesOptions,
+} from '../series/flow-proportion/flowProportionOptions';
+import type { AgSankeySeriesThemeableOptions } from '../series/flow-proportion/sankeyOptions';
 import type { AgDonutSeriesThemeableOptions } from '../series/polar/donutOptions';
 import type { AgNightingaleSeriesThemeableOptions } from '../series/polar/nightingaleOptions';
 import type { AgPieSeriesThemeableOptions } from '../series/polar/pieOptions';
@@ -32,7 +32,9 @@ import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
 import type { AgPyramidSeriesThemeableOptions } from '../series/standalone/pyramidOptions';
-import type { AgBaseStandaloneThemeOptions } from '../series/standalone/standaloneOptions';
+import type { AgBaseStandaloneThemeOptions, AgStandaloneSeriesOptions } from '../series/standalone/standaloneOptions';
+import type { AgSunburstSeriesThemeableOptions } from '../series/standalone/sunburstOptions';
+import type { AgTreemapSeriesThemeableOptions } from '../series/standalone/treemapOptions';
 import type { AgMapLineBackgroundThemeableOptions } from '../series/topology/mapLineBackgroundOptions';
 import type { AgMapLineSeriesThemeableOptions } from '../series/topology/mapLineOptions';
 import type { AgMapMarkerSeriesThemeableOptions } from '../series/topology/mapMarkerOptions';
@@ -210,16 +212,6 @@ export interface AgNightingaleSeriesThemeOverrides<TDatum = TDatumDefault, TCont
     series?: AgNightingaleSeriesThemeableOptions<TDatum, TContext>;
 }
 
-export interface AgSunburstSeriesThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseHierarchyThemeOptions<TDatum, TContext> {
-    series?: AgSunburstSeriesThemeableOptions<TDatum, TContext>;
-}
-
-export interface AgTreemapSeriesThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseHierarchyThemeOptions<TDatum, TContext> {
-    series?: AgTreemapSeriesThemeableOptions<TDatum, TContext>;
-}
-
 export interface AgMapShapeSeriesThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseTopologyThemeOptions<TDatum, TContext> {
     series?: AgMapShapeSeriesThemeableOptions<TDatum, TContext>;
@@ -258,6 +250,16 @@ export interface AgChordThemeOverrides<TDatum = TDatumDefault, TContext = TConte
 export interface AgPyramidThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBaseStandaloneThemeOptions<TDatum, TContext> {
     series?: AgPyramidSeriesThemeableOptions<TDatum, TContext>;
+}
+
+export interface AgSunburstSeriesThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseStandaloneThemeOptions<TDatum, TContext> {
+    series?: AgSunburstSeriesThemeableOptions<TDatum, TContext>;
+}
+
+export interface AgTreemapSeriesThemeOverrides<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseStandaloneThemeOptions<TDatum, TContext> {
+    series?: AgTreemapSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export type AgBaseGaugePresetThemeOptions<TDatum = TDatumDefault, TContext = TContextDefault> = Pick<
@@ -356,10 +358,6 @@ export interface AgChartThemeOverrides<TDatum = TDatumDefault, TContext = TConte
     'radial-column'?: AgRadialColumnSeriesThemeOverrides<TDatum, TContext>;
     /** Nightingale series theme overrides. */
     nightingale?: AgNightingaleSeriesThemeOverrides<TDatum, TContext>;
-    /** Sunburst series theme overrides. */
-    sunburst?: AgSunburstSeriesThemeOverrides<TDatum, TContext>;
-    /** Treemap series theme overrides. */
-    treemap?: AgTreemapSeriesThemeOverrides<TDatum, TContext>;
     /** Map shape series theme overrides. */
     'map-shape'?: AgMapShapeSeriesThemeOverrides<TDatum, TContext>;
     /** Map line series theme overrides. */
@@ -376,6 +374,10 @@ export interface AgChartThemeOverrides<TDatum = TDatumDefault, TContext = TConte
     chord?: AgChordThemeOverrides<TDatum, TContext>;
     /** Pyramid series theme overrides. */
     pyramid?: AgPyramidThemeOverrides<TDatum, TContext>;
+    /** Sunburst series theme overrides. */
+    sunburst?: AgSunburstSeriesThemeOverrides<TDatum, TContext>;
+    /** Treemap series theme overrides. */
+    treemap?: AgTreemapSeriesThemeOverrides<TDatum, TContext>;
 }
 
 export interface AgPresetOverrides<TDatum = TDatumDefault, TContext = TContextDefault> {
@@ -396,9 +398,9 @@ type VerifyAgBaseChartThemeOverrides<T> = {
 } & {
     [K in NonNullable<AgPolarSeriesOptions<never, never>['type']>]?: T;
 } & {
-    [K in NonNullable<AgHierarchySeriesOptions<never, never>['type']>]?: T;
+    [K in NonNullable<AgFlowProportionSeriesOptions<never, never>['type']>]?: T;
 } & {
-    [K in NonNullable<AgSankeySeriesOptions<never, never>['type']>]?: T;
+    [K in NonNullable<AgStandaloneSeriesOptions<never, never>['type']>]?: T;
 } & {
     common?: Partial<T>;
 };

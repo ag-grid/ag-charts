@@ -16,7 +16,7 @@ import type { AgLinearGaugePreset } from './presets/gauge/linearGaugeOptions';
 import type { AgRadialGaugePreset } from './presets/gauge/radialGaugeOptions';
 import type { AgSparklineBaseThemeableOptions, AgSparklinePresets } from './presets/sparkline/sparklineOptions';
 import type { AgBaseFlowProportionChartOptions } from './series/flow-proportion/flowProportionOptions';
-import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
+import type { AgBaseHierarchyChartOptions } from './series/standalone/hierarchyOptions';
 import type { AgBaseStandaloneChartOptions } from './series/standalone/standaloneOptions';
 import type { AgBaseTopologyChartOptions } from './series/topology/topologyOptions';
 
@@ -37,12 +37,6 @@ export interface AgCartesianChartOptions<TDatum = TDatumDefault, TContext = TCon
 
 export interface AgPolarChartOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends AgBasePolarChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum, TContext> {
-    theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
-}
-
-export interface AgHierarchyChartOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends AgBaseHierarchyChartOptions<TDatum, TContext>,
         AgBaseChartOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
 }
@@ -70,10 +64,16 @@ export interface AgGaugeChartOptions<TDatum = TDatumDefault, TContext = TContext
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
 }
 
+// @todo(xxxx) - backwards compat
+export interface AgHierarchyChartOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+    extends AgBaseHierarchyChartOptions<TDatum, TContext>,
+        AgBaseChartOptions<TDatum, TContext> {
+    theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
+}
+
 export type AgChartOptions<TDatum = TDatumDefault, TContext = TContextDefault> =
     | AgCartesianChartOptions<TDatum, TContext>
     | AgPolarChartOptions<TDatum, TContext>
-    | AgHierarchyChartOptions<TDatum, TContext>
     | AgTopologyChartOptions<TDatum, TContext>
     | AgFlowProportionChartOptions<TDatum, TContext>
     | AgStandaloneChartOptions<TDatum, TContext>;
