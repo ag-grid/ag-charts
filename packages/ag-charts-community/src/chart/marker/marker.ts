@@ -27,7 +27,12 @@ class InternalMarker<D = any> extends Path<D> {
     }
 
     override distanceSquared(x: number, y: number): number {
-        return Math.max(Math.hypot(x - this.x, y - this.y) - this.size / 2, 0);
+        const anchor = Marker.anchor(this.shape);
+        return Math.max(
+            Math.hypot(x - this.x + (anchor.x - 0.5) * this.size, y - this.y + (anchor.y - 0.5) * this.size) -
+                this.size / 2,
+            0
+        );
     }
 
     override updatePath(): void {
