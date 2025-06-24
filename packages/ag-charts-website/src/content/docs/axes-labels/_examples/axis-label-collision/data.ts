@@ -3,7 +3,7 @@ for (let year = 2012; year <= 2022; year++) {
     years.push(year);
 }
 
-const athletes = [
+const sportStars = [
     'Usain Bolt',
     'Serena Williams',
     'Michael Phelps',
@@ -14,14 +14,13 @@ const athletes = [
     'Cristiano Ronaldo',
     'Naomi Osaka',
     'LeBron James',
-    // 'Novak Djokovic',
     'Max Verstappen',
 ];
 
 export function getData(): any[] {
     return years.map((year, idx) => ({
         year,
-        athlete: athletes[idx],
+        sportStar: sportStars[idx],
         value: Math.round(Math.random() * 1000),
     }));
 }
