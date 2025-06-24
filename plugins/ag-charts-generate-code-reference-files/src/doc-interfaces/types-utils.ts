@@ -226,7 +226,7 @@ export class TypeMapper {
                 }
                 return isFirstAppearance;
             })
-            .filter(({ docs }) => !docs?.some((d) => d.includes('@deprecated')))
+            .filter(({ docs }) => !docs?.some((d) => d.includes('@deprecated') || d.includes('@experimental')))
             .sort((a, b) => {
                 if (a.optional && !b.optional) return 1;
                 if (!a.optional && b.optional) return -1;

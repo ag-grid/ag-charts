@@ -86,7 +86,11 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = TContextDefault> ext
      * Default: `'on-space'`
      */
     wrapping?: TextWrap;
-    /** If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text. */
+    /**
+     * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
+     *
+     * @experimental
+     */
     truncate?: boolean;
 }
 
