@@ -2,9 +2,9 @@ import type {
     AgCrosshairLabelFormatterParams,
     AgCrosshairLabelRendererParams,
     AgCrosshairLabelRendererResult,
+    ContextDefault,
     Formatter,
     FormatterParams,
-    TContextDefault,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { createId, setAttribute } from 'ag-charts-core';
@@ -22,7 +22,7 @@ interface FormatterCache {
 
 export class CrosshairLabelProperties
     extends BaseProperties
-    implements _ModuleSupport.AxisFormattableLabel<AgCrosshairLabelFormatterParams<TContextDefault>, FormatterParams>
+    implements _ModuleSupport.AxisFormattableLabel<AgCrosshairLabelFormatterParams<ContextDefault>, FormatterParams>
 {
     @Property
     enabled: boolean = true;
@@ -34,7 +34,7 @@ export class CrosshairLabelProperties
     yOffset: number = 0;
 
     @Property
-    formatter?: Formatter<AgCrosshairLabelFormatterParams<TContextDefault>>;
+    formatter?: Formatter<AgCrosshairLabelFormatterParams<ContextDefault>>;
 
     @Property
     format?: string = undefined;
@@ -45,8 +45,8 @@ export class CrosshairLabelProperties
     private _cachedFormatter: FormatterCache | undefined = undefined;
     formatValue(
         callWithContext: (
-            formatter: (params: AgCrosshairLabelFormatterParams<TContextDefault>) => string | undefined,
-            params: AgCrosshairLabelFormatterParams<TContextDefault>
+            formatter: (params: AgCrosshairLabelFormatterParams<ContextDefault>) => string | undefined,
+            params: AgCrosshairLabelFormatterParams<ContextDefault>
         ) => string | undefined,
         type: 'number' | 'date' | 'category',
         value: any,

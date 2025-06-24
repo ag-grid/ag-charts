@@ -1,5 +1,5 @@
 import type { AgSeriesListeners } from '../chart/eventOptions';
-import type { InteractionRange, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../chart/types';
+import type { ContextDefault, DatumDefault, InteractionRange, Opacity, PixelSize } from '../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './cartesian/commonOptions';
 
 export type AgSeriesHighlightMarkerStyle = FillOptions & StrokeOptions;
@@ -44,7 +44,7 @@ export interface AgBaseHighlightStyleOptions extends StrokeOptions, LineDashOpti
     opacity?: Opacity;
 }
 
-export interface AgBaseSeriesThemeableOptions<TDatum, TContext = TContextDefault> {
+export interface AgBaseSeriesThemeableOptions<TDatum, TContext = ContextDefault> {
     /** The cursor to use for hovered markers. This config is identical to the CSS `cursor` property. */
     cursor?: string;
     /** Context object to use in callbacks. */
@@ -61,13 +61,13 @@ export interface AgBaseSeriesThemeableOptions<TDatum, TContext = TContextDefault
     listeners?: AgSeriesListeners<TDatum, TContext>;
 }
 
-export interface AgBaseCartesianThemeableOptions<TDatum, TContext = TContextDefault>
+export interface AgBaseCartesianThemeableOptions<TDatum, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Whether to include the series in the Mini Chart. */
     showInMiniChart?: boolean;
 }
 
-export interface AgBaseSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgBaseSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /**
      * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series. Auto-generated ids are subject to future change without warning, if your callbacks need to vary behaviour by series please supply your own unique `id` value.

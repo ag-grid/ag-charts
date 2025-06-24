@@ -1,6 +1,6 @@
 import type { Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
@@ -14,11 +14,11 @@ import type {
 } from './ohlcBaseOptions';
 
 export type AgOhlcSeriesItemStylerParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = AgOhlcSeriesBaseItemStylerParams<TDatum, TContext>;
 
-export interface AgOhlcSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+export interface AgOhlcSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgOhlcSeriesBaseTooltipRendererParams<TDatum, TContext>,
         AgOhlcSeriesBaseOptions<TDatum>,
         AgOhlcSeriesItemOptions {}
@@ -37,7 +37,7 @@ export interface AgOhlcSeriesStyles {
     item?: AgOhlcSeriesItem;
 }
 
-export interface AgOhlcSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgOhlcSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>,
         AgOhlcSeriesStyles {
     /** Series-specific tooltip configuration. */
@@ -52,7 +52,7 @@ export interface AgOhlcHighlightStyleOptions extends AgOhlcSeriesItemOptions {
     opacity?: number;
 }
 
-export interface AgOhlcSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgOhlcSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgOhlcSeriesThemeableOptions<TDatum, TContext>,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgOhlcSeriesBaseOptions<TDatum>,

@@ -1,13 +1,13 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { DatumKey, PixelSize, TContextDefault, TDatumDefault, TextAlign, VerticalAlign } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
 
 export type AgHeatmapSeriesItemStylerParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = DatumCallbackParams<TDatum> &
     ContextCallbackParams<TContext> &
     AgHeatmapSeriesOptionsKeys<TDatum> &
@@ -15,18 +15,18 @@ export type AgHeatmapSeriesItemStylerParams<
 
 export type AgHeatmapSeriesStyle = FillOptions & StrokeOptions;
 
-export type AgHeatmapSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgHeatmapSeriesOptionsKeys<TDatum> &
+export type AgHeatmapSeriesLabelFormatterParams<TDatum = DatumDefault> = AgHeatmapSeriesOptionsKeys<TDatum> &
     AgHeatmapSeriesOptionsNames;
 
 export type AgHeatmapSeriesTooltipRendererParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = AgSeriesTooltipRendererParams<TDatum, TContext> &
     AgHeatmapSeriesOptionsKeys<TDatum> &
     AgHeatmapSeriesOptionsNames &
     AgHeatmapSeriesStyle;
 
-export interface AgHeatmapSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgHeatmapSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends StrokeOptions,
         Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'> {
     /** Options for the label in each cell. */
@@ -45,7 +45,7 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     tooltip?: AgSeriesTooltip<AgHeatmapSeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
-export interface AgHeatmapSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgHeatmapSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key to use to retrieve x-values from the data. */
     xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-values from the data. */
@@ -63,7 +63,7 @@ export interface AgHeatmapSeriesOptionsNames {
     colorName?: string;
 }
 
-export interface AgHeatmapSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgHeatmapSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'showInLegend'>,
         AgHeatmapSeriesOptionsKeys<TDatum>,
         AgHeatmapSeriesOptionsNames,

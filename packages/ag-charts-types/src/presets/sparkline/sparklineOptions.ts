@@ -1,7 +1,7 @@
 import type { Renderer } from '../../chart/callbackOptions';
 import type { AgCrosshairOptions } from '../../chart/crosshairOptions';
 import type { AgSeriesTooltipInteraction, AgTooltipPositionOptions } from '../../chart/tooltipOptions';
-import type { InteractionRange, TDatumDefault } from '../../chart/types';
+import type { DatumDefault, InteractionRange } from '../../chart/types';
 import type { AgAreaSeriesOptions } from '../../series/cartesian/areaOptions';
 import type { AgBarSeriesOptions } from '../../series/cartesian/barOptions';
 import type { AgLineSeriesOptions } from '../../series/cartesian/lineOptions';
@@ -27,7 +27,7 @@ export interface AgSparklineTooltipRendererResult {
     content?: string;
 }
 
-export interface AgSparklineTooltip<TDatum = TDatumDefault> {
+export interface AgSparklineTooltip<TDatum = DatumDefault> {
     /** Whether to show tooltips when the series are hovered over. */
     enabled?: boolean;
     /** The tooltip arrow is displayed by default, unless the container restricts it or a position offset is provided. To always display the arrow, set `showArrow` to `true`. To remove the arrow, set `showArrow` to `false`.  */
@@ -42,7 +42,7 @@ export interface AgSparklineTooltip<TDatum = TDatumDefault> {
     renderer?: Renderer<AgSparklineTooltipRendererParams<TDatum>, AgSparklineTooltipRendererResult>;
 }
 
-export interface AgSparklineBaseThemeableOptions<TDatum = TDatumDefault> {
+export interface AgSparklineBaseThemeableOptions<TDatum = DatumDefault> {
     /** Context to use for tooltips. */
     context?: any;
     /** Crosshair configurations. */
@@ -83,24 +83,24 @@ type AgSparklineSeriesOmit =
     | 'xKey'
     | 'yKey';
 
-export interface AgAreaSparklinePreset<TDatum = TDatumDefault>
+export interface AgAreaSparklinePreset<TDatum = DatumDefault>
     extends AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
         Omit<AgAreaSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {}
 
-export interface AgBarSparklinePreset<TDatum = TDatumDefault>
+export interface AgBarSparklinePreset<TDatum = DatumDefault>
     extends AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
         Omit<AgBarSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {}
 
-export interface AgLineSparklinePreset<TDatum = TDatumDefault>
+export interface AgLineSparklinePreset<TDatum = DatumDefault>
     extends AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
         Omit<AgLineSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {
     type: 'line';
 }
 
-export type AgSparklinePresets<TDatum = TDatumDefault> =
+export type AgSparklinePresets<TDatum = DatumDefault> =
     | AgBarSparklinePreset<TDatum>
     | AgLineSparklinePreset<TDatum>
     | AgAreaSparklinePreset<TDatum>;
