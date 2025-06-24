@@ -43,6 +43,9 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
             this.createSharedToolbar();
         }
 
+        if (section === 'chartToolbar' && this.sharedToolbar) {
+            this.sharedToolbar.setAriaLabelId('ariaLabelFinancialCharts');
+        }
         return this.toolbarWithSection<ButtonOptions>(section);
     }
 

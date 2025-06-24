@@ -44,7 +44,13 @@ export abstract class BaseToolbar<
     protected readonly eventsHub: EventsHub;
     protected readonly localeManager: LocaleManager;
 
-    constructor({ eventsHub, localeManager }: ModuleContext, ariaLabelId: string, orientation: RovingDirection) {
+    private readonly updateAriaLabel = () => this.setAriaLabel(this.localeManager.t(this.ariaLabelId));
+
+    constructor(
+        { eventsHub, localeManager }: ModuleContext,
+        private ariaLabelId: string,
+        orientation: RovingDirection
+    ) {
         super(orientation);
         this.eventsHub = eventsHub;
         this.localeManager = localeManager;
@@ -52,9 +58,13 @@ export abstract class BaseToolbar<
         this.toggleClass('ag-charts-toolbar--horizontal', orientation === 'horizontal');
         this.toggleClass('ag-charts-toolbar--vertical', orientation === 'vertical');
 
-        const updateAriaLabel = () => this.setAriaLabel(localeManager.t(ariaLabelId));
-        this.eventsHub.on('locale:change', updateAriaLabel);
-        updateAriaLabel();
+        this.eventsHub.on('locale:change', this.updateAriaLabel);
+        this.updateAriaLabel();
+    }
+
+    public setAriaLabelId(ariaLabelId: string): void {
+        this.ariaLabelId = ariaLabelId;
+        this.updateAriaLabel();
     }
 
     public addToolbarListener<K extends keyof EventMap & string>(eventType: K, handler: (event: EventMap[K]) => void) {
