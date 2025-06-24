@@ -19,6 +19,7 @@ export function getFrameworkStyles(internalFramework: InternalFramework): string
     background-color: var(--chart-bg);
     border: 1px solid var(--chart-border);
     overflow: hidden;
+    transform: translate3d(0, 0, 0);
 }
 `;
         case 'angular':
@@ -38,8 +39,8 @@ ag-financial-charts {
     border-radius: 8px;
     background-color: var(--chart-bg);
     border: 1px solid var(--chart-border);
-    transform: translate3d(0, 0, 0);
     overflow: hidden;
+    transform: translate3d(0, 0, 0);
 }
 `;
         case 'vue3':
@@ -58,6 +59,7 @@ ag-financial-charts {
     background-color: var(--chart-bg);
     border: 1px solid var(--chart-border);
     overflow: hidden;
+    transform: translate3d(0, 0, 0);
 }
 `;
         case 'typescript':
@@ -76,6 +78,7 @@ div:has(> .ag-charts-wrapper) {
     background-color: var(--chart-bg);
     border: 1px solid var(--chart-border);
     overflow: hidden;
+    transform: translate3d(0, 0, 0);
 }
 `;
         case 'vanilla':
@@ -94,6 +97,7 @@ div:has(> .ag-charts-wrapper) {
     background-color: var(--chart-bg);
     border: 1px solid var(--chart-border);
     overflow: hidden;
+    transform: translate3d(0, 0, 0);
 }
 `;
         default:
