@@ -1,0 +1,35 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <div>
+            Avoid Collisions:
+            <button onclick="noCollisionDetection()">Off</button>
+            <button onclick="autoCollisionDetection()">On (default)</button>
+        </div>
+        <div class="gap-left">
+            Values:
+            <button onclick="shortLabels()">Short labels</button>
+            <button onclick="longLabels()">Long labels</button>
+        </div>
+        <button class="push-right" onclick="reset()">Reset</button>
+    </div>
+    <div class="controls-row">
+        <div>
+            Rotation:
+            <button onclick="disableRotation()">No rotation</button>
+            <button onclick="fixedRotation()">Fixed rotation</button>
+            <button onclick="autoRotation()">Auto rotation (default)</button>
+        </div>
+        <div class="gap-left">
+            Wrapping:
+            <select onchange="wrapChange(event)">
+                <option value="on-space">on-space (default)</option>
+                <option value="always">always</option>
+                <option value="hyphenate">hyphenate</option>
+                <option value="never">never</option>
+            </select>
+        </div>
+    </div>
+</div>
+<div class="resizable-container">
+    <div id="myChart" class="resizable"></div>
+</div>

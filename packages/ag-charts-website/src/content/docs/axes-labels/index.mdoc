@@ -7,9 +7,9 @@ Axis labels provide clear identification and context for the data represented on
 
 ## Collision Avoidance
 
-AG Charts has a number of methods to avoid axis label collisions.
+AG Charts has a number of methods to avoid axis label collisions, which occur when two labels overlap or when a label exceeds the axis's `maxThicknessRatio`.
 
-{% chartExampleRunner title="Axis Label Rotation & Skipping" name="axis-label-rotation" type="generated" /%}
+{% chartExampleRunner title="Axis Label Collision" name="axis-label-collision" type="generated" /%}
 
 In this example:
 
@@ -24,6 +24,24 @@ Collision avoidance is enabled by default, to disable set `label.avoidCollisions
 {
     label: {
         avoidCollisions: false,
+    }
+}
+```
+
+### Wrapping
+
+Text wrapping allows labels to fit within constrained space by breaking across multiple lines.
+You can control the wrapping behavior using the `label.wrapping` property:
+
+- `'on-space'` - Wraps only on whitespace. If no suitable space is found, the label is truncated.
+- `'always'` - Forces wrapping to fit within the available space, including within words if needed.
+- `'hyphenate'` - Similar to `'always'`, but inserts a hyphen (`-`) when wrapping in the middle of a word.
+- `'never'` - Disables wrapping. Labels will remain on a single line and may overflow if space is insufficient.
+
+```js
+{
+    label: {
+        wrapping: 'hyphenate',
     }
 }
 ```
