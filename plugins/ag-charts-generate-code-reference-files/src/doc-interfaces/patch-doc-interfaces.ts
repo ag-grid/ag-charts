@@ -1,11 +1,12 @@
-import { HIDDEN_API_INTERFACE_MEMBERS } from './constants';
 import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode } from './types';
 
 /**
  * Patch doc interfaces for the front end
  */
 export function patchDocInterfaces(resolvedEntries: ApiReferenceNode[]) {
-    const interfaceReference = updateInterfaceReferences(resolvedEntries);
+    const interfaceReference = new Map<string, ApiReferenceNode>(
+        resolvedEntries.map((item: InterfaceNode) => [item.name, item])
+    );
     patchAgChartOptionsReference(interfaceReference);
     return interfaceReference;
 }
@@ -136,22 +137,4 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
     };
 
     reference.set('AgChartOptions', altInterface);
-}
-
-function updateInterfaceReferences(content: ApiReferenceNode[]) {
-    const interfacesReference = new Map<string, ApiReferenceNode>(
-        content.map((item: InterfaceNode) => [item.name, item])
-    );
-
-    for (const [interfaceName, hiddenKeys] of Object.entries(HIDDEN_API_INTERFACE_MEMBERS)) {
-        removeMembersFromInterface(interfacesReference.get(interfaceName), hiddenKeys as string[]);
-    }
-
-    return interfacesReference;
-}
-
-function removeMembersFromInterface(reference: ApiReferenceNode | undefined, keys: string[]) {
-    if (reference?.kind !== 'interface') return;
-
-    reference.members = reference.members.filter((member) => !keys.includes(member.name));
 }
