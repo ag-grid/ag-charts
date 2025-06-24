@@ -1,6 +1,8 @@
 import type { BoxBounds } from 'ag-charts-core';
 
+import type { EventsHub } from '../../core/eventsHub';
 import type { LocaleManager } from '../../locale/localeManager';
+import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Listeners } from '../../util/listeners';
 import { BaseProperties } from '../../util/properties';
@@ -39,14 +41,30 @@ export abstract class BaseToolbar<
 
     private readonly buttonWidgets: Array<ButtonWidget> = [];
 
+    protected readonly eventsHub: EventsHub;
+    protected readonly localeManager: LocaleManager;
+
+    private readonly updateAriaLabel = () => this.setAriaLabel(this.localeManager.t(this.ariaLabelId));
+
     constructor(
-        protected readonly localeManager: LocaleManager,
-        orientation: RovingDirection = 'horizontal'
+        { eventsHub, localeManager }: ModuleContext,
+        private ariaLabelId: string,
+        orientation: RovingDirection
     ) {
         super(orientation);
+        this.eventsHub = eventsHub;
+        this.localeManager = localeManager;
         this.addClass('ag-charts-toolbar');
         this.toggleClass('ag-charts-toolbar--horizontal', orientation === 'horizontal');
         this.toggleClass('ag-charts-toolbar--vertical', orientation === 'vertical');
+
+        this.eventsHub.on('locale:change', this.updateAriaLabel);
+        this.updateAriaLabel();
+    }
+
+    public setAriaLabelId(ariaLabelId: string): void {
+        this.ariaLabelId = ariaLabelId;
+        this.updateAriaLabel();
     }
 
     public addToolbarListener<K extends keyof EventMap & string>(eventType: K, handler: (event: EventMap[K]) => void) {
