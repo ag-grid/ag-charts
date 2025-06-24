@@ -86,10 +86,6 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         this.cleanup.flush();
     }
 
-    public toggleVisibility(visible: boolean) {
-        this.toolbar.setHidden(!visible);
-    }
-
     public toggleClearButtonEnabled(enabled: boolean) {
         const index = this.buttons.findIndex((button) => button.value === 'clear');
         this.toolbar.toggleButtonEnabledByIndex(index, enabled);
