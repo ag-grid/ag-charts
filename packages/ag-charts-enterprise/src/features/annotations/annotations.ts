@@ -36,7 +36,6 @@ import { invertCoords } from './utils/values';
 const {
     ChartUpdateType,
     InteractionState,
-    ObserveChanges,
     PropertiesArray,
     Property,
     ChartAxisDirection,
