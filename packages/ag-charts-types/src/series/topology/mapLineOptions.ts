@@ -1,7 +1,7 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { GeoJSON, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { DatumKey, GeoJSON, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
@@ -41,13 +41,13 @@ export type AgMapLineSeriesItemStylerParams<
 
 export interface AgMapLineSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The name of the node key containing the id value. */
-    idKey?: TDatum extends object ? keyof TDatum & string : string;
+    idKey?: DatumKey<TDatum>;
     /** The key to use to retrieve size values from the data, used to control the width of the stroke. */
-    sizeKey?: TDatum extends object ? keyof TDatum & string : string;
+    sizeKey?: DatumKey<TDatum>;
     /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the colour of the stroke. */
-    colorKey?: TDatum extends object ? keyof TDatum & string : string;
+    colorKey?: DatumKey<TDatum>;
     /** The key to use to retrieve values from the data to use as labels on top of lines. */
-    labelKey?: TDatum extends object ? keyof TDatum & string : string;
+    labelKey?: DatumKey<TDatum>;
 }
 
 export interface AgMapLineSeriesOptionsNames {

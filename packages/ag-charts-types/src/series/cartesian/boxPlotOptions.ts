@@ -1,6 +1,6 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { DatumKey, PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
@@ -10,17 +10,17 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 
 interface BoxPlotOptionsKeys<TDatum = TDatumDefault> {
     /** The key used to retrieve x-values (categories) from the data. */
-    xKey: TDatum extends object ? keyof TDatum & string : string;
+    xKey: DatumKey<TDatum>;
     /** The key to use to retrieve minimum values from the data. */
-    minKey: TDatum extends object ? keyof TDatum & string : string;
+    minKey: DatumKey<TDatum>;
     /** The key to use to retrieve lower quartile values from the data. */
-    q1Key: TDatum extends object ? keyof TDatum & string : string;
+    q1Key: DatumKey<TDatum>;
     /** The key to use to retrieve median values from the data. */
-    medianKey: TDatum extends object ? keyof TDatum & string : string;
+    medianKey: DatumKey<TDatum>;
     /** The key to use to retrieve upper quartile values from the data. */
-    q3Key: TDatum extends object ? keyof TDatum & string : string;
+    q3Key: DatumKey<TDatum>;
     /** The key to use to retrieve maximum values from the data. */
-    maxKey: TDatum extends object ? keyof TDatum & string : string;
+    maxKey: DatumKey<TDatum>;
 }
 
 interface BoxPlotOptionsNames {

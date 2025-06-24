@@ -2,6 +2,7 @@ import { type AgMarkerShapeFnParams, _ModuleSupport } from 'ag-charts-community'
 
 import { AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
+import { AnnotationShape } from '../scenes/annotationShape';
 import { DivariantHandle } from '../scenes/handle';
 import { ShapePointScene } from '../scenes/shapePointScene';
 import type { ArrowUpProperties } from './arrowUpProperties';
@@ -29,7 +30,7 @@ export class ArrowUpScene extends ShapePointScene<ArrowUpProperties> {
 
     type = AnnotationType.ArrowUp;
 
-    protected readonly shape = new _ModuleSupport.Marker({ shape: arrowUp });
+    protected readonly shape = new AnnotationShape({ shape: arrowUp });
 
     constructor() {
         super();

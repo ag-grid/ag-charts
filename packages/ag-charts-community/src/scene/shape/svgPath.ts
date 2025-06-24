@@ -22,4 +22,8 @@ export class SvgPath<D = any> extends Path<D> {
     }
 }
 
-export class TranslatableSvgPath extends Translatable(SvgPath) {}
+export class TranslatableSvgPath extends Translatable(SvgPath) {
+    override isPointInPath(x: number, y: number) {
+        return super.isPointInPath(x - this.translationX, y - this.translationY);
+    }
+}

@@ -121,7 +121,10 @@ export class AnimationBatch {
 
             this.animationTimeConsumed += phaseDeltaTime - unusedTime;
 
-            this.debug(`AnimationBatch - updated ${phaseControllers.length} controllers; ${completeCount} completed`);
+            this.debug(
+                `AnimationBatch - updated ${phaseControllers.length} controllers; ${completeCount} completed`,
+                phaseControllers
+            );
             this.debug(`AnimationBatch - animationTimeConsumed: ${this.animationTimeConsumed}`);
             progressPhase();
         } while (unusedTime > 0 && !arePhasesComplete());

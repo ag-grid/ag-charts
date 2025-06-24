@@ -24,6 +24,7 @@ const options: AgChartOptions = {
             type: 'unit-time',
             position: 'bottom',
             label: {
+                spacing: 8,
                 format: {
                     day: '%e',
                     month: '%b',
@@ -33,8 +34,10 @@ const options: AgChartOptions = {
                 enabled: true,
                 tick: {
                     width: 1,
+                    size: 4,
                 },
                 label: {
+                    spacing: 4,
                     format: {
                         month: '%e\n%b',
                         year: '%b\n%Y',

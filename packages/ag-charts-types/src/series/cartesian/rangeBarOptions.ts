@@ -2,7 +2,7 @@ import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../c
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { DatumKey, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
@@ -74,11 +74,11 @@ export type AgRangeBarSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgRan
 
 export interface AgRangeBarSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: TDatum extends object ? keyof TDatum & string : string;
+    xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-low-values from the data. */
-    yLowKey: TDatum extends object ? keyof TDatum & string : string;
+    yLowKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-high-values from the data. */
-    yHighKey: TDatum extends object ? keyof TDatum & string : string;
+    yHighKey: DatumKey<TDatum>;
 }
 
 export interface AgRangeBarSeriesOptionsNames {

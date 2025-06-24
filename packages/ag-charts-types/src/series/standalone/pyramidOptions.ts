@@ -2,8 +2,8 @@ import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../c
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
-import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { CssColor, DatumKey, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 
 export type AgPyramidSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault> = AgChartLabelOptions<
@@ -40,7 +40,7 @@ export interface AgPyramidSeriesTooltipRendererParams<TDatum = TDatumDefault, TC
 export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
     extends LineDashOptions {
     /** The colours to cycle through for the fills of the stages. */
-    fills?: CssColor[];
+    fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the stages. */
     strokes?: CssColor[];
     /** The opacity of the fill for the stages. */
@@ -71,9 +71,9 @@ export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault, TContex
 
 export interface AgPyramidSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve stage values from the data. */
-    stageKey: TDatum extends object ? keyof TDatum & string : string;
+    stageKey: DatumKey<TDatum>;
     /** The key to use to retrieve values from the data. */
-    valueKey: TDatum extends object ? keyof TDatum & string : string;
+    valueKey: DatumKey<TDatum>;
 }
 
 export interface AgPyramidSeriesOptionsNames {}

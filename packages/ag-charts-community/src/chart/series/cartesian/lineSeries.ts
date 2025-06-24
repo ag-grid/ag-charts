@@ -758,6 +758,8 @@ export class LineSeries extends CartesianSeries<
         } = animationData;
         const [path] = paths;
 
+        if (contextData.visible === false && previousContextData?.visible === false) return;
+
         this.resetMarkerAnimation(animationData);
         this.resetLabelAnimation(animationData);
 

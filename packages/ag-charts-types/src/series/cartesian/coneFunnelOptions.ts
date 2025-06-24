@@ -2,14 +2,14 @@ import type { AgNumericAxisFormattableLabelOptions } from '../../chart/axisOptio
 import type { ContextCallbackParams, DatumCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { CssColor, DatumKey, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseHighlightStyleOptions,
     AgBaseSeriesOptions,
     AgHighlightOptions,
 } from '../seriesOptions';
-import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
     extends AgChartLabelOptions<TDatum, TParams, TContext> {
@@ -46,7 +46,7 @@ export interface AgConeFunnelSeriesThemeableOptions<TDatum = TDatumDefault, TCon
     extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>,
         LineDashOptions {
     /** The colours to cycle through for the fills of the drop-offs. */
-    fills?: CssColor[];
+    fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the drop-offs. */
     strokes?: CssColor[];
     /** The opacity of the fill for the drop-offs. */
@@ -69,9 +69,9 @@ export interface AgConeFunnelSeriesThemeableOptions<TDatum = TDatumDefault, TCon
 
 export interface AgConeFunnelSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** The key to use to retrieve stage values from the data. */
-    stageKey: TDatum extends object ? keyof TDatum & string : string;
+    stageKey: DatumKey<TDatum>;
     /** The key to use to retrieve values from the data. */
-    valueKey: TDatum extends object ? keyof TDatum & string : string;
+    valueKey: DatumKey<TDatum>;
 }
 
 export interface AgConeFunnelSeriesOptionsNames {}

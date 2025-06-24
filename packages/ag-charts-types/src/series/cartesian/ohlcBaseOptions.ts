@@ -1,6 +1,6 @@
 import type { ContextCallbackParams, DatumItemCallbackParams } from '../../chart/callbackOptions';
 import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { TContextDefault, TDatumDefault } from '../../chart/types';
+import type { DatumKey, TContextDefault, TDatumDefault } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgOhlcSeriesItemType = 'up' | 'down';
@@ -10,15 +10,15 @@ export type AgOhlcSeriesBaseOptions<TDatum = TDatumDefault> = AgOhlcSeriesOption
 
 export interface AgOhlcSeriesOptionsKeys<TDatum = TDatumDefault> {
     /** xKey as specified on series options. */
-    xKey: TDatum extends object ? keyof TDatum & string : string;
+    xKey: DatumKey<TDatum>;
     /** The key to use to retrieve open values from the data. */
-    openKey: TDatum extends object ? keyof TDatum & string : string;
+    openKey: DatumKey<TDatum>;
     /** The key to use to retrieve close values from the data. */
-    closeKey: TDatum extends object ? keyof TDatum & string : string;
+    closeKey: DatumKey<TDatum>;
     /** The key to use to retrieve high values from the data. */
-    highKey: TDatum extends object ? keyof TDatum & string : string;
+    highKey: DatumKey<TDatum>;
     /** The key to use to retrieve low values from the data. */
-    lowKey: TDatum extends object ? keyof TDatum & string : string;
+    lowKey: DatumKey<TDatum>;
 }
 
 export interface AgOhlcSeriesOptionsNames {

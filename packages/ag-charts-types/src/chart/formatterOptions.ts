@@ -1,5 +1,5 @@
 import type { AgTimeIntervalUnit } from './axisOptions';
-import type { TDatumDefault } from './types';
+import type { DatumKey, TDatumDefault } from './types';
 
 export type FormatterPropertyType =
     | 'x'
@@ -32,7 +32,7 @@ export interface SeriesFormatterParams<TDatum, Value> {
     datum: TDatum | undefined;
     legendItemName: string | undefined;
     seriesId: string | undefined;
-    key: TDatum extends object ? keyof TDatum & string : string | undefined;
+    key: DatumKey<TDatum> | undefined;
     source: SeriesFormatterSource;
     property: FormatterPropertyType;
 }
@@ -57,7 +57,7 @@ interface BaseFormatterParams<TDatum, Value> {
     /** The ID of the series that the value belongs to, if available. */
     seriesId: string | undefined;
     /** The key of the property associated with the datum, if available. */
-    key: TDatum extends object ? keyof TDatum & string : string | undefined;
+    key: DatumKey<TDatum> | undefined;
     /** The source of the formatter, indicating the element where it is being used. */
     source: AnyFormatterSource;
     /** The property being formatted, such as 'x', 'y', 'angle', etc. */

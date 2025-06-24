@@ -896,6 +896,8 @@ export class AreaSeries extends CartesianSeries<
         const { markerSelection, labelSelection, contextData, paths, previousContextData } = animationData;
         const [fill, stroke] = paths;
 
+        if (contextData.visible === false && previousContextData?.visible === false) return;
+
         // Handling initially hidden series case gracefully.
         if (fill == null && stroke == null) return;
 

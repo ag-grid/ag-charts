@@ -1,5 +1,6 @@
 import type {
     CssColor,
+    DatumKey,
     FontFamily,
     FontSize,
     FontStyle,
@@ -14,9 +15,9 @@ import type {
  */
 export interface AxisOptions<TDatum> {
     /** The key used to retrieve x-values (categories) from the data. */
-    xKey: TDatum extends object ? keyof TDatum & string : string;
+    xKey: DatumKey<TDatum>;
     /** The key used to retrieve y-values from the data. */
-    yKey: TDatum extends object ? keyof TDatum & string : string;
+    yKey: DatumKey<TDatum>;
     /** A descriptive label for x-values. */
     xName?: string;
     /** A descriptive label for y-values. */

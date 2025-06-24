@@ -116,7 +116,8 @@ export class CrosshairLabel extends CrosshairLabelProperties {
             this.element.innerHTML = html;
         }
         if (styles !== undefined) {
-            Object.assign(this.element.style, styles);
+            const styleElement = (this.element.children[0] as HTMLElement) ?? this.element;
+            Object.assign(styleElement.style, styles);
         }
     }
 
