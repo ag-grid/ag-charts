@@ -1,11 +1,11 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { DatumKey, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesThemeableOptions, AgMultiSeriesHighlightOptions } from '../seriesOptions';
 
-export interface AgBaseRadialSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgBaseRadialSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
         AgRadialSeriesStyle {
     /** Configuration for the labels shown on top of data points. */
@@ -23,7 +23,7 @@ export interface AgRadialHighlightStyleOptions extends AgRadialSeriesStyle {
     opacity?: Opacity;
 }
 
-export interface AgRadialSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgRadialSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key to use to retrieve angle values from the data. */
     angleKey: DatumKey<TDatum>;
     /** The key to use to retrieve radius values from the data. */
@@ -37,18 +37,18 @@ export interface AgRadialSeriesOptionsNames {
     radiusName?: string;
 }
 
-export type AgRadialSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgRadialSeriesOptionsKeys<TDatum> &
+export type AgRadialSeriesLabelFormatterParams<TDatum = DatumDefault> = AgRadialSeriesOptionsKeys<TDatum> &
     AgRadialSeriesOptionsNames;
 
-export interface AgRadialSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+export interface AgRadialSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgRadialSeriesStyle {}
 
 export type AgRadialSeriesItemStylerParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = DatumCallbackParams<TDatum> &
     ContextCallbackParams<TContext> &
     AgRadialSeriesOptionsKeys<TDatum> &

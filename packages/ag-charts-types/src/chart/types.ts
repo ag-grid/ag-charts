@@ -98,8 +98,8 @@ export type Direction = 'vertical' | 'horizontal';
 
 export type GeoJSON = any;
 
-export type TDatumDefault = any;
+export type DatumDefault = any;
 
-export type TContextDefault = unknown;
+export type ContextDefault = unknown;
 
 export type DatumKey<TDatum> = TDatum extends object ? keyof TDatum & string : string;

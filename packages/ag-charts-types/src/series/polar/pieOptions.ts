@@ -3,14 +3,14 @@ import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
+    ContextDefault,
     CssColor,
+    DatumDefault,
     DatumKey,
     Degree,
     Opacity,
     PixelSize,
     Ratio,
-    TContextDefault,
-    TDatumDefault,
 } from '../../chart/types';
 import type {
     AgColorType,
@@ -27,7 +27,7 @@ import type {
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 
-export interface AgPieSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
+export interface AgPieSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Distance in pixels between the callout line and the label text. */
     offset?: PixelSize;
@@ -37,7 +37,7 @@ export interface AgPieSeriesLabelOptions<TDatum, TParams, TContext = TContextDef
     avoidCollisions?: boolean;
 }
 
-export interface AgPieSeriesSectorLabelOptions<TDatum, TParams, TContext = TContextDefault>
+export interface AgPieSeriesSectorLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Distance in pixels, used to make the label text closer to or further from the center. This offset is applied after positionRatio. */
     positionOffset?: PixelSize;
@@ -46,8 +46,8 @@ export interface AgPieSeriesSectorLabelOptions<TDatum, TParams, TContext = TCont
 }
 
 export type AgPieSeriesItemStylerParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = DatumCallbackParams<TDatum> &
     ContextCallbackParams<TContext> &
     AgPieSeriesOptionsKeys<TDatum> &
@@ -76,7 +76,7 @@ export interface AgPieSeriesCalloutOptions {
     strokeWidth?: PixelSize;
 }
 
-export interface AgPieSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
         LineDashOptions {
     /** Configuration for the series title. */
@@ -123,7 +123,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = TDatumDefault, TContext = 
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>;
 }
 
-export interface AgPieSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgPieSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgPieSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
         AgPieSeriesOptionsKeys<TDatum>,
         AgPieSeriesOptionsNames,
@@ -132,7 +132,7 @@ export interface AgPieSeriesOptions<TDatum = TDatumDefault, TContext = TContextD
     type: 'pie';
 }
 
-export interface AgPieSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgPieSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key to use to retrieve angle values from the data. */
     angleKey: DatumKey<TDatum>;
     /** The key to use to retrieve radius values from the data. */
@@ -156,7 +156,7 @@ export interface AgPieSeriesOptionsNames {
     sectorLabelName?: string;
 }
 
-export interface AgPieSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+export interface AgPieSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgPieSeriesOptionsKeys<TDatum>,
         AgPieSeriesOptionsNames,
@@ -164,5 +164,5 @@ export interface AgPieSeriesTooltipRendererParams<TDatum, TContext = TContextDef
         StrokeOptions,
         LineDashOptions {}
 
-export type AgPieSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgPieSeriesOptionsKeys<TDatum> &
+export type AgPieSeriesLabelFormatterParams<TDatum = DatumDefault> = AgPieSeriesOptionsKeys<TDatum> &
     AgPieSeriesOptionsNames;

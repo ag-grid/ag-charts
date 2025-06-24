@@ -3,14 +3,14 @@ import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
+    ContextDefault,
     CssColor,
+    DatumDefault,
     DatumKey,
     Degree,
     Opacity,
     PixelSize,
     Ratio,
-    TContextDefault,
-    TDatumDefault,
 } from '../../chart/types';
 import type {
     AgColorType,
@@ -27,7 +27,7 @@ import type {
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 
-export interface AgDonutSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
+export interface AgDonutSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Distance in pixels between the callout line and the label text. */
     offset?: PixelSize;
@@ -37,7 +37,7 @@ export interface AgDonutSeriesLabelOptions<TDatum, TParams, TContext = TContextD
     avoidCollisions?: boolean;
 }
 
-export interface AgDonutSeriesSectorLabelOptions<TDatum, TParams, TContext = TContextDefault>
+export interface AgDonutSeriesSectorLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Distance in pixels, used to make the label text closer to or further from the center. This offset is applied after positionRatio. */
     positionOffset?: PixelSize;
@@ -46,8 +46,8 @@ export interface AgDonutSeriesSectorLabelOptions<TDatum, TParams, TContext = TCo
 }
 
 export type AgDonutSeriesItemStylerParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = DatumCallbackParams<TDatum> &
     ContextCallbackParams<TContext> &
     AgDonutSeriesOptionsKeys<TDatum> &
@@ -92,7 +92,7 @@ export interface AgDonutInnerCircle {
     fillOpacity?: Opacity;
 }
 
-export interface AgDonutSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgDonutSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
         LineDashOptions {
     /** Configuration for the series title. */
@@ -151,7 +151,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = TDatumDefault, TContext 
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>;
 }
 
-export interface AgDonutSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgDonutSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgDonutSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
         AgDonutSeriesOptionsKeys<TDatum>,
         AgDonutSeriesOptionsNames,
@@ -162,7 +162,7 @@ export interface AgDonutSeriesOptions<TDatum = TDatumDefault, TContext = TContex
     innerLabels?: AgDonutInnerLabel[];
 }
 
-export interface AgDonutSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgDonutSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key to use to retrieve angle values from the data. */
     angleKey: DatumKey<TDatum>;
     /** The key to use to retrieve radius values from the data. */
@@ -186,7 +186,7 @@ export interface AgDonutSeriesOptionsNames {
     sectorLabelName?: string;
 }
 
-export interface AgDonutSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+export interface AgDonutSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgDonutSeriesOptionsKeys<TDatum>,
         AgDonutSeriesOptionsNames,
@@ -194,5 +194,5 @@ export interface AgDonutSeriesTooltipRendererParams<TDatum, TContext = TContextD
         StrokeOptions,
         LineDashOptions {}
 
-export type AgDonutSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgDonutSeriesOptionsKeys<TDatum> &
+export type AgDonutSeriesLabelFormatterParams<TDatum = DatumDefault> = AgDonutSeriesOptionsKeys<TDatum> &
     AgDonutSeriesOptionsNames;

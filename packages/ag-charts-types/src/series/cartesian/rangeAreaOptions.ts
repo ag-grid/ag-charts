@@ -1,7 +1,7 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { DatumKey, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, PixelSize } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type {
@@ -14,7 +14,7 @@ import type {
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgCartesianSeriesTooltipRendererParams<TDatum, TContext>, 'xKey' | 'xName' | 'yKey' | 'yName'>,
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         AgRangeAreaSeriesOptionsNames,
@@ -23,7 +23,7 @@ export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = TDatumDefault, 
     itemId: 'up' | 'down' | 'unknown';
 }
 
-export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
+export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Padding in pixels between the label and the edge of the marker. */
     padding?: PixelSize;
@@ -33,10 +33,10 @@ export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = TCont
 
 export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';
 
-export type AgRangeAreaSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgRangeAreaSeriesOptionsKeys<TDatum> &
+export type AgRangeAreaSeriesLabelFormatterParams<TDatum = DatumDefault> = AgRangeAreaSeriesOptionsKeys<TDatum> &
     AgRangeAreaSeriesOptionsNames;
 
-export interface AgRangeAreaSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends StrokeOptions,
         FillOptions,
         LineDashOptions,
@@ -59,7 +59,7 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = TDatumDefault, TCont
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>;
 }
 
-export interface AgRangeAreaSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgRangeAreaSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key to use to retrieve x-values from the data. */
     xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-low-values from the data. */
@@ -79,7 +79,7 @@ export interface AgRangeAreaSeriesOptionsNames {
     yName?: string;
 }
 
-export interface AgRangeAreaSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgRangeAreaSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         AgRangeAreaSeriesOptionsNames,

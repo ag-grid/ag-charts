@@ -2,7 +2,7 @@ import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../c
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { DatumKey, LabelPlacement, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, LabelPlacement } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type {
     AgBaseCartesianThemeableOptions,
@@ -13,7 +13,7 @@ import type {
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, StrokeOptions } from './commonOptions';
 
-export interface AgScatterSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgScatterSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgScatterSeriesOptionsKeys<TDatum>,
         AgScatterSeriesOptionsNames,
@@ -21,18 +21,18 @@ export interface AgScatterSeriesTooltipRendererParams<TDatum = TDatumDefault, TC
         FillOptions,
         StrokeOptions {}
 
-export type AgScatterSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgScatterSeriesOptionsKeys<TDatum> &
+export type AgScatterSeriesLabelFormatterParams<TDatum = DatumDefault> = AgScatterSeriesOptionsKeys<TDatum> &
     AgScatterSeriesOptionsNames;
 
 export type AgScatterSeriesItemStylerParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = DatumCallbackParams<TDatum> &
     ContextCallbackParams<TContext> &
     AgScatterSeriesOptionsKeys<TDatum> &
     Required<AgSeriesMarkerStyle>;
 
-export interface AgScatterSeriesLabel<TDatum, TContext = TContextDefault>
+export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams<TDatum>, TContext> {
     /**
      * Placement of label in relation to the marker.
@@ -42,7 +42,7 @@ export interface AgScatterSeriesLabel<TDatum, TContext = TContextDefault>
     placement?: LabelPlacement;
 }
 
-export interface AgScatterSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgScatterSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
         AgSeriesMarkerStyle {
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
@@ -59,7 +59,7 @@ export interface AgScatterSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
-export interface AgScatterSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgScatterSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key to use to retrieve x-values from the data. */
     xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-values from the data. */
@@ -77,7 +77,7 @@ export interface AgScatterSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgScatterSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgScatterSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgScatterSeriesOptionsKeys<TDatum>,
         AgScatterSeriesOptionsNames,

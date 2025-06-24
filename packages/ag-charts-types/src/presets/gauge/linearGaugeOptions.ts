@@ -1,6 +1,6 @@
 import type { AgChartAutoSizedLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { AgMarkerShape, Degree, Direction, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { AgMarkerShape, ContextDefault, DatumDefault, Degree, Direction, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../../series/cartesian/commonOptions';
 import type {
     AgBaseGaugeThemeableOptions,
@@ -19,12 +19,12 @@ export interface AgLinearGaugeScaleInterval {
     step?: number;
 }
 
-export interface AgLinearGaugeScaleLabel<TContext = TContextDefault> extends AgGaugeScaleLabel<TContext> {
+export interface AgLinearGaugeScaleLabel<TContext = ContextDefault> extends AgGaugeScaleLabel<TContext> {
     /** Placement of labels */
     placement?: 'before' | 'after';
 }
 
-export interface AgLinearGaugeScale<TContext = TContextDefault>
+export interface AgLinearGaugeScale<TContext = ContextDefault>
     extends FillsOptions,
         FillOptions,
         StrokeOptions,
@@ -40,7 +40,7 @@ export interface AgLinearGaugeScale<TContext = TContextDefault>
 }
 
 export interface AgLinearGaugeTooltipRendererParams
-    extends AgSeriesTooltipRendererParams<TDatumDefault, TContextDefault> {
+    extends AgSeriesTooltipRendererParams<DatumDefault, ContextDefault> {
     /** Value of the Gauge */
     value: number;
 }
@@ -84,7 +84,7 @@ export type AgLinearGaugeLabelPlacement =
     | 'bar-outside-end'
     | 'bar-end';
 
-export interface AgLinearGaugeLabelOptions extends AgChartAutoSizedLabelOptions<never, unknown, TContextDefault> {
+export interface AgLinearGaugeLabelOptions extends AgChartAutoSizedLabelOptions<never, unknown, ContextDefault> {
     /** Text to always display. */
     text?: string;
     /** Distance between the shape edges and the text. */
@@ -99,7 +99,7 @@ export interface AgLinearGaugeLabelOptions extends AgChartAutoSizedLabelOptions<
     placement?: AgLinearGaugeLabelPlacement;
 }
 
-export interface AgLinearGaugeThemeableOptions<TContext = TContextDefault>
+export interface AgLinearGaugeThemeableOptions<TContext = ContextDefault>
     extends AgBaseGaugeThemeableOptions<TContext> {
     /** Direction to display the gauge in. */
     direction?: Direction;
@@ -123,7 +123,7 @@ export interface AgLinearGaugeThemeableOptions<TContext = TContextDefault>
     tooltip?: AgSeriesTooltip<AgLinearGaugeTooltipRendererParams>;
 }
 
-export interface AgLinearGaugePreset<TContext = TContextDefault> extends AgLinearGaugeThemeableOptions<TContext> {
+export interface AgLinearGaugePreset<TContext = ContextDefault> extends AgLinearGaugeThemeableOptions<TContext> {
     /** Configuration for the Linear Gauge. */
     type: 'linear-gauge';
     /** Value of the Linear Gauge. */
