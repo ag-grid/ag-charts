@@ -483,6 +483,7 @@ export class ChartTheme {
                 keys: [],
                 tick: { enabled: true, stroke: DEFAULT_SEPARATION_LINES_COLOUR },
                 label: { spacing: 10, rotation: 270 },
+                maxThicknessRatio: 0.5,
                 paddingInner: 0.4,
                 groupPaddingInner: 0.2,
                 crosshair: { enabled: false },

@@ -170,6 +170,13 @@ export interface AgGroupedCategoryAxisOptions<TContext = TContextDefault>
     tick?: AgGroupedCategoryAxisTickOptions;
     /** Configuration for the axis band highlight. */
     bandHighlight?: AgBandHighlightOptions;
+    /**
+     * The maximum thickness of the axis, as a ratio of the chart's width or height depending on axis direction.
+     * Used to prevent the axis from growing too large when labels or content are oversized.
+     *
+     * Default: `0.5`
+     */
+    maxThicknessRatio?: Ratio;
 }
 
 export interface AgTimeAxisOptions<TContext = TContextDefault>
