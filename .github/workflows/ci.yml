@@ -405,7 +405,7 @@ jobs:
 
             - name: Check last job status
               id: lastJobStatus
-              if: always() && github.ref == 'refs/heads/latest'
+              if: always()
               run: |
                   WORKFLOW_STATUS="success"
                   if [[ "${{steps.snapshot-notify.outputs.updated}}"  == 'true' ]] ; then
