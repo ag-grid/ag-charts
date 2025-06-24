@@ -1,16 +1,16 @@
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
-import type { TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type { AgPyramidSeriesOptions } from './pyramidOptions';
 
-export type AgStandaloneSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault> = AgPyramidSeriesOptions<
+export type AgStandaloneSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> = AgPyramidSeriesOptions<
     TDatum,
     TContext
 >;
 
-export interface AgBaseStandaloneChartOptions<TDatum = TDatumDefault, TContext = TContextDefault> {
+export interface AgBaseStandaloneChartOptions<TDatum = DatumDefault, TContext = ContextDefault> {
     /** Series configurations. */
     series?: AgStandaloneSeriesOptions<TDatum, TContext>[];
 }
 
-export interface AgBaseStandaloneThemeOptions<TDatum = TContextDefault, TContext = TContextDefault>
+export interface AgBaseStandaloneThemeOptions<TDatum = ContextDefault, TContext = ContextDefault>
     extends AgBaseThemeableChartOptions<TDatum, TContext> {}

@@ -8,8 +8,8 @@ import {
     type AgSankeySeriesNodeStyle,
     type AgSankeySeriesOptions,
     type AgSankeySeriesTooltipRendererParams,
+    type DatumDefault,
     type Styler,
-    type TDatumDefault,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
@@ -176,7 +176,7 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     readonly node = new SankeySeriesNodeProperties();
 
     @Property
-    readonly tooltip = makeSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatumDefault>>();
+    readonly tooltip = makeSeriesTooltip<AgSankeySeriesTooltipRendererParams<DatumDefault>>();
 
     constructor() {
         super();

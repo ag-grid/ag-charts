@@ -1,7 +1,7 @@
 import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { DatumKey, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
 
-export interface AgCartesianSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgCartesianSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext> {
     /** xKey as specified on series options. */
     readonly xKey: DatumKey<TDatum>;
@@ -14,7 +14,7 @@ export interface AgCartesianSeriesTooltipRendererParams<TDatum = TDatumDefault, 
     readonly yName?: string;
 }
 
-export interface AgErrorBoundSeriesTooltipRendererParams<TDatum = TDatumDefault> {
+export interface AgErrorBoundSeriesTooltipRendererParams<TDatum = DatumDefault> {
     /** The key to use to retrieve lower bound error values from the x axis data. */
     xLowerKey?: DatumKey<TDatum>;
     /** The x-axis lower bound error value. */

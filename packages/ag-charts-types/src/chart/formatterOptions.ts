@@ -1,5 +1,5 @@
 import type { AgTimeIntervalUnit } from './axisOptions';
-import type { DatumKey, TContextDefault, TDatumDefault } from './types';
+import type { DatumKey, ContextDefault, DatumDefault } from './types';
 
 export type FormatterPropertyType =
     | 'x'
@@ -100,7 +100,7 @@ export interface CategoryFormatterParams<TDatum, TContext>
     type: 'category';
 }
 
-export type FormatterParams<TDatum = TDatumDefault, TContext = TContextDefault> =
+export type FormatterParams<TDatum = DatumDefault, TContext = ContextDefault> =
     | NumberFormatterParams<TDatum, TContext>
     | DateFormatterParams<TDatum, TContext>
     | CategoryFormatterParams<TDatum, TContext>;
@@ -108,6 +108,6 @@ export type FormatterParams<TDatum = TDatumDefault, TContext = TContextDefault> 
 type FunctionFormatter<TDatum, TContext> = (params: FormatterParams<TDatum, TContext>) => string | undefined;
 type TimeIntervalFormatter = Record<AgTimeIntervalUnit, string>;
 
-export type FormatterConfiguration<TDatum, TContext = TContextDefault> =
+export type FormatterConfiguration<TDatum, TContext = ContextDefault> =
     | FunctionFormatter<TDatum, TContext>
     | Partial<Record<FormatterPropertyType, FunctionFormatter<TDatum, TContext> | TimeIntervalFormatter | string>>;
