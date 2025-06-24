@@ -53,9 +53,8 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
         throw new Error('Failed to find AgChartOptions reference type');
     }
 
-    const axisOptions: string[] = [];
-    const seriesOptions: string[] = [];
     const unsupportedMembers: MemberNode[] = [];
+    const specialOptions: { axes: string[]; series: string[] } = { axes: [], series: [] };
 
     let altInterface: InterfaceNode | null = null;
 
@@ -69,32 +68,24 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
         altInterface ??= typeRef;
 
         for (const member of typeRef.members) {
-            const specialOptions: string[] | undefined = {
-                axes: axisOptions,
-                series: seriesOptions,
-            }[member.name];
+            const options = specialOptions[member.name];
+            if (options == null) continue;
 
-            if (specialOptions) {
-                const memberTypeName: string | undefined = readMemberName(member);
-                if (memberTypeName == null) {
-                    unsupportedMembers.push(member);
-                } else {
-                    const union = getTypeUnion(reference.get(memberTypeName));
-                    specialOptions.push(...union);
+            const memberTypeName: string | undefined = readMemberName(member);
+            if (memberTypeName == null) {
+                unsupportedMembers.push(member);
+            } else {
+                const union = getTypeUnion(reference.get(memberTypeName));
+                options.push(...union);
 
-                    // AG-14629 Remove generic type parameter info. It's causing undesired output for context?: TContext
-                    for (const subType of union) {
-                        const subInterfaceRef = reference.get(subType);
-                        if (subInterfaceRef == null) {
-                            console.error('Cannot find API reference for', subType);
-                            unsupportedMembers.push(member);
-                        } else if (subInterfaceRef.kind !== 'interface') {
-                            console.error(`Unexpected kind: ${subInterfaceRef.kind} for ${subType}`);
-                            unsupportedMembers.push(member);
-                        } else {
-                            subInterfaceRef.genericsMap = undefined;
-                            subInterfaceRef.typeParams = undefined;
-                        }
+                for (const subType of union) {
+                    const subInterfaceRef = reference.get(subType);
+                    if (subInterfaceRef == null) {
+                        console.error('Cannot find API reference for', subType);
+                        unsupportedMembers.push(member);
+                    } else if (subInterfaceRef.kind !== 'interface') {
+                        console.error(`Unexpected kind: ${subInterfaceRef.kind} for ${subType}`);
+                        unsupportedMembers.push(member);
                     }
                 }
             }
@@ -112,12 +103,12 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
     reference.set('AgChartAxisOptions', {
         kind: 'typeAlias',
         name: 'AgChartAxisOptions',
-        type: { kind: 'union', type: axisOptions },
+        type: { kind: 'union', type: specialOptions.axes },
     });
     reference.set('AgChartSeriesOptions', {
         kind: 'typeAlias',
         name: 'AgChartSeriesOptions',
-        type: { kind: 'union', type: seriesOptions },
+        type: { kind: 'union', type: specialOptions.series },
     });
 
     altInterface = {
