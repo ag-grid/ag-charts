@@ -14,9 +14,10 @@ AG Charts has a number of methods to avoid axis label collisions, which occur wh
 In this example:
 
 -   Use the grab handle in the bottom right of the example to resize the chart. Observe how the labels behave with the different options applied.
--   The first row of buttons demonstrate all the [rotation](#rotation) options.
--   The second row of buttons allows changing the length of the labels. This more easily shows the [skipping](#skipping) behaviour.
--   The third row of buttons allows disabling the collision avoidance altogether.
+-   The first group of buttons allows enabling and disabling collision avoidance altogether.
+-   The second group of buttons allows changing the length of the labels. This more easily shows the [wrapping](#wrapping) and [skipping](#skipping) behaviour.
+-   The [Rotation](#rotation) and [Wrapping](#wrapping) controls enable exploration of their behaviour with all the available options.
+-   If enabled, labels try [wrapping](#wrapping), then [rotation](#rotation), and finally [skipping](#skipping) if needed.
 
 Collision avoidance is enabled by default, to disable set `label.avoidCollisions` to false.
 
@@ -31,12 +32,13 @@ Collision avoidance is enabled by default, to disable set `label.avoidCollisions
 ### Wrapping
 
 Text wrapping allows labels to fit within constrained space by breaking across multiple lines.
-You can control the wrapping behavior using the `label.wrapping` property:
 
--   `'on-space'` - Wraps only on whitespace. If no suitable space is found, the label is truncated.
--   `'always'` - Forces wrapping to fit within the available space, including within words if needed.
+Wrapping behaviour is set with the `label.wrapping` property:
+
+-   `'on-space'` - Wraps only on whitespace. If no suitable space is found, the next avoidance strategy is used.
+-   `'always'` - Forces wrapping to fit within the available space, including breaking words if needed.
 -   `'hyphenate'` - Similar to `'always'`, but inserts a hyphen (`-`) when wrapping in the middle of a word.
--   `'never'` - Disables wrapping. Labels will remain on a single line and may overflow if space is insufficient.
+-   `'never'` - Disables wrapping. Labels will remain on a single line, with the next avoidance strategy being used.
 
 ```js
 {
@@ -45,6 +47,8 @@ You can control the wrapping behavior using the `label.wrapping` property:
     }
 }
 ```
+
+This defaults to `on-space` for Category Axes, and to `never` on all other axes types.
 
 ### Rotation
 
