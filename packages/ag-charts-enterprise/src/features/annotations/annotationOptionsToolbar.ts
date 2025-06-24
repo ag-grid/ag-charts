@@ -142,7 +142,10 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
             this.toolbar.addToolbarListener('toolbar-moved', this.onToolbarMoved.bind(this)),
             ctx.widgets.seriesWidget.addListener('drag-start', this.onDragStart.bind(this)),
             ctx.widgets.seriesWidget.addListener('drag-end', this.onDragEnd.bind(this)),
-            () => this.colorPicker.destroy()
+            () => {
+                this.colorPicker.destroy();
+                this.toolbar.destroy();
+            }
         );
     }
 

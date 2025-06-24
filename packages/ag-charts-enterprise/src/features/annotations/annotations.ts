@@ -36,7 +36,6 @@ import { invertCoords } from './utils/values';
 const {
     ChartUpdateType,
     InteractionState,
-    ObserveChanges,
     PropertiesArray,
     Property,
     ChartAxisDirection,
@@ -57,22 +56,19 @@ type AnnotationAxis = {
 };
 
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    @ObserveChanges<Annotations>((target, newValue?: boolean, oldValue?: boolean) => {
-        const {
-            ctx: { annotationManager, stateManager },
-        } = target;
+    // TODO: We no longer have a mechanism for detecting if the module was previously disabled and is now enabled.
+    // @ObserveChanges<Annotations>((target, newValue?: boolean, oldValue?: boolean) => {
+    //     const {
+    //         ctx: { annotationManager, stateManager },
+    //     } = target;
 
-        if (newValue === oldValue) return;
+    //     if (newValue === oldValue) return;
 
-        target.toolbar?.toggleVisibility(Boolean(newValue));
-
-        // Restore the annotations only if this module was previously disabled
-        if (oldValue === false && newValue === true) {
-            stateManager.restoreState(annotationManager);
-        } else if (newValue === false) {
-            target.clear();
-        }
-    })
+    //     // Restore the annotations only if this module was previously disabled
+    //     if (oldValue === false && newValue === true) {
+    //         stateManager.restoreState(annotationManager);
+    //     }
+    // })
     @Property
     public enabled: boolean = true;
 
@@ -129,6 +125,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.ctx.historyManager.addMementoOriginator(ctx.annotationManager);
         this.ctx.historyManager.addMementoOriginator(this.defaults);
         this.textInput.setKeyDownHandler(this.onTextInput.bind(this));
+
+        this.cleanup.register(() => this.clear());
     }
 
     private setupStateMachine() {
@@ -541,14 +539,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private setupDOM() {
-        const { ctx, toolbar } = this;
+        const { ctx, toolbar, optionsToolbar } = this;
 
-        this.cleanup.register(
-            // DOM
-            ctx.annotationManager.attachNode(this.container),
-            () => ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS),
-            () => toolbar.destroy()
-        );
+        this.cleanup.register(ctx.annotationManager.attachNode(this.container), () => {
+            ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
+            toolbar.destroy();
+            optionsToolbar.destroy();
+        });
     }
 
     async processData(dataController: _ModuleSupport.DataController) {

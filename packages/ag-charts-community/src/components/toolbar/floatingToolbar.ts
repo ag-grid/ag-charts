@@ -121,6 +121,11 @@ export abstract class FloatingToolbar<
         this.popover.setDragHandle(this.dragHandle);
     }
 
+    override destroy() {
+        super.destroy();
+        this.popover.destroy();
+    }
+
     public show(options: PopoverOptions = {}) {
         this.popover.show([this.dragHandle.getElement(), this.getElement()], options);
     }
