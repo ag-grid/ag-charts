@@ -153,7 +153,6 @@ export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions> = {
     name: 'time',
     chartType: 'cartesian',
 
-    // @todo(AG-14472) - Replace with timeAxisOptionsDefs,
     options: timeAxisOptionsDefs,
 
     create: (ctx: ModuleContext) => new TimeAxis(ctx),
