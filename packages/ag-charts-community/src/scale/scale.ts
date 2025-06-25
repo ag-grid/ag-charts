@@ -26,6 +26,12 @@ export interface ScaleTickResult<D> {
     timeInterval?: AgTimeInterval;
 }
 
+export enum ScaleAlignment {
+    Leading,
+    Trailing,
+    Interpolate,
+}
+
 export interface Scale<D, R, I = number> {
     readonly type: ScaleType;
     readonly defaultTickCount: number;
@@ -33,7 +39,7 @@ export interface Scale<D, R, I = number> {
     range: R[];
     normalizeDomains(...domains: D[][]): NormalizedDomain<D>;
     toDomain(value: number): D | undefined;
-    convert(value: D, options?: { clamp?: boolean; interpolate?: boolean }): R;
+    convert(value: D, options?: { clamp?: boolean; alignment?: ScaleAlignment }): R;
     invert(value: R, exact?: boolean): D | undefined;
     ticks(ticks: ScaleTickParams<I>, domain?: D[], visibleRange?: [number, number]): ScaleTickResult<D> | undefined;
     niceDomain(ticks: ScaleTickParams<I>, domain?: D[]): D[];

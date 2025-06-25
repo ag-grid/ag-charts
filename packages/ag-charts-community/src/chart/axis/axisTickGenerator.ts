@@ -5,7 +5,7 @@ import { BandScale } from '../../scale/bandScale';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import type { Scale, ScaleTickParams } from '../../scale/scale';
+import { type Scale, ScaleAlignment, type ScaleTickParams } from '../../scale/scale';
 import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { Matrix } from '../../scene/matrix';
@@ -110,7 +110,7 @@ enum ParentLevelMode {
     TimeScaleTicks,
     OrdinalStepTicks,
     OrdinalIntervalTicks,
-    DefaultTicks,
+    UnitTicks,
 }
 
 export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>, D> {
@@ -529,8 +529,16 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const primaryTicks = intervalRange(parentInterval, dp0, dp1);
 
         const milliseconds = intervalMilliseconds(timeInterval);
-        const interpolate =
-            UnitTimeScale.is(scale) && scale.interval != null && intervalMilliseconds(scale.interval) < milliseconds;
+        let alignment: ScaleAlignment | undefined;
+        if (OrdinalTimeScale.is(scale)) {
+            alignment = ScaleAlignment.Trailing;
+        } else if (
+            UnitTimeScale.is(scale) &&
+            scale.interval != null &&
+            intervalMilliseconds(scale.interval) < milliseconds
+        ) {
+            alignment = ScaleAlignment.Interpolate;
+        }
 
         let primaryTicksIndices: Set<number> | undefined = new Set<number>();
         const ticks = [];
@@ -549,10 +557,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     ? ParentLevelMode.OrdinalStepTicks
                     : ParentLevelMode.OrdinalIntervalTicks;
             ordinalTickStep = Math.ceil(scale.bandCount(visibleRange) / 12);
-        } else if (!UnitTimeScale.is(scale) || interpolate) {
-            parentLevelMode = ParentLevelMode.TimeScaleTicks;
+        } else if (UnitTimeScale.is(scale) && alignment !== ScaleAlignment.Interpolate) {
+            parentLevelMode = ParentLevelMode.UnitTicks;
         } else {
-            parentLevelMode = ParentLevelMode.DefaultTicks;
+            parentLevelMode = ParentLevelMode.TimeScaleTicks;
         }
         for (let i = 0; i < primaryTicks.length - 1; i += 1) {
             const p0 = primaryTicks[i];
@@ -582,7 +590,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                         !last
                     );
                     break;
-                case ParentLevelMode.DefaultTicks:
+                case ParentLevelMode.UnitTicks:
                     intervalTicks = scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, true)?.ticks ?? [];
                     break;
             }
@@ -623,7 +631,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             primaryTicksIndices = undefined;
         }
 
-        return { ticks, tickCount: undefined, primaryTicksIndices, interpolate };
+        return { ticks, tickCount: undefined, primaryTicksIndices, alignment };
     }
 
     private getTicks({
@@ -688,7 +696,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         let rawTickCount: number | undefined;
         let timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined;
         let primaryTicksIndices: Set<number> | undefined;
-        let interpolate = false;
+        let alignment: ScaleAlignment | undefined;
 
         const generatePrimaryTicks = primaryLabel?.enabled === true && tickParams.interval == null;
 
@@ -700,7 +708,11 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 tickDomain = interval.values!;
                 rawTicks = interval.values!;
                 rawTickCount = rawTicks.length;
-                interpolate = UnitTimeScale.is(scale);
+                if (OrdinalTimeScale.is(scale)) {
+                    alignment = ScaleAlignment.Trailing;
+                } else if (UnitTimeScale.is(scale)) {
+                    alignment = ScaleAlignment.Interpolate;
+                }
                 if (ContinuousScale.is(scale)) {
                     const [d0, d1] = findMinMax(niceDomain.map(Number));
                     rawTicks = rawTicks
@@ -755,7 +767,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     ? this.getTimeIntervalTicks(visibleRange, tickParams, timeInterval, reverse)
                     : undefined;
                 if (intervalTicks) {
-                    ({ ticks: rawTicks, tickCount: rawTickCount, primaryTicksIndices, interpolate } = intervalTicks);
+                    ({ ticks: rawTicks, tickCount: rawTickCount, primaryTicksIndices, alignment } = intervalTicks);
                 } else {
                     const intervalTickParams =
                         UnitTimeScale.is(scale) && tickParams.interval == null && timeInterval != null
@@ -806,7 +818,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         for (let i = 0; i < rawTicks.length; i++) {
             const tick = rawTicks[i];
-            const translation = scale.convert(tick, { interpolate }) + halfBandwidth;
+            const translation = scale.convert(tick, { alignment }) + halfBandwidth;
 
             // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
             // instead hide ticks based on their translation.

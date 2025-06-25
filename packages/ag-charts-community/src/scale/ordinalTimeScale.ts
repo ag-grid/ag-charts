@@ -5,7 +5,7 @@ import { datesSortOrder, sortAndUniqueDates } from '../util/date';
 import { intervalRange } from '../util/time';
 import { ContinuousScale } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
-import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from './scale';
+import { type NormalizedDomain, ScaleAlignment, type ScaleTickParams, type ScaleTickResult } from './scale';
 import { getDateTicksForInterval } from './timeScale';
 
 export class OrdinalTimeScale extends DiscreteTimeScale {
@@ -88,18 +88,21 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         const [r0, r1] = this.range;
         const availableRange = Math.abs(r1 - r0);
 
-        let ticks =
+        const dateTicks =
             getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange, extend }) ??
             getDefaultTicks(bands, domain, tickCount, visibleRange, extend);
 
+        const ticks: Date[] = [];
         let lastIndex = -1;
-        ticks = ticks.filter((tick) => {
-            const index = this.findIndex(tick) ?? -1;
+        for (const dateTick of dateTicks) {
+            const index = this.findIndex(dateTick, ScaleAlignment.Trailing) ?? -1;
             const duplicated = index === lastIndex;
             lastIndex = index;
 
-            return !duplicated;
-        });
+            if (index !== -1 && !duplicated) {
+                ticks.push(bands[index]);
+            }
+        }
 
         return {
             ticks,
@@ -130,7 +133,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         let lastIndex = -1;
         const ticks: Date[] = [];
         for (const rangeTick of rangeTicks) {
-            const index = this.findIndex(rangeTick) ?? -1;
+            const index = this.findIndex(rangeTick, ScaleAlignment.Trailing) ?? -1;
             const duplicated = index === lastIndex;
             lastIndex = index;
 
@@ -164,12 +167,6 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         const endIndex = Math.ceil(visibleRange[1] * domain.length);
 
         return endIndex - startIndex;
-    }
-
-    override findIndex(value: Date): number | undefined {
-        const { bands } = this;
-        const target = value.valueOf();
-        return findMinIndex(0, bands.length - 1, (index) => bands[index].valueOf() >= target);
     }
 }
 
