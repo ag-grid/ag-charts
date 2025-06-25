@@ -4,5 +4,6 @@
     "strict": true,
     "noUnusedParameters": false,
     "noUnusedLocals": false
-  }
+  },
+  "exclude": ["**/*.data.ts"]
 }
