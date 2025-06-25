@@ -77,6 +77,8 @@ export default [
             '**/jest.*.{cjs,js}',
             '**/.dependency-cruiser.js',
             '**/.size-limit.js',
+            '**/lint-change-detection-eslint-config.mjs',
+            '**/lint-change-detection.data.ts',
         ],
     },
     pluginJs.configs.recommended,
