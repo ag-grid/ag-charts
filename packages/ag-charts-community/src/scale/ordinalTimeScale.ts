@@ -1,10 +1,9 @@
-import { findMinIndex } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { datesSortOrder, sortAndUniqueDates } from '../util/date';
 import { ContinuousScale } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
-import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from './scale';
+import { type NormalizedDomain, ScaleAlignment, type ScaleTickParams, type ScaleTickResult } from './scale';
 import { getDateTicksForInterval } from './timeScale';
 
 export class OrdinalTimeScale extends DiscreteTimeScale {
@@ -93,8 +92,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         const ticks: Date[] = [];
         let lastIndex = -1;
         for (const dateTick of dateTicks) {
-            const d = dateTick.valueOf();
-            const index = findMinIndex(0, bands.length - 1, (i) => bands[i].valueOf() >= d) ?? -1;
+            const index = this.findIndex(dateTick, ScaleAlignment.Trailing) ?? -1;
             const duplicated = index === lastIndex;
             lastIndex = index;
 

@@ -2,6 +2,7 @@ import { Logger, clamp } from 'ag-charts-core';
 
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
+import type { ScaleAlignment } from './scale';
 
 /**
  * Maps a discrete domain to a continuous numeric range.
@@ -92,9 +93,9 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         }
     }
 
-    convert(d: D, _options?: { clamp?: boolean; interpolate?: boolean }): number {
+    convert(d: D, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
         this.refresh();
-        const i = this.findIndex(d);
+        const i = this.findIndex(d, options?.alignment);
         if (i == null || i < 0 || i >= this.bands.length) {
             return NaN;
         }
@@ -176,5 +177,5 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         return clamp(min, inset + step * i, max);
     }
 
-    abstract findIndex(value: D): number | undefined;
+    abstract findIndex(value: D, alignment?: ScaleAlignment): number | undefined;
 }

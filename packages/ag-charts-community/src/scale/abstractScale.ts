@@ -1,4 +1,5 @@
 import type { NormalizedDomain, Scale, ScaleTickParams, ScaleType } from './scale';
+import { ScaleAlignment } from './scale';
 
 export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> {
     abstract readonly type: ScaleType;
@@ -7,7 +8,7 @@ export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> 
     abstract range: R[];
     abstract normalizeDomains(...domains: D[][]): NormalizedDomain<D>;
     abstract toDomain(value: number): D | undefined;
-    abstract convert(value: D, options: { clamp?: boolean; interpolate?: boolean }): R;
+    abstract convert(value: D, options: { clamp?: boolean; alignment?: ScaleAlignment }): R;
     abstract invert(value: R, nearest?: boolean): D | undefined;
     ticks(
         _ticks: ScaleTickParams<I>,
