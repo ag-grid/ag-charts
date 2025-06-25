@@ -138,6 +138,15 @@ function domainReversed(domain: Date[]): boolean {
     return domain.length > 0 && domain[0] > domain[domain.length - 1];
 }
 
+function bandDomainIndices(bands: Date[], domain: Date[]): [number, number] {
+    const isReversed = domainReversed(domain);
+    const d0 = domain[isReversed ? domain.length - 1 : 0].valueOf();
+    const d1 = domain[isReversed ? 0 : domain.length - 1].valueOf();
+    const i0 = findMinIndex(0, bands.length - 1, (index) => bands[index].valueOf() >= d0) ?? 0;
+    const i1 = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1) ?? bands.length - 1;
+    return [i0, i1 + 1];
+}
+
 function getDefaultTicks(
     bands: Date[],
     domain: Date[] | undefined,
@@ -150,14 +159,6 @@ function getDefaultTicks(
     const bandIndices = domain ? bandDomainIndices(bands, domain) : undefined;
 
     return ticksEvery(bands, bandIndices, visibleRange, tickEvery, tickOffset, extend);
-}
-
-function bandDomainIndices(bands: Date[], domain: Date[]): [number, number] {
-    const d0 = domain[0].valueOf();
-    const d1 = domain[domain.length - 1].valueOf();
-    const i0 = findMinIndex(0, bands.length - 1, (index) => bands[index].valueOf() >= d0) ?? 0;
-    const i1 = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1) ?? bands.length - 1;
-    return [i0, i1 + 1];
 }
 
 function ticksEvery(

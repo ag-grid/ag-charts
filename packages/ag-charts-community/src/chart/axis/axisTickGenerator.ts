@@ -580,7 +580,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     intervalTicks = createTimeScaleTicks(intervalTickParams.interval, [p0, p1], pVisibleRange, true);
                     break;
                 case ParentLevelMode.OrdinalIntervalTicks:
-                    intervalTicks = (scale as any as OrdinalTimeScale).ticks(intervalTickParams, [p0, p1])?.ticks ?? [];
+                    intervalTicks = scale.ticks(intervalTickParams, [p0, p1])?.ticks ?? [];
                     break;
                 case ParentLevelMode.OrdinalStepTicks:
                     intervalTicks = (scale as any as OrdinalTimeScale).stepTicks(
