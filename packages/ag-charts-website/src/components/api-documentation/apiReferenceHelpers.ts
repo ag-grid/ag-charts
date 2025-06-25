@@ -89,7 +89,8 @@ export function normalizeType(refType: TypeNode, keepGenerics?: boolean): string
     }
     switch (refType.kind) {
         case 'array':
-            return `${normalizeType(refType.type)}[]`;
+            const arrayType = normalizeType(refType.type);
+            return arrayType.includes('|') ? `Array<${arrayType}>` : `${arrayType}[]`;
         case 'typeRef':
             return keepGenerics && refType.typeArguments?.length
                 ? `${refType.type}<${refType.typeArguments.map((typeArg) => normalizeType(typeArg)).join(', ')}>`
@@ -210,12 +211,14 @@ export function formatTypeToCode(
         if (typeof apiNode.type === 'object' && apiNode.type.kind === 'union') {
             let nodeType = normalizeType({
                 kind: 'union',
-                type: apiNode.type.type.filter(
-                    (type) =>
-                        typeof type !== 'string' || !reference.has(type) || !('deprecated' in reference.get(type)!)
-                ),
+                type: apiNode.type.type
+                    .map((type) => normalizeType(type))
+                    .filter(
+                        (type) =>
+                            typeof type !== 'string' || !reference.has(type) || !('deprecated' in reference.get(type)!)
+                    ),
             });
-            nodeType = '\n    ' + nodeType.replaceAll('|', '\n  |');
+            nodeType = '\n    ' + addNewLineOnPipe(nodeType);
 
             const result = [`type ${apiNode.name} = ${nodeType};`];
             const additionalTypes = new Set(apiNode.type.type.map((type) => normalizeType(type)));
@@ -548,4 +551,24 @@ function resolveGenericType(type: string, genericsMap: Map<unknown, unknown>): s
         resolvedType = genericType as string;
     }
     return resolvedType === type ? null : resolvedType;
+}
+
+function addNewLineOnPipe(str: string) {
+    let result = '';
+    let depth = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str[i];
+        if (char === '<') {
+            depth++;
+            result += char;
+        } else if (char === '>') {
+            depth--;
+            result += char;
+        } else if (char === '|' && depth === 0) {
+            result += '\n  |';
+        } else {
+            result += char;
+        }
+    }
+    return result;
 }
