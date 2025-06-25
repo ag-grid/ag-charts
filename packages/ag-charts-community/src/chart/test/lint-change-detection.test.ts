@@ -23,8 +23,8 @@ describe('aglint/change-detection', () => {
             stderr = error.stderr;
         }
         // The `__dirname` variable depends on the current buildhost. So substitute it to make the test consistent.
-        stdout = stdout.replaceAll(__dirname, '<dirname>')
-        stderr = stderr.replaceAll(__dirname, '<dirname>')
+        stdout = stdout.replaceAll(__dirname, '<dirname>');
+        stderr = stderr.replaceAll(__dirname, '<dirname>');
         expect({ stdout, stderr }).toMatchSnapshot();
     });
 });
