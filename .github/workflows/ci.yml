@@ -4,6 +4,7 @@ on:
     push:
         branches:
             - 'latest'
+            - 'next'
             - 'b[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?'
     pull_request:
     workflow_dispatch:
@@ -40,7 +41,7 @@ env:
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: ${{ github.ref != 'refs/heads/latest' }}
+    cancel-in-progress: ${{ github.ref != 'refs/heads/latest' && github.ref != 'refs/heads/next' }}
 
 jobs:
     init:
@@ -143,8 +144,8 @@ jobs:
 
             - name: Fetch Refs
               run: |
-                  git fetch origin --depth 1 latest
-                  git fetch origin --depth 1 tag latest-success
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
 
             - name: Setup
               id: setup
@@ -205,8 +206,8 @@ jobs:
 
             - name: Fetch Refs
               run: |
-                  git fetch origin --depth 1 latest
-                  git fetch origin --depth 1 tag latest-success
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
 
             - name: Setup
               id: setup
@@ -328,8 +329,8 @@ jobs:
             - name: Fetch Refs
               if: matrix.framework != 'none'
               run: |
-                  git fetch origin --depth 1 latest
-                  git fetch origin --depth 1 tag latest-success
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
 
             - name: Setup
               id: setup
@@ -369,7 +370,7 @@ jobs:
 
             - name: Fetch Refs
               run: |
-                  git fetch origin --depth 1 latest
+                  git fetch origin --depth 1 latest next
                   git fetch origin --depth 1 tag latest-success
 
             - uses: actions/download-artifact@v4
@@ -425,7 +426,7 @@ jobs:
                   fi
                   echo "workflowStatus=${WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
 
-                  LAST_WORKFLOW_STATUS=$(gh run list --workflow .github/workflows/ci.yml -b latest | grep -oh "completed.*" | grep -v "cancelled" | head -1 | awk '{print $2}')
+                  LAST_WORKFLOW_STATUS=$(gh run list --workflow .github/workflows/ci.yml -b ${{ github.ref_name }} | grep -oh "completed.*" | grep -v "cancelled" | head -1 | awk '{print $2}')
                   if [ "$GITHUB_RUN_ATTEMPT" -ge 2 ]; then
                     # Handle re-run cases - there is no way to query the previous run status, so we assume the most
                     # common scenario will be re-run after failure.
@@ -443,7 +444,7 @@ jobs:
 
             - name: Commit History
               id: commits
-              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
+              if: always() && job.status != 'cancelled' && (github.ref == 'refs/heads/latest' || github.ref == 'refs/heads/next') && steps.lastJobStatus.outputs.changedState == 'true'
               run: |
                   GIT_LOG=$(git log HEAD ^${{ needs.init.outputs.nx_base }} --format="%an (%h) %s")
                   echo "GIT_LOG<<EOF" >> $GITHUB_ENV
@@ -451,15 +452,15 @@ jobs:
                   echo "EOF" >> $GITHUB_ENV
 
             - name: Tag Latest Successful Commit
-              if: success() && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
+              if: success() && (github.ref == 'refs/heads/latest' || github.ref == 'refs/heads/next') && steps.lastJobStatus.outputs.workflowStatus != 'failure'
               uses: EndBug/latest-tag@latest
               with:
-                  ref: latest-success
-                  description: Latest commit to pass GitHub Actions workflow on latest branch.
+                  ref: ${{ github.ref_name }}-success
+                  description: Latest commit to pass GitHub Actions workflow on ${{ github.ref_name }} branch.
 
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
-              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.changedState == 'true'
+              if: always() && job.status != 'cancelled' && (github.ref == 'refs/heads/latest' || github.ref == 'refs/heads/next') && steps.lastJobStatus.outputs.changedState == 'true'
               env:
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
                   SLACK_COLOR: ${{ steps.lastJobStatus.outputs.workflowStatus != 'failure' && 'success' || 'failure' }}
