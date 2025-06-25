@@ -72,7 +72,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 
         this.refresh();
 
-        const { isReversed } = this;
+        const { bands, isReversed } = this;
         if (interval == null) {
             return {
                 ticks: getDefaultTicks(domain, tickCount, isReversed, visibleRange, extend),
@@ -86,29 +86,27 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         const [r0, r1] = this.range;
         const availableRange = Math.abs(r1 - r0);
 
-        let ticks =
+        const dateTicks =
             getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange, extend }) ??
             getDefaultTicks(domain, tickCount, isReversed, visibleRange, extend);
 
+        const ticks: Date[] = [];
         let lastIndex = -1;
-        ticks = ticks.filter((tick) => {
-            const index = this.findIndex(tick) ?? -1;
+        for (const dateTick of dateTicks) {
+            const d = dateTick.valueOf();
+            const index = findMinIndex(0, bands.length - 1, (i) => bands[i].valueOf() >= d) ?? -1;
             const duplicated = index === lastIndex;
             lastIndex = index;
 
-            return !duplicated;
-        });
+            if (index !== -1 && !duplicated) {
+                ticks.push(bands[index]);
+            }
+        }
 
         return {
             ticks,
             count: undefined,
         };
-    }
-
-    override findIndex(value: Date): number | undefined {
-        const { bands } = this;
-        const target = value.valueOf();
-        return findMinIndex(0, bands.length - 1, (index) => bands[index].valueOf() >= target);
     }
 }
 
