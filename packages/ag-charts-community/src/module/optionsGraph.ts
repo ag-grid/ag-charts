@@ -1,5 +1,5 @@
 import type { PlainObject, Vertex } from 'ag-charts-core';
-import * as core from 'ag-charts-core';
+import { AdjacencyListGraph, isObject, isObjectLike, isPlainObject } from 'ag-charts-core';
 
 import { chartTypes } from '../chart/factory/chartTypes';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
@@ -27,8 +27,6 @@ import {
     setPathSafe,
 } from './optionsGraphUtils';
 
-const { isObject, isObjectLike, isPlainObject } = core;
-
 export const createOptionsGraph = simpleMemorize(createOptionsGraphFn);
 export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject) {
     return new OptionsGraph(
@@ -45,7 +43,7 @@ export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject) {
  * The OptionsGraph combines the theme config, params, palette, overrides and user options into a graph which can then
  * be resolved down into an object.
  */
-export class OptionsGraph extends core.AdjacencyListGraph<unknown, string> implements OptionsGraphInterface {
+export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements OptionsGraphInterface {
     // The priority order in which to resolve options values.
     private static readonly EDGE_PRIORITY = [USER_OPTIONS_EDGE, OVERRIDES_EDGE, DEFAULTS_EDGE];
 

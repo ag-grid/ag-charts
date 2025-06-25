@@ -1,4 +1,4 @@
-import { type AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
+import type { AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
 import { type BoxBounds, clamp, isNumberEqual, roundTo } from 'ag-charts-core';
 
 import type { DefinedZoomState } from './zoomTypes';

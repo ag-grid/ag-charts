@@ -1,5 +1,5 @@
 import { type AgBoxPlotHighlightStyleOptions, type AgBoxPlotSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import { type DeepRequired } from 'ag-charts-core';
+import type { DeepRequired } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';

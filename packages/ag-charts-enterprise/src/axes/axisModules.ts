@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type AxisModuleDefinition } from 'ag-charts-core';
+import type { AxisModuleDefinition } from 'ag-charts-core';
 import type {
     AgAngleCategoryAxisOptions,
     AgAngleNumberAxisOptions,
