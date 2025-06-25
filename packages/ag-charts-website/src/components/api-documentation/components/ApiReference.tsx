@@ -255,7 +255,7 @@ function ApiReferenceRow({
     const memberName = cleanupName(member.name);
     const memberType = normalizeType(member.type);
     const additionalDetails = useMemberAdditionalDetails(member);
-    const collapsibleType = getCollapsibleType({ additionalDetails, nestedPath });
+    const collapsibleType = getCollapsibleType(additionalDetails, nestedPath);
     const hasChildProps = collapsibleType === 'childrenProperties';
 
     return (
@@ -350,7 +350,7 @@ export function TypeCodeBlock({ apiNode, member }: { apiNode: ApiNode | ApiNode[
     return <Code code={codeSample} />;
 }
 
-function getCollapsibleType({ additionalDetails, nestedPath }): CollapsibleType {
+function getCollapsibleType(additionalDetails, nestedPath): CollapsibleType {
     const hasMembers = additionalDetails && 'members' in additionalDetails;
     let collapsibleType: CollapsibleType = 'none';
     if (hasMembers) {
@@ -358,7 +358,6 @@ function getCollapsibleType({ additionalDetails, nestedPath }): CollapsibleType 
     } else if (Boolean(additionalDetails) && !nestedPath) {
         collapsibleType = 'code';
     }
-
     return collapsibleType;
 }
 
@@ -369,6 +368,7 @@ function getDetailsId(id: string) {
 function useMemberAdditionalDetails(member: MemberNode) {
     const reference = useContext(ApiReferenceContext);
     const memberType = getMemberType(member);
+
     if (memberType === 'function') {
         return member;
     }
@@ -392,7 +392,9 @@ function useMemberAdditionalDetails(member: MemberNode) {
             .flatMap((unionType) => typeof unionType === 'string' && resolve(unionType))
             .filter(
                 (apiNode): apiNode is TypeAliasNode =>
-                    typeof apiNode === 'object' && apiNode.kind === 'typeAlias' && !isInterfaceHidden(apiNode.name)
+                    typeof apiNode === 'object' &&
+                    (apiNode.kind === 'typeAlias' || apiNode.kind === 'interface') &&
+                    !isInterfaceHidden(apiNode.name)
             );
         if (unionTypes.length) {
             return unionTypes;
