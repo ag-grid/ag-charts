@@ -493,11 +493,8 @@ function findRequiredRefs(reference: ApiReferenceType) {
 
 export function getOptionsStaticPaths(reference: ApiReferenceType) {
     const getSubTypes = (ref: ApiReferenceNode): string[] =>
-        ref.kind === 'typeAlias' &&
-        typeof ref.type === 'object' &&
-        ref.type.kind === 'union' &&
-        ref.type.type.every((type): type is string => typeof type === 'string')
-            ? ref.type.type
+        ref.kind === 'typeAlias' && typeof ref.type === 'object' && ref.type.kind === 'union'
+            ? ref.type.type.map((type) => (typeof type === 'string' ? type : type.type))
             : [];
 
     const extractTypeValue = (refName: string) => {
