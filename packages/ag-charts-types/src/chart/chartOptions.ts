@@ -13,14 +13,14 @@ import type { AgNavigatorOptions } from './navigatorOptions';
 import type { AgRangesOptions } from './rangesOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type {
+    ContextDefault,
     CssColor,
+    DatumDefault,
     FontFamilyFull,
     FontSize,
     FontStyle,
     FontWeight,
     PixelSize,
-    TContextDefault,
-    TDatumDefault,
     TextAlign,
     TextWrap,
 } from './types';
@@ -60,7 +60,7 @@ export interface AgChartOverlayRendererParams<TContext> {
     context?: TContext;
 }
 
-export interface AgChartOverlayOptions<TContext = TContextDefault> {
+export interface AgChartOverlayOptions<TContext = ContextDefault> {
     /**
      * Enabled or disable use of the overlay.
      *
@@ -73,7 +73,7 @@ export interface AgChartOverlayOptions<TContext = TContextDefault> {
     renderer?: Renderer<AgChartOverlayRendererParams<TContext>, HTMLElement>;
 }
 
-export interface AgChartOverlaysOptions<TContext = TContextDefault> {
+export interface AgChartOverlaysOptions<TContext = ContextDefault> {
     /** An overlay to be displayed when there is no data. */
     loading?: AgChartOverlayOptions<TContext>;
     /** An overlay to be displayed when there is no data. */
@@ -187,7 +187,7 @@ export interface AgTouchOptions {
     dragAction?: 'none' | 'drag' | 'hover';
 }
 
-export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault, TContext = TContextDefault> {
+export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = ContextDefault> {
     /** The width of the chart in pixels. */
     width?: PixelSize;
     /** The height of the chart in pixels. */
@@ -279,7 +279,7 @@ export interface AgBaseThemeableChartOptions<TDatum = TDatumDefault, TContext = 
 }
 
 /** Configuration common to all charts.  */
-export interface AgBaseChartOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgBaseChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseThemeableChartOptions<TDatum, TContext> {
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
     data?: TDatum[];

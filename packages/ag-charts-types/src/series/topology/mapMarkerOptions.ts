@@ -3,13 +3,13 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
     AgMarkerShape,
+    ContextDefault,
     CssColor,
+    DatumDefault,
     DatumKey,
     GeoJSON,
     LabelPlacement,
     PixelSize,
-    TContextDefault,
-    TDatumDefault,
 } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type {
@@ -20,7 +20,7 @@ import type {
     AgSeriesHighlightStyle,
 } from '../seriesOptions';
 
-export interface AgMapMarkerSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+export interface AgMapMarkerSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgMapMarkerSeriesOptionsKeys<TDatum>,
         AgMapMarkerSeriesOptionsNames,
@@ -28,18 +28,18 @@ export interface AgMapMarkerSeriesTooltipRendererParams<TDatum, TContext = TCont
 
 export type AgMapMarkerSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & FillOptions & StrokeOptions;
 
-export type AgMapMarkerSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgMapMarkerSeriesOptionsKeys<TDatum> &
+export type AgMapMarkerSeriesLabelFormatterParams<TDatum = DatumDefault> = AgMapMarkerSeriesOptionsKeys<TDatum> &
     AgMapMarkerSeriesOptionsNames;
 
 export type AgMapMarkerSeriesItemStylerParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = DatumCallbackParams<TDatum> &
     ContextCallbackParams<TContext> &
     AgMapMarkerSeriesOptionsKeys<TDatum> &
     Required<AgMapMarkerSeriesStyle>;
 
-export interface AgMapMarkerSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgMapMarkerSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The name of the node key containing the id value. */
     idKey?: DatumKey<TDatum>;
     /** The key to use to retrieve latitude values from the data, used to control the position of the markers. */
@@ -76,7 +76,7 @@ export interface AgMapMarkerSeriesStyle extends FillOptions, StrokeOptions, Line
     size?: PixelSize;
 }
 
-export interface AgMapMarkerSeriesLabel<TDatum, TContext = TContextDefault>
+export interface AgMapMarkerSeriesLabel<TDatum, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, AgMapMarkerSeriesLabelFormatterParams<TDatum>, TContext> {
     /**
      * Placement of label in relation to the marker.
@@ -86,7 +86,7 @@ export interface AgMapMarkerSeriesLabel<TDatum, TContext = TContextDefault>
     placement?: LabelPlacement;
 }
 
-export interface AgMapMarkerSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgMapMarkerSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
     /** Determines the largest size a marker can be in pixels. */
@@ -107,7 +107,7 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = TDatumDefault, TCont
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
-export interface AgMapMarkerSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgMapMarkerSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'>,
         AgMapMarkerSeriesOptionsKeys<TDatum>,
         AgMapMarkerSeriesOptionsNames,

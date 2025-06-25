@@ -529,11 +529,13 @@ function getInterfaceArrayTypes(reference?: ApiReferenceType, interfaceRef?: Api
     if (
         interfaceRef?.kind === 'typeAlias' &&
         typeof interfaceRef.type === 'object' &&
-        interfaceRef.type.kind === 'union' &&
-        interfaceRef.type.type.every((type): type is string => typeof type === 'string')
+        interfaceRef.type.kind === 'union'
     ) {
         return interfaceRef.type.type
             .map((type) => {
+                if (typeof type !== 'string') {
+                    type = normalizeType(type);
+                }
                 const innerInterfaceRef = reference?.get(type);
                 if (innerInterfaceRef?.kind === 'interface') {
                     const typeMember = innerInterfaceRef.members.find((member) => member.name === 'type');
