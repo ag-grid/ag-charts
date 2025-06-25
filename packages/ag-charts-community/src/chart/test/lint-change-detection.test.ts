@@ -8,10 +8,16 @@ describe('aglint/change-detection', () => {
     it('should match the expected linting errors snapshot', () => {
         let stdout: string | undefined;
         let stderr: string | undefined;
+        const env: any = { ...process.env, NO_COLOR: '1' };
+        delete env['FORCE_COLOR'];
 
         try {
             // eslint-disable-next-line sonarjs/os-command
-            stdout = execSync(`npx eslint -c ${eslintConfigFile} ${lintDataFile}`, { encoding: 'utf-8', stdio: 'pipe' });
+            stdout = execSync(`npx eslint -c ${eslintConfigFile} ${lintDataFile}`, {
+                env,
+                encoding: 'utf-8',
+                stdio: 'pipe',
+            });
             stderr = '';
         } catch (error: any) {
             stdout = error.stdout;
