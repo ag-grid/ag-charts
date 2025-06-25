@@ -264,7 +264,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             const operationValues = this.neighboursWithEdgeValue(valueVertex, OPERATION_VALUE_EDGE);
             const operator = operations[operation];
             const operatorFn = typeof operator === 'function' ? operator : operator.resolve;
-            const resolved = operatorFn?.(this, vertex, operationValues ?? []);
+            const resolved = operatorFn?.(this, vertex, operationValues);
             return resolved === RESOLVED_TO_BRANCH ? undefined : resolved;
         }
 
@@ -461,8 +461,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
     private getVertexChildrenByKey(vertex: Vertex<unknown>) {
         const pathNeighbours = this.neighboursWithEdgeValue(vertex, PATH_EDGE);
-        if (!pathNeighbours) return;
-
         const pathVertices = new Map();
         for (const neighbour of pathNeighbours) {
             pathVertices.set(this.getVertexValue(neighbour), neighbour);
@@ -564,7 +562,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             const operationValues = this.neighboursWithEdgeValue(valueVertex, OPERATION_VALUE_EDGE);
             const operator = operations[operation];
             const dependenciesFn = typeof operator === 'function' ? undefined : operator.dependencies;
-            dependenciesFn?.(this, valueVertex, operationValues ?? []);
+            dependenciesFn?.(this, valueVertex, operationValues);
         }
 
         this.pendingProcessingEdgesFrom = [];
@@ -594,7 +592,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
             // Avoid setting an array value when the vertex has children with specific array index values and this is
             // not the highest priority edge
-            if (children && children.length > 0 && Array.isArray(value) && edgeValue !== highestPriority) continue;
+            if (children.length > 0 && Array.isArray(value) && edgeValue !== highestPriority) continue;
 
             if (pathArray.length === 0) {
                 if (value == null) continue;
@@ -617,7 +615,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             const operationValues = this.neighboursWithEdgeValue(valueVertex, OPERATION_VALUE_EDGE);
             const operator = operations[operation];
             const operatorFn = typeof operator === 'function' ? operator : operator.resolve;
-            const resolved = operatorFn?.(this, vertex, operationValues ?? []);
+            const resolved = operatorFn?.(this, vertex, operationValues);
             return resolved === RESOLVED_TO_BRANCH ? undefined : resolved;
         }
 
@@ -625,7 +623,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     }
 
     private resolveVertexAutoEnable(vertex: Vertex<unknown>, object: PlainObject, pathArray: Array<string>) {
-        const autoEnableValueVertex = this.neighboursWithEdgeValue(vertex, AUTO_ENABLE_VALUE_EDGE)?.[0];
+        const [autoEnableValueVertex] = this.neighboursWithEdgeValue(vertex, AUTO_ENABLE_VALUE_EDGE);
         if (!autoEnableValueVertex) return;
 
         const defaultsEnabled = this.findNeighbourValue(autoEnableValueVertex, DEFAULTS_EDGE) as PlainObject;
@@ -646,8 +644,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
     private resolveVertexChildren(vertex: Vertex<unknown>, object: PlainObject) {
         const children = this.neighboursWithEdgeValue(vertex, PATH_EDGE);
-        if (!children) return;
-
         for (const child of children) {
             const path = this.getVertexValue(child);
 
@@ -664,8 +660,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
     private resolveVertexDependencies(vertex: Vertex<unknown>) {
         const dependencies = this.neighboursWithEdgeValue(vertex, DEPENDENCY_EDGE);
-        if (!dependencies) return;
-
         for (const dependency of dependencies) {
             this.resolveVertex(dependency);
         }
@@ -677,10 +671,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         contextPathArray: Array<string>,
         orphanPathArray: Array<string>
     ) {
-        const remoteChildren = this.neighboursWithEdgeValue(remoteBranch, PATH_EDGE);
-        if (!remoteChildren) return;
-
-        for (const remoteChild of remoteChildren) {
+        for (const remoteChild of this.neighboursWithEdgeValue(remoteBranch, PATH_EDGE)) {
             const remoteChildPath = this.getVertexValue(remoteChild) as string;
 
             const childContextPathArray = [...contextPathArray, remoteChildPath];
@@ -714,7 +705,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
                     const operationValues = this.neighboursWithEdgeValue(orphanChildValueVertex, OPERATION_VALUE_EDGE);
                     const operator = operations[operation];
                     const dependenciesFn = typeof operator === 'function' ? undefined : operator.dependencies;
-                    dependenciesFn?.(this, orphanChildValueVertex, operationValues ?? []);
+                    dependenciesFn?.(this, orphanChildValueVertex, operationValues);
                 }
             }
 
