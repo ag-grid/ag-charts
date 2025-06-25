@@ -28,6 +28,10 @@ export default {
         const parserServices = ESLintUtils.getParserServices(context);
         const checker = parserServices.program.getTypeChecker();
 
+        function isUndefinedType(type) {
+            return type.flags & ts.TypeFlags.Undefined;
+        }
+
         function isAllowedPrimitive(type) {
             const flags = ts.TypeFlags;
             const allowed =
@@ -61,6 +65,9 @@ export default {
         }
 
         function isTupleType(type) {
+            if (type.isUnion()) {
+                return type.types.some(isTupleType);
+            }
             return (
                 (type.objectFlags & ts.ObjectFlags.Tuple) !== 0 ||
                 (type.target?.objectFlags & ts.ObjectFlags.Tuple) !== 0
@@ -72,6 +79,9 @@ export default {
         }
 
         function isMutableTuple(type) {
+            if (type.isUnion()) {
+                return type.types.some(isMutableTuple);
+            }
             return isTupleType(type) && !type.target?.readonly;
         }
 
@@ -102,11 +112,16 @@ export default {
 
         function isObjectLikeUnionType(type) {
             if (!type.isUnion()) return false;
-            let count = 0;
-            if (type.types.some(isObjectType)) count++;
-            if (type.types.some((t) => isArrayType(t) || isTupleType(t))) count++;
-            if (type.types.some(isAllowedPrimitive)) count++;
-            return count >= 2;
+            let hasObjectType = false;
+            let hasAllowedPrimitive = false;
+            for (const t of type.types) {
+                hasObjectType = hasObjectType || isObjectType(t) || isArrayType(t) || isTupleType(t);
+                hasAllowedPrimitive = hasAllowedPrimitive || (!isUndefinedType(t) && isAllowedPrimitive(t));
+                if (hasObjectType && hasAllowedPrimitive) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         function check(node) {
