@@ -4,7 +4,7 @@ exports[`aglint/change-detection should match the expected linting errors snapsh
 {
   "stderr": "",
   "stdout": "
-/Users/olegat/ag-charts/packages/ag-charts-community/src/chart/test/lint-change-detection.data.ts
+<dirname>/lint-change-detection.data.ts
    27:5  error  Decorator @SceneChangeDetection cannot assign property 'requiredObject' to type 'object'.
 * Switch to @SceneObjectChangeDetection for object properties                                                                                                                                                                                                         aglint/change-detection
    28:5  error  Decorator @SceneChangeDetection cannot assign property 'optionalObject' to type 'object | undefined'.

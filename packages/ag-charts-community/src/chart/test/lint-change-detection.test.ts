@@ -6,8 +6,8 @@ describe('aglint/change-detection', () => {
     const eslintConfigFile = path.resolve(__dirname, 'lint-change-detection-eslint-config.mjs');
 
     it('should match the expected linting errors snapshot', () => {
-        let stdout: string | undefined;
-        let stderr: string | undefined;
+        let stdout: string = '';
+        let stderr: string = '';
         const env: any = { ...process.env, NO_COLOR: '1' };
         delete env['FORCE_COLOR'];
 
@@ -18,11 +18,13 @@ describe('aglint/change-detection', () => {
                 encoding: 'utf-8',
                 stdio: 'pipe',
             });
-            stderr = '';
         } catch (error: any) {
             stdout = error.stdout;
             stderr = error.stderr;
         }
+        // The `__dirname` variable depends on the current buildhost. So substitute it to make the test consistent.
+        stdout = stdout.replaceAll(__dirname, '<dirname>')
+        stderr = stderr.replaceAll(__dirname, '<dirname>')
         expect({ stdout, stderr }).toMatchSnapshot();
     });
 });
