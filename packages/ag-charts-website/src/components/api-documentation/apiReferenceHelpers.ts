@@ -485,7 +485,7 @@ function findRequiredRefs(reference: ApiReferenceType) {
     const annotationRef = tryGet('AgAnnotation')!;
     const miniChartSeriesRef = tryGet('AgMiniChartSeriesOptions')!;
 
-    if (!axesRef || !seriesRef || !annotationRef || !miniChartSeriesRef) {
+    if (typeNamesNotFound.length) {
         throw new Error(`Cannot find types: ${typeNamesNotFound.join(', ')}`);
     }
     return { axesRef, seriesRef, annotationRef, miniChartSeriesRef };
