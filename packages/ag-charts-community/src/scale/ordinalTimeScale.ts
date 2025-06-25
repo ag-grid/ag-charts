@@ -2,7 +2,6 @@ import { findMaxIndex, findMinIndex } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { datesSortOrder, sortAndUniqueDates } from '../util/date';
-import { intervalRange } from '../util/time';
 import { ContinuousScale } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
 import { type NormalizedDomain, ScaleAlignment, type ScaleTickParams, type ScaleTickResult } from './scale';
@@ -108,41 +107,6 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             ticks,
             count: undefined,
         };
-    }
-
-    // There's bugs in .ticks that I can't fix without breaking changes
-    intervalTicks(
-        interval: AgTimeInterval | AgTimeIntervalUnit,
-        domain?: Date[],
-        visibleRange: [number, number] = [0, 1]
-    ): Date[] | undefined {
-        if (domain == null && this.domain.length < 2) return;
-
-        const { bands } = this;
-
-        let start: Date;
-        let stop: Date;
-        if (domain) {
-            [start, stop] = domain;
-        } else {
-            [start, stop] = [this.domain[0], this.domain[this.domain.length - 1]];
-        }
-
-        const rangeTicks = intervalRange(interval, start, stop, { visibleRange });
-
-        let lastIndex = -1;
-        const ticks: Date[] = [];
-        for (const rangeTick of rangeTicks) {
-            const index = this.findIndex(rangeTick, ScaleAlignment.Trailing) ?? -1;
-            const duplicated = index === lastIndex;
-            lastIndex = index;
-
-            if (!duplicated) {
-                ticks.push(bands[index]);
-            }
-        }
-
-        return ticks;
     }
 
     stepTicks(bandStep: number, domain?: Date[], visibleRange: [number, number] = [0, 1], dropLast = true): Date[] {
