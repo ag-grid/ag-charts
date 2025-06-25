@@ -139,18 +139,16 @@ export class AdjacencyListGraph<V, E = undefined> {
             return found;
         }
 
-        let vertex = from;
-        let found;
+        if (findValues.length === 0) return;
+
+        let found: Vertex<V> | undefined = from;
         for (const value of findValues) {
-            let foundNext = false;
-            for (const neighbour of this.neighboursWithEdgeValue(vertex, edgeValue)) {
-                if (this.getVertexValue(neighbour) !== value) continue;
-                vertex = neighbour;
-                foundNext = true;
-                break;
-            }
-            if (!foundNext) return;
-            found = vertex;
+            const neighbours: Vertex<V>[] | undefined = found
+                ? this.neighboursWithEdgeValue(found, edgeValue)
+                : undefined;
+            if (!neighbours) return;
+
+            found = neighbours.find((n) => n.value === value);
         }
         return found;
     }
