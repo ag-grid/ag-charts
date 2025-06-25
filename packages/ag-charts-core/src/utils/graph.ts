@@ -13,7 +13,8 @@ export class AdjacencyListGraph<V, E = undefined> {
     // Stores edges that are pending processing on a given edge value, optimised for iteration of pairs of adjacent
     // vertices. Should call `.clear()` once the edges have been processed.
     private readonly processedEdge?: E;
-    protected pendingProcessingEdges: [Vertex<V>, Vertex<V>][] = [];
+    protected pendingProcessingEdgesFrom: Vertex<V>[] = [];
+    protected pendingProcessingEdgesTo: Vertex<V>[] = [];
 
     constructor(cachedNeighboursEdge?: E, processedEdge?: E) {
         this.cachedNeighboursEdge = cachedNeighboursEdge;
@@ -22,7 +23,8 @@ export class AdjacencyListGraph<V, E = undefined> {
 
     clear() {
         this._vertexCount = 0;
-        this.pendingProcessingEdges = [];
+        this.pendingProcessingEdgesFrom = [];
+        this.pendingProcessingEdgesTo = [];
     }
 
     addVertex(value: V): Vertex<V> {
@@ -34,11 +36,10 @@ export class AdjacencyListGraph<V, E = undefined> {
     addEdge(from: Vertex<V>, to: Vertex<V>, edge: E): void {
         // Optimize cached neighbours handling
         if (edge === this.cachedNeighboursEdge) {
-            from.cachedNeighbours.set(to.value, to);
-        }
-
-        if (edge === this.processedEdge) {
-            this.pendingProcessingEdges.push([from, to]);
+            from.updateCachedNeighbours().set(to.value, to);
+        } else if (edge === this.processedEdge) {
+            this.pendingProcessingEdgesFrom.push(from);
+            this.pendingProcessingEdgesTo.push(to);
         }
 
         // Optimize edges handling - single lookup with fallback
@@ -101,8 +102,8 @@ export class AdjacencyListGraph<V, E = undefined> {
     }
 
     // Get the set of neighbours along a given edge.
-    neighboursWithEdgeValue(from: Vertex<V>, edgeValue: E): Vertex<V>[] {
-        return from.edges.get(edgeValue) ?? [];
+    neighboursWithEdgeValue(from: Vertex<V>, edgeValue: E) {
+        return from.edges.get(edgeValue);
     }
 
     // Find the first neighbour along the given edge.
@@ -120,6 +121,7 @@ export class AdjacencyListGraph<V, E = undefined> {
     // Find the first neighbour with a given value, optionally along a given edge.
     findNeighbourWithValue(from: Vertex<V>, value: V, edgeValue?: E): Vertex<V> | undefined {
         const neighbours = edgeValue == null ? this.neighbours(from) : this.neighboursWithEdgeValue(from, edgeValue);
+        if (!neighbours) return;
         for (const neighbour of neighbours) {
             if (this.getVertexValue(neighbour) === value) {
                 return neighbour;
@@ -132,7 +134,7 @@ export class AdjacencyListGraph<V, E = undefined> {
         if (edgeValue === this.cachedNeighboursEdge) {
             let found;
             for (const value of findValues) {
-                found = (found ?? from).cachedNeighbours.get(value);
+                found = (found ?? from).readCachedNeighbours()?.get(value);
                 if (!found) return;
             }
             return found;
@@ -142,7 +144,9 @@ export class AdjacencyListGraph<V, E = undefined> {
         let found;
         for (const value of findValues) {
             let foundNext = false;
-            for (const neighbour of this.neighboursWithEdgeValue(vertex, edgeValue)) {
+            const neighbours = this.neighboursWithEdgeValue(vertex, edgeValue);
+            if (!neighbours) return;
+            for (const neighbour of neighbours) {
                 if (this.getVertexValue(neighbour) !== value) continue;
                 vertex = neighbour;
                 foundNext = true;
@@ -167,12 +171,21 @@ export class AdjacencyListGraph<V, E = undefined> {
  */
 export class Vertex<V, E = unknown> {
     public edges: Map<E, Vertex<V>[]> = new Map();
-    public cachedNeighbours: Map<V, Vertex<V>> = new Map();
+    private _cachedNeighbours?: Map<V, Vertex<V>>;
 
     constructor(public value: V) {}
 
+    readCachedNeighbours() {
+        return this._cachedNeighbours;
+    }
+
+    updateCachedNeighbours() {
+        this._cachedNeighbours ??= new Map();
+        return this._cachedNeighbours;
+    }
+
     clear() {
         this.edges.clear();
-        this.cachedNeighbours.clear();
+        this._cachedNeighbours?.clear();
     }
 }

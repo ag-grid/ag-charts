@@ -50,11 +50,11 @@ type OperationResolver = (
     values: Array<VertexInterface>
 ) => unknown;
 
-export function getOperation(value: unknown) {
+export function getOperation(value: unknown, keys?: Array<string>) {
     if (value == null || typeof value !== 'object' || Array.isArray(value)) return;
 
     // Get the first key more efficiently than Object.keys()
-    const keys = Object.getOwnPropertyNames(value);
+    keys ??= Object.keys(value);
     if (keys.length === 0) return;
 
     const operation = keys[0] as Operation;
@@ -376,8 +376,11 @@ function ifOperation(graph: OptionsGraphInterface, vertex: VertexInterface, valu
     const valueVertex = condition ? thenVertex : elseVertex;
 
     // Attach neighbours from the chosen conditional branch onto the vertex
-    for (const neighbour of graph.neighboursWithEdgeValue(valueVertex, PATH_EDGE)) {
-        graph.addEdge(vertex, neighbour, PATH_EDGE);
+    const neighbours = graph.neighboursWithEdgeValue(valueVertex, PATH_EDGE);
+    if (neighbours) {
+        for (const neighbour of neighbours) {
+            graph.addEdge(vertex, neighbour, PATH_EDGE);
+        }
     }
 
     return graph.resolveVertexValue(vertex, valueVertex);
@@ -690,7 +693,7 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         ? (graph.resolveVertexValue(vertex, overridesPathVertex2) as Array<string>)
         : undefined;
 
-    if (children.length === 0 && defaultValue != null) {
+    if (children && children.length === 0 && defaultValue != null) {
         if (getOperation(defaultValue)) {
             const resolvedDefaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
             if (isPlainObject(resolvedDefaultValue)) {
@@ -701,13 +704,16 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         }
     }
 
-    for (const child of children) {
-        if (graph.neighboursWithEdgeValue(child, PATH_EDGE).length === 0) {
-            // Add a stub if we are applying to a child object with no keys, e.g. `gridLine: { styles: [{}] }`
-            const stubVertex = graph.addVertex({});
-            graph.addEdge(child, stubVertex, DEFAULTS_EDGE);
-        } else {
-            graph.graftObject(child, object, [overridesPath1, overridesPath2]);
+    if (children) {
+        for (const child of children) {
+            const childNeighbours = graph.neighboursWithEdgeValue(child, PATH_EDGE);
+            if (!childNeighbours || childNeighbours.length === 0) {
+                // Add a stub if we are applying to a child object with no keys, e.g. `gridLine: { styles: [{}] }`
+                const stubVertex = graph.addVertex({});
+                graph.addEdge(child, stubVertex, DEFAULTS_EDGE);
+            } else {
+                graph.graftObject(child, object, [overridesPath1, overridesPath2]);
+            }
         }
     }
 
@@ -727,16 +733,18 @@ function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     const ignorePathsValue = ignorePathsVertex ? graph.getVertexValue(ignorePathsVertex) : [];
     const ignorePaths = Array.isArray(ignorePathsValue) ? new Set(ignorePathsValue) : new Set();
 
-    for (const child of children) {
-        const variables = graph.graftAndResolveOrphan(child, variablesVertex) as PlainObject;
+    if (children) {
+        for (const child of children) {
+            const variables = graph.graftAndResolveOrphan(child, variablesVertex) as PlainObject;
 
-        for (const fromPath of fromPaths) {
-            const fromPathResolved = resolvePath([], fromPath, variables);
-            if (fromPathResolved === UNRESOLVABLE_PATH) {
-                continue;
+            for (const fromPath of fromPaths) {
+                const fromPathResolved = resolvePath([], fromPath, variables);
+                if (fromPathResolved === UNRESOLVABLE_PATH) {
+                    continue;
+                }
+
+                graph.graftConfig(child, fromPathResolved, ignorePaths);
             }
-
-            graph.graftConfig(child, fromPathResolved, ignorePaths);
         }
     }
 
@@ -764,21 +772,23 @@ function findFirstSiblingNotOperationOperation(
 
     const siblings = graph.neighboursWithEdgeValue(parentVertex, PATH_EDGE);
 
-    for (let index = 0; index < siblings.length; index++) {
-        if (`${index}` === pathArray[indexIndex]) continue;
+    if (siblings) {
+        for (let index = 0; index < siblings.length; index++) {
+            if (`${index}` === pathArray[indexIndex]) continue;
 
-        const siblingChildPathArray = parentPathArray.concat([`${index}`, ...pathArray.slice(indexIndex + 1)]);
-        const siblingChildVertex = graph.findVertexAtPath(siblingChildPathArray);
-        if (!siblingChildVertex) continue;
+            const siblingChildPathArray = parentPathArray.concat([`${index}`, ...pathArray.slice(indexIndex + 1)]);
+            const siblingChildVertex = graph.findVertexAtPath(siblingChildPathArray);
+            if (!siblingChildVertex) continue;
 
-        const siblingChildUserOptionsValue = graph.findNeighbourValue(siblingChildVertex, USER_OPTIONS_EDGE);
-        if (siblingChildUserOptionsValue != null) {
-            return siblingChildUserOptionsValue;
-        }
+            const siblingChildUserOptionsValue = graph.findNeighbourValue(siblingChildVertex, USER_OPTIONS_EDGE);
+            if (siblingChildUserOptionsValue != null) {
+                return siblingChildUserOptionsValue;
+            }
 
-        const siblingChildOverridesValue = graph.findNeighbourValue(siblingChildVertex, OVERRIDES_EDGE);
-        if (siblingChildOverridesValue != null) {
-            return siblingChildOverridesValue;
+            const siblingChildOverridesValue = graph.findNeighbourValue(siblingChildVertex, OVERRIDES_EDGE);
+            if (siblingChildOverridesValue != null) {
+                return siblingChildOverridesValue;
+            }
         }
     }
 
@@ -908,3 +918,7 @@ export const operations: Record<Operation, OperationFns> = {
 };
 
 const operationTypes = new Set(Object.keys(operations));
+
+export function isOperation(value: unknown): value is Operation {
+    return operationTypes.has(value as Operation);
+}
