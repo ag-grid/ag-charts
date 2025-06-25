@@ -1,7 +1,8 @@
-import { findMinIndex } from 'ag-charts-core';
+import { findMaxIndex, findMinIndex } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { datesSortOrder, sortAndUniqueDates } from '../util/date';
+import { intervalRange } from '../util/time';
 import { ContinuousScale } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
 import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from './scale';
@@ -23,7 +24,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         this.invalid = true;
         this._domain = domain;
         this._bands = undefined;
-        this.isReversed = domain.length > 0 && domain[0] > domain[domain.length - 1];
+        this.isReversed = domainReversed(domain);
     }
     override get domain(): Date[] {
         return this._domain;
@@ -63,32 +64,33 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             maxTickCount,
             tickCount = maxTickCount,
         }: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
-        domain: Date[] = this.domain,
+        domain?: Date[],
         visibleRange: [number, number] = [0, 1],
         // Only used for OrdinalTimeScale
         extend = false
     ): ScaleTickResult<Date> | undefined {
-        if (!domain.length) return;
+        const { bands } = this;
+
+        if (!bands.length) return;
 
         this.refresh();
 
-        const { isReversed } = this;
         if (interval == null) {
             return {
-                ticks: getDefaultTicks(domain, tickCount, isReversed, visibleRange, extend),
+                ticks: getDefaultTicks(bands, domain, tickCount, visibleRange, extend),
                 count: undefined,
             };
         }
 
-        const start = domain[0].valueOf();
-        const stop = domain[domain.length - 1].valueOf();
+        const start = bands[0].valueOf();
+        const stop = bands[bands.length - 1].valueOf();
 
         const [r0, r1] = this.range;
         const availableRange = Math.abs(r1 - r0);
 
         let ticks =
             getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange, extend }) ??
-            getDefaultTicks(domain, tickCount, isReversed, visibleRange, extend);
+            getDefaultTicks(bands, domain, tickCount, visibleRange, extend);
 
         let lastIndex = -1;
         ticks = ticks.filter((tick) => {
@@ -105,6 +107,65 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         };
     }
 
+    // There's bugs in .ticks that I can't fix without breaking changes
+    intervalTicks(
+        interval: AgTimeInterval | AgTimeIntervalUnit,
+        domain?: Date[],
+        visibleRange: [number, number] = [0, 1]
+    ): Date[] | undefined {
+        if (domain == null && this.domain.length < 2) return;
+
+        const { bands } = this;
+
+        let start: Date;
+        let stop: Date;
+        if (domain) {
+            [start, stop] = domain;
+        } else {
+            [start, stop] = [this.domain[0], this.domain[this.domain.length - 1]];
+        }
+
+        const rangeTicks = intervalRange(interval, start, stop, { visibleRange });
+
+        let lastIndex = -1;
+        const ticks: Date[] = [];
+        for (const rangeTick of rangeTicks) {
+            const index = this.findIndex(rangeTick) ?? -1;
+            const duplicated = index === lastIndex;
+            lastIndex = index;
+
+            if (!duplicated) {
+                ticks.push(bands[index]);
+            }
+        }
+
+        return ticks;
+    }
+
+    stepTicks(bandStep: number, domain?: Date[], visibleRange: [number, number] = [0, 1], dropLast = true): Date[] {
+        const { bands } = this;
+        const bandIndices = domain ? bandDomainIndices(bands, domain) : undefined;
+
+        const ticks = ticksEvery(bands, bandIndices, visibleRange, bandStep, 0, false);
+        const lastTick = ticks.at(-1);
+        const lastTickIndex =
+            dropLast && bandStep > 1 && bandIndices && lastTick ? this.findIndex(lastTick) : undefined;
+        if (lastTickIndex != null && bandIndices != null && bandIndices[1] - lastTickIndex <= bandStep) {
+            // If the tick is too close to the end of the domain, remove it
+            ticks.pop();
+        }
+
+        return ticks;
+    }
+
+    bandCount(visibleRange: [number, number] = [0, 1]): number {
+        const { domain } = this;
+        const startIndex = Math.floor(visibleRange[0] * domain.length);
+        const endIndex = Math.ceil(visibleRange[1] * domain.length);
+
+        return endIndex - startIndex;
+    }
+
     override findIndex(value: Date): number | undefined {
         const { bands } = this;
         const target = value.valueOf();
@@ -112,29 +173,63 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
     }
 }
 
+function domainReversed(domain: Date[]): boolean {
+    return domain.length > 0 && domain[0] > domain[domain.length - 1];
+}
+
 function getDefaultTicks(
-    domain: Date[],
+    bands: Date[],
+    domain: Date[] | undefined,
     maxTickCount: number,
-    isReversed: boolean,
     visibleRange: [number, number],
     extend: boolean
-) {
-    const ticks: Date[] = [];
-    const tickEvery = Math.ceil(domain.length / maxTickCount);
+): Date[] {
+    const tickEvery = Math.ceil(bands.length / maxTickCount);
     const tickOffset = Math.floor(tickEvery / 2);
+    const bandIndices = domain ? bandDomainIndices(bands, domain) : undefined;
 
-    let startIndex = Math.floor(visibleRange[0] * domain.length);
-    let endIndex = Math.ceil(visibleRange[1] * domain.length);
+    return ticksEvery(bands, bandIndices, visibleRange, tickEvery, tickOffset, extend);
+}
+
+function bandDomainIndices(bands: Date[], domain: Date[]): [number, number] {
+    const d0 = domain[0].valueOf();
+    const d1 = domain[domain.length - 1].valueOf();
+    const i0 = findMinIndex(0, bands.length - 1, (index) => bands[index].valueOf() >= d0) ?? 0;
+    const i1 = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1) ?? bands.length - 1;
+    return [i0, i1 + 1];
+}
+
+function ticksEvery(
+    bands: Date[],
+    [i0, i1]: [number, number] = [0, bands.length],
+    visibleRange: [number, number],
+    tickEvery: number,
+    tickOffset: number,
+    extend: boolean
+): Date[] {
+    const offset = i0;
+    const length = i1 - i0;
+
+    let startIndex = offset + Math.floor(visibleRange[0] * length);
+    let endIndex = offset + Math.ceil(visibleRange[1] * length);
 
     if (extend) {
-        if (startIndex > tickEvery) startIndex -= tickEvery;
-        if (endIndex < domain.length - tickEvery) endIndex += tickEvery;
+        startIndex -= tickEvery;
+        endIndex += tickEvery;
     }
 
-    for (let index = startIndex; index < endIndex; index += 1) {
-        const tickIndex = isReversed ? domain.length - 1 - index : index;
-        if (tickEvery <= 0 || (tickIndex + tickOffset) % tickEvery === 0) {
-            ticks.push(domain[index]);
+    startIndex = Math.max(startIndex, 0);
+    endIndex = Math.min(endIndex, bands.length);
+
+    let ticks: Date[];
+    if (tickEvery <= 1) {
+        ticks = bands.slice(startIndex, endIndex);
+    } else {
+        ticks = [];
+        for (let index = startIndex; index < endIndex; index += 1) {
+            if ((index - offset + tickOffset) % tickEvery === 0) {
+                ticks.push(bands[index]);
+            }
         }
     }
 
