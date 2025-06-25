@@ -1,9 +1,9 @@
 import type { AgAxisContinuousIntervalOptions, AgAxisLabelFormatterParams } from './axisOptions';
 import type { Formatter } from './callbackOptions';
 import type { AgChartLegendPosition } from './legendOptions';
-import type { CssColor, FontFamilyFull, FontSize, FontStyle, FontWeight, PixelSize, TContextDefault } from './types';
+import type { ContextDefault, CssColor, FontFamilyFull, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
-export interface AgGradientLegendLabelOptions<TContext = TContextDefault> {
+export interface AgGradientLegendLabelOptions<TContext = ContextDefault> {
     /** The font style to use for the labels. */
     fontStyle?: FontStyle;
     /** The font weight to use for the labels. */
@@ -22,7 +22,7 @@ export interface AgGradientLegendLabelOptions<TContext = TContextDefault> {
     formatter?: Formatter<AgAxisLabelFormatterParams<TContext>>;
 }
 
-export interface AgGradientLegendScaleOptions<TContext = TContextDefault> {
+export interface AgGradientLegendScaleOptions<TContext = ContextDefault> {
     /** Options for the labels on the scale. */
     label?: AgGradientLegendLabelOptions<TContext>;
     /** Distance between the gradient box and the labels. */
@@ -31,7 +31,7 @@ export interface AgGradientLegendScaleOptions<TContext = TContextDefault> {
     interval?: AgAxisContinuousIntervalOptions<number>;
 }
 
-export interface AgGradientLegendOptions<TContext = TContextDefault> {
+export interface AgGradientLegendOptions<TContext = ContextDefault> {
     /** Whether to show the gradient legend. By default, the chart displays a gradient legend for series using a `colorKey`. */
     enabled?: boolean;
     /** Where the legend should show in relation to the chart. */

@@ -593,9 +593,7 @@ export abstract class FlowProportionSeries<
         let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
 
         this.linkSelection.each((node, datum) => {
-            // @todo(AG-11712) Links don't implement distance squared
-            // const distanceSquared = node.distanceSquared(x, y);
-            const distanceSquared = node.containsPoint(x, y) ? 0 : Infinity;
+            const distanceSquared = node.distanceSquared(x, y);
             if (distanceSquared < minDistanceSquared) {
                 minDistanceSquared = distanceSquared;
                 minDatum = datum;

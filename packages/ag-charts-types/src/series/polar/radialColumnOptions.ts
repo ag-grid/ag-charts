@@ -1,4 +1,4 @@
-import type { Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault, Ratio } from '../../chart/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 import type {
     AgBaseRadialSeriesThemeableOptions,
@@ -6,7 +6,7 @@ import type {
     AgRadialSeriesOptionsNames,
 } from './radialOptions';
 
-export interface AgBaseRadialColumnSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgBaseRadialColumnSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
@@ -24,7 +24,7 @@ export interface AgBaseRadialColumnSeriesOptions<TDatum = TDatumDefault, TContex
     stackGroup?: string;
 }
 
-export interface AgRadialColumnSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgRadialColumnSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseRadialSeriesThemeableOptions<TDatum, TContext> {
     /** The ratio used to calculate the column width based on the circumference and padding between items. */
     columnWidthRatio?: Ratio;
@@ -32,7 +32,7 @@ export interface AgRadialColumnSeriesThemeableOptions<TDatum = TDatumDefault, TC
     maxColumnWidthRatio?: Ratio;
 }
 
-export interface AgRadialColumnSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgRadialColumnSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgRadialColumnSeriesThemeableOptions<TDatum, TContext>,
         AgBaseRadialColumnSeriesOptions<TDatum, TContext> {
     /** Configuration for Radial Column Series. */

@@ -1,11 +1,8 @@
 import type { LineDashOptions, StrokeOptions } from '../series/cartesian/commonOptions';
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from './callbackOptions';
-import type { DatumKey, PixelSize, Ratio, TContextDefault, TDatumDefault } from './types';
+import type { ContextDefault, DatumDefault, DatumKey, PixelSize, Ratio } from './types';
 
-export type AgErrorBarItemStylerParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
-> = DatumCallbackParams<TDatum> &
+export type AgErrorBarItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<TDatum> &
     ContextCallbackParams<TContext> &
     SeriesKeyOptions<TDatum> &
     ErrorBarKeyOptions<TDatum> &
@@ -64,7 +61,7 @@ export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
 
 export const AgErrorBarSupportedSeriesTypes = ['bar', 'line', 'scatter'] as const;
 
-export interface AgErrorBarOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgErrorBarOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends ErrorBarKeyOptions<TDatum>,
         ErrorBarNameOptions,
         ErrorBarFormatterOption<TDatum, TContext>,

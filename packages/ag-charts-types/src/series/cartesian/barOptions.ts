@@ -3,7 +3,7 @@ import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { DatumKey, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
@@ -19,7 +19,7 @@ export type AgBarSeriesLabelPlacement =
     | 'outside-start'
     | 'outside-end';
 
-export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
+export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Where to render series labels relative to the segments. */
     placement?: AgBarSeriesLabelPlacement;
@@ -27,7 +27,7 @@ export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = TContextDef
     padding?: PixelSize;
 }
 
-export interface AgBarSeriesItemStylerParams<TDatum, TContext = TContextDefault>
+export interface AgBarSeriesItemStylerParams<TDatum, TContext = ContextDefault>
     extends DatumCallbackParams<TDatum>,
         ContextCallbackParams<TContext>,
         AgBarSeriesOptionsKeys<TDatum>,
@@ -52,10 +52,10 @@ export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOp
     cornerRadius?: PixelSize;
 }
 
-export type AgBarSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgBarSeriesOptionsKeys<TDatum> &
+export type AgBarSeriesLabelFormatterParams<TDatum = DatumDefault> = AgBarSeriesOptionsKeys<TDatum> &
     AgBarSeriesOptionsNames;
 
-export interface AgBarSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgBarSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBarSeriesOptionsKeys<TDatum>,
         AgBarSeriesOptionsNames,
         AgBarSeriesStyle,
@@ -64,7 +64,7 @@ export interface AgBarSeriesTooltipRendererParams<TDatum = TDatumDefault, TConte
     readonly stackGroup?: string;
 }
 
-export interface AgBarSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBarSeriesStyle,
         Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
     /**
@@ -94,7 +94,7 @@ export interface AgBarHighlightStyleOptions extends AgBarSeriesStyle {
     opacity?: Opacity;
 }
 
-export interface AgBarSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgBarSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key to use to retrieve x-values from the data. */
     xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-values from the data. */
@@ -110,7 +110,7 @@ export interface AgBarSeriesOptionsNames {
     legendItemName?: string;
 }
 
-export interface AgBarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgBarSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgBarSeriesOptionsKeys<TDatum>,
         AgBarSeriesOptionsNames,

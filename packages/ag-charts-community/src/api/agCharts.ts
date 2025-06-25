@@ -5,7 +5,7 @@ import type {
     AgFinancialChartOptions,
     AgGaugeOptions,
     AgSparklineOptions,
-    TDatumDefault,
+    DatumDefault,
 } from 'ag-charts-types';
 
 import { Chart } from '../chart/chart';
@@ -64,7 +64,7 @@ export abstract class AgCharts {
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
-    public static create<O extends AgChartOptions<TDatumDefault, any>>( // set TContext=any for backward-compatibility
+    public static create<O extends AgChartOptions<DatumDefault, any>>( // set TContext=any for backward-compatibility
         userOptions: O,
         optionsMetadata?: ChartInternalOptionMetadata
     ): AgChartInstance<O> {

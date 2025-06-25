@@ -1,4 +1,3 @@
-// @todo(AG-10831) Handle anti-meridian
 export class LonLatBBox {
     constructor(
         public lon0: number,

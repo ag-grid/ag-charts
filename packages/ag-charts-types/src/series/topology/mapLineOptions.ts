@@ -1,7 +1,7 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { DatumKey, GeoJSON, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, GeoJSON, Opacity, PixelSize } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
@@ -11,8 +11,8 @@ import type {
 } from '../seriesOptions';
 
 export type AgMapLineSeriesTooltipRendererParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = AgSeriesTooltipRendererParams<TDatum, TContext> &
     AgMapLineSeriesOptionsKeys<TDatum> &
     AgMapLineSeriesOptionsNames &
@@ -22,24 +22,24 @@ export type AgMapLineSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & St
 
 export type AgMapLineSeriesStyle = StrokeOptions & LineDashOptions;
 
-export type AgMapLineSeriesLabel<TDatum, TContext = TContextDefault> = AgChartLabelOptions<
+export type AgMapLineSeriesLabel<TDatum, TContext = ContextDefault> = AgChartLabelOptions<
     TDatum,
     AgMapLineSeriesLabelFormatterParams<TDatum>,
     TContext
 >;
 
-export type AgMapLineSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgMapLineSeriesOptionsKeys<TDatum> &
+export type AgMapLineSeriesLabelFormatterParams<TDatum = DatumDefault> = AgMapLineSeriesOptionsKeys<TDatum> &
     AgMapLineSeriesOptionsNames;
 
 export type AgMapLineSeriesItemStylerParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = DatumCallbackParams<TDatum> &
     ContextCallbackParams<TContext> &
     AgMapLineSeriesOptionsKeys<TDatum> &
     Required<AgMapLineSeriesStyle>;
 
-export interface AgMapLineSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgMapLineSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The name of the node key containing the id value. */
     idKey?: DatumKey<TDatum>;
     /** The key to use to retrieve size values from the data, used to control the width of the stroke. */
@@ -61,7 +61,7 @@ export interface AgMapLineSeriesOptionsNames {
     labelName?: string;
 }
 
-export interface AgMapLineSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgMapLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgMapLineSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
     /** Determines the largest width a stroke can be in pixels. */
@@ -85,7 +85,7 @@ export interface AgMapLineHighlightStyleOptions extends StrokeOptions, LineDashO
     opacity?: Opacity;
 }
 
-export interface AgMapLineSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgMapLineSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'>,
         AgMapLineSeriesOptionsKeys<TDatum>,
         AgMapLineSeriesOptionsNames,

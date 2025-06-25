@@ -7,14 +7,14 @@ import type {
 } from './axisOptions';
 import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions } from './crossLineOptions';
 import type { AgPolarAxisShape } from './polarAxisOptions';
-import type { Degree, Ratio, TContextDefault } from './types';
+import type { ContextDefault, Degree, Ratio } from './types';
 
-interface AgRadiusAxisFormattableLabelOptions<TContext = TContextDefault>
+interface AgRadiusAxisFormattableLabelOptions<TContext = ContextDefault>
     extends AgNumericAxisFormattableLabelOptions<TContext> {}
 
-interface AgRadiusAxisLabelOptions<TContext = TContextDefault> extends AgBaseAxisLabelOptions<TContext> {}
+interface AgRadiusAxisLabelOptions<TContext = ContextDefault> extends AgBaseAxisLabelOptions<TContext> {}
 
-export interface AgRadiusNumberAxisOptions<TContext = TContextDefault>
+export interface AgRadiusNumberAxisOptions<TContext = ContextDefault>
     extends Omit<AgBaseAxisOptions<AgRadiusAxisFormattableLabelOptions<TContext>, TContext>, 'interval'>,
         AgContinuousAxisOptions<number, number> {
     type: 'radius-number';
@@ -33,7 +33,7 @@ export interface AgRadiusNumberAxisOptions<TContext = TContextDefault>
     innerRadiusRatio?: Ratio;
 }
 
-export interface AgRadiusCategoryAxisOptions<TContext = TContextDefault>
+export interface AgRadiusCategoryAxisOptions<TContext = ContextDefault>
     extends AgBaseAxisOptions<AgRadiusAxisLabelOptions<TContext>, TContext> {
     type: 'radius-category';
     /** The rotation angle of axis line and labels in degrees. */

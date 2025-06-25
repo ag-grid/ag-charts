@@ -1,22 +1,23 @@
-import { HIDDEN_API_INTERFACE_MEMBERS } from './constants';
 import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode } from './types';
 
 /**
  * Patch doc interfaces for the front end
  */
 export function patchDocInterfaces(resolvedEntries: ApiReferenceNode[]) {
-    const interfaceReference = updateInterfaceReferences(resolvedEntries);
+    const interfaceReference = new Map<string, ApiReferenceNode>(
+        resolvedEntries.map((item: InterfaceNode) => [item.name, item])
+    );
     patchAgChartOptionsReference(interfaceReference);
     return interfaceReference;
 }
 
 function getTypeUnion(typeRef: ApiReferenceNode | undefined): string[] {
-    const result: string[] = [];
     if (typeRef?.kind === 'typeAlias') {
         if (typeof typeRef.type === 'string') {
             return [typeRef.type];
         }
         if (typeof typeRef.type === 'object' && typeRef.type.kind === 'union') {
+            const result: string[] = [];
             const unsupportedSubtypes: typeof typeRef.type.type = [];
             for (const subType of typeRef.type.type) {
                 if (typeof subType === 'string') {
@@ -31,9 +32,12 @@ function getTypeUnion(typeRef: ApiReferenceNode | undefined): string[] {
                 console.error(`unsupported 'typeRef.type.type' values detected`, unsupportedSubtypes);
                 throw new Error(`failed to get types of ${typeRef.name}`);
             }
+            return result;
         }
+    } else if (typeRef?.kind === 'interface') {
+        return [typeRef.name];
     }
-    return result;
+    return [];
 }
 
 function readMemberName(member: MemberNode): string | undefined {
@@ -130,25 +134,9 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
             }
             return member;
         }),
+        typeParams: undefined,
+        genericsMap: undefined,
     };
 
     reference.set('AgChartOptions', altInterface);
-}
-
-function updateInterfaceReferences(content: ApiReferenceNode[]) {
-    const interfacesReference = new Map<string, ApiReferenceNode>(
-        content.map((item: InterfaceNode) => [item.name, item])
-    );
-
-    for (const [interfaceName, hiddenKeys] of Object.entries(HIDDEN_API_INTERFACE_MEMBERS)) {
-        removeMembersFromInterface(interfacesReference.get(interfaceName), hiddenKeys as string[]);
-    }
-
-    return interfacesReference;
-}
-
-function removeMembersFromInterface(reference: ApiReferenceNode | undefined, keys: string[]) {
-    if (reference?.kind !== 'interface') return;
-
-    reference.members = reference.members.filter((member) => !keys.includes(member.name));
 }

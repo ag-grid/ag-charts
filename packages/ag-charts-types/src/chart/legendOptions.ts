@@ -3,6 +3,7 @@ import type { Formatter } from './callbackOptions';
 import type { AgPreventableEvent } from './eventOptions';
 import type {
     AgMarkerShape,
+    ContextDefault,
     CssColor,
     FontFamilyFull,
     FontSize,
@@ -10,7 +11,6 @@ import type {
     FontWeight,
     Opacity,
     PixelSize,
-    TContextDefault,
 } from './types';
 
 export type AgChartLegendPosition = 'top' | 'right' | 'bottom' | 'left';
@@ -76,7 +76,7 @@ export interface AgChartLegendItemOptions {
     showSeriesStroke?: boolean;
 }
 
-export interface AgChartLegendEvent<T extends string, TContext = TContextDefault> {
+export interface AgChartLegendEvent<T extends string, TContext = ContextDefault> {
     type: T;
     /** Series id */
     seriesId: string;
@@ -90,25 +90,25 @@ export interface AgChartLegendEvent<T extends string, TContext = TContextDefault
     context?: TContext;
 }
 
-export interface AgChartLegendClickEvent<TContext = TContextDefault>
+export interface AgChartLegendClickEvent<TContext = ContextDefault>
     extends AgChartLegendEvent<'click', TContext>,
         AgPreventableEvent {}
 
-export interface AgChartLegendDoubleClickEvent<TContext = TContextDefault>
+export interface AgChartLegendDoubleClickEvent<TContext = ContextDefault>
     extends AgChartLegendEvent<'dblclick', TContext>,
         AgPreventableEvent {}
 
-export interface AgChartLegendContextMenuEvent<TContext = TContextDefault>
+export interface AgChartLegendContextMenuEvent<TContext = ContextDefault>
     extends AgChartLegendEvent<'contextmenu', TContext> {}
 
-export interface AgChartLegendListeners<TContext = TContextDefault> {
+export interface AgChartLegendListeners<TContext = ContextDefault> {
     /** The listener to call when a legend item is clicked. */
     legendItemClick?: (event: AgChartLegendClickEvent<TContext>) => void;
     /** The listener to call when a legend item is double-clicked. */
     legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent<TContext>) => void;
 }
 
-export interface AgChartLegendOptions<TContext = TContextDefault> {
+export interface AgChartLegendOptions<TContext = ContextDefault> {
     /** Whether to show the legend. By default, the chart displays a legend when there is more than one series present. */
     enabled?: boolean;
     /** Where the legend should show in relation to the chart. */

@@ -1,11 +1,11 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, CssColor, DatumDefault, PixelSize, Ratio } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
-export interface AgChordSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgChordSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgChordSeriesOptionsKeys,
         AgChordSeriesOptionsNames,
@@ -14,13 +14,13 @@ export interface AgChordSeriesOptions<TDatum = TDatumDefault, TContext = TContex
     type: 'chord';
 }
 
-export interface AgChordSeriesLinkItemStylerParams<TDatum, TContext = TContextDefault>
+export interface AgChordSeriesLinkItemStylerParams<TDatum, TContext = ContextDefault>
     extends DatumCallbackParams<TDatum>,
         ContextCallbackParams<TContext>,
         AgChordSeriesOptionsKeys,
         Required<AgChordSeriesLinkStyle> {}
 
-export interface AgChordSeriesNodeItemStylerParams<TDatum, TContext = TContextDefault>
+export interface AgChordSeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
     extends DatumCallbackParams<TDatum>,
         ContextCallbackParams<TContext>,
         AgChordSeriesOptionsKeys,
@@ -31,7 +31,7 @@ export interface AgChordSeriesNodeItemStylerParams<TDatum, TContext = TContextDe
     size: number;
 }
 
-export interface AgChordSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgChordSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Options for the label for each node. */
     label?: AgChordSeriesLabelOptions<TDatum, TContext>;
@@ -47,7 +47,7 @@ export interface AgChordSeriesThemeableOptions<TDatum = TDatumDefault, TContext 
     tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
-export interface AgChordSeriesLabelOptions<TDatum, TContext = TContextDefault>
+export interface AgChordSeriesLabelOptions<TDatum, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, AgChordSeriesLabelFormatterParams<TDatum>, TContext> {
     /** Spacing between a node and its label. */
     spacing?: PixelSize;
@@ -60,14 +60,14 @@ export interface AgChordSeriesLinkStyle extends FillOptions, StrokeOptions, Line
     tension?: Ratio;
 }
 
-export interface AgChordSeriesLinkOptions<TDatum, TContext = TContextDefault> extends AgChordSeriesLinkStyle {
+export interface AgChordSeriesLinkOptions<TDatum, TContext = ContextDefault> extends AgChordSeriesLinkStyle {
     /** Function used to return formatting for individual links, based on the given parameters. If the current link is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<TDatum, TContext>, AgChordSeriesLinkStyle>;
 }
 
 export interface AgChordSeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgChordSeriesNodeOptions<TDatum, TContext = TContextDefault> extends AgChordSeriesNodeStyle {
+export interface AgChordSeriesNodeOptions<TDatum, TContext = ContextDefault> extends AgChordSeriesNodeStyle {
     /** Minimum spacing between the nodes. */
     spacing?: PixelSize;
     /** Width of the nodes. */
@@ -96,7 +96,7 @@ interface SizeParams {
     size: number;
 }
 
-export interface AgChordSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+export interface AgChordSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgChordSeriesOptionsKeys,
         AgChordSeriesOptionsNames,
@@ -105,6 +105,6 @@ export interface AgChordSeriesTooltipRendererParams<TDatum, TContext = TContextD
         StrokeOptions,
         LineDashOptions {}
 
-export interface AgChordSeriesLabelFormatterParams<_TDatum = TDatumDefault>
+export interface AgChordSeriesLabelFormatterParams<_TDatum = DatumDefault>
     extends AgChordSeriesOptionsKeys,
         SizeParams {}
