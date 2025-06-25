@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 import { entries, getWindow } from 'ag-charts-core';
 
 import type { AxisZoomStates, ZoomCoords } from './zoomTypes';

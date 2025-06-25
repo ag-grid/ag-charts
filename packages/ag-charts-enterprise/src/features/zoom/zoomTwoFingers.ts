@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import type { _ModuleSupport, _Widget } from 'ag-charts-community';
 
 // clientXY  (unit: px)          :  Touch screen points.
 // normalXY  (unit: N/A - ratio) :  Touch normalised points in [0, N] range.

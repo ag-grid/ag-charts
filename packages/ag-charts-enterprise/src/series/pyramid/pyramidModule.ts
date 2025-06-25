@@ -1,4 +1,4 @@
-import { type AgPyramidSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgPyramidSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { PyramidSeries } from './pyramidSeries';

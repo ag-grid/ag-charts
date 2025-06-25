@@ -1,4 +1,4 @@
-import { type AgFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { FunnelSeries } from './funnelSeries';

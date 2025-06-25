@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 import { clamp, iterate } from 'ag-charts-core';
 
 type SceneNode = _ModuleSupport.Node;

@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 import { createElement } from 'ag-charts-core';
 
 export function injectWatermark(domManager: _ModuleSupport.DOMManager, text: string) {
