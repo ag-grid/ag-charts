@@ -259,7 +259,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const step = scale.step ?? 0;
         const rangePadding = scale instanceof BandScale ? (step - bandwidth) / 2 : 0;
 
-        const [clippedRange0, clippedRange1] = findMinMax(clippedRange);
+        let [clippedRange0, clippedRange1] = findMinMax(clippedRange);
+        clippedRange0 -= bandwidth;
+        clippedRange1 += bandwidth;
 
         let yStart: number;
         let yEnd: number;

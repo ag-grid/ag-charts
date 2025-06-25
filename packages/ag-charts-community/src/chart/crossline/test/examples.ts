@@ -122,7 +122,7 @@ const createChartOptionsWithInvalidCrossLines = (
 
 const crossLinesOptions: CrossLinesRangeConfig = {
     VALID_RANGE: {
-        vertical: [new Date(Date.UTC(2019, 4, 1)), new Date(Date.UTC(2019, 8, 1))],
+        vertical: [new Date(Date.UTC(2019, 4, 1)), new Date(Date.UTC(2019, 7, 25))],
         horizontal: [128, 134],
     },
     INVALID_RANGE: {
@@ -130,19 +130,19 @@ const crossLinesOptions: CrossLinesRangeConfig = {
         horizontal: [128, undefined!],
     },
     RANGE_OUTSIDE_DOMAIN_MAX: {
-        vertical: [new Date(Date.UTC(2019, 4, 1)), new Date(Date.UTC(2022, 8, 1))],
+        vertical: [new Date(Date.UTC(2019, 4, 1)), new Date(Date.UTC(2022, 7, 25))],
         horizontal: [134, 160],
     },
     RANGE_OUTSIDE_DOMAIN_MIN: {
-        vertical: [new Date(Date.UTC(2017, 8, 1)), new Date(Date.UTC(2019, 4, 1))],
+        vertical: [new Date(Date.UTC(2017, 7, 25)), new Date(Date.UTC(2019, 4, 1))],
         horizontal: [100, 134],
     },
     RANGE_OUTSIDE_DOMAIN_MIN_MAX: {
-        vertical: [new Date(Date.UTC(2017, 8, 1)), new Date(Date.UTC(2022, 4, 1))],
+        vertical: [new Date(Date.UTC(2017, 7, 25)), new Date(Date.UTC(2022, 4, 1))],
         horizontal: [100, 160],
     },
     RANGE_OUTSIDE_DOMAIN: {
-        vertical: [new Date(Date.UTC(2022, 4, 1)), new Date(Date.UTC(2022, 8, 1))],
+        vertical: [new Date(Date.UTC(2022, 4, 1)), new Date(Date.UTC(2022, 7, 25))],
         horizontal: [90, 110],
     },
 };

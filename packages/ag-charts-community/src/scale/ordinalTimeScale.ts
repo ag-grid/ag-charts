@@ -81,8 +81,15 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             };
         }
 
-        const start = bands[0].valueOf();
-        const stop = bands[bands.length - 1].valueOf();
+        let start: number;
+        let stop: number;
+        if (domain && domain.length >= 2) {
+            start = domain[0].valueOf();
+            stop = domain[domain.length - 1].valueOf();
+        } else {
+            start = bands[0].valueOf();
+            stop = bands[bands.length - 1].valueOf();
+        }
 
         const [r0, r1] = this.range;
         const availableRange = Math.abs(r1 - r0);

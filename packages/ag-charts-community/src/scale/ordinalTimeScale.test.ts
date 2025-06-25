@@ -607,14 +607,21 @@ describe('OrdinalTimeScale', () => {
         });
     });
 
-    describe('intervalTicks', () => {
+    describe('interval ticks', () => {
         it('should return ticks for the given interval', () => {
             const domain = Array.from({ length: 52 }, (_, i) => new Date(2024, 0, i * 7 + 1));
             const scale = new OrdinalTimeScale();
             scale.domain = domain;
             scale.range = [0, 1000];
-            // expect(scale.intervalTicks('month')).toEqual([]);
-            expect(scale.intervalTicks('month')).toEqual([
+            expect(
+                scale.ticks({
+                    nice: true,
+                    interval: 'month',
+                    tickCount: 0,
+                    minTickCount: 0,
+                    maxTickCount: Infinity,
+                })?.ticks
+            ).toEqual([
                 new Date(2024, 0, 1),
                 new Date(2024, 1, 5),
                 new Date(2024, 2, 4),

@@ -109,9 +109,10 @@ enum TickGenerationType {
 enum ParentLevelMode {
     TimeScaleTicks,
     OrdinalStepTicks,
-    OrdinalIntervalTicks,
-    UnitTicks,
+    ScaleTicks,
 }
+
+const DENSE_TICK_COUNT = 12;
 
 export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>, D> {
     readonly scale: S;
@@ -529,16 +530,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const primaryTicks = intervalRange(parentInterval, dp0, dp1);
 
         const milliseconds = intervalMilliseconds(timeInterval);
-        let alignment: ScaleAlignment | undefined;
-        if (OrdinalTimeScale.is(scale)) {
-            alignment = ScaleAlignment.Trailing;
-        } else if (
-            UnitTimeScale.is(scale) &&
-            scale.interval != null &&
-            intervalMilliseconds(scale.interval) < milliseconds
-        ) {
-            alignment = ScaleAlignment.Interpolate;
-        }
 
         let primaryTicksIndices: Set<number> | undefined = new Set<number>();
         const ticks = [];
@@ -547,6 +538,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             interval: timeInterval,
         };
         let parentLevelMode: ParentLevelMode;
+        let alignment: ScaleAlignment | undefined;
         let ordinalTickStep = 0;
         if (OrdinalTimeScale.is(scale)) {
             const minimumTimeGranularity = this.axis.minimumTimeGranularity;
@@ -555,13 +547,19 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 minimumTimeGranularity != null &&
                 intervalMilliseconds(minimumTimeGranularity) >= intervalMilliseconds(timeIntervalGranularity)
                     ? ParentLevelMode.OrdinalStepTicks
-                    : ParentLevelMode.OrdinalIntervalTicks;
-            ordinalTickStep = Math.ceil(scale.bandCount(visibleRange) / 12);
-        } else if (UnitTimeScale.is(scale) && alignment !== ScaleAlignment.Interpolate) {
-            parentLevelMode = ParentLevelMode.UnitTicks;
+                    : ParentLevelMode.ScaleTicks;
+            alignment = ScaleAlignment.Trailing;
+            ordinalTickStep = Math.ceil(scale.bandCount(visibleRange) / DENSE_TICK_COUNT);
+        } else if (
+            UnitTimeScale.is(scale) &&
+            (scale.interval == null || intervalMilliseconds(scale.interval) >= milliseconds)
+        ) {
+            parentLevelMode = ParentLevelMode.ScaleTicks;
         } else {
             parentLevelMode = ParentLevelMode.TimeScaleTicks;
+            alignment = ScaleAlignment.Interpolate;
         }
+
         for (let i = 0; i < primaryTicks.length - 1; i += 1) {
             const p0 = primaryTicks[i];
             const p1 = primaryTicks[i + 1];
@@ -579,8 +577,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 case ParentLevelMode.TimeScaleTicks:
                     intervalTicks = createTimeScaleTicks(intervalTickParams.interval, [p0, p1], pVisibleRange, true);
                     break;
-                case ParentLevelMode.OrdinalIntervalTicks:
-                    intervalTicks = scale.ticks(intervalTickParams, [p0, p1])?.ticks ?? [];
+                case ParentLevelMode.ScaleTicks:
+                    intervalTicks = scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, true)?.ticks ?? [];
                     break;
                 case ParentLevelMode.OrdinalStepTicks:
                     intervalTicks = (scale as any as OrdinalTimeScale).stepTicks(
@@ -589,9 +587,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                         undefined,
                         !last
                     );
-                    break;
-                case ParentLevelMode.UnitTicks:
-                    intervalTicks = scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, true)?.ticks ?? [];
                     break;
             }
 
