@@ -184,7 +184,7 @@ export function formatTypeToCode(
                     additionalTypes.add(memberType);
                 }
             }
-            if (nodeMember.docs) {
+            if (nodeMember.docs?.length && nodeMember.docs[0] !== '') {
                 return nodeMember.docs
                     .map((docsLine: string) => `// ${docsLine}`)
                     .concat(memberString)
