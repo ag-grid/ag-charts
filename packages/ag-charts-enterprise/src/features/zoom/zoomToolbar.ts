@@ -98,7 +98,7 @@ export class ZoomToolbar extends BaseProperties {
         this.container.addClass('ag-charts-zoom-buttons');
         ctx.domManager.addChild('canvas-overlay', 'zoom-buttons', this.container.getElement());
 
-        this.toolbar = new Toolbar<ZoomToolbarButtonOptions>(ctx.localeManager);
+        this.toolbar = new Toolbar<ZoomToolbarButtonOptions>(ctx, 'ariaLabelZoomToolbar', 'horizontal');
         this.container.addChild(this.toolbar);
 
         // Initially translate by an estimated offset to prevent flash on load

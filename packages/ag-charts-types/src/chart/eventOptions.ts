@@ -1,9 +1,9 @@
 import type { AgAnnotation } from './annotationsOptions';
 import type { Listener } from './callbackOptions';
-import type { DatumKey, Ratio, TContextDefault, TDatumDefault } from './types';
+import type { ContextDefault, DatumDefault, DatumKey, Ratio } from './types';
 import type { AgAutoScaledAxes } from './zoomOptions';
 
-interface AgChartEvent<T extends string, TContext = TContextDefault> {
+interface AgChartEvent<T extends string, TContext = ContextDefault> {
     type: T;
     event: Event;
     /** Callback context for this event. */
@@ -15,7 +15,7 @@ export interface AgPreventableEvent {
     preventDefault(): void;
 }
 
-export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = TContextDefault>
+export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault>
     extends AgChartEvent<TEvent, TContext> {
     /** Event type. */
     type: TEvent;
@@ -43,7 +43,7 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = TCon
     radiusKey?: DatumKey<TDatum>;
 }
 
-export interface AgSeriesVisibilityChange<TContext = TContextDefault> {
+export interface AgSeriesVisibilityChange<TContext = ContextDefault> {
     /** Event type. */
     type: 'seriesVisibilityChange';
     /** Callback context for this event. */
@@ -58,13 +58,13 @@ export interface AgSeriesVisibilityChange<TContext = TContextDefault> {
     visible: boolean;
 }
 
-export interface AgAnnotationsEvent<TContext = TContextDefault> {
+export interface AgAnnotationsEvent<TContext = ContextDefault> {
     type: 'annotations';
     annotations?: AgAnnotation[];
     context?: TContext;
 }
 
-export interface AgZoomEvent<TContext = TContextDefault> {
+export interface AgZoomEvent<TContext = ContextDefault> {
     type: 'zoom';
     rangeX?: AgZoomEventRange;
     rangeY?: AgZoomEventRange;
@@ -84,20 +84,20 @@ export interface AgZoomEventRatio {
     end: Ratio;
 }
 
-export type AgChartClickEvent<TContext = TContextDefault> = AgChartEvent<'click', TContext>;
-export type AgChartDoubleClickEvent<TContext = TContextDefault> = AgChartEvent<'doubleClick', TContext>;
-export type AgChartContextMenuEvent<TContext = TContextDefault> = AgChartEvent<'contextMenuEvent', TContext>;
-export type AgSeriesAreaContextMenuActionEvent<TContext = TContextDefault> = AgChartEvent<
+export type AgChartClickEvent<TContext = ContextDefault> = AgChartEvent<'click', TContext>;
+export type AgChartDoubleClickEvent<TContext = ContextDefault> = AgChartEvent<'doubleClick', TContext>;
+export type AgChartContextMenuEvent<TContext = ContextDefault> = AgChartEvent<'contextMenuEvent', TContext>;
+export type AgSeriesAreaContextMenuActionEvent<TContext = ContextDefault> = AgChartEvent<
     'seriesContextMenuAction',
     TContext
 >;
-export type AgNodeContextMenuActionEvent<TDatum = TDatumDefault, TContext = TContextDefault> = AgNodeClickEvent<
+export type AgNodeContextMenuActionEvent<TDatum = DatumDefault, TContext = ContextDefault> = AgNodeClickEvent<
     'nodeContextMenuAction',
     TDatum,
     TContext
 >;
 
-export interface AgBaseChartListeners<TDatum, TContext = TContextDefault> {
+export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is clicked.
      *  Useful for a chart containing multiple series.
      */
@@ -117,7 +117,7 @@ export interface AgBaseChartListeners<TDatum, TContext = TContextDefault> {
     zoom?: Listener<AgZoomEvent<TContext>>;
 }
 
-export interface AgSeriesListeners<TDatum, TContext = TContextDefault> {
+export interface AgSeriesListeners<TDatum, TContext = ContextDefault> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in the series is clicked. */
     seriesNodeClick?: Listener<AgNodeClickEvent<'seriesNodeClick', TDatum, TContext>>;
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in the series is double-clicked. */

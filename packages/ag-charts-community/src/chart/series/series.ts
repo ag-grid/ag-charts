@@ -24,7 +24,7 @@ import type { HighlightNodeDatum, LegendItemClickEvent, LegendItemDoubleClickEve
 import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
-import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
+import type { SeriesOptionInstance, SeriesOptionModule } from '../../module/optionsModuleTypes';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
@@ -46,6 +46,7 @@ import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
+import type { SeriesType } from '../mapping/types';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { HighlightState, type SeriesProperties } from './seriesProperties';

@@ -196,7 +196,6 @@ export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeries
     direction: union('horizontal', 'vertical'),
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
-    showInMiniChart: boolean,
     label: {
         spacing: positiveNumber,
         placement: union('before', 'middle', 'after'),
@@ -208,7 +207,7 @@ export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeries
         ...commonAxisLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
-    ...commonSeriesThemeableOptionsDefs,
+    ...without(commonSeriesThemeableOptionsDefs, ['showInLegend']),
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
     ...lineDashOptionsDef,
@@ -219,7 +218,6 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
     direction: union('horizontal', 'vertical'),
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
-    showInMiniChart: boolean,
     itemStyler: callbackDefs<AgFunnelSeriesStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,
@@ -241,7 +239,7 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
-    ...commonSeriesThemeableOptionsDefs,
+    ...without(commonSeriesThemeableOptionsDefs, ['showInLegend']),
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
     ...lineDashOptionsDef,
@@ -484,6 +482,7 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
 
 export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
+    grouped: boolean,
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
     itemStyler: callbackDefs<AgRangeBarSeriesStyle>({
@@ -557,7 +556,7 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     },
     secondaryLabel: autoSizedLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
-    ...without(commonSeriesThemeableOptionsDefs, ['highlight']),
+    ...without(commonSeriesThemeableOptionsDefs, ['highlight', 'showInLegend']),
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
     // TODO Remove in next major version
@@ -619,7 +618,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         ...strokeOptionsDef,
     },
     tooltip: tooltipOptionsDefs,
-    ...without(commonSeriesThemeableOptionsDefs, ['highlight']),
+    ...without(commonSeriesThemeableOptionsDefs, ['highlight', 'showInLegend']),
     // TODO Remove in next major version
     highlightStyle: {
         group: {

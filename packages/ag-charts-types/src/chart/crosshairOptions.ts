@@ -1,8 +1,8 @@
 import type { AgAxisBoundSeries, AgTimeIntervalUnit } from './axisOptions';
 import type { Formatter, Renderer } from './callbackOptions';
-import type { CssColor, Opacity, PixelSize, TContextDefault } from './types';
+import type { ContextDefault, CssColor, Opacity, PixelSize } from './types';
 
-export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string, TContextDefault>> {
+export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string, ContextDefault>> {
     /** Whether to show the crosshair. */
     enabled?: boolean;
     /** When true, the crosshair snaps to the highlighted data point. By default this property is true. */
@@ -31,12 +31,12 @@ export interface AgCrosshairLabelFormatterParams<TContext> {
     readonly context?: TContext;
 }
 
-export interface AgCrosshairLabel<TFormat, TContext = TContextDefault> extends AgBaseCrosshairLabel<TContext> {
+export interface AgCrosshairLabel<TFormat, TContext = ContextDefault> extends AgBaseCrosshairLabel<TContext> {
     /** Format string used when rendering labels. */
     format?: TFormat;
 }
 
-export interface AgBaseCrosshairLabel<TContext = TContextDefault> {
+export interface AgBaseCrosshairLabel<TContext = ContextDefault> {
     /** Whether to show label when the crosshair is visible. */
     enabled?: boolean;
     /** The horizontal offset in pixels for the label. */

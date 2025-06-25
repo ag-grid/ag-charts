@@ -80,6 +80,8 @@ export class TypeMapper {
                 return this.resolveType(genericItem, typeArguments);
             }
             console.error('Missing!', nameOrNode);
+        } else if (nameOrNode.kind === 'typeRef') {
+            return this.resolveTypeRef(nameOrNode);
         } else {
             return this.resolveNode({ node: nameOrNode }, typeArguments);
         }
@@ -139,7 +141,7 @@ export class TypeMapper {
                     // Uncomment if you need to debug missing inheritance members.
                     // console.warn('Node heritage without members found', h, n);
                 }
-            } else if (h.type === 'Omit' || h.type === 'Pick' || h.type === 'Required') {
+            } else if (h.type === 'Omit' || h.type === 'Pick' || h.type === 'Required' || h.type === 'Partial') {
                 const n = this.resolveTypeRef(h);
                 node.members.push(...n.members);
             } else if (h.type === 'Readonly' && h.typeArguments /* TODO: AG-14962 remove null-check */) {
@@ -193,6 +195,9 @@ export class TypeMapper {
             }
 
             return { ...n, members: n.members.filter(matchType) };
+        } else if (node.type === 'Partial') {
+            const n = this.resolveType(node.typeArguments[0]);
+            return { ...n, members: n.members.map((member) => ({ ...member, optional: true })) };
         } else {
             return this.resolveType(node.type, node.type.typeArguments);
         }
@@ -226,7 +231,7 @@ export class TypeMapper {
                 }
                 return isFirstAppearance;
             })
-            .filter(({ docs }) => !docs?.some((d) => d.includes('@deprecated')))
+            .filter(({ docs }) => !docs?.some((d) => d.includes('@deprecated') || d.includes('@experimental')))
             .sort((a, b) => {
                 if (a.optional && !b.optional) return 1;
                 if (!a.optional && b.optional) return -1;

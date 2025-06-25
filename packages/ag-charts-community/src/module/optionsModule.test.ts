@@ -13,10 +13,10 @@ import type {
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import { setupModules } from '../chart/factory/setupModules';
+import { SeriesType } from '../chart/mapping/types';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
 import { ChartOptions } from './optionsModule';
-import type { SeriesType } from './optionsModuleTypes';
 
 function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
     const chartOptions = new ChartOptions(userOptions, {} as T, {}, {}, {});

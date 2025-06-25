@@ -1,5 +1,5 @@
 import { createElement } from 'ag-charts-core';
-import type { AgChartOverlayRendererParams, TDatumDefault } from 'ag-charts-types';
+import type { AgChartOverlayRendererParams, DatumDefault } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
@@ -19,7 +19,7 @@ export class Overlay extends BaseProperties {
     text?: string;
 
     @Property
-    renderer?: (params: AgChartOverlayRendererParams<TDatumDefault>) => string | HTMLElement;
+    renderer?: (params: AgChartOverlayRendererParams<DatumDefault>) => string | HTMLElement;
 
     private content?: HTMLElement;
     public focusBox?: BBox;
@@ -45,7 +45,7 @@ export class Overlay extends BaseProperties {
         this.focusBox = rect;
 
         if (this.renderer) {
-            const params: AgChartOverlayRendererParams<TDatumDefault> = {};
+            const params: AgChartOverlayRendererParams<DatumDefault> = {};
             const htmlContent = callWithContext(callers, this.renderer, params);
             if (htmlContent instanceof HTMLElement) {
                 this.content = htmlContent;
