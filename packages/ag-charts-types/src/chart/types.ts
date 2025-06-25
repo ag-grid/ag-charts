@@ -1,9 +1,13 @@
 export type FontStyle = 'normal' | 'italic' | 'oblique';
 export type FontWeight = 'normal' | 'bold' | 'bolder' | 'lighter' | number;
 export type FontFamily = string;
-export type GoogleFontFamily = { googleFont: FontFamily };
-export type FontFamilyFull = FontFamily | GoogleFontFamily | (FontFamily | GoogleFontFamily)[];
+export type FontFamilyFull = FontFamily | GoogleFontFamily | Array<FontFamily | GoogleFontFamily>;
 export type FontSize = number;
+
+export interface GoogleFontFamily {
+    /** The name of the Google font family, e.g. 'Roboto' */
+    googleFont: FontFamily;
+}
 
 export type AgMarkerShape =
     | 'circle'
