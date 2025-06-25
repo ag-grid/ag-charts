@@ -1,4 +1,4 @@
-import type { TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 import type {
     AgBaseRadialSeriesThemeableOptions,
@@ -7,11 +7,11 @@ import type {
 } from './radialOptions';
 
 export type AgRadialBarSeriesThemeableOptions<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = AgBaseRadialSeriesThemeableOptions<TDatum, TContext>;
 
-export interface AgRadialBarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgRadialBarSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,

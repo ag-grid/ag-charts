@@ -1,6 +1,6 @@
 import type { Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
@@ -16,11 +16,11 @@ import type {
 
 export type AgCandlestickWickOptions = StrokeOptions & LineDashOptions;
 
-export interface AgCandlestickSeriesItemStylerParams<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgCandlestickSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgOhlcSeriesBaseItemStylerParams<TDatum, TContext>,
         FillOptions {}
 
-export interface AgCandlestickSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+export interface AgCandlestickSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgOhlcSeriesBaseTooltipRendererParams<TDatum, TContext>,
         AgOhlcSeriesBaseOptions<TDatum>,
         FillOptions {}
@@ -42,7 +42,7 @@ export interface AgCandlestickSeriesStyles {
     item?: AgCandlestickSeriesItem;
 }
 
-export interface AgCandlestickSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgCandlestickSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>,
         AgCandlestickSeriesStyles {
     /** Series-specific tooltip configuration. */
@@ -57,7 +57,7 @@ export interface AgCandlestickHighlightStyleOptions extends AgCandlestickSeriesI
     opacity?: number;
 }
 
-export interface AgCandlestickSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgCandlestickSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgCandlestickSeriesThemeableOptions<TDatum, TContext>,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgOhlcSeriesBaseOptions<TDatum>,

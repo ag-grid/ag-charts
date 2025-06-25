@@ -1,6 +1,7 @@
 import type { AgAxisLabelFormatterParams, AgBaseAxisLabelOptions } from '../../chart/axisOptions';
 import type { Formatter } from '../../chart/callbackOptions';
 import type {
+    ContextDefault,
     CssColor,
     Degree,
     FontFamily,
@@ -9,7 +10,6 @@ import type {
     FontWeight,
     InteractionRange,
     PixelSize,
-    TContextDefault,
 } from '../../chart/types';
 import type {
     AgBaseSeriesThemeableOptions,
@@ -18,7 +18,7 @@ import type {
     AgSeriesHighlightStyle,
 } from '../../series/seriesOptions';
 
-export interface AgBaseGaugeThemeableOptions<TContext = TContextDefault> {
+export interface AgBaseGaugeThemeableOptions<TContext = ContextDefault> {
     /** The cursor to use for the gauge. This config is identical to the CSS `cursor` property. */
     cursor?: string;
     /** Context object to use in callbacks. */

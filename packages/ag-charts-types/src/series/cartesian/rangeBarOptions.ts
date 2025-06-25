@@ -2,7 +2,7 @@ import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../c
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { DatumKey, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
@@ -12,8 +12,8 @@ import type {
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgRangeBarSeriesItemStylerParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = DatumCallbackParams<TDatum> &
     ContextCallbackParams<TContext> &
     AgRangeBarSeriesOptionsKeys<TDatum> &
@@ -25,14 +25,14 @@ export interface AgRangeBarSeriesStyle extends FillOptions, StrokeOptions, LineD
 }
 
 export type AgRangeBarSeriesTooltipRendererParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = AgSeriesTooltipRendererParams<TDatum, TContext> &
     AgRangeBarSeriesOptionsKeys<TDatum> &
     AgRangeBarSeriesOptionsNames &
     AgRangeBarSeriesStyle;
 
-export interface AgRangeBarSeriesLabelOptions<TDatum, TContext = TContextDefault>
+export interface AgRangeBarSeriesLabelOptions<TDatum, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, AgRangeBarSeriesLabelFormatterParams<TDatum>, TContext> {
     /** Where to render series labels relative to the bars. */
     placement?: AgRangeBarSeriesLabelPlacement;
@@ -42,7 +42,7 @@ export interface AgRangeBarSeriesLabelOptions<TDatum, TContext = TContextDefault
 
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 
-export interface AgRangeBarSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
         AgRangeBarSeriesStyle {
     /**
@@ -63,16 +63,18 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = TDatumDefault, TConte
     itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgRangeBarHighlightStyleOptions>;
+    /** Whether to group together (adjacently) separate bars. */
+    grouped?: boolean;
 }
 
 export interface AgRangeBarHighlightStyleOptions extends AgRangeBarSeriesStyle {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */
     opacity?: Opacity;
 }
-export type AgRangeBarSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgRangeBarSeriesOptionsKeys<TDatum> &
+export type AgRangeBarSeriesLabelFormatterParams<TDatum = DatumDefault> = AgRangeBarSeriesOptionsKeys<TDatum> &
     AgRangeBarSeriesOptionsNames;
 
-export interface AgRangeBarSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgRangeBarSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key to use to retrieve x-values from the data. */
     xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-low-values from the data. */
@@ -92,7 +94,7 @@ export interface AgRangeBarSeriesOptionsNames {
     yHighName?: string;
 }
 
-export interface AgRangeBarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgRangeBarSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgRangeBarSeriesOptionsKeys<TDatum>,
         AgRangeBarSeriesOptionsNames,
         AgRangeBarSeriesThemeableOptions<TDatum, TContext>,

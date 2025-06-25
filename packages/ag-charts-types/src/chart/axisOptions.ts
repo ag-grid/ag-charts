@@ -1,5 +1,6 @@
 import type { Formatter, Styler } from './callbackOptions';
 import type {
+    ContextDefault,
     CssColor,
     Degree,
     FontFamilyFull,
@@ -7,7 +8,6 @@ import type {
     FontStyle,
     FontWeight,
     PixelSize,
-    TContextDefault,
 } from './types';
 
 export interface AgAxisBoundSeries {
@@ -51,7 +51,7 @@ export interface AgAxisCaptionOptions {
     formatter?: Formatter<AgAxisCaptionFormatterParams>;
 }
 
-export interface AgBaseAxisOptions<LabelType = any, TContext = TContextDefault> {
+export interface AgBaseAxisOptions<LabelType = any, TContext = ContextDefault> {
     /** Axis type identifier. */
     type: string;
     /** Context object to use in callbacks. */
@@ -143,7 +143,7 @@ export interface AgBaseAxisLabelStyleOptions {
     color?: CssColor;
 }
 
-export interface AgAxisLabelFormatterParams<TContext = TContextDefault> {
+export interface AgAxisLabelFormatterParams<TContext = ContextDefault> {
     readonly value: any;
     readonly index: number;
     readonly fractionDigits?: number;
@@ -155,14 +155,14 @@ export interface AgAxisLabelFormatterParams<TContext = TContextDefault> {
     readonly context?: TContext;
 }
 
-export interface AgAxisLabelStylerParams<TContext = TContextDefault> extends AgBaseAxisLabelStyleOptions {
+export interface AgAxisLabelStylerParams<TContext = ContextDefault> extends AgBaseAxisLabelStyleOptions {
     /** The label value that would be used, after applying formating. */
     readonly value: any;
     /** Context for this callback. */
     readonly context?: TContext;
 }
 
-export interface AgBaseAxisLabelOptions<TContext = TContextDefault> extends AgBaseAxisLabelStyleOptions {
+export interface AgBaseAxisLabelOptions<TContext = ContextDefault> extends AgBaseAxisLabelStyleOptions {
     /** Set to `false` to hide the axis labels. */
     enabled?: boolean;
     /** The rotation of the axis labels in degrees. Note: for integrated charts the default is 335 degrees, unless the axis shows grouped or default categories (indexes). The first row of labels in a grouped category axis is rotated perpendicular to the axis line. */
@@ -177,7 +177,7 @@ export interface AgBaseAxisLabelOptions<TContext = TContextDefault> extends AgBa
     itemStyler?: Styler<AgAxisLabelStylerParams<TContext>, AgBaseAxisLabelStyleOptions>;
 }
 
-export interface AgNumericAxisFormattableLabelOptions<TContext = TContextDefault>
+export interface AgNumericAxisFormattableLabelOptions<TContext = ContextDefault>
     extends AgBaseAxisLabelOptions<TContext> {
     /** Format string used when rendering labels. */
     format?: string;
@@ -194,8 +194,7 @@ export interface AgTimeAxisFormattableLabelUnitFormat {
 
 export type AgTimeAxisFormattableLabelFormat = string | AgTimeAxisFormattableLabelUnitFormat;
 
-export interface AgTimeAxisFormattableLabelOptions<TContext = TContextDefault>
-    extends AgBaseAxisLabelOptions<TContext> {
+export interface AgTimeAxisFormattableLabelOptions<TContext = ContextDefault> extends AgBaseAxisLabelOptions<TContext> {
     /** Format string used when rendering labels. */
     format?: AgTimeAxisFormattableLabelFormat;
 }
