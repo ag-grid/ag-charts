@@ -1,5 +1,4 @@
 import { type AgCandlestickSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import type { RequiredInternalAgGradientColor } from 'ag-charts-core';
 
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
@@ -23,36 +22,7 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
             ],
         },
         // @ts-expect-error undocumented-option
-        fillGradientDefaults: {
-            type: 'gradient',
-            gradient: 'linear',
-            bounds: 'item',
-            colorStops: {
-                $if: [
-                    {
-                        $or: [
-                            { $isGradient: { $palette: `${key}.fill` } },
-                            { $isPattern: { $palette: `${key}.fill` } },
-                            { $isImage: { $palette: `${key}.fill` } },
-                        ],
-                    },
-                    {
-                        $map: [
-                            { $path: ['/color', undefined, { $value: '$1' }] },
-                            {
-                                $path: ['/colorStops', undefined, { $palette: `${key}.fill` }],
-                            },
-                        ],
-                    },
-                    [
-                        { $mix: [{ $palette: `${key}.fill` }, 'black', 0.15] },
-                        { $mix: [{ $palette: `${key}.fill` }, 'white', 0.15] },
-                    ],
-                ],
-            } as any,
-            rotation: 0,
-            reverse: false,
-        } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
+        fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_SHADED_DEFAULTS(key),
         fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
     };

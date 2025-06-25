@@ -1,5 +1,4 @@
-import { type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import type { RequiredInternalAgGradientColor } from 'ag-charts-core';
+import { _ModuleSupport } from 'ag-charts-community';
 
 const {
     ThemeConstants: { POLAR_AXIS_TYPE },
@@ -20,14 +19,7 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
             fill: { $palette: 'fill' },
             stroke: { $palette: 'stroke' },
             // @ts-expect-error undocumented option
-            fillGradientDefaults: {
-                type: 'gradient',
-                gradient: 'radial',
-                bounds: 'item',
-                colorStops: { $palette: 'gradient' },
-                rotation: 0,
-                reverse: true,
-            } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
+            fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             fillOpacity: 1,
@@ -66,30 +58,13 @@ export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>[
         {
             series: {
                 fill: { $palette: 'fill' },
-                fillGradientDefaults: {
-                    type: 'gradient',
-                    gradient: 'linear',
-                    bounds: 'item',
-                    colorStops: { $palette: 'gradient' },
-                    rotation: 0,
-                    reverse: false,
-                } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
+                fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
                 fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
                 fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
                 fillOpacity: 0.8,
                 strokeWidth: 2,
                 marker: {
                     enabled: false,
-                    fillGradientDefaults: {
-                        type: 'gradient',
-                        gradient: 'radial',
-                        bounds: 'item',
-                        colorStops: { $palette: 'gradient' },
-                        rotation: 0,
-                        reverse: true,
-                    } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
-                    fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-                    fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
                 },
             },
         },

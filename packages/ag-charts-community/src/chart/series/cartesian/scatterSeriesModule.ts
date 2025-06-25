@@ -1,10 +1,15 @@
-import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgScatterSeriesOptions, WithThemeParams } from 'ag-charts-types';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { AgScatterSeriesOptions } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
-import { FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS, multiSeriesHighlightStyle } from '../../themes/util';
+import {
+    FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    multiSeriesHighlightStyle,
+} from '../../themes/util';
 import { ScatterSeries } from './scatterSeries';
 import { scatterSeriesOptionsDef } from './scatterSeriesOptionsDef';
 
@@ -33,14 +38,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             fill: { $palette: 'fill' },
             stroke: { $palette: 'stroke' },
             // @ts-expect-error undocumented option
-            fillGradientDefaults: {
-                type: 'gradient',
-                gradient: 'radial',
-                bounds: 'item',
-                colorStops: { $palette: 'gradient' },
-                rotation: 0,
-                reverse: true,
-            } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
+            fillGradientDefaults: FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
             fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             fillImageDefaults: FILL_IMAGE_DEFAULTS,
             fillOpacity: 0.8,
