@@ -10,8 +10,6 @@ export type AgFlowProportionSeriesOptions<TDatum = DatumDefault, TContext = Cont
 export interface AgBaseFlowProportionChartOptions<TDatum = DatumDefault, TContext = ContextDefault> {
     /** Series configurations. */
     series?: AgFlowProportionSeriesOptions<TDatum, TContext>[];
-    /** Nodes to use instead of inferring from data. */
-    nodes?: any[];
 }
 
 export interface AgBaseFlowProportionThemeOptions<TDatum = DatumDefault, TContext = ContextDefault>

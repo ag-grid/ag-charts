@@ -33,7 +33,31 @@ export class StandaloneChart extends Chart {
     }
 
     protected override getAriaLabel(): string {
+        const seriesType = this.series[0]?.type;
+        if (seriesType == null) return '';
+
         const caption = this.getCaptionText();
-        return this.ctx.localeManager.t('ariaAnnounceHierarchyChart', { caption });
+
+        switch (seriesType) {
+            case 'radial-gauge':
+            case 'linear-gauge': {
+                const captions: string[] = [];
+                if (caption.length !== 0) {
+                    captions.push(caption);
+                }
+
+                for (const series of this.series) {
+                    captions.push((series as _ModuleSupport.GaugeSeries).getCaptionText());
+                }
+
+                return this.ctx.localeManager.t('ariaAnnounceGaugeChart', { caption: captions.join('. ') });
+            }
+            case 'treemap':
+            case 'sunburst':
+                return this.ctx.localeManager.t('ariaAnnounceHierarchyChart', { caption });
+            default: {
+                return this.ctx.localeManager.t('ariaAnnounceStandaloneChart', { caption });
+            }
+        }
     }
 }

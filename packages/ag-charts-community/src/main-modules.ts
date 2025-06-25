@@ -1,13 +1,7 @@
 // Entry point to implement and test our tree-shaking abilities
 import { GaugePresetModule, PriceVolumePresetModule, SparklinePresetModule } from './api/preset/presetModules';
 import { CartesianChartModule } from './chart/cartesianChartModule';
-import {
-    FlowProportionChartModule,
-    GaugeChartModule,
-    HierarchyChartModule,
-    StandaloneChartModule,
-    TopologyChartModule,
-} from './chart/enterpriseChartModules';
+import { StandaloneChartModule, TopologyChartModule } from './chart/enterpriseChartModules';
 import { PolarChartModule } from './chart/polarChartModule';
 import { NewAreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
 import { NewBarSeriesModule } from './chart/series/cartesian/barSeriesModule';
@@ -70,9 +64,6 @@ export const AllCommunityModules = [
     ...AllPolarCommunityModules,
 
     // Enterprise placeholders
-    FlowProportionChartModule,
-    GaugeChartModule,
-    HierarchyChartModule,
     StandaloneChartModule,
     TopologyChartModule,
 

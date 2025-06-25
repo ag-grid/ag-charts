@@ -10,7 +10,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
-    chartTypes: ['hierarchy'],
+    chartTypes: ['standalone'],
 
     identifier: 'sunburst',
     moduleFactory: (ctx) => new SunburstSeries(ctx),
@@ -74,7 +74,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
 export const SunburstSeriesModule: SeriesModuleDefinition<AgSunburstSeriesOptions> = {
     type: 'series',
     name: 'sunburst',
-    chartType: 'hierarchy',
+    chartType: 'standalone',
     enterprise: true,
 
     options: sunburstSeriesOptionsDef,

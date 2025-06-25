@@ -5,13 +5,7 @@ export { Chart } from './chart/chart';
 export { FormatManager } from './chart/formatter/formatManager';
 export type { TransferableResources } from './chart/chart';
 export { NumberAxis } from './chart/axis/numberAxis';
-export {
-    isAgFlowProportionChartOptions,
-    isAgGaugeChartOptions,
-    isAgHierarchyChartOptions,
-    isAgStandaloneChartOptions,
-    isAgTopologyChartOptions,
-} from './chart/mapping/types';
+export { isAgStandaloneChartOptions, isAgTopologyChartOptions } from './chart/mapping/types';
 export { ModuleRegistry } from 'ag-charts-core';
 export * from './api/preset/gaugeOptionsDefs';
 export * from './chart/commonOptionsDefs';
@@ -116,7 +110,6 @@ export * from './chart/series/polar/polarZIndexMap';
 export * from './chart/series/hierarchy/hierarchySeries';
 export * from './chart/series/hierarchy/hierarchySeriesProperties';
 export * from './chart/series/topologySeries';
-export * from './chart/series/flowProportionSeries';
 export * from './chart/series/topology/geojson';
 export * from './chart/series/topology/lonLatBbox';
 export * from './chart/series/topology/mercatorScale';

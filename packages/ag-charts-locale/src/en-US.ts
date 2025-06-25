@@ -3,6 +3,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaAnnounceHoverDatum: '${datum}',
     // Screen reader announcement when focusing a chart
     ariaAnnounceChart: 'chart, ${seriesCount}[number] series',
+    // Screen reader announcement when focusing a standalone chart (gauges, pyramid)
+    ariaAnnounceStandaloneChart: 'chart, ${caption}',
     // Screen reader announcement when focusing a hierarchy chart
     ariaAnnounceHierarchyChart: 'hierarchy chart, ${caption}',
     // Screen reader announcement when focusing a gauge chart

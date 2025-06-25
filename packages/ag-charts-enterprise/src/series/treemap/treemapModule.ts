@@ -10,7 +10,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
-    chartTypes: ['hierarchy'],
+    chartTypes: ['standalone'],
     identifier: 'treemap',
     moduleFactory: (ctx) => new TreemapSeries(ctx),
     solo: true,
@@ -111,7 +111,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
 export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions> = {
     type: 'series',
     name: 'treemap',
-    chartType: 'hierarchy',
+    chartType: 'standalone',
     enterprise: true,
 
     options: treemapSeriesOptionsDef,

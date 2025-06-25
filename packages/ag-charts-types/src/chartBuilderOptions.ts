@@ -15,8 +15,8 @@ import type { AgGaugePresets } from './presets/gauge/gaugeOptions';
 import type { AgLinearGaugePreset } from './presets/gauge/linearGaugeOptions';
 import type { AgRadialGaugePreset } from './presets/gauge/radialGaugeOptions';
 import type { AgSparklineBaseThemeableOptions, AgSparklinePresets } from './presets/sparkline/sparklineOptions';
-import type { AgBaseFlowProportionChartOptions } from './series/flow-proportion/flowProportionOptions';
-import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
+import type { AgBaseFlowProportionChartOptions } from './series/standalone/flowProportionOptions';
+import type { AgBaseHierarchyChartOptions } from './series/standalone/hierarchyOptions';
 import type { AgBaseStandaloneChartOptions } from './series/standalone/standaloneOptions';
 import type { AgBaseTopologyChartOptions } from './series/topology/topologyOptions';
 
@@ -41,24 +41,11 @@ export interface AgPolarChartOptions<TDatum = DatumDefault, TContext = ContextDe
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
 }
 
-export interface AgHierarchyChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseHierarchyChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum, TContext> {
-    theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
-}
-
 export interface AgTopologyChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseTopologyChartOptions<TDatum, TContext>,
         AgBaseChartOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
 }
-
-export interface AgFlowProportionChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseFlowProportionChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum, TContext> {
-    theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
-}
-
 export interface AgStandaloneChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseStandaloneChartOptions<TDatum, TContext>,
         AgBaseChartOptions<TDatum, TContext> {
@@ -70,12 +57,24 @@ export interface AgGaugeChartOptions<TDatum = DatumDefault, TContext = ContextDe
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
 }
 
+// @todo(xxxx) - backwards compat
+export interface AgHierarchyChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgBaseHierarchyChartOptions<TDatum, TContext>,
+        AgBaseChartOptions<TDatum, TContext> {
+    theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
+}
+
+// @todo(xxxx) - backwards compat
+export interface AgFlowProportionChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgBaseFlowProportionChartOptions<TDatum, TContext>,
+        AgBaseChartOptions<TDatum, TContext> {
+    theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
+}
+
 export type AgChartOptions<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgCartesianChartOptions<TDatum, TContext>
     | AgPolarChartOptions<TDatum, TContext>
-    | AgHierarchyChartOptions<TDatum, TContext>
     | AgTopologyChartOptions<TDatum, TContext>
-    | AgFlowProportionChartOptions<TDatum, TContext>
     | AgStandaloneChartOptions<TDatum, TContext>;
 
 export type AgBaseFinancialPresetOptions<TDatum = DatumDefault> = Pick<

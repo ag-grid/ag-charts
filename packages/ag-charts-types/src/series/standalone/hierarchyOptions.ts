@@ -1,3 +1,4 @@
+// @todo(xxxx) - backwards compat - delete this file
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
 import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type { AgSunburstSeriesOptions } from './sunburstOptions';

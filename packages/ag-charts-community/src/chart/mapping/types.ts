@@ -2,12 +2,7 @@ import type {
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
     AgChartOptions,
-    AgFlowProportionChartOptions,
-    AgFlowProportionSeriesOptions,
-    AgGaugeChartOptions,
     AgGaugeOptions,
-    AgHierarchyChartOptions,
-    AgHierarchySeriesOptions,
     AgPolarChartOptions,
     AgPolarSeriesOptions,
     AgStandaloneChartOptions,
@@ -19,9 +14,6 @@ import type {
 import { chartTypes } from '../factory/chartTypes';
 import {
     isEnterpriseCartesian,
-    isEnterpriseFlowProportion,
-    isEnterpriseGauge,
-    isEnterpriseHierarchy,
     isEnterprisePolar,
     isEnterpriseStandalone,
     isEnterpriseTopology,
@@ -30,9 +22,7 @@ import {
 export type SeriesOptionsTypes =
     | AgCartesianSeriesOptions
     | AgPolarSeriesOptions
-    | AgHierarchySeriesOptions
     | AgTopologySeriesOptions
-    | AgFlowProportionSeriesOptions
     | AgStandaloneSeriesOptions
     | AgGaugeOptions;
 
@@ -53,27 +43,12 @@ export function isAgPolarChartOptions(input: AgChartOptions): input is AgPolarCh
     return chartTypes.isPolar(specifiedType) || isEnterprisePolar(specifiedType);
 }
 
-export function isAgHierarchyChartOptions(input: AgChartOptions): input is AgHierarchyChartOptions {
-    const specifiedType = optionsType(input);
-    return chartTypes.isHierarchy(specifiedType) || isEnterpriseHierarchy(specifiedType);
-}
-
 export function isAgTopologyChartOptions(input: AgChartOptions): input is AgTopologyChartOptions {
     const specifiedType = optionsType(input);
     return chartTypes.isTopology(specifiedType) || isEnterpriseTopology(specifiedType);
 }
 
-export function isAgFlowProportionChartOptions(input: AgChartOptions): input is AgFlowProportionChartOptions {
-    const specifiedType = optionsType(input);
-    return chartTypes.isFlowProportion(specifiedType) || isEnterpriseFlowProportion(specifiedType);
-}
-
 export function isAgStandaloneChartOptions(input: AgChartOptions): input is AgStandaloneChartOptions {
     const specifiedType = optionsType(input);
     return chartTypes.isStandalone(specifiedType) || isEnterpriseStandalone(specifiedType);
-}
-
-export function isAgGaugeChartOptions(input: any): input is AgGaugeChartOptions {
-    const specifiedType = optionsType(input);
-    return chartTypes.isGauge(specifiedType) || isEnterpriseGauge(specifiedType);
 }

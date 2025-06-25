@@ -8,7 +8,7 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
-    chartTypes: ['flow-proportion'],
+    chartTypes: ['standalone'],
     solo: true,
 
     identifier: 'sankey',
@@ -72,7 +72,7 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
 export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> = {
     type: 'series',
     name: 'sankey',
-    chartType: 'flow-proportion',
+    chartType: 'standalone',
     enterprise: true,
 
     options: sankeySeriesOptionsDef,

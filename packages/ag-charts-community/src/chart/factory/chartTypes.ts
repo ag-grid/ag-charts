@@ -1,6 +1,6 @@
 import { mergeDefaults } from '../../util/object';
 
-export type ChartType = 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'standalone' | 'gauge';
+export type ChartType = 'cartesian' | 'polar' | 'topology' | 'standalone';
 
 class ChartTypes extends Map<string, ChartType | 'unknown'> {
     override get(seriesType: string) {
@@ -12,20 +12,11 @@ class ChartTypes extends Map<string, ChartType | 'unknown'> {
     isPolar(seriesType: string) {
         return this.get(seriesType) === 'polar';
     }
-    isHierarchy(seriesType: string) {
-        return this.get(seriesType) === 'hierarchy';
-    }
     isTopology(seriesType: string) {
         return this.get(seriesType) === 'topology';
     }
-    isFlowProportion(seriesType: string) {
-        return this.get(seriesType) === 'flow-proportion';
-    }
     isStandalone(seriesType: string) {
         return this.get(seriesType) === 'standalone';
-    }
-    isGauge(seriesType: string) {
-        return this.get(seriesType) === 'gauge';
     }
     get seriesTypes() {
         return Array.from(this.keys());
@@ -36,20 +27,11 @@ class ChartTypes extends Map<string, ChartType | 'unknown'> {
     get polarTypes() {
         return this.seriesTypes.filter((t) => this.isPolar(t));
     }
-    get hierarchyTypes() {
-        return this.seriesTypes.filter((t) => this.isHierarchy(t));
-    }
     get topologyTypes() {
         return this.seriesTypes.filter((t) => this.isTopology(t));
     }
-    get flowProportionTypes() {
-        return this.seriesTypes.filter((t) => this.isFlowProportion(t));
-    }
     get standaloneTypes() {
         return this.seriesTypes.filter((t) => this.isStandalone(t));
-    }
-    get gaugeTypes() {
-        return this.seriesTypes.filter((t) => this.isGauge(t));
     }
 }
 

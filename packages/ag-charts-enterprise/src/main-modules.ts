@@ -8,9 +8,6 @@ import {
     RadiusCategoryAxisModule,
     RadiusNumberAxisModule,
 } from './axes/axisModules';
-import { FlowProportionChartModule } from './charts/flowProportionChartModule';
-import { GaugeChartModule } from './charts/gaugeChartModule';
-import { HierarchyChartModule } from './charts/hierarchyChartModule';
 import { StandaloneChartModule } from './charts/standaloneChartModule';
 import { TopologyChartModule } from './charts/topologyChartModule';
 import { AnnotationsModule, InitialStateModule, NavigatorModule } from './features/sync/pluginModules';
@@ -63,13 +60,10 @@ export {
     RadarLineSeriesModule,
     RadialBarSeriesModule,
     RadialColumnSeriesModule,
-    FlowProportionChartModule,
     ChordSeriesModule,
     SankeySeriesModule,
-    GaugeChartModule,
     LinearGaugeSeriesModule,
     RadialGaugeSeriesModule,
-    HierarchyChartModule,
     SunburstSeriesModule,
     TreemapSeriesModule,
     StandaloneChartModule,
@@ -107,13 +101,16 @@ export const AllPolarEnterpriseModules = [
     RadialColumnSeriesModule,
 ];
 
-export const AllFlowProportionEnterpriseModules = [FlowProportionChartModule, ChordSeriesModule, SankeySeriesModule];
-
-export const AllGaugeEnterpriseModules = [GaugeChartModule, LinearGaugeSeriesModule, RadialGaugeSeriesModule];
-
-export const AllHierarchyEnterpriseModules = [HierarchyChartModule, SunburstSeriesModule, TreemapSeriesModule];
-
-export const AllStandaloneEnterpriseModules = [StandaloneChartModule, PyramidSeriesModule];
+export const AllStandaloneEnterpriseModules = [
+    StandaloneChartModule,
+    PyramidSeriesModule,
+    LinearGaugeSeriesModule,
+    RadialGaugeSeriesModule,
+    SunburstSeriesModule,
+    TreemapSeriesModule,
+    ChordSeriesModule,
+    SankeySeriesModule,
+];
 
 export const AllTopologyEnterpriseModules = [
     TopologyChartModule,
@@ -127,9 +124,6 @@ export const AllTopologyEnterpriseModules = [
 export const AllEnterpriseModules = [
     ...AllCartesianEnterpriseModules,
     ...AllPolarEnterpriseModules,
-    ...AllFlowProportionEnterpriseModules,
-    ...AllGaugeEnterpriseModules,
-    ...AllHierarchyEnterpriseModules,
     ...AllStandaloneEnterpriseModules,
     ...AllTopologyEnterpriseModules,
 
