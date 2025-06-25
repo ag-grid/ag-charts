@@ -1,5 +1,4 @@
-import { type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import type { RequiredInternalAgGradientColor } from 'ag-charts-core';
+import { _ModuleSupport } from 'ag-charts-community';
 
 export const RANGE_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'range-bar'>['themeTemplate'] = {
     series: {
@@ -7,14 +6,7 @@ export const RANGE_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'range-bar'>['t
         fill: { $palette: 'fill' },
         stroke: { $palette: 'stroke' },
         // @ts-expect-error undocumented option
-        fillGradientDefaults: {
-            type: 'gradient',
-            gradient: 'linear',
-            bounds: 'item',
-            colorStops: { $palette: 'gradient' },
-            rotation: 0,
-            reverse: false,
-        } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
+        fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
         fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
         fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },

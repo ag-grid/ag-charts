@@ -1,10 +1,5 @@
-import { type AgMapMarkerSeriesOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import {
-    type RequiredInternalAgGradientColor,
-    type SeriesModuleDefinition,
-    ValidationError,
-    validate,
-} from 'ag-charts-core';
+import { type AgMapMarkerSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type SeriesModuleDefinition, ValidationError, validate } from 'ag-charts-core';
 
 import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
 import { MapMarkerSeries } from './mapMarkerSeries';
@@ -33,14 +28,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
                 ],
             },
             // @ts-expect-error undocumented option
-            fillGradientDefaults: {
-                type: 'gradient',
-                gradient: 'radial',
-                bounds: 'item',
-                colorStops: { $mapPalette: 'gradient' },
-                rotation: 0,
-                reverse: true,
-            } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
+            fillGradientDefaults: applyMapPalette(_ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
             fillPatternDefaults: applyMapPalette(_ModuleSupport.FILL_PATTERN_DEFAULTS),
             fillImageDefaults: applyMapPalette(_ModuleSupport.FILL_IMAGE_DEFAULTS),
             fillOpacity: 0.5,
