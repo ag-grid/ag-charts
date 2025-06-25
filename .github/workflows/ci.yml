@@ -145,7 +145,7 @@ jobs:
             - name: Fetch Refs
               run: |
                   git fetch origin --depth 1 latest next
-                  git fetch origin --depth 1 tag latest-success
+                  git fetch origin --depth 1 tag latest-success next-success
 
             - name: Setup
               id: setup
@@ -207,7 +207,7 @@ jobs:
             - name: Fetch Refs
               run: |
                   git fetch origin --depth 1 latest next
-                  git fetch origin --depth 1 tag latest-success
+                  git fetch origin --depth 1 tag latest-success next-success
 
             - name: Setup
               id: setup
@@ -330,7 +330,7 @@ jobs:
               if: matrix.framework != 'none'
               run: |
                   git fetch origin --depth 1 latest next
-                  git fetch origin --depth 1 tag latest-success
+                  git fetch origin --depth 1 tag latest-success next-success
 
             - name: Setup
               id: setup
