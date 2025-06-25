@@ -208,4 +208,47 @@ describe('Grouped Category Axis Examples', () => {
             await compare();
         });
     });
+
+    describe('AG-15223', () => {
+        it('handles lazy data', async () => {
+            const options: AgCartesianChartOptions = {
+                axes: [
+                    {
+                        type: 'time',
+                        position: 'bottom',
+                    },
+                    {
+                        type: 'grouped-category',
+                        position: 'left',
+                    },
+                ],
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'actualStartDateMs',
+                        yKey: 'dataGroup',
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const data = [
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1658289600000.0 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1681358400000.0 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1607576400000.0 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1656561600000.0 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1718856000000.0 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1747195200000.0 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1742443200000.0 },
+                { dataGroup: ['PGM1', 'IR'], actualStartDateMs: 1798434000000.0 },
+            ];
+
+            await chart.updateDelta({ data });
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+    });
 });
