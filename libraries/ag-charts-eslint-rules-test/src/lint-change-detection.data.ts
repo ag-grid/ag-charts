@@ -1,8 +1,8 @@
 const equals = (_newValue: any, _oldValue: any): boolean => false;
 
 // Stub ag-charts-community classes
-class Node {};
-class SeriesProperties<_T> {};
+class Node {}
+class SeriesProperties<_T> {}
 
 // Stub ag-charts-community decorators
 export function SceneChangeDetection() {
