@@ -14,9 +14,10 @@ import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag
 import type { AxisZoomState, EventsHub, ZoomState } from '../../core/eventsHub';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import type { Scale } from '../../scale/scale';
+import { type Scale, ScaleAlignment } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
+import { extentAlignment } from '../../util/extent';
 import { deepClone } from '../../util/json';
 import { objectsEqual } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
@@ -583,8 +584,15 @@ export class ZoomManager extends BaseManager {
 
         const { scale } = axis;
 
-        let r0 = range.start == null ? d0 : scale.convert(range.start);
-        let r1 = range.end == null ? d1 : scale.convert(range.end) + (scale.bandwidth ?? 0);
+        const { start, end } = range;
+
+        const [startAlignment = ScaleAlignment.Leading, endAlignment = ScaleAlignment.Trailing] = extentAlignment(
+            start,
+            end
+        );
+        let r0 = range.start == null ? d0 : scale.convert(range.start, { alignment: startAlignment });
+        let r1 =
+            range.end == null ? d1 : scale.convert(range.end, { alignment: endAlignment }) + (scale.bandwidth ?? 0);
 
         if (!isFiniteNumber(r0) || !isFiniteNumber(r1)) return;
 

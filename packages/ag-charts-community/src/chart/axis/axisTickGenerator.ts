@@ -127,6 +127,7 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
         ticks: D[],
         primary: boolean,
         fractionDigits: number | undefined,
+        // eslint-disable-next-line sonarjs/use-type-alias
         timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,
         dateStyle: DateFormatterStyle
     ): (value: any, index: number) => string | undefined;
@@ -748,7 +749,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     });
                 }
 
-                const minTimeInterval = UnitTimeScale.is(scale) ? scale.interval : undefined;
+                let minTimeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined;
+                if (OrdinalTimeScale.is(scale)) {
+                    minTimeInterval = axis.minimumTimeGranularity;
+                } else if (UnitTimeScale.is(scale)) {
+                    minTimeInterval = scale.interval;
+                }
                 if (
                     minTimeInterval != null &&
                     timeInterval != null &&
