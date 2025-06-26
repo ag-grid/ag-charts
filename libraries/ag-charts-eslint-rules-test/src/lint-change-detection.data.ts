@@ -1,21 +1,20 @@
-const equals = (_newValue: any, _oldValue: any): boolean => false;
-
 // Stub ag-charts-community classes
 class Node {}
 class SeriesProperties<_T> {}
 
 // Stub ag-charts-community decorators
+const equals = (_newValue: any, _oldValue: any): boolean => false;
 export function SceneChangeDetection() {
-    return (_target: any, _context: ClassFieldDecoratorContext) => {};
+    return (_target: any, _key: string) => {};
 }
 export function SceneArrayChangeDetection() {
-    return (_target: any, _context: ClassFieldDecoratorContext) => {};
+    return (_target: any, _key: string) => {};
 }
 export function SceneObjectChangeDetection(_options?: { equals?: (a: any, b: any) => boolean }) {
-    return (_target: any, _context: ClassFieldDecoratorContext) => {};
+    return (_target: any, _key: string) => {};
 }
 export function Property() {
-    return (_target: any, _context: ClassFieldDecoratorContext) => {};
+    return (_target: any, _key: string) => {};
 }
 
 class TestSceneChangeDetection extends Node {

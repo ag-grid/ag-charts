@@ -2,7 +2,7 @@
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-import changeDetection from '../../change-detection.mjs';
+import changeDetection from '../../../eslint-rules/change-detection.mjs';
 
 /** @type {import('eslint').Linter.FlatConfig[]} */
 export default [
