@@ -1,3 +1,4 @@
+// -*- Mode: js2; -*-
 /**
  * @fileoverview Enforce explicit generic arguments for all generic types in the project
  */
@@ -30,7 +31,7 @@ export default {
         const typeChecker = program.getTypeChecker();
 
         // Collect all generic type declarations (interfaces/types with type parameters)
-        const genericTypeNames = new Set();
+        const genericTypeNames = new Map();
 
         for (const sourceFile of program.getSourceFiles()) {
             if (sourceFile.isDeclarationFile || sourceFile.fileName.includes('node_modules')) continue;
@@ -44,7 +45,7 @@ export default {
                 ) {
                     const symbol = typeChecker.getSymbolAtLocation(node.name);
                     if (symbol) {
-                        genericTypeNames.add(symbol.getName());
+                        genericTypeNames.set(symbol.getName(), node.typeParameters.length);
                     }
                 }
             });
@@ -52,11 +53,11 @@ export default {
 
         // Helper to check and report if type ref is missing generics
         function checkTypeReference(node, typeName, typeArguments) {
-            if (
-                typeName &&
-                genericTypeNames.has(typeName.name || typeName.right?.name) &&
-                (!typeArguments || typeArguments.length === 0)
-            ) {
+            const name = typeName?.name ?? typeName?.right?.name;
+            const argCount = genericTypeNames.get(name);
+            if (argCount === undefined) return;
+
+            if (typeArguments?.length !== argCount) {
                 context.report({
                     node,
                     messageId: 'requireGeneric',

@@ -201,11 +201,24 @@ exports[`aglint/require-explicit-generic 1`] = `
   "stderr": "",
   "stdout": "
 <dirname>/lint-require-explicit-generic.data.ts
-  43:44  error  'AllDefaultGenericType' is a generic type and requires explicit type arguments  aglint/require-explicit-generic
-  51:53  error  'AllDefaultGenericType' is a generic type and requires explicit type arguments  aglint/require-explicit-generic
-  68:54  error  'AllDefaultInterface' is a generic type and requires explicit type arguments    aglint/require-explicit-generic
+  13:45  error  'SomeDefaultGenericType' is a generic type and requires explicit type arguments  aglint/require-explicit-generic
+  18:45  error  'SomeDefaultGenericType' is a generic type and requires explicit type arguments  aglint/require-explicit-generic
+  24:54  error  'SomeDefaultGenericType' is a generic type and requires explicit type arguments  aglint/require-explicit-generic
+  25:54  error  'SomeDefaultGenericType' is a generic type and requires explicit type arguments  aglint/require-explicit-generic
+  33:44  error  'AllDefaultGenericType' is a generic type and requires explicit type arguments   aglint/require-explicit-generic
+  38:44  error  'AllDefaultGenericType' is a generic type and requires explicit type arguments   aglint/require-explicit-generic
+  43:44  error  'AllDefaultGenericType' is a generic type and requires explicit type arguments   aglint/require-explicit-generic
+  49:53  error  'AllDefaultGenericType' is a generic type and requires explicit type arguments   aglint/require-explicit-generic
+  50:53  error  'AllDefaultGenericType' is a generic type and requires explicit type arguments   aglint/require-explicit-generic
+  51:53  error  'AllDefaultGenericType' is a generic type and requires explicit type arguments   aglint/require-explicit-generic
+  58:52  error  'SomeDefaultInterface' is a generic type and requires explicit type arguments    aglint/require-explicit-generic
+  59:55  error  'SomeDefaultInterface' is a generic type and requires explicit type arguments    aglint/require-explicit-generic
+  60:55  error  'SomeDefaultInterface' is a generic type and requires explicit type arguments    aglint/require-explicit-generic
+  66:51  error  'AllDefaultInterface' is a generic type and requires explicit type arguments     aglint/require-explicit-generic
+  67:54  error  'AllDefaultInterface' is a generic type and requires explicit type arguments     aglint/require-explicit-generic
+  68:54  error  'AllDefaultInterface' is a generic type and requires explicit type arguments     aglint/require-explicit-generic
 
-✖ 3 problems (3 errors, 0 warnings)
+✖ 16 problems (16 errors, 0 warnings)
 
 ",
 }
