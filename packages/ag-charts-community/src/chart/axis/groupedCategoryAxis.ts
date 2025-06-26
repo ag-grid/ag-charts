@@ -219,6 +219,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
         treeLabels.forEach((datum, index) => {
             const depth = maxDepth - datum.depth;
 
+            depthLabelMaxSize[depth] ??= 0;
+
             const isVisible = setLabelProps(datum, index);
             if (!isVisible || !tempText.getBBox()) return;
 
@@ -228,7 +230,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
             const { width, height } = tempText.getBBox();
             const labelSize = horizontal ? height : width;
 
-            depthLabelMaxSize[depth] ??= 0;
             if (depthLabelMaxSize[depth] < labelSize) {
                 depthLabelMaxSize[depth] = labelSize;
             }
