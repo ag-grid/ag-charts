@@ -85,12 +85,7 @@ module.exports = {
                 "That's problematic as the package either (1) won't be available on live (2 - worse) will be " +
                 'available on live with an non-guaranteed version. Fix it by adding the package to the dependencies ' +
                 'in your package.json.',
-            from: {
-                pathNot: [
-                    'src/chart/test/lint-change-detection-eslint-config.mjs',
-                    '../../eslint-rules/change-detection.mjs',
-                ],
-            },
+            from: {},
             to: {
                 dependencyTypes: ['npm-no-pkg', 'npm-unknown'],
             },
