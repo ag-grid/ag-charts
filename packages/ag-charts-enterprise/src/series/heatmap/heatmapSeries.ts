@@ -499,12 +499,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             {
                 label: xName,
                 fallbackLabel: xKey,
-                value: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
+                value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
             },
             {
                 label: yName,
                 fallbackLabel: yKey,
-                value: yAxis.formatDatum(yValue, 'tooltip', seriesId, legendItemName, datum, yKey),
+                value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
             }
         );
 

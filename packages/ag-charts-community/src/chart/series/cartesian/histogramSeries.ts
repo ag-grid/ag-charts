@@ -346,7 +346,7 @@ export class HistogramSeries extends CartesianSeries<
                                 xName,
                                 yName,
                             })
-                        ) ?? yAxis.formatDatum(total, 'series-label', seriesId, legendItemName, datum, yKey!),
+                        ) ?? this.getAxisValueText(yAxis, 'series-label', total, datum, yKey!, legendItemName),
                 };
             }
 
@@ -532,11 +532,11 @@ export class HistogramSeries extends CartesianSeries<
             {
                 label: xName,
                 fallbackLabel: xKey,
-                value: `${xAxis.formatDatum(rangeMin, 'tooltip', seriesId, legendItemName, datum, xKey)} - ${xAxis.formatDatum(rangeMax, 'tooltip', seriesId, legendItemName, datum, xKey)}`,
+                value: `${this.getAxisValueText(xAxis, 'tooltip', rangeMin, datum, xKey, legendItemName)} - ${this.getAxisValueText(xAxis, 'tooltip', rangeMax, datum, xKey, legendItemName)}`,
             },
             {
                 label: localeManager.t('seriesHistogramTooltipFrequency'),
-                value: yAxis.formatDatum(frequency, 'tooltip', seriesId, legendItemName, datum, yKey!),
+                value: this.getAxisValueText(yAxis, 'tooltip', frequency, datum, yKey!, legendItemName),
             },
         ];
 
@@ -556,7 +556,7 @@ export class HistogramSeries extends CartesianSeries<
 
             data.push({
                 label,
-                value: yAxis.formatDatum(aggregatedValue, 'tooltip', seriesId, legendItemName, datum, yKey),
+                value: this.getAxisValueText(yAxis, 'tooltip', aggregatedValue, datum, yKey, legendItemName),
             });
         }
 

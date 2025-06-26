@@ -26,6 +26,7 @@ import type { AxisTick, TickInterval } from './axis/axisTick';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { CrossLine } from './crossline/crossLine';
+import type { GlobalContextFormatter } from './formatter/formatManager';
 import type { ISeries } from './series/seriesTypes';
 
 export type ChartAxisLabelFlipFlag = 1 | -1;
@@ -72,8 +73,8 @@ export interface ChartAxis {
     createModuleContext(): ModuleContextWithParent<AxisContext>;
     destroy(): void;
     detachAxis(opts: AxisGroups): void;
-    formatDatum(value: any, source: 'crosshair' | 'annotation-label'): string;
     formatDatum(
+        formatInContext: GlobalContextFormatter,
         value: any,
         source: 'tooltip' | 'series-label',
         seriesId: string,
@@ -82,6 +83,7 @@ export interface ChartAxis {
         key: string
     ): string;
     formatDatum<Params extends object>(
+        formatInContext: ContextFormatter<Params> | GlobalContextFormatter,
         value: any,
         source: 'crosshair' | 'annotation-label',
         seriesId: undefined,
@@ -90,10 +92,10 @@ export interface ChartAxis {
         key: undefined,
         domain: undefined,
         label: AxisFormattableLabel<Params>,
-        params: Params,
-        formatInContext: ContextFormatter<Params>
+        params: Params
     ): string;
     formatDatum<Params extends object>(
+        formatInContext: ContextFormatter<Params> | GlobalContextFormatter,
         value: any,
         source: 'tooltip' | 'series-label',
         seriesId: string,
@@ -102,8 +104,7 @@ export interface ChartAxis {
         key: string,
         domain: any[],
         label: AxisFormattableLabel<Params>,
-        params: Params,
-        formatInContext: ContextFormatter<Params>
+        params: Params
     ): string;
     getBBox(): BBox;
     getLayoutState(): AxisLayout;

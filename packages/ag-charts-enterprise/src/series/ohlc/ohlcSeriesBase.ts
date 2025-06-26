@@ -521,7 +521,7 @@ export abstract class OhlcSeriesBase<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
+                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 title: legendItemName,
                 symbol: {
                     marker,
@@ -530,22 +530,22 @@ export abstract class OhlcSeriesBase<
                     {
                         label: openName,
                         fallbackLabel: openKey,
-                        value: yAxis.formatDatum(openValue, 'tooltip', seriesId, legendItemName, datum, openKey),
+                        value: this.getAxisValueText(yAxis, 'tooltip', openValue, datum, openKey, legendItemName),
                     },
                     {
                         label: highName,
                         fallbackLabel: highKey,
-                        value: yAxis.formatDatum(highValue, 'tooltip', seriesId, legendItemName, datum, highKey),
+                        value: this.getAxisValueText(yAxis, 'tooltip', highValue, datum, highKey, legendItemName),
                     },
                     {
                         label: lowName,
                         fallbackLabel: lowKey,
-                        value: yAxis.formatDatum(lowValue, 'tooltip', seriesId, legendItemName, datum, lowKey),
+                        value: this.getAxisValueText(yAxis, 'tooltip', lowValue, datum, lowKey, legendItemName),
                     },
                     {
                         label: closeName,
                         fallbackLabel: closeKey,
-                        value: yAxis.formatDatum(closeValue, 'tooltip', seriesId, legendItemName, datum, closeKey),
+                        value: this.getAxisValueText(yAxis, 'tooltip', closeValue, datum, closeKey, legendItemName),
                     },
                 ],
             },

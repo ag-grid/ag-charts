@@ -571,8 +571,8 @@ export abstract class BaseFunnelSeries<
                 symbol: this.legendItemSymbol(datumIndex),
                 data: [
                     {
-                        label: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, stageKey),
-                        value: yAxis.formatDatum(yValue, 'tooltip', seriesId, legendItemName, datum, valueKey),
+                        label: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, stageKey, legendItemName),
+                        value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, valueKey, legendItemName),
                     },
                 ],
             },

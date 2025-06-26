@@ -543,13 +543,13 @@ export abstract class RadialColumnSeriesBase<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: angleAxis.formatDatum(angleValue, 'tooltip', seriesId, undefined, datum, angleKey),
+                heading: this.getAxisValueText(angleAxis, 'tooltip', angleValue, datum, angleKey, undefined),
                 symbol: this.legendItemSymbol(),
                 data: [
                     {
                         label: radiusName,
                         fallbackLabel: radiusKey,
-                        value: radiusAxis.formatDatum(radiusValue, 'tooltip', seriesId, undefined, datum, radiusKey),
+                        value: this.getAxisValueText(radiusAxis, 'tooltip', radiusValue, datum, radiusKey, undefined),
                     },
                 ],
             },

@@ -659,11 +659,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const format = this.getMarkerItemBaseStyle(false);
         Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
-        const value = `${yAxis.formatDatum(yLowValue, 'tooltip', seriesId, legendItemName, datum, yLowKey)} - ${yAxis.formatDatum(yHighValue, 'tooltip', seriesId, legendItemName, datum, yHighKey)}`;
+        const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
+                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 symbol: this.legendItemSymbol(),
                 data: [{ label: yName, fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`, value }],
             },

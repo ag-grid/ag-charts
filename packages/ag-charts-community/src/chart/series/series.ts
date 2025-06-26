@@ -161,6 +161,8 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     usesPlacedLabels?: boolean;
 };
 
+function propertyAxisDirection(property: 'x' | 'y' | 'angle' | 'radius'): ChartAxisDirection;
+function propertyAxisDirection(property: FormatterPropertyType): ChartAxisDirection | undefined;
 function propertyAxisDirection(property: FormatterPropertyType): ChartAxisDirection | undefined {
     switch (property) {
         case 'x':
@@ -842,6 +844,20 @@ export abstract class Series<
         return { ...this.ctx, series: this };
     }
 
+    protected getAxisValueText(
+        axis: ChartAxis,
+        source: 'tooltip' | 'series-label',
+        value: any,
+        datum: any,
+        key: string,
+        legendItemName: string | undefined
+    ) {
+        const { id: seriesId } = this;
+        const formatInContext = this.callWithContext.bind(this);
+
+        return axis.formatDatum(formatInContext, value, source, seriesId, legendItemName, datum, key);
+    }
+
     protected getLabelText<TParams extends object>(
         value: any,
         datum: any,
@@ -857,34 +873,23 @@ export abstract class Series<
         const { formatManager } = ctx;
         const legendItemName = 'legendItemName' in properties ? (properties.legendItemName as string) : undefined;
         const source = 'series-label';
+
+        const direction = canHaveAxes ? propertyAxisDirection(property) : undefined;
+        const axis = direction != null ? axes[this.resolveKeyDirection(direction)] : undefined;
+        if (axis != null) {
+            return this.getAxisValueText(axis, source, value, datum, key, legendItemName);
+        }
+
         const params: AgChartLabelFormatterParams<any> & RequireOptional<TParams> = {
             seriesId: this.id,
             ...baseParams,
         };
-
         const formatInContext = this.callWithContext.bind(this);
 
         const format = (formatParams: FormatterParams<any>) =>
             label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
             formatManager.format(formatInContext, formatParams) ??
             String(value);
-
-        const direction = canHaveAxes ? propertyAxisDirection(property) : undefined;
-        const axis = direction != null ? axes[this.resolveKeyDirection(direction)] : undefined;
-        if (axis != null) {
-            return axis.formatDatum<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>(
-                value,
-                source,
-                seriesId,
-                legendItemName,
-                datum,
-                key,
-                domain,
-                label,
-                params,
-                formatInContext
-            );
-        }
 
         const boundSeries = this.getFormatterContext(property);
         switch (property) {
