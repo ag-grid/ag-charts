@@ -192,13 +192,15 @@ export class LegendDOMProxy {
             }
         }
 
-        const { prev, next } = pagination.computeCSSBounds();
-        this.prevButton?.setBounds(prev);
-        this.nextButton?.setBounds(next);
-        this.prevButton?.setEnabled(pagination.currentPage !== 0);
-        this.nextButton?.setEnabled(pagination.currentPage !== pagination.totalPages - 1);
-        this.nextButton?.setCursor(pagination.getCursor('next'));
-        this.prevButton?.setCursor(pagination.getCursor('previous'));
+        if (this.prevButton && this.nextButton) {
+            const { prev, next } = pagination.computeCSSBounds();
+            this.prevButton.setBounds(prev);
+            this.nextButton.setBounds(next);
+            this.prevButton.setEnabled(pagination.currentPage !== 0);
+            this.nextButton.setEnabled(pagination.currentPage !== pagination.totalPages - 1);
+            this.nextButton.setCursor(pagination.getCursor('next'));
+            this.prevButton.setCursor(pagination.getCursor('previous'));
+        }
     }
 
     private onPageButton(params: LegendDOMProxyUpdateParams, ev: MouseWidgetEvent<'click'>, node: 'previous' | 'next') {
