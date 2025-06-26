@@ -1,5 +1,5 @@
-import { type AgSunburstSeriesOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgSunburstSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { SunburstSeries } from './sunburstSeries';
 import { sunburstSeriesOptionsDef } from './sunburstSeriesOptionsDef';
@@ -10,7 +10,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
-    chartTypes: ['hierarchy'],
+    chartTypes: ['standalone'],
 
     identifier: 'sunburst',
     moduleFactory: (ctx) => new SunburstSeries(ctx),
@@ -21,14 +21,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             strokes: { $palette: 'strokes' },
             colorRange: { $palette: 'divergingColors' },
             // @ts-expect-error undocumented option
-            fillGradientDefaults: {
-                type: 'gradient',
-                gradient: 'radial',
-                bounds: 'series',
-                colorStops: { $palette: 'gradient' },
-                rotation: 0,
-                reverse: true,
-            } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
+            fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
@@ -74,7 +67,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
 export const SunburstSeriesModule: SeriesModuleDefinition<AgSunburstSeriesOptions> = {
     type: 'series',
     name: 'sunburst',
-    chartType: 'hierarchy',
+    chartType: 'standalone',
     enterprise: true,
 
     options: sunburstSeriesOptionsDef,

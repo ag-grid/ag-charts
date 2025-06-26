@@ -3,6 +3,7 @@ import { type AgMarkerShapeFnParams, _ModuleSupport } from 'ag-charts-community'
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { arrowUpPoints } from '../arrow-up/arrowUpScene';
 import { AnnotationScene } from '../scenes/annotationScene';
+import { AnnotationShape } from '../scenes/annotationShape';
 import { DivariantHandle } from '../scenes/handle';
 import { ShapePointScene } from '../scenes/shapePointScene';
 import type { ArrowDownProperties } from './arrowDownProperties';
@@ -22,7 +23,7 @@ export class ArrowDownScene extends ShapePointScene<ArrowDownProperties> {
 
     type = AnnotationType.ArrowDown;
 
-    protected readonly shape = new _ModuleSupport.Marker({ shape: arrowDown });
+    protected readonly shape = new AnnotationShape({ shape: arrowDown });
 
     constructor() {
         super();

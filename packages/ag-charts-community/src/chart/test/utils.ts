@@ -269,7 +269,7 @@ export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toEqual('HierarchyChart');
+        expect(chart?.constructor?.name).toEqual('StandaloneChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -291,7 +291,7 @@ export function flowProportionChartAssertions(params?: { seriesTypes?: string[] 
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toEqual('FlowProportionChart');
+        expect(chart?.constructor?.name).toEqual('StandaloneChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -311,7 +311,7 @@ export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
 export function gaugeAssertions() {
     return (chartOrProxy: ChartOrProxy<AgGaugeOptions>) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toEqual('GaugeChart');
+        expect(chart?.constructor?.name).toEqual('StandaloneChart');
     };
 }
 
@@ -657,7 +657,7 @@ export function spyOnAnimationManager() {
                 const { animationDelay } = PHASE_METADATA[phase];
 
                 // Account for phase notional starting offset.
-                let updateBy = animateParameters[0] * animateParameters[1];
+                let updateBy = Math.max(animateParameters[0] * animateParameters[1], 0.0001);
                 updateBy -= animationDelay * defaultDuration;
 
                 controller.update(updateBy);

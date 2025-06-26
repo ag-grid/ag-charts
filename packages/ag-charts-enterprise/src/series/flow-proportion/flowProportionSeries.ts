@@ -83,30 +83,25 @@ export class FlowProportionSeriesNodeEvent<
 }
 
 export abstract class FlowProportionSeries<
-        TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
-        TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
-        TLabel,
-        TProps extends FlowProportionSeriesProperties<any>,
-        TNode extends _ModuleSupport.Node & _ModuleSupport.DistantObject,
-        TLink extends _ModuleSupport.Node & _ModuleSupport.DistantObject,
-    >
-    extends Series<
-        FlowProportionNodeDatumIndex,
-        TDatum<TNodeDatum, TLinkDatum>,
-        TProps,
-        TLabel,
-        _ModuleSupport.SeriesNodeDataContext<FlowProportionNodeDatumIndex, TDatum<TNodeDatum, TLinkDatum>, TLabel>
-    >
-    implements _ModuleSupport.FlowProportionSeries
-{
+    TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
+    TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
+    TLabel,
+    TProps extends FlowProportionSeriesProperties<any>,
+    TNode extends _ModuleSupport.Node & _ModuleSupport.DistantObject,
+    TLink extends _ModuleSupport.Node & _ModuleSupport.DistantObject,
+> extends Series<
+    FlowProportionNodeDatumIndex,
+    TDatum<TNodeDatum, TLinkDatum>,
+    TProps,
+    TLabel,
+    _ModuleSupport.SeriesNodeDataContext<FlowProportionNodeDatumIndex, TDatum<TNodeDatum, TLinkDatum>, TLabel>
+> {
     protected override readonly NodeEvent = FlowProportionSeriesNodeEvent;
 
     abstract override properties: TProps;
 
-    private _chartNodes?: any[] = undefined;
-
     protected get nodes() {
-        return this.properties.nodes ?? this._chartNodes;
+        return this.properties.nodes;
     }
 
     protected nodeCount: number = 0;
@@ -159,13 +154,6 @@ export abstract class FlowProportionSeries<
         this.highlightNodeGroup,
         () => this.nodeFactory()
     );
-
-    setChartNodes(nodes: any[] | undefined): void {
-        this._chartNodes = nodes;
-        if (this.nodes === nodes) {
-            this.nodeDataRefresh = true;
-        }
-    }
 
     protected abstract linkFactory(): TLink;
     protected abstract nodeFactory(): TNode;
@@ -593,9 +581,7 @@ export abstract class FlowProportionSeries<
         let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
 
         this.linkSelection.each((node, datum) => {
-            // @todo(AG-11712) Links don't implement distance squared
-            // const distanceSquared = node.distanceSquared(x, y);
-            const distanceSquared = node.containsPoint(x, y) ? 0 : Infinity;
+            const distanceSquared = node.distanceSquared(x, y);
             if (distanceSquared < minDistanceSquared) {
                 minDistanceSquared = distanceSquared;
                 minDatum = datum;

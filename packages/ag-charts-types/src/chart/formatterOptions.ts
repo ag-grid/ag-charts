@@ -1,5 +1,5 @@
 import type { AgTimeIntervalUnit } from './axisOptions';
-import type { TDatumDefault } from './types';
+import type { ContextDefault, DatumDefault, DatumKey } from './types';
 
 export type FormatterPropertyType =
     | 'x'
@@ -27,17 +27,18 @@ interface FormatterBoundSeries {
     name?: string;
 }
 
-export interface SeriesFormatterParams<TDatum, Value> {
+export interface SeriesFormatterParams<TContext, TDatum, Value> {
     value: Value;
     datum: TDatum | undefined;
     legendItemName: string | undefined;
     seriesId: string | undefined;
-    key: TDatum extends object ? keyof TDatum & string : string | undefined;
+    key: DatumKey<TDatum> | undefined;
     source: SeriesFormatterSource;
     property: FormatterPropertyType;
+    context?: TContext;
 }
 
-export interface ChartFormatterParams<Value> {
+export interface ChartFormatterParams<TContext, Value> {
     value: Value;
     datum: undefined;
     legendItemName: string | undefined;
@@ -45,9 +46,10 @@ export interface ChartFormatterParams<Value> {
     key: undefined;
     source: ChartFormatterSource;
     property: FormatterPropertyType;
+    context?: TContext;
 }
 
-interface BaseFormatterParams<TDatum, Value> {
+interface BaseFormatterParams<TDatum, TContext, Value> {
     /** The current value being formatted. */
     value: Value;
     /** The datum associated with the value, if available. */
@@ -57,7 +59,7 @@ interface BaseFormatterParams<TDatum, Value> {
     /** The ID of the series that the value belongs to, if available. */
     seriesId: string | undefined;
     /** The key of the property associated with the datum, if available. */
-    key: TDatum extends object ? keyof TDatum & string : string | undefined;
+    key: DatumKey<TDatum> | undefined;
     /** The source of the formatter, indicating the element where it is being used. */
     source: AnyFormatterSource;
     /** The property being formatted, such as 'x', 'y', 'angle', etc. */
@@ -66,9 +68,11 @@ interface BaseFormatterParams<TDatum, Value> {
     domain: any[];
     /** A description of the key and name properties of the series associated with the element being formatted. */
     boundSeries: FormatterBoundSeries[];
+    /** Context for this callback. */
+    context?: TContext;
 }
 
-export interface NumberFormatterParams<TDatum> extends BaseFormatterParams<TDatum, number> {
+export interface NumberFormatterParams<TDatum, TContext> extends BaseFormatterParams<TDatum, TContext, number> {
     /** Configuration for a number-formatted value. */
     type: 'number';
     /** The recommended precision to format the value. */
@@ -77,7 +81,7 @@ export interface NumberFormatterParams<TDatum> extends BaseFormatterParams<TDatu
 
 export type DateFormatterStyle = 'long' | 'component';
 
-export interface DateFormatterParams<TDatum> extends BaseFormatterParams<TDatum, Date> {
+export interface DateFormatterParams<TDatum, TContext> extends BaseFormatterParams<TDatum, TContext, Date> {
     /** Configuration for a date-formatted value. */
     type: 'date';
     /** The interval used for the formatted element. I.e. if given the unit `day`, you may format your day as '1 January 2020'. */
@@ -90,20 +94,20 @@ export interface DateFormatterParams<TDatum> extends BaseFormatterParams<TDatum,
     style: DateFormatterStyle;
 }
 
-export interface CategoryFormatterParams<TDatum>
-    extends BaseFormatterParams<TDatum, string | number | Date | string[]> {
+export interface CategoryFormatterParams<TDatum, TContext>
+    extends BaseFormatterParams<TDatum, TContext, string | number | Date | string[]> {
     /** Configuration for a category-formatted value. */
     type: 'category';
 }
 
-export type FormatterParams<TDatum = TDatumDefault> =
-    | NumberFormatterParams<TDatum>
-    | DateFormatterParams<TDatum>
-    | CategoryFormatterParams<TDatum>;
+export type FormatterParams<TDatum = DatumDefault, TContext = ContextDefault> =
+    | NumberFormatterParams<TDatum, TContext>
+    | DateFormatterParams<TDatum, TContext>
+    | CategoryFormatterParams<TDatum, TContext>;
 
-type FunctionFormatter<TDatum> = (params: FormatterParams<TDatum>) => string | undefined;
+type FunctionFormatter<TDatum, TContext> = (params: FormatterParams<TDatum, TContext>) => string | undefined;
 type TimeIntervalFormatter = Record<AgTimeIntervalUnit, string>;
 
-export type FormatterConfiguration<TDatum> =
-    | FunctionFormatter<TDatum>
-    | Partial<Record<FormatterPropertyType, FunctionFormatter<TDatum> | TimeIntervalFormatter | string>>;
+export type FormatterConfiguration<TDatum, TContext = ContextDefault> =
+    | FunctionFormatter<TDatum, TContext>
+    | Partial<Record<FormatterPropertyType, FunctionFormatter<TDatum, TContext> | TimeIntervalFormatter | string>>;

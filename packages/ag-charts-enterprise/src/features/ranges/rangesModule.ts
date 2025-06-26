@@ -48,7 +48,7 @@ export const RangesModule: _ModuleSupport.Module = {
                     {
                         label: 'toolbarRangeAll',
                         ariaLabel: 'toolbarRangeAllAria',
-                        value: (start: Date | number, end: Date | number) => [start, end],
+                        value: undefined, // Reset zoom
                     },
                 ],
             },

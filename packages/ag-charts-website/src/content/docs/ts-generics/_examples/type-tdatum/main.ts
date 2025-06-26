@@ -46,7 +46,6 @@ const options: AgChartOptions<MyDatumType> = {
             },
         },
     ],
-    legend: { position: 'left' },
 };
 
 AgCharts.create(options);

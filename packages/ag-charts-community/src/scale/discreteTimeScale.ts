@@ -1,7 +1,8 @@
-import { findMinIndex } from 'ag-charts-core';
+import { findMaxIndex, findMinIndex } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { BandScale } from './bandScale';
+import { ScaleAlignment } from './scale';
 
 export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval | AgTimeIntervalUnit | number> {
     static override is(value: unknown): value is DiscreteTimeScale {
@@ -12,7 +13,7 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         return new Date(value);
     }
 
-    override convert(value: Date, options?: { clamp?: boolean; interpolate?: boolean }): number {
+    override convert(value: Date, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
         if (!(value instanceof Date)) value = new Date(value as any);
         const { domain, bands } = this;
 
@@ -29,9 +30,9 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
             if (value > bands[bands.length - 1]) return range[1];
         }
 
-        const interpolate = options?.interpolate ?? false;
+        const alignment = options?.alignment ?? ScaleAlignment.Leading;
         const reversed = domain[0].valueOf() > domain[domain.length - 1].valueOf();
-        if (!interpolate) {
+        if (alignment !== ScaleAlignment.Interpolate) {
             const r = super.convert(value, options);
             return reversed ? r1 - (r - r0) : r;
         }
@@ -79,5 +80,14 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         }
 
         return bands[reversed ? bands.length - 1 - index : index];
+    }
+
+    override findIndex(value: Date, alignment: ScaleAlignment = ScaleAlignment.Leading): number | undefined {
+        const { bands } = this;
+        const target = value.valueOf();
+        if (alignment === ScaleAlignment.Trailing) {
+            return findMinIndex(0, bands.length - 1, (index) => bands[index].valueOf() >= target);
+        }
+        return findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= target);
     }
 }

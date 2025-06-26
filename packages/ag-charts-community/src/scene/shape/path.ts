@@ -64,6 +64,15 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
             this.path.isDirty() || (this.fillShadow?.isDirty() ?? false) || (this._clipPath?.isDirty() ?? false);
     }
 
+    resetPathDirty() {
+        this.path.clear(true);
+        this._dirtyPath = false;
+    }
+
+    isPathDirty() {
+        return this.path.isDirty();
+    }
+
     override onChangeDetection(property: string): void {
         if (!this._dirtyPath) {
             this._dirtyPath = true;

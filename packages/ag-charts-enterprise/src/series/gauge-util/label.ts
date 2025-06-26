@@ -1,5 +1,4 @@
-import type { AgChartLabelFormatterParams, Formatter } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
+import type { AgChartLabelFormatterParams, Formatter, _ModuleSupport } from 'ag-charts-community';
 
 import { formatWithContext } from '../../utils/formatter';
 

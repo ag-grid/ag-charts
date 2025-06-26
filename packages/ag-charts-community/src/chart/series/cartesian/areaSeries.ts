@@ -460,7 +460,9 @@ export class AreaSeries extends CartesianSeries<
                 const nextYValueStack = nIndx != null ? yStackValues[nIndx] : undefined;
 
                 let yValueEndBackwards = 0;
+                let yBackwardsFinite = true;
                 let yValueEndForwards = 0;
+                let yForwardsFinite = true;
                 for (let j = 0; j <= index; j += 1) {
                     const value = yValueStack[j];
 
@@ -470,15 +472,25 @@ export class AreaSeries extends CartesianSeries<
 
                         if (lastWasFinite) {
                             yValueEndBackwards += value;
+                        } else {
+                            yBackwardsFinite = false;
                         }
                         if (nextWasFinite) {
                             yValueEndForwards += value;
+                        } else {
+                            yForwardsFinite = false;
                         }
                     }
                 }
 
                 const currentPoints: LineSpanPointDatum[] | { skip: number } | undefined = points[points.length - 1];
-                if (!connectMissingData && (yValueEndBackwards !== yValueEndForwards || !yDatumIsFinite)) {
+                if (
+                    !connectMissingData &&
+                    (!yBackwardsFinite ||
+                        !yForwardsFinite ||
+                        !yDatumIsFinite ||
+                        yValueEndBackwards !== yValueEndForwards)
+                ) {
                     if (!yDatumIsFinite && Array.isArray(currentPoints) && currentPoints.length === 1) {
                         points[points.length - 1] = { skip: 1 };
                     } else {

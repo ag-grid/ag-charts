@@ -1,6 +1,6 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { PixelSize, Ratio, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, PixelSize, Ratio } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
@@ -8,19 +8,19 @@ import type {
 } from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-interface BoxPlotOptionsKeys<TDatum = TDatumDefault> {
+interface BoxPlotOptionsKeys<TDatum = DatumDefault> {
     /** The key used to retrieve x-values (categories) from the data. */
-    xKey: TDatum extends object ? keyof TDatum & string : string;
+    xKey: DatumKey<TDatum>;
     /** The key to use to retrieve minimum values from the data. */
-    minKey: TDatum extends object ? keyof TDatum & string : string;
+    minKey: DatumKey<TDatum>;
     /** The key to use to retrieve lower quartile values from the data. */
-    q1Key: TDatum extends object ? keyof TDatum & string : string;
+    q1Key: DatumKey<TDatum>;
     /** The key to use to retrieve median values from the data. */
-    medianKey: TDatum extends object ? keyof TDatum & string : string;
+    medianKey: DatumKey<TDatum>;
     /** The key to use to retrieve upper quartile values from the data. */
-    q3Key: TDatum extends object ? keyof TDatum & string : string;
+    q3Key: DatumKey<TDatum>;
     /** The key to use to retrieve maximum values from the data. */
-    maxKey: TDatum extends object ? keyof TDatum & string : string;
+    maxKey: DatumKey<TDatum>;
 }
 
 interface BoxPlotOptionsNames {
@@ -47,14 +47,14 @@ export interface AgBoxPlotCapOptions {
 export type AgBoxPlotWhiskerOptions = StrokeOptions & LineDashOptions;
 
 export type AgBoxPlotSeriesItemStylerParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = DatumCallbackParams<TDatum> &
     ContextCallbackParams<TContext> &
     BoxPlotOptionsKeys<TDatum> &
     Required<AgBoxPlotSeriesStyle>;
 
-export interface AgBoxPlotSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+export interface AgBoxPlotSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNames,
         AgSeriesTooltipRendererParams<TDatum, TContext>,
@@ -69,7 +69,7 @@ export interface AgBoxPlotSeriesStyle extends FillOptions, StrokeOptions, LineDa
     whisker?: AgBoxPlotWhiskerOptions;
 }
 
-export interface AgBoxPlotSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgBoxPlotSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
         AgBoxPlotSeriesStyle {
     /**
@@ -89,7 +89,7 @@ export interface AgBoxPlotHighlightStyleOptions extends AgBoxPlotSeriesStyle {
     opacity?: number;
 }
 
-export interface AgBoxPlotSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgBoxPlotSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBoxPlotSeriesThemeableOptions<TDatum, TContext>,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         BoxPlotOptionsKeys<TDatum>,

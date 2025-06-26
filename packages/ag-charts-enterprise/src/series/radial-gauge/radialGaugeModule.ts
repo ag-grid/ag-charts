@@ -9,7 +9,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
-    chartTypes: ['gauge'],
+    chartTypes: ['standalone'],
 
     identifier: 'radial-gauge',
     moduleFactory: (ctx) => new RadialGaugeSeries(ctx),
@@ -99,7 +99,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
 export const RadialGaugeSeriesModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
     type: 'series',
     name: 'radial-gauge',
-    chartType: 'gauge',
+    chartType: 'standalone',
     enterprise: true,
 
     options: _ModuleSupport.radialGaugeSeriesOptionsDef,

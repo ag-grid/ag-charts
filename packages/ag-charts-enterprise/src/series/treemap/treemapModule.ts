@@ -1,5 +1,5 @@
-import { type AgTreemapSeriesOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgTreemapSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { TreemapSeries } from './treemapSeries';
 import { treemapSeriesOptionsDef } from './treemapSeriesOptionsDef';
@@ -10,7 +10,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
-    chartTypes: ['hierarchy'],
+    chartTypes: ['standalone'],
     identifier: 'treemap',
     moduleFactory: (ctx) => new TreemapSeries(ctx),
     solo: true,
@@ -20,14 +20,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             strokes: { $palette: 'strokes' },
             colorRange: { $palette: 'divergingColors' },
             // @ts-expect-error undocumented option
-            fillGradientDefaults: {
-                type: 'gradient',
-                gradient: 'linear',
-                bounds: 'item',
-                colorStops: { $palette: 'gradient' },
-                rotation: 0,
-                reverse: false,
-            } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
+            fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             undocumentedGroupFills: { $palette: 'hierarchyColors' },
@@ -111,7 +104,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
 export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions> = {
     type: 'series',
     name: 'treemap',
-    chartType: 'hierarchy',
+    chartType: 'standalone',
     enterprise: true,
 
     options: treemapSeriesOptionsDef,

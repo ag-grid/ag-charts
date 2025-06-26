@@ -1,11 +1,17 @@
-import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgAreaSeriesOptions, WithThemeParams } from 'ag-charts-types';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { AgAreaSeriesOptions } from 'ag-charts-types';
 
 import type { SeriesModule } from '../../../module/coreModules';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS, multiSeriesHighlightStyle } from '../../themes/util';
+import {
+    FILL_GRADIENT_LINEAR_DEFAULTS,
+    FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    multiSeriesHighlightStyle,
+} from '../../themes/util';
 import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
 
@@ -32,14 +38,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
         series: {
             nodeClickRange: 'nearest',
             fill: { $palette: 'fill' },
-            fillGradientDefaults: {
-                type: 'gradient',
-                gradient: 'linear',
-                bounds: 'item',
-                colorStops: { $palette: 'gradient' },
-                rotation: 0,
-                reverse: false,
-            } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
+            fillGradientDefaults: FILL_GRADIENT_LINEAR_DEFAULTS,
             fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             fillImageDefaults: FILL_IMAGE_DEFAULTS,
             stroke: { $palette: 'stroke' },
@@ -66,14 +65,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 fill: { $palette: 'fill' },
                 stroke: { $palette: 'stroke' },
                 // @ts-expect-error undocumented option
-                fillGradientDefaults: {
-                    type: 'gradient',
-                    gradient: 'radial',
-                    bounds: 'item',
-                    colorStops: { $palette: 'gradient' },
-                    rotation: 0,
-                    reverse: true,
-                } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
+                fillGradientDefaults: FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
                 fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             },
             label: {

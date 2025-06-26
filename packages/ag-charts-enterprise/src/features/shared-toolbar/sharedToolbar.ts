@@ -43,11 +43,14 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
             this.createSharedToolbar();
         }
 
+        if (section === 'chartToolbar' && this.sharedToolbar) {
+            this.sharedToolbar.setAriaLabelId('ariaLabelFinancialCharts');
+        }
         return this.toolbarWithSection<ButtonOptions>(section);
     }
 
     private createSharedToolbar() {
-        this.sharedToolbar = new _ModuleSupport.Toolbar(this.ctx.localeManager, 'vertical');
+        this.sharedToolbar = new _ModuleSupport.Toolbar(this.ctx, 'ariaLabelAnnotationsToolbar', 'vertical');
         this.sharedToolbar.addClass('ag-charts-shared-toolbar');
 
         this.container.append(this.sharedToolbar.getElement());

@@ -2,7 +2,7 @@ import type { ContextCallbackParams } from '../../chart/callbackOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { Opacity, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, Opacity } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type {
@@ -17,15 +17,15 @@ import type {
 } from './cartesianSeriesTooltipOptions';
 import type { LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgLineSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgLineSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
         AgErrorBoundSeriesTooltipRendererParams<TDatum>,
         AgSeriesMarkerStyle {}
 
-export type AgLineSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgLineSeriesOptionsKeys<TDatum> &
+export type AgLineSeriesLabelFormatterParams<TDatum = DatumDefault> = AgLineSeriesOptionsKeys<TDatum> &
     AgLineSeriesOptionsNames;
 
-export interface AgLineSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends StrokeOptions,
         LineDashOptions,
         Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
@@ -52,14 +52,14 @@ export interface AgLineHighlightStyleOptions extends StrokeOptions, LineDashOpti
     opacity?: Opacity;
 }
 
-export interface AgLineSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgLineSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: TDatum extends object ? keyof TDatum & string : string;
+    xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-values from the data. */
-    yKey: TDatum extends object ? keyof TDatum & string : string;
+    yKey: DatumKey<TDatum>;
 }
 
-export interface AgLineSeriesMarkerItemStylerParams<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgLineSeriesMarkerItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgLineSeriesOptionsKeys<TDatum>,
         ContextCallbackParams<TContext> {
     /** The x value of the datum. */
@@ -85,7 +85,7 @@ export interface AgLineSeriesOptionsNames {
     legendItemName?: string;
 }
 
-export interface AgLineSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgLineSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgLineSeriesOptionsKeys<TDatum>,
         AgLineSeriesOptionsNames,

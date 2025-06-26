@@ -600,7 +600,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number, refresh = false) {
-        if (this.chart.chartType === 'hierarchy' || this.chart.chartType === 'gauge') {
+        if (this.chart.chartType === 'standalone') {
             this.handleSoloSeriesFocus(otherIndexDelta, datumIndexDelta, refresh);
             return;
         }

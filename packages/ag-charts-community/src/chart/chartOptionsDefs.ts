@@ -13,9 +13,6 @@ import {
 } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
-    AgFlowProportionChartOptions,
-    AgGaugeChartOptions,
-    AgHierarchyChartOptions,
     AgInitialStateLegendOptions,
     AgPolarChartOptions,
     AgStandaloneChartOptions,
@@ -71,25 +68,6 @@ export const topologyChartOptionsDefs: OptionsDefs<AgTopologyChartOptions> = {
 };
 
 export const standaloneChartOptionsDefs: OptionsDefs<AgStandaloneChartOptions> = {
-    ...commonChartOptionsDefs,
-    ...commonChartOptions,
-    data: array,
-};
-
-export const hierarchyChartOptionsDefs: OptionsDefs<AgHierarchyChartOptions> = {
-    ...commonChartOptionsDefs,
-    ...commonChartOptions,
-    data: array,
-};
-
-export const flowProportionChartOptionsDefs: OptionsDefs<AgFlowProportionChartOptions> = {
-    ...commonChartOptionsDefs,
-    ...commonChartOptions,
-    data: array,
-    nodes: array,
-};
-
-export const gaugeChartOptionsDefs: OptionsDefs<AgGaugeChartOptions> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,

@@ -1,24 +1,23 @@
 import type { ContextCallbackParams, DatumItemCallbackParams } from '../../chart/callbackOptions';
 import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgOhlcSeriesItemType = 'up' | 'down';
 
-export type AgOhlcSeriesBaseOptions<TDatum = TDatumDefault> = AgOhlcSeriesOptionsKeys<TDatum> &
-    AgOhlcSeriesOptionsNames;
+export type AgOhlcSeriesBaseOptions<TDatum = DatumDefault> = AgOhlcSeriesOptionsKeys<TDatum> & AgOhlcSeriesOptionsNames;
 
-export interface AgOhlcSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgOhlcSeriesOptionsKeys<TDatum = DatumDefault> {
     /** xKey as specified on series options. */
-    xKey: TDatum extends object ? keyof TDatum & string : string;
+    xKey: DatumKey<TDatum>;
     /** The key to use to retrieve open values from the data. */
-    openKey: TDatum extends object ? keyof TDatum & string : string;
+    openKey: DatumKey<TDatum>;
     /** The key to use to retrieve close values from the data. */
-    closeKey: TDatum extends object ? keyof TDatum & string : string;
+    closeKey: DatumKey<TDatum>;
     /** The key to use to retrieve high values from the data. */
-    highKey: TDatum extends object ? keyof TDatum & string : string;
+    highKey: DatumKey<TDatum>;
     /** The key to use to retrieve low values from the data. */
-    lowKey: TDatum extends object ? keyof TDatum & string : string;
+    lowKey: DatumKey<TDatum>;
 }
 
 export interface AgOhlcSeriesOptionsNames {
@@ -36,18 +35,18 @@ export interface AgOhlcSeriesOptionsNames {
     lowName?: string;
 }
 
-type OhlcItemCallbackParams<TDatum = TDatumDefault> = DatumItemCallbackParams<AgOhlcSeriesItemType, TDatum>;
+type OhlcItemCallbackParams<TDatum = DatumDefault> = DatumItemCallbackParams<AgOhlcSeriesItemType, TDatum>;
 
 export type AgOhlcSeriesBaseItemStylerParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = OhlcItemCallbackParams<TDatum> &
     ContextCallbackParams<TContext> &
     AgOhlcSeriesOptionsKeys<TDatum> &
     StrokeOptions &
     LineDashOptions;
 
-export interface AgOhlcSeriesBaseTooltipRendererParams<TDatum, TContext = TContextDefault>
+export interface AgOhlcSeriesBaseTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgOhlcSeriesOptionsKeys<TDatum>,
         AgOhlcSeriesOptionsNames,

@@ -1,7 +1,7 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, PixelSize } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
@@ -11,19 +11,19 @@ import type {
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgHistogramSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+export interface AgHistogramSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends Omit<AgCartesianSeriesTooltipRendererParams<AgHistogramBinDatum<TDatum>, TContext>, 'yKey'>,
         FillOptions,
         StrokeOptions {
     /** yKey as specified on series options. */
-    readonly yKey?: TDatum extends object ? keyof TDatum & string : string;
+    readonly yKey?: DatumKey<TDatum>;
     /** Range for x values. */
     readonly xRange: [number, number];
     /** Number of values within xRange. */
     readonly frequency: number;
 }
 
-export type AgHistogramSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgHistogramSeriesOptionsKeys<TDatum> &
+export type AgHistogramSeriesLabelFormatterParams<TDatum = DatumDefault> = AgHistogramSeriesOptionsKeys<TDatum> &
     AgHistogramSeriesOptionsNames;
 
 export interface AgHistogramBinDatum<TDatum> {
@@ -33,7 +33,7 @@ export interface AgHistogramBinDatum<TDatum> {
     domain: [number, number];
 }
 
-export interface AgHistogramSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
         FillOptions,
         StrokeOptions,
@@ -50,11 +50,11 @@ export interface AgHistogramSeriesThemeableOptions<TDatum = TDatumDefault, TCont
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>;
 }
 
-export interface AgHistogramSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgHistogramSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: TDatum extends object ? keyof TDatum & string : string;
+    xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-values from the data. */
-    yKey?: TDatum extends object ? keyof TDatum & string : string;
+    yKey?: DatumKey<TDatum>;
 }
 
 export interface AgHistogramSeriesOptionsNames {
@@ -64,7 +64,7 @@ export interface AgHistogramSeriesOptionsNames {
     yName?: string;
 }
 
-export interface AgHistogramSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgHistogramSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgHistogramSeriesOptionsKeys<TDatum>,
         AgHistogramSeriesOptionsNames,

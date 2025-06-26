@@ -117,25 +117,25 @@ AG Charts offers 20+ Angular Chart types, each of which are fully customisable:
 
 AG Charts Angular Charting Library comes with every feature you'd expect:
 
-| Feature                                                                                                                                                  | AG Charts Community | AG Charts Enterprise |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | -------------------- |
-| [Accessibility](https://www.ag-grid.com/charts/angular/accessibility/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)             | ✅                  | ✅                   |
-| [Localisation](https://www.ag-grid.com/charts/angular/localisation/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)               | ✅                  | ✅                   |
-| [Series Highlighting](https://www.ag-grid.com/charts/angular/series-highlighting/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) | ✅                  | ✅                   |
-| [Tooltips](https://www.ag-grid.com/charts/angular/tooltips/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                       | ✅                  | ✅                   |
-| [Touch](https://www.ag-grid.com/charts/angular/touch/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                             | ✅                  | ✅                   |
-| [Cross Lines](https://www.ag-grid.com/charts/angular/axes-cross-lines/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)            | ✅                  | ✅                   |
-| [Legend](https://www.ag-grid.com/charts/angular/legend/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                           | ✅                  | ✅                   |
-| [Stylers](https://www.ag-grid.com/charts/angular/stylers/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                         | ✅                  | ✅                   |
-| [Series Markers](https://www.ag-grid.com/charts/angular/markers/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                  | ✅                  | ✅                   |
-| [Animations](https://www.ag-grid.com/charts/angular/animation/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                    | ❌                  | ✅                   |
-| [Context Menu](https://www.ag-grid.com/charts/angular/context-menu/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)               | ❌                  | ✅                   |
-| [Crosshairs](https://www.ag-grid.com/charts/angular/axes-crosshairs/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)              | ❌                  | ✅                   |
-| [Navigator](https://www.ag-grid.com/charts/angular/navigator/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                     | ❌                  | ✅                   |
-| [Synchronization](https://www.ag-grid.com/charts/angular/sync/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                    | ❌                  | ✅                   |
-| [Zoom](https://www.ag-grid.com/charts/angular/zoom/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                               | ❌                  | ✅                   |
-| [Annotations](https://www.ag-grid.com/charts/angular/annotations/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                 | ❌                  | ✅                   |
-| [Error Bars](https://www.ag-grid.com/charts/angular/error-bars/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                   | ❌                  | ✅                   |
+| Feature                                                                                                                                                      | AG Charts Community | AG Charts Enterprise |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- | -------------------- |
+| [Accessibility](https://www.ag-grid.com/charts/angular/accessibility/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                 | ✅                  | ✅                   |
+| [Localisation](https://www.ag-grid.com/charts/angular/localisation/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                   | ✅                  | ✅                   |
+| [Series Highlighting](https://www.ag-grid.com/charts/angular/series-highlighting/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)     | ✅                  | ✅                   |
+| [Tooltips](https://www.ag-grid.com/charts/angular/tooltips/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                           | ✅                  | ✅                   |
+| [Touch](https://www.ag-grid.com/charts/angular/touch/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                                 | ✅                  | ✅                   |
+| [Cross Lines](https://www.ag-grid.com/charts/angular/axes-cross-lines/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                | ✅                  | ✅                   |
+| [Legend](https://www.ag-grid.com/charts/angular/legend/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                               | ✅                  | ✅                   |
+| [Stylers](https://www.ag-grid.com/charts/angular/stylers/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                             | ✅                  | ✅                   |
+| [Series Markers](https://www.ag-grid.com/charts/angular/markers/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                      | ✅                  | ✅                   |
+| [Animations](https://www.ag-grid.com/charts/angular/animation/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                        | ❌                  | ✅                   |
+| [Context Menu](https://www.ag-grid.com/charts/angular/context-menu/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                   | ❌                  | ✅                   |
+| [Crosshairs & Band Highlight](https://www.ag-grid.com/charts/angular/axes-crosshairs/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) | ❌                  | ✅                   |
+| [Navigator](https://www.ag-grid.com/charts/angular/navigator/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                         | ❌                  | ✅                   |
+| [Synchronization](https://www.ag-grid.com/charts/angular/sync/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                        | ❌                  | ✅                   |
+| [Zoom](https://www.ag-grid.com/charts/angular/zoom/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                                   | ❌                  | ✅                   |
+| [Annotations](https://www.ag-grid.com/charts/angular/annotations/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                     | ❌                  | ✅                   |
+| [Error Bars](https://www.ag-grid.com/charts/angular/error-bars/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                       | ❌                  | ✅                   |
 
 <blockquote>
     <p>ℹ️ <b>Note:</b></p>

@@ -1,5 +1,5 @@
-import { type AgChordSeriesOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgChordSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { ChordSeries } from './chordSeries';
 import { chordSeriesOptionsDef } from './chordSeriesOptionsDef';
@@ -8,7 +8,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
-    chartTypes: ['flow-proportion'],
+    chartTypes: ['standalone'],
     solo: true,
 
     identifier: 'chord',
@@ -19,14 +19,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
             // @ts-expect-error undocumented option
-            fillGradientDefaults: {
-                type: 'gradient',
-                gradient: 'linear',
-                bounds: 'item',
-                colorStops: { $palette: 'gradient' },
-                rotation: 0,
-                reverse: false,
-            } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
+            fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             highlightStyle: {
@@ -64,7 +57,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
 export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
     type: 'series',
     name: 'chord',
-    chartType: 'flow-proportion',
+    chartType: 'standalone',
     enterprise: true,
 
     options: chordSeriesOptionsDef,

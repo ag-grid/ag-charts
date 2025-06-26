@@ -77,20 +77,11 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
     get polar(): ChartTypeConfig {
         return { seriesTypes: chartTypes.polarTypes, commonOptions: [] };
     },
-    get hierarchy(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.hierarchyTypes, commonOptions: [] };
-    },
     get topology(): ChartTypeConfig {
         return { seriesTypes: chartTypes.topologyTypes, commonOptions: [] };
     },
-    get 'flow-proportion'(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.flowProportionTypes, commonOptions: [] };
-    },
     get standalone(): ChartTypeConfig {
         return { seriesTypes: chartTypes.standaloneTypes, commonOptions: [] };
-    },
-    get gauge(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.gaugeTypes, commonOptions: [] };
     },
 };
 
@@ -483,6 +474,7 @@ export class ChartTheme {
                 keys: [],
                 tick: { enabled: true, stroke: DEFAULT_SEPARATION_LINES_COLOUR },
                 label: { spacing: 10, rotation: 270 },
+                maxThicknessRatio: 0.5,
                 paddingInner: 0.4,
                 groupPaddingInner: 0.2,
                 crosshair: { enabled: false },
@@ -635,11 +627,8 @@ export class ChartTheme {
         return mergeDefaults(
             getOverridesByType('cartesian', chartTypes.cartesianTypes),
             getOverridesByType('polar', chartTypes.polarTypes),
-            getOverridesByType('hierarchy', chartTypes.hierarchyTypes),
             getOverridesByType('topology', chartTypes.topologyTypes),
-            getOverridesByType('flow-proportion', chartTypes.flowProportionTypes),
-            getOverridesByType('standalone', chartTypes.standaloneTypes),
-            getOverridesByType('gauge', chartTypes.gaugeTypes)
+            getOverridesByType('standalone', chartTypes.standaloneTypes)
         );
     }
 

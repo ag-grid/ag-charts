@@ -16,9 +16,9 @@ import type {
     AgRadiusCategoryAxisOptions,
     AgRadiusNumberAxisOptions,
 } from './radiusAxisOptions';
-import type { TContextDefault, TDatumDefault } from './types';
+import type { ContextDefault, DatumDefault } from './types';
 
-export type AgPolarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault> =
+export type AgPolarSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgDonutSeriesOptions<TDatum, TContext>
     | AgPieSeriesOptions<TDatum, TContext>
     | AgRadarLineSeriesOptions<TDatum, TContext>
@@ -27,15 +27,15 @@ export type AgPolarSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefa
     | AgRadialColumnSeriesOptions<TDatum, TContext>
     | AgNightingaleSeriesOptions<TDatum, TContext>;
 
-export type AgPolarAxisOptions<TContext = TContextDefault> =
+export type AgPolarAxisOptions<TContext = ContextDefault> =
     | AgAngleCategoryAxisOptions<TContext>
     | AgAngleNumberAxisOptions<TContext>
     | AgRadiusCategoryAxisOptions<TContext>
     | AgRadiusNumberAxisOptions<TContext>;
 
-export type AgPolarAxisType<TContext = TContextDefault> = AgPolarAxisOptions<TContext>['type'];
+export type AgPolarAxisType<TContext = ContextDefault> = AgPolarAxisOptions<TContext>['type'];
 
-export interface AgBasePolarChartOptions<TDatum = TDatumDefault, TContext = TContextDefault> {
+export interface AgBasePolarChartOptions<TDatum = DatumDefault, TContext = ContextDefault> {
     /** Series configurations. */
     series?: AgPolarSeriesOptions<TDatum, TContext>[];
 
@@ -45,30 +45,30 @@ export interface AgBasePolarChartOptions<TDatum = TDatumDefault, TContext = TCon
 
 type ThemeOmittedAxisOptions = 'type' | 'crossLines';
 
-export interface AgAngleCategoryAxisThemeOptions<TContext = TContextDefault>
+export interface AgAngleCategoryAxisThemeOptions<TContext = ContextDefault>
     extends Omit<AgAngleCategoryAxisOptions<TContext>, ThemeOmittedAxisOptions>,
         AgAngleAxesCrossLineThemeOptions {}
 
-export interface AgAngleNumberAxisThemeOptions<TContext = TContextDefault>
+export interface AgAngleNumberAxisThemeOptions<TContext = ContextDefault>
     extends Omit<AgAngleNumberAxisOptions<TContext>, ThemeOmittedAxisOptions>,
         AgAngleAxesCrossLineThemeOptions {}
 
-export interface AgRadiusCategoryAxisThemeOptions<TContext = TContextDefault>
+export interface AgRadiusCategoryAxisThemeOptions<TContext = ContextDefault>
     extends Omit<AgRadiusCategoryAxisOptions<TContext>, ThemeOmittedAxisOptions>,
         AgRadiusAxesCrossLineThemeOptions {}
 
-export interface AgRadiusNumberAxisThemeOptions<TContext = TContextDefault>
+export interface AgRadiusNumberAxisThemeOptions<TContext = ContextDefault>
     extends Omit<AgRadiusNumberAxisOptions<TContext>, ThemeOmittedAxisOptions>,
         AgRadiusAxesCrossLineThemeOptions {}
 
-export interface AgPolarAxesTheme<TContext = TContextDefault> {
+export interface AgPolarAxesTheme<TContext = ContextDefault> {
     'angle-category'?: AgAngleCategoryAxisThemeOptions<TContext>;
     'angle-number'?: AgAngleNumberAxisThemeOptions<TContext>;
     'radius-category'?: AgRadiusCategoryAxisThemeOptions<TContext>;
     'radius-number'?: AgRadiusNumberAxisThemeOptions<TContext>;
 }
 
-export interface AgBasePolarThemeOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgBasePolarThemeOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseThemeableChartOptions<TDatum, TContext> {
     /** Axis configurations. */
     axes?: AgPolarAxesTheme<TContext>;

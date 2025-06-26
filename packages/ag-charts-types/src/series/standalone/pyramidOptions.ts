@@ -2,17 +2,17 @@ import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../c
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 
-export type AgPyramidSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault> = AgChartLabelOptions<
+export type AgPyramidSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> = AgChartLabelOptions<
     TDatum,
     TParams,
     TContext
 >;
 
-export interface AgPyramidSeriesStageLabelOptions<TDatum, TParams, TContext = TContextDefault>
+export interface AgPyramidSeriesStageLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
@@ -20,7 +20,7 @@ export interface AgPyramidSeriesStageLabelOptions<TDatum, TParams, TContext = TC
     spacing?: number;
 }
 
-export interface AgPyramidSeriesItemStylerParams<TDatum, TContext = TContextDefault>
+export interface AgPyramidSeriesItemStylerParams<TDatum, TContext = ContextDefault>
     extends DatumCallbackParams<TDatum>,
         ContextCallbackParams<TContext>,
         AgPyramidSeriesOptionsKeys<TDatum>,
@@ -28,16 +28,16 @@ export interface AgPyramidSeriesItemStylerParams<TDatum, TContext = TContextDefa
 
 export interface AgPyramidSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgPyramidSeriesLabelFormatterParams<TDatum = TDatumDefault>
+export interface AgPyramidSeriesLabelFormatterParams<TDatum = DatumDefault>
     extends AgPyramidSeriesOptionsKeys<TDatum> {}
 
-export interface AgPyramidSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgPyramidSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgPyramidSeriesOptionsKeys<TDatum>,
         AgPyramidSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgPyramidSeriesStyle {}
 
-export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgPyramidSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends LineDashOptions {
     /** The colours to cycle through for the fills of the stages. */
     fills?: AgColorType[];
@@ -69,20 +69,20 @@ export interface AgPyramidSeriesThemeableOptions<TDatum = TDatumDefault, TContex
     itemStyler?: Styler<AgPyramidSeriesItemStylerParams<TDatum, TContext>, AgPyramidSeriesStyle>;
 }
 
-export interface AgPyramidSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgPyramidSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key to use to retrieve stage values from the data. */
-    stageKey: TDatum extends object ? keyof TDatum & string : string;
+    stageKey: DatumKey<TDatum>;
     /** The key to use to retrieve values from the data. */
-    valueKey: TDatum extends object ? keyof TDatum & string : string;
+    valueKey: DatumKey<TDatum>;
 }
 
 export interface AgPyramidSeriesOptionsNames {}
 
-export interface AgPyramidSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgPyramidSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgPyramidSeriesOptionsKeys<TDatum>,
         AgPyramidSeriesOptionsNames,
         AgPyramidSeriesThemeableOptions<TDatum, TContext> {
-    /** Configuration for the Funnel Series. */
+    /** Configuration for the Pyramid Series. */
     type: 'pyramid';
 }

@@ -21,7 +21,7 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
         this.container = ctx.domManager.addChild('canvas-overlay', 'range-buttons');
         this.container.role = 'presentation';
 
-        this.toolbar = new Toolbar(this.ctx.localeManager);
+        this.toolbar = new Toolbar(this.ctx, 'ariaLabelRangesToolbar', 'horizontal');
         this.toolbar.addClass('ag-charts-range-buttons');
         this.container.append(this.toolbar.getElement());
 
@@ -73,7 +73,9 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
 
         const { value } = button;
 
-        if (typeof value === 'number') {
+        if (value == null) {
+            zoomManager.resetZoom('zoom-buttons');
+        } else if (typeof value === 'number') {
             zoomManager.extendToEnd('zoom-buttons', ChartAxisDirection.X, value);
         } else if (Array.isArray(value)) {
             zoomManager.updateWith('zoom-buttons', ChartAxisDirection.X, () => value);

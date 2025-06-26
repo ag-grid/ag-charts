@@ -2,7 +2,7 @@ import type { ContextCallbackParams, DatumItemCallbackParams, Renderer, Styler }
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
-import type { CssColor, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
@@ -10,14 +10,14 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 export type AgWaterfallSeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
 
 export type AgWaterfallSeriesItemStylerParams<
-    TDatum = TDatumDefault,
-    TContext = TContextDefault,
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
 > = DatumItemCallbackParams<AgWaterfallSeriesItemType, TDatum> &
     ContextCallbackParams<TContext> &
     AgWaterfallSeriesOptionsKeys<TDatum> &
     Required<AgWaterfallSeriesStyle>;
 
-export type AgWaterfallSeriesLabelFormatterParams<TDatum = TDatumDefault> = AgWaterfallSeriesOptionsKeys<TDatum> &
+export type AgWaterfallSeriesLabelFormatterParams<TDatum = DatumDefault> = AgWaterfallSeriesOptionsKeys<TDatum> &
     AgWaterfallSeriesOptionsNames & { itemId: AgWaterfallSeriesItemType };
 
 export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
@@ -25,19 +25,19 @@ export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, Line
     cornerRadius?: PixelSize;
 }
 
-export interface AgWaterfallSeriesTooltipRendererParams<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgWaterfallSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
         AgWaterfallSeriesStyle {
     /** The Id to distinguish the type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
     itemId: AgWaterfallSeriesItemType;
 }
 
-export interface AgWaterfallSeriesItemTooltip<TDatum = TDatumDefault, TContext = TContextDefault> {
+export interface AgWaterfallSeriesItemTooltip<TDatum = DatumDefault, TContext = ContextDefault> {
     /** Function used to create the content for tooltips. */
     renderer?: Renderer<AgWaterfallSeriesTooltipRendererParams<TDatum, TContext>, AgTooltipRendererResult>;
 }
 
-export interface AgWaterfallSeriesLabelOptions<TDatum, TParams, TContext = TContextDefault>
+export interface AgWaterfallSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Where to render series labels relative to the bars. */
     placement?: AgWaterfallSeriesLabelPlacement;
@@ -52,7 +52,7 @@ export type AgWaterfallSeriesLabelPlacement =
     | 'outside-start'
     | 'outside-end';
 
-export interface AgWaterfallSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgWaterfallSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /**
      * Bar rendering direction.
@@ -70,11 +70,11 @@ export interface AgWaterfallSeriesThemeableOptions<TDatum = TDatumDefault, TCont
     highlightStyle?: AgSeriesHighlightStyle;
 }
 
-export interface AgWaterfallSeriesOptionsKeys<TDatum = TDatumDefault> {
+export interface AgWaterfallSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key to use to retrieve x-values from the data. */
-    xKey: TDatum extends object ? keyof TDatum & string : string;
+    xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-values from the data. */
-    yKey: TDatum extends object ? keyof TDatum & string : string;
+    yKey: DatumKey<TDatum>;
 }
 
 export interface AgWaterfallSeriesOptionsNames {
@@ -84,7 +84,7 @@ export interface AgWaterfallSeriesOptionsNames {
     yName?: string;
 }
 
-export interface AgWaterfallSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgWaterfallSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgWaterfallSeriesOptionsKeys<TDatum>,
         AgWaterfallSeriesOptionsNames,
@@ -95,7 +95,7 @@ export interface AgWaterfallSeriesOptions<TDatum = TDatumDefault, TContext = TCo
     totals?: WaterfallSeriesTotalMeta[];
 }
 
-export interface AgWaterfallSeriesItem<TDatum, TContext = TContextDefault> {
+export interface AgWaterfallSeriesItem<TDatum, TContext = ContextDefault> {
     /** Configuration for the negative series items. */
     negative?: AgWaterfallSeriesItemOptions<TDatum, TContext>;
     /** Configuration for the positive series items. */
@@ -114,7 +114,7 @@ export interface WaterfallSeriesTotalMeta {
     axisLabel: string;
 }
 
-export interface AgWaterfallSeriesItemOptions<TDatum, TContext = TContextDefault> extends AgWaterfallSeriesStyle {
+export interface AgWaterfallSeriesItemOptions<TDatum, TContext = ContextDefault> extends AgWaterfallSeriesStyle {
     /** A human-readable description of the y-values. If supplied, this will be shown in the legend and default tooltip and passed to the tooltip renderer as one of the parameters. */
     name?: string;
     /** Configuration for the labels shown on top of data points. */

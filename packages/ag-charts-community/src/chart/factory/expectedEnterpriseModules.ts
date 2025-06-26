@@ -22,19 +22,19 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     {
         type: 'root',
         optionsKey: 'animation',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'standalone', 'gauge'],
+        chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
     },
     { type: 'root', optionsKey: 'annotations', chartTypes: ['cartesian'] },
     {
         type: 'root',
         optionsKey: 'background',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'standalone', 'gauge'],
+        chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
         optionsInnerKey: 'image',
     },
     {
         type: 'root',
         optionsKey: 'foreground',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'standalone', 'gauge'],
+        chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
         optionsInnerKey: 'image',
     },
     {
@@ -45,13 +45,13 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     {
         type: 'root',
         optionsKey: 'contextMenu',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'standalone', 'gauge'],
+        chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
     },
     { type: 'root', optionsKey: 'statusBar', chartTypes: ['cartesian'], identifier: 'status-bar' },
     {
         type: 'root',
         optionsKey: 'dataSource',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'standalone', 'gauge'],
+        chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
     },
     { type: 'root', optionsKey: 'sync', chartTypes: ['cartesian'] },
     { type: 'root', optionsKey: 'zoom', chartTypes: ['cartesian', 'topology'] },
@@ -59,7 +59,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     {
         type: 'legend',
         optionsKey: 'gradientLegend',
-        chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'standalone', 'gauge'],
+        chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
         identifier: 'gradient',
     },
     { type: 'root', optionsKey: 'navigator', chartTypes: ['cartesian'] },
@@ -86,18 +86,18 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'series', optionsKey: 'series[]', chartTypes: ['polar'], identifier: 'radar-line' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['polar'], identifier: 'radial-bar' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['polar'], identifier: 'radial-column' },
-    { type: 'series', optionsKey: 'series[]', chartTypes: ['hierarchy'], identifier: 'sunburst' },
-    { type: 'series', optionsKey: 'series[]', chartTypes: ['hierarchy'], identifier: 'treemap' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-shape' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-line' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-marker' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-shape-background' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['topology'], identifier: 'map-line-background' },
-    { type: 'series', optionsKey: 'series[]', chartTypes: ['flow-proportion'], identifier: 'chord' },
-    { type: 'series', optionsKey: 'series[]', chartTypes: ['flow-proportion'], identifier: 'sankey' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['standalone'], identifier: 'pyramid' },
-    { type: 'series', optionsKey: 'series[]', chartTypes: ['gauge'], identifier: 'linear-gauge' },
-    { type: 'series', optionsKey: 'series[]', chartTypes: ['gauge'], identifier: 'radial-gauge' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['standalone'], identifier: 'linear-gauge' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['standalone'], identifier: 'radial-gauge' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['standalone'], identifier: 'sunburst' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['standalone'], identifier: 'treemap' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['standalone'], identifier: 'chord' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['standalone'], identifier: 'sankey' },
     { type: 'series-option', optionsKey: 'errorBar', chartTypes: ['cartesian'], identifier: 'error-bars' },
     { type: 'context', contextKey: 'sharedToolbar', chartTypes: ['cartesian'] },
 ];
@@ -118,25 +118,13 @@ export function isEnterprisePolar(seriesType: string) {
     const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'polar');
     return type === 'polar';
 }
-export function isEnterpriseHierarchy(seriesType: string) {
-    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'hierarchy');
-    return type === 'hierarchy';
-}
 export function isEnterpriseTopology(seriesType: string) {
     const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'topology');
     return type === 'topology';
 }
-export function isEnterpriseFlowProportion(seriesType: string) {
-    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'flow-proportion');
-    return type === 'flow-proportion';
-}
 export function isEnterpriseStandalone(seriesType: string) {
     const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'standalone');
     return type === 'standalone';
-}
-export function isEnterpriseGauge(seriesType: string) {
-    const type = getEnterpriseSeriesChartTypes(seriesType)?.find((v) => v === 'gauge');
-    return type === 'gauge';
 }
 
 type UnknownPackage = { packageType: string } | EnterpriseModuleStub;

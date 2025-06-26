@@ -53,6 +53,7 @@ const hiddenInterfaces = [
     'Degree',
     'DurationMs',
     'AgTimeInterval',
+    'DatumKey',
 ];
 
 export const INDEXED_SEARCH_FIELD = 'searchable';
@@ -88,7 +89,8 @@ export function normalizeType(refType: TypeNode, keepGenerics?: boolean): string
     }
     switch (refType.kind) {
         case 'array':
-            return `${normalizeType(refType.type)}[]`;
+            const arrayType = normalizeType(refType.type);
+            return arrayType.includes('|') ? `Array<${arrayType}>` : `${arrayType}[]`;
         case 'typeRef':
             return keepGenerics && refType.typeArguments?.length
                 ? `${refType.type}<${refType.typeArguments.map((typeArg) => normalizeType(typeArg)).join(', ')}>`
@@ -154,7 +156,8 @@ export function processMembers(
                 memberType = memberTypeArguments[0];
                 omit = memberTypeArguments[1];
             }
-            return genericsMap.has(memberType) ? { ...member, type: genericsMap.get(memberType), omit } : member;
+            const genericType = resolveGenericType(memberType, genericsMap);
+            return genericType ? { ...member, type: genericType, omit } : member;
         }
         return member;
     });
@@ -182,7 +185,7 @@ export function formatTypeToCode(
                     additionalTypes.add(memberType);
                 }
             }
-            if (nodeMember.docs) {
+            if (nodeMember.docs?.length && nodeMember.docs[0] !== '') {
                 return nodeMember.docs
                     .map((docsLine: string) => `// ${docsLine}`)
                     .concat(memberString)
@@ -208,12 +211,14 @@ export function formatTypeToCode(
         if (typeof apiNode.type === 'object' && apiNode.type.kind === 'union') {
             let nodeType = normalizeType({
                 kind: 'union',
-                type: apiNode.type.type.filter(
-                    (type) =>
-                        typeof type !== 'string' || !reference.has(type) || !('deprecated' in reference.get(type)!)
-                ),
+                type: apiNode.type.type
+                    .map((type) => normalizeType(type))
+                    .filter(
+                        (type) =>
+                            typeof type !== 'string' || !reference.has(type) || !('deprecated' in reference.get(type)!)
+                    ),
             });
-            nodeType = '\n    ' + nodeType.replaceAll('|', '\n  |');
+            nodeType = '\n    ' + addNewLineOnPipe(nodeType);
 
             const result = [`type ${apiNode.name} = ${nodeType};`];
             const additionalTypes = new Set(apiNode.type.type.map((type) => normalizeType(type)));
@@ -468,19 +473,10 @@ export function extractSearchData(
     return [];
 }
 
-type RequiredRefs =
-    | { typeNamesNotFound: string[] }
-    | {
-          axesRef: ApiReferenceNode;
-          seriesRef: ApiReferenceNode;
-          annotationRef: ApiReferenceNode;
-          miniChartSeriesRef: ApiReferenceNode;
-      };
-
-function findRequiredRefs(reference: ApiReferenceType): RequiredRefs {
+function findRequiredRefs(reference: ApiReferenceType) {
     const typeNamesNotFound: string[] = [];
     const tryGet = (typeName: string) => {
-        const result: ApiReferenceNode | undefined = reference.get(typeName);
+        const result = reference.get(typeName);
         if (result == null) {
             typeNamesNotFound.push(typeName);
         }
@@ -492,20 +488,16 @@ function findRequiredRefs(reference: ApiReferenceType): RequiredRefs {
     const annotationRef = tryGet('AgAnnotation')!;
     const miniChartSeriesRef = tryGet('AgMiniChartSeriesOptions')!;
 
-    if (axesRef && seriesRef && annotationRef && miniChartSeriesRef) {
-        return { axesRef, seriesRef, annotationRef, miniChartSeriesRef };
-    } else {
-        return { typeNamesNotFound };
+    if (typeNamesNotFound.length) {
+        throw new Error(`Cannot find types: ${typeNamesNotFound.join(', ')}`);
     }
+    return { axesRef, seriesRef, annotationRef, miniChartSeriesRef };
 }
 
 export function getOptionsStaticPaths(reference: ApiReferenceType) {
     const getSubTypes = (ref: ApiReferenceNode): string[] =>
-        ref.kind === 'typeAlias' &&
-        typeof ref.type === 'object' &&
-        ref.type.kind === 'union' &&
-        ref.type.type.every((type): type is string => typeof type === 'string')
-            ? ref.type.type
+        ref.kind === 'typeAlias' && typeof ref.type === 'object' && ref.type.kind === 'union'
+            ? ref.type.type.map((type) => (typeof type === 'string' ? type : type.type))
             : [];
 
     const extractTypeValue = (refName: string) => {
@@ -529,12 +521,7 @@ export function getOptionsStaticPaths(reference: ApiReferenceType) {
         };
     };
 
-    const requiredRefs = findRequiredRefs(reference);
-    if ('typeNamesNotFound' in requiredRefs) {
-        throw new Error('Cannot find types: ' + requiredRefs.typeNamesNotFound.join(', '));
-    }
-    const { axesRef, seriesRef, annotationRef, miniChartSeriesRef } = requiredRefs;
-
+    const { axesRef, seriesRef, annotationRef, miniChartSeriesRef } = findRequiredRefs(reference);
     return [
         ...getSubTypes(axesRef).map(createPageMapper('axes')),
         ...getSubTypes(seriesRef).map(createPageMapper('series')),
@@ -554,4 +541,34 @@ export function getThemesApiStaticPaths(reference: ApiReferenceType) {
         params: { memberName: member.name.replaceAll("'", '') },
         props: { pageInterface: member.type, pageTitle: { name: member.name.replaceAll("'", '') } },
     }));
+}
+
+function resolveGenericType(type: string, genericsMap: Map<unknown, unknown>): string | null {
+    let resolvedType = type;
+    while (genericsMap.has(resolvedType)) {
+        const genericType = genericsMap.get(resolvedType);
+        if (genericType === resolvedType) break;
+        resolvedType = genericType as string;
+    }
+    return resolvedType === type ? null : resolvedType;
+}
+
+function addNewLineOnPipe(str: string) {
+    let result = '';
+    let depth = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str[i];
+        if (char === '<') {
+            depth++;
+            result += char;
+        } else if (char === '>') {
+            depth--;
+            result += char;
+        } else if (char === '|' && depth === 0) {
+            result += '\n  |';
+        } else {
+            result += char;
+        }
+    }
+    return result;
 }

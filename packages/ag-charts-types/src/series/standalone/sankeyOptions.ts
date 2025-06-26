@@ -1,11 +1,11 @@
 import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, CssColor, DatumDefault, PixelSize } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
-export interface AgSankeySeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgSankeySeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames,
@@ -14,13 +14,13 @@ export interface AgSankeySeriesOptions<TDatum = TDatumDefault, TContext = TConte
     type: 'sankey';
 }
 
-export interface AgSankeySeriesLinkItemStylerParams<TDatum, TContext = TContextDefault>
+export interface AgSankeySeriesLinkItemStylerParams<TDatum, TContext = ContextDefault>
     extends DatumCallbackParams<TDatum>,
         ContextCallbackParams<TContext>,
         AgSankeySeriesOptionsKeys,
         Required<AgSankeySeriesLinkStyle> {}
 
-export interface AgSankeySeriesNodeItemStylerParams<TDatum, TContext = TContextDefault>
+export interface AgSankeySeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
     extends DatumCallbackParams<TDatum>,
         ContextCallbackParams<TContext>,
         AgSankeySeriesOptionsKeys,
@@ -31,7 +31,7 @@ export interface AgSankeySeriesNodeItemStylerParams<TDatum, TContext = TContextD
     size: number;
 }
 
-export interface AgSankeySeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
+export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Options for the label for each node. */
     label?: AgSankeySeriesLabelOptions<TDatum, TContext>;
@@ -47,7 +47,7 @@ export interface AgSankeySeriesThemeableOptions<TDatum = TDatumDefault, TContext
     tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
-export interface AgSankeySeriesLabelOptions<TDatum, TContext = TContextDefault>
+export interface AgSankeySeriesLabelOptions<TDatum, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, AgSankeySeriesLabelFormatterParams<TDatum>, TContext> {
     /** Spacing between a node and its label. */
     spacing?: PixelSize;
@@ -55,14 +55,14 @@ export interface AgSankeySeriesLabelOptions<TDatum, TContext = TContextDefault>
 
 export interface AgSankeySeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgSankeySeriesLinkOptions<TDatum, TContext = TContextDefault> extends AgSankeySeriesLinkStyle {
+export interface AgSankeySeriesLinkOptions<TDatum, TContext = ContextDefault> extends AgSankeySeriesLinkStyle {
     /** Function used to return formatting for individual links, based on the given parameters. If the current link is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<TDatum, TContext>, AgSankeySeriesLinkStyle>;
 }
 
 export interface AgSankeySeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgSankeySeriesNodeOptions<TDatum, TContext = TContextDefault> extends AgSankeySeriesNodeStyle {
+export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> extends AgSankeySeriesNodeStyle {
     /** Minimum spacing between the nodes. */
     spacing?: PixelSize;
     /** Width of the nodes. */
@@ -93,12 +93,12 @@ interface SizeParams {
     size: number;
 }
 
-export interface AgSankeySeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+export interface AgSankeySeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames,
         SizeParams {}
 
-export interface AgSankeySeriesLabelFormatterParams<_TDatum = TDatumDefault>
+export interface AgSankeySeriesLabelFormatterParams<_TDatum = DatumDefault>
     extends AgSankeySeriesOptionsKeys,
         SizeParams {}

@@ -7,7 +7,7 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
-    chartTypes: ['gauge'],
+    chartTypes: ['standalone'],
 
     identifier: 'linear-gauge',
     moduleFactory: (ctx) => new LinearGaugeSeries(ctx),
@@ -88,7 +88,7 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
 export const LinearGaugeSeriesModule: SeriesModuleDefinition<AgLinearGaugePreset> = {
     type: 'series',
     name: 'linear-gauge',
-    chartType: 'gauge',
+    chartType: 'standalone',
     enterprise: true,
 
     options: _ModuleSupport.linearGaugeSeriesOptionsDef,

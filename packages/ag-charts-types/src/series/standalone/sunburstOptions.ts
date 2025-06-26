@@ -5,17 +5,17 @@ import type {
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, Opacity, PixelSize, TContextDefault, TDatumDefault } from '../../chart/types';
+import type { ContextDefault, CssColor, DatumDefault, Opacity, PixelSize } from '../../chart/types';
 import type { AgColorType, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 /* All the label properties that can be changed without affecting the layout. */
-export type AgSunburstSeriesLabelHighlightOptions<TDatum, TContext = TContextDefault> = Pick<
+export type AgSunburstSeriesLabelHighlightOptions<TDatum, TContext = ContextDefault> = Pick<
     AgChartLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>, TContext>,
     'color'
 >;
 
-export interface AgSunburstSeriesTooltipRendererParams<TDatum, TContext = TContextDefault>
+export interface AgSunburstSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames,
@@ -24,15 +24,15 @@ export interface AgSunburstSeriesTooltipRendererParams<TDatum, TContext = TConte
     depth: number;
 }
 
-export interface AgSunburstSeriesHighlightStyle<TDatum, TContext = TContextDefault> extends AgSunburstSeriesStyle {
+export interface AgSunburstSeriesHighlightStyle<TDatum, TContext = ContextDefault> extends AgSunburstSeriesStyle {
     /** Options for the label in a sector. */
     label?: AgSunburstSeriesLabelHighlightOptions<TDatum, TContext>;
     /** Options for a secondary, smaller label in a sector - displayed under the primary label. */
     secondaryLabel?: AgSunburstSeriesLabelHighlightOptions<TDatum, TContext>;
 }
 
-export interface AgSunburstSeriesThemeableOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
+export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
+    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight' | 'showInLegend'> {
     /** Options for the label in a sector. */
     label?: AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Options for a secondary, smaller label in a sector - displayed under the primary label. */
@@ -67,8 +67,8 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = TDatumDefault, TConte
     highlightStyle?: AgSunburstSeriesHighlightStyle<TDatum, TContext>;
 }
 
-export interface AgSunburstSeriesOptions<TDatum = TDatumDefault, TContext = TContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle'>,
+export interface AgSunburstSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle' | 'showInLegend'>,
         AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames,
         AgSunburstSeriesThemeableOptions<TDatum, TContext> {
@@ -97,7 +97,7 @@ export interface AgSunburstSeriesOptionsNames {
 }
 
 /** The parameters of the Sunburst series formatter function */
-export interface AgSunburstSeriesItemStylerParams<TDatum, TContext = TContextDefault>
+export interface AgSunburstSeriesItemStylerParams<TDatum, TContext = ContextDefault>
     extends DatumCallbackParams<TDatum>,
         ContextCallbackParams<TContext>,
         AgSunburstSeriesOptionsKeys,
@@ -106,7 +106,7 @@ export interface AgSunburstSeriesItemStylerParams<TDatum, TContext = TContextDef
     depth: number;
 }
 
-export interface AgSunburstSeriesLabelFormatterParams<_TDatum = TDatumDefault>
+export interface AgSunburstSeriesLabelFormatterParams<_TDatum = DatumDefault>
     extends AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */

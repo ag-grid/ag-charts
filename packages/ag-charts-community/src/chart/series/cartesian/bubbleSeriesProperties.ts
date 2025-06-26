@@ -17,23 +17,12 @@ import type {
 } from 'ag-charts-types';
 
 import { SceneArrayChangeDetection, SceneChangeDetection } from '../../../scene/changeDetectable';
-import type { Point, SizedPoint } from '../../../scene/point';
-import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { Property } from '../../../util/properties';
 import { ProxyProperty } from '../../../util/proxy';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';
-import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
-
-export interface BubbleNodeDatum extends CartesianSeriesNodeDatum {
-    readonly point: Readonly<SizedPoint>;
-    readonly sizeValue: any;
-    readonly label: MeasuredLabel;
-    readonly placement: LabelPlacement;
-    readonly anchor: Point;
-    readonly selected: boolean | undefined;
-}
+import { CartesianSeriesProperties } from './cartesianSeries';
 
 class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys> {
     /**

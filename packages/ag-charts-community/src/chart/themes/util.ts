@@ -1,4 +1,8 @@
-import type { RequiredInternalAgImageFill, RequiredInternalAgPatternColor } from 'ag-charts-core';
+import type {
+    RequiredInternalAgGradientColor,
+    RequiredInternalAgImageFill,
+    RequiredInternalAgPatternColor,
+} from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgHighlightOptions,
@@ -92,6 +96,90 @@ export const SAFE_RANGE2_OPERATION: any = {
     ],
 };
 
+export const FILL_GRADIENT_LINEAR_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
+    type: 'gradient',
+    gradient: 'linear',
+    bounds: 'item',
+    colorStops: { $palette: 'gradient' },
+    rotation: 0,
+    reverse: false,
+};
+
+export const FILL_GRADIENT_LINEAR_HIERARCHY_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
+    ...FILL_GRADIENT_LINEAR_DEFAULTS,
+    colorStops: [
+        {
+            $mix: [{ $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, 'black', 0.15],
+        },
+        {
+            $mix: [{ $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, 'white', 0.15],
+        },
+    ] as any,
+};
+
+export const FILL_GRADIENT_LINEAR_SHADED_DEFAULTS = (
+    key: string
+): WithThemeParams<RequiredInternalAgGradientColor> => ({
+    ...FILL_GRADIENT_LINEAR_DEFAULTS,
+    colorStops: {
+        $if: [
+            {
+                $or: [
+                    { $isGradient: { $palette: `${key}.fill` } },
+                    { $isPattern: { $palette: `${key}.fill` } },
+                    { $isImage: { $palette: `${key}.fill` } },
+                ],
+            },
+            {
+                $map: [
+                    { $path: ['/color', undefined, { $value: '$1' }] },
+                    {
+                        $path: ['/colorStops', undefined, { $palette: `${key}.fill` }],
+                    },
+                ],
+            },
+            [
+                { $mix: [{ $palette: `${key}.fill` }, 'black', 0.15] },
+                { $mix: [{ $palette: `${key}.fill` }, 'white', 0.15] },
+            ],
+        ],
+    } as any,
+});
+
+export const FILL_GRADIENT_RADIAL_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
+    type: 'gradient',
+    gradient: 'radial',
+    bounds: 'item',
+    colorStops: { $palette: 'gradient' },
+    rotation: 0,
+    reverse: false,
+};
+
+export const FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
+    ...FILL_GRADIENT_RADIAL_DEFAULTS,
+    reverse: true,
+};
+
+export const FILL_GRADIENT_RADIAL_SERIES_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
+    ...FILL_GRADIENT_RADIAL_DEFAULTS,
+    bounds: 'series',
+};
+
+export const FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
+    ...FILL_GRADIENT_RADIAL_DEFAULTS,
+    bounds: 'series',
+    reverse: true,
+};
+
+export const FILL_GRADIENT_CONIC_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
+    type: 'gradient',
+    gradient: 'conic',
+    bounds: 'series',
+    colorStops: { $palette: 'gradient' },
+    rotation: 0,
+    reverse: false,
+};
+
 export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternColor> = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
@@ -119,6 +207,12 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
     backgroundFillOpacity: 1,
     rotation: 0,
     scale: 1,
+};
+
+export const FILL_PATTERN_HIERARCHY_DEFAULTS = {
+    ...FILL_PATTERN_DEFAULTS,
+    fill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },
+    stroke: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },
 };
 
 export const FILL_IMAGE_DEFAULTS: WithThemeParams<RequiredInternalAgImageFill> = {

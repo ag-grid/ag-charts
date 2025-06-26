@@ -114,11 +114,16 @@ export abstract class FloatingToolbar<
     private popoverBounds?: BBox;
     private readonly dragHandle: DragHandleWidget;
 
-    constructor(ctx: ModuleContext, id: string) {
-        super(ctx.localeManager);
+    constructor(ctx: ModuleContext, ariaLabelId: string, id: string) {
+        super(ctx, ariaLabelId, 'horizontal');
         this.popover = new FloatingToolbarPopover(ctx, id, this.onPopoverMoved.bind(this));
         this.dragHandle = new DragHandleWidget(ctx.localeManager.t('toolbarAnnotationsDragHandle'));
         this.popover.setDragHandle(this.dragHandle);
+    }
+
+    override destroy() {
+        super.destroy();
+        this.popover.destroy();
     }
 
     public show(options: PopoverOptions = {}) {

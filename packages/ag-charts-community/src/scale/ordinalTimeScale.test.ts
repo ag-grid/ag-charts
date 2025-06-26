@@ -553,4 +553,88 @@ describe('OrdinalTimeScale', () => {
             expect(() => scale.invert(50)).not.toThrow();
         });
     });
+
+    describe('stepTicks', () => {
+        it('should return ticks for the given band step', () => {
+            const domain = Array.from({ length: 60 }, (_, i) => new Date(2024, 0, i + 1));
+            const scale = new OrdinalTimeScale();
+            scale.domain = domain;
+            expect(scale.stepTicks(10, undefined, [0, 1])).toEqual([
+                new Date(2024, 0, 1),
+                new Date(2024, 0, 11),
+                new Date(2024, 0, 21),
+                new Date(2024, 0, 31),
+                new Date(2024, 1, 10),
+                new Date(2024, 1, 20),
+            ]);
+        });
+
+        it('should return ticks for the given band step and domain', () => {
+            const domain = Array.from({ length: 100 }, (_, i) => new Date(2024, 0, i + 1));
+            const scale = new OrdinalTimeScale();
+            scale.domain = domain;
+            expect(scale.stepTicks(2, [new Date(2024, 1, 1), new Date(2024, 2, 0)], [0, 1])).toEqual([
+                new Date(2024, 1, 1),
+                new Date(2024, 1, 3),
+                new Date(2024, 1, 5),
+                new Date(2024, 1, 7),
+                new Date(2024, 1, 9),
+                new Date(2024, 1, 11),
+                new Date(2024, 1, 13),
+                new Date(2024, 1, 15),
+                new Date(2024, 1, 17),
+                new Date(2024, 1, 19),
+                new Date(2024, 1, 21),
+                new Date(2024, 1, 23),
+                new Date(2024, 1, 25),
+                new Date(2024, 1, 27),
+            ]);
+        });
+
+        it('should return ticks for the given band step, domain, and visible range', () => {
+            const domain = Array.from({ length: 100 }, (_, i) => new Date(2024, 0, i + 1));
+            const scale = new OrdinalTimeScale();
+            scale.domain = domain;
+            expect(scale.stepTicks(2, [new Date(2024, 1, 1), new Date(2024, 2, 0)], [0.25, 0.75])).toEqual([
+                new Date(2024, 1, 9),
+                new Date(2024, 1, 11),
+                new Date(2024, 1, 13),
+                new Date(2024, 1, 15),
+                new Date(2024, 1, 17),
+                new Date(2024, 1, 19),
+                new Date(2024, 1, 21),
+            ]);
+        });
+    });
+
+    describe('interval ticks', () => {
+        it('should return ticks for the given interval', () => {
+            const domain = Array.from({ length: 52 }, (_, i) => new Date(2024, 0, i * 7 + 1));
+            const scale = new OrdinalTimeScale();
+            scale.domain = domain;
+            scale.range = [0, 1000];
+            expect(
+                scale.ticks({
+                    nice: true,
+                    interval: 'month',
+                    tickCount: 0,
+                    minTickCount: 0,
+                    maxTickCount: Infinity,
+                })?.ticks
+            ).toEqual([
+                new Date(2024, 0, 1),
+                new Date(2024, 1, 5),
+                new Date(2024, 2, 4),
+                new Date(2024, 3, 1),
+                new Date(2024, 4, 6),
+                new Date(2024, 5, 3),
+                new Date(2024, 6, 1),
+                new Date(2024, 7, 5),
+                new Date(2024, 8, 2),
+                new Date(2024, 9, 7),
+                new Date(2024, 10, 4),
+                new Date(2024, 11, 2),
+            ]);
+        });
+    });
 });

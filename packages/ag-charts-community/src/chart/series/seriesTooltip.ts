@@ -2,9 +2,9 @@ import type { RequireOptional } from 'ag-charts-core';
 import type {
     AgSeriesTooltipRendererParams,
     AgTooltipRendererResult,
+    ContextDefault,
+    DatumDefault,
     InteractionRange,
-    TContextDefault,
-    TDatumDefault,
 } from 'ag-charts-types';
 
 import { callWithContext } from '../../util/callbackCache';
@@ -53,6 +53,6 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends
     }
 }
 
-export function makeSeriesTooltip<P extends AgSeriesTooltipRendererParams<TDatumDefault, TContextDefault>>() {
+export function makeSeriesTooltip<P extends AgSeriesTooltipRendererParams<DatumDefault, ContextDefault>>() {
     return new SeriesTooltip<Omit<P, 'context'>>();
 }

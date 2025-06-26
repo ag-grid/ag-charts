@@ -1,5 +1,5 @@
-import { type AgSankeySeriesOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-import type { RequiredInternalAgGradientColor, SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgSankeySeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { SankeySeries } from './sankeySeries';
 import { sankeySeriesOptionsDef } from './sankeySeriesOptionsDef';
@@ -8,7 +8,7 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
     type: 'series',
     optionsKey: 'series[]',
     packageType: 'enterprise',
-    chartTypes: ['flow-proportion'],
+    chartTypes: ['standalone'],
     solo: true,
 
     identifier: 'sankey',
@@ -25,14 +25,7 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
             // @ts-expect-error undocumented option
-            fillGradientDefaults: {
-                type: 'gradient',
-                gradient: 'linear',
-                bounds: 'item',
-                colorStops: { $palette: 'gradient' },
-                rotation: 0,
-                reverse: false,
-            } satisfies WithThemeParams<RequiredInternalAgGradientColor>,
+            fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
             fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             defaultColorRange: { $palette: 'gradients' },
@@ -72,7 +65,7 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
 export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> = {
     type: 'series',
     name: 'sankey',
-    chartType: 'flow-proportion',
+    chartType: 'standalone',
     enterprise: true,
 
     options: sankeySeriesOptionsDef,

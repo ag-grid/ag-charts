@@ -27,7 +27,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
     @Property
     readonly parentLevel = new TimeAxisParentLevel();
 
-    private minGranularity: AgTimeIntervalUnit | undefined = undefined;
+    minimumTimeGranularity: AgTimeIntervalUnit | undefined = undefined;
 
     override get primaryLabel(): _ModuleSupport.AxisLabel | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
@@ -45,7 +45,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
         super.updateScale();
 
         const { boundSeries, direction } = this;
-        this.minGranularity = minimumTimeAxisDatumGranularity(boundSeries, direction, undefined, undefined);
+        this.minimumTimeGranularity = minimumTimeAxisDatumGranularity(boundSeries, direction, undefined, undefined);
     }
 
     override tickFormatParams(
@@ -72,13 +72,13 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
         if (typeof value === 'number') value = new Date(value);
 
         if (timeInterval == null) {
-            const { minGranularity } = this;
+            const { minimumTimeGranularity } = this;
             const datumGranularity = lowestGranularityUnitForValue(value);
             if (
-                minGranularity != null &&
-                intervalMilliseconds(minGranularity) < intervalMilliseconds(datumGranularity)
+                minimumTimeGranularity != null &&
+                intervalMilliseconds(minimumTimeGranularity) < intervalMilliseconds(datumGranularity)
             ) {
-                timeInterval = minGranularity;
+                timeInterval = minimumTimeGranularity;
             } else {
                 timeInterval = datumGranularity;
             }

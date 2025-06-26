@@ -103,6 +103,10 @@ const umdWrapperAdaptorPlugin = {
     setup(build) {
         const { initialOptions } = build;
 
+        build.onResolve({ filter: /\.cjs\.js$/ }, (args) => ({
+            path: path.join(args.resolveDir, args.path.replace('.cjs.js', '.esm.mjs')),
+        }));
+
         // Creates UMD banner + footer config.
         const exportedName = exportedNames[process.env.NX_TASK_TARGET_PROJECT];
         const umdWrapperInstance = umdWrapper({ libraryName: exportedName });
