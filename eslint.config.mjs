@@ -4,7 +4,8 @@ import sonarjs from 'eslint-plugin-sonarjs';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-import requireExplicitGeneric from './eslint-rules/require-explicit-generic.mjs';
+import lintChangeDetection from './libraries/ag-charts-eslint-rules/rules/change-detection.mjs';
+import requireExplicitGeneric from './libraries/ag-charts-eslint-rules/rules/require-explicit-generic.mjs';
 
 let env = 'unknown';
 if (process.env.CI != null) {
@@ -111,6 +112,7 @@ export default [
             aglint: {
                 rules: {
                     'require-explicit-generic': requireExplicitGeneric,
+                    'change-detection': lintChangeDetection,
                 },
             },
         },
@@ -123,6 +125,7 @@ export default [
             'no-console': 2,
             'no-unused-vars': 0,
             'no-case-declarations': 0,
+            'aglint/change-detection': 2,
             '@typescript-eslint/no-explicit-any': 0,
             '@typescript-eslint/consistent-type-imports': 0,
             '@typescript-eslint/no-redundant-type-constituents': 1,
