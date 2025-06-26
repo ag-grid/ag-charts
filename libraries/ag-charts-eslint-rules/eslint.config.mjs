@@ -6,6 +6,8 @@ export default [
     {
         ...testDefaults,
         files: ['**/src/**/*.test.ts', '**/jest.config.ts'],
-        ignores: ['**/src/**/*.data.ts'],
+    },
+    {
+        ignores: ['src/**/*.data.ts', '**/*.mjs'],
     },
 ];

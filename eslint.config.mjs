@@ -4,8 +4,8 @@ import sonarjs from 'eslint-plugin-sonarjs';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-import lintChangeDetection from './eslint-rules/change-detection.mjs';
-import requireExplicitGeneric from './eslint-rules/require-explicit-generic.mjs';
+import lintChangeDetection from './libraries/ag-charts-eslint-rules/rules/change-detection.mjs';
+import requireExplicitGeneric from './libraries/ag-charts-eslint-rules/rules/require-explicit-generic.mjs';
 
 let env = 'unknown';
 if (process.env.CI != null) {
@@ -77,8 +77,6 @@ export default [
             '**/jest.*.{cjs,js}',
             '**/.dependency-cruiser.js',
             '**/.size-limit.js',
-            '**/lint-change-detection-eslint-config.mjs',
-            '**/lint-change-detection.data.ts',
         ],
     },
     pluginJs.configs.recommended,

@@ -5,6 +5,6 @@
     "types": ["node"],
     "noEmit": true
   },
-  "include": ["src/**/*.test.ts", "jest.config.ts"],
+  "include": ["src/**/*.test.ts", "jest.config.ts", "rules/*.mjs"],
   "exclude": ["src/**/*.data.ts"]
 }
