@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "verbatimModuleSyntax": true,
+    "types": ["node"],
+    "noEmit": true
+  },
+  "include": ["src/**/*.test.ts", "jest.config.ts"],
+  "exclude": ["src/**/*.data.ts"]
+}
