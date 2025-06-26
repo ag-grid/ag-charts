@@ -14,14 +14,14 @@ import { simpleMemorize2 } from '../../util/memo';
 import { buildDateFormatter } from '../../util/timeFormat';
 import { defaultTimeFormats, deriveTimeSpecifier } from '../axis/timeFormatUtil';
 
-export type ContextlessFormatterParams =
+export type GlobalContextlessFormatterParams =
     | Omit<NumberFormatterParams<any, any>, 'context'>
     | Omit<DateFormatterParams<any, any>, 'context'>
     | Omit<CategoryFormatterParams<any, any>, 'context'>;
 
-export type ContextFormatter = (
-    fn: (params: ContextlessFormatterParams) => string | undefined,
-    params: ContextlessFormatterParams
+export type GlobalContextFormatter = (
+    fn: (params: GlobalContextlessFormatterParams) => string | undefined,
+    params: GlobalContextlessFormatterParams
 ) => string | undefined;
 
 type Specifier = Record<AgTimeIntervalUnit, string> | string;
@@ -107,8 +107,8 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
     }
 
     format(
-        formatInContext: ContextFormatter,
-        params: ContextlessFormatterParams,
+        formatInContext: GlobalContextFormatter,
+        params: GlobalContextlessFormatterParams,
         { specifier, truncateDate }: FormatParams = {}
     ): string | undefined {
         if (params.value == null) return;
@@ -143,7 +143,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         return valueFormatter?.(params.value, params.type === 'number' ? params.fractionDigits : undefined);
     }
 
-    defaultFormat(params: ContextlessFormatterParams, { specifier, truncateDate }: FormatParams = {}): string {
+    defaultFormat(params: GlobalContextlessFormatterParams, { specifier, truncateDate }: FormatParams = {}): string {
         const { formatter } = this;
         const propertyFormatter = typeof formatter === 'function' ? undefined : formatter?.[params.property];
 

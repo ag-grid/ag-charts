@@ -242,9 +242,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             const colorValue = colorValues?.[datumIndex];
 
             const labelText =
-                colorValue == null
-                    ? undefined
-                    : this.getLabelText<AgHeatmapSeriesLabelFormatterParams>(
+                label.enabled && colorValue != null
+                    ? this.getLabelText<AgHeatmapSeriesLabelFormatterParams>(
                           colorValue,
                           datum,
                           colorKey!,
@@ -252,7 +251,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                           colorDomain,
                           label,
                           { value: colorValue, datum, colorKey, colorName, xKey, yKey, xName, yName }
-                      );
+                      )
+                    : undefined;
 
             const labels = formatLabels(
                 labelText,
@@ -499,12 +499,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             {
                 label: xName,
                 fallbackLabel: xKey,
-                value: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
+                value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
             },
             {
                 label: yName,
                 fallbackLabel: yKey,
-                value: yAxis.formatDatum(yValue, 'tooltip', seriesId, legendItemName, datum, yKey),
+                value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
             }
         );
 

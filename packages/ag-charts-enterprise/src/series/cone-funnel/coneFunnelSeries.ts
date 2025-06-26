@@ -105,6 +105,8 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
         const { stageKey, valueKey, label } = this.properties;
         const { spacing, placement } = label;
 
+        if (!label.enabled) return;
+
         let x: number;
         let y: number;
         let textAlign: CanvasTextAlign;

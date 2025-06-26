@@ -620,13 +620,13 @@ export class LineSeries extends CartesianSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
+                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 symbol: this.legendItemSymbol(),
                 data: [
                     {
                         label: yName,
                         fallbackLabel: yKey,
-                        value: yAxis.formatDatum(yValue, 'tooltip', seriesId, legendItemName, datum, yKey),
+                        value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
                     },
                 ],
             },

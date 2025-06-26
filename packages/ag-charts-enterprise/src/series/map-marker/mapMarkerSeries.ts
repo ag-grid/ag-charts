@@ -315,7 +315,7 @@ export class MapMarkerSeries
             label,
             shape,
         } = this.properties;
-        if (labelKey == null) return;
+        if (labelKey == null || !label.enabled) return;
 
         const { placement } = label;
         const labelText = this.getLabelText<AgMapMarkerSeriesLabelFormatterParams>(

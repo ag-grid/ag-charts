@@ -672,13 +672,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
+                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 symbol: this.legendItemSymbol(seriesItemType),
                 data: [
                     {
                         label: yName,
                         fallbackLabel: yKey,
-                        value: yAxis.formatDatum(total, 'tooltip', seriesId, legendItemName, datum, yKey),
+                        value: this.getAxisValueText(yAxis, 'tooltip', total, datum, yKey, legendItemName),
                     },
                 ],
             },

@@ -356,34 +356,34 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             {
                 label: minName,
                 fallbackLabel: minKey,
-                value: yAxis.formatDatum(minValue, 'tooltip', seriesId, legendItemName, datum, minKey),
+                value: this.getAxisValueText(yAxis, 'tooltip', minValue, datum, minKey, legendItemName),
             },
             {
                 label: q1Name,
                 fallbackLabel: q1Key,
-                value: yAxis.formatDatum(q1Value, 'tooltip', seriesId, legendItemName, datum, q1Key),
+                value: this.getAxisValueText(yAxis, 'tooltip', q1Value, datum, q1Key, legendItemName),
             },
             {
                 label: medianName,
                 fallbackLabel: medianKey,
-                value: yAxis.formatDatum(medianValue, 'tooltip', seriesId, legendItemName, datum, medianKey),
+                value: this.getAxisValueText(yAxis, 'tooltip', medianValue, datum, medianKey, legendItemName),
             },
             {
                 label: q3Name,
                 fallbackLabel: q3Key,
-                value: yAxis.formatDatum(q3Value, 'tooltip', seriesId, legendItemName, datum, q3Key),
+                value: this.getAxisValueText(yAxis, 'tooltip', q3Value, datum, q3Key, legendItemName),
             },
             {
                 label: maxName,
                 fallbackLabel: maxKey,
-                value: yAxis.formatDatum(maxValue, 'tooltip', seriesId, legendItemName, datum, maxKey),
+                value: this.getAxisValueText(yAxis, 'tooltip', maxValue, datum, maxKey, legendItemName),
             },
         ];
 
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
+                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 title: legendItemName ?? yName,
                 symbol: this.legendItemSymbol(),
                 data: data,

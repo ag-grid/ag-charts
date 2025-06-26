@@ -225,7 +225,7 @@ export class MapShapeSeries
         if (labelValue == null || geometry == null) return;
 
         const { idKey, idName, colorKey, colorName, labelKey, labelName, padding, label } = this.properties;
-        if (labelKey == null) return;
+        if (labelKey == null || !label.enabled) return;
 
         const labelText = this.getLabelText<AgMapShapeSeriesLabelFormatterParams>(
             labelValue,
