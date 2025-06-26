@@ -8,7 +8,7 @@ import type {
 } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
-import { type Scale, ScaleAlignment } from '../../scale/scale';
+import { type Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { PointerEvents } from '../../scene/node';
@@ -17,6 +17,7 @@ import { TransformableText } from '../../scene/shape/text';
 import { toRadians } from '../../util/angle';
 import { clampArray, findMinMax } from '../../util/number';
 import { BaseProperties, Property } from '../../util/properties';
+import { rangeAlignment } from '../rangeAlignment';
 import { FONT_SIZE } from '../themes/constants';
 import { type CrossLine, type CrossLineType, validateCrossLineValue } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
@@ -279,17 +280,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             }
         } else if (range) {
             const [r0, r1] = range;
-            const r0Value = (r0 as any)?.valueOf();
-            const r1Value = (r1 as any)?.valueOf();
-
-            let startAlignment: ScaleAlignment | undefined;
-            let endAlignment: ScaleAlignment | undefined;
-            if (typeof r0Value === 'number' && typeof r1Value === 'number') {
-                [startAlignment, endAlignment] =
-                    r0Value < r1Value
-                        ? [ScaleAlignment.Leading, ScaleAlignment.Trailing]
-                        : [ScaleAlignment.Trailing, ScaleAlignment.Leading];
-            }
+            const [startAlignment, endAlignment] = rangeAlignment(r0, r1);
 
             yStart = scale.convert(r0 as any, { alignment: startAlignment });
             yEnd = scale.convert(r1 as any, { alignment: endAlignment });
