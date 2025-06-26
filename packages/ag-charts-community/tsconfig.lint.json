@@ -5,6 +5,5 @@
     "types": ["node"],
     "noEmit": true
   },
-  "include": ["**/*.data.ts", "src/**/*.ts", "benchmarks/**/*.ts", "jest.config.ts", "jest.setup.ts"],
-  "exclude": ["**/*.data.ts"]
+  "include": ["src/**/*.ts", "benchmarks/**/*.ts", "jest.config.ts", "jest.setup.ts"]
 }
