@@ -188,9 +188,9 @@ function spanAxisContext(newData: SpanContext, oldData: SpanContext): AxisContex
 
     const axisEntries = newAxisEntries;
     let insertionIndex = 0;
-    for (const oldAxisEntries of exclusivelyOldAxisEntries) {
-        for (let i = axisEntries.length - 1; i > insertionIndex; i -= 1) {
-            const oldValueX = scale(oldAxisEntries.value, oldData.scales.x);
+    for (const oldAxisEntry of exclusivelyOldAxisEntries) {
+        for (let i = axisEntries.length - 1; i >= insertionIndex; i -= 1) {
+            const oldValueX = scale(oldAxisEntry.value, oldData.scales.x);
             const newValueX = scale(axisEntries[i].value, oldData.scales.x);
             if (oldValueX > newValueX) {
                 insertionIndex = i + 1;
@@ -198,7 +198,7 @@ function spanAxisContext(newData: SpanContext, oldData: SpanContext): AxisContex
             }
         }
 
-        axisEntries.splice(insertionIndex, 0, oldAxisEntries);
+        axisEntries.splice(insertionIndex, 0, oldAxisEntry);
         insertionIndex += 1;
     }
 
