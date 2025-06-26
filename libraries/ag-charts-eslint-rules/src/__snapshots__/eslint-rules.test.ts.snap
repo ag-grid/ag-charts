@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`aglint/change-detection should match the expected linting errors snapshot 1`] = `
+exports[`aglint/change-detection 1`] = `
 {
   "stderr": "",
   "stdout": "
@@ -191,6 +191,21 @@ exports[`aglint/change-detection should match the expected linting errors snapsh
 * SceneArrayChangeDetection should only be applied to readonly (string | number | boolean)[] types                                                                         aglint/change-detection
 
 ✖ 74 problems (74 errors, 0 warnings)
+
+",
+}
+`;
+
+exports[`aglint/require-explicit-generic 1`] = `
+{
+  "stderr": "",
+  "stdout": "
+<dirname>/lint-require-explicit-generic.data.ts
+  43:44  error  'AllDefaultGenericType' is a generic type and requires explicit type arguments  aglint/require-explicit-generic
+  51:53  error  'AllDefaultGenericType' is a generic type and requires explicit type arguments  aglint/require-explicit-generic
+  68:54  error  'AllDefaultInterface' is a generic type and requires explicit type arguments    aglint/require-explicit-generic
+
+✖ 3 problems (3 errors, 0 warnings)
 
 ",
 }
