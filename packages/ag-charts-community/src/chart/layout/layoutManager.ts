@@ -1,4 +1,4 @@
-import { type EventListener } from 'ag-charts-core';
+import type { EventListener } from 'ag-charts-core';
 
 import type { AxisLayout, EventsHub } from '../../core/eventsHub';
 import type { LayoutContext as ILayoutContext } from '../../module/baseModule';

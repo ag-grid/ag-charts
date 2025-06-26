@@ -1,4 +1,4 @@
-import { type InternalAgColorType, type InternalAgGradientColor } from 'ag-charts-core';
+import type { InternalAgColorType, InternalAgGradientColor } from 'ag-charts-core';
 import { isArray, isObject } from 'ag-charts-core';
 import type { AgImageFill, AgPatternColor } from 'ag-charts-types';
 

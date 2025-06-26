@@ -1,4 +1,4 @@
-import { EventEmitter } from 'ag-charts-core';
+import type { EventEmitter } from 'ag-charts-core';
 
 import type { EventsHubMap } from '../../core/eventsHub';
 import type { BBox } from '../../scene/bbox';

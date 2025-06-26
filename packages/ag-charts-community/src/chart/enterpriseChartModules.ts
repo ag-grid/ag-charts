@@ -1,4 +1,4 @@
-import { type ChartModuleDefinition } from 'ag-charts-core';
+import type { ChartModuleDefinition } from 'ag-charts-core';
 
 import { isAgStandaloneChartOptions, isAgTopologyChartOptions } from './mapping/types';
 
