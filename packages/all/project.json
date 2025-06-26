@@ -24,12 +24,6 @@
         "fix": {}
       }
     },
-    "lint:change-detection": {
-      "executor": "nx:noop",
-      "inputs": [],
-      "outputs": [],
-      "dependsOn": ["^lint:change-detection"]
-    },
     "test": {
       "executor": "nx:noop",
       "inputs": [],
@@ -273,6 +267,7 @@
     "ag-charts-generate-code-reference-files",
     "ag-charts-generate-chart-thumbnail",
     "ag-charts-generate-example-files",
+    "ag-charts-eslint-rules-test",
     "ag-charts-test",
     "angular-package-tests",
     "react-package-tests",
