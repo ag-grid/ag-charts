@@ -1,5 +1,3 @@
-import { ScaleAlignment } from '../scale/scale';
-
 export function extent(values: Array<unknown>): [number, number] | null {
     if (values.length === 0) {
         return null;
@@ -21,20 +19,6 @@ export function extent(values: Array<unknown>): [number, number] | null {
 
     const result: [number, number] = [min, max];
     return result.every(isFinite) ? result : null;
-}
-
-export function extentAlignment(
-    start: unknown,
-    end: unknown
-): [ScaleAlignment | undefined, ScaleAlignment | undefined] {
-    const startValue = start?.valueOf();
-    const endValue = end?.valueOf();
-
-    if (typeof startValue !== 'number' || typeof endValue !== 'number') return [undefined, undefined];
-
-    return startValue < endValue
-        ? [ScaleAlignment.Leading, ScaleAlignment.Trailing]
-        : [ScaleAlignment.Trailing, ScaleAlignment.Leading];
 }
 
 export function normalisedExtentWithMetadata(

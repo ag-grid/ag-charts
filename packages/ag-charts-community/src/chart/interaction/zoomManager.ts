@@ -17,13 +17,13 @@ import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { type Scale, ScaleAlignment } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
-import { extentAlignment } from '../../util/extent';
 import { deepClone } from '../../util/json';
 import { objectsEqual } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
 import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
+import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
 
 export interface DefinedZoomState {
@@ -586,7 +586,7 @@ export class ZoomManager extends BaseManager {
 
         const { start, end } = range;
 
-        const [startAlignment = ScaleAlignment.Leading, endAlignment = ScaleAlignment.Trailing] = extentAlignment(
+        const [startAlignment = ScaleAlignment.Leading, endAlignment = ScaleAlignment.Trailing] = rangeAlignment(
             start,
             end
         );

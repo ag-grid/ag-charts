@@ -15,9 +15,9 @@ import { PointerEvents } from '../../scene/node';
 import { Range } from '../../scene/shape/range';
 import { TransformableText } from '../../scene/shape/text';
 import { toRadians } from '../../util/angle';
-import { extentAlignment } from '../../util/extent';
 import { clampArray, findMinMax } from '../../util/number';
 import { BaseProperties, Property } from '../../util/properties';
+import { rangeAlignment } from '../rangeAlignment';
 import { FONT_SIZE } from '../themes/constants';
 import { type CrossLine, type CrossLineType, validateCrossLineValue } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
@@ -280,7 +280,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             }
         } else if (range) {
             const [r0, r1] = range;
-            const [startAlignment, endAlignment] = extentAlignment(r0, r1);
+            const [startAlignment, endAlignment] = rangeAlignment(r0, r1);
 
             yStart = scale.convert(r0 as any, { alignment: startAlignment });
             yEnd = scale.convert(r1 as any, { alignment: endAlignment });
