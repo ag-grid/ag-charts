@@ -1,4 +1,5 @@
 // -*- Mode: js2; -*-
+
 /**
  * @fileoverview Enforce explicit generic arguments for all generic types in the project
  */
@@ -69,7 +70,7 @@ export default {
         return {
             TSInterfaceDeclaration(node) {
                 for (const baseNode of node.extends) {
-                    checkTypeReference(baseNode, baseNode.expression, baseNode.typeArguments);
+                    checkTypeReference(baseNode, baseNode.expression, baseNode.typeArguments?.params);
                 }
             },
             TSTypeReference(node) {
