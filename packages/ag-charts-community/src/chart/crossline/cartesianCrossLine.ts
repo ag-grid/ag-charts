@@ -8,7 +8,7 @@ import type {
 } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
-import type { Scale } from '../../scale/scale';
+import { type Scale, ScaleAlignment } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { PointerEvents } from '../../scene/node';
@@ -259,7 +259,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const step = scale.step ?? 0;
         const rangePadding = scale instanceof BandScale ? (step - bandwidth) / 2 : 0;
 
-        const [clippedRange0, clippedRange1] = findMinMax(clippedRange);
+        let [clippedRange0, clippedRange1] = findMinMax(clippedRange);
+        clippedRange0 -= bandwidth;
+        clippedRange1 += bandwidth;
 
         let yStart: number;
         let yEnd: number;
@@ -277,10 +279,22 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             }
         } else if (range) {
             const [r0, r1] = range;
-            yStart = scale.convert(r0 as any);
-            yEnd = scale.convert(r1 as any);
-            clampedYStart = scale.convert(r0 as any, { clamp: true });
-            clampedYEnd = scale.convert(r1 as any, { clamp: true });
+            const r0Value = (r0 as any)?.valueOf();
+            const r1Value = (r1 as any)?.valueOf();
+
+            let startAlignment: ScaleAlignment | undefined;
+            let endAlignment: ScaleAlignment | undefined;
+            if (typeof r0Value === 'number' && typeof r1Value === 'number') {
+                [startAlignment, endAlignment] =
+                    r0Value < r1Value
+                        ? [ScaleAlignment.Leading, ScaleAlignment.Trailing]
+                        : [ScaleAlignment.Trailing, ScaleAlignment.Leading];
+            }
+
+            yStart = scale.convert(r0 as any, { alignment: startAlignment });
+            yEnd = scale.convert(r1 as any, { alignment: endAlignment });
+            clampedYStart = scale.convert(r0 as any, { clamp: true, alignment: startAlignment });
+            clampedYEnd = scale.convert(r1 as any, { clamp: true, alignment: endAlignment });
 
             if (clampedYStart > clampedYEnd) {
                 [clampedYStart, clampedYEnd] = [clampedYEnd, clampedYStart];

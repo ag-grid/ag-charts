@@ -3,6 +3,7 @@ import type {
     AgAxisLabelStylerParams,
     AgBaseAxisLabelStyleOptions,
     AgCartesianAxisPosition,
+    AgTimeIntervalUnit,
     FontOptions,
     Formatter,
     FormatterParams,
@@ -140,6 +141,7 @@ export interface ChartAxis {
     translation: { x: number; y: number };
     type: string;
     visibleRange: [number, number];
+    minimumTimeGranularity?: AgTimeIntervalUnit;
 }
 
 export interface ChartAxisLabel extends FontOptions {

@@ -57,7 +57,7 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     @ProxyPropertyOnWrite('_unit')
     unit: AgTimeInterval | AgTimeIntervalUnit | undefined;
 
-    private minGranularity: AgTimeIntervalUnit | undefined = undefined;
+    minimumTimeGranularity: AgTimeIntervalUnit | undefined = undefined;
 
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new TimeScale());
@@ -79,7 +79,7 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         super.processData();
 
         const { boundSeries, direction, min, max } = this;
-        this.minGranularity = minimumTimeAxisDatumGranularity(boundSeries, direction, min, max);
+        this.minimumTimeGranularity = minimumTimeAxisDatumGranularity(boundSeries, direction, min, max);
     }
 
     override tickFormatParams(
@@ -106,13 +106,13 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         if (typeof value === 'number') value = new Date(value);
 
         if (timeInterval == null) {
-            const { minGranularity } = this;
+            const { minimumTimeGranularity } = this;
             const datumGranularity = lowestGranularityUnitForValue(value);
             if (
-                minGranularity != null &&
-                intervalMilliseconds(minGranularity) < intervalMilliseconds(datumGranularity)
+                minimumTimeGranularity != null &&
+                intervalMilliseconds(minimumTimeGranularity) < intervalMilliseconds(datumGranularity)
             ) {
-                timeInterval = minGranularity;
+                timeInterval = minimumTimeGranularity;
             } else {
                 timeInterval = datumGranularity;
             }
