@@ -1,4 +1,4 @@
-import { type PlainObject } from 'ag-charts-core';
+import type { PlainObject } from 'ag-charts-core';
 import { Logger, circularSliceArray, isArray, isNumber, isObjectLike, isPlainObject, isString } from 'ag-charts-core';
 
 import { chartTypes } from '../chart/factory/chartTypes';
