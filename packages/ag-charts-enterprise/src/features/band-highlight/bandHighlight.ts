@@ -133,8 +133,11 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
     }
 
     private highlightChange(event: _ModuleSupport.HighlightChangeEvent) {
-        if (event.currentHighlight) {
-            this.onHighlightChange(this.getBand((event.currentHighlight as any).xValue));
+        const { currentHighlight } = event;
+        const key = this.axisCtx.direction === ChartAxisDirection.X ? 'xValue' : 'yValue';
+        const value = currentHighlight?.[key];
+        if (value != null) {
+            this.onHighlightChange(this.getBand(value));
         }
     }
 
