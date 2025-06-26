@@ -32,6 +32,22 @@ function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(
     };
 }
 
+function disableLabelsDepth0<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T): T {
+    return {
+        ...opts,
+        axes: opts.axes?.map((axis) =>
+            axis.type === 'grouped-category'
+                ? {
+                      ...axis,
+                      depthOptions: axis.depthOptions?.map((depthOpts, i) =>
+                          i ? depthOpts : { ...depthOpts, label: { enabled: false } }
+                      ),
+                  }
+                : axis
+        ),
+    };
+}
+
 function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
     const positionFlip = (position?: AgCartesianAxisPosition) => {
         switch (position) {
@@ -81,6 +97,14 @@ const EXAMPLES: Record<string, TestCase> = {
         },
         GROUPED_CATEGORY_AXIS_DEPTH_OPTIONS_EXAMPLE: {
             options: examples.GROUPED_CATEGORY_CHART_EXAMPLE,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['grouped-category', 'number'],
+                seriesTypes: repeat('bar', 3),
+            }),
+            compare: ['grouped-category'],
+        },
+        GROUPED_CATEGORY_AXIS_DEPTH_OPTIONS_EXAMPLE_LABELS_DISABLED: {
+            options: disableLabelsDepth0(examples.GROUPED_CATEGORY_CHART_EXAMPLE),
             assertions: cartesianChartAssertions({
                 axisTypes: ['grouped-category', 'number'],
                 seriesTypes: repeat('bar', 3),
