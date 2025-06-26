@@ -468,7 +468,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
             if (yFilterValue != null && !Number.isFinite(yFilterValue)) return;
 
             const labelText =
-                yRawValue != null
+                label.enabled && yRawValue != null
                     ? this.getLabelText<AgBarSeriesLabelFormatterParams>(
                           yFilterValue ?? yRawValue,
                           datum,

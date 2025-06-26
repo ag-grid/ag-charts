@@ -846,7 +846,7 @@ export abstract class Series<
 
     protected getAxisValueText(
         axis: ChartAxis,
-        source: 'tooltip' | 'series-label',
+        source: 'tooltip',
         value: any,
         datum: any,
         key: string,
@@ -870,21 +870,32 @@ export abstract class Series<
         if (value == null) return '';
 
         const { axes, canHaveAxes, ctx, id: seriesId, properties } = this;
-        const { formatManager } = ctx;
-        const legendItemName = 'legendItemName' in properties ? (properties.legendItemName as string) : undefined;
+        const formatInContext = this.callWithContext.bind(this);
         const source = 'series-label';
-
-        const direction = canHaveAxes ? propertyAxisDirection(property) : undefined;
-        const axis = direction != null ? axes[this.resolveKeyDirection(direction)] : undefined;
-        if (axis != null) {
-            return this.getAxisValueText(axis, source, value, datum, key, legendItemName);
-        }
-
+        const legendItemName = 'legendItemName' in properties ? (properties.legendItemName as string) : undefined;
         const params: AgChartLabelFormatterParams<any> & RequireOptional<TParams> = {
             seriesId: this.id,
             ...baseParams,
         };
-        const formatInContext = this.callWithContext.bind(this);
+
+        const direction = canHaveAxes ? propertyAxisDirection(property) : undefined;
+        const axis = direction != null ? axes[this.resolveKeyDirection(direction)] : undefined;
+        if (axis != null) {
+            return axis.formatDatum(
+                formatInContext,
+                value,
+                source,
+                seriesId,
+                legendItemName,
+                datum,
+                key,
+                domain,
+                label,
+                params
+            );
+        }
+
+        const { formatManager } = ctx;
 
         const format = (formatParams: FormatterParams<any>) =>
             label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??

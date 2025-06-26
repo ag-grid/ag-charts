@@ -515,7 +515,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
 
             const labelStyle = isLeaf ? tile.label : group.label;
             let labelValue: string | undefined;
-            if (datum != null && depth != null && labelKey != null) {
+            if (labelStyle.enabled && datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
                 labelValue = this.getLabelText<AgTreemapSeriesLabelFormatterParams>(
                     value,
@@ -543,7 +543,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             }
 
             let secondaryLabelValue: string | undefined;
-            if (isLeaf && datum != null && depth != null && secondaryLabelKey != null) {
+            if (tile.secondaryLabel.enabled && isLeaf && datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
                 secondaryLabelValue = this.getLabelText<AgTreemapSeriesLabelFormatterParams>(
                     value,

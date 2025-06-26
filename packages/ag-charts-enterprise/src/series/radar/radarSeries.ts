@@ -195,14 +195,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                     'radius',
                     radiusDomain,
                     label,
-                    {
-                        value: radiusDatum,
-                        datum,
-                        angleKey,
-                        radiusKey,
-                        angleName,
-                        radiusName,
-                    }
+                    { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName }
                 );
 
                 if (labelText) {

@@ -216,7 +216,7 @@ export class MapLineSeries extends TopologySeries<
         if (lineString == null) return;
 
         const { idKey, idName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } = this.properties;
-        if (labelKey == null) return;
+        if (labelKey == null || !label.enabled) return;
 
         const labelText = this.getLabelText<AgMapLineSeriesLabelFormatterParams>(
             labelValue,

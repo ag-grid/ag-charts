@@ -102,6 +102,7 @@ export class ChordSeries extends FlowProportionSeries<
         const {
             id: seriesId,
             _nodeDataDependencies: { seriesRectWidth, seriesRectHeight } = { seriesRectWidth: 0, seriesRectHeight: 0 },
+            properties,
         } = this;
         const {
             fromKey,
@@ -110,7 +111,7 @@ export class ChordSeries extends FlowProportionSeries<
             labelKey,
             label: { spacing: labelSpacing, maxWidth: labelMaxWidth, fontSize },
             node: { width: nodeWidth, spacing: nodeSpacing },
-        } = this.properties;
+        } = properties;
         const centerX = seriesRectWidth / 2;
         const centerY = seriesRectHeight / 2;
 
@@ -147,19 +148,22 @@ export class ChordSeries extends FlowProportionSeries<
             if (size === 0) {
                 nodeGraph.delete(id);
             } else {
+                const { label } = properties;
                 node.size = size;
                 totalSize += node.size;
 
-                const label = this.getLabelText<AgChordSeriesLabelFormatterParams>(
-                    node.label,
-                    node.datum,
-                    labelKey!,
-                    'label',
-                    [],
-                    this.properties.label,
-                    { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size: node.size }
-                );
-                node.label = String(label);
+                const labelText = label.enabled
+                    ? this.getLabelText<AgChordSeriesLabelFormatterParams>(
+                          node.label,
+                          node.datum,
+                          labelKey!,
+                          'label',
+                          [],
+                          label,
+                          { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size: node.size }
+                      )
+                    : undefined;
+                node.label = labelText;
             }
         });
 

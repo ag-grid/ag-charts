@@ -1,5 +1,5 @@
 import { isDate, isNumber } from 'ag-charts-core';
-import type { AgHistogramBinDatum } from 'ag-charts-types';
+import type { AgHistogramBinDatum, AgHistogramSeriesLabelFormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -282,7 +282,7 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     override createNodeData() {
-        const { id: seriesId, axes, processedData, dataModel } = this;
+        const { axes, processedData, dataModel } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -293,8 +293,7 @@ export class HistogramSeries extends CartesianSeries<
 
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
-        const { xKey, yKey, xName, yName, legendItemName } = this.properties;
-        const labelFormatter = this.properties.label.formatter;
+        const { xKey, yKey, xName, yName, label } = this.properties;
 
         const nodeData: HistogramNodeDatum[] = [];
         const context = {
@@ -331,22 +330,19 @@ export class HistogramSeries extends CartesianSeries<
             const y = Math.min(yZeroPx, yMaxPx);
 
             let selectionDatumLabel = undefined;
-            if (total !== 0) {
+            if (label.enabled && total !== 0) {
                 selectionDatumLabel = {
                     x: x + w / 2,
                     y: y + h / 2,
-                    text:
-                        this.cachedDatumCallback(createDatumId(groupIndex, 'label'), () =>
-                            labelFormatter?.({
-                                value: total,
-                                datum,
-                                seriesId,
-                                xKey,
-                                yKey,
-                                xName,
-                                yName,
-                            })
-                        ) ?? this.getAxisValueText(yAxis, 'series-label', total, datum, yKey!, legendItemName),
+                    text: this.getLabelText<AgHistogramSeriesLabelFormatterParams>(
+                        total,
+                        datum,
+                        yKey!,
+                        'label',
+                        [],
+                        label,
+                        { value: total, datum, xKey, yKey, xName, yName }
+                    ),
                 };
             }
 
