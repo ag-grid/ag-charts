@@ -1,9 +1,10 @@
-import { Node } from '../../scene/node';
-import { SeriesProperties } from '../series/seriesProperties';
-
 const equals = (_newValue: any, _oldValue: any): boolean => false;
 
-// Stub decorator implementations
+// Stub ag-charts-community classes
+class Node {};
+class SeriesProperties<_T> {};
+
+// Stub ag-charts-community decorators
 export function SceneChangeDetection() {
     return (_target: any, _context: ClassFieldDecoratorContext) => {};
 }
