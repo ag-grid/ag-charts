@@ -2,12 +2,19 @@ import { findMaxIndex, findMinIndex } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { BandScale } from './bandScale';
-import { ScaleAlignment } from './scale';
+import { ScaleAlignment, type ScaleTickParams } from './scale';
 
 export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval | AgTimeIntervalUnit | number> {
     static override is(value: unknown): value is DiscreteTimeScale {
         return value instanceof DiscreteTimeScale;
     }
+
+    abstract override ticks(
+        params: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
+        domain?: Date[],
+        visibleRange?: [number, number],
+        options?: { extend?: boolean; dropInitial?: boolean }
+    ): { ticks: Date[]; count: number | undefined } | undefined;
 
     override toDomain(value: number): Date {
         return new Date(value);
