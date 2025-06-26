@@ -2,7 +2,7 @@
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-import changeDetection from '../../../../../eslint-rules/change-detection.mjs';
+import changeDetection from '../../change-detection.mjs';
 
 /** @type {import('eslint').Linter.FlatConfig[]} */
 export default [
@@ -12,7 +12,8 @@ export default [
         languageOptions: {
             globals: globals.browser,
             parserOptions: {
-                project: './tsconfig.change-detection.json',
+                projectService: true,
+                project: './src/lint-change-detection-tsconfig.json',
             },
         },
         plugins: {
