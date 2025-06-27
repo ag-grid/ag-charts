@@ -913,7 +913,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, DonutSeriesPrope
             itemSelection,
             highlightSelection,
             phantomSelection,
-            highlightLabelSelection,
             calloutLabelSelection,
             labelSelection,
             innerLabelsSelection,
@@ -949,7 +948,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, DonutSeriesPrope
         });
 
         labelSelection.update(this.nodeData);
-        highlightLabelSelection.update(highlightedNodeData);
 
         innerLabelsSelection.update(this.properties.innerLabels, (node) => {
             node.pointerEvents = PointerEvents.None;
@@ -982,7 +980,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, DonutSeriesPrope
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
         this.highlightGroup.visible = visible && seriesHighlighted;
-        this.highlightLabel.visible = visible && seriesHighlighted;
         this.labelGroup.visible = visible;
 
         this.innerCircleSelection.each((node, { radius }) => {
@@ -1488,7 +1485,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, DonutSeriesPrope
         };
 
         this.labelSelection.each(updateSectorLabel);
-        this.highlightLabelSelection.each(updateSectorLabel);
     }
 
     private updateInnerLabelNodes() {
@@ -1749,7 +1745,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, DonutSeriesPrope
 
         seriesLabelFadeInAnimation(this, 'callout', animationManager, this.calloutLabelSelection);
         seriesLabelFadeInAnimation(this, 'sector', animationManager, this.labelSelection);
-        seriesLabelFadeInAnimation(this, 'highlight', animationManager, this.highlightLabelSelection);
         seriesLabelFadeInAnimation(this, 'inner', animationManager, this.innerLabelsSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;
@@ -1790,7 +1785,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, DonutSeriesPrope
 
         seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
         seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, this.labelSelection);
-        seriesLabelFadeInAnimation(this, 'highlight', this.ctx.animationManager, this.highlightLabelSelection);
 
         if (this.noVisibleData !== noVisibleData) {
             this.noVisibleData = noVisibleData;
@@ -1822,7 +1816,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, DonutSeriesPrope
 
         seriesLabelFadeOutAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
         seriesLabelFadeOutAnimation(this, 'sector', this.ctx.animationManager, this.labelSelection);
-        seriesLabelFadeOutAnimation(this, 'highlight', this.ctx.animationManager, this.highlightLabelSelection);
         seriesLabelFadeOutAnimation(this, 'inner', this.ctx.animationManager, this.innerLabelsSelection);
 
         this.previousRadiusScale.range = this.radiusScale.range;

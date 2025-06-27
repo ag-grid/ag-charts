@@ -157,7 +157,6 @@ export abstract class BaseFunnelSeries<
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            hasHighlightedLabels: true,
             propertyKeys: {
                 x: ['stageKey'],
                 y: ['valueKey'],

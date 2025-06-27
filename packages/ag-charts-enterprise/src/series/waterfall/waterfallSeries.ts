@@ -87,7 +87,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: ['connector'],
-            hasHighlightedLabels: true,
             pathsZIndexSubOrderOffset: [-1, -1],
             animationResetFns: {
                 datum: resetBarSelectionsFn,
