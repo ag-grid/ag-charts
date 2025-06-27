@@ -596,6 +596,7 @@ export class SeriesAreaManager extends BaseManager {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
             this.focusIndicator?.update(overlayFocus.rect, this.seriesRect, false);
+            this.swapChain.update(overlayFocus.text);
         }
     }
 
