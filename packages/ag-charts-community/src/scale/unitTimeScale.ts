@@ -103,7 +103,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         { interval }: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1],
-        extend = false
+        { extend = false } = {}
     ): ScaleTickResult<Date> | undefined {
         if (domain.length < 2) return;
 

@@ -112,7 +112,9 @@ enum ParentLevelMode {
     ScaleTicks,
 }
 
-const DENSE_TICK_COUNT = 12;
+const DENSE_TICK_COUNT = 18;
+// Multiples of 2 & 3
+const TICK_STEP_VALUES = [1, 2, 3, 4, 6, 8, 9, 10, 12];
 
 export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>, D> {
     readonly scale: S;
@@ -505,6 +507,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
     private getTimeIntervalTicks(
         visibleRange: [number, number],
+        tickCount: number,
+        maxTickCount: number,
         tickParams: Readonly<ScaleTickParams<any>>,
         timeInterval: AgTimeInterval | AgTimeIntervalUnit,
         reverse: boolean
@@ -533,6 +537,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const milliseconds = intervalMilliseconds(timeInterval);
 
         let primaryTicksIndices: Set<number> | undefined = new Set<number>();
+        const skipFirstPrimaryTick = OrdinalTimeScale.is(scale);
         const ticks = [];
         const intervalTickParams = {
             ...tickParams,
@@ -550,7 +555,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     ? ParentLevelMode.OrdinalStepTicks
                     : ParentLevelMode.ScaleTicks;
             alignment = ScaleAlignment.Trailing;
-            ordinalTickStep = Math.ceil(scale.bandCount(visibleRange) / DENSE_TICK_COUNT);
+
+            // The tick algorithm will try lower tick counts when labels don't fit
+            // The tick count doesn't match exactly what we do here - so we just use it as a guideline
+            const tickDensity = tickCount / maxTickCount;
+            const baseTickStep = scale.bandCount(visibleRange) / (tickDensity * DENSE_TICK_COUNT);
+            ordinalTickStep = TICK_STEP_VALUES.findLast((t) => baseTickStep >= t) ?? 1;
         } else if (
             UnitTimeScale.is(scale) &&
             (scale.interval == null || intervalMilliseconds(scale.interval) >= milliseconds)
@@ -565,6 +575,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             const p0 = primaryTicks[i];
             const p1 = primaryTicks[i + 1];
 
+            const first = i === 0;
             const last = i === primaryTicks.length - 2;
 
             const dp = p1.valueOf() - p0.valueOf();
@@ -579,7 +590,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     intervalTicks = createTimeScaleTicks(intervalTickParams.interval, [p0, p1], pVisibleRange, true);
                     break;
                 case ParentLevelMode.ScaleTicks:
-                    intervalTicks = scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, true)?.ticks ?? [];
+                    intervalTicks =
+                        scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, { extend: true, dropInitial: true })
+                            ?.ticks ?? [];
                     break;
                 case ParentLevelMode.OrdinalStepTicks:
                     intervalTicks = (scale as any as OrdinalTimeScale).stepTicks(
@@ -612,7 +625,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     ? firstTickDiff === 0
                     : firstTickDiff <= milliseconds;
 
-            if (firstPrimary) {
+            if (firstPrimary && (!skipFirstPrimaryTick || !first)) {
                 primaryTicksIndices.add(ticks.length);
             }
 
@@ -765,7 +778,14 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 }
 
                 const intervalTicks = timeInterval
-                    ? this.getTimeIntervalTicks(visibleRange, tickParams, timeInterval, reverse)
+                    ? this.getTimeIntervalTicks(
+                          visibleRange,
+                          tickCount,
+                          maxTickCount,
+                          tickParams,
+                          timeInterval,
+                          reverse
+                      )
                     : undefined;
                 if (intervalTicks) {
                     ({ ticks: rawTicks, tickCount: rawTickCount, primaryTicksIndices, alignment } = intervalTicks);
