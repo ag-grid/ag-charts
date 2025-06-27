@@ -372,17 +372,17 @@ export abstract class CartesianSeries<
     }
 
     update({ seriesRect }: { seriesRect?: BBox }) {
-        const { visible, _contextNodeData: previousContextData } = this;
+        const { _contextNodeData: previousContextData } = this;
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
 
         const resize = this.checkResize(seriesRect);
-        const highlightItems = this.updateHighlightSelection(seriesHighlighted);
+        this.updateHighlightSelection(seriesHighlighted);
 
         this.contentGroup.batchedUpdate(() => {
-            const dataChanged = this.updateSelections(visible);
-            this.updateNodes(highlightItems, seriesHighlighted, visible, resize || dataChanged);
+            const dataChanged = this.updateSelections();
+            this.updateNodes(seriesHighlighted, resize || dataChanged);
         });
 
         const animationData = this.getAnimationData(seriesRect, previousContextData);
@@ -394,9 +394,9 @@ export abstract class CartesianSeries<
         this.animationState.transition('update', animationData);
     }
 
-    protected updateSelections(anySeriesItemEnabled: boolean) {
+    protected updateSelections() {
         const animationSkipUpdate = !this.opts.animationAlwaysUpdateSelections && this.ctx.animationManager.isSkipped();
-        if (!anySeriesItemEnabled && animationSkipUpdate) {
+        if (!this.visible && animationSkipUpdate) {
             return false;
         }
         const { nodeDataRefresh } = this;
@@ -467,19 +467,14 @@ export abstract class CartesianSeries<
         };
     }
 
-    protected updateNodes(
-        highlightedItems: TDatum[] | undefined,
-        seriesHighlighted: boolean,
-        anySeriesItemEnabled: boolean,
-        nodeRefresh: boolean
-    ) {
+    protected updateNodes(seriesHighlighted: boolean, nodeRefresh: boolean) {
         const {
             highlightSelection,
             opts: { hasMarkers },
         } = this;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const visible = this.visible && this._contextNodeData != null && anySeriesItemEnabled;
+        const visible = this.visible && this._contextNodeData != null;
         this.contentGroup.visible = animationEnabled || visible;
         this.highlightGroup.visible = (animationEnabled || visible) && seriesHighlighted;
 
@@ -526,7 +521,7 @@ export abstract class CartesianSeries<
         const changesOnHighlight =
             unhighlightedItem != null || highlightedSeries != null || unhighlightedSeries != null;
         if (nodeRefresh || strokeWidthChangesOnHighlight || changesOnHighlight) {
-            this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false });
+            this.updateDatumNodes({ datumSelection, isHighlight: false });
             if (!this.usesPlacedLabels) {
                 this.labelGroup.batchedUpdate(() => {
                     this.updateLabelNodes({ labelSelection });
@@ -568,8 +563,6 @@ export abstract class CartesianSeries<
             items: highlightItems,
             highlightSelection,
         });
-
-        return highlightItems;
     }
 
     protected markQuadtreeDirty() {
@@ -999,11 +992,7 @@ export abstract class CartesianSeries<
         // Override point for sub-classes.
         return opts.datumSelection;
     }
-    protected updateDatumNodes(_opts: {
-        datumSelection: Selection<TNode, TDatum>;
-        highlightedItems?: TDatum[];
-        isHighlight: boolean;
-    }): void {
+    protected updateDatumNodes(_opts: { datumSelection: Selection<TNode, TDatum>; isHighlight: boolean }): void {
         // Override point for sub-classes.
     }
 

@@ -453,13 +453,8 @@ export abstract class BaseFunnelSeries<
         visible: boolean;
     }): FunnelNodeLabelDatum | undefined;
 
-    protected override updateNodes(
-        highlightedItems: FunnelNodeDatum[] | undefined,
-        seriesHighlighted: boolean,
-        anySeriesItemEnabled: boolean,
-        nodeRefresh: boolean
-    ) {
-        super.updateNodes(highlightedItems, seriesHighlighted, anySeriesItemEnabled, nodeRefresh);
+    protected override updateNodes(seriesHighlighted: boolean, nodeRefresh: boolean) {
+        super.updateNodes(seriesHighlighted, nodeRefresh);
 
         const { connectorSelection } = this;
         const connectorData = this.contextNodeData?.connectorData ?? [];
