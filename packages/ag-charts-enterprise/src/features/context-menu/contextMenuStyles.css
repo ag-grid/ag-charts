@@ -17,7 +17,7 @@
     border: var(--ag-charts-menu-border);
     box-shadow: var(--ag-charts-popup-shadow);
     color: var(--ag-charts-menu-text-color);
-    display: table;
+    display: flex;
     flex-direction: column;
     padding: 0.5em 0;
     transition: transform 0.1s ease;
@@ -38,7 +38,7 @@
     box-sizing: border-box;
     color: inherit;
     cursor: pointer;
-    display: table-row;
+    display: flex;
     font: inherit;
     justify-content: space-between;
     text-align: left;
@@ -54,8 +54,13 @@
 
 .ag-charts-context-menu__icon,
 .ag-charts-context-menu__cell {
-    display: table-cell;
-    vertical-align: middle;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.ag-charts-context-menu__cell {
+    flex-grow: 1;
 }
 
 .ag-charts-context-menu__cellpadding {
@@ -89,7 +94,6 @@
 .ag-charts-context-menu__item[aria-disabled='true'] {
     border: none;
     color: color-mix(in srgb, var(--ag-charts-input-text-color) 50%, transparent);
-    text-align: left;
 }
 
 .ag-charts-context-menu__item[aria-disabled='true']:focus {
@@ -98,12 +102,10 @@
 }
 
 .ag-charts-context-menu__divider {
-    display: table-row;
-}
-.ag-charts-context-menu__divider > div {
     padding: 5px 0;
 }
-.ag-charts-context-menu__divider > div::after {
+
+.ag-charts-context-menu__divider::after {
     content: '';
     display: block;
     border-top: 1px solid var(--ag-charts-border-color);
