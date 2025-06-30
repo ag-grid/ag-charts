@@ -418,7 +418,7 @@ export abstract class OhlcSeriesBase<
     ): RequireOptional<FillOptions & StrokeOptions & LineDashOptions> {
         const { properties } = this;
         const item = properties.item[itemId];
-        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const highlightStyle = this.getHighlightStyle(highlighted);
         const shapeStyle = {
             fill: highlightStyle?.fill ?? item.fill,
             fillOpacity: highlightStyle?.fillOpacity ?? item.fillOpacity,

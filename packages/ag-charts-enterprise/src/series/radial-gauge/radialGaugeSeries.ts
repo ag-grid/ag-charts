@@ -1063,7 +1063,6 @@ export class RadialGaugeSeries
         isHighlight: boolean;
     }) {
         const { targetSelection, isHighlight } = opts;
-        const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
 
         targetSelection.each((target, datum) => {
             const {
@@ -1083,6 +1082,8 @@ export class RadialGaugeSeries
                 lineDashOffset,
             } = datum;
 
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
+
             target.shape = shape === 'line' ? lineMarker : shape;
             target.size = size;
             target.fill = highlightStyle?.fill ?? fill;
@@ -1092,6 +1093,7 @@ export class RadialGaugeSeries
             target.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
             target.lineDash = highlightStyle?.lineDash ?? lineDash;
             target.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
+            target.opacity = highlightStyle?.opacity ?? 1;
             target.translationX = centerX + radius * Math.cos(angle);
             target.translationY = centerY + radius * Math.sin(angle);
             target.rotation = angle + rotation;

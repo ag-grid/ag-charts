@@ -516,11 +516,10 @@ export abstract class CartesianSeries<
             return;
         }
 
-        const strokeWidthChangesOnHighlight = this.properties.highlightStyle.series.strokeWidth != null;
         const { highlight: { unhighlightedItem, highlightedSeries, unhighlightedSeries } = {} } = this.properties;
         const changesOnHighlight =
             unhighlightedItem != null || highlightedSeries != null || unhighlightedSeries != null;
-        if (nodeRefresh || strokeWidthChangesOnHighlight || changesOnHighlight) {
+        if (nodeRefresh || changesOnHighlight) {
             this.updateDatumNodes({ datumSelection, isHighlight: false });
             if (!this.usesPlacedLabels) {
                 this.labelGroup.batchedUpdate(() => {
