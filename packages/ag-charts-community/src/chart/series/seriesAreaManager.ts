@@ -616,7 +616,7 @@ export class SeriesAreaManager extends BaseManager {
             if (this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta) === PickedFocusStatus.SUCCESS) {
                 this.announceMode = 'when-changed';
             } else {
-                // As a safe-guard, always announce the next focus-change if this currenct focus-change failed.
+                // As a safe-guard, always announce the next focus-change if this current focus-change failed.
                 this.announceMode = 'always';
             }
         } else {
