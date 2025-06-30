@@ -98,7 +98,7 @@ export class MapMarkerSeries
         false
     );
     private highlightMarkerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> =
-        Selection.select(this.highlightNode, Marker);
+        Selection.select(this.highlightGroup, Marker);
 
     private contextNodeData?: MapMarkerNodeDataContext;
 

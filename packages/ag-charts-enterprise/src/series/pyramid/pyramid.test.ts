@@ -268,7 +268,7 @@ describe('PyramidSeries', () => {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
             // Returns a highlighted node
-            getHighlightNode: (_, series) => series.highlightNode.children().next().value,
+            getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
         testPointerEvents({
@@ -290,7 +290,7 @@ describe('PyramidSeries', () => {
             getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
             getHighlightNode: (chartInstance, series) => {
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                return [...series.highlightNode.children()].find(
+                return [...series.highlightGroup.children()].find(
                     (child: any) => child.datum.id === highlightedDatum.id
                 );
             },

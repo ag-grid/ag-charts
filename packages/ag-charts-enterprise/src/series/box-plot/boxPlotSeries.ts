@@ -73,7 +73,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             },
             categoryKey: 'xValue',
             pathsPerSeries: [],
-            hasHighlightedLabels: true,
         });
     }
 

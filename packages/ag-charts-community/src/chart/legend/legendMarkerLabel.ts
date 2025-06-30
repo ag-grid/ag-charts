@@ -2,16 +2,15 @@ import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import { BBox } from '../../scene/bbox';
 import { SceneChangeDetection } from '../../scene/changeDetectable';
-import { Group } from '../../scene/group';
+import { Group, TranslatableGroup } from '../../scene/group';
 import type { ChildNodeCounts, RenderContext } from '../../scene/node';
 import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
-import { Translatable } from '../../scene/transformable';
 import { ObserveChanges, ProxyPropertyOnWrite } from '../../util/proxy';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import { Marker } from '../marker/marker';
 
-export class LegendMarkerLabel extends Translatable(Group) {
+export class LegendMarkerLabel extends TranslatableGroup {
     static readonly className = 'MarkerLabel';
 
     private readonly symbolsGroup: Group = this.appendChild(

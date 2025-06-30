@@ -280,7 +280,7 @@ describe('ConeFunnelSeries', () => {
             getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
             getHighlightNode: (chartInstance, series) => {
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                return [...series.highlightNode.children()].find(
+                return [...series.highlightGroup.children()].find(
                     (child: any) => child.datum.id === highlightedDatum.id
                 );
             },
