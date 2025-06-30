@@ -77,7 +77,7 @@ export interface AgMapLineSeriesThemeableOptions<TDatum = DatumDefault, TContext
     /** @deprecated Style overrides when a node is hovered. */
     highlightStyle?: AgMapLineSeriesHighlightStyle<TDatum>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgMapLineHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgMapLineHighlightStyleOptions, AgMapLineHighlightStyleOptions>;
 }
 
 export interface AgMapLineHighlightStyleOptions extends StrokeOptions, LineDashOptions {

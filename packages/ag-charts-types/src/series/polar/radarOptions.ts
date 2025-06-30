@@ -17,7 +17,7 @@ export interface AgRadarSeriesThemeableOptions<TDatum = DatumDefault, TContext =
         LineDashOptions,
         AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series. */
-    marker?: AgSeriesMarkerOptions<TDatum, AgRadialSeriesOptionsKeys<TDatum>>;
+    marker?: AgSeriesMarkerOptions<TDatum, AgRadialSeriesOptionsKeys<TDatum>, TContext>;
     /** Configuration for the labels shown on top of data points. */
     label?: AgChartLabelOptions<TDatum, AgRadarSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */

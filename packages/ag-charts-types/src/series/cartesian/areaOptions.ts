@@ -28,7 +28,7 @@ export interface AgAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
         LineDashOptions,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series. */
-    marker?: AgSeriesMarkerOptions<TDatum, AgAreaSeriesMarkerItemStylerParams<TDatum, TContext>>;
+    marker?: AgSeriesMarkerOptions<TDatum, AgAreaSeriesMarkerItemStylerParams<TDatum, TContext>, TContext>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
     /** Configuration for the shadow used behind the chart series. */
@@ -40,7 +40,7 @@ export interface AgAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
 export interface AgAreaSeriesOptionsKeys<TDatum = DatumDefault> {

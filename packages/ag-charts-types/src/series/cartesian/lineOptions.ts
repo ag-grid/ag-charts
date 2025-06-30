@@ -30,7 +30,7 @@ export interface AgLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
         LineDashOptions,
         Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
     /** Configuration for the markers used in the series. */
-    marker?: AgSeriesMarkerOptions<TDatum, AgLineSeriesMarkerItemStylerParams<TDatum, TContext>>;
+    marker?: AgSeriesMarkerOptions<TDatum, AgLineSeriesMarkerItemStylerParams<TDatum, TContext>, TContext>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
