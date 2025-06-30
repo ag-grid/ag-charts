@@ -156,7 +156,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const { stageKey, valueKey } = this.properties;
 
-        const xScaleType = 'band';
+        const xScaleType = 'category';
         const yScaleType = 'number';
 
         const validation = (_value: unknown, _datum: unknown, index: number) =>

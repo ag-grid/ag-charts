@@ -1,3 +1,6 @@
+import { clamp } from 'ag-charts-core';
+
+import { previousPowerOf2 } from '../util/number';
 import { dateToNumber } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
 import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from './scale';
@@ -8,7 +11,7 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
         return value instanceof CategoryScale;
     }
 
-    readonly type = 'band' as const;
+    readonly type = 'category' as const;
     readonly defaultTickCount = 0;
 
     /**
@@ -16,7 +19,7 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
      * Used to check for duplicate data (not allowed).
      */
     protected index: Map<D, number> = new Map();
-    protected indexInitialised = false;
+    protected indexInitialized = false;
 
     /**
      * Contains unique data only.
@@ -28,7 +31,7 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
         this.invalid = true;
         this._domain = values;
         this.index.clear();
-        this.indexInitialised = false;
+        this.indexInitialized = false;
     }
 
     get domain(): D[] {
@@ -76,22 +79,46 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
     }
 
     override ticks(
-        _params: ScaleTickParams<I>,
+        params: ScaleTickParams<I>,
         domain: D[] = this.domain,
         visibleRange?: [number, number]
     ): ScaleTickResult<D> {
+        const { bands } = this;
+        let { tickCount } = params;
+        if (tickCount != null && tickCount > 0 && tickCount < bands.length) {
+            let step = (bands.length / tickCount) | 0;
+            step = previousPowerOf2(step);
+
+            tickCount = (bands.length / step) | 0;
+
+            const span = step * tickCount;
+            const inset = previousPowerOf2(((bands.length - span) / 2) | 0);
+
+            const vt0 = clamp(0, Math.floor((visibleRange?.[0] ?? 0) * bands.length), bands.length);
+            const vt1 = clamp(0, Math.ceil((visibleRange?.[1] ?? 1) * bands.length), bands.length);
+
+            const out: D[] = [];
+            for (let i = inset; i < bands.length; i += step) {
+                if (i >= vt0 && i <= vt1) {
+                    out.push(bands[i]);
+                }
+            }
+            return { ticks: out, count: undefined };
+        }
+
         return filterVisibleTicks(domain, false, visibleRange);
     }
 
     findIndex(value: D) {
-        const { index, indexInitialised } = this;
-        if (!indexInitialised) {
+        const { index, indexInitialized } = this;
+
+        if (!indexInitialized) {
             const { domain } = this;
             for (let i = 0; i < domain.length; i++) {
                 index.set(dateToNumber(domain[i]) as D, i);
             }
 
-            this.indexInitialised = true;
+            this.indexInitialized = true;
         }
 
         return index.get(dateToNumber(value));

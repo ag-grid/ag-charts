@@ -43,8 +43,6 @@ const {
     PointerEvents,
     Group,
     BBox,
-    ContinuousScale,
-    DiscreteTimeScale,
     findMinMax,
     getShapeStyle,
     getShapeFill,
@@ -149,9 +147,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || DiscreteTimeScale.is(xAxis.scale))) {
-            return;
-        }
+        if (xAxis == null) return;
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
@@ -160,7 +156,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return aggregateData(xValues, yHighValues, yLowValues, domain);
+        return aggregateData(xAxis.scale, xValues, yHighValues, yLowValues, domain);
     }
 
     override xCoordinateRange(xValue: any): [number, number] {

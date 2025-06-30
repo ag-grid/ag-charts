@@ -30,7 +30,6 @@ const {
     visibleRangeIndices,
     createDatumId,
     ContinuousScale,
-    DiscreteTimeScale,
     Rect,
     PointerEvents,
     motion,
@@ -180,9 +179,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         if (processedData.type !== 'grouped') return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || DiscreteTimeScale.is(xAxis.scale))) {
-            return;
-        }
+        if (xAxis == null) return;
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
@@ -191,7 +188,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return aggregateRangeBarData(xValues, yHighValues, yLowValues, domain);
+        return aggregateRangeBarData(xAxis.scale, xValues, yHighValues, yLowValues, domain);
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {

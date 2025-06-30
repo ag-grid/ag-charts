@@ -151,7 +151,7 @@ export class MapLineSeries extends TopologySeries<
                     includeProperty: false,
                     processor: () => (datum) => featureById.get(datum as string),
                 }),
-                ...(labelKey != null ? [valueProperty(labelKey, 'band', { id: 'labelValue' })] : []),
+                ...(labelKey != null ? [valueProperty(labelKey, 'category', { id: 'labelValue' })] : []),
                 ...(sizeKey != null ? [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })] : []),
                 ...(colorKey != null ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
             ],

@@ -164,7 +164,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     id: `yPrevious`,
                 }),
                 valueProperty(yKey, yScaleType, { id: `yRaw` }), // Raw value pass-through.
-                valueProperty('totalType', 'band', {
+                valueProperty('totalType', 'category', {
                     id: `totalTypeValue`,
                     missingValue: undefined,
                     validation: totalTypeValue,

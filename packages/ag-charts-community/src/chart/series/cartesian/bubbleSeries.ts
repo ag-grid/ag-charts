@@ -128,7 +128,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                     ? [valueProperty(sizeFilterKey, sizeScaleType, { id: `sizeFilterValue` })]
                     : []),
                 ...(sizeKey ? [valueProperty(sizeKey, sizeScaleType, { id: `sizeValue` })] : []),
-                ...(labelKey ? [valueProperty(labelKey, 'band', { id: `labelValue` })] : []),
+                ...(labelKey ? [valueProperty(labelKey, 'category', { id: `labelValue` })] : []),
             ],
         });
 
