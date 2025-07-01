@@ -1,15 +1,15 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-import {
-    Y_MAX,
-    Y_MIN,
+const {
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
     aggregationDomain,
     aggregationIndexForXRatio,
+    aggregationRangeFittingPoints,
+    aggregationXRatioForXValue,
     compactAggregationIndices,
     createAggregationIndices,
-    maxRangeFittingPoints,
-    xRatioForXValue,
-} from '../../utils/aggregation';
+} = _ModuleSupport;
 
 const AGGREGATION_THRESHOLD = 1e3;
 
@@ -30,10 +30,10 @@ function aggregationContainsTopIndex(
     const xValue = xValues[datumIndex];
     if (xValue == null) return false;
 
-    const xRatio = xRatioForXValue(xValue, d0, d1);
+    const xRatio = aggregationXRatioForXValue(xValue, d0, d1);
     const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
 
-    return datumIndex === indexData[aggIndex + Y_MAX];
+    return datumIndex === indexData[aggIndex + AGGREGATION_INDEX_Y_MAX];
 }
 
 function aggregationContainsBottomIndex(
@@ -47,10 +47,10 @@ function aggregationContainsBottomIndex(
     const xValue = xValues[datumIndex];
     if (xValue == null) return false;
 
-    const xRatio = xRatioForXValue(xValue, d0, d1);
+    const xRatio = aggregationXRatioForXValue(xValue, d0, d1);
     const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
 
-    return datumIndex === indexData[aggIndex + Y_MIN];
+    return datumIndex === indexData[aggIndex + AGGREGATION_INDEX_Y_MIN];
 }
 
 export function aggregateData(
@@ -64,7 +64,7 @@ export function aggregateData(
 
     const [d0, d1] = aggregationDomain(scale, domain);
 
-    let maxRange = maxRangeFittingPoints(xValues);
+    let maxRange = aggregationRangeFittingPoints(xValues);
     const { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange);
 
     let topIndices: number[] = [];

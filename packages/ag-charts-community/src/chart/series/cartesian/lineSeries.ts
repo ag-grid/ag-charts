@@ -21,7 +21,7 @@ import { extent } from '../../../util/extent';
 import { mergeDefaults } from '../../../util/object';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import type { DataModel, DataModelOptions, DatumPropertyDefinition, UngroupedData } from '../../data/dataModel';
+import type { DataModel, DataModelOptions, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import {
     animationValidation,
@@ -46,6 +46,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import { aggregateLineData } from './lineAggregation';
 import { LineSeriesProperties } from './lineSeriesProperties';
 import {
     type LineNodeDatum,
@@ -208,7 +209,7 @@ export class LineSeries extends CartesianSeries<
             groupByData: !stacked,
         });
 
-        this.dataAggregationFilters = this.aggregateData(dataModel, processedData as any as UngroupedData<any>);
+        this.dataAggregationFilters = this.aggregateData(dataModel, processedData);
 
         this.animationState.transition('updateData');
     }
@@ -260,11 +261,18 @@ export class LineSeries extends CartesianSeries<
         return this.countVisibleItems('xValue', [yKey], xVisibleRange, yVisibleRange, minVisibleItems);
     }
 
-    protected aggregateData(
-        _dataModel: DataModel<any, any, any>,
-        _processedData: UngroupedData<any>
-    ): LineSeriesDataAggregationFilter[] | undefined {
-        return;
+    private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>) {
+        if (processedData.type === 'grouped') return;
+
+        const xAxis = this.axes[ChartAxisDirection.X];
+        if (xAxis == null) return;
+
+        const { scale } = xAxis;
+        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
+        const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
+
+        return aggregateLineData(scale, xValues, yValues, domain);
     }
 
     override createNodeData() {

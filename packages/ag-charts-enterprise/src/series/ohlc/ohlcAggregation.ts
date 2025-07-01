@@ -1,24 +1,24 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-import {
-    SPAN,
-    X_MAX,
-    X_MIN,
-    Y_MAX,
-    Y_MIN,
+const {
+    AGGREGATION_SPAN,
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
     aggregationDomain,
+    aggregationRangeFittingPoints,
     compactAggregationIndices,
     createAggregationIndices,
-    maxRangeFittingPoints,
-} from '../../utils/aggregation';
+} = _ModuleSupport;
 
 const AGGREGATION_THRESHOLD = 1e3;
 
-export const OPEN = X_MIN;
-export const HIGH = Y_MAX;
-export const LOW = Y_MIN;
-export const CLOSE = X_MAX;
-export { SPAN };
+export const OPEN = AGGREGATION_INDEX_X_MIN;
+export const HIGH = AGGREGATION_INDEX_Y_MAX;
+export const LOW = AGGREGATION_INDEX_Y_MIN;
+export const CLOSE = AGGREGATION_INDEX_X_MAX;
+export { AGGREGATION_SPAN as SPAN };
 
 export interface OhlcSeriesDataAggregationFilter {
     indexData: Int32Array;
@@ -36,7 +36,7 @@ export function aggregateOhlcData(
 
     const [d0, d1] = aggregationDomain(scale, domain);
 
-    let maxRange = maxRangeFittingPoints(xValues);
+    let maxRange = aggregationRangeFittingPoints(xValues);
     let { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange);
 
     const filters: OhlcSeriesDataAggregationFilter[] = [{ maxRange, indexData }];

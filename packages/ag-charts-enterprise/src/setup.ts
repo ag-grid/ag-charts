@@ -25,14 +25,12 @@ import { GradientLegendModule } from './gradient-legend/gradientLegendModule';
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
 import { AllEnterpriseModules } from './main-modules';
-import { BarModule } from './series/bar/barModule';
 import { BoxPlotModule } from './series/box-plot/main';
 import { CandlestickModule } from './series/candlestick/main';
 import { ChordModule } from './series/chord/main';
 import { ConeFunnelModule } from './series/cone-funnel/coneFunnelModule';
 import { FunnelModule } from './series/funnel/funnelModule';
 import { HeatmapModule } from './series/heatmap/main';
-import { LineModule } from './series/line/lineModule';
 import { LinearGaugeModule } from './series/linear-gauge/main';
 import { MapLineBackgroundModule } from './series/map-line-background/main';
 import { MapLineModule } from './series/map-line/main';
@@ -65,7 +63,6 @@ export function setupEnterpriseModules() {
         AnimationModule,
         AnnotationsModule,
         BackgroundModule,
-        BarModule,
         ForegroundModule,
         BoxPlotModule,
         CandlestickModule,
@@ -80,7 +77,6 @@ export function setupEnterpriseModules() {
         DataSourceModule,
         ErrorBarsModule,
         LinearGaugeModule,
-        LineModule,
         MapLineModule,
         MapLineBackgroundModule,
         MapMarkerModule,

@@ -39,6 +39,15 @@ import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { applyShapeStyle, getShapeStyle } from '../shapeUtil';
 import { datumStylerProperties } from '../util';
 import { AbstractBarSeries, type AbstractBarSeriesAnimationData } from './abstractBarSeries';
+import {
+    BAR_SPAN,
+    BAR_X_MAX,
+    BAR_X_MIN,
+    BAR_Y_MAX,
+    BAR_Y_MIN,
+    type BarSeriesDataAggregationFilter,
+    aggregateBarData,
+} from './barAggregation';
 import { BarSeriesProperties } from './barSeriesProperties';
 import {
     checkCrisp,
@@ -82,28 +91,6 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
 }
 
 type BarAnimationData = AbstractBarSeriesAnimationData<BarShape, BarNodeDatum>;
-
-// Get TS to check these values - but it's faster for the engine to use explicit constants
-export interface BarSeriesAggregationIndexes {
-    xMin: 0;
-    xMax: 1;
-    yMin: 2;
-    yMax: 3;
-    span: 4;
-}
-
-const X_MIN: BarSeriesAggregationIndexes['xMin'] = 0;
-const X_MAX: BarSeriesAggregationIndexes['xMax'] = 1;
-const Y_MIN: BarSeriesAggregationIndexes['yMin'] = 2;
-const Y_MAX: BarSeriesAggregationIndexes['yMax'] = 3;
-const SPAN: BarSeriesAggregationIndexes['span'] = 4;
-
-export interface BarSeriesDataAggregationFilter {
-    maxRange: number;
-    indexData: Int32Array;
-    indices: number[];
-    indexes: BarSeriesAggregationIndexes;
-}
 
 export class BarSeries extends AbstractBarSeries<
     BarShape<BarNodeDatum>,
@@ -297,11 +284,19 @@ export class BarSeries extends AbstractBarSeries<
         return this.countVisibleItems('xValue', [yKey], xVisibleRange, yVisibleRange, minVisibleItems);
     }
 
-    protected aggregateData(
-        _dataModel: DataModel<any, any, any>,
-        _processedData: ProcessedData<any>
-    ): BarSeriesDataAggregationFilter[] | undefined {
-        return;
+    private aggregateData(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
+        if (processedData?.type !== 'ungrouped') return;
+
+        const xAxis = this.axes[ChartAxisDirection.X];
+        if (xAxis == null) return;
+
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValue-raw`, processedData);
+
+        const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
+        const domain = processedData.domain.keys[index];
+
+        return aggregateBarData(xAxis.scale, xValues, yValues, domain);
     }
 
     createNodeData() {
@@ -587,11 +582,11 @@ export class BarSeries extends AbstractBarSeries<
             const [start, end] = this.visibleRange('xValue', xAxis.range, indices);
 
             for (let i = start; i < end; i += 1) {
-                const aggIndex = i * SPAN;
-                const xMinIndex = indexData[aggIndex + X_MIN];
-                const xMaxIndex = indexData[aggIndex + X_MAX];
-                const yMinIndex = indexData[aggIndex + Y_MIN];
-                const yMaxIndex = indexData[aggIndex + Y_MAX];
+                const aggIndex = i * BAR_SPAN;
+                const xMinIndex = indexData[aggIndex + BAR_X_MIN];
+                const xMaxIndex = indexData[aggIndex + BAR_X_MAX];
+                const yMinIndex = indexData[aggIndex + BAR_Y_MIN];
+                const yMaxIndex = indexData[aggIndex + BAR_Y_MAX];
 
                 if (xMinIndex === -1) continue;
 
@@ -602,12 +597,12 @@ export class BarSeries extends AbstractBarSeries<
                 const yEndMin = xValues[yMinIndex] != null ? Number(yRawValues[yMinIndex]) : NaN;
 
                 if (yEndMax > 0) {
-                    const featherRatioY = yEndMin >= 0 ? 1 - yEndMin / yEndMax : 0;
+                    const featherRatioY = yEndMin >= 0 ? 1 - yEndMin / yEndMax : 1;
                     handleDatum(yMaxIndex, 0, x, width, 0, yEndMax, yEndMax, featherRatioY, 1);
                 }
 
                 if (yEndMin < 0) {
-                    const featherRatioY = yEndMax <= 0 ? yEndMax / yEndMin - 1 : 0;
+                    const featherRatioY = yEndMax <= 0 ? yEndMax / yEndMin - 1 : -1;
                     handleDatum(yMinIndex, 1, x, width, 0, yEndMin, yEndMin, featherRatioY, 1);
                 }
             }
