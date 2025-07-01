@@ -49,7 +49,7 @@ export class LegendDOMProxy {
     private dirty = true;
 
     private readonly itemList: ListWidget;
-    private readonly itemDescription: StrictHTMLElement<HTMLParagraphElement>;
+    private readonly itemDescription: HTMLParagraphElement & StrictHTMLElement;
     private readonly paginationGroup: GroupWidget;
     private prevButton?: ButtonWidget;
     private nextButton?: ButtonWidget;
