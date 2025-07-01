@@ -13,6 +13,7 @@ import { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
+import { BarShape } from '../../../scene/shape/barShape';
 import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -39,7 +40,6 @@ import { applyShapeStyle, getShapeStyle } from '../shapeUtil';
 import { datumStylerProperties } from '../util';
 import { AbstractBarSeries, type AbstractBarSeriesAnimationData } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
-import { BarShape } from './barShape';
 import {
     checkCrisp,
     collapsedStartingBarPosition,

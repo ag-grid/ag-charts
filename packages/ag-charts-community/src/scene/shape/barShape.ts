@@ -1,5 +1,5 @@
-import { SceneChangeDetection } from '../../../scene/node';
-import { Rect } from '../../../scene/shape/rect';
+import { SceneChangeDetection } from '../changeDetectable';
+import { Rect } from './rect';
 
 export class BarShape<D = any> extends Rect<D> {
     @SceneChangeDetection()
