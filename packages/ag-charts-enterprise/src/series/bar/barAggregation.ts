@@ -20,8 +20,8 @@ const indexes: _ModuleSupport.BarSeriesAggregationIndexes = {
     span: SPAN,
 };
 
-const AGGREGATION_THRESHOLD = 1e3;
-const PRECISION = 5;
+const AGGREGATION_THRESHOLD = 1e2;
+const PRECISION = 1;
 
 function getIndices(maxRange: number, indexData: Int32Array): number[] {
     return Array.from({ length: maxRange }, (_, index) => {

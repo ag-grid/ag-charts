@@ -13,7 +13,6 @@ import { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
-import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -40,6 +39,7 @@ import { applyShapeStyle, getShapeStyle } from '../shapeUtil';
 import { datumStylerProperties } from '../util';
 import { AbstractBarSeries, type AbstractBarSeriesAnimationData } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
+import { BarShape } from './barShape';
 import {
     checkCrisp,
     collapsedStartingBarPosition,
@@ -75,12 +75,13 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly topRightCornerRadius: boolean;
     readonly bottomRightCornerRadius: boolean;
     readonly bottomLeftCornerRadius: boolean;
+    readonly featherRatioY: number;
     readonly clipBBox: BBox | undefined;
     readonly crisp: boolean;
     readonly label?: BarNodeLabelDatum;
 }
 
-type BarAnimationData = AbstractBarSeriesAnimationData<Rect, BarNodeDatum>;
+type BarAnimationData = AbstractBarSeriesAnimationData<BarShape, BarNodeDatum>;
 
 // Get TS to check these values - but it's faster for the engine to use explicit constants
 export interface BarSeriesAggregationIndexes {
@@ -104,7 +105,12 @@ export interface BarSeriesDataAggregationFilter {
     indexes: BarSeriesAggregationIndexes;
 }
 
-export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesProperties, BarNodeDatum, BarNodeDatum> {
+export class BarSeries extends AbstractBarSeries<
+    BarShape<BarNodeDatum>,
+    BarSeriesProperties,
+    BarNodeDatum,
+    BarNodeDatum
+> {
     static readonly className = 'BarSeries';
     static readonly type = 'bar' as const;
 
@@ -350,6 +356,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
             yRange,
             labelText,
             opacity,
+            featherRatioY,
             crossScale = 1,
         }: {
             datum: any;
@@ -367,6 +374,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
             yRange: number;
             labelText: string | undefined;
             opacity: number;
+            featherRatioY: number;
             crossScale: number | undefined;
         }): BarNodeDatum => {
             const isUpward = isPositive !== yReversed;
@@ -417,6 +425,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
                 height: barRect.height,
                 midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
                 opacity,
+                featherRatioY,
                 topLeftCornerRadius: barAlongX !== isUpward,
                 topRightCornerRadius: isUpward,
                 bottomRightCornerRadius: barAlongX === isUpward,
@@ -453,6 +462,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
             yStart: number,
             yEnd: number,
             yRange: number,
+            featherRatioY: number,
             opacity: number
         ) => {
             const xValue = xValues[datumIndex];
@@ -498,6 +508,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
                 yRange: Math.max(yStart + (yFilterValue ?? -Infinity), yRange),
                 labelText,
                 opacity,
+                featherRatioY,
                 crossScale: inset ? 0.6 : undefined,
             });
             nodes.push(nodeData);
@@ -520,6 +531,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
                     yRange,
                     labelText: undefined,
                     opacity,
+                    featherRatioY,
                     crossScale: undefined,
                 });
                 phantomNodes.push(phantomNodeData);
@@ -554,7 +566,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
                     yRange = aggregation[yRangeIndex][isPositive ? 1 : 0];
                 }
 
-                handleDatum(datumIndex, valueIndex, x, width, yStart, yEnd, yRange, 1);
+                handleDatum(datumIndex, valueIndex, x, width, yStart, yEnd, yRange, 0, 1);
             }
         } else if (dataAggregationFilter == null) {
             const width = barWidth;
@@ -569,7 +581,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
                 const x = xPosition(datumIndex);
                 const yEnd = Number(yRawValues[datumIndex]);
 
-                handleDatum(datumIndex, 0, x, width, 0, yEnd, yEnd, 1);
+                handleDatum(datumIndex, 0, x, width, 0, yEnd, yEnd, 0, 1);
             }
         } else {
             const { indexData, indices } = dataAggregationFilter;
@@ -591,13 +603,13 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
                 const yEndMin = xValues[yMinIndex] != null ? Number(yRawValues[yMinIndex]) : NaN;
 
                 if (yEndMax > 0) {
-                    const opacity = yEndMin >= 0 ? yEndMin / yEndMax : 1;
-                    handleDatum(yMaxIndex, 0, x, width, 0, yEndMax, yEndMax, opacity);
+                    const featherRatioY = yEndMin >= 0 ? 1 - yEndMin / yEndMax : 0;
+                    handleDatum(yMaxIndex, 0, x, width, 0, yEndMax, yEndMax, featherRatioY, 1);
                 }
 
                 if (yEndMin < 0) {
-                    const opacity = yEndMax <= 0 ? yEndMax / yEndMin : 1;
-                    handleDatum(yMinIndex, 1, x, width, 0, yEndMin, yEndMin, opacity);
+                    const featherRatioY = yEndMax <= 0 ? yEndMax / yEndMin - 1 : 0;
+                    handleDatum(yMinIndex, 1, x, width, 0, yEndMin, yEndMin, featherRatioY, 1);
                 }
             }
         }
@@ -613,7 +625,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
     }
 
     protected nodeFactory() {
-        return new Rect();
+        return new BarShape();
     }
 
     protected override getHighlightData(
@@ -628,7 +640,7 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
 
     protected override updateDatumSelection(opts: {
         nodeData: BarNodeDatum[];
-        datumSelection: Selection<Rect, BarNodeDatum>;
+        datumSelection: Selection<BarShape, BarNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
@@ -689,7 +701,10 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
         return getShapeStyle(overrides, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
     }
 
-    protected override updateDatumNodes(opts: { datumSelection: Selection<Rect, BarNodeDatum>; isHighlight: boolean }) {
+    protected override updateDatumNodes(opts: {
+        datumSelection: Selection<BarShape, BarNodeDatum>;
+        isHighlight: boolean;
+    }) {
         const { shadow } = this.properties;
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const fillBBox = this.getShapeFillBBox();
@@ -717,6 +732,8 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
             rect.visible = categoryAlongX
                 ? (datum.clipBBox?.width ?? datum.width) > 0
                 : (datum.clipBBox?.height ?? datum.height) > 0;
+
+            rect.featherRatioY = datum.featherRatioY;
 
             rect.crisp = datum.crisp;
             rect.fillShadow = shadow;
