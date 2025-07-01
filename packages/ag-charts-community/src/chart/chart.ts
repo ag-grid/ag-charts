@@ -326,6 +326,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             container,
             styleContainer,
             domMode: options.optionMetadata.domMode,
+            withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
             syncManager: new SyncManager(this),
             fireEvent: (event) => this.fireEvent(event),
             updateCallback: (type, opts) => this.update(type, opts),

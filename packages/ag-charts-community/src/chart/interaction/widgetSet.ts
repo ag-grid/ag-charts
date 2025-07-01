@@ -22,13 +22,18 @@ export class WidgetSet {
     readonly containerWidget: Widget;
     readonly seriesDragInterpreter?: DragInterpreter;
 
-    constructor(domManager: DOMManager) {
+    constructor(domManager: DOMManager, opts: { withDragInterpretation: boolean }) {
         this.seriesWidget = new DOMManagerWidget(domManager.getParent('series-area'));
         this.chartWidget = new DOMManagerWidget(domManager.getParent('canvas-proxy'));
         this.containerWidget = new DOMManagerWidget(domManager.getParent('canvas-container'));
         this.containerWidget.addChild(this.chartWidget);
         this.chartWidget.addChild(this.seriesWidget);
-        this.seriesDragInterpreter = new DragInterpreter(this.seriesWidget);
+
+        if (opts.withDragInterpretation) {
+            this.seriesDragInterpreter = new DragInterpreter(this.seriesWidget);
+        } else {
+            this.seriesDragInterpreter = undefined;
+        }
     }
 
     destroy(): void {
