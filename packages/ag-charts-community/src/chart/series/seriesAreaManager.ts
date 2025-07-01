@@ -203,9 +203,6 @@ export class SeriesAreaManager extends BaseManager {
             seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
             seriesWidget.addListener('keydown', (event) => this.onKeyDown(event)),
             seriesWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
-            seriesDragInterpreter.events.on('drag-move', (event) => this.onDragMove(event, seriesWidget)),
-            seriesDragInterpreter.events.on('click', (event) => this.onClick(event, seriesWidget)),
-            seriesDragInterpreter.events.on('dblclick', (event) => this.onClick(event, seriesWidget)),
             containerWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
             containerWidget.addListener('click', (event, current) => this.onClick(event, current)),
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
@@ -218,6 +215,13 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.eventsHub.on('zoom:change', () => this.clearAll()),
             chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll())
         );
+        if (seriesDragInterpreter) {
+            this.cleanup.register(
+                seriesDragInterpreter.events.on('drag-move', (event) => this.onDragMove(event, seriesWidget)),
+                seriesDragInterpreter.events.on('click', (event) => this.onClick(event, seriesWidget)),
+                seriesDragInterpreter.events.on('dblclick', (event) => this.onClick(event, seriesWidget))
+            );
+        }
     }
 
     private isState(allowedStates: InteractionState) {

@@ -205,13 +205,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             },
         });
 
+        if (ctx.widgets.seriesDragInterpreter) {
+            this.cleanup.register(
+                ctx.widgets.seriesDragInterpreter.events.on('dblclick', (event) => this.onDoubleClick(event)),
+                ctx.widgets.seriesDragInterpreter.events.on('drag-move', (event) => this.onDragMove(event)),
+                ctx.widgets.seriesDragInterpreter.events.on('drag-start', (event) => this.onDragStart(event)),
+                ctx.widgets.seriesDragInterpreter.events.on('drag-end', () => this.onDragEnd())
+            );
+        }
         this.cleanup.register(
             ctx.scene.attachNode(selectionRect),
             ctx.eventsHub.on('series:keynav-zoom', (event) => this.onNavZoom(event)),
-            ctx.widgets.seriesDragInterpreter.events.on('dblclick', (event) => this.onDoubleClick(event)),
-            ctx.widgets.seriesDragInterpreter.events.on('drag-move', (event) => this.onDragMove(event)),
-            ctx.widgets.seriesDragInterpreter.events.on('drag-start', (event) => this.onDragStart(event)),
-            ctx.widgets.seriesDragInterpreter.events.on('drag-end', () => this.onDragEnd()),
             ctx.widgets.seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
             ctx.widgets.seriesWidget.addListener('touchstart', (event, current) => this.onTouchStart(event, current)),
             ctx.widgets.seriesWidget.addListener('touchmove', (event, current) => this.onTouchMove(event, current)),
