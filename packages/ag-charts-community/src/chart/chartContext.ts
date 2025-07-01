@@ -84,7 +84,7 @@ export class ChartContext implements ModuleContext {
             container?: HTMLElement;
             styleContainer?: HTMLElement;
             domMode?: 'normal' | 'minimal';
-            withDragInterpretation: boolean,
+            withDragInterpretation: boolean;
             fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
             updateCallback: UpdateCallback;
             updateMutex: Mutex;
@@ -107,7 +107,7 @@ export class ChartContext implements ModuleContext {
         this.chartService = chart;
         this.syncManager = syncManager;
         this.domManager = new DOMManager(this.eventsHub, this.chartService, container, styleContainer, domMode);
-        this.widgets = new WidgetSet(this.domManager, { withDragInterpretation});
+        this.widgets = new WidgetSet(this.domManager, { withDragInterpretation });
 
         // Sets canvas element if scene exists, otherwise use return value with scene constructor
         const canvasElement = this.domManager.addChild(
