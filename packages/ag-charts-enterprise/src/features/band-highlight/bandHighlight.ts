@@ -85,9 +85,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
         this.cleanup.register(
             ctx.scene.attachNode(this.bandHighlightGroup),
             seriesWidget.addListener('mousemove', (event) => this.onHoverLikeEvent(event)),
-            seriesWidget.addListener('drag-move', (event) => this.onHoverLikeEvent(event)),
             seriesWidget.addListener('mouseleave', () => this.clearAllHighlight()),
-            seriesDragInterpreter.events.on('click', (event) => this.onClick(event)),
             animationManager.addListener('animation-start', () => this.clearAllHighlight()),
 
             eventsHub.on('layout:complete', (event) => this.layout(event)),
@@ -97,6 +95,13 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
             eventsHub.on('dom:resize', () => this.clearAllHighlight()),
             eventsHub.on('axis:change', () => this.axisChange())
         );
+
+        if (seriesDragInterpreter) {
+            this.cleanup.register(
+                seriesDragInterpreter.events.on('drag-move', (event) => this.onHoverLikeEvent(event)),
+                seriesDragInterpreter.events.on('click', (event) => this.onClick(event))
+            );
+        }
     }
 
     private axisChange() {

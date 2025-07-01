@@ -20,7 +20,7 @@ export class WidgetSet {
     readonly seriesWidget: Widget;
     readonly chartWidget: Widget;
     readonly containerWidget: Widget;
-    readonly seriesDragInterpreter: DragInterpreter;
+    readonly seriesDragInterpreter?: DragInterpreter;
 
     constructor(domManager: DOMManager) {
         this.seriesWidget = new DOMManagerWidget(domManager.getParent('series-area'));
@@ -32,7 +32,7 @@ export class WidgetSet {
     }
 
     destroy(): void {
-        this.seriesDragInterpreter.destroy();
+        this.seriesDragInterpreter?.destroy();
         this.seriesWidget.destroy();
         this.chartWidget.destroy();
         this.containerWidget.destroy();
