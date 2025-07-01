@@ -103,7 +103,6 @@ type TickStrategy<D = any> = (params: TickStrategyParams<D>) => TickStrategyResu
 enum TickGenerationType {
     CREATE,
     CREATE_SECONDARY,
-    // FILTER,
     VALUES,
 }
 
@@ -412,7 +411,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     ): TickStrategyResult {
         // Find the next tick data where the tick data is different from the previous tick data - and return the index of this data
         const { interval } = this.axis;
-        // const { scale, interval } = this.axis;
         const { step, values, minSpacing, maxSpacing } = interval;
         const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount(
             range,
@@ -422,21 +420,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             maxSpacing
         );
 
-        // const continuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
-        // const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
-
-        // const countTicks = (i: number) => (continuous ? Math.max(tickCount - i, minTickCount) : maxTickCount);
-
         const maxIterations = tickCount - minTickCount;
         const countTicks = (i: number) => Math.max(tickCount - i, minTickCount);
 
         const previousTicks = tickData.rawTicks;
-
-        // const regenerateTicks =
-        //     step == null &&
-        //     values == null &&
-        //     countTicks(index) > minTickCount &&
-        //     (continuous || tickGenerationType === TickGenerationType.FILTER);
 
         const regenerateTicks = step == null && values == null && countTicks(index) > minTickCount;
 
@@ -448,7 +435,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             visibleRange,
             primaryTickCount,
             tickGenerationType,
-            previousTicks,
             minTickCount,
             maxTickCount,
             tickCount: 0,
@@ -629,7 +615,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         niceMode,
         visibleRange,
         tickGenerationType,
-        // previousTicks,
         tickCount,
         minTickCount,
         maxTickCount,
@@ -643,7 +628,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         visibleRange: [number, number];
         tickGenerationType: TickGenerationType;
         primaryTickCount: AxisPrimaryTickCount | undefined;
-        previousTicks: TickDatum[];
         tickCount: number;
         minTickCount: number;
         maxTickCount: number;
@@ -719,11 +703,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     rawTickCount = tickGeneration?.count;
                 }
                 break;
-
-            // case TickGenerationType.FILTER:
-            //     rawTicks = this.filterTicks(previousTicks, tickCount);
-            //     rawTickCount = undefined; // AG-10654 Filter ticks is only done for category axes, so we can ignore this
-            //     break;
 
             default: {
                 if (
