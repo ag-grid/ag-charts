@@ -36,6 +36,7 @@ interface Props {
     hasExampleConsoleLog?: boolean;
     consoleBufferSize?: number;
     footerChildren?: ReactElement;
+    initialLoadDeferred?: boolean;
 }
 
 const DEFAULT_HEIGHT = 500;
@@ -60,7 +61,9 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     hasExampleConsoleLog,
     consoleBufferSize,
     footerChildren,
+    initialLoadDeferred = false,
 }) => {
+    const [deferred, setDeferred] = useState(initialLoadDeferred);
     const [showCode, setShowCode] = useState(initialShowCode);
     const hideFooter = !hideCode && !hideExternalLinks && !footerChildren;
     const showExampleDevToolbar = useStoreSsr($exampleDevToolbar, false);
@@ -77,12 +80,27 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                     aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
                     style={{ height: Math.max(exampleHeight, MIN_HEIGHT) }}
                 >
-                    <ExampleIFrame
-                        title={title}
-                        isHidden={showCode}
-                        url={exampleRunnerExampleUrl}
-                        loadingIFrameId={loadingIFrameId}
-                    />
+                    {deferred ? (
+                        <div style={{ display: 'grid', placeItems: 'center', width: '100%', height: '100%' }}>
+                            <button
+                                style={{
+                                    position: 'relative',
+                                    boxShadow: '0 0 0 2px color(from var(--color-bg-primary) srgb r g b / 0.8)',
+                                    zIndex: 1,
+                                }}
+                                onClick={() => setDeferred(false)}
+                            >
+                                Load
+                            </button>
+                        </div>
+                    ) : (
+                        <ExampleIFrame
+                            title={title}
+                            isHidden={showCode}
+                            url={exampleRunnerExampleUrl}
+                            loadingIFrameId={loadingIFrameId}
+                        />
+                    )}
                     {exampleFiles && !hideCode && (
                         <CodeViewer
                             id={id}

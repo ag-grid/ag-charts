@@ -28,6 +28,7 @@ interface Props {
     hideCode?: boolean;
     hideExternalLinks?: boolean;
     hasExampleConsoleLog?: boolean;
+    initialLoadDeferred?: boolean;
 }
 
 // NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
@@ -51,6 +52,7 @@ const DocsExampleRunnerInner = ({
     hideCode,
     hideExternalLinks,
     hasExampleConsoleLog,
+    initialLoadDeferred,
 }: Props) => {
     const storeInternalFramework = useStore($internalFramework);
     const internalFramework = internalFrameworkOverride ?? storeInternalFramework;
@@ -197,6 +199,7 @@ const DocsExampleRunnerInner = ({
             hideExternalLinks={hideExternalLinks}
             hasExampleConsoleLog={hasExampleConsoleLog}
             consoleBufferSize={options?.consoleBufferSize}
+            initialLoadDeferred={initialLoadDeferred}
         />
     );
 };
