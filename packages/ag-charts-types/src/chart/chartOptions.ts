@@ -275,7 +275,7 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     /** Configuration for the zoom options. */
     zoom?: AgZoomOptions;
     /** Global formatter configuration. */
-    formatter?: FormatterConfiguration<TDatum>;
+    formatter?: FormatterConfiguration<TDatum, TContext>;
 }
 
 /** Configuration common to all charts.  */

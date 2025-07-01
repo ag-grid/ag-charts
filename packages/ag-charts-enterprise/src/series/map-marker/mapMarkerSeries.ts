@@ -98,7 +98,7 @@ export class MapMarkerSeries
         false
     );
     private highlightMarkerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> =
-        Selection.select(this.highlightNode, Marker);
+        Selection.select(this.highlightGroup, Marker);
 
     private contextNodeData?: MapMarkerNodeDataContext;
 
@@ -227,7 +227,7 @@ export class MapMarkerSeries
                           valueProperty(longitudeKey, mercatorScaleType, { id: 'lonValue' }),
                       ]
                     : []),
-                ...(labelKey ? [valueProperty(labelKey, 'band', { id: 'labelValue' })] : []),
+                ...(labelKey ? [valueProperty(labelKey, 'category', { id: 'labelValue' })] : []),
                 ...(sizeKey ? [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })] : []),
                 ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
             ],

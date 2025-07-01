@@ -7,7 +7,7 @@ export interface AgRadarAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
     extends FillOptions,
         AgRadarSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
 export interface AgRadarAreaSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

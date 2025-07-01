@@ -1,6 +1,6 @@
 import type { AgTimeInterval } from 'ag-charts-types';
 
-export type ScaleType = 'number' | 'log' | 'time' | 'unit-time' | 'ordinal-time' | 'band' | 'mercator' | 'color';
+export type ScaleType = 'number' | 'log' | 'time' | 'unit-time' | 'ordinal-time' | 'category' | 'mercator' | 'color';
 
 export interface ScaleTickParams<I> {
     nice: boolean;

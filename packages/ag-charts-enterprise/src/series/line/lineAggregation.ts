@@ -11,6 +11,7 @@ import {
     createAggregationIndices,
     maxRangeFittingPoints,
     xRatioForDatumIndex,
+    xRatioForXValue,
 } from '../../utils/aggregation';
 
 const AGGREGATION_THRESHOLD = 1e3;
@@ -27,7 +28,9 @@ function aggregationContainsIndex(
     const xValue = xValues[datumIndex];
     if (xValue == null) return false;
 
-    const xRatio = xRatioForDatumIndex(xValue, d0, d1);
+    const xRatio = Number.isFinite(d0)
+        ? xRatioForXValue(xValue, d0, d1)
+        : xRatioForDatumIndex(datumIndex, xValues.length);
     const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
 
     return (
@@ -39,15 +42,17 @@ function aggregationContainsIndex(
 }
 
 export function aggregateLineData(
+    scale: _ModuleSupport.Scale<unknown, number>,
     xValues: any[],
     yValues: any[],
-    domain: number[]
+    domain: any[]
 ): _ModuleSupport.LineSeriesDataAggregationFilter[] | undefined {
     if (xValues.length < AGGREGATION_THRESHOLD) return;
 
-    const [d0, d1] = aggregationDomain(domain);
+    const [d0, d1] = aggregationDomain(scale, domain);
 
     let maxRange = maxRangeFittingPoints(xValues, MAX_POINTS);
+
     const { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange);
 
     let indices: number[] = [];

@@ -88,7 +88,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     private stageLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum> =
         Selection.select(this.stageLabelGroup, Text);
     private highlightDatumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum> = Selection.select(
-        this.highlightNode,
+        this.highlightGroup,
         () => this.nodeFactory()
     );
 
@@ -156,7 +156,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const { stageKey, valueKey } = this.properties;
 
-        const xScaleType = 'band';
+        const xScaleType = 'category';
         const yScaleType = 'number';
 
         const validation = (_value: unknown, _datum: unknown, index: number) =>

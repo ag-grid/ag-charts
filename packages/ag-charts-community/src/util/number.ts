@@ -21,3 +21,17 @@ export function findRangeExtent(array: number[]) {
     const [min, max] = findMinMax(array);
     return max - min;
 }
+
+export function nextPowerOf2(value: number) {
+    value = value | 0;
+    if (value <= 0) return 1;
+    if (value === 1) return 2;
+    return 1 << (32 - Math.clz32(value - 1));
+}
+
+export function previousPowerOf2(value: number) {
+    value = value | 0;
+    if (value <= 0) return 0;
+    if (value === 1) return 1;
+    return 1 << (31 - Math.clz32(value));
+}

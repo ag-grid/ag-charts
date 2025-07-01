@@ -62,7 +62,7 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContex
     /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgRangeBarHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgRangeBarHighlightStyleOptions, AgRangeBarHighlightStyleOptions>;
     /** Whether to group together (adjacently) separate bars. */
     grouped?: boolean;
 }

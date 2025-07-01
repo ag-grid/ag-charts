@@ -86,7 +86,7 @@ export interface AgBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgBarHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgBarHighlightStyleOptions, AgBarHighlightStyleOptions>;
 }
 
 export interface AgBarHighlightStyleOptions extends AgBarSeriesStyle {

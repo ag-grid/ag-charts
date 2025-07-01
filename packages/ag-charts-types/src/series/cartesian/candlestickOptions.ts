@@ -50,7 +50,7 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum = DatumDefault, TCon
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<TDatum, TContext>, AgCandlestickSeriesItemOptions>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgCandlestickHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgCandlestickHighlightStyleOptions, AgCandlestickHighlightStyleOptions>;
 }
 export interface AgCandlestickHighlightStyleOptions extends AgCandlestickSeriesItemOptions {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */

@@ -1,3 +1,5 @@
+import type { _ModuleSupport } from 'ag-charts-community';
+
 import {
     SPAN,
     X_MAX,
@@ -24,6 +26,7 @@ export interface OhlcSeriesDataAggregationFilter {
 }
 
 export function aggregateOhlcData(
+    scale: _ModuleSupport.Scale<unknown, number>,
     xValues: any[],
     highValues: any[],
     lowValues: any[],
@@ -31,7 +34,7 @@ export function aggregateOhlcData(
 ): OhlcSeriesDataAggregationFilter[] | undefined {
     if (xValues.length < AGGREGATION_THRESHOLD) return;
 
-    const [d0, d1] = aggregationDomain(domain);
+    const [d0, d1] = aggregationDomain(scale, domain);
 
     let maxRange = maxRangeFittingPoints(xValues);
     let { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange);
