@@ -68,6 +68,13 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         const colorInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-input')!;
         const colorInputLabel = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-label')!;
 
+        // Update the 2D-slider to with the new S and V values. By default, announce S first followed by V. If the user
+        // is arrowing up or down, then announce V first because it's more relevant.
+        const updatePaletteInputAriaValue = (first: 's' | 'v') => {
+            const key = ({ s: 'ariaValueColorPalette', v: 'ariaValueColorPaletteFirstV' } as const)[first];
+            paletteInput.ariaValueText = localeManager.t(key, { s, v });
+        }
+
         this.i18nUpdater = () => {
             paletteInput.ariaRoleDescription = localeManager.t('ariaRoleDescription');
             paletteInput.ariaLabel = localeManager.t('ariaLabelColorPickerPalette');
@@ -75,6 +82,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             multiColorButton.ariaLabel = localeManager.t('ariaLabelColorPickerMultiColor');
             alphaInput.ariaLabel = localeManager.t('ariaLabelColorPickerAlpha');
             colorInput.ariaLabel = localeManager.t('ariaLabelColor');
+            updatePaletteInputAriaValue('s');
         };
         this.i18nUpdater();
 
@@ -132,6 +140,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
                 s = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
                 v = 1 - Math.min(Math.max((clientY - rect.top) / rect.height, 0), 1);
                 update();
+                updatePaletteInputAriaValue('s');
             };
             pointerMove(e);
 
@@ -160,17 +169,24 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         paletteInput.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft') {
                 s = clamp(0, s - 0.01, 1);
+                updatePaletteInputAriaValue('s');
             } else if (e.key === 'ArrowRight') {
                 s = clamp(0, s + 0.01, 1);
+                updatePaletteInputAriaValue('s');
             } else if (e.key === 'ArrowUp') {
                 v = clamp(0, v + 0.01, 1);
+                updatePaletteInputAriaValue('v');
             } else if (e.key === 'ArrowDown') {
                 v = clamp(0, v - 0.01, 1);
+                updatePaletteInputAriaValue('v');
             } else {
                 return;
             }
             e.preventDefault();
             update();
+        });
+        paletteInput.addEventListener('focus', () => {
+            updatePaletteInputAriaValue('s');
         });
         multiColorButton.addEventListener('click', () => {
             isMultiColor = !isMultiColor;

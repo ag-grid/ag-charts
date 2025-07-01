@@ -67,6 +67,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelZoomToolbar: 'Zoom',
     // Aria role description for a 2D role="slider"
     ariaRoleDescription: '2D slider',
+    // Screen reader text for color picker's 2D slider palette
+    ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
+    // Screen reader text for color picker's 2D slider palette (when arrowing up or down)
+    ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     // Screen reader text for the value of the navigator's range
     ariaValuePanRange: '${min}[percent0to2dp] to ${max}[percent0to2dp]',
     // Alt-text for the solid line dash style menu item icon
