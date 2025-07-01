@@ -4,7 +4,30 @@ import type { Nullable } from '../interfaces/globalTypes';
 import type { ElementID } from './id';
 import { entries } from './iterators';
 
-export type StrictHTMLElement = HTMLElement & { id: ElementID };
+type TagNameMapIntersect = HTMLElementTagNameMap & SVGElementTagNameMap & MathMLElementTagNameMap;
+type TagNameMap = {
+    [K in keyof TagNameMapIntersect]: TagNameMapIntersect[K] & StrictHTMLElementMixin;
+};
+type DeprecatedTagNameMap = {
+    [K in keyof HTMLElementDeprecatedTagNameMap]: HTMLElementDeprecatedTagNameMap[K] & StrictHTMLElementMixin;
+};
+
+type StrictHTMLElementMixin = {
+    id: ElementID;
+
+    /** @deprecated */
+    querySelector<K extends keyof DeprecatedTagNameMap>(selectors: K): DeprecatedTagNameMap[K] | null;
+    querySelector<K extends keyof TagNameMap>(selectors: K): TagNameMap[K] | null;
+    querySelector<E extends Element = Element>(selectors: string): (E & StrictHTMLElementMixin) | null;
+
+    /** @deprecated */
+    querySelectorAll<K extends keyof DeprecatedTagNameMap>(selectors: K): NodeListOf<DeprecatedTagNameMap[K]>;
+    querySelectorAll<K extends keyof TagNameMap>(selectors: K): NodeListOf<TagNameMap[K]>;
+    querySelectorAll<E extends Element = Element>(selectors: string): NodeListOf<E & StrictHTMLElementMixin>;
+};
+
+export type StrictHTMLElement<T extends HTMLElement = HTMLElement> = StrictHTMLElementMixin &
+    Omit<T, keyof StrictHTMLElementMixin>;
 
 type AriaRole =
     | 'figure'

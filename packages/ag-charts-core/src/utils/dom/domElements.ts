@@ -12,11 +12,11 @@ export function createElement<K extends keyof HTMLElementTagNameMap>(
     tagName: K,
     className?: string,
     style?: Partial<CSSStyleDeclaration>
-): HTMLElementTagNameMap[K] & StrictHTMLElement;
+): StrictHTMLElement<HTMLElementTagNameMap[K]>;
 export function createElement<K extends keyof HTMLElementTagNameMap>(
     tagName: K,
     style?: Partial<CSSStyleDeclaration>
-): HTMLElementTagNameMap[K] & StrictHTMLElement;
+): StrictHTMLElement<HTMLElementTagNameMap[K]>;
 export function createElement<K extends keyof HTMLElementTagNameMap>(
     tagName: K,
     className?: string | Partial<CSSStyleDeclaration>,

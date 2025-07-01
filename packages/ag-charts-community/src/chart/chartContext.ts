@@ -112,7 +112,7 @@ export class ChartContext implements ModuleContext {
             'canvas',
             'scene-canvas',
             scene?.canvas.element
-        ) as HTMLCanvasElement & StrictHTMLElement;
+        ) as StrictHTMLElement<HTMLCanvasElement>;
 
         this.scene = scene ?? new Scene({ canvasElement });
         this.scene.setRoot(root);
