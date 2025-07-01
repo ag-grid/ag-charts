@@ -273,11 +273,11 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, DonutSeriesPrope
 
         // Order here should match `getDatumIdFromData()`.
         if (legendItemKey) {
-            extraKeyProps.push(keyProperty(legendItemKey, 'band', { id: `legendItemKey` }));
+            extraKeyProps.push(keyProperty(legendItemKey, 'category', { id: `legendItemKey` }));
         } else if (calloutLabelKey) {
-            extraKeyProps.push(keyProperty(calloutLabelKey, 'band', { id: `calloutLabelKey` }));
+            extraKeyProps.push(keyProperty(calloutLabelKey, 'category', { id: `calloutLabelKey` }));
         } else if (sectorLabelKey) {
-            extraKeyProps.push(keyProperty(sectorLabelKey, 'band', { id: `sectorLabelKey` }));
+            extraKeyProps.push(keyProperty(sectorLabelKey, 'category', { id: `sectorLabelKey` }));
         }
 
         const radiusScaleType = this.radiusScale.type;
@@ -297,13 +297,13 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, DonutSeriesPrope
             );
         }
         if (calloutLabelKey) {
-            extraProps.push(valueProperty(calloutLabelKey, 'band', { id: `calloutLabelValue` }));
+            extraProps.push(valueProperty(calloutLabelKey, 'category', { id: `calloutLabelValue` }));
         }
         if (sectorLabelKey) {
-            extraProps.push(valueProperty(sectorLabelKey, 'band', { id: `sectorLabelValue` }));
+            extraProps.push(valueProperty(sectorLabelKey, 'category', { id: `sectorLabelValue` }));
         }
         if (legendItemKey) {
-            extraProps.push(valueProperty(legendItemKey, 'band', { id: `legendItemValue` }));
+            extraProps.push(valueProperty(legendItemKey, 'category', { id: `legendItemValue` }));
         }
         if (angleFilterKey) {
             extraProps.push(

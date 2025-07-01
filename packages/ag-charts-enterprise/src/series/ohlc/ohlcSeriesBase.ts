@@ -31,8 +31,6 @@ const {
     animationValidation,
     computeBarFocusBounds,
     visibleRangeIndices,
-    ContinuousScale,
-    DiscreteTimeScale,
     BandScale,
     getShapeStyle,
 } = _ModuleSupport;
@@ -155,9 +153,7 @@ export abstract class OhlcSeriesBase<
         processedData: _ModuleSupport.UngroupedData<any>
     ) {
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || DiscreteTimeScale.is(xAxis.scale))) {
-            return;
-        }
+        if (xAxis == null) return;
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const highValues = dataModel.resolveColumnById(this, `highValue`, processedData);
@@ -166,7 +162,7 @@ export abstract class OhlcSeriesBase<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return aggregateOhlcData(xValues, highValues, lowValues, domain);
+        return aggregateOhlcData(xAxis.scale, xValues, highValues, lowValues, domain);
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
