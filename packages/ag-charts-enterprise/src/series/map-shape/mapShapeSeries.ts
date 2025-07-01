@@ -90,7 +90,7 @@ export class MapShapeSeries
         Text
     );
     private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
-        this.highlightNode,
+        this.highlightGroup,
         () => this.nodeFactory()
     );
 

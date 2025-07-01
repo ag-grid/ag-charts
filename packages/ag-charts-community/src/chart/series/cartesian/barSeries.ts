@@ -130,7 +130,6 @@ export class BarSeries extends AbstractBarSeries<Rect<BarNodeDatum>, BarSeriesPr
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
             pathsPerSeries: [],
-            hasHighlightedLabels: true,
             datumSelectionGarbageCollection: false,
             animationAlwaysUpdateSelections: true,
             animationResetFns: {

@@ -101,7 +101,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: [],
             hasMarkers: false,
-            hasHighlightedLabels: true,
         });
     }
 

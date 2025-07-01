@@ -258,9 +258,6 @@ export abstract class Series<
         name: `${this.internalId}-series-labels`,
     });
 
-    readonly highlightNode: Group;
-    readonly highlightLabel: Group;
-
     // Package-level visibility, not meant to be set by the user.
     chart?: {
         mode: ChartMode;
@@ -368,12 +365,6 @@ export abstract class Series<
         this.propertyNames = propertyNames;
         this.canHaveAxes = canHaveAxes;
         this.usesPlacedLabels = usesPlacedLabels;
-
-        this.highlightGroup = new TranslatableGroup({
-            name: `${this.internalId}-highlight`,
-        });
-        this.highlightNode = this.highlightGroup.appendChild(new Group({ name: 'highlightNode', zIndex: 0 }));
-        this.highlightLabel = this.highlightGroup.appendChild(new Group({ name: 'highlightLabel', zIndex: 10 }));
 
         this.pickModes = pickModes;
     }

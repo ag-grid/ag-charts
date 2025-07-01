@@ -66,7 +66,7 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = DatumDefault, TContex
     /** @deprecated Style overrides when a node is hovered. */
     highlightStyle?: AgMapShapeSeriesHighlightStyle<TDatum>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
 export interface AgMapShapeSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

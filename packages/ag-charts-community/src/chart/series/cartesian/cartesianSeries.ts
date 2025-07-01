@@ -57,7 +57,6 @@ type CartesianSeriesOpts<
     pathsPerSeries: string[];
     pathsZIndexSubOrderOffset: number[];
     hasMarkers: boolean;
-    hasHighlightedLabels: boolean;
     propertyKeys: SeriesDirectionKeysMapping<TProps>;
     propertyNames: SeriesDirectionKeysMapping<TProps>;
     datumSelectionGarbageCollection: boolean;
@@ -185,10 +184,9 @@ export abstract class CartesianSeries<
     private markerSelection: Selection<Marker, TDatum>;
     protected labelSelection: Selection<Text, TLabel> = Selection.select(this.labelGroup, Text);
 
-    private highlightSelection = Selection.select(this.highlightNode, () =>
+    private highlightSelection = Selection.select(this.highlightGroup, () =>
         this.opts.hasMarkers ? new Marker() : this.nodeFactory()
     ) as Selection<TNode, TDatum>;
-    private highlightLabelSelection = Selection.select<Text, TLabel>(this.highlightLabel, Text);
 
     public annotationSelections: Set<Selection<NodeWithOpacity, TDatum>> = new Set();
 
@@ -205,7 +203,6 @@ export abstract class CartesianSeries<
     protected constructor({
         pathsPerSeries = ['path'],
         hasMarkers = false,
-        hasHighlightedLabels = false,
         pathsZIndexSubOrderOffset = [],
         datumSelectionGarbageCollection = true,
         markerSelectionGarbageCollection = true,
@@ -229,7 +226,6 @@ export abstract class CartesianSeries<
         this.opts = {
             pathsPerSeries,
             hasMarkers,
-            hasHighlightedLabels,
             pathsZIndexSubOrderOffset,
             propertyKeys,
             propertyNames,
@@ -376,17 +372,17 @@ export abstract class CartesianSeries<
     }
 
     update({ seriesRect }: { seriesRect?: BBox }) {
-        const { visible, _contextNodeData: previousContextData } = this;
+        const { _contextNodeData: previousContextData } = this;
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
 
         const resize = this.checkResize(seriesRect);
-        const highlightItems = this.updateHighlightSelection(seriesHighlighted);
+        this.updateHighlightSelection(seriesHighlighted);
 
         this.contentGroup.batchedUpdate(() => {
-            const dataChanged = this.updateSelections(visible);
-            this.updateNodes(highlightItems, seriesHighlighted, visible, resize || dataChanged);
+            const dataChanged = this.updateSelections();
+            this.updateNodes(seriesHighlighted, resize || dataChanged);
         });
 
         const animationData = this.getAnimationData(seriesRect, previousContextData);
@@ -398,9 +394,9 @@ export abstract class CartesianSeries<
         this.animationState.transition('update', animationData);
     }
 
-    protected updateSelections(anySeriesItemEnabled: boolean) {
+    protected updateSelections() {
         const animationSkipUpdate = !this.opts.animationAlwaysUpdateSelections && this.ctx.animationManager.isSkipped();
-        if (!anySeriesItemEnabled && animationSkipUpdate) {
+        if (!this.visible && animationSkipUpdate) {
             return false;
         }
         const { nodeDataRefresh } = this;
@@ -471,20 +467,14 @@ export abstract class CartesianSeries<
         };
     }
 
-    protected updateNodes(
-        highlightedItems: TDatum[] | undefined,
-        seriesHighlighted: boolean,
-        anySeriesItemEnabled: boolean,
-        nodeRefresh: boolean
-    ) {
+    protected updateNodes(seriesHighlighted: boolean, nodeRefresh: boolean) {
         const {
             highlightSelection,
-            highlightLabelSelection,
-            opts: { hasMarkers, hasHighlightedLabels },
+            opts: { hasMarkers },
         } = this;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const visible = this.visible && this._contextNodeData != null && anySeriesItemEnabled;
+        const visible = this.visible && this._contextNodeData != null;
         this.contentGroup.visible = animationEnabled || visible;
         this.highlightGroup.visible = (animationEnabled || visible) && seriesHighlighted;
 
@@ -502,12 +492,6 @@ export abstract class CartesianSeries<
                 isHighlight: true,
             });
             this.animationState.transition('highlight', highlightSelection);
-        }
-
-        if (hasHighlightedLabels) {
-            this.labelGroup.batchedUpdate(() => {
-                this.updateLabelNodes({ labelSelection: highlightLabelSelection });
-            });
         }
 
         const { dataNodeGroup, markerGroup, datumSelection, labelSelection, markerSelection, paths, labelGroup } = this;
@@ -537,7 +521,7 @@ export abstract class CartesianSeries<
         const changesOnHighlight =
             unhighlightedItem != null || highlightedSeries != null || unhighlightedSeries != null;
         if (nodeRefresh || strokeWidthChangesOnHighlight || changesOnHighlight) {
-            this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false });
+            this.updateDatumNodes({ datumSelection, isHighlight: false });
             if (!this.usesPlacedLabels) {
                 this.labelGroup.batchedUpdate(() => {
                     this.updateLabelNodes({ labelSelection });
@@ -563,31 +547,22 @@ export abstract class CartesianSeries<
     }
 
     protected updateHighlightSelection(seriesHighlighted: boolean) {
-        const { highlightSelection, highlightLabelSelection, _contextNodeData: contextNodeData } = this;
+        const { highlightSelection, _contextNodeData: contextNodeData } = this;
         if (!contextNodeData) return;
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const item = seriesHighlighted && highlightedDatum?.datum ? (highlightedDatum as TDatum) : undefined;
 
-        let labelItems: TLabel[] | undefined;
         let highlightItems: TDatum[] | undefined;
         if (item != null) {
-            const labelsEnabled = this.isLabelEnabled();
-            const { labelData, nodeData } = contextNodeData;
+            const { nodeData } = contextNodeData;
             highlightItems = this.getHighlightData(nodeData, item);
-            labelItems = labelsEnabled ? this.getHighlightLabelData(labelData, item) : undefined;
         }
 
         this.highlightSelection = this.updateHighlightSelectionItem({
             items: highlightItems,
             highlightSelection,
         });
-        this.highlightLabelSelection = this.updateHighlightSelectionLabel({
-            items: labelItems,
-            highlightLabelSelection,
-        });
-
-        return highlightItems;
     }
 
     protected markQuadtreeDirty() {
@@ -1017,11 +992,7 @@ export abstract class CartesianSeries<
         // Override point for sub-classes.
         return opts.datumSelection;
     }
-    protected updateDatumNodes(_opts: {
-        datumSelection: Selection<TNode, TDatum>;
-        highlightedItems?: TDatum[];
-        isHighlight: boolean;
-    }): void {
+    protected updateDatumNodes(_opts: { datumSelection: Selection<TNode, TDatum>; isHighlight: boolean }): void {
         // Override point for sub-classes.
     }
 

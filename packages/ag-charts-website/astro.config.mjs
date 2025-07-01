@@ -65,6 +65,15 @@ console.log(
     )
 );
 
+const plugins = [
+    svgr(),
+    agHotModuleReload(),
+    agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
+];
+if (NODE_ENV !== 'test') {
+    plugins.push(mkcert()); // mkcert is not necessary for tests
+}
+
 // https://astro.build/config
 export default defineConfig({
     site: PUBLIC_SITE_URL,
@@ -74,12 +83,7 @@ export default defineConfig({
         enabled: false,
     },
     vite: {
-        plugins: [
-            mkcert(),
-            svgr(),
-            agHotModuleReload(),
-            agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
-        ],
+        plugins,
         optimizeDeps: {
             exclude: [
                 'ag-charts-angular',
