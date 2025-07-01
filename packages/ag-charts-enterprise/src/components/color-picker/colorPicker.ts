@@ -1,15 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import {
-    type ElementID,
-    type StrictHTMLElement,
-    attachListener,
-    clamp,
-    createElement,
-    createElementId,
-    getWindow,
-    setAttribute,
-    setElementStyle,
-} from 'ag-charts-core';
+import { attachListener, clamp, createElement, createElementId, getWindow, setAttribute } from 'ag-charts-core';
 
 import colorPickerTemplate from './colorPickerTemplate.html';
 
@@ -34,13 +24,6 @@ const getHsva = (input: string) => {
         return;
     }
 };
-
-function createAriaLabelElement(): StrictHTMLElement & { id: ElementID } {
-    const span = createElement('span');
-    setAttribute(span, 'id', createElementId());
-    setElementStyle(span, 'display', 'none');
-    return span;
-}
 
 export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptions> {
     private hasChanged = false;
@@ -90,24 +73,14 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         colorInputLabel.textContent = localeManager.t('ariaLabelColor');
         setAttribute(colorInput, ariaLabelledBy, colorInputLabel.id);
 
-        // Add display:none elements (used by `aria-labelledby` for a11y):
-        const paletteInputLabel = createAriaLabelElement();
-        const hueInputLabel = createAriaLabelElement();
-        const multiColorButtonLabel = createAriaLabelElement();
-        const alphaInputLabel = createAriaLabelElement();
-        colorPicker.append(paletteInputLabel, hueInputLabel, multiColorButtonLabel, alphaInputLabel);
         this.i18nUpdater = () => {
             paletteInput.ariaRoleDescription = localeManager.t('ariaRoleDescription');
-            paletteInputLabel.textContent = localeManager.t('ariaLabelColorPickerPalette');
-            hueInput.textContent = localeManager.t('ariaLabelColorPickerHue');
-            multiColorButtonLabel.textContent = localeManager.t('ariaLabelColorPickerMultiColor');
-            alphaInputLabel.textContent = localeManager.t('ariaLabelColorPickerAlpha');
+            paletteInput.ariaLabel = localeManager.t('ariaLabelColorPickerPalette');
+            hueInput.ariaLabel = localeManager.t('ariaLabelColorPickerHue');
+            multiColorButton.ariaLabel = localeManager.t('ariaLabelColorPickerMultiColor');
+            alphaInput.ariaLabel = localeManager.t('ariaLabelColorPickerAlpha');
         };
         this.i18nUpdater();
-        setAttribute(paletteInput, ariaLabelledBy, paletteInputLabel.id);
-        setAttribute(hueInput, ariaLabelledBy, hueInputLabel.id);
-        setAttribute(multiColorButton, ariaLabelledBy, multiColorButtonLabel.id);
-        setAttribute(alphaInput, ariaLabelledBy, alphaInputLabel.id);
 
         multiColorButton.classList.toggle(
             'ag-charts-color-picker__multi-color-button--hidden',
