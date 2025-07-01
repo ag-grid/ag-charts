@@ -785,9 +785,9 @@ export class SeriesAreaManager extends BaseManager {
         tooltipContent: TooltipContent[]
     ) {
         const { focus } = this;
-        let mode = this.announceMode;
+        let mode: 'always' | 'never';
 
-        if (mode === 'when-changed') {
+        if (this.announceMode === 'when-changed') {
             // AG-13874 If all deltas are 0, it means that we're tabbing in (always announce). Otherwise, announce
             // the datum pick only if the indices have changed.
             const shouldAnnouncePick =
@@ -799,9 +799,11 @@ export class SeriesAreaManager extends BaseManager {
             } else {
                 mode = 'never';
             }
+        } else {
+            mode = this.announceMode;
         }
 
-        if ((mode satisfies 'always' | 'never') === 'always') {
+        if (mode === 'always') {
             this.swapChain.update(this.getDatumAriaText(pick.datum, tooltipContent));
         }
     }
