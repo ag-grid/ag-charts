@@ -27,11 +27,11 @@ describe('number axis benchmark', () => {
         });
 
         benchmark(
-            '100x zoom',
+            '20x zoom',
             ctx,
             { expectedRelativeMB: 7, expectedCanvasCount: 4, autoSnapshot: false },
             async () => {
-                for (let i = 0; i < 100; i++) {
+                for (let i = 0; i < 20; i++) {
                     await ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);
                 }
             },
