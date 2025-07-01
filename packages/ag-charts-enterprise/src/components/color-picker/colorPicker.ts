@@ -112,6 +112,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             colorInputLabel.classList.toggle('ag-charts-color-picker__color-label--multi-color', isMultiColor);
 
             if (document.activeElement !== colorInput) {
+                multiColorButton.ariaChecked = isMultiColor.toString();
                 colorInput.value = isMultiColor
                     ? localeManager.t('ariaLabelColorPickerMultiColor')
                     : colorString.toUpperCase();
