@@ -20,6 +20,7 @@ export interface AgSeriesMarkerOptions<TDatum, TParams, TContext = ContextDefaul
     itemStyler?: Styler<AgSeriesMarkerStylerParams<TDatum, TContext> & TParams, AgSeriesMarkerStyle>;
 }
 
-export interface ISeriesMarker<TParams, TContext = unknown> extends AgSeriesMarkerOptions<unknown, TParams, TContext> {
+export interface ISeriesMarker<TParams, TContext = ContextDefault>
+    extends AgSeriesMarkerOptions<unknown, TParams, TContext> {
     getStyle: () => AgSeriesMarkerStyle;
 }
