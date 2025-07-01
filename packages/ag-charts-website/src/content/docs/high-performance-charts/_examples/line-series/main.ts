@@ -29,7 +29,7 @@ const options: AgCartesianChartOptions = {
             marker: { enabled: false },
         },
     ],
-    axes: [{ type: 'number' }, { type: 'time' }],
+    axes: [{ type: 'number' }, { type: 'time', nice: false }],
 };
 
 const chart = AgCharts.create(options);

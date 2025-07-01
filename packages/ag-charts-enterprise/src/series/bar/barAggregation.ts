@@ -20,8 +20,8 @@ const indexes: _ModuleSupport.BarSeriesAggregationIndexes = {
     span: SPAN,
 };
 
-const AGGREGATION_THRESHOLD = 1e3;
-const PRECISION = 5;
+const AGGREGATION_THRESHOLD = 1e2;
+const PRECISION = 1;
 
 function getIndices(maxRange: number, indexData: Int32Array): number[] {
     return Array.from({ length: maxRange }, (_, index) => {
@@ -33,13 +33,14 @@ function getIndices(maxRange: number, indexData: Int32Array): number[] {
 }
 
 export function aggregateBarData(
+    scale: _ModuleSupport.Scale<unknown, number>,
     xValues: any[],
     yValues: any[],
     domain: number[]
 ): _ModuleSupport.BarSeriesDataAggregationFilter[] | undefined {
     if (xValues.length < AGGREGATION_THRESHOLD) return;
 
-    const [d0, d1] = aggregationDomain(domain);
+    const [d0, d1] = aggregationDomain(scale, domain);
 
     let maxRange = maxRangeFittingPoints(xValues, PRECISION);
     let { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange);

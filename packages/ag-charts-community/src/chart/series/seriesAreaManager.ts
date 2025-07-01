@@ -41,9 +41,18 @@ import {
     tooltipContentAriaLabel,
 } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
-import { type Series, type SeriesNodePickIntent } from './series';
+import { type PickFocusOutputs, type Series, type SeriesNodePickIntent } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesNodeDatum } from './seriesTypes';
+
+type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
+
+enum PickedFocusStatus {
+    SUCCESS,
+    SERIES_NOT_FOUND,
+    DATUM_NOT_FOUND,
+    PAN_REQUIRED,
+}
 
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
@@ -124,6 +133,7 @@ export class SeriesAreaManager extends BaseManager {
     private hoverRect?: BBox;
     public readonly focusIndicator?: FocusIndicator;
     private readonly swapChain: FocusSwapChain;
+    private announceMode: FocusAnnounceMode = 'when-changed';
 
     get bbox() {
         return (this.seriesRect ?? BBox.zero).clone();
@@ -259,9 +269,19 @@ export class SeriesAreaManager extends BaseManager {
     private updateComplete() {
         // NOTE: Do the `isFocusVisible()` check last as its the most expensive part.
         if (this.isState(InteractionState.Focusable) && this.focusIndicator?.isFocusVisible()) {
-            // This function is called when something in the scene is redrawn such as a resize, or zoompan change.
-            // Therefore we need to update the bounds of the focus indicator, but not aria-label. Hence refresh=true.
-            this.handleSeriesFocus(0, 0, true);
+            // This function is usually called when something in the scene is redrawn such as a resize, or zoompan
+            // change. In such a case, we need to update the bounds of the focus indicator, but not aria-label. Hence
+            // setting mode='never' to avoid announcing the change.
+            //
+            // However, this method can also be called after an overlay is missed, such as after async data is loaded
+            // (AG-15228). The overlay also updates the aria-label in the swapchain, so we want to announce the series
+            // focus when the overlay is dismissed. We use mode='always', so ensure that the change is announced even
+            // when no focus indices have changed.
+            //
+            if (this.announceMode !== 'always') {
+                this.announceMode = 'never';
+            }
+            this.handleFocus(0, 0);
         }
     }
 
@@ -593,20 +613,26 @@ export class SeriesAreaManager extends BaseManager {
     private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
         const overlayFocus = this.chart.overlays.getFocusInfo(this.chart.ctx.localeManager);
         if (overlayFocus == null) {
-            this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
+            if (this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta) === PickedFocusStatus.SUCCESS) {
+                this.announceMode = 'when-changed';
+            } else {
+                // As a safe-guard, always announce the next focus-change if this current focus-change failed.
+                this.announceMode = 'always';
+            }
         } else {
             this.focusIndicator?.update(overlayFocus.rect, this.seriesRect, false);
+            this.swapChain.update(overlayFocus.text);
+            this.announceMode = 'always';
         }
     }
 
-    private handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number, refresh = false) {
+    private handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number): PickedFocusStatus {
         if (this.chart.chartType === 'standalone') {
-            this.handleSoloSeriesFocus(otherIndexDelta, datumIndexDelta, refresh);
-            return;
+            return this.handleSoloSeriesFocus(otherIndexDelta, datumIndexDelta);
         }
         const { focus } = this;
         const visibleSeries = focus.sortedSeries.filter((s) => s.visible && s.focusable);
-        if (visibleSeries.length === 0) return;
+        if (visibleSeries.length === 0) return PickedFocusStatus.SERIES_NOT_FOUND;
 
         const oldDatumIndex = focus.datumIndex - datumIndexDelta;
         const oldOtherIndex = focus.seriesIndex - otherIndexDelta;
@@ -618,18 +644,17 @@ export class SeriesAreaManager extends BaseManager {
         // Update focused datum:
         const datumIndex = this.focus.datumIndex;
         const otherIndex = this.focus.seriesIndex;
-        this.updatePickedFocus(
+        return this.updatePickedFocus(
             datumIndex,
             datumIndexDelta,
             oldDatumIndex,
             otherIndex,
             otherIndexDelta,
-            oldOtherIndex,
-            refresh
+            oldOtherIndex
         );
     }
 
-    private handleSoloSeriesFocus(otherIndexDelta: number, datumIndexDelta: number, refresh: boolean) {
+    private handleSoloSeriesFocus(otherIndexDelta: number, datumIndexDelta: number): PickedFocusStatus {
         // Some chart type (treemap, sunburst, gauges) can only have 1 series. So we'll repurpose the focus.seriesIndex
         // value. Hierarchical charts use arrowup/down to change depth and gauges use arrowup/down to change datum type
         // (bar/needle, targets). This allows the hierarchical and gauge charts to piggy-backon the base keyboard handling
@@ -639,14 +664,13 @@ export class SeriesAreaManager extends BaseManager {
         const otherIndex = this.focus.seriesIndex;
         const oldDatumIndex = this.focus.datumIndex - datumIndexDelta;
         const oldOtherIndex = this.focus.seriesIndex - otherIndexDelta;
-        this.updatePickedFocus(
+        return this.updatePickedFocus(
             datumIndex,
             datumIndexDelta,
             oldDatumIndex,
             otherIndex,
             otherIndexDelta,
-            oldOtherIndex,
-            refresh
+            oldOtherIndex
         );
     }
 
@@ -656,14 +680,13 @@ export class SeriesAreaManager extends BaseManager {
         oldDatumIndex: number,
         otherIndex: number,
         otherIndexDelta: number,
-        oldOtherIndex: number,
-        refresh: boolean
-    ) {
+        oldOtherIndex: number
+    ): PickedFocusStatus {
         const { focus, hoverRect, seriesRect } = this;
-        if (focus.series == null || hoverRect == null) return;
+        if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
 
         const pick = focus?.series?.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
-        if (!pick) return;
+        if (!pick) return PickedFocusStatus.DATUM_NOT_FOUND;
 
         const { datum } = pick;
         focus.datum = datum;
@@ -680,7 +703,10 @@ export class SeriesAreaManager extends BaseManager {
 
             if (!hoverRect.containsPoint(x, y)) {
                 const panSuccess = this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
-                if (panSuccess) return; // Wait for an update to ensure that we show the tooltip/highlight correctly.
+                if (panSuccess) {
+                    // Wait for an update to ensure that we show the tooltip/highlight correctly.
+                    return PickedFocusStatus.PAN_REQUIRED;
+                }
             }
             // AG-14102 Check if focusBBox is still completely outside the viewport (e.g. panning is disabled), and
             // move/clip it if needed.
@@ -735,17 +761,50 @@ export class SeriesAreaManager extends BaseManager {
                 this.chart.ctx.tooltipManager.removeTooltip(this.id);
             }
 
-            if (!refresh) {
-                // AG-13874 If all deltas are 0, it means that we're tabbing in (always announce). Otherwise, announce
-                // the datum pick only if the indices have changed.
-                const shouldAnnouncePick =
-                    (datumIndexDelta === 0 && otherIndexDelta === 0) ||
-                    oldDatumIndex !== pick.datumIndex ||
-                    oldOtherIndex !== (pick.otherIndex ?? focus.seriesIndex);
-                if (shouldAnnouncePick && tooltipContent != null) {
-                    this.swapChain.update(this.getDatumAriaText(datum, tooltipContent));
-                }
+            if (tooltipContent != null) {
+                this.maybeAnnouncePickedFocus(
+                    datumIndexDelta,
+                    oldDatumIndex,
+                    otherIndexDelta,
+                    oldOtherIndex,
+                    pick,
+                    tooltipContent
+                );
             }
+        }
+
+        return PickedFocusStatus.SUCCESS;
+    }
+
+    private maybeAnnouncePickedFocus(
+        datumIndexDelta: number,
+        oldDatumIndex: number,
+        otherIndexDelta: number,
+        oldOtherIndex: number,
+        pick: PickFocusOutputs,
+        tooltipContent: TooltipContent[]
+    ) {
+        const { focus } = this;
+        let mode: 'always' | 'never';
+
+        if (this.announceMode === 'when-changed') {
+            // AG-13874 If all deltas are 0, it means that we're tabbing in (always announce). Otherwise, announce
+            // the datum pick only if the indices have changed.
+            const shouldAnnouncePick =
+                (datumIndexDelta === 0 && otherIndexDelta === 0) ||
+                oldDatumIndex !== pick.datumIndex ||
+                oldOtherIndex !== (pick.otherIndex ?? focus.seriesIndex);
+            if (shouldAnnouncePick) {
+                mode = 'always';
+            } else {
+                mode = 'never';
+            }
+        } else {
+            mode = this.announceMode;
+        }
+
+        if (mode === 'always') {
+            this.swapChain.update(this.getDatumAriaText(pick.datum, tooltipContent));
         }
     }
 
