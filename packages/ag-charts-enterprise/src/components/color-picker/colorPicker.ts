@@ -47,6 +47,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
     }
 
     private createColorPicker(opts: ColorPickerOptions) {
+        const { localeManager } = this.ctx;
         let isMultiColor = opts.isMultiColor ?? false;
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
         a = opts.opacity ?? a;
@@ -63,6 +64,8 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         const alphaInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__alpha-input')!;
         const colorInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-input')!;
         const colorInputLabel = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-label')!;
+
+        colorInputLabel.textContent = localeManager.t('ariaLabelColor');
 
         multiColorButton.classList.toggle(
             'ag-charts-color-picker__multi-color-button--hidden',
@@ -90,7 +93,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             colorInputLabel.classList.toggle('ag-charts-color-picker__color-label--multi-color', isMultiColor);
 
             if (document.activeElement !== colorInput) {
-                colorInput.value = isMultiColor ? 'Multi Colour' : colorString.toUpperCase();
+                colorInput.value = isMultiColor ? localeManager.t('ariaLabelMultiColor') : colorString.toUpperCase();
             }
 
             if (trackChange || opts.color == null) {

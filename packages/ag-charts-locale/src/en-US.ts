@@ -25,6 +25,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelAnnotationOptionsToolbar: 'Annotation Options',
     // Screen reader text for annotation-settings dialog
     ariaLabelAnnotationSettingsDialog: 'Annotation Settings',
+    // Screen reader text for the color-code label in the picker dialog
+    ariaLabelColor: 'Color picker',
     // Screen reader text for the color picker dialog
     ariaLabelColorPicker: 'Color picker',
     // Screen reader text for the financial charts toolbar
@@ -41,6 +43,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelLegendItem: '${label}, Legend item ${index}[number] of ${count}[number]',
     // Screen reader text for the an unknown item in the legend
     ariaLabelLegendItemUnknown: 'Unknown legend item',
+    // Screen reader text for when the color-code is multi-colored
+    ariaLabelMultiColor: 'Multi Color',
     // Screen reader text for the navigator element
     ariaLabelNavigator: 'Navigator',
     // Screen reader text for an accessibility control that changes the position of the navigator's range
