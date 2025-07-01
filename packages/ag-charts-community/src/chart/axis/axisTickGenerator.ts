@@ -107,9 +107,10 @@ enum TickGenerationType {
 }
 
 enum ParentLevelMode {
-    TimeScaleTicks,
-    OrdinalStepTicks,
-    ScaleTicks,
+    ContinuousTimeScaleTicks,
+    UnitTimeScaleTicks,
+    OrdinalTimeStepTicks,
+    OrdinalTimeScaleTicks,
 }
 
 const DENSE_TICK_COUNT = 18;
@@ -517,8 +518,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             parentLevelMode =
                 minimumTimeGranularity != null &&
                 intervalMilliseconds(minimumTimeGranularity) >= intervalMilliseconds(timeIntervalGranularity)
-                    ? ParentLevelMode.OrdinalStepTicks
-                    : ParentLevelMode.ScaleTicks;
+                    ? ParentLevelMode.OrdinalTimeStepTicks
+                    : ParentLevelMode.OrdinalTimeScaleTicks;
             alignment = ScaleAlignment.Trailing;
 
             // The tick algorithm will try lower tick counts when labels don't fit
@@ -530,9 +531,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             UnitTimeScale.is(scale) &&
             (scale.interval == null || intervalMilliseconds(scale.interval) >= milliseconds)
         ) {
-            parentLevelMode = ParentLevelMode.ScaleTicks;
+            parentLevelMode = ParentLevelMode.UnitTimeScaleTicks;
         } else {
-            parentLevelMode = ParentLevelMode.TimeScaleTicks;
+            // Can be a unit time scale where the current interval is greater than the unit interval
+            parentLevelMode = ParentLevelMode.ContinuousTimeScaleTicks;
             alignment = ScaleAlignment.Interpolate;
         }
 
@@ -551,15 +553,16 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
             let intervalTicks: Date[];
             switch (parentLevelMode) {
-                case ParentLevelMode.TimeScaleTicks:
+                case ParentLevelMode.ContinuousTimeScaleTicks:
                     intervalTicks = createTimeScaleTicks(intervalTickParams.interval, [p0, p1], pVisibleRange, true);
                     break;
-                case ParentLevelMode.ScaleTicks:
+                case ParentLevelMode.UnitTimeScaleTicks:
+                case ParentLevelMode.OrdinalTimeScaleTicks:
                     intervalTicks =
                         scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, { extend: true, dropInitial: true })
                             ?.ticks ?? [];
                     break;
-                case ParentLevelMode.OrdinalStepTicks:
+                case ParentLevelMode.OrdinalTimeStepTicks:
                     intervalTicks = (scale as any as OrdinalTimeScale).stepTicks(
                         ordinalTickStep,
                         [p0, p1],
@@ -573,10 +576,13 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
             if (!last) {
                 dropLastWhile(intervalTicks, (lastTick) => {
-                    if (parentLevelMode === ParentLevelMode.TimeScaleTicks) {
-                        return lastTick.valueOf() + milliseconds > p1.valueOf();
-                    } else {
-                        return lastTick.valueOf() >= p1.valueOf();
+                    switch (parentLevelMode) {
+                        case ParentLevelMode.ContinuousTimeScaleTicks:
+                        case ParentLevelMode.OrdinalTimeScaleTicks:
+                            return lastTick.valueOf() + milliseconds > p1.valueOf();
+                        case ParentLevelMode.UnitTimeScaleTicks:
+                        case ParentLevelMode.OrdinalTimeStepTicks:
+                            return lastTick.valueOf() >= p1.valueOf();
                     }
                 });
             }
@@ -586,7 +592,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             const firstTick = intervalTicks[0];
             const firstTickDiff = compareDates(firstTick, p0);
             const firstPrimary =
-                parentLevelMode === ParentLevelMode.TimeScaleTicks
+                parentLevelMode === ParentLevelMode.ContinuousTimeScaleTicks
                     ? firstTickDiff === 0
                     : firstTickDiff <= milliseconds;
 
