@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { attachListener, clamp, createElement, createElementId, getWindow, setAttribute } from 'ag-charts-core';
+import { attachListener, clamp, createElement, getWindow } from 'ag-charts-core';
 
 import colorPickerTemplate from './colorPickerTemplate.html';
 
@@ -68,17 +68,13 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         const colorInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-input')!;
         const colorInputLabel = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-label')!;
 
-        const ariaLabelledBy = 'aria-labelledby';
-        colorInputLabel.id = createElementId();
-        colorInputLabel.textContent = localeManager.t('ariaLabelColor');
-        setAttribute(colorInput, ariaLabelledBy, colorInputLabel.id);
-
         this.i18nUpdater = () => {
             paletteInput.ariaRoleDescription = localeManager.t('ariaRoleDescription');
             paletteInput.ariaLabel = localeManager.t('ariaLabelColorPickerPalette');
             hueInput.ariaLabel = localeManager.t('ariaLabelColorPickerHue');
             multiColorButton.ariaLabel = localeManager.t('ariaLabelColorPickerMultiColor');
             alphaInput.ariaLabel = localeManager.t('ariaLabelColorPickerAlpha');
+            colorInput.ariaLabel = localeManager.t('ariaLabelColor');
         };
         this.i18nUpdater();
 
