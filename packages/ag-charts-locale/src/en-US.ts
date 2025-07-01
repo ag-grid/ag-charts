@@ -26,9 +26,17 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Screen reader text for annotation-settings dialog
     ariaLabelAnnotationSettingsDialog: 'Annotation Settings',
     // Screen reader text for the color-code label in the picker dialog
-    ariaLabelColor: 'Color picker',
+    ariaLabelColor: 'Color',
     // Screen reader text for the color picker dialog
     ariaLabelColorPicker: 'Color picker',
+    // Screen reader text for the alpha-channel slider label
+    ariaLabelColorPickerAlpha: 'Transparency',
+    // Screen reader text for the hue slider label
+    ariaLabelColorPickerHue: 'Hue',
+    // Screen reader text for when the color-code is multi-colored
+    ariaLabelColorPickerMultiColor: 'Multi Color',
+    // Screen reader text for the 2D palette slider label
+    ariaLabelColorPickerPalette: 'Palette',
     // Screen reader text for the financial charts toolbar
     ariaLabelFinancialCharts: 'Financial Charts',
     // Screen reader text for the legend toolbar
@@ -43,8 +51,6 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelLegendItem: '${label}, Legend item ${index}[number] of ${count}[number]',
     // Screen reader text for the an unknown item in the legend
     ariaLabelLegendItemUnknown: 'Unknown legend item',
-    // Screen reader text for when the color-code is multi-colored
-    ariaLabelMultiColor: 'Multi Color',
     // Screen reader text for the navigator element
     ariaLabelNavigator: 'Navigator',
     // Screen reader text for an accessibility control that changes the position of the navigator's range
@@ -59,6 +65,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelSettingsTabBar: 'Settings',
     // Screen reader text for zoom toolbar
     ariaLabelZoomToolbar: 'Zoom',
+    // Aria role description for a 2D role="slider"
+    ariaRoleDescription: '2D slider',
     // Screen reader text for the value of the navigator's range
     ariaValuePanRange: '${min}[percent0to2dp] to ${max}[percent0to2dp]',
     // Alt-text for the solid line dash style menu item icon

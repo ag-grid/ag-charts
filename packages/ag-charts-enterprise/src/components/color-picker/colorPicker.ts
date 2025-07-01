@@ -1,5 +1,15 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { attachListener, clamp, createElement, getWindow } from 'ag-charts-core';
+import {
+    type ElementID,
+    type StrictHTMLElement,
+    attachListener,
+    clamp,
+    createElement,
+    createElementId,
+    getWindow,
+    setAttribute,
+    setElementStyle,
+} from 'ag-charts-core';
 
 import colorPickerTemplate from './colorPickerTemplate.html';
 
@@ -25,15 +35,25 @@ const getHsva = (input: string) => {
     }
 };
 
+function createAriaLabelElement(): StrictHTMLElement & { id: ElementID } {
+    const span = createElement('span');
+    setAttribute(span, 'id', createElementId());
+    setElementStyle(span, 'display', 'none');
+    return span;
+}
+
 export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptions> {
     private hasChanged = false;
     private onChangeHide?: () => void;
+    private i18nUpdater?: () => void;
 
     constructor(ctx: _ModuleSupport.ModuleContext, options?: _ModuleSupport.PopoverConstructorOptions) {
         super(ctx, 'color-picker', options);
         this.hideFns.push(() => {
+            this.i18nUpdater = undefined;
             if (this.hasChanged) this.onChangeHide?.();
         });
+        this.cleanup.register(this.ctx.eventsHub.on('locale:change', () => this.i18nUpdater?.()));
     }
 
     public show(options: ColorPickerOptions) {
@@ -65,7 +85,29 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         const colorInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-input')!;
         const colorInputLabel = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-label')!;
 
+        const ariaLabelledBy = 'aria-labelledby';
+        colorInputLabel.id = createElementId();
         colorInputLabel.textContent = localeManager.t('ariaLabelColor');
+        setAttribute(colorInput, ariaLabelledBy, colorInputLabel.id);
+
+        // Add display:none elements (used by `aria-labelledby` for a11y):
+        const paletteInputLabel = createAriaLabelElement();
+        const hueInputLabel = createAriaLabelElement();
+        const multiColorButtonLabel = createAriaLabelElement();
+        const alphaInputLabel = createAriaLabelElement();
+        colorPicker.append(paletteInputLabel, hueInputLabel, multiColorButtonLabel, alphaInputLabel);
+        this.i18nUpdater = () => {
+            paletteInput.ariaRoleDescription = localeManager.t('ariaRoleDescription');
+            paletteInputLabel.textContent = localeManager.t('ariaLabelColorPickerPalette');
+            hueInput.textContent = localeManager.t('ariaLabelColorPickerHue');
+            multiColorButtonLabel.textContent = localeManager.t('ariaLabelColorPickerMultiColor');
+            alphaInputLabel.textContent = localeManager.t('ariaLabelColorPickerAlpha');
+        };
+        this.i18nUpdater();
+        setAttribute(paletteInput, ariaLabelledBy, paletteInputLabel.id);
+        setAttribute(hueInput, ariaLabelledBy, hueInputLabel.id);
+        setAttribute(multiColorButton, ariaLabelledBy, multiColorButtonLabel.id);
+        setAttribute(alphaInput, ariaLabelledBy, alphaInputLabel.id);
 
         multiColorButton.classList.toggle(
             'ag-charts-color-picker__multi-color-button--hidden',
@@ -93,7 +135,9 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             colorInputLabel.classList.toggle('ag-charts-color-picker__color-label--multi-color', isMultiColor);
 
             if (document.activeElement !== colorInput) {
-                colorInput.value = isMultiColor ? localeManager.t('ariaLabelMultiColor') : colorString.toUpperCase();
+                colorInput.value = isMultiColor
+                    ? localeManager.t('ariaLabelColorPickerMultiColor')
+                    : colorString.toUpperCase();
             }
 
             if (trackChange || opts.color == null) {
