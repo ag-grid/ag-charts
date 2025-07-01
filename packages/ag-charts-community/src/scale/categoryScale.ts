@@ -85,28 +85,29 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
     ): ScaleTickResult<D> {
         const { bands } = this;
         let { tickCount } = params;
-        if (tickCount != null && tickCount > 0 && tickCount < bands.length) {
-            let step = (bands.length / tickCount) | 0;
-            step = previousPowerOf2(step);
 
-            tickCount = (bands.length / step) | 0;
+        let step = tickCount != null && tickCount !== 0 ? (bands.length / tickCount) | 0 : 1;
+        step = previousPowerOf2(step);
 
-            const span = step * tickCount;
-            const inset = previousPowerOf2(((bands.length - span) / 2) | 0);
+        if (step <= 1) return filterVisibleTicks(domain, false, visibleRange);
 
-            const vt0 = clamp(0, Math.floor((visibleRange?.[0] ?? 0) * bands.length), bands.length);
-            const vt1 = clamp(0, Math.ceil((visibleRange?.[1] ?? 1) * bands.length), bands.length);
+        tickCount = (bands.length / step) | 0;
 
-            const out: D[] = [];
-            for (let i = inset; i < bands.length; i += step) {
-                if (i >= vt0 && i <= vt1) {
-                    out.push(bands[i]);
-                }
-            }
-            return { ticks: out, count: undefined };
+        const span = step * tickCount;
+        const inset = previousPowerOf2(((bands.length - span) / 2) | 0);
+
+        const vt0 = clamp(0, Math.floor((visibleRange?.[0] ?? 0) * bands.length), bands.length);
+        const vt1 = clamp(0, Math.ceil((visibleRange?.[1] ?? 1) * bands.length), bands.length);
+
+        const i0 = Math.floor((vt0 - inset) / step) * step + inset;
+        const i1 = Math.ceil((vt1 - inset) / step) * step + inset;
+
+        const out: D[] = [];
+        for (let i = i0; i < i1; i += step) {
+            out.push(bands[i]);
         }
 
-        return filterVisibleTicks(domain, false, visibleRange);
+        return { ticks: out, count: undefined };
     }
 
     findIndex(value: D) {
