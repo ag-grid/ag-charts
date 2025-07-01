@@ -123,10 +123,10 @@ export abstract class FlowProportionSeries<
 
     private readonly linkGroup = this.contentGroup.appendChild(new Group({ name: 'linkGroup' }));
     private readonly nodeGroup = this.contentGroup.appendChild(new Group({ name: 'nodeGroup' }));
-    private readonly focusLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
-    private readonly focusNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
-    private readonly highlightLinkGroup = this.highlightNode.appendChild(new Group({ name: 'linkGroup' }));
-    private readonly highlightNodeGroup = this.highlightNode.appendChild(new Group({ name: 'nodeGroup' }));
+    private readonly focusLinkGroup = this.highlightGroup.appendChild(new Group({ name: 'linkGroup' }));
+    private readonly focusNodeGroup = this.highlightGroup.appendChild(new Group({ name: 'nodeGroup' }));
+    private readonly highlightLinkGroup = this.highlightGroup.appendChild(new Group({ name: 'linkGroup' }));
+    private readonly highlightNodeGroup = this.highlightGroup.appendChild(new Group({ name: 'nodeGroup' }));
 
     private labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, TLabel> = Selection.select(
         this.labelGroup,

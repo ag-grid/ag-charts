@@ -82,7 +82,7 @@ export interface AgBoxPlotSeriesThemeableOptions<TDatum = DatumDefault, TContext
     /** Function used to return formatting for individual columns, based on the given parameters. If the current column is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgBoxPlotSeriesItemStylerParams<TDatum, TContext>, AgBoxPlotSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgBoxPlotHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgBoxPlotHighlightStyleOptions, AgBoxPlotHighlightStyleOptions>;
 }
 export interface AgBoxPlotHighlightStyleOptions extends AgBoxPlotSeriesStyle {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */

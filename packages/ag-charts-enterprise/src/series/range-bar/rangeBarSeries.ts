@@ -118,7 +118,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            hasHighlightedLabels: true,
             propertyKeys: {
                 x: ['xKey'],
                 y: ['yLowKey', 'yHighKey'],
