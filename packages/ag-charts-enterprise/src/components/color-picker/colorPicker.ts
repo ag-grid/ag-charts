@@ -73,7 +73,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         const updatePaletteInputAriaValue = (first: 's' | 'v') => {
             const key = ({ s: 'ariaValueColorPalette', v: 'ariaValueColorPaletteFirstV' } as const)[first];
             paletteInput.ariaValueText = localeManager.t(key, { s, v });
-        }
+        };
 
         this.i18nUpdater = () => {
             paletteInput.ariaRoleDescription = localeManager.t('ariaRoleDescription');
