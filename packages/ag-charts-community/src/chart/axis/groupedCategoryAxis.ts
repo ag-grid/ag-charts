@@ -187,8 +187,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
         }
 
         const { depth: maxDepth, nodes: treeLabels } = this.tickTreeLayout;
-
-        const keepEvery = Math.ceil(label.fontSize / step);
         const sideFlag = horizontal ? -label.getSideFlag() : label.getSideFlag();
 
         const tickLabelLayout: LabelNodeDatum[] = [];
@@ -203,7 +201,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const setLabelProps = (datum: TreeNode, index: number) => {
             const depth = maxDepth - datum.depth;
 
-            if (!optionsMap[depth]?.enabled || index % keepEvery !== 0 || !inRange(datum.screen, range)) {
+            if (!optionsMap[depth]?.enabled || !inRange(datum.screen, range)) {
                 return false;
             }
 
