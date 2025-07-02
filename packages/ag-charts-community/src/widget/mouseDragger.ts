@@ -29,6 +29,8 @@ export class MouseDragger {
         self.mouseDragger = this;
         glob.globalMouseDragCallbacks = myCallbacks;
         glob.globalMouseDragCallbacks.mousedown(downEvent);
+        downEvent.stopPropagation();
+        downEvent.stopImmediatePropagation();
     }
 
     destroy(): void {

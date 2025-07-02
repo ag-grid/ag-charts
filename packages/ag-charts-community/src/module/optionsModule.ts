@@ -46,6 +46,7 @@ export interface ChartInternalOptionMetadata {
     presetType?: 'price-volume' | 'gauge-preset' | 'sparkline';
     pool?: boolean;
     domMode?: 'normal' | 'minimal';
+    withDragInterpretation?: boolean;
 }
 
 type GroupingOptions = {
