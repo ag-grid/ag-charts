@@ -293,8 +293,6 @@ export const cycleRouteData = [
     { name: 'NCN 65 Green Lane to Bishopthrpe Rd 2' },
     { name: 'Fulford Rd E OffRd Broadway Hes Lane' },
     { name: 'Beckfield Ln off rd Newlands Borobridge' },
-    { name: 'NCN 65 A1237 to Clifton Bridge' },
-    { name: 'NCN 65 A1237 to Clifton Bridge' },
     { name: 'Wetherby Rd Milestone Ave Rufforth' },
     { name: 'Northfield Lane to Knapton Main St' },
 ];
