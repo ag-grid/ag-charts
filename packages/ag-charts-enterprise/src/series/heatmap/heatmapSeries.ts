@@ -19,6 +19,8 @@ const {
     PointerEvents,
     applyShapeStyle,
     formatValue,
+    addHitTestersToQuadtree,
+    findQuadtreeMatch,
 } = _ModuleSupport;
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
@@ -580,5 +582,20 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const { width, height, midPoint } = datum;
         const focusRect = { x: midPoint.x - width / 2, y: midPoint.y - height / 2, width, height };
         return computeBarFocusBounds(this, focusRect);
+    }
+
+    protected override initQuadTree(quadtree: _ModuleSupport.QuadtreeNearest<HeatmapNodeDatum>) {
+        addHitTestersToQuadtree(quadtree, this.datumNodesIter());
+    }
+
+    protected override pickNodesExactShape(point: _ModuleSupport.Point): _ModuleSupport.SeriesNodeDatum<unknown>[] {
+        const item = findQuadtreeMatch(this, point);
+        return item != null && item.distance <= 0 ? [item.datum] : [];
+    }
+
+    protected override pickNodeClosestDatum(
+        point: _ModuleSupport.Point
+    ): _ModuleSupport.SeriesNodePickMatch | undefined {
+        return findQuadtreeMatch(this, point);
     }
 }

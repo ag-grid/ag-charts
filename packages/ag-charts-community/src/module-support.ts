@@ -148,6 +148,7 @@ export { Debug } from './util/debug';
 export { isContinuous } from './util/value';
 export type { PlacedLabel, PointLabelDatum, LabelPlacement } from './scene/util/labelPlacement';
 export { isGradientFill, isPatternFill, isImageFill, isGradientOrPatternFill } from './scene/util/fill';
+export * from './scene/util/quadtree';
 export { Padding } from './util/padding';
 export { lineDistanceSquared } from './util/distance';
 export { createIdsGenerator } from './util/tempUtils';
