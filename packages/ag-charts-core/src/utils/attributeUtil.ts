@@ -22,6 +22,7 @@ type AriaRole =
     | 'tab'
     | 'tablist'
     | 'tabpanel'
+    | 'textbox'
     | 'toolbar';
 
 export type BaseAttributeTypeMap = {
