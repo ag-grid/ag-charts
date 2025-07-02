@@ -1,5 +1,5 @@
 import { inRange, isArray, isObject, sortBasedOnArray, toArray } from 'ag-charts-core';
-import type { FontStyle, FontWeight } from 'ag-charts-types';
+import type { FontStyle, FontWeight, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
@@ -11,6 +11,7 @@ import { extent } from '../../util/extent';
 import { BaseProperties, PropertiesArray, Property } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
+import { TextWrapper } from '../../util/textWrapper';
 import { createDatumId } from '../data/processors';
 import type { LabelNodeDatum } from './axis';
 import { CategoryAxis } from './categoryAxis';
@@ -45,6 +46,12 @@ class DepthLabelProperties extends BaseProperties {
 
     @Property
     rotation?: number;
+
+    @Property
+    wrapping?: TextWrap;
+
+    @Property
+    truncate?: boolean;
 
     @Property
     fontStyle?: FontStyle;
@@ -135,6 +142,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     ? {
                           enabled: true,
                           spacing: depthOptions[i]?.label.spacing ?? label.spacing,
+                          wrapping: depthOptions[i]?.label.wrapping ?? label.wrapping,
+                          truncate: depthOptions[i]?.label.truncate ?? label.truncate,
                           rotation: depthOptions[i]?.label.rotation ?? (i ? defaultNonLeafRotation : label.rotation), // Default top-level label roration only applies to label leaves
                           avoidCollisions: depthOptions[i]?.label.avoidCollisions ?? label.avoidCollisions,
                       }
@@ -198,8 +207,20 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 return false;
             }
 
-            const text = tickFormatter(datum.label, index - 1);
+            let text = tickFormatter(datum.label, index - 1);
             const labelStyles = this.getLabelStyles({ value: text, depth }, depthOptions[depth]?.label);
+
+            if (label.avoidCollisions) {
+                text =
+                    TextWrapper.wrapText(text, {
+                        font: labelStyles,
+                        textWrap: optionsMap[depth].wrapping,
+                        overflow: optionsMap[depth].truncate ? 'ellipsis' : 'hide',
+                        rotation: optionsMap[depth].rotation,
+                        maxWidth: (datum.leafCount || 1) * step,
+                        maxHeight: this.thickness,
+                    }) || text;
+            }
 
             tempText.setProperties({
                 ...labelStyles,
@@ -281,12 +302,11 @@ export class GroupedCategoryAxis extends CategoryAxis {
             const { width: w, height: h } = labelBBoxes.get(index)!;
             const depthPadding = nestedPadding(depth);
 
-            tempText.textAlign = 'end';
+            tempText.textAlign = 'center';
             tempText.textBaseline = 'middle';
             tempText.rotation = labelRotation;
 
             if (horizontal) {
-                tempText.x += w / 2;
                 tempText.y += (depthPadding + angularPadding(w / 2, h / 2, labelRotation)) * sideFlag;
                 tempText.rotationCenterX = datum.screen;
                 tempText.rotationCenterY = tempText.y;
@@ -297,8 +317,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
                         (optionsMap[depth].spacing * sideFlag + w) / 2,
                         label.mirrored ? w : 0,
                         labelRotation
-                    );
-                tempText.rotationCenterX = tempText.x - w / 2;
+                    ) -
+                    w / 2;
+                tempText.rotationCenterX = tempText.x;
                 tempText.rotationCenterY = datum.screen;
             }
 

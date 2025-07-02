@@ -9,6 +9,7 @@ import type {
     Formatter,
     FormatterParams,
     Styler,
+    TextWrap,
 } from 'ag-charts-types';
 
 import { objectsEqual } from '../../util/object';
@@ -41,6 +42,12 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
 
     @Property
     fontFamily!: string;
+
+    @Property
+    wrapping: TextWrap = 'never';
+
+    @Property
+    truncate: boolean = false;
 
     /**
      * The padding between the labels and the ticks.

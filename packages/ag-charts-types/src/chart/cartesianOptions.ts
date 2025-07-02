@@ -115,18 +115,36 @@ export interface AgBaseCartesianChartOptions<TDatum = DatumDefault, TContext = C
     annotations?: AgAnnotationsOptions;
 }
 
-export type AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault> = Pick<
-    AgBaseAxisLabelOptions<TContext>,
-    | 'enabled'
-    | 'avoidCollisions'
-    | 'rotation'
-    | 'spacing'
-    | 'color'
-    | 'fontFamily'
-    | 'fontSize'
-    | 'fontStyle'
-    | 'fontWeight'
->;
+export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault>
+    extends Pick<
+        AgBaseAxisLabelOptions<TContext>,
+        | 'enabled'
+        | 'avoidCollisions'
+        | 'rotation'
+        | 'spacing'
+        | 'color'
+        | 'fontFamily'
+        | 'fontSize'
+        | 'fontStyle'
+        | 'fontWeight'
+    > {
+    /**
+     * Text wrapping strategy for long text.
+     * - `'always'` will always wrap text to fit within the `maxWidth`.
+     * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
+     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'never'` disables text wrapping.
+     *
+     * Default: `'on-space'`
+     */
+    wrapping?: TextWrap;
+    /**
+     * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
+     *
+     * @experimental
+     */
+    truncate?: boolean;
+}
 
 export type AgGroupedCategoryDepthTickOptions = Pick<AgAxisBaseTickOptions, 'enabled' | 'stroke' | 'width'>;
 
