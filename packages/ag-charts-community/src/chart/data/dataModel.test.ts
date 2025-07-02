@@ -402,28 +402,26 @@ describe('DataModel', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(result.type).toEqual('grouped');
-                expect(result.groups).toHaveLength(2);
+                expect(result.groups).toHaveLength(4);
                 expect(result.groups[0].keys).toEqual(['Q1']);
-                expect(result.groups[1].keys).toEqual(['Q2']);
+                expect(result.groups[1].keys).toEqual(['Q1']);
+                expect(result.groups[2].keys).toEqual(['Q2']);
+                expect(result.groups[3].keys).toEqual(['Q2']);
             });
 
             it('should extract the configured values', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(result.type).toEqual('grouped');
-                expect(result.groups).toHaveLength(2);
-                expect(result.groups[0].datumIndices).toEqual([
-                    [0, 1],
-                    [0, 1],
-                ]);
-                expect(result.groups[1].datumIndices).toEqual([
-                    [2, 3],
-                    [2, 3],
-                ]);
-                expect(resolveGroupColumn(result, 0, 0)).toEqual([5, 1]);
-                expect(resolveGroupColumn(result, 0, 1)).toEqual([7, 2]);
-                expect(resolveGroupColumn(result, 1, 0)).toEqual([6, 6]);
-                expect(resolveGroupColumn(result, 1, 1)).toEqual([9, 9]);
+                expect(result.groups).toHaveLength(4);
+                expect(result.groups[0].datumIndices).toEqual([[0], [0]]);
+                expect(result.groups[1].datumIndices).toEqual([[1], [1]]);
+                expect(result.groups[2].datumIndices).toEqual([[2], [2]]);
+                expect(result.groups[3].datumIndices).toEqual([[3], [3]]);
+                expect(resolveGroupColumn(result, 0, 0)).toEqual([5]);
+                expect(resolveGroupColumn(result, 1, 0)).toEqual([1]);
+                expect(resolveGroupColumn(result, 2, 0)).toEqual([6]);
+                expect(resolveGroupColumn(result, 3, 0)).toEqual([6]);
             });
 
             it('should calculate the domains', () => {
@@ -460,7 +458,9 @@ describe('DataModel', () => {
 
                 expect(result.domain.aggValues).toEqual([[0, expect.closeTo(15)]]);
                 expect(result.groups[0].aggregation).toEqual([[0, expect.closeTo(12)]]);
-                expect(result.groups[1].aggregation).toEqual([[0, expect.closeTo(15)]]);
+                expect(result.groups[1].aggregation).toEqual([[0, expect.closeTo(3)]]);
+                expect(result.groups[2].aggregation).toEqual([[0, expect.closeTo(15)]]);
+                expect(result.groups[3].aggregation).toEqual([[0, expect.closeTo(15)]]);
             });
         });
     });
@@ -629,7 +629,9 @@ describe('DataModel', () => {
 
                 expect(result.domain.aggValues).toEqual([[0, expect.closeTo(15)]]);
                 expect(result.groups[0].aggregation).toEqual([[0, expect.closeTo(12)]]);
-                expect(result.groups[1].aggregation).toEqual([[0, expect.closeTo(15)]]);
+                expect(result.groups[1].aggregation).toEqual([[0, expect.closeTo(3)]]);
+                expect(result.groups[2].aggregation).toEqual([[0, expect.closeTo(15)]]);
+                expect(result.groups[3].aggregation).toEqual([[0, expect.closeTo(15)]]);
             });
         });
     });
@@ -678,24 +680,26 @@ describe('DataModel', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(result.type).toEqual('grouped');
-                expect(result.groups).toHaveLength(2);
+                expect(result.groups).toHaveLength(4);
                 expect(result.groups[0].keys).toEqual(['Q1']);
-                expect(result.groups[1].keys).toEqual(['Q2']);
+                expect(result.groups[1].keys).toEqual(['Q1']);
+                expect(result.groups[2].keys).toEqual(['Q2']);
+                expect(result.groups[3].keys).toEqual(['Q2']);
             });
 
             it('should extract the configured values', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(result.type).toEqual('grouped');
-                expect(result.groups).toHaveLength(2);
-                expect(resolveGroupColumn(result, 0, 0)).toEqual([5, 1]);
-                expect(resolveGroupColumn(result, 0, 1)).toEqual([7, 2]);
-                expect(resolveGroupColumn(result, 0, 2)).toEqual([1, 2]);
-                expect(resolveGroupColumn(result, 0, 3)).toEqual([5, 4]);
-                expect(resolveGroupColumn(result, 1, 0)).toEqual([6, 6]);
-                expect(resolveGroupColumn(result, 1, 1)).toEqual([9, 9]);
-                expect(resolveGroupColumn(result, 1, 2)).toEqual([3, 4]);
-                expect(resolveGroupColumn(result, 1, 3)).toEqual([3, 2]);
+                expect(result.groups).toHaveLength(4);
+                expect(resolveGroupColumn(result, 0, 0)).toEqual([5]);
+                expect(resolveGroupColumn(result, 0, 1)).toEqual([7]);
+                expect(resolveGroupColumn(result, 0, 2)).toEqual([1]);
+                expect(resolveGroupColumn(result, 0, 3)).toEqual([5]);
+                expect(resolveGroupColumn(result, 1, 0)).toEqual([1]);
+                expect(resolveGroupColumn(result, 1, 1)).toEqual([2]);
+                expect(resolveGroupColumn(result, 1, 2)).toEqual([2]);
+                expect(resolveGroupColumn(result, 1, 3)).toEqual([4]);
             });
 
             it('should calculate the domains', () => {
@@ -717,6 +721,14 @@ describe('DataModel', () => {
                 expect(result.groups.map((g) => g.aggregation)).toEqual([
                     [
                         [0, expect.closeTo(12)],
+                        [0, expect.closeTo(6)],
+                    ],
+                    [
+                        [0, expect.closeTo(3)],
+                        [0, expect.closeTo(6)],
+                    ],
+                    [
+                        [0, expect.closeTo(15)],
                         [0, expect.closeTo(6)],
                     ],
                     [
@@ -773,28 +785,22 @@ describe('DataModel', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(result.type).toEqual('grouped');
-                expect(result.groups).toHaveLength(2);
+                expect(result.groups).toHaveLength(4);
                 expect(result.groups[0].keys).toEqual(['Q1']);
-                expect(result.groups[1].keys).toEqual(['Q2']);
+                expect(result.groups[1].keys).toEqual(['Q1']);
+                expect(result.groups[2].keys).toEqual(['Q2']);
+                expect(result.groups[3].keys).toEqual(['Q2']);
             });
 
             it('should extract the configured accumulated values', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(result.type).toEqual('grouped');
-                expect(result.groups).toHaveLength(2);
-                expect(result.groups[0].datumIndices).toEqual([
-                    [0, 1],
-                    [0, 1],
-                    [0, 1],
-                    [0, 1],
-                ]);
-                expect(result.groups[1].datumIndices).toEqual([
-                    [2, 3],
-                    [2, 3],
-                    [2, 3],
-                    [2, 3],
-                ]);
+                expect(result.groups).toHaveLength(4);
+                expect(result.groups[0].datumIndices).toEqual([[0], [0], [0], [0]]);
+                expect(result.groups[1].datumIndices).toEqual([[1], [1], [1], [1]]);
+                expect(result.groups[2].datumIndices).toEqual([[2], [2], [2], [2]]);
+                expect(result.groups[3].datumIndices).toEqual([[3], [3], [3], [3]]);
             });
 
             it('should calculate the domains', () => {
@@ -899,6 +905,26 @@ describe('DataModel', () => {
   [
     [
       0,
+      150,
+    ],
+    [
+      0,
+      150,
+    ],
+  ],
+  [
+    [
+      0,
+      166.66666666666669,
+    ],
+    [
+      0,
+      200,
+    ],
+  ],
+  [
+    [
+      0,
       166.66666666666669,
     ],
     [
@@ -916,7 +942,7 @@ describe('DataModel', () => {
   ],
   [
     0,
-    150,
+    200,
   ],
 ]
 `);
@@ -930,20 +956,24 @@ describe('DataModel', () => {
       20,
       100,
     ],
+  ],
+  [
     [
-      14.285714285714286,
-      28.571428571428573,
-      40,
-      80,
+      50,
+      100,
+      50,
+      100,
     ],
   ],
   [
     [
       66.66666666666667,
       100,
-      75,
-      75,
+      100,
+      100,
     ],
+  ],
+  [
     [
       66.66666666666667,
       100,
@@ -999,28 +1029,24 @@ describe('DataModel', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(result.type).toEqual('grouped');
-                expect(result.groups).toHaveLength(2);
+                expect(result.groups).toHaveLength(4);
                 expect(result.groups[0].keys).toEqual(['Q1']);
-                expect(result.groups[1].keys).toEqual(['Q2']);
+                expect(result.groups[1].keys).toEqual(['Q1']);
+                expect(result.groups[2].keys).toEqual(['Q2']);
+                expect(result.groups[3].keys).toEqual(['Q2']);
             });
 
             it('should extract the configured accumulated values', () => {
                 const result = dataModel.processData(data)!;
 
                 expect(result.type).toEqual('grouped');
-                expect(result.groups).toHaveLength(2);
+                expect(result.groups).toHaveLength(4);
                 expect(extractGroupValues(result, 0)).toMatchInlineSnapshot(`
 [
   [
-    18.51851851851852,
-    48.148148148148145,
-    59.25925925925926,
-    85.18518518518519,
-  ],
-  [
-    22.22222222222222,
-    55.55555555555556,
+    27.77777777777778,
     66.66666666666667,
+    72.22222222222223,
     100,
   ],
 ]
@@ -1028,15 +1054,29 @@ describe('DataModel', () => {
                 expect(extractGroupValues(result, 1)).toMatchInlineSnapshot(`
 [
   [
-    14.285714285714286,
-    50,
-    78.57142857142857,
-    95.23809523809524,
+    11.11111111111111,
+    33.333333333333336,
+    55.55555555555556,
+    100,
   ],
+]
+`);
+                expect(extractGroupValues(result, 2)).toMatchInlineSnapshot(`
+[
   [
     28.571428571428573,
     71.42857142857143,
-    88.0952380952381,
+    85.71428571428571,
+    100,
+  ],
+]
+`);
+                expect(extractGroupValues(result, 3)).toMatchInlineSnapshot(`
+[
+  [
+    28.571428571428573,
+    71.42857142857143,
+    90.47619047619048,
     100,
   ],
 ]
@@ -1051,19 +1091,19 @@ describe('DataModel', () => {
                 expect(result.domain.values).toMatchInlineSnapshot(`
 [
   [
-    14.285714285714286,
+    11.11111111111111,
     28.571428571428573,
   ],
   [
-    48.148148148148145,
+    33.333333333333336,
     71.42857142857143,
   ],
   [
-    59.25925925925926,
-    88.0952380952381,
+    55.55555555555556,
+    90.47619047619048,
   ],
   [
-    85.18518518518519,
+    100,
     100,
   ],
 ]
@@ -1186,14 +1226,10 @@ describe('DataModel', () => {
             it('should substitute missing value when configured', () => {
                 const result = dataModel.processData(data)!;
 
-                expect(extractGroupValues(result, 0)).toEqual([
-                    [null, 7, 1],
-                    [1, NaN, 2],
-                ]);
-                expect(extractGroupValues(result, 1)).toEqual([
-                    [6, 9, null],
-                    [6, 9, 4],
-                ]);
+                expect(extractGroupValues(result, 0)).toEqual([[null, 7, 1]]);
+                expect(extractGroupValues(result, 1)).toEqual([[1, NaN, 2]]);
+                expect(extractGroupValues(result, 2)).toEqual([[6, 9, null]]);
+                expect(extractGroupValues(result, 3)).toEqual([[6, 9, 4]]);
             });
         });
     });

@@ -65,7 +65,6 @@ interface BarNodeLabelDatum extends Readonly<Point> {
 interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
     readonly xValue: string | number;
     readonly yValue: string | number;
-    readonly valueIndex: number;
     readonly cumulativeValue: number;
     readonly phantom: boolean;
     readonly width: number;
@@ -342,7 +341,6 @@ export class BarSeries extends AbstractBarSeries<
         const nodeDatum = ({
             datum,
             datumIndex,
-            valueIndex,
             xValue,
             yValue,
             cumulativeValue,
@@ -360,7 +358,6 @@ export class BarSeries extends AbstractBarSeries<
         }: {
             datum: any;
             datumIndex: number;
-            valueIndex: number;
             xValue: string;
             yValue: number;
             cumulativeValue: number;
@@ -407,7 +404,6 @@ export class BarSeries extends AbstractBarSeries<
                 itemId: phantom ? createDatumId(yKey, phantom) : yKey,
                 datum,
                 datumIndex,
-                valueIndex,
                 cumulativeValue,
                 phantom,
                 xValue,
@@ -455,7 +451,6 @@ export class BarSeries extends AbstractBarSeries<
 
         const handleDatum = (
             datumIndex: number,
-            valueIndex: number,
             x: number,
             width: number,
             yStart: number,
@@ -494,7 +489,6 @@ export class BarSeries extends AbstractBarSeries<
             const nodeData = nodeDatum({
                 datum,
                 datumIndex,
-                valueIndex,
                 xValue,
                 yValue: yFilterValue ?? yRawValue,
                 cumulativeValue: yFilterValue ?? yEnd,
@@ -517,7 +511,6 @@ export class BarSeries extends AbstractBarSeries<
                 const phantomNodeData = nodeDatum({
                     datum: rawData[datumIndex],
                     datumIndex,
-                    valueIndex,
                     xValue,
                     yValue: yFilterValue,
                     cumulativeValue: yFilterValue,
@@ -551,7 +544,6 @@ export class BarSeries extends AbstractBarSeries<
 
             for (const {
                 datumIndex,
-                valueIndex,
                 group: { aggregation },
             } of dataModel.forEachGroupDatum(this, processedData)) {
                 const x = xPosition(datumIndex);
@@ -565,7 +557,7 @@ export class BarSeries extends AbstractBarSeries<
                     yRange = aggregation[yRangeIndex][isPositive ? 1 : 0];
                 }
 
-                handleDatum(datumIndex, valueIndex, x, width, yStart, yEnd, yRange, 0, 1);
+                handleDatum(datumIndex, x, width, yStart, yEnd, yRange, 0, 1);
             }
         } else if (dataAggregationFilter == null) {
             const width = barWidth;
@@ -580,7 +572,7 @@ export class BarSeries extends AbstractBarSeries<
                 const x = xPosition(datumIndex);
                 const yEnd = Number(yRawValues[datumIndex]);
 
-                handleDatum(datumIndex, 0, x, width, 0, yEnd, yEnd, 0, 1);
+                handleDatum(datumIndex, x, width, 0, yEnd, yEnd, 0, 1);
             }
         } else {
             const { indexData, indices } = dataAggregationFilter;
@@ -603,12 +595,12 @@ export class BarSeries extends AbstractBarSeries<
 
                 if (yEndMax > 0) {
                     const featherRatioY = yEndMin >= 0 ? 1 - yEndMin / yEndMax : 0;
-                    handleDatum(yMaxIndex, 0, x, width, 0, yEndMax, yEndMax, featherRatioY, 1);
+                    handleDatum(yMaxIndex, x, width, 0, yEndMax, yEndMax, featherRatioY, 1);
                 }
 
                 if (yEndMin < 0) {
                     const featherRatioY = yEndMax <= 0 ? yEndMax / yEndMin - 1 : 0;
-                    handleDatum(yMinIndex, 1, x, width, 0, yEndMin, yEndMin, featherRatioY, 1);
+                    handleDatum(yMinIndex, x, width, 0, yEndMin, yEndMin, featherRatioY, 1);
                 }
             }
         }
@@ -906,7 +898,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     private getDatumId(datum: BarNodeDatum) {
-        return createDatumId(datum.xValue, datum.valueIndex, datum.phantom);
+        return createDatumId(datum.xValue, datum.phantom);
     }
 
     protected isLabelEnabled() {
