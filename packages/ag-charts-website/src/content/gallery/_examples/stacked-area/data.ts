@@ -2,7 +2,7 @@
 export function getData() {
     return [
         {
-            date: new Date(Date.UTC(2019, 0, 1)),
+            date: new Date(2019, 0, 1),
             'Science Museum': 237881,
             'National Media Museum': 32560,
             'National Railway Museum': 40148,
@@ -11,7 +11,7 @@ export function getData() {
             'National Coal Mining Museum for England': 4947,
         },
         {
-            date: new Date(Date.UTC(2019, 1, 1)),
+            date: new Date(2019, 1, 1),
             'Science Museum': 272074,
             'National Media Museum': 49546,
             'National Railway Museum': 57824,
@@ -20,7 +20,7 @@ export function getData() {
             'National Coal Mining Museum for England': 7825,
         },
         {
-            date: new Date(Date.UTC(2019, 2, 1)),
+            date: new Date(2019, 2, 1),
             'Science Museum': 285715,
             'National Media Museum': 35009,
             'National Railway Museum': 51892,
@@ -29,7 +29,7 @@ export function getData() {
             'National Coal Mining Museum for England': 6276,
         },
         {
-            date: new Date(Date.UTC(2019, 3, 1)),
+            date: new Date(2019, 3, 1),
             'Science Museum': 314865,
             'National Media Museum': 36572,
             'National Railway Museum': 68999,
@@ -38,7 +38,7 @@ export function getData() {
             'National Coal Mining Museum for England': 12091,
         },
         {
-            date: new Date(Date.UTC(2019, 4, 1)),
+            date: new Date(2019, 4, 1),
             'Science Museum': 229772,
             'National Media Museum': 30497,
             'National Railway Museum': 56119,
@@ -47,7 +47,7 @@ export function getData() {
             'National Coal Mining Museum for England': 11080,
         },
         {
-            date: new Date(Date.UTC(2019, 5, 1)),
+            date: new Date(2019, 5, 1),
             'Science Museum': 241065,
             'National Media Museum': 29018,
             'National Railway Museum': 48814,
@@ -56,7 +56,7 @@ export function getData() {
             'National Coal Mining Museum for England': 8599,
         },
         {
-            date: new Date(Date.UTC(2019, 6, 1)),
+            date: new Date(2019, 6, 1),
             'Science Museum': 354943,
             'National Media Museum': 47193,
             'National Railway Museum': 66416,
@@ -65,7 +65,7 @@ export function getData() {
             'National Coal Mining Museum for England': 10431,
         },
         {
-            date: new Date(Date.UTC(2019, 7, 1)),
+            date: new Date(2019, 7, 1),
             'Science Museum': 363725,
             'National Media Museum': 51087,
             'National Railway Museum': 94972,
@@ -74,7 +74,7 @@ export function getData() {
             'National Coal Mining Museum for England': 20140,
         },
         {
-            date: new Date(Date.UTC(2019, 8, 1)),
+            date: new Date(2019, 8, 1),
             'Science Museum': 196336,
             'National Media Museum': 29462,
             'National Railway Museum': 55506,
@@ -83,7 +83,7 @@ export function getData() {
             'National Coal Mining Museum for England': 8216,
         },
         {
-            date: new Date(Date.UTC(2019, 9, 1)),
+            date: new Date(2019, 9, 1),
             'Science Museum': 312781,
             'National Media Museum': 42880,
             'National Railway Museum': 73100,
@@ -92,7 +92,7 @@ export function getData() {
             'National Coal Mining Museum for England': 8444,
         },
         {
-            date: new Date(Date.UTC(2019, 10, 1)),
+            date: new Date(2019, 10, 1),
             'Science Museum': 254938,
             'National Media Museum': 29745,
             'National Railway Museum': 51243,
@@ -101,7 +101,7 @@ export function getData() {
             'National Coal Mining Museum for England': 5903,
         },
         {
-            date: new Date(Date.UTC(2019, 11, 1)),
+            date: new Date(2019, 11, 1),
             'Science Museum': 237880,
             'National Media Museum': 26347,
             'National Railway Museum': 49346,
