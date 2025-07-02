@@ -435,10 +435,7 @@ enum LocationOperation {
 }
 
 const locationOperations: Record<LocationOperation, OperationFns> = {
-    $isUserOption: {
-        dependencies: pathOperationDependenciesFactory,
-        resolve: isUserOptionOperation,
-    },
+    $isUserOption: isUserOptionOperation,
     $palette: paletteOperation,
     $mapPalette: mapPaletteOperation,
     $path: {
@@ -456,18 +453,15 @@ function isUserOptionOperation(graph: OptionsGraphInterface, vertex: VertexInter
     const [relativePathVertex, thenVertex, elseVertex] = values;
 
     const relativePath = graph.resolveVertexValue(vertex, relativePathVertex);
-
     if (!isString(relativePath)) {
         throw new Error(`\`$path\` json operation failed on [${String(relativePath)}], expecting a string.`);
     }
 
     const pathArray = graph.getPathArray(vertex);
-
     const path = resolvePath(pathArray, relativePath);
     if (path === UNRESOLVABLE_PATH) return;
 
-    const resolvedVertex = graph.findVertexAtPath(path);
-    if (resolvedVertex && graph.findNeighbour(resolvedVertex, USER_OPTIONS_EDGE)) {
+    if (graph.hasUserOption(path)) {
         return graph.resolveVertexValue(vertex, thenVertex);
     }
 

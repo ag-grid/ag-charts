@@ -23,6 +23,7 @@ export interface OptionsGraphInterface {
         overridesPathArrays?: Array<Array<string> | undefined>
     ): void;
     graftValue(target: VertexInterface, path: string, operation: unknown, value: unknown): void;
+    hasUserOption(path: Array<string>): boolean;
     neighboursWithEdgeValue(vertex: VertexInterface, edge: string): Array<VertexInterface> | undefined;
     removeEdges(vertex: VertexInterface, edge: string): void;
     resolveValue$1(path: Array<string>): unknown;
@@ -56,6 +57,21 @@ export const AUTO_ENABLE_VALUE_EDGE = 'autoEnableValue';
 
 export function isRatio(value: unknown): value is number {
     return isNumber(value) && value >= 0 && value <= 1;
+}
+
+export function hasPathSafe(object: PlainObject, path: string[]) {
+    let result = object;
+    for (const part of path) {
+        // Since this is called so often on large multi series charts, inline the check for `isKey`
+        const isPartKey =
+            typeof part === 'string' &&
+            result != null &&
+            (typeof result === 'object' || Array.isArray(result)) &&
+            part in result;
+        if (!isPartKey) return false;
+        result = result[part as any];
+    }
+    return true;
 }
 
 export function getPathSafe(object: PlainObject, path: string[]) {
