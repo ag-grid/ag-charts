@@ -1,4 +1,4 @@
-import { findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
+import { findMaxIndex, findMinIndex, isEmptyObject, isFiniteNumber } from 'ag-charts-core';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
@@ -517,8 +517,12 @@ export abstract class CartesianSeries<
         }
 
         const { highlight: { unhighlightedItem, highlightedSeries, unhighlightedSeries } = {} } = this.properties;
+
         const changesOnHighlight =
-            unhighlightedItem != null || highlightedSeries != null || unhighlightedSeries != null;
+            !isEmptyObject(unhighlightedItem) ||
+            !isEmptyObject(highlightedSeries) ||
+            !isEmptyObject(unhighlightedSeries);
+
         if (nodeRefresh || changesOnHighlight) {
             this.updateDatumNodes({ datumSelection, isHighlight: false });
             if (!this.usesPlacedLabels) {
