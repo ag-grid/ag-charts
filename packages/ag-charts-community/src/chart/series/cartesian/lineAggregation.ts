@@ -1,5 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
-
+import type { Scale } from '../../../scale/scale';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
@@ -16,6 +15,11 @@ import {
 
 const AGGREGATION_THRESHOLD = 1e3;
 const MAX_POINTS = 10;
+
+export interface LineSeriesDataAggregationFilter {
+    indices: number[];
+    maxRange: number;
+}
 
 function aggregationContainsIndex(
     xValues: any[],
@@ -42,11 +46,11 @@ function aggregationContainsIndex(
 }
 
 export function aggregateLineData(
-    scale: _ModuleSupport.Scale<unknown, number>,
+    scale: Scale<unknown, number>,
     xValues: any[],
     yValues: any[],
     domain: any[]
-): _ModuleSupport.LineSeriesDataAggregationFilter[] | undefined {
+): LineSeriesDataAggregationFilter[] | undefined {
     if (xValues.length < AGGREGATION_THRESHOLD) return;
 
     const [d0, d1] = aggregationDomain(scale, domain);
@@ -62,7 +66,7 @@ export function aggregateLineData(
         }
     }
 
-    const filters: _ModuleSupport.LineSeriesDataAggregationFilter[] = [{ maxRange, indices }];
+    const filters: LineSeriesDataAggregationFilter[] = [{ maxRange, indices }];
 
     while (indices.length > MAX_POINTS && maxRange > 64) {
         ({ maxRange } = compactAggregationIndices(indexData, valueData, maxRange, { inPlace: true }));

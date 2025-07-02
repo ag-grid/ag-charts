@@ -46,7 +46,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { aggregateLineData } from './lineAggregation';
+import { type LineSeriesDataAggregationFilter, aggregateLineData } from './lineAggregation';
 import { LineSeriesProperties } from './lineSeriesProperties';
 import {
     type LineNodeDatum,
@@ -71,11 +71,6 @@ const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
 type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
 
 type SpanPoints = Array<LineSpanPointDatum[] | { skip: number }>;
-
-export interface LineSeriesDataAggregationFilter {
-    indices: number[];
-    maxRange: number;
-}
 
 export class LineSeries extends CartesianSeries<
     Group,
