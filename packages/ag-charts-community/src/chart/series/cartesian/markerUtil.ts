@@ -1,5 +1,5 @@
 import { clamp } from 'ag-charts-core';
-import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { AgMarkerShape } from 'ag-charts-types';
 
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
@@ -90,7 +90,7 @@ interface MarkerNodeDatum extends SeriesNodeDatum<unknown> {
 
 interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<number, TDatum, unknown, unknown> {
     getNodeData(): { [index: number]: TDatum | undefined } | undefined;
-    getFormattedMarkerStyle(datum: TDatum): Required<Pick<AgSeriesMarkerStyle, 'size' | 'shape'>>;
+    getFormattedMarkerStyle(datum: TDatum): { size: number; shape?: AgMarkerShape };
 }
 
 export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
