@@ -1,4 +1,3 @@
-import { getMaxInnerRectSize } from 'ag-charts-core';
 import type { OverflowStrategy, TextWrap } from 'ag-charts-types';
 
 import { CachedTextMeasurerPool, type MeasureOptions, type TextMeasurer, TextUtils } from './textMeasurer';
@@ -11,7 +10,6 @@ export interface WrapOptions extends MeasureOptions {
     textWrap?: TextWrap;
     overflow?: OverflowStrategy;
     avoidOrphans?: boolean;
-    rotation?: number;
 }
 
 export class TextWrapper {
@@ -20,10 +18,6 @@ export class TextWrapper {
     }
 
     static wrapLines(text: string, options: WrapOptions) {
-        if (options.rotation) {
-            const { width, height } = getMaxInnerRectSize(options.rotation, options.maxWidth, options.maxHeight);
-            options = { ...options, maxWidth: width, maxHeight: height };
-        }
         const clippedResult = this.textWrap(text, options);
         if (options.overflow === 'hide' && clippedResult.some((l) => l.endsWith(TextUtils.EllipsisChar))) {
             return [];

@@ -1,4 +1,4 @@
-import { inRange, isArray, isObject, sortBasedOnArray, toArray } from 'ag-charts-core';
+import { getMaxInnerRectSize, inRange, isArray, isObject, sortBasedOnArray, toArray } from 'ag-charts-core';
 import type { FontStyle, FontWeight, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -211,14 +211,21 @@ export class GroupedCategoryAxis extends CategoryAxis {
             const labelStyles = this.getLabelStyles({ value: text, depth }, depthOptions[depth]?.label);
 
             if (label.avoidCollisions) {
+                const rotation = optionsMap[depth].rotation;
+                let maxWidth = (datum.leafCount || 1) * step;
+                let maxHeight = this.thickness;
+                if (rotation != null) {
+                    const innerRect = getMaxInnerRectSize(rotation, maxWidth, maxHeight);
+                    maxWidth = innerRect.width;
+                    maxHeight = innerRect.height;
+                }
                 text =
                     TextWrapper.wrapText(text, {
                         font: labelStyles,
                         textWrap: optionsMap[depth].wrapping,
                         overflow: optionsMap[depth].truncate ? 'ellipsis' : 'hide',
-                        rotation: optionsMap[depth].rotation,
-                        maxWidth: (datum.leafCount || 1) * step,
-                        maxHeight: this.thickness,
+                        maxWidth,
+                        maxHeight,
                     }) || text;
             }
 
