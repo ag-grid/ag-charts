@@ -404,7 +404,7 @@ export class AreaSeries extends CartesianSeries<
             }
 
             // label data
-            if (validPoint && label) {
+            if (label.enabled && validPoint) {
                 const labelText = this.getLabelText<AgAreaSeriesLabelFormatterParams>(
                     yDatum,
                     seriesDatum,
@@ -788,13 +788,13 @@ export class AreaSeries extends CartesianSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
+                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 symbol: this.legendItemSymbol(),
                 data: [
                     {
                         label: yName,
                         fallbackLabel: yKey,
-                        value: yAxis.formatDatum(yValue, 'tooltip', seriesId, legendItemName, datum, yKey),
+                        value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
                     },
                 ],
             },

@@ -107,6 +107,7 @@ export abstract class AgCharts {
                 presetType: 'sparkline',
                 pool: pool ?? true,
                 domMode: 'minimal',
+                withDragInterpretation: false,
             }) as any;
         });
     }

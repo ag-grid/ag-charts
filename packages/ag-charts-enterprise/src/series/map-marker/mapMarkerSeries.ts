@@ -98,7 +98,7 @@ export class MapMarkerSeries
         false
     );
     private highlightMarkerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> =
-        Selection.select(this.highlightNode, Marker);
+        Selection.select(this.highlightGroup, Marker);
 
     private contextNodeData?: MapMarkerNodeDataContext;
 
@@ -227,7 +227,7 @@ export class MapMarkerSeries
                           valueProperty(longitudeKey, mercatorScaleType, { id: 'lonValue' }),
                       ]
                     : []),
-                ...(labelKey ? [valueProperty(labelKey, 'band', { id: 'labelValue' })] : []),
+                ...(labelKey ? [valueProperty(labelKey, 'category', { id: 'labelValue' })] : []),
                 ...(sizeKey ? [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })] : []),
                 ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
             ],
@@ -315,7 +315,7 @@ export class MapMarkerSeries
             label,
             shape,
         } = this.properties;
-        if (labelKey == null) return;
+        if (labelKey == null || !label.enabled) return;
 
         const { placement } = label;
         const labelText = this.getLabelText<AgMapMarkerSeriesLabelFormatterParams>(

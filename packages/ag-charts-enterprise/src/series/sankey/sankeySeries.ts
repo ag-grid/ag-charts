@@ -173,16 +173,19 @@ export class SankeySeries extends FlowProportionSeries<
             node.x = column.x;
             node.size = size;
 
-            const label = this.getLabelText<AgSankeySeriesLabelFormatterParams>(
-                node.label,
-                node.datum,
-                labelKey!,
-                'label',
-                [],
-                this.properties.label,
-                { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size }
-            );
-            node.label = String(label);
+            const { label } = this.properties;
+            const labelText = label.enabled
+                ? this.getLabelText<AgSankeySeriesLabelFormatterParams>(
+                      node.label,
+                      node.datum,
+                      labelKey!,
+                      'label',
+                      [],
+                      this.properties.label,
+                      { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size }
+                  )
+                : undefined;
+            node.label = labelText;
 
             column.nodes.push(graphNode);
             column.size += size;

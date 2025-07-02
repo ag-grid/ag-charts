@@ -2,6 +2,7 @@ import { type BoxBounds, type StrictHTMLElement, createElement, createElementId 
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { ModuleContext } from '../../module/moduleContext';
+import { BBox } from '../../scene/bbox';
 import type { Node } from '../../scene/node';
 import type { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
@@ -192,13 +193,21 @@ export class LegendDOMProxy {
             }
         }
 
-        const { prev, next } = pagination.computeCSSBounds();
-        this.prevButton?.setBounds(prev);
-        this.nextButton?.setBounds(next);
-        this.prevButton?.setEnabled(pagination.currentPage !== 0);
-        this.nextButton?.setEnabled(pagination.currentPage !== pagination.totalPages - 1);
-        this.nextButton?.setCursor(pagination.getCursor('next'));
-        this.prevButton?.setCursor(pagination.getCursor('previous'));
+        if (this.prevButton && this.nextButton) {
+            const { prev, next } = pagination.computeCSSBounds();
+            const group: BBox = BBox.merge([prev, next]);
+            prev.x -= group.x;
+            prev.y -= group.y;
+            next.x -= group.x;
+            next.y -= group.y;
+            this.paginationGroup.setBounds(group);
+            this.prevButton.setBounds(prev);
+            this.nextButton.setBounds(next);
+            this.prevButton.setEnabled(pagination.currentPage !== 0);
+            this.nextButton.setEnabled(pagination.currentPage !== pagination.totalPages - 1);
+            this.nextButton.setCursor(pagination.getCursor('next'));
+            this.prevButton.setCursor(pagination.getCursor('previous'));
+        }
     }
 
     private onPageButton(params: LegendDOMProxyUpdateParams, ev: MouseWidgetEvent<'click'>, node: 'previous' | 'next') {

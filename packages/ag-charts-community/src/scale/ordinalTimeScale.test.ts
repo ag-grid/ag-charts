@@ -591,6 +591,113 @@ describe('OrdinalTimeScale', () => {
             ]);
         });
 
+        it('should return ticks for the given band step and domain when the domain starts before the first tick', () => {
+            const domain = Array.from({ length: 20 }, (_, i) => new Date(2024, 0, i * 5 + 1));
+            const scale = new OrdinalTimeScale();
+            scale.domain = domain;
+            expect(scale.stepTicks(2, [new Date(2024, 1, 1), new Date(2024, 2, 0)], [0, 1])).toEqual([
+                new Date(2024, 1, 5),
+                new Date(2024, 1, 15),
+            ]);
+        });
+
+        it('should drop the last tick if it is less than a band step away from the domain', () => {
+            const domain = [
+                new Date(2024, 2, 26),
+                new Date(2024, 2, 27),
+                new Date(2024, 2, 28),
+                new Date(2024, 3, 1),
+                new Date(2024, 3, 2),
+                new Date(2024, 3, 3),
+                new Date(2024, 3, 4),
+                new Date(2024, 3, 5),
+                new Date(2024, 3, 8),
+                new Date(2024, 3, 9),
+                new Date(2024, 3, 10),
+                new Date(2024, 3, 11),
+                new Date(2024, 3, 12),
+                new Date(2024, 3, 15),
+                new Date(2024, 3, 16),
+                new Date(2024, 3, 17),
+                new Date(2024, 3, 18),
+                new Date(2024, 3, 19),
+                new Date(2024, 3, 22),
+                new Date(2024, 3, 23),
+                new Date(2024, 3, 24),
+                new Date(2024, 3, 25),
+                new Date(2024, 3, 26),
+                new Date(2024, 3, 29),
+                // new Date(2024, 3, 30),
+                new Date(2024, 4, 1),
+                new Date(2024, 4, 2),
+                new Date(2024, 4, 3),
+            ];
+
+            const scale = new OrdinalTimeScale();
+            scale.domain = domain;
+            expect(scale.stepTicks(2, [new Date(2024, 3, 1), new Date(2024, 4, 1)], [0, 1])).toEqual([
+                new Date(2024, 3, 1),
+                new Date(2024, 3, 3),
+                new Date(2024, 3, 5),
+                new Date(2024, 3, 9),
+                new Date(2024, 3, 11),
+                new Date(2024, 3, 15),
+                new Date(2024, 3, 17),
+                new Date(2024, 3, 19),
+                new Date(2024, 3, 23),
+                new Date(2024, 3, 25),
+            ]);
+        });
+
+        it('should keep the last tick if it is exactly a band step away from the domain', () => {
+            const domain = [
+                new Date(2024, 3, 26),
+                new Date(2024, 3, 29),
+                new Date(2024, 3, 30),
+                new Date(2024, 4, 1),
+                new Date(2024, 4, 2),
+                new Date(2024, 4, 3),
+                new Date(2024, 4, 6),
+                new Date(2024, 4, 7),
+                new Date(2024, 4, 8),
+                new Date(2024, 4, 9),
+                new Date(2024, 4, 10),
+                new Date(2024, 4, 13),
+                new Date(2024, 4, 14),
+                new Date(2024, 4, 15),
+                new Date(2024, 4, 16),
+                new Date(2024, 4, 17),
+                new Date(2024, 4, 20),
+                new Date(2024, 4, 21),
+                new Date(2024, 4, 22),
+                new Date(2024, 4, 23),
+                new Date(2024, 4, 24),
+                new Date(2024, 4, 28),
+                new Date(2024, 4, 29),
+                new Date(2024, 4, 30),
+                new Date(2024, 4, 31),
+                new Date(2024, 5, 3),
+                new Date(2024, 5, 4),
+                new Date(2024, 5, 5),
+            ];
+
+            const scale = new OrdinalTimeScale();
+            scale.domain = domain;
+            expect(scale.stepTicks(2, [new Date(2024, 4, 1), new Date(2024, 5, 1)], [0, 1])).toEqual([
+                new Date(2024, 4, 1),
+                new Date(2024, 4, 3),
+                new Date(2024, 4, 7),
+                new Date(2024, 4, 9),
+                new Date(2024, 4, 13),
+                new Date(2024, 4, 15),
+                new Date(2024, 4, 17),
+                new Date(2024, 4, 21),
+                new Date(2024, 4, 23),
+                new Date(2024, 4, 28),
+                new Date(2024, 4, 30),
+            ]);
+        });
+
         it('should return ticks for the given band step, domain, and visible range', () => {
             const domain = Array.from({ length: 100 }, (_, i) => new Date(2024, 0, i + 1));
             const scale = new OrdinalTimeScale();

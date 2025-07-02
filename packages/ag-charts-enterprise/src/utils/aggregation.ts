@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { findMinMax } = _ModuleSupport;
+const { ContinuousScale, DiscreteTimeScale } = _ModuleSupport;
 
 export const X_MIN = 0;
 export const X_MAX = 1;
@@ -14,11 +14,24 @@ export function maxRangeFittingPoints(data: any[], precision: number = 1) {
     return (2 ** power) | 0;
 }
 
-export function aggregationDomain(domain: any[]): [number, number] {
-    return findMinMax(domain.map((x) => Number(x))) as [number, number];
+export function aggregationDomain(scale: _ModuleSupport.Scale<unknown, number>, domain: any[]): [number, number] {
+    if (!(ContinuousScale.is(scale) || DiscreteTimeScale.is(scale))) return [NaN, NaN];
+
+    let min = Infinity;
+    let max = -Infinity;
+    for (const d of domain) {
+        const value = Number(d);
+        min = Math.min(min, value);
+        max = Math.max(max, value);
+    }
+    return [min, max];
 }
 
-export function xRatioForDatumIndex(xValue: any, d0: number, d1: number) {
+export function xRatioForDatumIndex(datumIndex: any, domainCount: number) {
+    return datumIndex / domainCount;
+}
+
+export function xRatioForXValue(xValue: any, d0: number, d1: number) {
     return (xValue.valueOf() - d0) / (d1 - d0);
 }
 
@@ -39,6 +52,8 @@ export function createAggregationIndices(
 } {
     const indexData = new Int32Array(maxRange * SPAN).fill(-1);
     const valueData = new Float64Array(maxRange * SPAN).fill(NaN);
+    const continuous = Number.isFinite(d0) && Number.isFinite(d1);
+    const domainCount = xValues.length;
 
     for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {
         const xValue = xValues[datumIndex];
@@ -46,7 +61,57 @@ export function createAggregationIndices(
         const yMinValue = yMinValues[datumIndex];
         if (xValue == null || yMaxValue == null || yMinValue == null) continue;
 
-        const xRatio = xRatioForDatumIndex(xValue, d0, d1);
+        const xRatio = continuous ? xRatioForXValue(xValue, d0, d1) : xRatioForDatumIndex(datumIndex, domainCount);
+        const yMax: number = yMaxValue.valueOf();
+        const yMin: number = yMinValue.valueOf();
+        const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
+
+        const unset = indexData[aggIndex + X_MIN] === -1;
+
+        if (unset || xRatio < valueData[aggIndex + X_MIN]) {
+            indexData[aggIndex + X_MIN] = datumIndex;
+            valueData[aggIndex + X_MIN] = xRatio;
+        }
+        if (unset || xRatio > valueData[aggIndex + X_MAX]) {
+            indexData[aggIndex + X_MAX] = datumIndex;
+            valueData[aggIndex + X_MAX] = xRatio;
+        }
+        if (unset || yMin < valueData[aggIndex + Y_MIN]) {
+            indexData[aggIndex + Y_MIN] = datumIndex;
+            valueData[aggIndex + Y_MIN] = yMin;
+        }
+        if (unset || yMax > valueData[aggIndex + Y_MAX]) {
+            indexData[aggIndex + Y_MAX] = datumIndex;
+            valueData[aggIndex + Y_MAX] = yMax;
+        }
+    }
+
+    return { indexData, valueData };
+}
+
+export function createCategoryAggregationIndices(
+    xValues: any[],
+    yMaxValues: any[],
+    yMinValues: any[],
+    bandCount: number,
+    maxRange: number
+): {
+    indexData: Int32Array;
+    valueData: Float64Array;
+} {
+    const indexData = new Int32Array(maxRange * SPAN).fill(-1);
+    const valueData = new Float64Array(maxRange * SPAN).fill(NaN);
+
+    for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {
+        const xValue = xValues[datumIndex];
+        const yMaxValue = yMaxValues[datumIndex];
+        const yMinValue = yMinValues[datumIndex];
+        if (xValue == null || yMaxValue == null || yMinValue == null) continue;
+
+        // Note - we're not using scale.convert because the only domain we have is that from the
+        // data model - it has not been normalized by the axis
+        // In this case, the domain is just the xValues, so we can use the index directly
+        const xRatio = datumIndex / bandCount;
         const yMax: number = yMaxValue.valueOf();
         const yMin: number = yMinValue.valueOf();
         const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);

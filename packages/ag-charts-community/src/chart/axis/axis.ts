@@ -41,7 +41,7 @@ import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../c
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
-import { FormatManager } from '../formatter/formatManager';
+import { FormatManager, type GlobalContextFormatter } from '../formatter/formatManager';
 import type { ISeries } from '../series/seriesTypes';
 import { ZIndexMap } from '../zIndexMap';
 import { AxisGridLine } from './axisGridLine';
@@ -107,6 +107,11 @@ interface TickLayout<D, TickLayoutMeta> {
     bbox?: BBox;
     layout?: TickLayoutMeta;
 }
+
+type ContextFormatter<Params extends object> = (
+    fn: (params: Params) => string | undefined,
+    params: Params
+) => string | undefined;
 
 /**
  * A general purpose linear axis with no notion of orientation.
@@ -685,8 +690,8 @@ export abstract class Axis<
     }
 
     // For formatting arbitrary values between the ticks.
-    formatDatum(value: any, source: 'crosshair' | 'annotation-label'): string;
     formatDatum(
+        formatInContext: GlobalContextFormatter,
         value: any,
         source: 'tooltip' | 'series-label',
         seriesId: string,
@@ -695,6 +700,7 @@ export abstract class Axis<
         key: string
     ): string;
     formatDatum<Params extends object>(
+        formatInContext: ContextFormatter<Params> | GlobalContextFormatter,
         value: any,
         source: 'crosshair' | 'annotation-label',
         seriesId: undefined,
@@ -705,6 +711,7 @@ export abstract class Axis<
         label?: AxisFormattableLabel<Params, FormatterParams<any>>
     ): string;
     formatDatum<Params extends object>(
+        formatInContext: ContextFormatter<Params> | GlobalContextFormatter,
         value: any,
         source: 'tooltip' | 'series-label',
         seriesId: string,
@@ -716,6 +723,7 @@ export abstract class Axis<
         labelParams: Params
     ): string;
     formatDatum(
+        formatInContext: ContextFormatter<any>,
         input: any,
         source: Exclude<AnyFormatterSource, 'axis-label' | 'gradient-legend'>,
         seriesId?: string,
@@ -724,11 +732,7 @@ export abstract class Axis<
         key?: string,
         domain?: any[],
         label?: AxisFormattableLabel<any>,
-        params?: any,
-        formatInContext: (
-            fn: (params: any) => string | undefined,
-            params: any
-        ) => string | undefined = this.callWithContext.bind(this)
+        params?: any
     ): string {
         if (input == null) return '';
 
@@ -863,7 +867,17 @@ export abstract class Axis<
             scaleInvert: (val) => scale.invert(val, true),
             scaleInvertNearest: (val) => scale.invert(val, true),
             formatScaleValue: (value, source, label) =>
-                this.formatDatum(value, source, undefined, undefined, undefined, undefined, undefined, label),
+                this.formatDatum(
+                    this.callWithContext.bind(this),
+                    value,
+                    source,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    label
+                ),
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),

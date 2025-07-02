@@ -28,12 +28,15 @@ const getHsva = (input: string) => {
 export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptions> {
     private hasChanged = false;
     private onChangeHide?: () => void;
+    private i18nUpdater?: () => void;
 
     constructor(ctx: _ModuleSupport.ModuleContext, options?: _ModuleSupport.PopoverConstructorOptions) {
         super(ctx, 'color-picker', options);
         this.hideFns.push(() => {
+            this.i18nUpdater = undefined;
             if (this.hasChanged) this.onChangeHide?.();
         });
+        this.cleanup.register(this.ctx.eventsHub.on('locale:change', () => this.i18nUpdater?.()));
     }
 
     public show(options: ColorPickerOptions) {
@@ -47,6 +50,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
     }
 
     private createColorPicker(opts: ColorPickerOptions) {
+        const { localeManager } = this.ctx;
         let isMultiColor = opts.isMultiColor ?? false;
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
         a = opts.opacity ?? a;
@@ -63,6 +67,24 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         const alphaInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__alpha-input')!;
         const colorInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-input')!;
         const colorInputLabel = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-label')!;
+
+        // Update the 2D-slider to with the new S and V values. By default, announce S first followed by V. If the user
+        // is arrowing up or down, then announce V first because it's more relevant.
+        const updatePaletteInputAriaValue = (first: 's' | 'v') => {
+            const key = ({ s: 'ariaValueColorPalette', v: 'ariaValueColorPaletteFirstV' } as const)[first];
+            paletteInput.ariaValueText = localeManager.t(key, { s, v });
+        };
+
+        this.i18nUpdater = () => {
+            paletteInput.ariaRoleDescription = localeManager.t('ariaRoleDescription');
+            paletteInput.ariaLabel = localeManager.t('ariaLabelColorPickerPalette');
+            hueInput.ariaLabel = localeManager.t('ariaLabelColorPickerHue');
+            multiColorButton.ariaLabel = localeManager.t('ariaLabelColorPickerMultiColor');
+            alphaInput.ariaLabel = localeManager.t('ariaLabelColorPickerAlpha');
+            colorInput.ariaLabel = localeManager.t('ariaLabelColor');
+            updatePaletteInputAriaValue('s');
+        };
+        this.i18nUpdater();
 
         multiColorButton.classList.toggle(
             'ag-charts-color-picker__multi-color-button--hidden',
@@ -90,7 +112,10 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             colorInputLabel.classList.toggle('ag-charts-color-picker__color-label--multi-color', isMultiColor);
 
             if (document.activeElement !== colorInput) {
-                colorInput.value = isMultiColor ? 'Multi Colour' : colorString.toUpperCase();
+                multiColorButton.ariaChecked = isMultiColor.toString();
+                colorInput.value = isMultiColor
+                    ? localeManager.t('ariaLabelColorPickerMultiColor')
+                    : colorString.toUpperCase();
             }
 
             if (trackChange || opts.color == null) {
@@ -116,6 +141,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
                 s = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
                 v = 1 - Math.min(Math.max((clientY - rect.top) / rect.height, 0), 1);
                 update();
+                updatePaletteInputAriaValue('s');
             };
             pointerMove(e);
 
@@ -144,17 +170,24 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         paletteInput.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft') {
                 s = clamp(0, s - 0.01, 1);
+                updatePaletteInputAriaValue('s');
             } else if (e.key === 'ArrowRight') {
                 s = clamp(0, s + 0.01, 1);
+                updatePaletteInputAriaValue('s');
             } else if (e.key === 'ArrowUp') {
                 v = clamp(0, v + 0.01, 1);
+                updatePaletteInputAriaValue('v');
             } else if (e.key === 'ArrowDown') {
                 v = clamp(0, v - 0.01, 1);
+                updatePaletteInputAriaValue('v');
             } else {
                 return;
             }
             e.preventDefault();
             update();
+        });
+        paletteInput.addEventListener('focus', () => {
+            updatePaletteInputAriaValue('s');
         });
         multiColorButton.addEventListener('click', () => {
             isMultiColor = !isMultiColor;

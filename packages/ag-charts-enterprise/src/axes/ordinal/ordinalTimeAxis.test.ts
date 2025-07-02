@@ -595,4 +595,42 @@ describe('Ordinal Time Axis Examples', () => {
             }
         });
     }
+
+    describe('Parent level', () => {
+        it('should render a parent level where the interval is larger than the minimum interval', async () => {
+            const data = Array.from({ length: 1e3 }, (_, i) => {
+                const timestamp = new Date(2024, 0, 1, -i).getTime();
+
+                return { timestamp, price: 1 };
+            }).reverse();
+
+            chart = await createEnterpriseChart<AgCartesianChartOptions>({
+                data,
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'timestamp',
+                        yKey: 'price',
+                        marker: { enabled: false },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'left' },
+                    {
+                        type: 'ordinal-time',
+                        position: 'bottom',
+                        parentLevel: { enabled: true },
+                    },
+                ],
+            });
+
+            const axis = (chart.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;
+
+            const axisBbox = calculateAxisBBox(axis);
+
+            const imageData = extractImageData({ ...ctx, bbox: axisBbox });
+
+            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
 });

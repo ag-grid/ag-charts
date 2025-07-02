@@ -205,7 +205,7 @@ export interface AgTimeAxisOptions<TContext = ContextDefault>
     extends Omit<
             AgBaseCartesianAxisOptions<
                 AgCartesianTimeAxisLabelOptions<TContext>,
-                AgCrosshairLabel<AgTimeAxisFormattableLabelFormat>,
+                AgCrosshairLabel<AgTimeAxisFormattableLabelFormat, TContext>,
                 TContext
             >,
             'interval'
@@ -221,7 +221,7 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
     extends Omit<
             AgBaseCartesianAxisOptions<
                 AgCartesianTimeAxisLabelOptions<TContext>,
-                AgCrosshairLabel<AgTimeAxisFormattableLabelFormat>,
+                AgCrosshairLabel<AgTimeAxisFormattableLabelFormat, TContext>,
                 TContext
             >,
             'interval'

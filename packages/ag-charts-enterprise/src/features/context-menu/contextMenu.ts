@@ -204,7 +204,6 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 case 'separator':
                     const sep = menuWidget.addSeparator();
                     sep.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
-                    this.initTableCells(sep);
                     break;
                 case 'action':
                     if (item.items.length === 0) {

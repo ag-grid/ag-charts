@@ -128,7 +128,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                     ? [valueProperty(sizeFilterKey, sizeScaleType, { id: `sizeFilterValue` })]
                     : []),
                 ...(sizeKey ? [valueProperty(sizeKey, sizeScaleType, { id: `sizeValue` })] : []),
-                ...(labelKey ? [valueProperty(labelKey, 'band', { id: `labelValue` })] : []),
+                ...(labelKey ? [valueProperty(labelKey, 'category', { id: `labelValue` })] : []),
             ],
         });
 
@@ -482,12 +482,12 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             {
                 label: xName,
                 fallbackLabel: xKey,
-                value: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
+                value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
             },
             {
                 label: yName,
                 fallbackLabel: yKey,
-                value: yAxis.formatDatum(yValue, 'tooltip', seriesId, legendItemName, datum, yKey),
+                value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
             }
         );
 

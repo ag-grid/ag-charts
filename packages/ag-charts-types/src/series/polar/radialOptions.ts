@@ -15,7 +15,7 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = DatumDefault, TCont
     /** A styler function for adjusting the styling of the radial columns. */
     itemStyler?: Styler<AgRadialSeriesItemStylerParams<TDatum, TContext>, AgRadialSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgRadialHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgRadialHighlightStyleOptions, AgRadialHighlightStyleOptions>;
 }
 
 export interface AgRadialHighlightStyleOptions extends AgRadialSeriesStyle {

@@ -90,7 +90,7 @@ export class MapShapeSeries
         Text
     );
     private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
-        this.highlightNode,
+        this.highlightGroup,
         () => this.nodeFactory()
     );
 
@@ -169,7 +169,7 @@ export class MapShapeSeries
                     includeProperty: false,
                     processor: () => (datum) => featureById.get(datum as string),
                 }),
-                ...(labelKey ? [valueProperty(labelKey, 'band', { id: 'labelValue' })] : []),
+                ...(labelKey ? [valueProperty(labelKey, 'category', { id: 'labelValue' })] : []),
                 ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
             ],
         });
@@ -225,7 +225,7 @@ export class MapShapeSeries
         if (labelValue == null || geometry == null) return;
 
         const { idKey, idName, colorKey, colorName, labelKey, labelName, padding, label } = this.properties;
-        if (labelKey == null) return;
+        if (labelKey == null || !label.enabled) return;
 
         const labelText = this.getLabelText<AgMapShapeSeriesLabelFormatterParams>(
             labelValue,

@@ -43,8 +43,6 @@ const {
     PointerEvents,
     Group,
     BBox,
-    ContinuousScale,
-    DiscreteTimeScale,
     findMinMax,
     getShapeStyle,
     getShapeFill,
@@ -149,9 +147,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || DiscreteTimeScale.is(xAxis.scale))) {
-            return;
-        }
+        if (xAxis == null) return;
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
@@ -160,7 +156,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return aggregateData(xValues, yHighValues, yLowValues, domain);
+        return aggregateData(xAxis.scale, xValues, yHighValues, yLowValues, domain);
     }
 
     override xCoordinateRange(xValue: any): [number, number] {
@@ -659,11 +655,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const format = this.getMarkerItemBaseStyle(false);
         Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
-        const value = `${yAxis.formatDatum(yLowValue, 'tooltip', seriesId, legendItemName, datum, yLowKey)} - ${yAxis.formatDatum(yHighValue, 'tooltip', seriesId, legendItemName, datum, yHighKey)}`;
+        const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
+                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 symbol: this.legendItemSymbol(),
                 data: [{ label: yName, fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`, value }],
             },

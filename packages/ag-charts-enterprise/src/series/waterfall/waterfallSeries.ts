@@ -87,7 +87,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: ['connector'],
-            hasHighlightedLabels: true,
             pathsZIndexSubOrderOffset: [-1, -1],
             animationResetFns: {
                 datum: resetBarSelectionsFn,
@@ -164,7 +163,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     id: `yPrevious`,
                 }),
                 valueProperty(yKey, yScaleType, { id: `yRaw` }), // Raw value pass-through.
-                valueProperty('totalType', 'band', {
+                valueProperty('totalType', 'category', {
                     id: `totalTypeValue`,
                     missingValue: undefined,
                     validation: totalTypeValue,
@@ -672,13 +671,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
+                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 symbol: this.legendItemSymbol(seriesItemType),
                 data: [
                     {
                         label: yName,
                         fallbackLabel: yKey,
-                        value: yAxis.formatDatum(total, 'tooltip', seriesId, legendItemName, datum, yKey),
+                        value: this.getAxisValueText(yAxis, 'tooltip', total, datum, yKey, legendItemName),
                     },
                 ],
             },

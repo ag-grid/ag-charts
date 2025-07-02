@@ -50,6 +50,41 @@ describe('Zoom', () => {
         },
     };
 
+    const ORDINAL_EXAMPLE_OPTIONS: AgChartOptions = {
+        data: [
+            { date: new Date('2024-04-19'), value: 60 }, // Monday
+            // Skipping Saturday and Sunday
+            { date: new Date('2024-04-22'), value: 10 }, // Monday
+            { date: new Date('2024-04-23'), value: 20 }, // Tuesday
+            { date: new Date('2024-04-24'), value: 30 }, // Wednesday
+            { date: new Date('2024-04-25'), value: 40 }, // Thursday
+            { date: new Date('2024-04-26'), value: 50 }, // Friday
+            // Skipping Saturday and Sunday
+            { date: new Date('2024-04-29'), value: 60 }, // Monday
+        ],
+        series: [
+            {
+                type: 'bar',
+                xKey: 'date',
+                yKey: 'value',
+            },
+        ],
+        axes: [
+            {
+                type: 'ordinal-time',
+                position: 'bottom',
+                parentLevel: {
+                    // Force more labels to show
+                    enabled: true,
+                },
+            },
+            {
+                type: 'number',
+                position: 'left',
+            },
+        ],
+    };
+
     let cx: number = 0;
     let cy: number = 0;
 
@@ -474,6 +509,38 @@ describe('Zoom', () => {
 
         it('should extend the range to the end', async () => {
             await prepareChart({}, { rangeX: { start: 3, end: undefined } });
+            await compare();
+        });
+
+        it('should handle ranges where the start value is not in the ordinal time axis', async () => {
+            await prepareChart(
+                {},
+                { rangeX: { start: { __type: 'date', value: '2024-04-28' } } },
+                ORDINAL_EXAMPLE_OPTIONS
+            );
+            await compare();
+        });
+
+        it('should handle ranges where the end value is not in the ordinal time axis', async () => {
+            await prepareChart(
+                {},
+                { rangeX: { end: { __type: 'date', value: '2024-04-20' } } },
+                ORDINAL_EXAMPLE_OPTIONS
+            );
+            await compare();
+        });
+
+        it('should handle ranges where neither value is in the ordinal time axis', async () => {
+            await prepareChart(
+                {},
+                {
+                    rangeX: {
+                        start: { __type: 'date', value: '2024-04-20' },
+                        end: { __type: 'date', value: '2024-04-28' },
+                    },
+                },
+                ORDINAL_EXAMPLE_OPTIONS
+            );
             await compare();
         });
     });

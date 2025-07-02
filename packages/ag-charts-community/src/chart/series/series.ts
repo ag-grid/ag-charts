@@ -161,6 +161,8 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     usesPlacedLabels?: boolean;
 };
 
+function propertyAxisDirection(property: 'x' | 'y' | 'angle' | 'radius'): ChartAxisDirection;
+function propertyAxisDirection(property: FormatterPropertyType): ChartAxisDirection | undefined;
 function propertyAxisDirection(property: FormatterPropertyType): ChartAxisDirection | undefined {
     switch (property) {
         case 'x':
@@ -255,9 +257,6 @@ export abstract class Series<
     readonly labelGroup = new TranslatableGroup({
         name: `${this.internalId}-series-labels`,
     });
-
-    readonly highlightNode: Group;
-    readonly highlightLabel: Group;
 
     // Package-level visibility, not meant to be set by the user.
     chart?: {
@@ -366,12 +365,6 @@ export abstract class Series<
         this.propertyNames = propertyNames;
         this.canHaveAxes = canHaveAxes;
         this.usesPlacedLabels = usesPlacedLabels;
-
-        this.highlightGroup = new TranslatableGroup({
-            name: `${this.internalId}-highlight`,
-        });
-        this.highlightNode = this.highlightGroup.appendChild(new Group({ name: 'highlightNode', zIndex: 0 }));
-        this.highlightLabel = this.highlightGroup.appendChild(new Group({ name: 'highlightLabel', zIndex: 10 }));
 
         this.pickModes = pickModes;
     }
@@ -842,6 +835,20 @@ export abstract class Series<
         return { ...this.ctx, series: this };
     }
 
+    protected getAxisValueText(
+        axis: ChartAxis,
+        source: 'tooltip',
+        value: any,
+        datum: any,
+        key: string,
+        legendItemName: string | undefined
+    ) {
+        const { id: seriesId } = this;
+        const formatInContext = this.callWithContext.bind(this);
+
+        return axis.formatDatum(formatInContext, value, source, seriesId, legendItemName, datum, key);
+    }
+
     protected getLabelText<TParams extends object>(
         value: any,
         datum: any,
@@ -854,25 +861,19 @@ export abstract class Series<
         if (value == null) return '';
 
         const { axes, canHaveAxes, ctx, id: seriesId, properties } = this;
-        const { formatManager } = ctx;
-        const legendItemName = 'legendItemName' in properties ? (properties.legendItemName as string) : undefined;
+        const formatInContext = this.callWithContext.bind(this);
         const source = 'series-label';
+        const legendItemName = 'legendItemName' in properties ? (properties.legendItemName as string) : undefined;
         const params: AgChartLabelFormatterParams<any> & RequireOptional<TParams> = {
             seriesId: this.id,
             ...baseParams,
         };
 
-        const formatInContext = this.callWithContext.bind(this);
-
-        const format = (formatParams: FormatterParams<any>) =>
-            label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
-            formatManager.format(formatInContext, formatParams) ??
-            String(value);
-
         const direction = canHaveAxes ? propertyAxisDirection(property) : undefined;
         const axis = direction != null ? axes[this.resolveKeyDirection(direction)] : undefined;
         if (axis != null) {
-            return axis.formatDatum<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>(
+            return axis.formatDatum(
+                formatInContext,
                 value,
                 source,
                 seriesId,
@@ -881,10 +882,16 @@ export abstract class Series<
                 key,
                 domain,
                 label,
-                params,
-                formatInContext
+                params
             );
         }
+
+        const { formatManager } = ctx;
+
+        const format = (formatParams: FormatterParams<any>) =>
+            label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
+            formatManager.format(formatInContext, formatParams) ??
+            String(value);
 
         const boundSeries = this.getFormatterContext(property);
         switch (property) {

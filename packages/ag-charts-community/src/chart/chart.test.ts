@@ -252,7 +252,7 @@ describe('Chart', () => {
         getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
         getTooltipRenderedValues: (params) => [params.datum[params.xKey], params.datum[params.yKey]],
         // Returns a highlighted marker
-        getHighlightNode: (_, series) => series.highlightNode.children().next().value,
+        getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
     } as Parameters<typeof testPointerEvents>[0];
 
     describe(`Line Series Pointer Events`, () => {

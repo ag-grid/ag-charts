@@ -47,7 +47,7 @@ export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TConte
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
 export interface AgHistogramSeriesOptionsKeys<TDatum = DatumDefault> {

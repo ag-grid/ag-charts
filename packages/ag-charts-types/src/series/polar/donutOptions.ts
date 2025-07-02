@@ -148,7 +148,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     /** A styler function for adjusting the styling of the Donut sectors. */
     itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum, TContext>, AgDonutSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
 export interface AgDonutSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

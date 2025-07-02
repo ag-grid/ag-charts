@@ -69,7 +69,7 @@ export class MapLineSeries extends TopologySeries<
         _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>
     > = Selection.select(this.labelGroup, Text);
     private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
-        this.highlightNode,
+        this.highlightGroup,
         () => this.nodeFactory()
     );
 
@@ -151,7 +151,7 @@ export class MapLineSeries extends TopologySeries<
                     includeProperty: false,
                     processor: () => (datum) => featureById.get(datum as string),
                 }),
-                ...(labelKey != null ? [valueProperty(labelKey, 'band', { id: 'labelValue' })] : []),
+                ...(labelKey != null ? [valueProperty(labelKey, 'category', { id: 'labelValue' })] : []),
                 ...(sizeKey != null ? [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })] : []),
                 ...(colorKey != null ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
             ],
@@ -216,7 +216,7 @@ export class MapLineSeries extends TopologySeries<
         if (lineString == null) return;
 
         const { idKey, idName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } = this.properties;
-        if (labelKey == null) return;
+        if (labelKey == null || !label.enabled) return;
 
         const labelText = this.getLabelText<AgMapLineSeriesLabelFormatterParams>(
             labelValue,

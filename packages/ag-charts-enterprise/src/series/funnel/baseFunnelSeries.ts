@@ -157,7 +157,6 @@ export abstract class BaseFunnelSeries<
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            hasHighlightedLabels: true,
             propertyKeys: {
                 x: ['stageKey'],
                 y: ['valueKey'],
@@ -454,13 +453,8 @@ export abstract class BaseFunnelSeries<
         visible: boolean;
     }): FunnelNodeLabelDatum | undefined;
 
-    protected override updateNodes(
-        highlightedItems: FunnelNodeDatum[] | undefined,
-        seriesHighlighted: boolean,
-        anySeriesItemEnabled: boolean,
-        nodeRefresh: boolean
-    ) {
-        super.updateNodes(highlightedItems, seriesHighlighted, anySeriesItemEnabled, nodeRefresh);
+    protected override updateNodes(seriesHighlighted: boolean, nodeRefresh: boolean) {
+        super.updateNodes(seriesHighlighted, nodeRefresh);
 
         const { connectorSelection } = this;
         const connectorData = this.contextNodeData?.connectorData ?? [];
@@ -571,8 +565,8 @@ export abstract class BaseFunnelSeries<
                 symbol: this.legendItemSymbol(datumIndex),
                 data: [
                     {
-                        label: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, stageKey),
-                        value: yAxis.formatDatum(yValue, 'tooltip', seriesId, legendItemName, datum, valueKey),
+                        label: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, stageKey, legendItemName),
+                        value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, valueKey, legendItemName),
                     },
                 ],
             },

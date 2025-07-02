@@ -120,7 +120,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     /** A styler function for adjusting the styling of the pie sectors. */
     itemStyler?: Styler<AgPieSeriesItemStylerParams<TDatum, TContext>, AgPieSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
 export interface AgPieSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

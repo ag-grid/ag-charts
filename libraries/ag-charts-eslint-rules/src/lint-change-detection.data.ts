@@ -1,23 +1,23 @@
-import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
+// Stub ag-charts-community classes
+class Node {}
+class SeriesProperties<_T> {}
 
-// Stub decorator implementations
-function SceneChangeDetection() {
-    return function (_target: any, _key: string) {};
+// Stub ag-charts-community decorators
+const equals = (_newValue: any, _oldValue: any): boolean => false;
+export function SceneChangeDetection() {
+    return (_target: any, _key: string) => {};
 }
-function SceneObjectChangeDetection() {
-    return function (_target: any, _key: string) {};
+export function SceneArrayChangeDetection() {
+    return (_target: any, _key: string) => {};
 }
-function SceneArrayChangeDetection() {
-    return function (_target: any, _key: string) {};
+export function SceneObjectChangeDetection(_options?: { equals?: (a: any, b: any) => boolean }) {
+    return (_target: any, _key: string) => {};
 }
-function Property() {
-    return function (_target: any, _key: string) {};
+export function Property() {
+    return (_target: any, _key: string) => {};
 }
 
-// Test class with decorator usages
-export class Test_SceneChangeDetection {
+class TestSceneChangeDetection extends Node {
     @SceneChangeDetection() requiredString: string = '';
     @SceneChangeDetection() optionalString?: string;
     @SceneChangeDetection() requiredNumber: number = 0;
@@ -49,35 +49,35 @@ export class Test_SceneChangeDetection {
     @SceneChangeDetection() optionalUnion6?: object | object[];
 }
 
-export class Test_SceneObjectChangeDetection {
-    @SceneObjectChangeDetection() requiredString: string = '';
-    @SceneObjectChangeDetection() optionalString?: string;
-    @SceneObjectChangeDetection() requiredNumber: number = 0;
-    @SceneObjectChangeDetection() optionalNumber?: number;
-    @SceneObjectChangeDetection() requiredBoolean: boolean = true;
-    @SceneObjectChangeDetection() optionalBoolean?: boolean;
-    @SceneObjectChangeDetection() requiredObject: object = {};
-    @SceneObjectChangeDetection() optionalObject?: object;
-    @SceneObjectChangeDetection() requiredObjectArray: object[] = [];
-    @SceneObjectChangeDetection() optionalObjectArray?: object[];
-    @SceneObjectChangeDetection() requiredObjectTuple: [boolean, boolean] = [false, true];
-    @SceneObjectChangeDetection() optionalObjectTuple?: [boolean, boolean];
+class TestSceneObjectChangeDetection extends Node {
+    @SceneObjectChangeDetection({ equals }) requiredObject: object = {};
+    @SceneObjectChangeDetection({ equals }) optionalObject?: object;
+    @SceneObjectChangeDetection({ equals }) requiredString: string = '';
+    @SceneObjectChangeDetection({ equals }) optionalString?: string;
+    @SceneObjectChangeDetection({ equals }) requiredNumber: number = 0;
+    @SceneObjectChangeDetection({ equals }) optionalNumber?: number;
+    @SceneObjectChangeDetection({ equals }) requiredBoolean: boolean = true;
+    @SceneObjectChangeDetection({ equals }) optionalBoolean?: boolean;
+    @SceneObjectChangeDetection({ equals }) requiredObjectArray: object[] = [];
+    @SceneObjectChangeDetection({ equals }) optionalObjectArray?: object[];
+    @SceneObjectChangeDetection({ equals }) requiredObjectTuple: [boolean, boolean] = [false, true];
+    @SceneObjectChangeDetection({ equals }) optionalObjectTuple?: [boolean, boolean];
 
-    @SceneObjectChangeDetection() requiredUnion1: number | readonly [number, number] = 0;
-    @SceneObjectChangeDetection() optionalUnion1?: number | readonly [number, number];
-    @SceneObjectChangeDetection() requiredUnion2: number | readonly string[] = 0;
-    @SceneObjectChangeDetection() optionalUnion2?: number | readonly string[];
-    @SceneObjectChangeDetection() requiredUnion3: object | readonly [number, number] = {};
-    @SceneObjectChangeDetection() optionalUnion3?: object | readonly [number, number];
-    @SceneObjectChangeDetection() requiredUnion4: object | readonly string[] = ['a', 'b', 'c'];
-    @SceneObjectChangeDetection() optionalUnion4?: object | readonly string[];
-    @SceneObjectChangeDetection() requiredUnion5: object | readonly boolean[] | string = [true, false];
-    @SceneObjectChangeDetection() optionalUnion5?: object | readonly boolean[] | string;
-    @SceneObjectChangeDetection() requiredUnion6: object | object[] = {};
-    @SceneObjectChangeDetection() optionalUnion6?: object | object[];
+    @SceneObjectChangeDetection({ equals }) requiredUnion1: number | readonly [number, number] = 0;
+    @SceneObjectChangeDetection({ equals }) optionalUnion1?: number | readonly [number, number];
+    @SceneObjectChangeDetection({ equals }) requiredUnion2: number | readonly string[] = 0;
+    @SceneObjectChangeDetection({ equals }) optionalUnion2?: number | readonly string[];
+    @SceneObjectChangeDetection({ equals }) requiredUnion3: object | readonly [number, number] = {};
+    @SceneObjectChangeDetection({ equals }) optionalUnion3?: object | readonly [number, number];
+    @SceneObjectChangeDetection({ equals }) requiredUnion4: object | readonly string[] = ['a', 'b', 'c'];
+    @SceneObjectChangeDetection({ equals }) optionalUnion4?: object | readonly string[];
+    @SceneObjectChangeDetection({ equals }) requiredUnion5: object | readonly boolean[] | string = [true, false];
+    @SceneObjectChangeDetection({ equals }) optionalUnion5?: object | readonly boolean[] | string;
+    @SceneObjectChangeDetection({ equals }) requiredUnion6: object | object[] = {};
+    @SceneObjectChangeDetection({ equals }) optionalUnion6?: object | object[];
 }
 
-export class Test_SceneArrayChangeDetection {
+class TestSceneArrayChangeDetection extends Node {
     @SceneArrayChangeDetection() requiredString: string = '';
     @SceneArrayChangeDetection() optionalString?: string;
     @SceneArrayChangeDetection() requiredNumber: number = 0;
@@ -105,14 +105,14 @@ export class Test_SceneArrayChangeDetection {
     @SceneArrayChangeDetection() requiredReadonlyObjectTuple: readonly [object, number, string] = [{}, 7, 's'];
     @SceneArrayChangeDetection() optionalReadonlyObjectTuple?: readonly [object, number, string, boolean];
 
-    @SceneArrayChangeDetection() requiredMutableNumberArray: number[] = [];
-    @SceneArrayChangeDetection() optionalMutableNumberArray?: number[] = [];
     @SceneArrayChangeDetection() requiredReadonlyNumberArray: readonly number[] = [];
     @SceneArrayChangeDetection() optionalReadonlyNumberArray?: readonly number[];
-    @SceneArrayChangeDetection() requiredMutableNumberTuple: [number, number] = [0, 0];
-    @SceneArrayChangeDetection() optionalMutableNumberTuple?: [number, number];
     @SceneArrayChangeDetection() requiredReadonlyNumberTuple: readonly [number, number] = [0, 0];
     @SceneArrayChangeDetection() optionalReadonlyNumberTuple?: readonly [number, number];
+    @SceneArrayChangeDetection() requiredMutableNumberArray: number[] = [];
+    @SceneArrayChangeDetection() optionalMutableNumberArray?: number[] = [];
+    @SceneArrayChangeDetection() requiredMutableNumberTuple: [number, number] = [0, 0];
+    @SceneArrayChangeDetection() optionalMutableNumberTuple?: [number, number];
 
     @SceneArrayChangeDetection() requiredUnion1: number | readonly [number, number] = 0;
     @SceneArrayChangeDetection() optionalUnion1?: number | readonly [number, number];
@@ -128,27 +128,7 @@ export class Test_SceneArrayChangeDetection {
     @SceneArrayChangeDetection() optionalUnion6?: object | object[];
 }
 
-export class Test_IgnoredDecorator {
+abstract class TestIgnoredDecorator extends SeriesProperties<any> {
     @Property() lineDash?: number[];
-    @Property() node: object[];
+    @Property() node: object[] = [];
 }
-
-describe('lint-change-detection', () => {
-    const testFilePath = 'tools/lint-change-detection.test.ts';
-    const lintScriptPath = path.resolve(__dirname, 'lint-change-detection.js');
-
-    it('should match the expected linting errors snapshot', () => {
-        let stdout: string | undefined;
-        let stderr: string | undefined;
-        try {
-            stdout = execSync(`node ${lintScriptPath} --relative-path ${testFilePath}`, {
-                encoding: 'utf-8',
-                stdio: 'pipe',
-            });
-        } catch (error: any) {
-            stdout = error.stdout;
-            stderr = error.stderr;
-        }
-        expect({ stdout, stderr }).toMatchSnapshot();
-    });
-});

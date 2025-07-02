@@ -110,7 +110,7 @@ describe('AG-13024 API context', () => {
                     bar: {
                         series: {
                             itemStyler: itemStyler.frozen,
-                            label: { formatter: seriesLabelFormatter.frozen },
+                            label: { enabled: true, formatter: seriesLabelFormatter.frozen },
                             tooltip: { renderer: tooltipRenderer.frozen },
                         },
                     },

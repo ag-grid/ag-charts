@@ -31,8 +31,6 @@ const {
     animationValidation,
     computeBarFocusBounds,
     visibleRangeIndices,
-    ContinuousScale,
-    DiscreteTimeScale,
     BandScale,
     getShapeStyle,
 } = _ModuleSupport;
@@ -155,9 +153,7 @@ export abstract class OhlcSeriesBase<
         processedData: _ModuleSupport.UngroupedData<any>
     ) {
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || DiscreteTimeScale.is(xAxis.scale))) {
-            return;
-        }
+        if (xAxis == null) return;
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const highValues = dataModel.resolveColumnById(this, `highValue`, processedData);
@@ -166,7 +162,7 @@ export abstract class OhlcSeriesBase<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return aggregateOhlcData(xValues, highValues, lowValues, domain);
+        return aggregateOhlcData(xAxis.scale, xValues, highValues, lowValues, domain);
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
@@ -521,7 +517,7 @@ export abstract class OhlcSeriesBase<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: xAxis.formatDatum(xValue, 'tooltip', seriesId, legendItemName, datum, xKey),
+                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 title: legendItemName,
                 symbol: {
                     marker,
@@ -530,22 +526,22 @@ export abstract class OhlcSeriesBase<
                     {
                         label: openName,
                         fallbackLabel: openKey,
-                        value: yAxis.formatDatum(openValue, 'tooltip', seriesId, legendItemName, datum, openKey),
+                        value: this.getAxisValueText(yAxis, 'tooltip', openValue, datum, openKey, legendItemName),
                     },
                     {
                         label: highName,
                         fallbackLabel: highKey,
-                        value: yAxis.formatDatum(highValue, 'tooltip', seriesId, legendItemName, datum, highKey),
+                        value: this.getAxisValueText(yAxis, 'tooltip', highValue, datum, highKey, legendItemName),
                     },
                     {
                         label: lowName,
                         fallbackLabel: lowKey,
-                        value: yAxis.formatDatum(lowValue, 'tooltip', seriesId, legendItemName, datum, lowKey),
+                        value: this.getAxisValueText(yAxis, 'tooltip', lowValue, datum, lowKey, legendItemName),
                     },
                     {
                         label: closeName,
                         fallbackLabel: closeKey,
-                        value: yAxis.formatDatum(closeValue, 'tooltip', seriesId, legendItemName, datum, closeKey),
+                        value: this.getAxisValueText(yAxis, 'tooltip', closeValue, datum, closeKey, legendItemName),
                     },
                 ],
             },

@@ -106,6 +106,8 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
     }): FunnelNodeLabelDatum | undefined {
         const { valueKey, stageKey, label } = this.properties;
 
+        if (!label.enabled) return;
+
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
         const text = this.getLabelText<AgFunnelSeriesLabelFormatterParams>(
             yDatum,
