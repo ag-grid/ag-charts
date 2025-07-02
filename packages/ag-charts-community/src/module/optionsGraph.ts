@@ -234,6 +234,25 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         return hasPathSafe(this.userOptions, path);
     }
 
+    hasThemeOverride(path: Array<string>) {
+        if (path[0] === 'axes' && path.length > 1) {
+            const axisType = this.getResolvedPath(['axes', path[1], 'type']) as string;
+            if (hasPathSafe(this.overrides, ['common', 'axes', axisType, ...path.slice(2)])) {
+                return true;
+            }
+
+            const seriesType = this.getResolvedPath(['series', '0', 'type']) as string;
+            return hasPathSafe(this.overrides, [seriesType, 'axes', axisType, ...path.slice(2)]);
+        }
+
+        if (path[0] === 'series' && path.length > 1) {
+            const seriesType = this.getResolvedPath(['series', path[1], 'type']) as string;
+            return hasPathSafe(this.overrides, [seriesType, 'series', ...path.slice(2)]);
+        }
+
+        return hasPathSafe(this.overrides, path);
+    }
+
     getParamValue(path: string) {
         if (this.resolvedParams[path] != null) {
             return this.resolvedParams[path];

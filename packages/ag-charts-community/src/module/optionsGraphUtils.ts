@@ -23,6 +23,7 @@ export interface OptionsGraphInterface {
         overridesPathArrays?: Array<Array<string> | undefined>
     ): void;
     graftValue(target: VertexInterface, path: string, operation: unknown, value: unknown): void;
+    hasThemeOverride(path: Array<string>): boolean;
     hasUserOption(path: Array<string>): boolean;
     neighboursWithEdgeValue(vertex: VertexInterface, edge: string): Array<VertexInterface> | undefined;
     removeEdges(vertex: VertexInterface, edge: string): void;
