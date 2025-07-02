@@ -448,17 +448,22 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const { ctx, optionsToolbar, settingsDialog, toolbar } = this;
         const { seriesWidget, seriesDragInterpreter, chartWidget } = ctx.widgets;
 
+        if (seriesDragInterpreter) {
+            this.cleanup.register(
+                // Interactions
+                seriesDragInterpreter.events.on('click', this.hoverTouchPreHandler.bind(this)),
+                seriesDragInterpreter.events.on('drag-start', this.hoverTouchPreHandler.bind(this)),
+                seriesDragInterpreter.events.on('drag-move', this.dragMoveTouchPreHandler.bind(this)),
+                seriesDragInterpreter.events.on('mousemove', this.onHover.bind(this)),
+                seriesDragInterpreter.events.on('click', this.onClick.bind(this)),
+                seriesDragInterpreter.events.on('dblclick', this.onDoubleClick.bind(this)),
+                seriesDragInterpreter.events.on('drag-start', this.onDragStart.bind(this)),
+                seriesDragInterpreter.events.on('drag-move', this.onDrag.bind(this)),
+                seriesDragInterpreter.events.on('drag-end', this.onDragEnd.bind(this))
+            );
+        }
         this.cleanup.register(
             // Interactions
-            seriesDragInterpreter.events.on('click', this.hoverTouchPreHandler.bind(this)),
-            seriesDragInterpreter.events.on('drag-start', this.hoverTouchPreHandler.bind(this)),
-            seriesDragInterpreter.events.on('drag-move', this.dragMoveTouchPreHandler.bind(this)),
-            seriesDragInterpreter.events.on('mousemove', this.onHover.bind(this)),
-            seriesDragInterpreter.events.on('click', this.onClick.bind(this)),
-            seriesDragInterpreter.events.on('dblclick', this.onDoubleClick.bind(this)),
-            seriesDragInterpreter.events.on('drag-start', this.onDragStart.bind(this)),
-            seriesDragInterpreter.events.on('drag-move', this.onDrag.bind(this)),
-            seriesDragInterpreter.events.on('drag-end', this.onDragEnd.bind(this)),
             seriesWidget.addListener('keydown', this.onKeyDown.bind(this)),
             seriesWidget.addListener('keyup', this.onKeyUp.bind(this)),
             chartWidget.addListener('click', this.onCancel.bind(this)),

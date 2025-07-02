@@ -75,12 +75,11 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             }
         });
 
+        const { seriesDragInterpreter } = ctx.widgets;
         this.cleanup.register(
             ctx.scene.attachNode(this.crosshairGroup),
             ctx.widgets.seriesWidget.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
-            ctx.widgets.seriesWidget.addListener('drag-move', (event) => this.onMouseHoverLike(event)),
             ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseOut()),
-            ctx.widgets.seriesDragInterpreter.events.on('click', (event) => this.onClick(event)),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
             ctx.eventsHub.on('zoom:pan-start', () => this.onMouseOut()),
             ctx.eventsHub.on('zoom:change', () => this.onMouseOut()),
@@ -88,6 +87,12 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             ctx.eventsHub.on('layout:complete', (event) => this.layout(event)),
             () => Object.values(this.labels).forEach((label) => label.destroy())
         );
+        if (seriesDragInterpreter) {
+            this.cleanup.register(
+                seriesDragInterpreter.events.on('drag-move', (event) => this.onMouseHoverLike(event)),
+                seriesDragInterpreter.events.on('click', (event) => this.onClick(event))
+            );
+        }
     }
 
     private layout({ series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
