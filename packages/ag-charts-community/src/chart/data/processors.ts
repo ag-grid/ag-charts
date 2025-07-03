@@ -233,7 +233,10 @@ function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
     return () => () => (columns: any[][], valueIndexes: number[], dataGroup: DataGroup) => {
         const extent = normaliseFindExtent(columns, valueIndexes, dataGroup);
         for (const valueIdx of valueIndexes) {
-            for (const datumIndex of dataGroup.datumIndices[valueIdx] ?? []) {
+            const datumIndices = dataGroup.datumIndices[valueIdx];
+            if (datumIndices == null) continue;
+
+            for (const datumIndex of datumIndices) {
                 const column = columns[valueIdx];
                 const value: null | number | number[] | (null | number)[] = column[datumIndex];
                 if (value == null) {
@@ -252,7 +255,10 @@ function normaliseFindExtent(columns: any[][], valueIndexes: number[], dataGroup
     const valuesExtent = [0, 0];
     for (const valueIdx of valueIndexes) {
         const column = columns[valueIdx];
-        for (const datumIndex of dataGroup.datumIndices[valueIdx] ?? []) {
+        const datumIndices = dataGroup.datumIndices[valueIdx];
+        if (datumIndices == null) continue;
+
+        for (const datumIndex of datumIndices) {
             const value: null | number | (null | number)[] = column[datumIndex];
             if (value == null) continue;
             // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators
@@ -409,7 +415,10 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
         // Datum scope.
         const acc = [0, 0];
         for (const valueIdx of valueIndexes) {
-            for (const datumIndex of dataGroup.datumIndices[valueIdx] ?? []) {
+            const datumIndices = dataGroup.datumIndices[valueIdx];
+            if (datumIndices == null) continue;
+
+            for (const datumIndex of datumIndices) {
                 const column = columns[valueIdx];
                 const currentVal = column[datumIndex];
                 const accIndex = isNegative(currentVal) && separateNegative ? 0 : 1;
@@ -435,7 +444,10 @@ function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum
                 let acc = 0;
                 for (const valueIdx of valueIndexes) {
                     const column = columns[valueIdx];
-                    for (const datumIndex of dataGroup.datumIndices[valueIdx] ?? []) {
+                    const datumIndices = dataGroup.datumIndices[valueIdx];
+                    if (datumIndices == null) continue;
+
+                    for (const datumIndex of datumIndices) {
                         const currentVal = column[datumIndex];
                         const lastValue = firstRow && sum === 'current' ? 0 : lastValues[valueIdx];
                         lastValues[valueIdx] = currentVal;
@@ -490,7 +502,10 @@ function groupStackAccFn() {
         let stackCount = 0;
         for (const valueIdx of valueIndexes) {
             const column = columns[valueIdx];
-            for (const datumIndex of dataGroup.datumIndices[valueIdx] ?? []) {
+            const datumIndices = dataGroup.datumIndices[valueIdx];
+            if (datumIndices == null) continue;
+
+            for (const datumIndex of datumIndices) {
                 const currentValue = column[datumIndex];
                 acc[stackCount] = Number.isFinite(currentValue) ? currentValue : NaN;
                 stackCount += 1;

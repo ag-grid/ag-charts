@@ -199,47 +199,78 @@ export class DataController {
             keys(group.opts.props) === propsKeys;
     }
 
+    private static readonly crossScopeMergableTypes = new Set(['key', 'group-value-processor']);
     private static mergeRequests(
         this: void,
         requests: RequestedProcessing<any, any, any>[]
     ): MergedRequests<any, any, any> {
-        const crossScopeMergableTypes = new Set(['key', 'group-value-processor']);
-        return requests.reduce(
-            (result, { id, data, resolve, reject, opts: { props, ...opts } }) => {
-                result.ids.push(id);
-                result.rejects.push(reject);
-                result.resolves.push(resolve);
-                result.data ??= data;
-                result.opts ??= { ...opts, props: [] };
+        const result: MergedRequests<any, any, any> = {
+            ids: [],
+            rejects: [],
+            resolves: [],
+            data: requests[0].data,
+            opts: { ...requests[0].opts, props: [] },
+        };
 
-                for (const prop of props) {
-                    const clone = { ...prop, scopes: [id], data };
-                    DataController.createIdsMap(id, clone);
+        const optsByTypeAndDataId = new Map<string, PropertyDefinition<any>[]>();
+        const dataIds = new Map<unknown, number>();
+        let nextDataId = 0;
+        for (const request of requests) {
+            const {
+                id,
+                data,
+                resolve,
+                reject,
+                opts: { props, ...opts },
+            } = request;
 
-                    const match = result.opts.props.find(
-                        (existing: any) =>
-                            existing.type === clone.type &&
-                            (crossScopeMergableTypes.has(existing.type) || existing.data === clone.data) &&
-                            DataController.deepEqual(existing, clone)
-                    );
+            result.ids.push(id);
+            result.rejects.push(reject);
+            result.resolves.push(resolve);
+            result.data ??= data;
+            result.opts ??= { ...opts, props: [] };
 
-                    if (!match) {
-                        result.opts.props.push(clone);
-                        continue;
-                    }
+            for (const prop of props) {
+                const clone = { ...prop, scopes: [id], data };
+                DataController.createIdsMap(id, clone);
 
-                    match.scopes ??= [];
-                    match.scopes.push(...(clone.scopes ?? []));
-
-                    if ((match.type === 'key' || match.type === 'value') && clone.idsMap?.size) {
-                        DataController.mergeIdsMap(clone.idsMap, match.idsMap);
-                    }
+                let dataId: number;
+                if (DataController.crossScopeMergableTypes.has(clone.type)) {
+                    dataId = -1;
+                } else if (dataIds.has(data)) {
+                    dataId = dataIds.get(data)!;
+                } else {
+                    dataId = nextDataId++;
+                    dataIds.set(data, dataId);
                 }
 
-                return result;
-            },
-            { ids: [], rejects: [], resolves: [], data: null, opts: null } as any
-        );
+                const matchKey = `${clone.type}-${dataId}-${clone.groupId}`;
+                const matches = optsByTypeAndDataId.get(matchKey);
+                const match = matches?.find((existing) => DataController.deepEqual(existing, clone));
+
+                if (matches == null) {
+                    result.opts.props.push(clone);
+                    optsByTypeAndDataId.set(matchKey, [clone]);
+                    continue;
+                } else if (match == null) {
+                    result.opts.props.push(clone);
+                    matches.push(clone);
+                    continue;
+                }
+
+                if (clone.scopes != null) {
+                    (match as any).scopes ??= [];
+                    (match as any).scopes.push(...clone.scopes);
+                }
+
+                if ((match.type === 'key' || match.type === 'value') && clone.idsMap?.size) {
+                    match.idsMap ??= new Map();
+                    DataController.mergeIdsMap(clone.idsMap, match.idsMap);
+                }
+            }
+        }
+
+        return result;
     }
 
     private static mergeIdsMap(fromMap: Map<string, Set<string>>, toMap: Map<string, Set<string>>) {
