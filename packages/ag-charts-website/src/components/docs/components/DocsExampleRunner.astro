@@ -15,9 +15,10 @@ interface Props {
      * If inline, there is margin on the bottom
      */
     isInline?: boolean;
+    initialLoadDeferred?: boolean;
 }
 
-const { title, name, type, options, isInline } = Astro.props as Props;
+const { title, name, type, options, isInline, initialLoadDeferred } = Astro.props as Props;
 
 const pathSegments = Astro.url.pathname.split('/');
 [DOCS_FRAMEWORK_PATH_INDEX];
@@ -55,5 +56,6 @@ const hasExampleConsoleLog = contents?.hasExampleConsoleLog;
         options={options}
         pageName={pageName}
         hasExampleConsoleLog={hasExampleConsoleLog}
+        initialLoadDeferred={initialLoadDeferred}
     />
 </ExampleRunnerContainer>
