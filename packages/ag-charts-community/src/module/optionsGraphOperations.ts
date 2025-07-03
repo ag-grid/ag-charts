@@ -53,7 +53,6 @@ type OperationResolver = (
 export function getOperation(value: unknown, keys?: Array<string>) {
     if (value == null || typeof value !== 'object' || Array.isArray(value)) return;
 
-    // Get the first key more efficiently than Object.keys()
     keys ??= Object.keys(value);
     if (keys.length === 0) return;
 
