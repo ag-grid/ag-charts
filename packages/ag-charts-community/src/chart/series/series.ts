@@ -8,6 +8,7 @@ import {
     type RequiredInternalAgImageFill,
     type RequiredInternalAgPatternColor,
     createId,
+    isEmptyObject,
 } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
@@ -599,6 +600,25 @@ export abstract class Series<
         }
 
         return HighlightState.OtherSeries;
+    }
+
+    protected hasChangesOnHighlight(isHighlight?: boolean, datumIndex?: TDatumIndex, legendItemValues?: string[]) {
+        const highlightState = this.getHighlightState(isHighlight, datumIndex, legendItemValues);
+
+        switch (highlightState) {
+            case HighlightState.Series:
+            case HighlightState.OtherItem:
+                return (
+                    !isEmptyObject(this.properties.highlight.highlightedSeries) ||
+                    !isEmptyObject(this.properties.highlight.unhighlightedItem)
+                );
+            case HighlightState.OtherSeries:
+                return !isEmptyObject(this.properties.highlight.unhighlightedSeries);
+
+            case HighlightState.None:
+            default:
+                return false;
+        }
     }
 
     protected isSeriesHighlighted(highlightedDatum?: HighlightNodeDatum, _legendItemValues?: string[]) {
