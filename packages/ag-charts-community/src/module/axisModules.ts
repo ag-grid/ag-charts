@@ -15,6 +15,7 @@ import {
     positiveNumberNonZero,
     ratio,
     required,
+    union,
 } from 'ag-charts-core';
 import type {
     AgCategoryAxisOptions,
@@ -100,6 +101,8 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
             label: {
                 enabled: boolean,
                 avoidCollisions: boolean,
+                wrapping: union('never', 'always', 'hyphenate', 'on-space'),
+                truncate: boolean,
                 rotation: number,
                 spacing: number,
                 ...fontOptionsDef,
