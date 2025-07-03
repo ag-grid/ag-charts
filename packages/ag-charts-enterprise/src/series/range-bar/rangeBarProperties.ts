@@ -95,7 +95,4 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<unknown>>();
-
-    @Property
-    fastDataProcessing: boolean = false;
 }

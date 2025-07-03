@@ -302,7 +302,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const { dataAggregationFilters } = this;
         const [r0, r1] = xScale.range;
-        const range = r1 - r0;
+        const range = Math.abs(r1 - r0);
 
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
         const topIndices = dataAggregationFilter?.topIndices;

@@ -26,7 +26,8 @@ export interface UngroupedDataItem<I, D, V> {
     validScopes?: Set<string>;
 }
 
-const SORT_ORDERS = Symbol('sort-orders');
+const KEY_SORT_ORDERS = Symbol('key-sort-orders');
+const COLUMN_SORT_ORDERS = Symbol('column-sort-orders');
 const DOMAIN_RANGES = Symbol('domain-ranges');
 
 type ScopeId = string;
@@ -66,7 +67,8 @@ interface CommonMetadata<D> {
     partialValidDataCount: number;
     time: number;
     [DOMAIN_RANGES]: Map<string, RangeLookup>;
-    [SORT_ORDERS]: Map<number, { sortOrder: SortOrder }>;
+    [KEY_SORT_ORDERS]: Map<number, { sortOrder: SortOrder }>;
+    [COLUMN_SORT_ORDERS]: Map<number, { sortOrder: SortOrder }>;
 }
 
 export interface UngroupedData<D> extends CommonMetadata<D> {
@@ -576,16 +578,24 @@ export class DataModel<
         return rangeLookup.rangeBetween(i0, i1);
     }
 
-    getSortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
-        const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
-        const sortOrders = processedData[SORT_ORDERS];
-        let sortOrder = sortOrders.get(columnIndex);
+    private getSortOrder(values: any[], index: number, sortOrders: Map<number, { sortOrder: SortOrder }>): SortOrder {
+        let sortOrder = sortOrders.get(index);
         if (sortOrder == null) {
-            const values = processedData.columns[columnIndex];
             sortOrder = { sortOrder: valuesSortOrder(values) };
-            sortOrders.set(columnIndex, sortOrder);
+            sortOrders.set(index, sortOrder);
         }
         return sortOrder.sortOrder;
+    }
+
+    getKeySortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
+        const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
+        const keys = processedData.keys[columnIndex]?.get(scope.id);
+        return keys ? this.getSortOrder(keys, columnIndex, processedData[KEY_SORT_ORDERS]) : undefined;
+    }
+
+    getColumnSortOrder(scope: ScopeProvider, searchId: string, processedData: ProcessedData<K>): SortOrder {
+        const columnIndex = this.resolveProcessedDataIndexById(scope, searchId);
+        return this.getSortOrder(processedData.columns[columnIndex], columnIndex, processedData[COLUMN_SORT_ORDERS]);
     }
 
     private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
@@ -784,7 +794,8 @@ export class DataModel<
             partialValidDataCount,
             time: 0,
             [DOMAIN_RANGES]: new Map(),
-            [SORT_ORDERS]: new Map(),
+            [KEY_SORT_ORDERS]: new Map(),
+            [COLUMN_SORT_ORDERS]: new Map(),
         } satisfies UngroupedData<D>;
     }
 

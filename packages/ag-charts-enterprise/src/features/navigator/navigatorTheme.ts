@@ -39,7 +39,6 @@ const validMiniChartSeriesTypes: AgMiniChartSeriesOptions['type'][] = [
 // the two series instead of a simple omit list.
 const priceVolumePresetIgnoredMiniChartProperties = [
     'itemStyler',
-    'fastDataProcessing',
     'direction',
     'fill',
     'fillGradientDefaults',

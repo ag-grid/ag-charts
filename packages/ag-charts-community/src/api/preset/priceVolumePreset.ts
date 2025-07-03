@@ -343,7 +343,6 @@ function createVolumeSeries(
             },
             // @ts-expect-error undocumented option
             focusPriority: 1,
-            fastDataProcessing: true,
             highlight: { enabled: false },
         } satisfies AgBarSeriesOptions,
     ];
@@ -485,7 +484,6 @@ function createPriceSeriesHighLow(common: PriceSeriesCommon, { xKey, highKey, lo
             },
             // @ts-expect-error undocumented option
             focusPriority: 0,
-            fastDataProcessing: true,
         } satisfies AgRangeBarSeriesOptions,
     ];
 }

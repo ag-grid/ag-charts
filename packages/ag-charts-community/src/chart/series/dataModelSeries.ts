@@ -172,6 +172,16 @@ export abstract class DataModelSeries<
         return this.processedData?.keys[key]?.get(this.id) ?? this.processedData?.columns[key] ?? [];
     }
 
+    protected sortOrder(xKey: string): -1 | 1 | undefined {
+        const dataModel = this.dataModel!;
+        const processedData = this.processedData!;
+        const key = dataModel.resolveProcessedDataIndexById(this, xKey);
+        const isKey = processedData.keys[key]?.get(this.id) != null;
+        return isKey
+            ? dataModel.getKeySortOrder(this, xKey, processedData)
+            : dataModel.getColumnSortOrder(this, xKey, processedData);
+    }
+
     protected getCategoryKey() {
         return this.categoryKey;
     }

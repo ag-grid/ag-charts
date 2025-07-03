@@ -386,7 +386,7 @@ export class LineSeries extends CartesianSeries<
         };
 
         const [r0, r1] = xScale.range;
-        const range = r1 - r0;
+        const range = Math.abs(r1 - r0);
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         const indices = dataAggregationFilter?.indices;

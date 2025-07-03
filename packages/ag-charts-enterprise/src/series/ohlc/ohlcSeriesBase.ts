@@ -292,7 +292,7 @@ export abstract class OhlcSeriesBase<
         const { dataAggregationFilters } = this;
         const xScale = xAxis.scale;
         const [r0, r1] = xScale.range;
-        const range = r1 - r0;
+        const range = Math.abs(r1 - r0);
 
         const xPosition = (index: number) => xScale.convert(xValues[index]) + groupOffset;
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
