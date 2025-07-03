@@ -703,16 +703,16 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         }
     }
 
-    if (children) {
-        for (const child of children) {
-            const childNeighbours = graph.neighboursWithEdgeValue(child, PATH_EDGE);
-            if (!childNeighbours || childNeighbours.length === 0) {
-                // Add a stub if we are applying to a child object with no keys, e.g. `gridLine: { styles: [{}] }`
-                const stubVertex = graph.addVertex({});
-                graph.addEdge(child, stubVertex, DEFAULTS_EDGE);
-            } else {
-                graph.graftObject(child, object, [overridesPath1, overridesPath2]);
-            }
+    if (!children) return RESOLVED_TO_BRANCH;
+
+    for (const child of children) {
+        const childNeighbours = graph.neighboursWithEdgeValue(child, PATH_EDGE);
+        if (!childNeighbours || childNeighbours.length === 0) {
+            // Add a stub if we are applying to a child object with no keys, e.g. `gridLine: { styles: [{}] }`
+            const stubVertex = graph.addVertex({});
+            graph.addEdge(child, stubVertex, DEFAULTS_EDGE);
+        } else {
+            graph.graftObject(child, object, [overridesPath1, overridesPath2]);
         }
     }
 
