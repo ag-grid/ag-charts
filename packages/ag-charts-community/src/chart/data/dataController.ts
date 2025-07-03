@@ -204,42 +204,55 @@ export class DataController {
         requests: RequestedProcessing<any, any, any>[]
     ): MergedRequests<any, any, any> {
         const crossScopeMergableTypes = new Set(['key', 'group-value-processor']);
-        return requests.reduce(
-            (result, { id, data, resolve, reject, opts: { props, ...opts } }) => {
-                result.ids.push(id);
-                result.rejects.push(reject);
-                result.resolves.push(resolve);
-                result.data ??= data;
-                result.opts ??= { ...opts, props: [] };
+        const result: MergedRequests<any, any, any> = {
+            ids: [],
+            rejects: [],
+            resolves: [],
+            data: requests[0].data,
+            opts: { ...requests[0].opts, props: [] },
+        };
+        for (const request of requests) {
+            const {
+                id,
+                data,
+                resolve,
+                reject,
+                opts: { props, ...opts },
+            } = request;
 
-                for (const prop of props) {
-                    const clone = { ...prop, scopes: [id], data };
-                    DataController.createIdsMap(id, clone);
+            result.ids.push(id);
+            result.rejects.push(reject);
+            result.resolves.push(resolve);
+            result.data ??= data;
+            result.opts ??= { ...opts, props: [] };
 
-                    const match = result.opts.props.find(
-                        (existing: any) =>
-                            existing.type === clone.type &&
-                            (crossScopeMergableTypes.has(existing.type) || existing.data === clone.data) &&
-                            DataController.deepEqual(existing, clone)
-                    );
+            for (const prop of props) {
+                const clone = { ...prop, scopes: [id], data };
+                DataController.createIdsMap(id, clone);
 
-                    if (!match) {
-                        result.opts.props.push(clone);
-                        continue;
-                    }
+                const match = result.opts.props.find(
+                    (existing: any) =>
+                        existing.type === clone.type &&
+                        (crossScopeMergableTypes.has(existing.type) || existing.data === clone.data) &&
+                        DataController.deepEqual(existing, clone)
+                );
 
-                    match.scopes ??= [];
-                    match.scopes.push(...(clone.scopes ?? []));
-
-                    if ((match.type === 'key' || match.type === 'value') && clone.idsMap?.size) {
-                        DataController.mergeIdsMap(clone.idsMap, match.idsMap);
-                    }
+                if (!match) {
+                    result.opts.props.push(clone);
+                    continue;
                 }
 
-                return result;
-            },
-            { ids: [], rejects: [], resolves: [], data: null, opts: null } as any
-        );
+                (match as any).scopes ??= [];
+                (match as any).scopes.push(...(clone.scopes ?? []));
+
+                if ((match.type === 'key' || match.type === 'value') && clone.idsMap?.size) {
+                    match.idsMap ??= new Map();
+                    DataController.mergeIdsMap(clone.idsMap, match.idsMap);
+                }
+            }
+        }
+
+        return result;
     }
 
     private static mergeIdsMap(fromMap: Map<string, Set<string>>, toMap: Map<string, Set<string>>) {
