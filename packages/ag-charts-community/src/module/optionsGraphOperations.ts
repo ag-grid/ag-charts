@@ -732,18 +732,18 @@ function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     const ignorePathsValue = ignorePathsVertex ? graph.getVertexValue(ignorePathsVertex) : [];
     const ignorePaths = Array.isArray(ignorePathsValue) ? new Set(ignorePathsValue) : new Set();
 
-    if (children) {
-        for (const child of children) {
-            const variables = graph.graftAndResolveOrphan(child, variablesVertex) as PlainObject;
+    if (!children) return RESOLVED_TO_BRANCH;
 
-            for (const fromPath of fromPaths) {
-                const fromPathResolved = resolvePath([], fromPath, variables);
-                if (fromPathResolved === UNRESOLVABLE_PATH) {
-                    continue;
-                }
+    for (const child of children) {
+        const variables = graph.graftAndResolveOrphan(child, variablesVertex) as PlainObject;
 
-                graph.graftConfig(child, fromPathResolved, ignorePaths);
+        for (const fromPath of fromPaths) {
+            const fromPathResolved = resolvePath([], fromPath, variables);
+            if (fromPathResolved === UNRESOLVABLE_PATH) {
+                continue;
             }
+
+            graph.graftConfig(child, fromPathResolved, ignorePaths);
         }
     }
 
