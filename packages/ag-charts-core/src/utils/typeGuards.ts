@@ -43,6 +43,17 @@ export function isPlainObject(value: unknown): value is PlainObject {
     return typeof value === 'object' && value !== null && value.constructor?.name === 'Object';
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export function isEmptyObject(value: unknown): value is {} {
+    if (typeof value !== 'object' || value === null) return false;
+
+    for (const _ in value) {
+        return false;
+    }
+
+    return true;
+}
+
 export function isString(value: unknown): value is string {
     return typeof value === 'string';
 }
