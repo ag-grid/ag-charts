@@ -1,7 +1,7 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 const options: AgCartesianChartOptions<{ month: string; value: number }> = {
-    container: document.getElementById('container'),
+    container: document.getElementById('myChart'),
     title: {
         text: 'Data labels box options',
     },

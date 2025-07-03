@@ -547,8 +547,8 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
 
 export const labelBoxOptionsDef: OptionsDefs<LabelBoxOptions> = {
     border: { ...strokeOptionsDef },
-    cornerRadius: numberFormatValidator,
-    padding: numberFormatValidator,
+    cornerRadius: number,
+    padding: number,
     ...fillOptionsDef,
 };
 
