@@ -8,11 +8,11 @@ Use full-screen views for benchmark figures to avoid interference from the hosti
 tests.
 {% /warning %}
 
-# Automated Benchmark Summary
+## Automated Benchmark Summary
 
 {% chartExampleRunner title="Automated Benchmark Summary" name="summary" type="generated" /%}
 
-# Simple Chart
+## Simple Chart
 
 Exercise:
 
@@ -21,7 +21,7 @@ Exercise:
 
 {% chartExampleRunner title="Simple-Chart" name="simple-chart" type="generated" /%}
 
-# Simple Sparkline
+## Simple Sparkline
 
 Exercise:
 
@@ -30,41 +30,41 @@ Exercise:
 
 {% chartExampleRunner title="Simple-Sparkline" name="simple-sparkline" type="generated" /%}
 
-# Multi-Series Test
+## Multi-Series Test
 
 Exercise:
 
 -   Initial load time.
 -   Series toggle redraw time.
 
-{% chartExampleRunner title="Multi-Series" name="multi-series" type="generated" /%}
+{% chartExampleRunner title="Multi-Series" name="multi-series" type="generated" initialLoadDeferred=true /%}
 
-# Multi-Chart Test
+## Multi-Chart Test
 
 Exercise:
 
 -   Initial load time.
 -   Series toggle redraw time.
 
-{% chartExampleRunner title="Multi-Chart" name="multi-chart" type="generated" /%}
+{% chartExampleRunner title="Multi-Chart" name="multi-chart" type="generated" initialLoadDeferred=true /%}
 
-# Large Multi-Series Scale Test
-
-Exercise:
-
--   Initial load time.
-
-{% chartExampleRunner title="Large Multi-Series" name="large-scale-multi-series" type="generated" /%}
-
-# Integrated Charts Large Scale Test
+## Large Multi-Series Scale Test
 
 Exercise:
 
 -   Initial load time.
 
-{% chartExampleRunner title="Integrated Large Scale" name="integrated-large-scale" type="generated" /%}
+{% chartExampleRunner title="Large Multi-Series" name="large-scale-multi-series" type="generated" initialLoadDeferred=true /%}
 
-# Resize Test
+## Integrated Charts Large Scale Test
+
+Exercise:
+
+-   Initial load time.
+
+{% chartExampleRunner title="Integrated Large Scale" name="integrated-large-scale" type="generated" initialLoadDeferred=true /%}
+
+## Resize Test
 
 Exercise:
 
@@ -73,15 +73,33 @@ Exercise:
 
 {% chartExampleRunner title="Resize Test" name="resize" type="generated" /%}
 
-# Enterprise Large Scale Line Series
+## Enterprise Large Scale Line Series
 
-{% chartExampleRunner title="Line Series" name="enterprise-1M-line-series" type="generated" /%}
+{% chartExampleRunner title="Line Series" name="enterprise-1M-line-series" type="generated" initialLoadDeferred=true /%}
 
-# Large-scale Dataset Test (4x 100k series)
+## Axes Large Dataset
+
+### Number Axis
+
+{% chartExampleRunner title="Number Axis" name="axes-1M-number" type="generated" initialLoadDeferred=true /%}
+
+### Time Axis
+
+{% chartExampleRunner title="Time Axis" name="axes-1M-time" type="generated" initialLoadDeferred=true /%}
+
+### Unit Time Axis
+
+{% chartExampleRunner title="Unit Time Axis" name="axes-1M-unit-time" type="generated" initialLoadDeferred=true /%}
+
+### Ordinal Time Axis
+
+{% chartExampleRunner title="Ordinal Time Axis" name="axes-1M-ordinal-time" type="generated" initialLoadDeferred=true /%}
+
+## Large-scale Dataset Test (4x 100k series)
 
 Exercise:
 
 -   Initial load time.
 -   Interactive hover redraw time.
 
-{% chartExampleRunner title="Large Dataset (4x 100k series)" name="large-dataset" type="generated" /%}
+{% chartExampleRunner title="Large Dataset (4x 100k series)" name="large-dataset" type="generated" initialLoadDeferred=true /%}

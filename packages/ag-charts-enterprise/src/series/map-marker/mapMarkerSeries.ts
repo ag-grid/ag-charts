@@ -952,7 +952,7 @@ export class MapMarkerSeries
             format,
             this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format, false)
         );
-        return { size: format.size };
+        return { size: format.size, shape: format.shape };
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {

@@ -13,6 +13,7 @@ export * from './options/commonOptionsDefs';
 
 // Utils
 export * from './utils/dom';
+export * from './utils/math';
 export * from './utils/arrays';
 export * from './utils/async';
 export * from './utils/attributeUtil';

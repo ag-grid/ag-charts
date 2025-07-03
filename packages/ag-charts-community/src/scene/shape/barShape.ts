@@ -3,10 +3,13 @@ import { Rect } from './rect';
 
 export class BarShape<D = any> extends Rect<D> {
     @SceneChangeDetection()
-    featherRatioY: number = 0;
+    direction: 'x' | 'y' = 'x';
+
+    @SceneChangeDetection()
+    featherRatio: number = 0;
 
     private get feathered() {
-        return Math.abs(this.featherRatioY) > 1e-6;
+        return Math.abs(this.featherRatio) > 1e-6;
     }
 
     override isPointInPath(x: number, y: number): boolean {
@@ -24,26 +27,45 @@ export class BarShape<D = any> extends Rect<D> {
             return;
         }
 
-        const { path, x, y, width, height, featherRatioY } = this;
+        const { path, x, y, width, height, direction, featherRatio } = this;
         path.clear();
 
-        const midX = x + width / 2;
-        const featherInset = Math.abs(featherRatioY) * height;
+        if (direction === 'x') {
+            const featherInsetX = Math.abs(featherRatio) * width;
 
-        if (featherRatioY > 0) {
-            path.moveTo(x, y + featherInset);
-            path.lineTo(midX, y);
-            path.lineTo(x + width, y + featherInset);
-            path.lineTo(x + width, y + height);
-            path.lineTo(x, y + height);
-            path.closePath();
+            if (featherRatio > 0) {
+                path.moveTo(x, y);
+                path.lineTo(x + width - featherInsetX, y);
+                path.lineTo(x + width, y + height / 2);
+                path.lineTo(x + width - featherInsetX, y + height);
+                path.lineTo(x, y + height);
+                path.closePath();
+            } else {
+                path.moveTo(x + featherInsetX, y);
+                path.lineTo(x + width, y);
+                path.lineTo(x + width, y + height);
+                path.lineTo(x + featherInsetX, y + height);
+                path.lineTo(x, y + height / 2);
+                path.closePath();
+            }
         } else {
-            path.moveTo(x, y);
-            path.lineTo(x + width, y);
-            path.lineTo(x + width, y + height - featherInset);
-            path.lineTo(midX, y + height);
-            path.lineTo(x, y + height - featherInset);
-            path.closePath();
+            const featherInsetY = Math.abs(featherRatio) * height;
+
+            if (featherRatio > 0) {
+                path.moveTo(x, y + featherInsetY);
+                path.lineTo(x + width / 2, y);
+                path.lineTo(x + width, y + featherInsetY);
+                path.lineTo(x + width, y + height);
+                path.lineTo(x, y + height);
+                path.closePath();
+            } else {
+                path.moveTo(x, y);
+                path.lineTo(x + width, y);
+                path.lineTo(x + width, y + height - featherInsetY);
+                path.lineTo(x + width / 2, y + height);
+                path.lineTo(x, y + height - featherInsetY);
+                path.closePath();
+            }
         }
     }
 }

@@ -1034,7 +1034,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         isHighlight: boolean;
     }) {
         const { targetSelection, isHighlight } = opts;
-        const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
 
         targetSelection.each((target, datum) => {
             const {
@@ -1052,6 +1051,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 lineDashOffset,
             } = datum;
 
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
+
             target.size = size;
             target.shape = shape === 'line' ? lineMarker : shape;
             target.fill = highlightStyle?.fill ?? fill;
@@ -1061,6 +1062,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             target.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
             target.lineDash = highlightStyle?.lineDash ?? lineDash;
             target.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
+            target.opacity = highlightStyle?.opacity ?? 1;
             target.translationX = x;
             target.translationY = y;
             target.rotation = rotation;
