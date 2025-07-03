@@ -26,6 +26,7 @@ import { without } from '../../../util/object';
 import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
+    labelBoxOptionsDef,
     shadowOptionsDefs,
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
@@ -62,6 +63,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         avoidCollisions: boolean,
         formatter: callback,
         format: string,
+        ...labelBoxOptionsDef,
         ...fontOptionsDef,
     },
     sectorLabel: {
@@ -70,6 +72,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         positionRatio: ratio,
         formatter: callback,
         format: string,
+        ...labelBoxOptionsDef,
         ...fontOptionsDef,
     },
     calloutLine: {
