@@ -1,11 +1,7 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-import {
-    aggregationDomain,
-    compactAggregationIndices,
-    createAggregationIndices,
-    maxRangeFittingPoints,
-} from '../../utils/aggregation';
+const { aggregationDomain, aggregationRangeFittingPoints, compactAggregationIndices, createAggregationIndices } =
+    _ModuleSupport;
 
 const AGGREGATION_THRESHOLD = 1e3;
 const PRECISION = 5;
@@ -26,7 +22,7 @@ export function aggregateRangeBarData(
 
     const [d0, d1] = aggregationDomain(scale, domain);
 
-    let maxRange = maxRangeFittingPoints(xValues, PRECISION);
+    let maxRange = aggregationRangeFittingPoints(xValues, PRECISION);
     let { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange);
 
     const filters: RangeBarSeriesDataAggregationFilter[] = [{ maxRange, indexData }];

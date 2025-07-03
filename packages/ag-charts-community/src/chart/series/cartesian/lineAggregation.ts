@@ -1,21 +1,25 @@
-import type { _ModuleSupport } from 'ag-charts-community';
-
+import type { Scale } from '../../../scale/scale';
 import {
-    X_MAX,
-    X_MIN,
-    Y_MAX,
-    Y_MIN,
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
     aggregationDomain,
     aggregationIndexForXRatio,
+    aggregationRangeFittingPoints,
+    aggregationXRatioForDatumIndex,
+    aggregationXRatioForXValue,
     compactAggregationIndices,
     createAggregationIndices,
-    maxRangeFittingPoints,
-    xRatioForDatumIndex,
-    xRatioForXValue,
-} from '../../utils/aggregation';
+} from '../aggregation';
 
 const AGGREGATION_THRESHOLD = 1e3;
 const MAX_POINTS = 10;
+
+export interface LineSeriesDataAggregationFilter {
+    indices: number[];
+    maxRange: number;
+}
 
 function aggregationContainsIndex(
     xValues: any[],
@@ -29,29 +33,29 @@ function aggregationContainsIndex(
     if (xValue == null) return false;
 
     const xRatio = Number.isFinite(d0)
-        ? xRatioForXValue(xValue, d0, d1)
-        : xRatioForDatumIndex(datumIndex, xValues.length);
+        ? aggregationXRatioForXValue(xValue, d0, d1)
+        : aggregationXRatioForDatumIndex(datumIndex, xValues.length);
     const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
 
     return (
-        datumIndex === indexData[aggIndex + X_MIN] ||
-        datumIndex === indexData[aggIndex + X_MAX] ||
-        datumIndex === indexData[aggIndex + Y_MIN] ||
-        datumIndex === indexData[aggIndex + Y_MAX]
+        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_X_MIN] ||
+        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_X_MAX] ||
+        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_Y_MIN] ||
+        datumIndex === indexData[aggIndex + AGGREGATION_INDEX_Y_MAX]
     );
 }
 
 export function aggregateLineData(
-    scale: _ModuleSupport.Scale<unknown, number>,
+    scale: Scale<unknown, number>,
     xValues: any[],
     yValues: any[],
     domain: any[]
-): _ModuleSupport.LineSeriesDataAggregationFilter[] | undefined {
+): LineSeriesDataAggregationFilter[] | undefined {
     if (xValues.length < AGGREGATION_THRESHOLD) return;
 
     const [d0, d1] = aggregationDomain(scale, domain);
 
-    let maxRange = maxRangeFittingPoints(xValues, MAX_POINTS);
+    let maxRange = aggregationRangeFittingPoints(xValues, MAX_POINTS);
 
     const { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange);
 
@@ -62,7 +66,7 @@ export function aggregateLineData(
         }
     }
 
-    const filters: _ModuleSupport.LineSeriesDataAggregationFilter[] = [{ maxRange, indices }];
+    const filters: LineSeriesDataAggregationFilter[] = [{ maxRange, indices }];
 
     while (indices.length > MAX_POINTS && maxRange > 64) {
         ({ maxRange } = compactAggregationIndices(indexData, valueData, maxRange, { inPlace: true }));

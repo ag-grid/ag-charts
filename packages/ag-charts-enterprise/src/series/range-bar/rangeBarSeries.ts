@@ -5,7 +5,6 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 
-import { SPAN, X_MAX, X_MIN, Y_MAX, Y_MIN } from '../../utils/aggregation';
 import { type RangeBarSeriesDataAggregationFilter, aggregateRangeBarData } from './rangeBarAggregation';
 import { RangeBarProperties } from './rangeBarProperties';
 
@@ -37,6 +36,11 @@ const {
     findMinMax,
     getShapeStyle,
     areScalingEqual,
+    AGGREGATION_SPAN,
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
 } = _ModuleSupport;
 
 type Bounds = {
@@ -342,20 +346,20 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         if (dataAggregationFilter != null) {
             const { maxRange, indexData } = dataAggregationFilter;
             const [start, end] = visibleRangeIndices(1, maxRange, xAxis.range, (index) => {
-                const aggIndex = index * SPAN;
-                const xMinIndex = indexData[aggIndex + X_MIN];
-                const xMaxIndex = indexData[aggIndex + X_MAX];
+                const aggIndex = index * AGGREGATION_SPAN;
+                const xMinIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MIN];
+                const xMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MAX];
                 if (xMinIndex === -1) return;
                 const midDatumIndex = ((xMinIndex + xMaxIndex) / 2) | 0;
                 return [xPosition(midDatumIndex), xPosition(xMaxIndex) + effectiveBarWidth];
             });
 
             for (let i = start; i < end; i += 1) {
-                const aggIndex = i * SPAN;
-                const xMinIndex = indexData[aggIndex + X_MIN];
-                const xMaxIndex = indexData[aggIndex + X_MAX];
-                const yMinIndex = indexData[aggIndex + Y_MIN];
-                const yMaxIndex = indexData[aggIndex + Y_MAX];
+                const aggIndex = i * AGGREGATION_SPAN;
+                const xMinIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MIN];
+                const xMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MAX];
+                const yMinIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MIN];
+                const yMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MAX];
 
                 if (xMinIndex === -1) continue;
 

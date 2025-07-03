@@ -3,10 +3,9 @@
  */
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
-import { isAgCartesianChartOptions } from './mapping/types';
 import { EXAMPLES } from './test/examples-gallery';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -19,11 +18,7 @@ import {
 
 const TIME_AXIS_EXAMPLES = Object.entries(EXAMPLES)
     .filter(([, { options }]) => {
-        if (isAgCartesianChartOptions(options)) {
-            return options.axes?.some((axis) => axis.type.endsWith('time')) ?? false;
-        }
-
-        return false;
+        return (options as any as AgCartesianChartOptions).axes?.some((axis) => axis.type.endsWith('time')) ?? false;
     })
     .reduce<typeof EXAMPLES>((out, [name, testCase]) => {
         out[name] = testCase;
