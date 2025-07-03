@@ -487,7 +487,6 @@ export class DataModel<
             groupIndex: number;
             columnIndex: number;
             datumIndex: number;
-            valueIndex: number;
         } = {
             groupIndex: 0,
             columnIndex,
@@ -496,10 +495,8 @@ export class DataModel<
         const empty: number[] = [];
         for (const group of processedData.groups) {
             output.group = group;
-            let valueIndex = 0;
             for (const datumIndex of group.datumIndices[columnIndex] ?? empty) {
                 output.datumIndex = datumIndex;
-                output.valueIndex = valueIndex++;
                 yield output;
             }
             output.groupIndex++;
@@ -941,13 +938,17 @@ export class DataModel<
     }
 
     private groupData(data: UngroupedData<D>, groupingFn?: GroupingFn<D>): GroupedData<D> {
-        type Group = { keys: unknown[]; datumIndices: number[][]; validScopes: Set<string> };
-        const groups = new Map<string, Group>();
+        type Group = { keys: unknown[]; datumIndices: number[][]; aggregation: any[]; validScopes: Set<string> };
 
         const { keys: dataKeys, columns: allColumns, columnScopes, invalidKeys, invalidData } = data;
 
         const allScopes = data.scopes;
+        const resultGroups = [];
+        const resultData = [];
+
         const processedColumnIndexes = new Set<number>();
+        const groups = allScopes.size !== 1 || groupingFn != null ? new Map<string, Group>() : undefined;
+
         for (const scope of allScopes) {
             // Determine columns we can process in batch.
             const scopeColumnIndexes = allColumns
@@ -977,17 +978,21 @@ export class DataModel<
                 }
 
                 const group = groupingFn?.(keys) ?? keys;
-                const groupStr = toKeyString(group);
+                const groupStr = groups != null ? toKeyString(group) : undefined;
 
-                const outputGroup =
-                    groups.get(groupStr) ??
-                    ({
+                let outputGroup: Group | undefined = groups?.get(groupStr!);
+                if (outputGroup == null) {
+                    outputGroup = {
                         keys: group,
                         datumIndices: [],
+                        aggregation: [],
                         validScopes: allScopes,
-                    } satisfies Group);
-                if (!groups.has(groupStr)) {
-                    groups.set(groupStr, outputGroup);
+                    };
+
+                    groups?.set(groupStr!, outputGroup);
+
+                    resultGroups.push(outputGroup.keys);
+                    resultData.push(outputGroup);
                 }
 
                 if (scopeInvalidData?.[datumIndex] === true) {
@@ -1005,18 +1010,6 @@ export class DataModel<
                     outputGroup.datumIndices[columnIdx].push(datumIndex);
                 }
             }
-        }
-
-        const resultGroups = [];
-        const resultData = [];
-        for (const { keys, datumIndices, validScopes } of groups.values()) {
-            resultGroups.push(keys);
-            resultData.push({
-                datumIndices,
-                keys,
-                aggregation: [],
-                validScopes,
-            });
         }
 
         return {

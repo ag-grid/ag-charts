@@ -83,20 +83,32 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
         }
 
         if (getDatumId) {
-            const dataMap = new Map<ValidId, [TDatum, number]>(
-                data.map((datum, idx) => [getDatumId(datum), [datum, idx]])
-            );
+            const dataMap = new Map<ValidId, number>();
+            const duplicateMap = new Map<ValidId, number>();
+            for (let idx = 0; idx < data.length; idx++) {
+                const datum = data[idx];
+                let id = getDatumId(datum);
+                if (dataMap.has(id)) {
+                    const index = (duplicateMap.get(id) ?? 0) + 1;
+                    duplicateMap.set(id, index);
+
+                    id = `${id}:${index}`;
+                }
+                dataMap.set(id, idx);
+            }
+
             for (const [node, datumId] of this._nodesMap.entries()) {
-                if (dataMap.has(datumId)) {
-                    const [newDatum] = dataMap.get(datumId)!;
-                    node.datum = newDatum;
+                const idx = dataMap.get(datumId);
+                if (idx == null) {
+                    this.garbageBin.add(node);
+                } else {
+                    node.datum = data[idx];
                     this.garbageBin.delete(node);
                     dataMap.delete(datumId);
-                } else {
-                    this.garbageBin.add(node);
                 }
             }
-            for (const [datumId, [datum, idx]] of dataMap.entries()) {
+            for (const [datumId, idx] of dataMap.entries()) {
+                const datum = data[idx];
                 this._nodesMap.set(this.createNode(datum, initializer, idx), datumId);
             }
         } else {

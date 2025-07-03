@@ -64,7 +64,6 @@ interface RangeBarNodeDatum
     extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>,
         Readonly<_ModuleSupport.Point> {
     readonly index: number;
-    readonly valueIndex: number;
     readonly itemId: string;
     readonly yLowKey: string;
     readonly yHighKey: string;
@@ -313,7 +312,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
             const nodeDatum: RangeBarNodeDatum = {
                 index: groupedDataIndex,
-                valueIndex: datumIndex,
                 series: this,
                 itemId,
                 datum,
@@ -736,7 +734,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private getDatumId(datum: RangeBarNodeDatum) {
-        return `${datum.xValue}-${datum.valueIndex}`;
+        return `${datum.xValue}`;
     }
 
     protected isLabelEnabled() {
