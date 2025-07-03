@@ -23,7 +23,7 @@ export interface OptionsGraphInterface {
         overridesPathArrays?: Array<Array<string> | undefined>
     ): void;
     graftValue(target: VertexInterface, path: string, operation: unknown, value: unknown): void;
-    neighboursWithEdgeValue(vertex: VertexInterface, edge: string): Array<VertexInterface>;
+    neighboursWithEdgeValue(vertex: VertexInterface, edge: string): Array<VertexInterface> | undefined;
     removeEdges(vertex: VertexInterface, edge: string): void;
     resolveValue$1(path: Array<string>): unknown;
     resolveVertexValue(vertex: VertexInterface, valueVertex: VertexInterface): unknown;
@@ -53,10 +53,6 @@ export const DEPENDENCY_EDGE = 'dependency';
 // The edges that connect a branch to a potential auto-enable value.
 export const AUTO_ENABLE_EDGE = 'autoEnable';
 export const AUTO_ENABLE_VALUE_EDGE = 'autoEnableValue';
-
-export function isKey<T extends object>(key: unknown, obj: T): key is keyof T & string {
-    return typeof key === 'string' && obj != null && (typeof obj === 'object' || Array.isArray(obj)) && key in obj;
-}
 
 export function isRatio(value: unknown): value is number {
     return isNumber(value) && value >= 0 && value <= 1;
@@ -105,8 +101,17 @@ export function setPathSafe(object: PlainObject, path: (string | number)[], valu
     result[lastPart] = value;
 }
 
+const DIGITS_ONLY_REGEX = /^\d+$/;
 export function getPathLastIndexIndex(pathArray: Array<string>) {
-    return pathArray.findLastIndex((part) => !isNaN(Number(part)));
+    // Manual loop from end is faster than findLastIndex + Number conversion
+    for (let i = pathArray.length - 1; i >= 0; i--) {
+        const part = pathArray[i];
+        // Regex test for digits-only is faster than Number() + isNaN()
+        if (DIGITS_ONLY_REGEX.test(part)) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 export function getPathLastIndex(pathArray: Array<string>) {
