@@ -1,4 +1,5 @@
 import { clamp } from 'ag-charts-core';
+import type { AgMarkerShape } from 'ag-charts-types';
 
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
@@ -9,6 +10,7 @@ import type { Point, SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Transformable } from '../../../scene/transformable';
 import type { AnimationManager } from '../../interaction/animationManager';
+import { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
 import type { ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import * as easing from './../../../motion/easing';
@@ -88,7 +90,7 @@ interface MarkerNodeDatum extends SeriesNodeDatum<unknown> {
 
 interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<number, TDatum, unknown, unknown> {
     getNodeData(): { [index: number]: TDatum | undefined } | undefined;
-    getFormattedMarkerStyle(datum: TDatum): { size: number };
+    getFormattedMarkerStyle(datum: TDatum): { size: number; shape?: AgMarkerShape };
 }
 
 export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
@@ -102,10 +104,14 @@ export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
     const { point } = datum ?? {};
     if (datum == null || point == null) return undefined;
 
-    // AG-13067 Add 2px padding on all sides:
-    const size = 4 + (point.focusSize ?? series.getFormattedMarkerStyle(datum).size);
-    const radius = size / 2;
-    const x = datum.point.x - radius;
-    const y = datum.point.y - radius;
-    return Transformable.toCanvas(series.contentGroup, new BBox(x, y, size, size));
+    const style = series.getFormattedMarkerStyle(datum);
+    const anchor = Marker.anchor(style.shape);
+    const size = point.focusSize ?? style.size;
+    const paddedSize = 4 + size; // AG-13067 Add 2px padding on all sides:
+    const paddedRadius = paddedSize / 2;
+    const anchorX = (anchor.x - 0.5) * size;
+    const anchorY = (anchor.y - 0.5) * size;
+    const x = datum.point.x - paddedRadius - anchorX;
+    const y = datum.point.y - paddedRadius - anchorY;
+    return Transformable.toCanvas(series.contentGroup, new BBox(x, y, paddedSize, paddedSize));
 }
