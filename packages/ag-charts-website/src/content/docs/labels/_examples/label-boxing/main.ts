@@ -1,0 +1,58 @@
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+
+const options: AgCartesianChartOptions<{ month: string; value: number }> = {
+    container: document.getElementById('container'),
+    title: {
+        text: 'Data labels box options',
+    },
+    subtitle: {
+        text: 'backgroundColor, borderColor, borderRadius, borderWidth, padding and shadow',
+    },
+    data: [
+        { month: 'Jan', value: 29.9 },
+        { month: 'Feb', value: 71.5 },
+        { month: 'Mar', value: 106.4 },
+        { month: 'Apr', value: 129.2 },
+        { month: 'May', value: 144.0 },
+        { month: 'Jun', value: 178.0 },
+        { month: 'Jul', value: 135.6 },
+        { month: 'Aug', value: 148.5 },
+        { month: 'Sep', value: 216.4 },
+        { month: 'Oct', value: 194.1 },
+        { month: 'Nov', value: 95.6 },
+        { month: 'Dec', value: 54.4 },
+    ],
+    series: [
+        {
+            type: 'line',
+            xKey: 'month',
+            yKey: 'value',
+            label: {
+                // styler: (params) => {
+                //     if (params.datum.month === 'Sep') {
+                //         return {
+                //             border: {
+                //                 stroke: 'red',
+                //                 strokeWidth: 2,
+                //             },
+                //             padding: 5,
+                //             shadow: true,
+                //             fontWeight: 'bold'
+                //         }
+                //     }
+                // },
+                enabled: true,
+                cornerRadius: 5,
+                fill: 'rgba(252, 255, 197)',
+                fillOpacity: 0.7,
+                border: {
+                    stroke: '#AAA',
+                    strokeWidth: 1,
+                },
+                // yOffset: -6,
+            },
+        },
+    ],
+};
+
+AgCharts.create(options);
