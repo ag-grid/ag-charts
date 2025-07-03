@@ -12,7 +12,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../core/eventsHub';
-import type { AxisContext, AxisFormattableLabel, ContextFormatter } from '../module/axisContext';
+import type { AxisContext, AxisFormattableLabel } from '../module/axisContext';
 import type { ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
 import type { Scale } from '../scale/scale';
@@ -26,7 +26,6 @@ import type { AxisTick, TickInterval } from './axis/axisTick';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { CrossLine } from './crossline/crossLine';
-import type { GlobalContextFormatter } from './formatter/formatManager';
 import type { ISeries } from './series/seriesTypes';
 
 export type ChartAxisLabelFlipFlag = 1 | -1;
@@ -74,7 +73,7 @@ export interface ChartAxis {
     destroy(): void;
     detachAxis(opts: AxisGroups): void;
     formatDatum(
-        formatInContext: GlobalContextFormatter,
+        contextProvider: { context?: unknown },
         value: any,
         source: 'tooltip' | 'series-label',
         seriesId: string,
@@ -83,7 +82,7 @@ export interface ChartAxis {
         key: string
     ): string;
     formatDatum<Params extends object>(
-        formatInContext: ContextFormatter<Params> | GlobalContextFormatter,
+        contextProvider: { context?: unknown } | undefined,
         value: any,
         source: 'crosshair' | 'annotation-label',
         seriesId: undefined,
@@ -95,7 +94,7 @@ export interface ChartAxis {
         params: Params
     ): string;
     formatDatum<Params extends object>(
-        formatInContext: ContextFormatter<Params> | GlobalContextFormatter,
+        contextProvider: { context?: unknown } | undefined,
         value: any,
         source: 'tooltip' | 'series-label',
         seriesId: string,

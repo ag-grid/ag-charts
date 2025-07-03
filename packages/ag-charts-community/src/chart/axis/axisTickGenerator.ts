@@ -142,6 +142,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     constructor(private readonly axis: TickGenerationAxis<S, D>) {}
 
     private estimateTickCount(
+        domain: unknown[],
         range: [number, number],
         visibleRange: [number, number],
         defaultTickMinSpacing: number,
@@ -155,7 +156,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const zoomExtent = findRangeExtent(visibleRange);
 
         if (CategoryScale.is(scale)) {
-            const maxTickCount = scale.bands.length;
+            const maxTickCount = domain.length;
             let estimatedTickCount = Math.ceil(rangeExtent / (zoomExtent * label.fontSize));
             estimatedTickCount = Math.min(estimatedTickCount, maxTickCount);
             return {
@@ -208,6 +209,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         );
 
         const { maxTickCount } = this.estimateTickCount(
+            domain,
             range,
             visibleRange,
             defaultTickMinSpacing,
@@ -414,6 +416,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const { interval } = this.axis;
         const { step, values, minSpacing, maxSpacing } = interval;
         const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount(
+            domain,
             range,
             visibleRange,
             defaultTickMinSpacing,

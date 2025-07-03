@@ -843,10 +843,9 @@ export abstract class Series<
         key: string,
         legendItemName: string | undefined
     ) {
-        const { id: seriesId } = this;
-        const formatInContext = this.callWithContext.bind(this);
+        const { id: seriesId, properties } = this;
 
-        return axis.formatDatum(formatInContext, value, source, seriesId, legendItemName, datum, key);
+        return axis.formatDatum(properties, value, source, seriesId, legendItemName, datum, key);
     }
 
     protected getLabelText<TParams extends object>(
@@ -861,7 +860,6 @@ export abstract class Series<
         if (value == null) return '';
 
         const { axes, canHaveAxes, ctx, id: seriesId, properties } = this;
-        const formatInContext = this.callWithContext.bind(this);
         const source = 'series-label';
         const legendItemName = 'legendItemName' in properties ? (properties.legendItemName as string) : undefined;
         const params: AgChartLabelFormatterParams<any> & RequireOptional<TParams> = {
@@ -873,7 +871,7 @@ export abstract class Series<
         const axis = direction != null ? axes[this.resolveKeyDirection(direction)] : undefined;
         if (axis != null) {
             return axis.formatDatum(
-                formatInContext,
+                properties,
                 value,
                 source,
                 seriesId,
@@ -887,6 +885,7 @@ export abstract class Series<
         }
 
         const { formatManager } = ctx;
+        const formatInContext = this.callWithContext.bind(this);
 
         const format = (formatParams: FormatterParams<any>) =>
             label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??

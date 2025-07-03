@@ -21,7 +21,8 @@ export type GlobalContextlessFormatterParams =
 
 export type GlobalContextFormatter = (
     fn: (params: GlobalContextlessFormatterParams) => string | undefined,
-    params: GlobalContextlessFormatterParams
+    params: GlobalContextlessFormatterParams,
+    contextProvider?: { context?: unknown }
 ) => string | undefined;
 
 type Specifier = Record<AgTimeIntervalUnit, string> | string;

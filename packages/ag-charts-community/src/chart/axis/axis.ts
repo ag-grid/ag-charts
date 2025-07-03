@@ -31,6 +31,7 @@ import type { Point } from '../../scene/point';
 import { Selection } from '../../scene/selection';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
+import { callWithContext } from '../../util/callbackCache';
 import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
 import { deepFreeze, mergeDefaults } from '../../util/object';
 import { Property } from '../../util/properties';
@@ -41,7 +42,7 @@ import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../c
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
-import { FormatManager, type GlobalContextFormatter } from '../formatter/formatManager';
+import { FormatManager } from '../formatter/formatManager';
 import type { ISeries } from '../series/seriesTypes';
 import { ZIndexMap } from '../zIndexMap';
 import { AxisGridLine } from './axisGridLine';
@@ -107,11 +108,6 @@ interface TickLayout<D, TickLayoutMeta> {
     bbox?: BBox;
     layout?: TickLayoutMeta;
 }
-
-type ContextFormatter<Params extends object> = (
-    fn: (params: Params) => string | undefined,
-    params: Params
-) => string | undefined;
 
 /**
  * A general purpose linear axis with no notion of orientation.
@@ -691,7 +687,7 @@ export abstract class Axis<
 
     // For formatting arbitrary values between the ticks.
     formatDatum(
-        formatInContext: GlobalContextFormatter,
+        contextProvider: { context?: unknown },
         value: any,
         source: 'tooltip' | 'series-label',
         seriesId: string,
@@ -700,7 +696,7 @@ export abstract class Axis<
         key: string
     ): string;
     formatDatum<Params extends object>(
-        formatInContext: ContextFormatter<Params> | GlobalContextFormatter,
+        contextProvider: { context?: unknown } | undefined,
         value: any,
         source: 'crosshair' | 'annotation-label',
         seriesId: undefined,
@@ -711,7 +707,7 @@ export abstract class Axis<
         label?: AxisFormattableLabel<Params, FormatterParams<any>>
     ): string;
     formatDatum<Params extends object>(
-        formatInContext: ContextFormatter<Params> | GlobalContextFormatter,
+        contextProvider: { context?: unknown } | undefined,
         value: any,
         source: 'tooltip' | 'series-label',
         seriesId: string,
@@ -723,7 +719,7 @@ export abstract class Axis<
         labelParams: Params
     ): string;
     formatDatum(
-        formatInContext: ContextFormatter<any>,
+        contextProvider: { context?: unknown } | undefined,
         input: any,
         source: Exclude<AnyFormatterSource, 'axis-label' | 'gradient-legend'>,
         seriesId?: string,
@@ -776,7 +772,7 @@ export abstract class Axis<
         );
         const { type, value } = formatParams;
 
-        const f = formatInContext;
+        const f = this.createCallWithContext(contextProvider);
         const result =
             label?.formatValue(f, type, value, params ?? formatParams) ??
             formatManager.format(f, formatParams) ??
@@ -868,7 +864,7 @@ export abstract class Axis<
             scaleInvertNearest: (val) => scale.invert(val, true),
             formatScaleValue: (value, source, label) =>
                 this.formatDatum(
-                    this.callWithContext.bind(this),
+                    undefined,
                     value,
                     source,
                     undefined,
@@ -922,5 +918,11 @@ export abstract class Axis<
     protected callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         const { callbackCache, chartService } = this.moduleCtx;
         return callbackCache.call([this, chartService], fn, ...params);
+    }
+
+    private createCallWithContext(contextProvider: { context?: unknown } | undefined) {
+        const { chartService } = this.moduleCtx;
+        return <F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> =>
+            callWithContext([contextProvider, this, chartService], fn, ...params);
     }
 }

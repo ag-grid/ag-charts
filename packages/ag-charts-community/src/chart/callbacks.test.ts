@@ -1,3 +1,4 @@
+import { getDocument } from 'ag-charts-core';
 import {
     AgAxisLabelFormatterParams,
     AgBarSeriesItemStylerParams,
@@ -392,6 +393,77 @@ describe('AG-13024 API context validation', () => {
         };
         chart = await createChart(opts);
         expectWarningsCalls().toMatchSnapshot();
+    });
+});
+
+describe('AG-15283 context precedence', () => {
+    let chart: Chart;
+    setupMockCanvas();
+    afterEach(() => chart?.destroy());
+
+    test('context precedence', async () => {
+        const opts: AgCartesianChartOptions = {
+            data: [
+                { quarter: "Q1'18", iphone: 140, mac: 16 },
+                { quarter: "Q2'18", iphone: 124, mac: 20 },
+                { quarter: "Q3'18", iphone: 112, mac: 20 },
+                { quarter: "Q4'18", iphone: 118, mac: 24 },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'quarter',
+                    yKey: 'iphone',
+                    context: {
+                        source: 'series-iphone',
+                    },
+                },
+                {
+                    type: 'bar',
+                    xKey: 'quarter',
+                    yKey: 'mac',
+                },
+            ],
+            axes: [
+                {
+                    type: 'category',
+                    position: 'bottom',
+                    context: {
+                        source: 'axis-category',
+                    },
+                },
+                {
+                    type: 'number',
+                    position: 'left',
+                    context: {
+                        source: 'axis-number',
+                    },
+                },
+            ],
+            context: {
+                source: 'root',
+            },
+            formatter: (params) => {
+                return (params.context as any)?.source;
+            },
+        };
+
+        chart = await createChart(opts);
+
+        await hoverAction(130, 363)(chart); // datum 1, series 1
+        await waitForChartStability(chart);
+
+        const element = Array.from(getDocument('body').querySelectorAll('.ag-charts-tooltip span'));
+        expect(element.map((e) => e.textContent)).toEqual([
+            'series-iphone', // x value
+            '',
+            'iphone', // (series name)
+            'series-iphone', // y value
+            'axis-category', // x value
+            '',
+            'mac', // (series name)
+            'axis-number', // x value
+        ]);
     });
 });
 
