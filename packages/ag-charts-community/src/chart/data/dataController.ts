@@ -199,11 +199,11 @@ export class DataController {
             keys(group.opts.props) === propsKeys;
     }
 
+    private static readonly crossScopeMergableTypes = new Set(['key', 'group-value-processor']);
     private static mergeRequests(
         this: void,
         requests: RequestedProcessing<any, any, any>[]
     ): MergedRequests<any, any, any> {
-        const crossScopeMergableTypes = new Set(['key', 'group-value-processor']);
         const result: MergedRequests<any, any, any> = {
             ids: [],
             rejects: [],
@@ -211,6 +211,10 @@ export class DataController {
             data: requests[0].data,
             opts: { ...requests[0].opts, props: [] },
         };
+
+        const optsByTypeAndDataId = new Map<string, PropertyDefinition<any>[]>();
+        const dataIds = new Map<unknown, number>();
+        let nextDataId = 0;
         for (const request of requests) {
             const {
                 id,
@@ -230,15 +234,27 @@ export class DataController {
                 const clone = { ...prop, scopes: [id], data };
                 DataController.createIdsMap(id, clone);
 
-                const match = result.opts.props.find(
-                    (existing: any) =>
-                        existing.type === clone.type &&
-                        (crossScopeMergableTypes.has(existing.type) || existing.data === clone.data) &&
-                        DataController.deepEqual(existing, clone)
-                );
+                let dataId: number;
+                if (DataController.crossScopeMergableTypes.has(clone.type)) {
+                    dataId = -1;
+                } else if (dataIds.has(data)) {
+                    dataId = dataIds.get(data)!;
+                } else {
+                    dataId = nextDataId++;
+                    dataIds.set(data, dataId);
+                }
 
-                if (!match) {
+                const matchKey = `${clone.type}-${dataId}-${clone.groupId}`;
+                const matches = optsByTypeAndDataId.get(matchKey);
+                const match = matches?.find((existing) => DataController.deepEqual(existing, clone));
+
+                if (matches == null) {
                     result.opts.props.push(clone);
+                    optsByTypeAndDataId.set(matchKey, [clone]);
+                    continue;
+                } else if (match == null) {
+                    result.opts.props.push(clone);
+                    matches.push(clone);
                     continue;
                 }
 

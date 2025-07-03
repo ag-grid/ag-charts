@@ -1,7 +1,7 @@
 import { clamp } from 'ag-charts-core';
 
 import { Group } from '../../scene/group';
-import { type ZIndex, compareZIndex } from '../../scene/zIndex';
+import { compareZIndex } from '../../scene/zIndex';
 import type { SeriesGrouping } from './seriesStateManager';
 import { SeriesZIndexMap } from './seriesZIndexMap';
 
@@ -187,13 +187,17 @@ export class SeriesLayerManager {
     }
 
     private getLowestSeriesZIndex(seriesIds: string[]) {
-        const lowestSeriesZIndex = seriesIds.reduce<ZIndex | undefined>((currentLowest, seriesId) => {
+        let lowestSeriesZIndex = undefined;
+        for (const seriesId of seriesIds) {
             const series = this.series.get(seriesId);
-            const zIndex = series?.seriesConfig.contentGroup.zIndex;
-            if (currentLowest == null || zIndex == null) return zIndex;
+            const zIndex = series?.seriesConfig.contentGroup.zIndex ?? SeriesZIndexMap.ANY_CONTENT;
+            if (lowestSeriesZIndex == null || zIndex == null) {
+                lowestSeriesZIndex = zIndex;
+                continue;
+            }
 
-            return compareZIndex(currentLowest, zIndex) <= 0 ? currentLowest : zIndex;
-        }, undefined);
+            lowestSeriesZIndex = compareZIndex(lowestSeriesZIndex, zIndex) <= 0 ? lowestSeriesZIndex : zIndex;
+        }
 
         return lowestSeriesZIndex ?? SeriesZIndexMap.ANY_CONTENT;
     }
