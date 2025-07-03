@@ -1197,7 +1197,7 @@ export class DataModel<
                     dataDomain.set(def, new DiscreteDomain());
                 } else {
                     dataDomain.set(def, new ContinuousDomain());
-                    allScopesHaveSameDefs &&= (def.scopes ?? []).length === scopes.size;
+                    allScopesHaveSameDefs &&= (def.scopes?.length ?? 0) === scopes.size;
                 }
             }
         };

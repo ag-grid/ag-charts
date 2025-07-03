@@ -258,8 +258,10 @@ export class DataController {
                     continue;
                 }
 
-                (match as any).scopes ??= [];
-                (match as any).scopes.push(...(clone.scopes ?? []));
+                if (clone.scopes != null) {
+                    (match as any).scopes ??= [];
+                    (match as any).scopes.push(...clone.scopes);
+                }
 
                 if ((match.type === 'key' || match.type === 'value') && clone.idsMap?.size) {
                     match.idsMap ??= new Map();
