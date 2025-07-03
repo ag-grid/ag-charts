@@ -155,7 +155,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const rangeExtent = findRangeExtent(range);
         const zoomExtent = findRangeExtent(visibleRange);
 
-        if (CategoryScale.is(scale)) {
+        if (CategoryScale.is(scale) || OrdinalTimeScale.is(scale)) {
             const maxTickCount = domain.length;
             let estimatedTickCount = Math.ceil(rangeExtent / (zoomExtent * label.fontSize));
             estimatedTickCount = Math.min(estimatedTickCount, maxTickCount);
