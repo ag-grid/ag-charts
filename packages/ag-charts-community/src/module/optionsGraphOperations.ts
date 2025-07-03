@@ -685,7 +685,7 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
     if (!isPlainObject(object)) return;
 
     const defaultValue = defaultValueVertex ? graph.getVertexValue(defaultValueVertex) : undefined;
-    const children = graph.neighboursWithEdgeValue(vertex, PATH_EDGE);
+    const children = graph.neighboursWithEdgeValue(vertex, PATH_EDGE) ?? [];
     const overridesPath1 = overridesPathVertex1
         ? (graph.resolveVertexValue(vertex, overridesPathVertex1) as Array<string>)
         : undefined;

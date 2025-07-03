@@ -102,8 +102,8 @@ export class AdjacencyListGraph<V, E = undefined> {
     }
 
     // Get the set of neighbours along a given edge.
-    neighboursWithEdgeValue(from: Vertex<V>, edgeValue: E): Vertex<V>[] {
-        return from.edges.get(edgeValue) ?? [];
+    neighboursWithEdgeValue(from: Vertex<V>, edgeValue: E) {
+        return from.edges.get(edgeValue);
     }
 
     // Find the first neighbour along the given edge.
@@ -121,6 +121,7 @@ export class AdjacencyListGraph<V, E = undefined> {
     // Find the first neighbour with a given value, optionally along a given edge.
     findNeighbourWithValue(from: Vertex<V>, value: V, edgeValue?: E): Vertex<V> | undefined {
         const neighbours = edgeValue == null ? this.neighbours(from) : this.neighboursWithEdgeValue(from, edgeValue);
+        if (!neighbours) return;
         for (const neighbour of neighbours) {
             if (this.getVertexValue(neighbour) === value) {
                 return neighbour;
