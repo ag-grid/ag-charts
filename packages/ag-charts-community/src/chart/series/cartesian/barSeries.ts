@@ -84,7 +84,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly topRightCornerRadius: boolean;
     readonly bottomRightCornerRadius: boolean;
     readonly bottomLeftCornerRadius: boolean;
-    readonly featherRatioY: number;
+    readonly featherRatio: number;
     readonly clipBBox: BBox | undefined;
     readonly crisp: boolean;
     readonly label?: BarNodeLabelDatum;
@@ -350,7 +350,7 @@ export class BarSeries extends AbstractBarSeries<
             yRange,
             labelText,
             opacity,
-            featherRatioY,
+            featherRatio,
             crossScale = 1,
         }: {
             datum: any;
@@ -368,7 +368,7 @@ export class BarSeries extends AbstractBarSeries<
             yRange: number;
             labelText: string | undefined;
             opacity: number;
-            featherRatioY: number;
+            featherRatio: number;
             crossScale: number | undefined;
         }): BarNodeDatum => {
             const isUpward = isPositive !== yReversed;
@@ -419,7 +419,7 @@ export class BarSeries extends AbstractBarSeries<
                 height: barRect.height,
                 midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
                 opacity,
-                featherRatioY,
+                featherRatio,
                 topLeftCornerRadius: barAlongX !== isUpward,
                 topRightCornerRadius: isUpward,
                 bottomRightCornerRadius: barAlongX === isUpward,
@@ -456,7 +456,7 @@ export class BarSeries extends AbstractBarSeries<
             yStart: number,
             yEnd: number,
             yRange: number,
-            featherRatioY: number,
+            featherRatio: number,
             opacity: number
         ) => {
             const xValue = xValues[datumIndex];
@@ -502,7 +502,7 @@ export class BarSeries extends AbstractBarSeries<
                 yRange: Math.max(yStart + (yFilterValue ?? -Infinity), yRange),
                 labelText,
                 opacity,
-                featherRatioY,
+                featherRatio,
                 crossScale: inset ? 0.6 : undefined,
             });
             nodes.push(nodeData);
@@ -525,7 +525,7 @@ export class BarSeries extends AbstractBarSeries<
                     yRange,
                     labelText: undefined,
                     opacity,
-                    featherRatioY,
+                    featherRatio,
                     crossScale: undefined,
                 });
                 phantomNodes.push(phantomNodeData);
@@ -597,13 +597,13 @@ export class BarSeries extends AbstractBarSeries<
                 const yEndMin = xValues[yMinIndex] != null ? Number(yRawValues[yMinIndex]) : NaN;
 
                 if (yEndMax > 0) {
-                    const featherRatioY = yEndMin >= 0 ? 1 - yEndMin / yEndMax : 1;
-                    handleDatum(yMaxIndex, 0, x, width, 0, yEndMax, yEndMax, featherRatioY, 1);
+                    const featherRatio = yEndMin >= 0 ? 1 - yEndMin / yEndMax : 1;
+                    handleDatum(yMaxIndex, 0, x, width, 0, yEndMax, yEndMax, featherRatio, 1);
                 }
 
                 if (yEndMin < 0) {
-                    const featherRatioY = yEndMax <= 0 ? yEndMax / yEndMin - 1 : -1;
-                    handleDatum(yMinIndex, 1, x, width, 0, yEndMin, yEndMin, featherRatioY, 1);
+                    const featherRatio = yEndMax <= 0 ? yEndMax / yEndMin - 1 : -1;
+                    handleDatum(yMinIndex, 1, x, width, 0, yEndMin, yEndMin, featherRatio, 1);
                 }
             }
         }
@@ -703,6 +703,8 @@ export class BarSeries extends AbstractBarSeries<
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const fillBBox = this.getShapeFillBBox();
 
+        const direction = this.getBarDirection();
+
         opts.datumSelection.each((rect, datum) => {
             const style = this.getItemBaseStyle(opts.isHighlight, datum);
 
@@ -727,7 +729,8 @@ export class BarSeries extends AbstractBarSeries<
                 ? (datum.clipBBox?.width ?? datum.width) > 0
                 : (datum.clipBBox?.height ?? datum.height) > 0;
 
-            rect.featherRatioY = datum.featherRatioY;
+            rect.direction = direction;
+            rect.featherRatio = datum.featherRatio;
 
             rect.crisp = datum.crisp;
             rect.fillShadow = shadow;
