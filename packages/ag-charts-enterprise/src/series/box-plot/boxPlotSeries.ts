@@ -601,7 +601,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         );
 
         if (itemStyler) {
-            const formatStyles = this.cachedDatumCallback(createDatumId(datum?.index as any, scope), () =>
+            const formatStyles = this.cachedDatumCallback(createDatumId(nodeDatum.datumIndex, scope), () =>
                 this.callWithContext(itemStyler, {
                     datum,
                     seriesId,
