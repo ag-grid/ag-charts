@@ -86,7 +86,11 @@
           "projects": ["ag-charts-community-examples"],
           "target": "build"
         },
-        "ag-charts-website-benchmarks_enterprise-1M-line-series_main.ts:generate-example"
+        "ag-charts-website-benchmarks_enterprise-1M-line-series_main.ts:generate-example",
+        "ag-charts-website-benchmarks_axes-1M-time_main.ts:generate-example",
+        "ag-charts-website-benchmarks_axes-1M-unit-time_main.ts:generate-example",
+        "ag-charts-website-benchmarks_axes-1M-ordinal-time_main.ts:generate-example",
+        "ag-charts-website-benchmarks_axes-1M-number_main.ts:generate-example"
       ]
     },
     "pack": {
