@@ -177,7 +177,18 @@ export class Text<D = any> extends Shape<D> {
             return super.render(renderCtx);
         }
 
-        const { fill, stroke, strokeWidth } = this;
+        const {
+            fill,
+            stroke,
+            strokeWidth,
+            boxFill,
+            boxFillOpacity = 1,
+            boxCornerRadius,
+            boxStroke,
+            boxStrokeWidth = 1,
+            boxStrokeOpacity = 1,
+            boxPadding = 0,
+        } = this;
         const { globalAlpha } = ctx;
         const { pixelRatio } = this.layerManager.canvas;
 
@@ -200,6 +211,23 @@ export class Text<D = any> extends Shape<D> {
 
         ctx.textAlign = textAlign;
         ctx.textBaseline = textBaseline;
+
+        if (boxFill != null || boxStroke != null) {
+            const boxBBox = this.getBBox(true).grow(boxPadding);
+            if (boxFill) {
+                ctx.fillStyle = boxFill as string; // TODO: gradients, images and etc..
+                ctx.globalAlpha = boxFillOpacity;
+                ctx.fillRect(boxBBox.x, boxBBox.y, boxBBox.width, boxBBox.height);
+            }
+            if (boxStroke) {
+                ctx.strokeStyle = boxStroke;
+                ctx.lineWidth = boxStrokeWidth;
+                ctx.globalAlpha = boxStrokeOpacity;
+                ctx.strokeRect(boxBBox.x, boxBBox.y, boxBBox.width, boxBBox.height);
+            }
+            ctx.globalAlpha = globalAlpha;
+            boxCornerRadius satisfies any; // TODO: cornerRadius
+        }
 
         if (fill) {
             this.applyFillAndAlpha(ctx);
