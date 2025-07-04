@@ -33,6 +33,9 @@ class LabelBorder {
 
     @Property
     strokeWidth?: number;
+
+    @Property
+    strokeOpacity?: number;
 }
 
 export class Label<TParams = never, TDatum = any>
