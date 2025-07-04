@@ -1,14 +1,16 @@
 import { createSvgElement, isDefined } from 'ag-charts-core';
-import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
+import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize, Ratio } from 'ag-charts-types';
 
+import { objectsEqual } from '../../module-support';
 import { Debug } from '../../util/debug';
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
+import { SceneObjectChangeDetection } from '../changeDetectable';
 import type { RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { DebugSelectors } from '../sceneDebug';
 import { Rotatable, Translatable } from '../transformable';
-import { Shape } from './shape';
+import { Shape, type ShapeColor } from './shape';
 
 export interface TextSizeProperties {
     fontFamily?: FontFamily;
@@ -68,6 +70,27 @@ export class Text<D = any> extends Shape<D> {
     // TextMetrics are used if lineHeight is not defined.
     @SceneChangeDetection()
     lineHeight?: number;
+
+    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (t: Text) => t.onFillChange() })
+    boxFill?: ShapeColor;
+
+    @SceneChangeDetection()
+    boxFillOpacity: Opacity = 1;
+
+    @SceneChangeDetection()
+    boxCornerRadius?: Ratio;
+
+    @SceneChangeDetection()
+    boxStroke?: CssColor;
+
+    @SceneChangeDetection()
+    boxStrokeWidth: PixelSize = 1;
+
+    @SceneChangeDetection()
+    boxStrokeOpacity: Opacity = 1;
+
+    @SceneChangeDetection()
+    boxStrokePadding: PixelSize = 0;
 
     static computeBBox(
         lines: string | string[],
