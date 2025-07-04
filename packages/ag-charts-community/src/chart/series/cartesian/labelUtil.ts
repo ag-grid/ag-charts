@@ -17,14 +17,36 @@ type LabelDatum = Point & {
     textBaseline: CanvasTextBaseline;
 };
 
-export function updateLabelNode(
-    textNode: Text,
-    label: Pick<Label, 'enabled' | 'color' | 'fontStyle' | 'fontWeight' | 'fontSize' | 'fontFamily'>,
-    labelDatum?: LabelDatum
-) {
+type LabelProps = Pick<
+    Label,
+    | 'enabled'
+    | 'color'
+    | 'fontStyle'
+    | 'fontWeight'
+    | 'fontSize'
+    | 'fontFamily'
+    | 'fill'
+    | 'fillOpacity'
+    | 'cornerRadius'
+    | 'padding'
+    | 'border'
+>;
+
+export function updateLabelNode(textNode: Text, label: LabelProps, labelDatum?: LabelDatum) {
     if (label.enabled && labelDatum) {
         const { x, y, text, textAlign, textBaseline } = labelDatum;
-        const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = label;
+        const {
+            fontStyle,
+            fontWeight,
+            fontSize,
+            fontFamily,
+            color: fill,
+            fill: boxFill,
+            fillOpacity: boxFillOpacity,
+            cornerRadius: boxCornerRadius,
+            padding: boxPadding,
+            border: { stroke: boxStroke, strokeWidth: boxStrokeWidth, strokeOpacity: boxStrokeOpacity },
+        } = label;
         textNode.setProperties({
             visible: true,
             x,
@@ -37,6 +59,13 @@ export function updateLabelNode(
             fontFamily,
             textAlign,
             textBaseline,
+            boxCornerRadius,
+            boxPadding,
+            boxFill,
+            boxFillOpacity,
+            boxStroke,
+            boxStrokeOpacity,
+            boxStrokeWidth,
         });
     } else {
         textNode.visible = false;

@@ -560,7 +560,17 @@ export class MapShapeSeries
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum>;
     }) {
         const { labelSelection } = opts;
-        const { color: fill, fontStyle, fontWeight, fontFamily } = this.properties.label;
+        const {
+            color: fill,
+            fontStyle,
+            fontWeight,
+            fontFamily,
+            fill: boxFill,
+            fillOpacity: boxFillOpacity,
+            cornerRadius: boxCornerRadius,
+            padding: boxPadding,
+            border: { stroke: boxStroke, strokeWidth: boxStrokeWidth, strokeOpacity: boxStrokeOpacity },
+        } = this.properties.label;
 
         labelSelection.each((label, { x, y, text, fontSize, lineHeight }, datumIndex) => {
             label.visible = true;
@@ -576,6 +586,13 @@ export class MapShapeSeries
             label.textAlign = 'center';
             label.textBaseline = 'middle';
             label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
+            label.boxCornerRadius = boxCornerRadius;
+            label.boxPadding = boxPadding;
+            label.boxFill = boxFill;
+            label.boxFillOpacity = boxFillOpacity;
+            label.boxStroke = boxStroke;
+            label.boxStrokeOpacity = boxStrokeOpacity;
+            label.boxStrokeWidth = boxStrokeWidth;
         });
     }
 

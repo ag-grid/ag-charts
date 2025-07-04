@@ -427,6 +427,13 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             text.textAlign = 'left';
             text.textBaseline = 'top';
             text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
+            text.boxCornerRadius = label.cornerRadius;
+            text.boxPadding = label.padding;
+            text.boxFill = label.fill;
+            text.boxFillOpacity = label.fillOpacity;
+            text.boxStroke = label.border.stroke;
+            text.boxStrokeOpacity = label.border.strokeOpacity;
+            text.boxStrokeWidth = label.border.strokeWidth;
         });
     }
 

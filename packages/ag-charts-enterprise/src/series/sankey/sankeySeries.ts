@@ -367,7 +367,18 @@ export class SankeySeries extends FlowProportionSeries<
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, SankeyNodeLabelDatum>;
     }) {
         const { labelSelection } = opts;
-        const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
+        const {
+            color: fill,
+            fontStyle,
+            fontWeight,
+            fontSize,
+            fontFamily,
+            fill: boxFill,
+            fillOpacity: boxFillOpacity,
+            cornerRadius: boxCornerRadius,
+            padding: boxPadding,
+            border: { stroke: boxStroke, strokeWidth: boxStrokeWidth, strokeOpacity: boxStrokeOpacity },
+        } = this.properties.label;
 
         labelSelection.each((label, { x, y, leading, text }) => {
             label.visible = true;
@@ -381,6 +392,13 @@ export class SankeySeries extends FlowProportionSeries<
             label.fontFamily = fontFamily;
             label.textAlign = leading ? 'right' : 'left';
             label.textBaseline = 'middle';
+            label.boxCornerRadius = boxCornerRadius;
+            label.boxPadding = boxPadding;
+            label.boxFill = boxFill;
+            label.boxFillOpacity = boxFillOpacity;
+            label.boxStroke = boxStroke;
+            label.boxStrokeOpacity = boxStrokeOpacity;
+            label.boxStrokeWidth = boxStrokeWidth;
         });
     }
 
