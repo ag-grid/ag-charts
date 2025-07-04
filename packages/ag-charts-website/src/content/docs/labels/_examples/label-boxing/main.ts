@@ -42,12 +42,14 @@ const options: AgCartesianChartOptions<{ month: string; value: number }> = {
                 //     }
                 // },
                 enabled: true,
-                cornerRadius: 5,
+                cornerRadius: 8,
                 fill: 'rgba(252, 255, 197)',
                 fillOpacity: 0.7,
+                padding: 10,
                 border: {
-                    stroke: '#AAA',
-                    strokeWidth: 1,
+                    stroke: 'red',
+                    strokeWidth: 5,
+                    strokeOpacity: 0.2,
                 },
                 // yOffset: -6,
             },
