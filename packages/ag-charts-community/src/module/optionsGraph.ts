@@ -23,6 +23,7 @@ import {
     RESOLVED_TO_BRANCH,
     USER_OPTIONS_EDGE,
     getPathSafe,
+    hasPathSafe,
     setPathSafe,
 } from './optionsGraphUtils';
 
@@ -66,10 +67,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
     public readonly palette: PlainObject;
 
-    private readonly config: PlainObject;
-    private readonly overrides: PlainObject | undefined;
-    private readonly internalParams: Map<any, any>;
-
     // The initial vertices for different branches of the graph that are resolved separately.
     private readonly root: Vertex<unknown>;
     private readonly params: Vertex<unknown>;
@@ -87,12 +84,12 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     private readonly cachedPathVertices: Map<string, Vertex<unknown>> = new Map();
 
     constructor(
-        config: PlainObject = {},
-        userOptions: PlainObject = {},
-        params: PlainObject = {},
-        palette: PlainObject = {},
-        overrides: PlainObject = {},
-        internalParams: Map<any, any> = new Map()
+        private readonly config: PlainObject = {},
+        private readonly userOptions: PlainObject = {},
+        params: PlainObject | undefined = undefined,
+        palette: PlainObject | undefined = undefined,
+        private readonly overrides: PlainObject = {},
+        private readonly internalParams: Map<any, any> = new Map()
     ) {
         super(PATH_EDGE, OPERATION_EDGE);
 
@@ -105,7 +102,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.internalParams = internalParams;
 
         // TODO: Remove `deepClone()` which is just used to workaround the freezing.
-        this.palette = deepClone(palette);
+        this.palette = palette ? deepClone(palette) : {};
         this.palette.type = isObject(userOptions?.theme) ? paletteType(userOptions.theme?.palette) : 'inbuilt';
 
         // Extract the primary series type, bypassing the graph so we have it ready immediately.
@@ -136,7 +133,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         }
 
         // Build the theme parameters graph.
-        this.buildGraphFromObject(this.params, DEFAULTS_EDGE, params);
+        if (params) {
+            this.buildGraphFromObject(this.params, DEFAULTS_EDGE, params);
+        }
 
         // Build the axes and series defaults onto the `axes` and `series` keys. While these values are arrays, we can
         // apply this to each item in the array with the `$applyTheme` operator. This extracts the config from the
@@ -229,6 +228,29 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         if (!vertex) return;
         this.cachedPathVertices.set(key, vertex);
         return vertex;
+    }
+
+    hasUserOption(path: Array<string>) {
+        return hasPathSafe(this.userOptions, path);
+    }
+
+    hasThemeOverride(path: Array<string>) {
+        if (path[0] === 'axes' && path.length > 1) {
+            const axisType = this.getResolvedPath(['axes', path[1], 'type']) as string;
+            if (hasPathSafe(this.overrides, ['common', 'axes', axisType, ...path.slice(2)])) {
+                return true;
+            }
+
+            const seriesType = this.getResolvedPath(['series', '0', 'type']) as string;
+            return hasPathSafe(this.overrides, [seriesType, 'axes', axisType, ...path.slice(2)]);
+        }
+
+        if (path[0] === 'series' && path.length > 1) {
+            const seriesType = this.getResolvedPath(['series', path[1], 'type']) as string;
+            return hasPathSafe(this.overrides, [seriesType, 'series', ...path.slice(2)]);
+        }
+
+        return hasPathSafe(this.overrides, path);
     }
 
     getParamValue(path: string) {
