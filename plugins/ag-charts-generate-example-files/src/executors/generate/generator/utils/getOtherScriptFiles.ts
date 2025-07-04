@@ -3,7 +3,7 @@ import prettier from 'prettier';
 import { SOURCE_ENTRY_FILE_NAME } from '../constants';
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
 import type { FileContents, TransformTsFileExt } from '../types';
-import { getFileList } from './fileUtils';
+import { getFileList, isEmptyOrWhitespaceOnly } from './fileUtils';
 
 const getOtherTsGeneratedFiles = async ({
     folderPath,
@@ -81,6 +81,11 @@ export const getOtherScriptFiles = async ({
 
     const contents: Record<string, string> = {};
     for (const [filename, content] of Object.entries(otherTsGeneratedFileContents)) {
+        // Skip empty or whitespace-only files
+        if (isEmptyOrWhitespaceOnly(content)) {
+            continue;
+        }
+
         if (isDev) {
             contents[filename] = content;
             continue;
@@ -93,6 +98,11 @@ export const getOtherScriptFiles = async ({
     }
 
     for (const [filename, content] of Object.entries(otherJsFileContents)) {
+        // Skip empty or whitespace-only files
+        if (isEmptyOrWhitespaceOnly(content)) {
+            continue;
+        }
+
         if (isDev) {
             contents[filename] = content;
             continue;
