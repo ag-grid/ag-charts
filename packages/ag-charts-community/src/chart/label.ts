@@ -78,6 +78,9 @@ export class Label<TParams = never, TDatum = any>
     @Property
     format?: string;
 
+    @Property
+    padding?: number;
+
     private _cachedFormatter: FormatterCache | undefined = undefined;
     formatValue(
         formatWithContext: ContextFormatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>,

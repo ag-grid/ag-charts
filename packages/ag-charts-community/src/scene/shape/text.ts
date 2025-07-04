@@ -71,26 +71,26 @@ export class Text<D = any> extends Shape<D> {
     @SceneChangeDetection()
     lineHeight?: number;
 
+    @SceneChangeDetection()
+    boxCornerRadius?: Ratio;
+
+    @SceneChangeDetection()
+    boxPadding?: PixelSize;
+
     @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (t: Text) => t.onFillChange() })
     boxFill?: ShapeColor;
 
     @SceneChangeDetection()
-    boxFillOpacity: Opacity = 1;
-
-    @SceneChangeDetection()
-    boxCornerRadius?: Ratio;
+    boxFillOpacity?: Opacity;
 
     @SceneChangeDetection()
     boxStroke?: CssColor;
 
     @SceneChangeDetection()
-    boxStrokeWidth: PixelSize = 1;
+    boxStrokeWidth?: PixelSize;
 
     @SceneChangeDetection()
-    boxStrokeOpacity: Opacity = 1;
-
-    @SceneChangeDetection()
-    boxStrokePadding: PixelSize = 0;
+    boxStrokeOpacity?: Opacity;
 
     static computeBBox(
         lines: string | string[],
