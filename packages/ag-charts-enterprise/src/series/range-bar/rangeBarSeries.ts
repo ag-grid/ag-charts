@@ -139,8 +139,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { xKey, yLowKey, yHighKey, fastDataProcessing } = this.properties;
-        const grouped = !fastDataProcessing;
+        const { xKey, yLowKey, yHighKey } = this.properties;
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
@@ -163,7 +162,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
-            groupByKeys: grouped,
+            groupByKeys: false,
         });
 
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
@@ -337,7 +336,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { dataAggregationFilters } = this;
         const [r0, r1] = xScale.range;
-        const range = r1 - r0;
+        const range = Math.abs(r1 - r0);
 
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 

@@ -23,8 +23,8 @@ export const BAR_Y_MIN = AGGREGATION_INDEX_Y_MIN;
 export const BAR_Y_MAX = AGGREGATION_INDEX_Y_MAX;
 export const BAR_SPAN = AGGREGATION_SPAN;
 
-const AGGREGATION_THRESHOLD = 1e2;
-const PRECISION = 1;
+const AGGREGATION_THRESHOLD = 1e3;
+const PRECISION = 5;
 
 function getIndices(maxRange: number, indexData: Int32Array): number[] {
     return Array.from({ length: maxRange }, (_, index) => {

@@ -123,7 +123,8 @@ exports[`DataModel empty data set processing should generated the expected resul
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;
 
@@ -420,7 +421,8 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;
 
@@ -736,7 +738,8 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;
 
@@ -1031,7 +1034,8 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;
 
@@ -1381,7 +1385,8 @@ exports[`DataModel grouped processing - grouped example should generated the exp
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;
 
@@ -2241,7 +2246,8 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;
 
@@ -2711,7 +2717,8 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;
 
@@ -3219,7 +3226,8 @@ exports[`DataModel grouped processing - stacked example should generated the exp
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;
 
@@ -3727,7 +3735,8 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;
 
@@ -4193,7 +4202,8 @@ exports[`DataModel grouped processing - stacked with accumulation example should
   "time": Any<Number>,
   "type": "grouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;
 
@@ -4739,7 +4749,8 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;
 
@@ -5043,7 +5054,8 @@ exports[`DataModel missing and invalid data processing should generated the expe
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;
 
@@ -5162,7 +5174,8 @@ exports[`DataModel repeated property processing should generated the expected re
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;
 
@@ -5327,7 +5340,8 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;
 
@@ -5847,6 +5861,7 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
   "time": Any<Number>,
   "type": "ungrouped",
   Symbol(domain-ranges): Map {},
-  Symbol(sort-orders): Map {},
+  Symbol(key-sort-orders): Map {},
+  Symbol(column-sort-orders): Map {},
 }
 `;

@@ -96,7 +96,4 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
 
     @Property
     sparklineMode: boolean = false;
-
-    @Property
-    fastDataProcessing: boolean = false;
 }

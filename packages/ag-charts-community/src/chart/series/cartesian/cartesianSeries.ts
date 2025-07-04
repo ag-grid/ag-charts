@@ -770,11 +770,11 @@ export abstract class CartesianSeries<
         visibleRange: [any, any],
         indices?: number[],
         sortOrderParams?: { sortOrder: 1 | -1 }
-    ) {
+    ): [number, number] {
         let sortOrder: 1 | -1;
         if (sortOrderParams == null) {
             const { processedData, dataModel } = this;
-            sortOrder = dataModel!.getSortOrder(this, axisKey, processedData!) ?? 1;
+            sortOrder = dataModel!.getColumnSortOrder(this, axisKey, processedData!) ?? 1;
         } else {
             sortOrder = sortOrderParams.sortOrder;
         }
@@ -782,10 +782,17 @@ export abstract class CartesianSeries<
         const xValues = this.keysOrValues(axisKey);
         // @todo(AG-7083) - figure out how to determine this
         const pixelSize = 0;
-        return visibleRangeIndices(sortOrder, indices?.length ?? xValues.length, visibleRange, (topIndex) => {
-            const datumIndex = indices?.[topIndex] ?? topIndex;
-            return this.xCoordinateRange(xValues[datumIndex], pixelSize, datumIndex);
-        });
+        const [start, end] = visibleRangeIndices(
+            sortOrder,
+            indices?.length ?? xValues.length,
+            visibleRange,
+            (topIndex) => {
+                const datumIndex = indices?.[topIndex] ?? topIndex;
+                return this.xCoordinateRange(xValues[datumIndex], pixelSize, datumIndex);
+            }
+        );
+
+        return start < end ? [start, end] : [end, start];
     }
 
     protected domainForVisibleRange(
@@ -800,7 +807,7 @@ export abstract class CartesianSeries<
         const [r0, r1] = visibleRange;
         const crossAxisValues = this.keysOrValues(crossAxisKey);
 
-        const sortOrder = dataModel!.getSortOrder(this, crossAxisKey, processedData!);
+        const sortOrder = this.sortOrder(crossAxisKey);
         if (sortOrder != null) {
             const crossAxisRange = this.visibleRange(crossAxisKey, visibleRange, indices, { sortOrder });
             return dataModel!.getDomainBetweenRange(this, axisKeys, crossAxisRange, processedData!);
@@ -837,7 +844,7 @@ export abstract class CartesianSeries<
         }
 
         const crossAxisValues = this.keysOrValues(crossAxisKey);
-        const sortOrder = dataModel!.getSortOrder(this, crossAxisKey, processedData!);
+        const sortOrder = dataModel!.getColumnSortOrder(this, crossAxisKey, processedData!);
         if (sortOrder != null) {
             const crossRange = clippedRangeIndices(
                 sortOrder,

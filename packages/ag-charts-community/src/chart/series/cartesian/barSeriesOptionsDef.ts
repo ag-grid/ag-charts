@@ -79,6 +79,4 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
 // @ts-expect-error undocumented option
 barSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option
-barSeriesOptionsDef.fastDataProcessing = undocumented(boolean);
-// @ts-expect-error undocumented option
 barSeriesOptionsDef.focusPriority = undocumented(number);
