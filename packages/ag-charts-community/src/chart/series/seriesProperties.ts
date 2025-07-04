@@ -28,6 +28,7 @@ export enum HighlightState {
     Series,
     OtherSeries,
     OtherItem,
+    Unhighlight,
 }
 export class SeriesItemHighlightStyle extends BaseProperties {
     @Property

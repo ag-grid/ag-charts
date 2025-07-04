@@ -579,12 +579,16 @@ export abstract class Series<
         legendItemValues?: string[]
     ): HighlightState {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const previousHighlightedDatum = this.ctx.highlightManager?.getPreviousHighlight();
 
         if (isHighlight) {
             return HighlightState.Item;
         }
 
         if (highlightedDatum?.series == null) {
+            if (previousHighlightedDatum?.series) {
+                return HighlightState.Unhighlight;
+            }
             return HighlightState.None;
         }
 
@@ -602,19 +606,22 @@ export abstract class Series<
         return HighlightState.OtherSeries;
     }
 
-    protected hasChangesOnHighlight(isHighlight?: boolean, datumIndex?: TDatumIndex, legendItemValues?: string[]) {
-        const highlightState = this.getHighlightState(isHighlight, datumIndex, legendItemValues);
+    protected hasChangesOnHighlight(): boolean {
+        const highlightState = this.getHighlightState();
+        const { highlightedSeries, unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
 
         switch (highlightState) {
             case HighlightState.Series:
             case HighlightState.OtherItem:
-                return (
-                    !isEmptyObject(this.properties.highlight.highlightedSeries) ||
-                    !isEmptyObject(this.properties.highlight.unhighlightedItem)
-                );
+                return !isEmptyObject(highlightedSeries) || !isEmptyObject(unhighlightedItem);
             case HighlightState.OtherSeries:
-                return !isEmptyObject(this.properties.highlight.unhighlightedSeries);
-
+                return !isEmptyObject(unhighlightedSeries);
+            case HighlightState.Unhighlight:
+                return (
+                    !isEmptyObject(highlightedSeries) ||
+                    !isEmptyObject(unhighlightedItem) ||
+                    !isEmptyObject(unhighlightedSeries)
+                );
             case HighlightState.None:
             default:
                 return false;

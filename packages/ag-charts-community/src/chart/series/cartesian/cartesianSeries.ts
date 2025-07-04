@@ -525,7 +525,7 @@ export abstract class CartesianSeries<
             return;
         }
 
-        const hasChangesOnHighlight = this.strokewidthChange() || this.hasChangesOnHighlight(false);
+        const hasChangesOnHighlight = this.strokewidthChange() || this.hasChangesOnHighlight();
 
         if (nodeRefresh || hasChangesOnHighlight) {
             this.updateDatumNodes({ datumSelection, isHighlight: false });
