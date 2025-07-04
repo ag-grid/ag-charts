@@ -61,3 +61,7 @@ src/env.d.ts
 
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
+
+# Ignore local .md files.
+/*.md
+!README.md
