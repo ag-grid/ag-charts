@@ -1,8 +1,8 @@
 import { createSvgElement, isDefined } from 'ag-charts-core';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize, Ratio } from 'ag-charts-types';
 
-import { objectsEqual } from '../../module-support';
 import { Debug } from '../../util/debug';
+import { objectsEqual } from '../../util/object';
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
 import { SceneObjectChangeDetection } from '../changeDetectable';
