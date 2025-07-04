@@ -163,3 +163,7 @@ export const getHasExampleControls = ({ contents }: { contents: string }) => {
     const controlsRegex = /class\s*=\s*["'][^"']*\bexample-controls\b[^"']*["']/gm;
     return controlsRegex.test(contents);
 };
+
+export const isEmptyOrWhitespaceOnly = (content: string): boolean => {
+    return content.trim().length === 0;
+};
