@@ -197,7 +197,7 @@ export class SeriesAreaManager extends BaseManager {
         this.cleanup.register(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label2'),
-            seriesWidget.addListener('focus', () => this.swapChain.focus()),
+            seriesWidget.addListener('focus', () => this.swapChain.focus({ preventScroll: true })),
             seriesWidget.addListener('mousemove', (event) => this.onHover(event, seriesWidget)),
             seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
             seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
