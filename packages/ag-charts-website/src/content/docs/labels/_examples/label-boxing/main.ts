@@ -28,19 +28,19 @@ const options: AgCartesianChartOptions<{ month: string; value: number }> = {
             xKey: 'month',
             yKey: 'value',
             label: {
-                // styler: (params) => {
-                //     if (params.datum.month === 'Sep') {
-                //         return {
-                //             border: {
-                //                 stroke: 'red',
-                //                 strokeWidth: 2,
-                //             },
-                //             padding: 5,
-                //             shadow: true,
-                //             fontWeight: 'bold'
-                //         }
-                //     }
-                // },
+                itemStyler: (params) => {
+                    if (params.datum.month === 'Sep') {
+                        return {
+                            border: {
+                                stroke: 'red',
+                                strokeWidth: 6,
+                            },
+                            padding: 15,
+                            shadow: true,
+                            fontWeight: 'bold'
+                        }
+                    }
+                },
                 enabled: true,
                 cornerRadius: 8,
                 // fill: 'rgba(252, 255, 197)',
@@ -56,8 +56,8 @@ const options: AgCartesianChartOptions<{ month: string; value: number }> = {
                 fillOpacity: 0.7,
                 padding: 10,
                 border: {
-                    stroke: 'red',
-                    strokeWidth: 5,
+                    stroke: '#AAA',
+                    strokeWidth: 3,
                     strokeOpacity: 0.2,
                 },
                 // yOffset: -6,
