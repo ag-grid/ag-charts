@@ -213,20 +213,36 @@ export class Text<D = any> extends Shape<D> {
         ctx.textBaseline = textBaseline;
 
         if (boxFill != null || boxStroke != null) {
-            const boxBBox = this.getBBox(true).grow(boxPadding);
+            const { x, y, width, height } = this.getBBox(true).grow(boxPadding);
+            const maxRadius = Math.min(width, height) / 2;
+            const radius = Math.min(boxCornerRadius ?? 0, maxRadius);
+
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.arcTo(x + width, y, x + width, y + radius, radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+            ctx.lineTo(x + radius, y + height);
+            ctx.arcTo(x, y + height, x, y + height - radius, radius);
+            ctx.lineTo(x, y + radius);
+            ctx.arcTo(x, y, x + radius, y, radius);
+            ctx.closePath();
+
             if (boxFill) {
                 ctx.fillStyle = boxFill as string; // TODO: gradients, images and etc..
                 ctx.globalAlpha = boxFillOpacity;
-                ctx.fillRect(boxBBox.x, boxBBox.y, boxBBox.width, boxBBox.height);
+                ctx.fill();
             }
+
             if (boxStroke) {
                 ctx.strokeStyle = boxStroke;
                 ctx.lineWidth = boxStrokeWidth;
                 ctx.globalAlpha = boxStrokeOpacity;
-                ctx.strokeRect(boxBBox.x, boxBBox.y, boxBBox.width, boxBBox.height);
+                ctx.stroke();
             }
+
             ctx.globalAlpha = globalAlpha;
-            boxCornerRadius satisfies any; // TODO: cornerRadius
         }
 
         if (fill) {
