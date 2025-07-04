@@ -81,10 +81,6 @@
     "benchmark": {
       "dependsOn": [
         "build",
-        "ag-charts-website-benchmarks_axes-1M-time_main.ts:generate-example",
-        "ag-charts-website-benchmarks_axes-1M-unit-time_main.ts:generate-example",
-        "ag-charts-website-benchmarks_axes-1M-ordinal-time_main.ts:generate-example",
-        "ag-charts-website-benchmarks_axes-1M-number_main.ts:generate-example",
         "ag-charts-website-benchmarks_simple-sparkline_main.ts:generate-example",
         "ag-charts-website-benchmarks_simple-chart_main.ts:generate-example",
         "ag-charts-website-benchmarks_integrated-large-scale_main.ts:generate-example",

@@ -50,11 +50,10 @@ type OperationResolver = (
     values: Array<VertexInterface>
 ) => unknown;
 
-export function getOperation(value: unknown) {
+export function getOperation(value: unknown, keys?: Array<string>) {
     if (value == null || typeof value !== 'object' || Array.isArray(value)) return;
 
-    // Get the first key more efficiently than Object.keys()
-    const keys = Object.getOwnPropertyNames(value);
+    keys ??= Object.keys(value);
     if (keys.length === 0) return;
 
     const operation = keys[0] as Operation;
@@ -376,8 +375,11 @@ function ifOperation(graph: OptionsGraphInterface, vertex: VertexInterface, valu
     const valueVertex = condition ? thenVertex : elseVertex;
 
     // Attach neighbours from the chosen conditional branch onto the vertex
-    for (const neighbour of graph.neighboursWithEdgeValue(valueVertex, PATH_EDGE)) {
-        graph.addEdge(vertex, neighbour, PATH_EDGE);
+    const neighbours = graph.neighboursWithEdgeValue(valueVertex, PATH_EDGE);
+    if (neighbours) {
+        for (const neighbour of neighbours) {
+            graph.addEdge(vertex, neighbour, PATH_EDGE);
+        }
     }
 
     return graph.resolveVertexValue(vertex, valueVertex);
@@ -425,6 +427,7 @@ function switchOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
 
 enum LocationOperation {
     IsUserOption = '$isUserOption',
+    IsThemeOverride = '$isThemeOverride',
     MapPalette = '$mapPalette',
     Palette = '$palette',
     Path = '$path',
@@ -433,10 +436,8 @@ enum LocationOperation {
 }
 
 const locationOperations: Record<LocationOperation, OperationFns> = {
-    $isUserOption: {
-        dependencies: pathOperationDependenciesFactory,
-        resolve: isUserOptionOperation,
-    },
+    $isUserOption: isUserOptionOperation,
+    $isThemeOverride: isThemeOverrideOperation,
     $palette: paletteOperation,
     $mapPalette: mapPaletteOperation,
     $path: {
@@ -454,18 +455,38 @@ function isUserOptionOperation(graph: OptionsGraphInterface, vertex: VertexInter
     const [relativePathVertex, thenVertex, elseVertex] = values;
 
     const relativePath = graph.resolveVertexValue(vertex, relativePathVertex);
-
     if (!isString(relativePath)) {
-        throw new Error(`\`$path\` json operation failed on [${String(relativePath)}], expecting a string.`);
+        throw new Error(`\`$isUserOption\` json operation failed on [${String(relativePath)}], expecting a string.`);
     }
 
     const pathArray = graph.getPathArray(vertex);
-
     const path = resolvePath(pathArray, relativePath);
     if (path === UNRESOLVABLE_PATH) return;
 
-    const resolvedVertex = graph.findVertexAtPath(path);
-    if (resolvedVertex && graph.findNeighbour(resolvedVertex, USER_OPTIONS_EDGE)) {
+    if (graph.hasUserOption(path)) {
+        return graph.resolveVertexValue(vertex, thenVertex);
+    }
+
+    return graph.resolveVertexValue(vertex, elseVertex);
+}
+
+function isThemeOverrideOperation(
+    graph: OptionsGraphInterface,
+    vertex: VertexInterface,
+    values: Array<VertexInterface>
+) {
+    const [relativePathVertex, thenVertex, elseVertex] = values;
+
+    const relativePath = graph.resolveVertexValue(vertex, relativePathVertex);
+    if (!isString(relativePath)) {
+        throw new Error(`\`$isThemeOverride\` json operation failed on [${String(relativePath)}], expecting a string.`);
+    }
+
+    const pathArray = graph.getPathArray(vertex);
+    const path = resolvePath(pathArray, relativePath);
+    if (path === UNRESOLVABLE_PATH) return;
+
+    if (graph.hasThemeOverride(path)) {
         return graph.resolveVertexValue(vertex, thenVertex);
     }
 
@@ -690,7 +711,7 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         ? (graph.resolveVertexValue(vertex, overridesPathVertex2) as Array<string>)
         : undefined;
 
-    if (children.length === 0 && defaultValue != null) {
+    if ((!children || children.length === 0) && defaultValue != null) {
         if (getOperation(defaultValue)) {
             const resolvedDefaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
             if (isPlainObject(resolvedDefaultValue)) {
@@ -701,8 +722,11 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         }
     }
 
+    if (!children) return RESOLVED_TO_BRANCH;
+
     for (const child of children) {
-        if (graph.neighboursWithEdgeValue(child, PATH_EDGE).length === 0) {
+        const childNeighbours = graph.neighboursWithEdgeValue(child, PATH_EDGE);
+        if (!childNeighbours || childNeighbours.length === 0) {
             // Add a stub if we are applying to a child object with no keys, e.g. `gridLine: { styles: [{}] }`
             const stubVertex = graph.addVertex({});
             graph.addEdge(child, stubVertex, DEFAULTS_EDGE);
@@ -726,6 +750,8 @@ function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     const children = graph.neighboursWithEdgeValue(vertex, PATH_EDGE);
     const ignorePathsValue = ignorePathsVertex ? graph.getVertexValue(ignorePathsVertex) : [];
     const ignorePaths = Array.isArray(ignorePathsValue) ? new Set(ignorePathsValue) : new Set();
+
+    if (!children) return RESOLVED_TO_BRANCH;
 
     for (const child of children) {
         const variables = graph.graftAndResolveOrphan(child, variablesVertex) as PlainObject;
@@ -764,21 +790,23 @@ function findFirstSiblingNotOperationOperation(
 
     const siblings = graph.neighboursWithEdgeValue(parentVertex, PATH_EDGE);
 
-    for (let index = 0; index < siblings.length; index++) {
-        if (`${index}` === pathArray[indexIndex]) continue;
+    if (siblings) {
+        for (let index = 0; index < siblings.length; index++) {
+            if (`${index}` === pathArray[indexIndex]) continue;
 
-        const siblingChildPathArray = parentPathArray.concat([`${index}`, ...pathArray.slice(indexIndex + 1)]);
-        const siblingChildVertex = graph.findVertexAtPath(siblingChildPathArray);
-        if (!siblingChildVertex) continue;
+            const siblingChildPathArray = parentPathArray.concat([`${index}`, ...pathArray.slice(indexIndex + 1)]);
+            const siblingChildVertex = graph.findVertexAtPath(siblingChildPathArray);
+            if (!siblingChildVertex) continue;
 
-        const siblingChildUserOptionsValue = graph.findNeighbourValue(siblingChildVertex, USER_OPTIONS_EDGE);
-        if (siblingChildUserOptionsValue != null) {
-            return siblingChildUserOptionsValue;
-        }
+            const siblingChildUserOptionsValue = graph.findNeighbourValue(siblingChildVertex, USER_OPTIONS_EDGE);
+            if (siblingChildUserOptionsValue != null) {
+                return siblingChildUserOptionsValue;
+            }
 
-        const siblingChildOverridesValue = graph.findNeighbourValue(siblingChildVertex, OVERRIDES_EDGE);
-        if (siblingChildOverridesValue != null) {
-            return siblingChildOverridesValue;
+            const siblingChildOverridesValue = graph.findNeighbourValue(siblingChildVertex, OVERRIDES_EDGE);
+            if (siblingChildOverridesValue != null) {
+                return siblingChildOverridesValue;
+            }
         }
     }
 
@@ -908,3 +936,7 @@ export const operations: Record<Operation, OperationFns> = {
 };
 
 const operationTypes = new Set(Object.keys(operations));
+
+export function isOperation(value: unknown): value is Operation {
+    return operationTypes.has(value as Operation);
+}
