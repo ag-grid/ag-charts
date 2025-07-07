@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, AgChartsLabelStylerParams } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChartLabelStylerParams, AgCharts } from 'ag-charts-community';
 
 type DataType = { month: string; value: number };
 const options: AgCartesianChartOptions<DataType> = {
@@ -29,7 +29,7 @@ const options: AgCartesianChartOptions<DataType> = {
             xKey: 'month',
             yKey: 'value',
             label: {
-                itemStyler: (params: AgChartLabelStylerParams<DataType, never>) => {
+                itemStyler: (params: AgChartLabelStylerParams<DataType, unknown>) => {
                     if (params.datum.month === 'Sep') {
                         return {
                             border: {
