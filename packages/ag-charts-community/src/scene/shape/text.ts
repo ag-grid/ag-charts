@@ -1,14 +1,16 @@
 import { createSvgElement, isDefined } from 'ag-charts-core';
-import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
+import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize, Ratio } from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
+import { objectsEqual } from '../../util/object';
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
+import { SceneObjectChangeDetection } from '../changeDetectable';
 import type { RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { DebugSelectors } from '../sceneDebug';
 import { Rotatable, Translatable } from '../transformable';
-import { Shape } from './shape';
+import { Shape, type ShapeColor } from './shape';
 
 export interface TextSizeProperties {
     fontFamily?: FontFamily;
@@ -68,6 +70,27 @@ export class Text<D = any> extends Shape<D> {
     // TextMetrics are used if lineHeight is not defined.
     @SceneChangeDetection()
     lineHeight?: number;
+
+    @SceneChangeDetection()
+    boxCornerRadius?: Ratio;
+
+    @SceneChangeDetection()
+    boxPadding?: PixelSize;
+
+    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (t: Text) => t.onFillChange() })
+    boxFill?: ShapeColor;
+
+    @SceneChangeDetection()
+    boxFillOpacity?: Opacity;
+
+    @SceneChangeDetection()
+    boxStroke?: CssColor;
+
+    @SceneChangeDetection()
+    boxStrokeWidth?: PixelSize;
+
+    @SceneChangeDetection()
+    boxStrokeOpacity?: Opacity;
 
     static computeBBox(
         lines: string | string[],
@@ -154,7 +177,18 @@ export class Text<D = any> extends Shape<D> {
             return super.render(renderCtx);
         }
 
-        const { fill, stroke, strokeWidth } = this;
+        const {
+            fill,
+            stroke,
+            strokeWidth,
+            boxFill,
+            boxFillOpacity = 1,
+            boxCornerRadius,
+            boxStroke,
+            boxStrokeWidth = 1,
+            boxStrokeOpacity = 1,
+            boxPadding = 0,
+        } = this;
         const { globalAlpha } = ctx;
         const { pixelRatio } = this.layerManager.canvas;
 
@@ -177,6 +211,39 @@ export class Text<D = any> extends Shape<D> {
 
         ctx.textAlign = textAlign;
         ctx.textBaseline = textBaseline;
+
+        if (boxFill != null || boxStroke != null) {
+            const { x, y, width, height } = this.getBBox(true).grow(boxPadding);
+            const maxRadius = Math.min(width, height) / 2;
+            const radius = Math.min(boxCornerRadius ?? 0, maxRadius);
+
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.arcTo(x + width, y, x + width, y + radius, radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+            ctx.lineTo(x + radius, y + height);
+            ctx.arcTo(x, y + height, x, y + height - radius, radius);
+            ctx.lineTo(x, y + radius);
+            ctx.arcTo(x, y, x + radius, y, radius);
+            ctx.closePath();
+
+            if (boxFill) {
+                ctx.fillStyle = boxFill as string; // TODO: gradients, images and etc..
+                ctx.globalAlpha = boxFillOpacity;
+                ctx.fill();
+            }
+
+            if (boxStroke) {
+                ctx.strokeStyle = boxStroke;
+                ctx.lineWidth = boxStrokeWidth;
+                ctx.globalAlpha = boxStrokeOpacity;
+                ctx.stroke();
+            }
+
+            ctx.globalAlpha = globalAlpha;
+        }
 
         if (fill) {
             this.applyFillAndAlpha(ctx);

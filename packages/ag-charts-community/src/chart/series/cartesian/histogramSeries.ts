@@ -461,7 +461,18 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, HistogramNodeDatum> }) {
-        const { fontStyle, fontWeight, fontFamily, fontSize, color } = this.properties.label;
+        const {
+            fontStyle,
+            fontWeight,
+            fontSize,
+            fontFamily,
+            color,
+            fill: boxFill,
+            fillOpacity: boxFillOpacity,
+            cornerRadius: boxCornerRadius,
+            padding: boxPadding,
+            border: { stroke: boxStroke, strokeWidth: boxStrokeWidth, strokeOpacity: boxStrokeOpacity },
+        } = this.properties.label;
         const labelEnabled = this.isLabelEnabled();
 
         opts.labelSelection.each((text, datum) => {
@@ -476,6 +487,13 @@ export class HistogramSeries extends CartesianSeries<
                 text.fill = color;
                 text.visible = true;
                 text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
+                text.boxCornerRadius = boxCornerRadius;
+                text.boxPadding = boxPadding;
+                text.boxFill = boxFill;
+                text.boxFillOpacity = boxFillOpacity;
+                text.boxStroke = boxStroke;
+                text.boxStrokeOpacity = boxStrokeOpacity;
+                text.boxStrokeWidth = boxStrokeWidth;
             } else {
                 text.visible = false;
             }

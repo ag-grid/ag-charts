@@ -19,9 +19,6 @@ import { AbstractBarSeriesProperties } from './abstractBarSeries';
 class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
     @Property
     placement: AgBarSeriesLabelPlacement = 'inside-center';
-
-    @Property
-    padding: number = 0;
 }
 
 export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeriesOptions> {

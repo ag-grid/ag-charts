@@ -154,6 +154,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Series Labels",
+                            "path": "labels"
+                        },
+                        {
+                            "type": "item",
                             "title": "Annotations",
                             "path": "annotations",
                             "isEnterprise": true

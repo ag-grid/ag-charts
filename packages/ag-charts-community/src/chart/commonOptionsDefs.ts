@@ -58,6 +58,7 @@ import {
     type AgTooltipRendererResult,
     type AgZoomButton,
     type FormatterPropertyType,
+    type LabelBoxOptions,
     type ToolbarButton,
 } from 'ag-charts-types';
 
@@ -544,10 +545,18 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     ...lineDashOptionsDef,
 };
 
+export const labelBoxOptionsDef: OptionsDefs<LabelBoxOptions> = {
+    border: { ...strokeOptionsDef },
+    cornerRadius: number,
+    padding: number,
+    ...fillOptionsDef,
+};
+
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
     enabled: boolean,
     formatter: callback,
     format: numberFormatValidator,
+    ...labelBoxOptionsDef,
     ...fontOptionsDef,
 };
 

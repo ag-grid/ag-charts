@@ -140,6 +140,18 @@ export interface StrokeOptions {
 }
 
 /**
+ * Represents options for the boxing style on labels.
+ */
+export interface LabelBoxOptions extends FillOptions {
+    /** Stroke options for the box border. */
+    border?: StrokeOptions;
+    /** Apply rounded corners to the label box. */
+    cornerRadius?: PixelSize;
+    /** Distance between the label text and the border. */
+    padding?: PixelSize;
+}
+
+/**
  * Represents options for defining dashed strokes in a chart.
  */
 export interface LineDashOptions {

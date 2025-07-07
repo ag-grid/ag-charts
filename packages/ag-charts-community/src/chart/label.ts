@@ -27,6 +27,17 @@ interface FormatterCache {
     formatter: ((value: any, fractionDigits?: number) => string) | undefined;
 }
 
+class LabelBorder {
+    @Property
+    stroke?: string;
+
+    @Property
+    strokeWidth?: number;
+
+    @Property
+    strokeOpacity?: number;
+}
+
 export class Label<TParams = never, TDatum = any>
     extends BaseProperties
     implements AgChartLabelOptions<TDatum, RequireOptional<TParams>>
@@ -35,7 +46,19 @@ export class Label<TParams = never, TDatum = any>
     enabled = true;
 
     @Property
+    border = new LabelBorder();
+
+    @Property
     color?: string;
+
+    @Property
+    cornerRadius?: number;
+
+    @Property
+    fill?: string;
+
+    @Property
+    fillOpacity?: number;
 
     @Property
     fontStyle?: FontStyle;
@@ -54,6 +77,9 @@ export class Label<TParams = never, TDatum = any>
 
     @Property
     format?: string;
+
+    @Property
+    padding?: number;
 
     private _cachedFormatter: FormatterCache | undefined = undefined;
     formatValue(

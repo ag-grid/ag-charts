@@ -26,7 +26,7 @@ class RangeBarSeriesLabel extends Label<AgRangeBarSeriesLabelFormatterParams> {
     placement: AgRangeBarSeriesLabelPlacement = 'inside';
 
     @Property
-    padding: number = 6;
+    override padding: number = 6;
 }
 
 export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSeriesOptions> {

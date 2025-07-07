@@ -584,7 +584,18 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         labelProperties: _ModuleSupport.Label<AgPyramidSeriesLabelFormatterParams>;
     }) {
         const { labelSelection, labelProperties } = opts;
-        const { color: fill, fontSize, fontStyle, fontWeight, fontFamily } = labelProperties;
+        const {
+            color: fill,
+            fontSize,
+            fontStyle,
+            fontWeight,
+            fontFamily,
+            fill: boxFill,
+            fillOpacity: boxFillOpacity,
+            cornerRadius: boxCornerRadius,
+            padding: boxPadding,
+            border: { stroke: boxStroke, strokeWidth: boxStrokeWidth, strokeOpacity: boxStrokeOpacity },
+        } = labelProperties;
 
         labelSelection.each((label, { visible, x, y, text, textAlign, textBaseline }, datumIndex) => {
             label.visible = visible;
@@ -592,13 +603,20 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             label.y = y;
             label.text = text;
             label.fill = fill;
+            label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
             label.fontStyle = fontStyle;
             label.fontWeight = fontWeight;
             label.fontSize = fontSize;
             label.fontFamily = fontFamily;
             label.textAlign = textAlign;
             label.textBaseline = textBaseline;
-            label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
+            label.boxCornerRadius = boxCornerRadius;
+            label.boxPadding = boxPadding;
+            label.boxFill = boxFill;
+            label.boxFillOpacity = boxFillOpacity;
+            label.boxStroke = boxStroke;
+            label.boxStrokeOpacity = boxStrokeOpacity;
+            label.boxStrokeWidth = boxStrokeWidth;
         });
     }
 
