@@ -20,7 +20,7 @@ import {
     strokeOptionsDef,
     undocumented,
 } from 'ag-charts-core';
-import type { AgPieSeriesOptions, AgPieSeriesStyle, AgPieSeriesThemeableOptions } from 'ag-charts-types';
+import type { AgChartLabelStyleOptions, AgPieSeriesOptions, AgPieSeriesStyle, AgPieSeriesThemeableOptions } from 'ag-charts-types';
 
 import { without } from '../../../util/object';
 import {
@@ -63,6 +63,11 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         avoidCollisions: boolean,
         formatter: callback,
         format: string,
+        itemStyler: callbackDefs<AgChartLabelStyleOptions>({
+            enabled: boolean,
+            ...labelBoxOptionsDef,
+            ...fontOptionsDef,
+        }),
         ...labelBoxOptionsDef,
         ...fontOptionsDef,
     },
@@ -72,6 +77,11 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         positionRatio: ratio,
         formatter: callback,
         format: string,
+        itemStyler: callbackDefs<AgChartLabelStyleOptions>({
+            enabled: boolean,
+            ...labelBoxOptionsDef,
+            ...fontOptionsDef,
+        }),
         ...labelBoxOptionsDef,
         ...fontOptionsDef,
     },

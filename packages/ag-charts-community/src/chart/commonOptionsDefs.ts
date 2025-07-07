@@ -43,6 +43,7 @@ import {
     type AgChartAutoSizedBaseLabelOptions,
     type AgChartCaptionOptions,
     type AgChartLabelOptions,
+    type AgChartLabelStyleOptions,
     type AgChartOverlayOptions,
     type AgContextMenuItem,
     type AgContextMenuItemLiteral,
@@ -561,6 +562,11 @@ export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> 
     enabled: boolean,
     formatter: callback,
     format: numberFormatValidator,
+    itemStyler: callbackDefs<AgChartLabelStyleOptions>({
+        enabled: boolean,
+        ...labelBoxOptionsDef,
+        ...fontOptionsDef,
+    }),
     ...labelBoxOptionsDef,
     ...fontOptionsDef,
 };
