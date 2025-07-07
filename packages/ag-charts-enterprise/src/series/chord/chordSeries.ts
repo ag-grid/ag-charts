@@ -340,18 +340,7 @@ export class ChordSeries extends FlowProportionSeries<
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, ChordNodeLabelDatum>;
     }) {
         const { labelSelection } = opts;
-        const {
-            fontStyle,
-            fontWeight,
-            fontSize,
-            fontFamily,
-            color: fill,
-            fill: boxFill,
-            fillOpacity: boxFillOpacity,
-            cornerRadius: boxCornerRadius,
-            padding: boxPadding,
-            border: { stroke: boxStroke, strokeWidth: boxStrokeWidth, strokeOpacity: boxStrokeOpacity },
-        } = this.properties.label;
+        const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = this.properties.label;
 
         labelSelection.each((label, { text, centerX, centerY, radius, angle }) => {
             label.visible = true;
@@ -371,13 +360,7 @@ export class ChordSeries extends FlowProportionSeries<
                 label.textAlign = 'right';
                 label.rotation = angle - Math.PI;
             }
-            label.boxCornerRadius = boxCornerRadius;
-            label.boxPadding = boxPadding;
-            label.boxFill = boxFill;
-            label.boxFillOpacity = boxFillOpacity;
-            label.boxStroke = boxStroke;
-            label.boxStrokeOpacity = boxStrokeOpacity;
-            label.boxStrokeWidth = boxStrokeWidth;
+            label.setBoxing(this.properties.label);
         });
     }
 

@@ -35,18 +35,7 @@ type LabelProps = Pick<
 export function updateLabelNode(textNode: Text, label: LabelProps, labelDatum?: LabelDatum) {
     if (label.enabled && labelDatum) {
         const { x, y, text, textAlign, textBaseline } = labelDatum;
-        const {
-            fontStyle,
-            fontWeight,
-            fontSize,
-            fontFamily,
-            color: fill,
-            fill: boxFill,
-            fillOpacity: boxFillOpacity,
-            cornerRadius: boxCornerRadius,
-            padding: boxPadding,
-            border: { stroke: boxStroke, strokeWidth: boxStrokeWidth, strokeOpacity: boxStrokeOpacity },
-        } = label;
+        const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = label;
         textNode.setProperties({
             visible: true,
             x,
@@ -59,14 +48,8 @@ export function updateLabelNode(textNode: Text, label: LabelProps, labelDatum?: 
             fontFamily,
             textAlign,
             textBaseline,
-            boxCornerRadius,
-            boxPadding,
-            boxFill,
-            boxFillOpacity,
-            boxStroke,
-            boxStrokeOpacity,
-            boxStrokeWidth,
         });
+        textNode.setBoxing(label);
     } else {
         textNode.visible = false;
     }

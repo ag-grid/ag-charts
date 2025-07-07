@@ -495,18 +495,7 @@ export class MapLineSeries extends TopologySeries<
         >;
     }) {
         const { labelSelection } = opts;
-        const {
-            color: fill,
-            fontStyle,
-            fontWeight,
-            fontSize,
-            fontFamily,
-            fill: boxFill,
-            fillOpacity: boxFillOpacity,
-            cornerRadius: boxCornerRadius,
-            padding: boxPadding,
-            border: { stroke: boxStroke, strokeWidth: boxStrokeWidth, strokeOpacity: boxStrokeOpacity },
-        } = this.properties.label;
+        const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
 
         labelSelection.each((label, { x, y, width, height, text }, datumIndex) => {
             label.visible = true;
@@ -521,13 +510,7 @@ export class MapLineSeries extends TopologySeries<
             label.textAlign = 'center';
             label.textBaseline = 'middle';
             label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
-            label.boxCornerRadius = boxCornerRadius;
-            label.boxPadding = boxPadding;
-            label.boxFill = boxFill;
-            label.boxFillOpacity = boxFillOpacity;
-            label.boxStroke = boxStroke;
-            label.boxStrokeOpacity = boxStrokeOpacity;
-            label.boxStrokeWidth = boxStrokeWidth;
+            label.setBoxing(this.properties.label);
         });
     }
 

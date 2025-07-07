@@ -578,20 +578,7 @@ export class LineSeries extends CartesianSeries<
     }
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, LineNodeDatum> }) {
-        const {
-            enabled,
-            fontStyle,
-            fontWeight,
-            fontSize,
-            fontFamily,
-            color,
-            fill: boxFill,
-            fillOpacity: boxFillOpacity,
-            cornerRadius: boxCornerRadius,
-            padding: boxPadding,
-            border: { stroke: boxStroke, strokeWidth: boxStrokeWidth, strokeOpacity: boxStrokeOpacity },
-        } = this.properties.label;
-
+        const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = this.properties.label;
         opts.labelSelection.each((text, datum) => {
             if (enabled && datum?.labelText) {
                 text.fontStyle = fontStyle;
@@ -606,13 +593,7 @@ export class LineSeries extends CartesianSeries<
                 text.fill = color;
                 text.visible = true;
                 text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-                text.boxCornerRadius = boxCornerRadius;
-                text.boxPadding = boxPadding;
-                text.boxFill = boxFill;
-                text.boxFillOpacity = boxFillOpacity;
-                text.boxStroke = boxStroke;
-                text.boxStrokeOpacity = boxStrokeOpacity;
-                text.boxStrokeWidth = boxStrokeWidth;
+                text.setBoxing(this.properties.label);
             } else {
                 text.visible = false;
             }
