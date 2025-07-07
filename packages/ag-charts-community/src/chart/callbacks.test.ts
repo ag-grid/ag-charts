@@ -187,7 +187,7 @@ describe('AG-13024 API context', () => {
             seriesLabelFormatter.expect().nthCalledWithContext(11, seriesContext2);
         });
         test('axisLabelFormatter', () => {
-            axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(axisContext);
+            axisLabelFormatter.expect().toHaveBeenCalledTimes(8).withContext(axisContext);
         });
         test('tooltipRenderer', async () => {
             tooltipRenderer.expect().toHaveBeenCalledTimes(0);
@@ -237,7 +237,7 @@ describe('AG-13024 API context', () => {
             seriesLabelFormatter.expect().nthCalledWithContext(9, seriesContext2);
             seriesLabelFormatter.expect().nthCalledWithContext(10, seriesContext2);
             seriesLabelFormatter.expect().nthCalledWithContext(11, seriesContext2);
-            axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(axisContext);
+            axisLabelFormatter.expect().toHaveBeenCalledTimes(8).withContext(axisContext);
             await oneTooltipCallback();
             tooltipRenderer.expect().toHaveBeenCalledTimes(3);
             tooltipRenderer.expect().nthCalledWithContext(0, seriesContext0);
@@ -250,7 +250,7 @@ describe('AG-13024 API context', () => {
             chart = await createChart(options);
             itemStyler.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
             seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
-            axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(rootContext);
+            axisLabelFormatter.expect().toHaveBeenCalledTimes(8).withContext(rootContext);
             await oneTooltipCallback();
             tooltipRenderer.expect().toHaveBeenCalledTimes(3).withContext(rootContext);
         });
@@ -269,7 +269,7 @@ describe('AG-13024 API context', () => {
                 chart = await createChart(options);
                 itemStyler.expect().toHaveBeenCalledTimes(12).withoutContext();
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withoutContext();
-                axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withoutContext();
+                axisLabelFormatter.expect().toHaveBeenCalledTimes(8).withoutContext();
                 await oneTooltipCallback();
                 tooltipRenderer.expect().toHaveBeenCalledTimes(3).withoutContext();
             });
@@ -281,7 +281,7 @@ describe('AG-13024 API context', () => {
                 chart = await createChart(options);
                 itemStyler.expect().toHaveBeenCalledTimes(12).withoutContext();
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withoutContext();
-                axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withoutContext();
+                axisLabelFormatter.expect().toHaveBeenCalledTimes(8).withoutContext();
                 await oneTooltipCallback();
                 tooltipRenderer.expect().toHaveBeenCalledTimes(3).withoutContext();
             });
@@ -293,7 +293,7 @@ describe('AG-13024 API context', () => {
                 chart = await createChart(options);
                 itemStyler.expect().toHaveBeenCalledTimes(12).withContext(null);
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(null);
-                axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(null);
+                axisLabelFormatter.expect().toHaveBeenCalledTimes(8).withContext(null);
                 await oneTooltipCallback();
                 tooltipRenderer.expect().toHaveBeenCalledTimes(3).withContext(null);
             });
@@ -310,7 +310,7 @@ describe('AG-13024 API context', () => {
                 chart = await createChart(options);
                 itemStyler.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
-                axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(rootContext);
+                axisLabelFormatter.expect().toHaveBeenCalledTimes(8).withContext(rootContext);
                 await oneTooltipCallback();
                 tooltipRenderer.expect().toHaveBeenCalledTimes(3).withContext(rootContext);
             });
@@ -322,7 +322,7 @@ describe('AG-13024 API context', () => {
                 chart = await createChart(options);
                 itemStyler.expect().toHaveBeenCalledTimes(12).withContext(null);
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(null);
-                axisLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(null);
+                axisLabelFormatter.expect().toHaveBeenCalledTimes(8).withContext(null);
                 await oneTooltipCallback();
                 tooltipRenderer.expect().toHaveBeenCalledTimes(3).withContext(null);
             });

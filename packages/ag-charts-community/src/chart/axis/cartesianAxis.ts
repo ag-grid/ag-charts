@@ -254,21 +254,13 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             regularFlipRotation,
             labelX,
             sideFlag,
+            sizeLimit: this.chartLayout?.sizeLimit,
             removeOverflowLabels,
             removeOverflowThreshold: this.chartLayout?.padding.right,
-            sizeLimit: this.chartLayout?.sizeLimit,
         });
 
         const { tickData } = tickGenerationResult;
-        const {
-            ticks,
-            tickDomain,
-            rawTicks,
-            rawTickCount,
-            fractionDigits,
-            timeInterval,
-            niceDomain = domain,
-        } = tickData;
+        const { ticks, tickDomain, rawTicks, rawTickCount, fractionDigits, timeInterval, niceDomain } = tickData;
 
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult));
 
@@ -530,7 +522,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         }
 
         const { formatter = (p) => p.defaultValue } = title;
-        const text = this.callWithContext(formatter, this.getTitleFormatterParams(domain));
+        const text = this.cachedCallWithContext(formatter, this.getTitleFormatterParams(domain));
         caption.text = text;
 
         return {

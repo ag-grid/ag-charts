@@ -104,7 +104,9 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
 
         const out: D[] = [];
         for (let i = i0; i < i1; i += step) {
-            out.push(bands[i]);
+            if (i >= 0 && i < bands.length) {
+                out.push(bands[i]);
+            }
         }
 
         return { ticks: out, count: undefined };
