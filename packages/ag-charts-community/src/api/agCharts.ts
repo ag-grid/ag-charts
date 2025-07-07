@@ -68,6 +68,7 @@ export abstract class AgCharts {
         userOptions: O,
         optionsMetadata?: ChartInternalOptionMetadata
     ): AgChartInstance<O> {
+        const apiStartTime = Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined;
         return debug.group('AgCharts.create()', () => {
             // deepClone should clone EVERYTHING here, so we can detect mutations in development mode.
             userOptions = Debug.inDevelopmentMode(() => deepFreeze(deepClone(userOptions))) ?? userOptions;
@@ -76,6 +77,7 @@ export abstract class AgCharts {
                 userOptions,
                 licenseManager: this.licenseManager,
                 optionsMetadata,
+                apiStartTime,
             });
 
             if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
@@ -142,11 +144,11 @@ class AgChartsInternal {
                 data,
             });
         },
-        update(opts, chart) {
-            return AgChartsInternal.createOrUpdate({ userOptions: opts, proxy: chart as AgChartInstanceProxy });
+        update(opts, chart, specialOverrides, apiStartTime) {
+            return AgChartsInternal.createOrUpdate({ userOptions: opts, proxy: chart as AgChartInstanceProxy, specialOverrides, apiStartTime });
         },
-        updateUserDelta(chart, deltaOptions) {
-            return AgChartsInternal.updateUserDelta(chart as AgChartInstanceProxy, deltaOptions);
+        updateUserDelta(chart, deltaOptions, apiStartTime) {
+            return AgChartsInternal.updateUserDelta(chart as AgChartInstanceProxy, deltaOptions, apiStartTime);
         },
     };
 
@@ -160,6 +162,7 @@ class AgChartsInternal {
         optionsMetadata?: ChartInternalOptionMetadata;
         data?: DataServiceRestoredData;
         stripSymbols?: boolean;
+        apiStartTime?: number;
     }) {
         let { proxy } = opts;
         const {
@@ -171,6 +174,7 @@ class AgChartsInternal {
             deltaOptions,
             data,
             stripSymbols = false,
+            apiStartTime,
         } = opts;
         const styles = enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : [];
 
@@ -213,7 +217,8 @@ class AgChartsInternal {
             },
             optionsMetadata,
             deltaOptions,
-            stripSymbols
+            stripSymbols,
+            apiStartTime
         );
 
         if (
@@ -284,7 +289,7 @@ class AgChartsInternal {
         return modified;
     }
 
-    static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>) {
+    static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>, apiStartTime?: number) {
         deltaOptions = deepClone(deltaOptions, ChartOptions.OPTIONS_CLONE_OPTS_FAST);
 
         const stripSymbols = jsonWalk(
@@ -301,6 +306,7 @@ class AgChartsInternal {
             proxy,
             deltaOptions,
             stripSymbols,
+            apiStartTime,
         });
     }
 

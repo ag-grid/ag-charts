@@ -35,8 +35,8 @@ export interface FactoryApi {
         optionsMetadata?: ChartInternalOptionMetadata,
         data?: DataServiceRestoredData
     ): AgChartProxy;
-    update(opts: AgChartOptions, chart?: AgChartInstance, specialOverrides?: ChartSpecialOverrides): AgChartProxy;
-    updateUserDelta(chart: AgChartInstance, deltaOptions: DeepPartial<AgChartOptions>): void;
+    update(opts: AgChartOptions, chart?: AgChartInstance, specialOverrides?: ChartSpecialOverrides, apiStartTime?: number): AgChartProxy;
+    updateUserDelta(chart: AgChartInstance, deltaOptions: DeepPartial<AgChartOptions>, apiStartTime?: number): void;
 }
 
 /**
@@ -74,7 +74,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
         if (!this.chart) throw new Error(DESTROYED_ERROR);
 
         return debug.group('AgChartInstance.update()', async () => {
-            this.factoryApi.update(options, this);
+            const apiStartTime = Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined;
+            this.factoryApi.update(options, this, undefined, apiStartTime);
             await this.chart?.waitForUpdate();
         });
     }
@@ -83,7 +84,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
         if (!this.chart) throw new Error(DESTROYED_ERROR);
 
         return debug.group('AgChartInstance.updateDelta()', async () => {
-            this.factoryApi.updateUserDelta(this, deltaOptions);
+            const apiStartTime = Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined;
+            this.factoryApi.updateUserDelta(this, deltaOptions, apiStartTime);
             await this.chart?.waitForUpdate();
         });
     }
