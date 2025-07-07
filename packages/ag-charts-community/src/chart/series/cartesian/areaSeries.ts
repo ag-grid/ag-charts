@@ -749,7 +749,7 @@ export class AreaSeries extends CartesianSeries<
                 text.fill = color;
                 text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
                 text.visible = true;
-                text.setBoxing(this.properties);
+                text.setBoxing(this.properties.label);
             } else {
                 text.visible = false;
             }
