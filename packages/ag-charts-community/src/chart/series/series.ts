@@ -574,26 +574,21 @@ export abstract class Series<
     }
 
     protected getHighlightState(
+        datum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
         datumIndex?: TDatumIndex,
         legendItemValues?: string[]
     ): HighlightState {
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const previousHighlightedDatum = this.ctx.highlightManager?.getPreviousHighlight();
-
         if (isHighlight) {
             return HighlightState.Item;
         }
 
-        if (highlightedDatum?.series == null) {
-            if (previousHighlightedDatum?.series) {
-                return HighlightState.Unhighlight;
-            }
+        if (datum?.series == null) {
             return HighlightState.None;
         }
 
-        if (this.isSeriesHighlighted(highlightedDatum, legendItemValues)) {
-            const itemHighlighted = this.isItemHighlighted(highlightedDatum, datumIndex);
+        if (this.isSeriesHighlighted(datum, legendItemValues)) {
+            const itemHighlighted = this.isItemHighlighted(datum, datumIndex);
             if (itemHighlighted == null) {
                 return HighlightState.Series;
             }
@@ -607,25 +602,23 @@ export abstract class Series<
     }
 
     protected hasChangesOnHighlight(): boolean {
-        const highlightState = this.getHighlightState();
+        const currentHighlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const previousHighlightedDatum = this.ctx.highlightManager?.getPreviousHighlight();
+
+        const currentHighlightState = this.getHighlightState(currentHighlightedDatum);
+        const previousHighlightState = this.getHighlightState(previousHighlightedDatum);
+
+        if (currentHighlightState === previousHighlightState) {
+            return false;
+        }
+
         const { highlightedSeries, unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
 
-        switch (highlightState) {
-            case HighlightState.Series:
-            case HighlightState.OtherItem:
-                return !isEmptyObject(highlightedSeries) || !isEmptyObject(unhighlightedItem);
-            case HighlightState.OtherSeries:
-                return !isEmptyObject(unhighlightedSeries);
-            case HighlightState.Unhighlight:
-                return (
-                    !isEmptyObject(highlightedSeries) ||
-                    !isEmptyObject(unhighlightedItem) ||
-                    !isEmptyObject(unhighlightedSeries)
-                );
-            case HighlightState.None:
-            default:
-                return false;
-        }
+        return (
+            !isEmptyObject(highlightedSeries) ||
+            !isEmptyObject(unhighlightedItem) ||
+            !isEmptyObject(unhighlightedSeries)
+        );
     }
 
     protected isSeriesHighlighted(highlightedDatum?: HighlightNodeDatum, _legendItemValues?: string[]) {
@@ -639,7 +632,8 @@ export abstract class Series<
     }
 
     protected getHighlightStyle(isHighlight?: boolean, datumIndex?: TDatumIndex, legendItemValues?: string[]) {
-        const highlightState = this.getHighlightState(isHighlight, datumIndex, legendItemValues);
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
         return this.properties.highlight.getStyle(highlightState);
     }
 
