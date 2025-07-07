@@ -43,7 +43,16 @@ const options: AgCartesianChartOptions<{ month: string; value: number }> = {
                 // },
                 enabled: true,
                 cornerRadius: 8,
-                fill: 'rgba(252, 255, 197)',
+                // fill: 'rgba(252, 255, 197)',
+                fill: {
+                    type: 'gradient',
+                    colorStops: [
+                        { color: '#70C1FF', stop: 0.1 },
+                        { color: '#FFD86F', stop: 0.3 },
+                        { color: '#FF9A60', stop: 0.5 },
+                        { color: '#D16BA5' },
+                    ],
+                },
                 fillOpacity: 0.7,
                 padding: 10,
                 border: {
