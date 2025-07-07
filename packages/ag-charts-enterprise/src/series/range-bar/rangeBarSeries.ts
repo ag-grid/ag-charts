@@ -36,6 +36,7 @@ const {
     findMinMax,
     getShapeStyle,
     areScalingEqual,
+    processedDataIsAnimatable,
     AGGREGATION_SPAN,
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
@@ -178,6 +179,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
         if (processedData.type !== 'grouped') return;
+        if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;

@@ -17,6 +17,12 @@ import {
     datumKeys,
 } from './dataModel';
 
+const MAX_ANIMATABLE_NODES = 1_000;
+
+export function processedDataIsAnimatable(processedData: ProcessedData<any>) {
+    return processedData.input.count <= MAX_ANIMATABLE_NODES;
+}
+
 function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
 }
@@ -371,6 +377,8 @@ export function animationValidation(valueKeyIds?: string[]): ProcessorOutputProp
         type: 'processor',
         property: 'animationValidation',
         calculate(result: ProcessedData<any>) {
+            if (!processedDataIsAnimatable(result)) return;
+
             const { keys: keysDefs, values: valuesDef } = result.defs;
             const {
                 input: { count },
@@ -597,6 +605,8 @@ export function diff(
         type: 'processor',
         property: 'diff',
         calculate(processedData, previousValue): Record<string, ProcessedOutputDiff> | undefined {
+            if (!processedDataIsAnimatable(processedData)) return;
+
             const moved = new Map<string, number>();
             const added = new Map<string, number>();
             const updated = new Map<string, number>();

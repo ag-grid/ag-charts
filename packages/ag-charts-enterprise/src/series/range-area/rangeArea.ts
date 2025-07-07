@@ -47,6 +47,7 @@ const {
     getShapeStyle,
     getShapeFill,
     applyShapeStyle,
+    processedDataIsAnimatable,
 } = _ModuleSupport;
 
 class RangeAreaSeriesNodeEvent<
@@ -146,6 +147,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
+        if (processedDataIsAnimatable(processedData)) return;
+
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 

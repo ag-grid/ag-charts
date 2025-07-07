@@ -30,6 +30,7 @@ import {
     groupAccumulativeValueProperty,
     keyProperty,
     normaliseGroupTo,
+    processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
@@ -258,6 +259,7 @@ export class LineSeries extends CartesianSeries<
 
     private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>) {
         if (processedData.type === 'grouped') return;
+        if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;

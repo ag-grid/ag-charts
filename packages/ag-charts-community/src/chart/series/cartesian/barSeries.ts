@@ -28,6 +28,7 @@ import {
     groupAccumulativeValueProperty,
     keyProperty,
     normaliseGroupTo,
+    processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
@@ -284,6 +285,7 @@ export class BarSeries extends AbstractBarSeries<
 
     private aggregateData(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
         if (processedData?.type !== 'ungrouped') return;
+        if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
@@ -525,9 +527,7 @@ export class BarSeries extends AbstractBarSeries<
 
         const [r0, r1] = xScale.range;
         const range = Math.abs(r1 - r0);
-        const dataAggregationFilter = animationEnabled
-            ? undefined
-            : dataAggregationFilters?.find((f) => f.maxRange > range);
+        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         if (processedData.type === 'grouped') {
             const width = barWidth;

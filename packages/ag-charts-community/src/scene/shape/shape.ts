@@ -171,8 +171,8 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected renderFill(ctx: CanvasContext, path?: Path2D) {
-        const { fill, fillImage } = this;
-        if (fill && fill !== 'none') {
+        const { fill, fillOpacity, fillImage } = this;
+        if (fill != null && fill !== 'none' && fillOpacity > 0) {
             const { globalAlpha } = ctx;
             if (fillImage) {
                 // image pattern background fill
@@ -186,8 +186,8 @@ export abstract class Shape<D = any> extends Node<D> {
             this.applyShadow(ctx);
             this.executeFill(ctx, path);
             ctx.globalAlpha = globalAlpha;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0)';
         }
-        ctx.shadowColor = 'rgba(0, 0, 0, 0)';
     }
 
     protected executeFill(ctx: CanvasContext, path?: Path2D) {
@@ -253,8 +253,8 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected renderStroke(ctx: CanvasContext & { setLineDash(lineDash: readonly number[]): void }, path?: Path2D) {
-        const { stroke, strokeWidth, lineDash, lineDashOffset, lineCap, lineJoin, miterLimit } = this;
-        if (stroke && strokeWidth) {
+        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, lineCap, lineJoin, miterLimit } = this;
+        if (stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0) {
             const { globalAlpha } = ctx;
             this.applyStrokeAndAlpha(ctx);
 

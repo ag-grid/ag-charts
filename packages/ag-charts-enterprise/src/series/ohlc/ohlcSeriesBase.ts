@@ -33,6 +33,7 @@ const {
     visibleRangeIndices,
     BandScale,
     getShapeStyle,
+    processedDataIsAnimatable,
 } = _ModuleSupport;
 
 export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
@@ -152,6 +153,8 @@ export abstract class OhlcSeriesBase<
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.UngroupedData<any>
     ) {
+        if (processedDataIsAnimatable(processedData)) return;
+
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
