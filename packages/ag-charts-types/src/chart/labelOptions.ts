@@ -22,7 +22,7 @@ export interface AgChartLabelOptions<TDatum, TParams, TContext = ContextDefault>
     /** Format string used when rendering labels. */
     format?: string;
     /** Function used to style individual datum labels. */
-    itemStyler?: Styler<AgChartLabelStylerParams<TDatum, TContext>, AgChartLabelStyleOptions>;
+    itemStyler?: Styler<AgChartLabelStylerParams<TDatum, TContext> & TParams, AgChartLabelStyleOptions>;
 }
 
 export interface AgChartLabelFormatterParams<TDatum, TContext = ContextDefault>

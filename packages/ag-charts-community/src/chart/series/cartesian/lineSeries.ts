@@ -580,8 +580,10 @@ export class LineSeries extends CartesianSeries<
     }
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, LineNodeDatum> }) {
-        const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = this.properties.label;
+        const params = { xKey: this.properties.xKey, yKey: this.properties.yKey };
         opts.labelSelection.each((text, datum) => {
+            const style = this.getLabelStyles<AgLineSeriesLabelFormatterParams>(datum, params, this.properties.label);
+            const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && datum?.labelText) {
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
@@ -595,7 +597,7 @@ export class LineSeries extends CartesianSeries<
                 text.fill = color;
                 text.visible = true;
                 text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-                text.setBoxing(this.properties.label);
+                text.setBoxing(style);
             } else {
                 text.visible = false;
             }

@@ -20,7 +20,12 @@ import {
     strokeOptionsDef,
     undocumented,
 } from 'ag-charts-core';
-import type { AgChartLabelStyleOptions, AgPieSeriesOptions, AgPieSeriesStyle, AgPieSeriesThemeableOptions } from 'ag-charts-types';
+import type {
+    AgChartLabelStyleOptions,
+    AgPieSeriesOptions,
+    AgPieSeriesStyle,
+    AgPieSeriesThemeableOptions,
+} from 'ag-charts-types';
 
 import { without } from '../../../util/object';
 import {
