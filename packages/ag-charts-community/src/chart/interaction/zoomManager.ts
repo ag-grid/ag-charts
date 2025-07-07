@@ -547,7 +547,13 @@ export class ZoomManager extends BaseManager {
         }
 
         this.eventsHub.emit('zoom:change', { ...this.getZoom(), axes, callerId });
+        this.eventsHub.on('layout:complete', this.boundFireOnceChartEvent);
+    }
+
+    private readonly boundFireOnceChartEvent = this.fireOnceChartEvent.bind(this);
+    private fireOnceChartEvent() {
         this.fireChartEvent<AgZoomEvent>({ type: 'zoom', ...this.getMementoRanges() });
+        this.eventsHub.off('layout:complete', this.boundFireOnceChartEvent);
     }
 
     private getRangeDirection(ratio: ZoomState, direction: ChartAxisDirection): AgZoomRange | undefined {
