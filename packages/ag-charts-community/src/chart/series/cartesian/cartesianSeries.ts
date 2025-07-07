@@ -376,7 +376,8 @@ export abstract class CartesianSeries<
         return (
             'strokeWidth' in this.properties &&
             this.properties.strokeWidth != null &&
-            this.properties.strokeWidth > this.properties.highlight.highlightedItem?.strokeWidth
+            this.properties.strokeWidth >
+                (this.properties.highlight.highlightedItem?.strokeWidth ?? this.properties.strokeWidth)
         );
     }
 
