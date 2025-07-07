@@ -380,6 +380,13 @@ export class ChartTheme {
                         'horizontal',
                     ],
                 },
+                border: {
+                    stroke: { $ref: 'foregroundColor' },
+                    strokeOpacity: 1,
+                    strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+                },
+                cornerRadius: 0,
+                padding: 4,
                 spacing: 30,
                 listeners: {},
                 toggleSeries: true,
