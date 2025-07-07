@@ -44,9 +44,7 @@ export class WithBackgroundScene {
         background.checkPathDirty();
 
         const backgroundStyles = this.getBackgroundStyles?.(datum) ?? datum.background;
-        background.setProperties({
-            fill: backgroundStyles.fill,
-            fillOpacity: backgroundStyles.fillOpacity,
-        });
+        background.fill = backgroundStyles.fill;
+        background.fillOpacity = backgroundStyles.fillOpacity ?? 1;
     }
 }

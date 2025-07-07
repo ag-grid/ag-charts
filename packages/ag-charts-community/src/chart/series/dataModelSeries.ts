@@ -83,10 +83,11 @@ export abstract class DataModelSeries<
     }
 
     protected isProcessedDataAnimatable() {
-        const validationResults = this.processedData?.reduced?.animationValidation;
-        if (!validationResults) {
-            return true;
-        }
+        const { processedData } = this;
+        if (!processedData) return false;
+
+        const validationResults = processedData.reduced?.animationValidation;
+        if (!validationResults) return true;
 
         const { orderedKeys, uniqueKeys } = validationResults;
         return orderedKeys && uniqueKeys;

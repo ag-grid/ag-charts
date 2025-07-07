@@ -58,7 +58,11 @@ export class AxisLabelScene extends _ModuleSupport.Group {
 
         const { cornerRadius, fill, fillOpacity, stroke, strokeOpacity } = styles;
 
-        rect.setProperties({ cornerRadius, fill, fillOpacity, stroke, strokeOpacity });
+        rect.fill = fill;
+        rect.fillOpacity = fillOpacity ?? 1;
+        rect.stroke = stroke;
+        rect.strokeOpacity = strokeOpacity ?? 1;
+        rect.cornerRadius = cornerRadius ?? 0;
     }
 
     private updatePosition({ x, y, context, styles: { padding } }: UpdateOpts) {
