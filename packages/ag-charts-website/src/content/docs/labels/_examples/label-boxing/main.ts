@@ -37,8 +37,8 @@ const options: AgCartesianChartOptions<{ month: string; value: number }> = {
                             },
                             padding: 15,
                             shadow: true,
-                            fontWeight: 'bold'
-                        }
+                            fontWeight: 'bold',
+                        };
                     }
                 },
                 enabled: true,
