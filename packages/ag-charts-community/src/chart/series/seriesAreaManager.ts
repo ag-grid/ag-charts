@@ -255,7 +255,6 @@ export class SeriesAreaManager extends BaseManager {
         this.highlight.stashedHoverEvent ??= this.highlight.appliedHoverEvent;
         this.chart.ctx.tooltipManager.removeTooltip(this.id);
         this.focusIndicator?.clear();
-        this.clearHighlight();
     }
 
     private preSceneRender() {
