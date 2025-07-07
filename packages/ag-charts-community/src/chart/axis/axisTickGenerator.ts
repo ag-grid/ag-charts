@@ -30,6 +30,7 @@ import {
     intervalRange,
     intervalUnit,
 } from '../../util/time';
+import { lowestGranularityForInterval } from '../../util/timeFormatDefaults';
 import type { ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import {
@@ -766,7 +767,14 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     rawTicks = tickGeneration?.ticks ?? [];
                     rawTickCount = tickGeneration?.count;
                     if (TimeScale.is(scale) || DiscreteTimeScale.is(scale)) {
-                        timeInterval ??= tickParams.interval ?? tickGeneration?.timeInterval;
+                        const timeTickParams = tickParams as ScaleTickParams<
+                            AgTimeInterval | AgTimeIntervalUnit | number
+                        >;
+                        const paramsInterval =
+                            typeof timeTickParams.interval === 'number'
+                                ? lowestGranularityForInterval(timeTickParams.interval)
+                                : timeTickParams.interval;
+                        timeInterval ??= paramsInterval ?? tickGeneration?.timeInterval;
                     }
                 }
             }
