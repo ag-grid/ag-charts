@@ -438,6 +438,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         keepAspectRatio: boolean,
         anchorPointX: zoomAnchorPoint,
         anchorPointY: zoomAnchorPoint,
+        axisDraggingMode: union('pan', 'zoom'),
         axes: union('x', 'y', 'xy'),
         deceleration: or(union('off', 'short', 'long'), ratio),
         minVisibleItems: positiveNumber,

@@ -414,6 +414,38 @@ describe('Zoom', () => {
         });
     });
 
+    describe('axis panning', () => {
+        it('should pan the x-axis', async () => {
+            await prepareChart(
+                { axisDraggingMode: 'pan', enableAxisDragging: true, enablePanning: false },
+                { ratioX: { start: 0, end: 0.7 } }
+            );
+
+            const from = { x: cx, y: cy * 2 - 30 };
+            const to = { x: from.x - cx / 2, y: from.y };
+
+            await hoverAction(from.x, from.y)(chart);
+            await dragAction(from, to)(chart);
+
+            await compare();
+        });
+
+        it('should pan the y-axis', async () => {
+            await prepareChart(
+                { axisDraggingMode: 'pan', enableAxisDragging: true, enablePanning: false },
+                { ratioX: { start: 0, end: 0.7 }, ratioY: { start: 0.3, end: 1.0 } }
+            );
+
+            const from = { x: 30, y: cy };
+            const to = { x: from.x, y: from.y - cy / 2 };
+
+            await hoverAction(from.x, from.y)(chart);
+            await dragAction(from, to)(chart);
+
+            await compare();
+        });
+    });
+
     describe('flipped axes', () => {
         it('should zoom on the flipped axis', async () => {
             await prepareHorizontalBarChart({ axes: 'x' });

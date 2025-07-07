@@ -37,6 +37,10 @@ export function isZoomLess(zoom: DefinedZoomState, minRatioX: number, minRatioY:
     return isMinXZoom || isMinYZoom;
 }
 
+export function isMaxZoom(zoom: DefinedZoomState) {
+    return isZoomEqual(zoom, unitZoomState());
+}
+
 export function definedZoomState(zoom?: _ModuleSupport.AxisZoomState): DefinedZoomState {
     return {
         x: { min: zoom?.x?.min ?? UNIT.min, max: zoom?.x?.max ?? UNIT.max },
