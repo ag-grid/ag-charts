@@ -6,10 +6,6 @@ import { merge } from './object';
 export const Property = addFakeTransformToInstanceProperty;
 
 export class BaseProperties<T extends object = object> {
-    handleUnknownProperties(_unknownKeys: Set<string>, _properties: T) {
-        // override point for derived class.
-    }
-
     set(properties: T) {
         const { className = this.constructor.name } = this.constructor as { className?: string };
 
@@ -35,7 +31,7 @@ export class BaseProperties<T extends object = object> {
                     } else {
                         self[propertyKey].set(value);
                     }
-                } else if (isPlainObject(value)) {
+                } else if (propertyKey !== 'context' && isPlainObject(value)) {
                     self[propertyKey] = merge(value, self[propertyKey] ?? {});
                 } else {
                     self[propertyKey] = value;
@@ -43,7 +39,6 @@ export class BaseProperties<T extends object = object> {
                 keys.delete(propertyKey);
             }
         }
-        this.handleUnknownProperties(keys, properties);
         for (const unknownKey of keys) {
             Logger.warn(`unable to set [${unknownKey}] in ${className} - property is unknown`);
         }

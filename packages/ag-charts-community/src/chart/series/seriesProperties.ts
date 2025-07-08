@@ -306,13 +306,6 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
 
     abstract tooltip: SeriesTooltip<never>;
 
-    // user pass-through option: no validation-decorator required.
+    @Property
     context?: unknown;
-
-    override handleUnknownProperties(unknownKeys: Set<string>, properties: T) {
-        if ('context' in properties) {
-            this.context = properties.context;
-            unknownKeys.delete('context');
-        }
-    }
 }
