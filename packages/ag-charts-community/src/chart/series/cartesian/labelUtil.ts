@@ -40,22 +40,14 @@ export function updateLabelNode<TParams>(
     labelDatum: LabelDatum | undefined
 ) {
     if (label.enabled && labelDatum) {
-        const { x, y, text, textAlign, textBaseline } = labelDatum;
         const style = series.getLabelStyles<TParams>(labelDatum, params, label);
-        const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = style;
-        textNode.setProperties({
-            visible: true,
-            x,
-            y,
-            text,
-            fill,
-            fontStyle,
-            fontWeight,
-            fontSize,
-            fontFamily,
-            textAlign,
-            textBaseline,
-        });
+        textNode.visible = true;
+        textNode.x = labelDatum.x;
+        textNode.y = labelDatum.y;
+        textNode.text = labelDatum.text;
+        textNode.fill = style.color;
+        textNode.setAlign(labelDatum);
+        textNode.setFont(style);
         textNode.setBoxing(style);
     } else {
         textNode.visible = false;
