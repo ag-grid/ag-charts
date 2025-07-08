@@ -392,6 +392,30 @@ export class AreaSeries extends CartesianSeries<
                 ? dataModel.resolveColumnById<number[]>(this, 'yValueStack', processedData)
                 : undefined;
 
+        const labelData: LabelSelectionDatum[] = [];
+        const markerData: MarkerSelectionDatum[] = [];
+        const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
+
+        let crossFiltering = false;
+        const { dataSources } = processedData;
+        const rawData = dataSources.get(this.id) ?? [];
+
+        const [r0, r1] = xScale.range;
+        const range = Math.abs(r1 - r0);
+        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
+
+        let startIndex = 0;
+        let endIndex = 0;
+        const indices = dataAggregationFilter?.indices;
+        [startIndex, endIndex] = this.visibleRange('xValue', xAxis.range, indices);
+        startIndex = Math.max(startIndex - 1, 0);
+        endIndex = Math.min(endIndex + 1, indices?.length ?? xValues.length);
+        // @todo(AG-13575) Remove this if block
+        if (processedData.input.count < 1e3) {
+            startIndex = 0;
+            endIndex = processedData.input.count;
+        }
+
         const createMarkerCoordinate = (xDatum: any, yEnd: number, rawYDatum: any): SizedPoint => {
             let currY;
 
@@ -410,18 +434,6 @@ export class AreaSeries extends CartesianSeries<
                 size: marker.size,
             };
         };
-
-        const labelData: LabelSelectionDatum[] = [];
-        const markerData: MarkerSelectionDatum[] = [];
-        const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
-
-        let crossFiltering = false;
-        const { dataSources } = processedData;
-        const rawData = dataSources.get(this.id) ?? [];
-
-        const [r0, r1] = xScale.range;
-        const range = Math.abs(r1 - r0);
-        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         const handleDatum = (datumIndex: number) => {
             const xDatum = xValues[datumIndex];
@@ -490,12 +502,9 @@ export class AreaSeries extends CartesianSeries<
             for (const { datumIndex } of dataModel.forEachGroupDatum(this, processedData)) {
                 handleDatum(datumIndex);
             }
-        } else if (dataAggregationFilter == null) {
-            for (let datumIndex = 0; datumIndex < rawData.length; datumIndex += 1) {
-                handleDatum(datumIndex);
-            }
         } else {
-            for (const datumIndex of dataAggregationFilter.indices) {
+            for (let i = startIndex; i < endIndex; i += 1) {
+                const datumIndex = indices?.[i] ?? i;
                 handleDatum(datumIndex);
             }
         }
@@ -604,20 +613,12 @@ export class AreaSeries extends CartesianSeries<
                 } of dataModel.forEachGroupDatumTuple(this, processedData)) {
                     handleSeriesPoint(pIdx, datumIndex, nIdx);
                 }
-            } else if (dataAggregationFilter == null) {
-                for (let datumIndex = 0; datumIndex < rawData.length; datumIndex += 1) {
-                    const pIdx = datumIndex > 0 ? datumIndex - 1 : undefined;
-                    const nIdx = datumIndex < rawData.length - 1 ? datumIndex + 1 : undefined;
-                    handleSeriesPoint(pIdx, datumIndex, nIdx);
-                }
             } else {
-                for (let i = 0; i < dataAggregationFilter.indices.length; i += 1) {
-                    const datumIndex = dataAggregationFilter.indices[i];
-                    const pIdx = i > 0 ? dataAggregationFilter.indices[i - 1] : undefined;
-                    const nIdx =
-                        i < dataAggregationFilter.indices.length - 1
-                            ? dataAggregationFilter.indices[index + 1]
-                            : undefined;
+                const dataEndIndex = indices?.length ?? rawData.length;
+                for (let i = startIndex; i < endIndex; i += 1) {
+                    const datumIndex = indices?.[i] ?? i;
+                    const pIdx = i > 0 ? indices?.[i - 1] ?? i - 1 : undefined;
+                    const nIdx = i < dataEndIndex - 1 ? indices?.[i + 1] ?? i + 1 : undefined;
                     handleSeriesPoint(pIdx, datumIndex, nIdx);
                 }
             }
@@ -641,14 +642,12 @@ export class AreaSeries extends CartesianSeries<
                 yValueZeroPoints = Array.from(dataModel.forEachGroupDatum(this, processedData), ({ datumIndex }) => {
                     return getPoint(datumIndex);
                 });
-            } else if (dataAggregationFilter == null) {
-                yValueZeroPoints = rawData.map((_, datumIndex) => {
-                    return getPoint(datumIndex);
-                });
             } else {
-                yValueZeroPoints = dataAggregationFilter.indices.map((datumIndex) => {
-                    return getPoint(datumIndex);
-                });
+                yValueZeroPoints = [];
+                for (let i = startIndex; i < endIndex; i += 1) {
+                    const datumIndex = indices?.[i] ?? i;
+                    yValueZeroPoints.push(getPoint(datumIndex));
+                }
             }
 
             yValueZeroPoints = yValueZeroPoints.filter((x): x is LineSpanPointDatum => x != null);
