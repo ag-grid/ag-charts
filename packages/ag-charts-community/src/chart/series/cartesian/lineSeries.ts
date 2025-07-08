@@ -123,7 +123,7 @@ export class LineSeries extends CartesianSeries<
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
-        const stacked = stackCount >= 1 || normalizedTo != null;
+        const stacked = stackCount > 1 || normalizedTo != null;
 
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
         if (connectMissingData && stacked) {

@@ -22,6 +22,7 @@ import { objectsEqual } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
+import { CategoryAxis } from '../axis/categoryAxis';
 import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
@@ -445,11 +446,17 @@ export class ZoomManager extends BaseManager {
         const xAxis = this.getPrimaryAxis(ChartAxisDirection.X);
         const yAxis = this.getPrimaryAxis(ChartAxisDirection.Y);
 
-        const processedSeriesIds = new Set();
-        let visibleItemsCount = 0;
+        if (this.autoScaleYAxis.enabled && !this.autoScaleYAxis.manuallyAdjusted && CategoryAxis.is(xAxis)) {
+            const maxZoom = minVisibleItems / xAxis.scale.bands.length;
+            const xZoomExtent = zoom.x.max - zoom.x.min;
+            return xZoomExtent >= maxZoom;
+        }
 
         const xVisibleRange: [number, number] = [zoom.x.min, zoom.x.max];
         const yVisibleRange: [number, number] = [zoom.y.min, zoom.y.max];
+
+        const processedSeriesIds = new Set();
+        let visibleItemsCount = 0;
 
         for (const series of xAxis?.boundSeries ?? []) {
             processedSeriesIds.add(series.id);

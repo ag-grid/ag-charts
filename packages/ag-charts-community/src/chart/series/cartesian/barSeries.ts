@@ -8,6 +8,7 @@ import type {
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
+import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
@@ -144,7 +145,7 @@ export class BarSeries extends AbstractBarSeries<
         const { xKey, yKey, yFilterKey, normalizedTo } = this.properties;
         const { seriesGrouping: { groupIndex = this.id } = {}, data } = this;
         const stackCount = this.seriesGrouping?.stackCount ?? 0;
-        const stacked = stackCount >= 1 || normalizedTo != null;
+        const stacked = stackCount > 1 || normalizedTo != null;
         const grouped = stacked;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -452,7 +453,8 @@ export class BarSeries extends AbstractBarSeries<
             yStart: number,
             yEnd: number,
             yRange: number,
-            featherRatio: number
+            featherRatio = 0,
+            opacity = 1
         ) => {
             const xValue = xValues[datumIndex];
             if (xValue == null) return;
@@ -495,7 +497,7 @@ export class BarSeries extends AbstractBarSeries<
                 isPositive,
                 yRange: Math.max(yStart + (yFilterValue ?? -Infinity), yRange),
                 labelText,
-                opacity: 1,
+                opacity,
                 featherRatio,
                 crossScale: inset ? 0.6 : undefined,
             });
@@ -517,7 +519,7 @@ export class BarSeries extends AbstractBarSeries<
                     isPositive,
                     yRange,
                     labelText: undefined,
-                    opacity: 1,
+                    opacity,
                     featherRatio,
                     crossScale: undefined,
                 });
@@ -552,7 +554,7 @@ export class BarSeries extends AbstractBarSeries<
                     yRange = aggregation[yRangeIndex][isPositive ? 1 : 0];
                 }
 
-                handleDatum(datumIndex, x, width, yStart, yEnd, yRange, 0);
+                handleDatum(datumIndex, x, width, yStart, yEnd, yRange);
             }
         } else if (dataAggregationFilter == null) {
             const width = barWidth;
@@ -567,7 +569,7 @@ export class BarSeries extends AbstractBarSeries<
                 const x = xPosition(datumIndex);
                 const yEnd = Number(yRawValues[datumIndex]);
 
-                handleDatum(datumIndex, x, width, 0, yEnd, yEnd, 0);
+                handleDatum(datumIndex, x, width, 0, yEnd, yEnd);
             }
         } else {
             const { indexData, indices } = dataAggregationFilter;
@@ -585,19 +587,26 @@ export class BarSeries extends AbstractBarSeries<
                 if (xMinIndex === -1) continue;
 
                 const x = xPosition(((xMinIndex + xMaxIndex) / 2) | 0);
+                // The width of the shape is the width from the left of the first bar to the right of the second bar
                 const width = Math.abs(xPosition(xMaxIndex) - xPosition(xMinIndex)) + barWidth;
+                const bandCount = Math.abs(xMaxIndex - xMinIndex);
+                // This means the density of the fill is higher than it would be if we drew the bars individually.
+                // Adjust the opacity to account for this
+                const opacity = BandScale.is(xScale)
+                    ? (xScale.bandwidth * Math.max(bandCount - 1, 1)) / (xScale.step * bandCount)
+                    : 1;
 
                 const yEndMax = xValues[yMaxIndex] != null ? Number(yRawValues[yMaxIndex]) : NaN;
                 const yEndMin = xValues[yMinIndex] != null ? Number(yRawValues[yMinIndex]) : NaN;
 
                 if (yEndMax > 0) {
                     const featherRatio = yEndMin >= 0 ? sign * (1 - yEndMin / yEndMax) : sign;
-                    handleDatum(yMaxIndex, x, width, 0, yEndMax, yEndMax, featherRatio);
+                    handleDatum(yMaxIndex, x, width, 0, yEndMax, yEndMax, featherRatio, opacity);
                 }
 
                 if (yEndMin < 0) {
                     const featherRatio = yEndMax <= 0 ? -sign * (1 - yEndMax / yEndMin) : -sign;
-                    handleDatum(yMinIndex, x, width, 0, yEndMin, yEndMin, featherRatio);
+                    handleDatum(yMinIndex, x, width, 0, yEndMin, yEndMin, featherRatio, opacity);
                 }
             }
         }
