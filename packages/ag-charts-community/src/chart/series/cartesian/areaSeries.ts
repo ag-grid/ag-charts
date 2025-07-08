@@ -24,7 +24,7 @@ import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import type { DataModel, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
+import type { DataModel, DatumPropertyDefinition, ProcessedData, PropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import {
     animationValidation,
@@ -206,14 +206,6 @@ export class AreaSeries extends CartesianSeries<
             marker: `area-stack-${groupIndex}-yValues-marker`,
         };
 
-        const extraProps = [];
-        if (isDefined(normalizedTo)) {
-            extraProps.push(normaliseGroupTo(Object.values(idMap), normalizedTo));
-        }
-        if (animationEnabled) {
-            extraProps.push(animationValidation());
-        }
-
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
         if ((isDefined(normalizedTo) || connectMissingData) && stackCount > 1) {
             common.invalidValue = 0;
@@ -221,29 +213,41 @@ export class AreaSeries extends CartesianSeries<
         if (!visible) {
             common.forceValue = 0;
         }
+
+        const props: PropertyDefinition<any, any>[] = [
+            keyProperty(xKey, xScaleType, { id: 'xValue' }),
+            valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
+            ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })] : []),
+            ...groupStackValueProperty(yKey, yScaleType, { id: `yValueStack`, ...common, groupId: idMap.stack }),
+            valueProperty(yKey, yScaleType, { id: `yValue`, ...common, groupId: idMap.value }),
+        ];
+
+        props.push(
+            ...groupAccumulativeValueProperty(
+                yKey,
+                'window',
+                'current',
+                { id: `yValueEnd`, ...common, groupId: idMap.values },
+                yScaleType
+            ),
+            ...groupAccumulativeValueProperty(
+                yKey,
+                'normal',
+                'current',
+                { id: `yValueCumulative`, ...common, groupId: idMap.marker },
+                yScaleType
+            )
+        );
+
+        if (isDefined(normalizedTo)) {
+            props.push(normaliseGroupTo(Object.values(idMap), normalizedTo));
+        }
+        if (animationEnabled) {
+            props.push(animationValidation());
+        }
+
         const { dataModel, processedData } = await this.requestDataModel<any, any>(dataController, data, {
-            props: [
-                keyProperty(xKey, xScaleType, { id: 'xValue' }),
-                valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
-                ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })] : []),
-                ...groupStackValueProperty(yKey, yScaleType, { id: `yValueStack`, ...common, groupId: idMap.stack }),
-                valueProperty(yKey, yScaleType, { id: `yValue`, ...common, groupId: idMap.value }),
-                ...groupAccumulativeValueProperty(
-                    yKey,
-                    'window',
-                    'current',
-                    { id: `yValueEnd`, ...common, groupId: idMap.values },
-                    yScaleType
-                ),
-                ...groupAccumulativeValueProperty(
-                    yKey,
-                    'normal',
-                    'current',
-                    { id: `yValueCumulative`, ...common, groupId: idMap.marker },
-                    yScaleType
-                ),
-                ...extraProps,
-            ],
+            props: props,
             groupByKeys: stacked,
             groupByData: !stacked,
         });
@@ -485,9 +489,9 @@ export class AreaSeries extends CartesianSeries<
                 const xDatum = xValues[datumIndex];
                 const yDatum = yStackValues != null ? yStackValues?.[datumIndex][index] : yRawValues[datumIndex];
 
-                const yDatumIsFinite = Number.isFinite(yRawValues[datumIndex]);
+                if (connectMissingData && !Number.isFinite(yRawValues[datumIndex])) return;
 
-                if (connectMissingData && !yDatumIsFinite) return;
+                const yDatumIsFinite = Number.isFinite(yDatum);
 
                 let yValueEndBackwards = 0;
                 let yBackwardsFinite = true;
