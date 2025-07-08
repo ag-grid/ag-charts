@@ -424,7 +424,7 @@ export abstract class Axis<
         };
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
-            stylerOutput = this.callWithContext(label.itemStyler, {
+            stylerOutput = this.cachedCallWithContext(label.itemStyler, {
                 ...params,
                 ...defaultStyle,
             });
@@ -651,7 +651,8 @@ export abstract class Axis<
             truncateDate = tickFormatParams.truncateDate;
         }
 
-        const f = this.callWithContext.bind(this);
+        // The serialization required for caching is too slow for large category domains
+        const f = this.uncachedCallWithContext.bind(this);
 
         const params: FormatDatumParams = {
             datum: undefined,
@@ -915,9 +916,14 @@ export abstract class Axis<
         return this.reverse;
     }
 
-    protected callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+    protected cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
         const { callbackCache, chartService } = this.moduleCtx;
         return callbackCache.call([this, chartService], fn, ...params);
+    }
+
+    private uncachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+        const { chartService } = this.moduleCtx;
+        return callWithContext([this, chartService], fn, ...params);
     }
 
     private createCallWithContext(contextProvider: { context?: unknown } | undefined) {

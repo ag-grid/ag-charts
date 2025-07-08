@@ -49,13 +49,13 @@ import { NiceMode, type TickDatum } from './axisUtil';
 export type AnyTimeInterval = AgTimeInterval | AgTimeIntervalUnit;
 
 export interface TickData<D = any> {
+    niceDomain: D[];
     tickDomain: D[];
     rawTicks: D[];
     rawTickCount: number | undefined;
     fractionDigits: number;
     ticks: TickDatum[];
     timeInterval: AnyTimeInterval | undefined;
-    niceDomain?: D[];
 }
 
 export interface TickGenerationParams<D = any> {
@@ -70,7 +70,7 @@ export interface TickGenerationParams<D = any> {
     regularFlipRotation: number;
     labelX: number;
     sideFlag: ChartAxisLabelFlipFlag;
-    sizeLimit?: number;
+    sizeLimit: number | undefined;
     removeOverflowLabels: boolean;
     removeOverflowThreshold?: number;
 }
@@ -269,12 +269,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         let tickData: TickData = {
             tickDomain: [],
+            niceDomain: domain,
             ticks: [],
             rawTicks: [],
             rawTickCount: undefined,
             timeInterval: undefined,
             fractionDigits: 0,
-            niceDomain: undefined,
         };
 
         let index = 0;
@@ -345,7 +345,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         reverse: boolean;
         niceMode: NiceMode;
         secondaryAxis: boolean;
-        sizeLimit?: number;
+        sizeLimit: number | undefined;
     }): TickStrategy[] {
         const { label, interval } = this.axis;
         const avoidLabelCollisions = label.enabled && label.avoidCollisions;
@@ -409,9 +409,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         defaultTickMinSpacing: number,
         tickGenerationType: TickGenerationType,
         index: number,
-        tickData: TickData,
+        previousTickData: TickData,
         terminate: boolean,
-        sizeLimit?: number
+        sizeLimit: number | undefined
     ): TickStrategyResult {
         // Find the next tick data where the tick data is different from the previous tick data - and return the index of this data
         const { interval } = this.axis;
@@ -428,13 +428,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const maxIterations = tickCount - minTickCount;
         const countTicks = (i: number) => Math.max(tickCount - i, minTickCount);
 
-        const previousTicks = tickData.rawTicks;
+        const previousTicks = previousTickData.rawTicks;
 
         const regenerateTicks = step == null && values == null && countTicks(index) > minTickCount;
 
         const getTickParams = {
             domain,
-            range,
             reverse,
             niceMode,
             visibleRange,
@@ -443,14 +442,13 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             minTickCount,
             maxTickCount,
             tickCount: 0,
-            sizeLimit,
         };
 
         // First guess - generate ticks at current index
         getTickParams.tickCount = countTicks(index);
-        tickData = this.getTicks(getTickParams);
+        let nextTicks = this.getTicks(getTickParams);
 
-        if (regenerateTicks && ticksEqual(tickData.rawTicks, previousTicks)) {
+        if (regenerateTicks && ticksEqual(nextTicks.rawTicks, previousTicks)) {
             // Ticks didn't change
             // Use binary search to find the index, as there could be a lot of ticks in some cases
             let lowerBound = index;
@@ -458,16 +456,50 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             while (lowerBound <= upperBound) {
                 index = ((lowerBound + upperBound) / 2) | 0;
                 getTickParams.tickCount = countTicks(index);
-                const nextTickData = this.getTicks(getTickParams);
+                const nextTicksCandidate = this.getTicks(getTickParams);
 
-                if (ticksEqual(nextTickData.rawTicks, previousTicks)) {
+                if (ticksEqual(nextTicksCandidate.rawTicks, previousTicks)) {
                     lowerBound = index + 1;
                 } else {
-                    tickData = nextTickData;
+                    nextTicks = nextTicksCandidate;
                     upperBound = index - 1;
                 }
             }
         }
+
+        const {
+            tickDomain,
+            niceDomain,
+            rawTicks,
+            rawTickCount,
+            generatePrimaryTicks,
+            primaryTicksIndices,
+            alignment,
+            fractionDigits,
+            timeInterval,
+        } = nextTicks;
+
+        const ticks = this.formatTicks({
+            range,
+            niceDomain,
+            rawTicks,
+            generatePrimaryTicks,
+            primaryTicksIndices,
+            alignment,
+            fractionDigits,
+            timeInterval,
+            sizeLimit,
+        });
+
+        const tickData: TickData = {
+            tickDomain,
+            niceDomain,
+            rawTicks,
+            rawTickCount,
+            timeInterval,
+            fractionDigits,
+            ticks,
+        };
 
         index += 1;
         terminate ||= step != null || values != null;
@@ -620,7 +652,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
     private getTicks({
         domain,
-        range,
         reverse,
         niceMode,
         visibleRange,
@@ -629,10 +660,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         minTickCount,
         maxTickCount,
         primaryTickCount,
-        sizeLimit = Infinity,
     }: {
         domain: D[];
-        range: [number, number];
         reverse: boolean;
         niceMode: NiceMode;
         visibleRange: [number, number];
@@ -641,10 +670,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         tickCount: number;
         minTickCount: number;
         maxTickCount: number;
-        sizeLimit?: number;
-    }): TickData {
+    }) {
         const { axis } = this;
-        const { label, primaryLabel, scale, interval } = axis;
+        const { primaryLabel, scale, interval } = axis;
 
         const domainParams: ScaleTickParams<any> = {
             nice: niceMode === NiceMode.TickAndDomain,
@@ -789,6 +817,48 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             primaryTicksIndices = undefined;
         }
 
+        scale.domain = scaleDomain;
+
+        return {
+            tickDomain,
+            niceDomain,
+            rawTicks,
+            rawTickCount,
+            generatePrimaryTicks,
+            primaryTicksIndices,
+            alignment,
+            fractionDigits,
+            timeInterval,
+        };
+    }
+
+    private formatTicks({
+        niceDomain,
+        range,
+        rawTicks,
+        generatePrimaryTicks,
+        primaryTicksIndices,
+        alignment,
+        fractionDigits,
+        timeInterval,
+        sizeLimit = Infinity,
+    }: {
+        niceDomain: D[];
+        range: [number, number];
+        rawTicks: any[];
+        generatePrimaryTicks: boolean;
+        primaryTicksIndices: Set<number> | undefined;
+        alignment: ScaleAlignment | undefined;
+        fractionDigits: number;
+        timeInterval: AnyTimeInterval | undefined;
+        sizeLimit: number | undefined;
+    }) {
+        const { axis } = this;
+        const { label, scale } = axis;
+
+        const scaleDomain = scale.domain;
+        scale.domain = niceDomain; // Reset at end of function
+
         const dateStyle: DateFormatterStyle = generatePrimaryTicks ? 'component' : 'long';
         const axisTickFormatter = label.enabled
             ? axis.tickFormatter(niceDomain, rawTicks, false, fractionDigits, timeInterval, dateStyle)
@@ -847,15 +917,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         scale.domain = scaleDomain;
 
-        return {
-            tickDomain,
-            rawTicks,
-            rawTickCount,
-            fractionDigits,
-            timeInterval,
-            ticks,
-            niceDomain,
-        };
+        return ticks;
     }
 }
 

@@ -603,6 +603,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             parallelFlipRotation,
             regularFlipRotation,
             sideFlag,
+            sizeLimit: undefined,
             removeOverflowLabels: false,
         }).tickData;
 
