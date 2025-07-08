@@ -38,7 +38,6 @@ const options: AgCartesianChartOptions<DataType> = {
                                 strokeOpacity: 1,
                             },
                             padding: 15,
-                            shadow: true,
                             fontWeight: 'bold',
                             fill: {
                                 type: 'gradient',
