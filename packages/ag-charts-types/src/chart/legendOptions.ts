@@ -1,4 +1,4 @@
-import type { AgColorType, StrokeOptions } from '../series/cartesian/commonOptions';
+import type { AgColorType, FillOptions, StrokeOptions } from '../series/cartesian/commonOptions';
 import type { Formatter } from './callbackOptions';
 import type { AgPreventableEvent } from './eventOptions';
 import type {
@@ -108,7 +108,7 @@ export interface AgChartLegendListeners<TContext = ContextDefault> {
     legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent<TContext>) => void;
 }
 
-export interface AgChartLegendOptions<TContext = ContextDefault> {
+export interface AgChartLegendOptions<TContext = ContextDefault> extends FillOptions {
     /** Whether to show the legend. By default, the chart displays a legend when there is more than one series present. */
     enabled?: boolean;
     /** Where the legend should show in relation to the chart. */

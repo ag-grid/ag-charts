@@ -428,7 +428,7 @@ describe('Legend', () => {
         });
     });
 
-    describe('Border', () => {
+    describe('Container', () => {
         it('should render as expected', async () => {
             await compareSnapshot({
                 data: [
@@ -440,8 +440,13 @@ describe('Legend', () => {
                     { type: 'area', xKey: 'x', yKey: 'b' },
                 ],
                 legend: {
-                    border: { stroke: 'red', strokeWidth: 8 },
+                    border: {
+                        stroke: 'red',
+                        strokeWidth: 8,
+                    },
                     cornerRadius: 16,
+                    fill: 'green',
+                    fillOpacity: 0.2,
                     padding: 8,
                 },
             });
