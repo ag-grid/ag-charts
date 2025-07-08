@@ -21,7 +21,12 @@ import type {
     ISeriesMarker,
 } from 'ag-charts-types';
 
-import type { HighlightNodeDatum, LegendItemClickEvent, LegendItemDoubleClickEvent } from '../../core/eventsHub';
+import type {
+    HighlightChangeEvent,
+    HighlightNodeDatum,
+    LegendItemClickEvent,
+    LegendItemDoubleClickEvent,
+} from '../../core/eventsHub';
 import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
@@ -210,6 +215,8 @@ export abstract class Series<
     pickModes: SeriesNodePickMode[];
     usesPlacedLabels: boolean = false;
 
+    protected hasHighlightChange: boolean = false;
+
     get pickModeAxis(): 'main' | 'main-category' | undefined {
         return 'main';
     }
@@ -366,8 +373,9 @@ export abstract class Series<
         this.propertyNames = propertyNames;
         this.canHaveAxes = canHaveAxes;
         this.usesPlacedLabels = usesPlacedLabels;
-
         this.pickModes = pickModes;
+
+        this.cleanup.register(this.ctx?.eventsHub.on('highlight:change', (event) => this.hasChangesOnHighlight(event)));
     }
 
     attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined) {
@@ -601,24 +609,24 @@ export abstract class Series<
         return HighlightState.OtherSeries;
     }
 
-    protected hasChangesOnHighlight(): boolean {
-        const currentHighlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const previousHighlightedDatum = this.ctx.highlightManager?.getPreviousHighlight();
+    private hasChangesOnHighlight(event: HighlightChangeEvent) {
+        const previousHighlightedDatum = event.previousHighlight;
+        const currentHighlightedDatum = event.currentHighlight;
 
         const currentHighlightState = this.getHighlightState(currentHighlightedDatum);
         const previousHighlightState = this.getHighlightState(previousHighlightedDatum);
 
         if (currentHighlightState === previousHighlightState) {
-            return false;
+            this.hasHighlightChange = false;
+            return;
         }
 
         const { highlightedSeries, unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
 
-        return (
+        this.hasHighlightChange =
             !isEmptyObject(highlightedSeries) ||
             !isEmptyObject(unhighlightedItem) ||
-            !isEmptyObject(unhighlightedSeries)
-        );
+            !isEmptyObject(unhighlightedSeries);
     }
 
     protected isSeriesHighlighted(highlightedDatum?: HighlightNodeDatum, _legendItemValues?: string[]) {
