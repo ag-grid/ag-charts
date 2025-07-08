@@ -1,5 +1,5 @@
 import { createSvgElement, isDefined } from 'ag-charts-core';
-import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize, Ratio } from 'ag-charts-types';
+import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
 import { objectsEqual } from '../../util/object';
@@ -10,6 +10,7 @@ import type { RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { DebugSelectors } from '../sceneDebug';
 import { Rotatable, Translatable } from '../transformable';
+import { Rect } from './rect';
 import { Shape, type ShapeColor } from './shape';
 
 export interface TextSizeProperties {
@@ -72,7 +73,7 @@ export class Text<D = any> extends Shape<D> {
     lineHeight?: number;
 
     @SceneChangeDetection()
-    boxCornerRadius?: Ratio;
+    boxCornerRadius?: PixelSize = 0;
 
     @SceneChangeDetection()
     boxPadding?: PixelSize;
@@ -91,6 +92,8 @@ export class Text<D = any> extends Shape<D> {
 
     @SceneChangeDetection()
     boxStrokeOpacity?: Opacity;
+
+    private boxing?: Rect;
 
     static computeBBox(
         lines: string | string[],
@@ -183,7 +186,7 @@ export class Text<D = any> extends Shape<D> {
             strokeWidth,
             boxFill,
             boxFillOpacity = 1,
-            boxCornerRadius,
+            boxCornerRadius = 0,
             boxStroke,
             boxStrokeWidth = 1,
             boxStrokeOpacity = 1,
@@ -213,36 +216,23 @@ export class Text<D = any> extends Shape<D> {
         ctx.textBaseline = textBaseline;
 
         if (boxFill != null || boxStroke != null) {
+            this.boxing ??= new Rect();
             const { x, y, width, height } = this.getBBox(true).grow(boxPadding);
-            const maxRadius = Math.min(width, height) / 2;
-            const radius = Math.min(boxCornerRadius ?? 0, maxRadius);
-
-            ctx.beginPath();
-            ctx.moveTo(x + radius, y);
-            ctx.lineTo(x + width - radius, y);
-            ctx.arcTo(x + width, y, x + width, y + radius, radius);
-            ctx.lineTo(x + width, y + height - radius);
-            ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
-            ctx.lineTo(x + radius, y + height);
-            ctx.arcTo(x, y + height, x, y + height - radius, radius);
-            ctx.lineTo(x, y + radius);
-            ctx.arcTo(x, y, x + radius, y, radius);
-            ctx.closePath();
-
-            if (boxFill) {
-                ctx.fillStyle = boxFill as string; // TODO: gradients, images and etc..
-                ctx.globalAlpha = boxFillOpacity;
-                ctx.fill();
-            }
-
-            if (boxStroke) {
-                ctx.strokeStyle = boxStroke;
-                ctx.lineWidth = boxStrokeWidth;
-                ctx.globalAlpha = boxStrokeOpacity;
-                ctx.stroke();
-            }
-
-            ctx.globalAlpha = globalAlpha;
+            this.boxing.x = x;
+            this.boxing.y = y;
+            this.boxing.width = width;
+            this.boxing.height = height;
+            this.boxing.fill = boxFill;
+            this.boxing.fillOpacity = boxFillOpacity;
+            this.boxing.cornerRadius = boxCornerRadius;
+            this.boxing.stroke = boxStroke;
+            this.boxing.strokeWidth = boxStrokeWidth;
+            this.boxing.strokeOpacity = boxStrokeOpacity;
+            this.boxing.preRender(renderCtx);
+            this.boxing.render(renderCtx);
+        } else if (this.boxing) {
+            this.boxing.destroy();
+            this.boxing = undefined;
         }
 
         if (fill) {
