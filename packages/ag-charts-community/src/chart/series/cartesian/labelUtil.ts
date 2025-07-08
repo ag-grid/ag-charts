@@ -1,10 +1,9 @@
-import { mergeDefaults } from 'packages/ag-charts-community/src/module-support';
-
 import type { AnyFn, IsAny, RequireOptional } from 'ag-charts-core';
 import type { AgChartLabelStyleOptions, AgChartLabelStylerParams } from 'ag-charts-types';
 
 import type { Point } from '../../../scene/point';
 import type { Text } from '../../../scene/shape/text';
+import { mergeDefaults } from '../../../util/object';
 import type { Label } from '../../label';
 
 interface SeriesLike {
