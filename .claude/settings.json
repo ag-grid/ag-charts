@@ -1,0 +1,18 @@
+{
+    "permissions": {
+        "allow": [
+            "Bash(find:*)",
+            "Bash(ls:*)",
+            "Bash(nx lint:*)",
+            "Bash(nx show projects:*)",
+            "Bash(nx build:*)",
+            "Bash(nx generate-examples:*)",
+            "Bash(gh pr list:*)",
+            "Bash(mkdir:*)",
+            "Bash(gh pr view:*)",
+            "Bash(gh pr diff:*)",
+            "Bash(gh pr checks:*)"
+        ],
+        "deny": []
+    }
+}
