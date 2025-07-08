@@ -651,6 +651,7 @@ export abstract class Axis<
             truncateDate = tickFormatParams.truncateDate;
         }
 
+        // The serialization required for caching is too slow for large category domains
         const f = this.uncachedCallWithContext.bind(this);
 
         const params: FormatDatumParams = {
