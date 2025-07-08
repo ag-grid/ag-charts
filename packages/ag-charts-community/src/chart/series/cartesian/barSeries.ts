@@ -277,7 +277,7 @@ export class BarSeries extends AbstractBarSeries<
 
     override getVisibleItems(
         xVisibleRange: [number, number],
-        yVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
         minVisibleItems: number
     ): number {
         const yKey = this.dataModel?.hasColumnById(this, `yValue-end`) ? 'yValue-end' : 'yValue-raw';
@@ -558,7 +558,7 @@ export class BarSeries extends AbstractBarSeries<
             }
         } else if (dataAggregationFilter == null) {
             const width = barWidth;
-            let [start, end] = this.visibleRange('xValue', xAxis.range);
+            let [start, end] = this.visibleRangeIndices('xValue', xAxis.range);
             // @todo(AG-13575) Remove this if block
             if (processedData.input.count < 1e3) {
                 start = 0;
@@ -573,7 +573,7 @@ export class BarSeries extends AbstractBarSeries<
             }
         } else {
             const { indexData, indices } = dataAggregationFilter;
-            const [start, end] = this.visibleRange('xValue', xAxis.range, indices);
+            const [start, end] = this.visibleRangeIndices('xValue', xAxis.range, indices);
 
             const sign = yReversed ? -1 : 1;
 

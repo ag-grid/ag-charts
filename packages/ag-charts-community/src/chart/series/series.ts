@@ -517,7 +517,7 @@ export abstract class Series<
 
     getVisibleItems(
         _xVisibleRange: [number, number],
-        _yVisibleRange: [number, number],
+        _yVisibleRange: [number, number] | undefined,
         _minVisibleItems: number
     ): number {
         return Infinity;

@@ -191,7 +191,7 @@ export abstract class OhlcSeriesBase<
 
     override getVisibleItems(
         xVisibleRange: [number, number],
-        yVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
         minVisibleItems: number
     ): number {
         return this.countVisibleItems(

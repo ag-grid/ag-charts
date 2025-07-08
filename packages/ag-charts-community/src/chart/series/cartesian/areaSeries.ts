@@ -321,7 +321,7 @@ export class AreaSeries extends CartesianSeries<
 
     override getVisibleItems(
         xVisibleRange: [number, number],
-        yVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
         minVisibleItems: number
     ): number {
         return this.countVisibleItems(
@@ -407,7 +407,7 @@ export class AreaSeries extends CartesianSeries<
         let startIndex = 0;
         let endIndex = 0;
         const indices = dataAggregationFilter?.indices;
-        [startIndex, endIndex] = this.visibleRange('xValue', xAxis.range, indices);
+        [startIndex, endIndex] = this.visibleRangeIndices('xValue', xAxis.range, indices);
         startIndex = Math.max(startIndex - 1, 0);
         endIndex = Math.min(endIndex + 1, indices?.length ?? xValues.length);
         // @todo(AG-13575) Remove this if block

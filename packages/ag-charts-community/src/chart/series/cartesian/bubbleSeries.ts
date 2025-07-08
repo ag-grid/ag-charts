@@ -193,7 +193,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
     override getVisibleItems(
         xVisibleRange: [number, number],
-        yVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
         minVisibleItems: number
     ): number {
         return this.countVisibleItems('xValue', ['yValue'], xVisibleRange, yVisibleRange, minVisibleItems);

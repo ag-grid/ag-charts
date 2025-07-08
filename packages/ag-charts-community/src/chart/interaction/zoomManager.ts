@@ -12,7 +12,6 @@ import {
 import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { AxisZoomState, EventsHub, ZoomState } from '../../core/eventsHub';
-import { BandScale } from '../../scale/bandScale';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { type Scale, ScaleAlignment } from '../../scale/scale';
@@ -447,37 +446,36 @@ export class ZoomManager extends BaseManager {
         const xAxis = this.getPrimaryAxis(ChartAxisDirection.X);
         const yAxis = this.getPrimaryAxis(ChartAxisDirection.Y);
 
-        const xScale = xAxis?.scale;
+        let boundSeries: Set<ISeries<any, any, any>>;
 
-        if (autoScaleYAxis.enabled && !autoScaleYAxis.manuallyAdjusted && BandScale.is(xScale)) {
-            const maxZoom = (minVisibleItems - xScale.paddingInner) / xScale.bands.length;
-            const xZoomExtent = zoom.x.max - zoom.x.min;
-            return xZoomExtent >= maxZoom;
+        if (this.independentAxes) {
+            const xBoundSeries = new Set(xAxis?.boundSeries ?? []);
+            const yBoundSeries = new Set(yAxis?.boundSeries ?? []);
+
+            boundSeries = new Set();
+            for (const series of xBoundSeries) {
+                if (yBoundSeries.has(series)) {
+                    boundSeries.add(series);
+                }
+            }
+        } else {
+            boundSeries = new Set([...(xAxis?.boundSeries ?? []), ...(yAxis?.boundSeries ?? [])]);
         }
 
         const xVisibleRange: [number, number] = [zoom.x.min, zoom.x.max];
-        const yVisibleRange: [number, number] = [zoom.y.min, zoom.y.max];
+        const yVisibleRange: [number, number] | undefined =
+            autoScaleYAxis.enabled && !autoScaleYAxis.manuallyAdjusted ? undefined : [zoom.y.min, zoom.y.max];
 
-        const processedSeriesIds = new Set();
         let visibleItemsCount = 0;
 
-        for (const series of xAxis?.boundSeries ?? []) {
-            processedSeriesIds.add(series.id);
+        for (const series of boundSeries) {
             const remainingItems = minVisibleItems - (visibleItemsCount ?? 0);
             const seriesVisibleItems = series.getVisibleItems(xVisibleRange, yVisibleRange, remainingItems);
             visibleItemsCount += seriesVisibleItems;
             if (visibleItemsCount >= minVisibleItems) return true;
         }
 
-        for (const series of yAxis?.boundSeries ?? []) {
-            if (processedSeriesIds.has(series.id)) continue;
-            const remainingItems = minVisibleItems - (visibleItemsCount ?? 0);
-            const seriesVisibleItems = series.getVisibleItems(xVisibleRange, yVisibleRange, remainingItems);
-            visibleItemsCount += seriesVisibleItems;
-            if (visibleItemsCount >= minVisibleItems) return true;
-        }
-
-        return processedSeriesIds.size === 0;
+        return boundSeries.size === 0;
     }
 
     private getMementoRanges() {
