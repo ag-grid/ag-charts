@@ -107,6 +107,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     googleFonts?: Set<string>;
     fastDelta?: DeepPartial<T>;
     chartDef?: ChartModuleDefinition<any>;
+    optionsProcessingTime?: number;
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -117,7 +118,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         specialOverrides: Partial<ChartSpecialOverrides>,
         metadata: ChartInternalOptionMetadata,
         deltaOptions?: DeepPartial<T> | null,
-        stripSymbols = false
+        stripSymbols = false,
+        apiStartTime?: number
     ) {
         this.optionMetadata = metadata ?? {};
         this.processedOverrides = processedOverrides ?? {};
@@ -179,6 +181,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.themeParameters = themeParameters;
         this.annotationThemes = annotationThemes;
         this.googleFonts = googleFonts;
+
+        // Capture options processing time for debug stats
+        if (apiStartTime !== undefined && typeof apiStartTime === 'number' && !isNaN(apiStartTime)) {
+            const endTime = performance.now();
+            this.optionsProcessingTime = endTime - apiStartTime;
+        }
 
         // This ChartOptions should be treated as immutable from here-on, force immutability to
         // flush out runtime issues.

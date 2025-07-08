@@ -1343,6 +1343,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             seriesStatus,
             forceNodeDataRefresh,
         });
+
+        // Add options processing time to timing splits and adjust start time
+        if (newChartOptions.optionsProcessingTime !== undefined) {
+            this._performUpdateSplits['⚙️'] = newChartOptions.optionsProcessingTime;
+            // Set the start time to include options processing in total time calculation
+            const optionsStartTime = performance.now() - newChartOptions.optionsProcessingTime;
+            this._performUpdateSplits.start = optionsStartTime;
+        }
+
         this.update(updateType, { apiUpdate: true, forceNodeDataRefresh, newAnimationBatch: true });
 
         this.firstApply = false;
