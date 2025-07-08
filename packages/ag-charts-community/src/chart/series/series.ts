@@ -968,7 +968,7 @@ export abstract class Series<
     }
 
     public getLabelStyles<TParams>(
-        nodeDatum: SeriesNodeDatum<unknown> | undefined,
+        nodeDatum: { datum?: unknown } | undefined,
         params: TParams,
         label: Label<TParams>
     ): AgChartLabelStyleOptions & { fontSize: number } {

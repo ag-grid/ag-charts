@@ -1,9 +1,12 @@
+import type { AgChartLabelStyleOptions } from 'ag-charts-types';
+
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import type { TypedEvent } from '../../util/observable';
 import type { ChartAxisDirection } from '../chartAxisDirection';
+import type { Label } from '../label';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltipContent';
 
@@ -42,6 +45,11 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getLabelData(): (TLabel & PointLabelDatum)[];
+    getLabelStyles<TParams>(
+        nodeDatum: { datum?: unknown } | undefined,
+        params: TParams,
+        label: Label<TParams>
+    ): AgChartLabelStyleOptions & { fontSize: number };
     getTooltipContent(datumIndex: TDatumIndex, removeThisDatum: TDatum | undefined): TooltipContent | undefined;
     getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
     getCategoryValue(datumIndex: TDatumIndex): any;

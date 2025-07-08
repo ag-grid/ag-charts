@@ -6,6 +6,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
+import type { RequireOptional } from 'ag-charts-core';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateData } from './rangeAreaAggregation';
 import { type RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
@@ -615,9 +616,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeAreaLabelDatum>;
     }) {
+        const params: RequireOptional<AgRangeAreaSeriesLabelFormatterParams> = {
+            xKey: this.properties.xKey,
+            xName: this.properties.xName ?? this.properties.xKey,
+            yName: this.properties.yName,
+            yLowKey: this.properties.yLowKey,
+            yLowName: this.properties.yLowName ?? this.properties.yLowKey,
+            yHighKey: this.properties.yHighKey,
+            yHighName: this.properties.yHighName ?? this.properties.yHighKey,
+        };
         opts.labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(textNode, this.properties.label, datum);
+            updateLabelNode(this, textNode, params, this.properties.label, datum);
         });
     }
 

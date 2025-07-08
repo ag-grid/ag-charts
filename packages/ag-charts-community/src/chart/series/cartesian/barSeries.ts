@@ -742,9 +742,16 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, BarNodeDatum> }) {
+        const params: RequireOptional<AgBarSeriesLabelFormatterParams> = {
+            xKey: this.properties.xKey,
+            xName: this.properties.xName ?? this.properties.xKey,
+            yKey: this.properties.yKey,
+            yName: this.properties.yName ?? this.properties.yKey,
+            legendItemName: this.properties.legendItemName ?? this.properties.xName ?? this.properties.xKey,
+        };
         opts.labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(false, datum?.datumIndex).opacity ?? 1;
-            updateLabelNode(textNode, this.properties.label, datum.label);
+            updateLabelNode(this, textNode, params, this.properties.label, datum.label);
         });
     }
 

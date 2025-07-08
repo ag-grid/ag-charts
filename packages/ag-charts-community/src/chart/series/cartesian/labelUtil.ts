@@ -3,6 +3,9 @@ import type { IsAny } from 'ag-charts-core';
 import type { Point } from '../../../scene/point';
 import type { Text } from '../../../scene/shape/text';
 import type { Label } from '../../label';
+import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
+
+type SeriesLike = Pick<ISeries<unknown, SeriesNodeDatum<unknown>, unknown, unknown>, 'getLabelStyles'>;
 
 type Bounds = {
     x: number;
@@ -14,37 +17,32 @@ type Bounds = {
 export type BarLabelPlacement = 'inside-center' | 'inside-start' | 'inside-end' | 'outside-start' | 'outside-end';
 
 type LabelDatum = Point & {
+    datum?: unknown;
     text: string;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
 };
 
-type LabelProps = Pick<
-    Label,
-    | 'enabled'
-    | 'color'
-    | 'fontStyle'
-    | 'fontWeight'
-    | 'fontSize'
-    | 'fontFamily'
-    | 'fill'
-    | 'fillOpacity'
-    | 'cornerRadius'
-    | 'padding'
-    | 'border'
->;
-
 // Enforce that D must not be `any`
-export function updateLabelNode<D extends LabelDatum>(
+export function updateLabelNode<TParams, D extends LabelDatum>(
+    series: IsAny<D> extends false ? SeriesLike : never,
     textNode: IsAny<D> extends false ? Text : never,
-    label: IsAny<D> extends false ? LabelProps : never,
+    params: IsAny<D> extends false ? TParams : never,
+    label: IsAny<D> extends false ? Label<TParams, unknown> : never,
     labelDatum: D | undefined
 ): void;
 
-export function updateLabelNode(textNode: Text, label: LabelProps, labelDatum: LabelDatum | undefined) {
+export function updateLabelNode<TParams>(
+    series: SeriesLike,
+    textNode: Text,
+    params: TParams,
+    label: Label<TParams, unknown>,
+    labelDatum: LabelDatum | undefined
+) {
     if (label.enabled && labelDatum) {
         const { x, y, text, textAlign, textBaseline } = labelDatum;
-        const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = label;
+        const style = series.getLabelStyles<TParams>(labelDatum, params, label);
+        const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = style;
         textNode.setProperties({
             visible: true,
             x,
@@ -58,7 +56,7 @@ export function updateLabelNode(textNode: Text, label: LabelProps, labelDatum: L
             textAlign,
             textBaseline,
         });
-        textNode.setBoxing(label);
+        textNode.setBoxing(style);
     } else {
         textNode.visible = false;
     }

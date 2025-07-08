@@ -1,5 +1,6 @@
 import type { AgWaterfallSeriesItemType } from 'ag-charts-community';
 import { type AgWaterfallSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
+import type { RequireOptional } from 'ag-charts-core';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -620,9 +621,17 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, WaterfallNodeDatum>;
     }) {
+        const params: RequireOptional<AgWaterfallSeriesLabelFormatterParams> = {
+            itemId: 'positive',
+            xKey: this.properties.xKey,
+            xName: this.properties.xName ?? this.properties.xName,
+            yKey: this.properties.yKey,
+            yName: this.properties.yName ?? this.properties.yName,
+        };
         opts.labelSelection.each((textNode, datum) => {
+            params.itemId = datum.itemId;
             textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex)?.opacity ?? 1;
-            updateLabelNode(textNode, this.getItemConfig(datum.itemId).label, datum.label);
+            updateLabelNode(this, textNode, params, this.getItemConfig(datum.itemId).label, datum.label);
         });
     }
 
