@@ -32,6 +32,7 @@ const {
     TextUtils,
     createDatumId,
     getShapeStyle,
+    getLabelStyles,
     Rect,
     BBox,
 } = _ModuleSupport;
@@ -369,7 +370,7 @@ export class SankeySeries extends FlowProportionSeries<
         opts.labelSelection.each((label, datum) => {
             const { x, y, leading, text } = datum;
             const params: AgSankeySeriesLabelFormatterParams = datum;
-            const style = this.getLabelStyles(undefined, params, this.properties.label);
+            const style = getLabelStyles(this, undefined, params, this.properties.label);
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x;

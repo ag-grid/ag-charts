@@ -12,8 +12,6 @@ import {
 } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
-    AgChartLabelStyleOptions,
-    AgChartLabelStylerParams,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesTooltipRendererParams,
@@ -53,7 +51,6 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
-import type { Label } from '../label';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { SeriesType } from '../mapping/types';
 import type { Marker } from '../marker/marker';
@@ -965,36 +962,6 @@ export abstract class Series<
                     boundSeries,
                 });
         }
-    }
-
-    public getLabelStyles<TParams>(
-        nodeDatum: { datum?: unknown } | undefined,
-        params: TParams,
-        label: Label<TParams>
-    ): AgChartLabelStyleOptions & { fontSize: number } {
-        if (label.itemStyler) {
-            const styleParams: RequireOptional<Omit<AgChartLabelStylerParams<unknown, unknown>, 'context'>> & {
-                fontSize: number;
-            } = {
-                border: label.border,
-                color: label.color,
-                cornerRadius: label.cornerRadius,
-                datum: nodeDatum?.datum,
-                enabled: label.enabled,
-                fill: label.fill,
-                fillOpacity: label.fillOpacity,
-                fontFamily: label.fontFamily,
-                fontSize: label.fontSize,
-                fontStyle: label.fontStyle,
-                fontWeight: label.fontWeight,
-                itemId: undefined,
-                seriesId: this.id,
-                padding: label.padding,
-            };
-            return mergeDefaults(this.callWithContext(label.itemStyler, { ...params, ...styleParams }), styleParams);
-        }
-
-        return label;
     }
 
     public getMarkerStyle<TParams>(

@@ -31,6 +31,7 @@ const {
     PointerEvents,
     applyShapeStyle,
     getShapeStyle,
+    getLabelStyles,
 } = _ModuleSupport;
 
 interface MapShapeNodeDataContext
@@ -560,7 +561,8 @@ export class MapShapeSeries
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum>;
     }) {
         opts.labelSelection.each((label, { x, y, text, fontSize, lineHeight }, datumIndex) => {
-            const style = this.getLabelStyles<AgMapShapeSeriesLabelFormatterParams>(
+            const style = getLabelStyles<AgMapShapeSeriesLabelFormatterParams>(
+                this,
                 undefined,
                 this.properties,
                 this.properties.label

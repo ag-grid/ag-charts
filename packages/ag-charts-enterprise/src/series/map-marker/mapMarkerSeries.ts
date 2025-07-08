@@ -31,6 +31,7 @@ const {
     Marker,
     applyShapeStyle,
     getShapeStyle,
+    getLabelStyles,
     LonLatBBox,
 } = _ModuleSupport;
 
@@ -556,7 +557,8 @@ export class MapMarkerSeries
         >;
     }) {
         opts.labelSelection.each((label, { x, y, width, height, text }, datumIndex) => {
-            const style = this.getLabelStyles<AgMapMarkerSeriesLabelFormatterParams>(
+            const style = getLabelStyles<AgMapMarkerSeriesLabelFormatterParams>(
+                this,
                 undefined,
                 this.properties,
                 this.properties.label

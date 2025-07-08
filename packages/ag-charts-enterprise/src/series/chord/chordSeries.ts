@@ -26,6 +26,7 @@ const {
     evaluateBezier,
     applyShapeStyle,
     getShapeStyle,
+    getLabelStyles,
     BBox,
 } = _ModuleSupport;
 
@@ -350,7 +351,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         opts.labelSelection.each((label, { size, text, centerX, centerY, radius, angle }) => {
             params.size = size;
-            const style = this.getLabelStyles(undefined, params, this.properties.label);
+            const style = getLabelStyles(this, undefined, params, this.properties.label);
             const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = style;
             label.visible = true;
             label.translationX = centerX + radius * Math.cos(angle);

@@ -12,6 +12,7 @@ import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesPropert
 
 const {
     getMissCount,
+    getLabelStyles,
     createDatumId,
     SeriesNodePickMode,
     valueProperty,
@@ -495,7 +496,8 @@ export class MapLineSeries extends TopologySeries<
         >;
     }) {
         opts.labelSelection.each((label, { x, y, width, height, text }, datumIndex) => {
-            const style = this.getLabelStyles<AgMapLineSeriesLabelFormatterParams>(
+            const style = getLabelStyles<AgMapLineSeriesLabelFormatterParams>(
+                this,
                 undefined,
                 this.properties,
                 this.properties.label

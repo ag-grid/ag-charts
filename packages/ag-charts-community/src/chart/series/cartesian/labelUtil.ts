@@ -1,11 +1,16 @@
-import type { IsAny } from 'ag-charts-core';
+import { mergeDefaults } from 'packages/ag-charts-community/src/module-support';
+
+import type { AnyFn, IsAny, RequireOptional } from 'ag-charts-core';
+import type { AgChartLabelStyleOptions, AgChartLabelStylerParams } from 'ag-charts-types';
 
 import type { Point } from '../../../scene/point';
 import type { Text } from '../../../scene/shape/text';
 import type { Label } from '../../label';
-import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
 
-type SeriesLike = Pick<ISeries<unknown, SeriesNodeDatum<unknown>, unknown, unknown>, 'getLabelStyles'>;
+interface SeriesLike {
+    id: string;
+    callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F>;
+}
 
 type Bounds = {
     x: number;
@@ -22,6 +27,37 @@ type LabelDatum = Point & {
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
 };
+
+export function getLabelStyles<TParams>(
+    series: SeriesLike,
+    nodeDatum: { datum?: unknown } | undefined,
+    params: TParams,
+    label: Label<TParams>
+): AgChartLabelStyleOptions & { fontSize: number } {
+    if (label.itemStyler) {
+        const styleParams: RequireOptional<Omit<AgChartLabelStylerParams<unknown, unknown>, 'context'>> & {
+            fontSize: number;
+        } = {
+            border: label.border,
+            color: label.color,
+            cornerRadius: label.cornerRadius,
+            datum: nodeDatum?.datum,
+            enabled: label.enabled,
+            fill: label.fill,
+            fillOpacity: label.fillOpacity,
+            fontFamily: label.fontFamily,
+            fontSize: label.fontSize,
+            fontStyle: label.fontStyle,
+            fontWeight: label.fontWeight,
+            itemId: undefined,
+            seriesId: series.id,
+            padding: label.padding,
+        };
+        return mergeDefaults(series.callWithContext(label.itemStyler, { ...params, ...styleParams }), styleParams);
+    }
+
+    return label;
+}
 
 // Enforce that D must not be `any`
 export function updateLabelNode<TParams, D extends LabelDatum>(
@@ -40,7 +76,7 @@ export function updateLabelNode<TParams>(
     labelDatum: LabelDatum | undefined
 ) {
     if (label.enabled && labelDatum) {
-        const style = series.getLabelStyles<TParams>(labelDatum, params, label);
+        const style = getLabelStyles<TParams>(series, labelDatum, params, label);
         textNode.visible = true;
         textNode.x = labelDatum.x;
         textNode.y = labelDatum.y;

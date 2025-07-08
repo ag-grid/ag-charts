@@ -47,6 +47,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import { getLabelStyles } from './labelUtil';
 import { type LineSeriesDataAggregationFilter, aggregateLineData } from './lineAggregation';
 import { LineSeriesProperties } from './lineSeriesProperties';
 import {
@@ -581,7 +582,7 @@ export class LineSeries extends CartesianSeries<
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, LineNodeDatum> }) {
         opts.labelSelection.each((text, datum) => {
-            const style = this.getLabelStyles(datum, this.properties, this.properties.label);
+            const style = getLabelStyles(this, datum, this.properties, this.properties.label);
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && datum?.labelText) {
                 text.fontStyle = fontStyle;

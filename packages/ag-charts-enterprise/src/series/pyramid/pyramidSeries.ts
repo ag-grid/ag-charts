@@ -25,6 +25,7 @@ const {
     fromToMotion,
     seriesLabelFadeInAnimation,
     getShapeStyle,
+    getLabelStyles,
 } = _ModuleSupport;
 
 type PyramidNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
@@ -585,7 +586,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }) {
         opts.labelSelection.each((label, nodeDatum, datumIndex) => {
             const { visible, x, y, text, textAlign, textBaseline } = nodeDatum;
-            const style = this.getLabelStyles(undefined, this.properties, opts.labelProperties);
+            const style = getLabelStyles(this, undefined, this.properties, opts.labelProperties);
             const { color: fill, fontSize, fontStyle, fontWeight, fontFamily } = style;
             label.visible = visible;
             label.x = x;
