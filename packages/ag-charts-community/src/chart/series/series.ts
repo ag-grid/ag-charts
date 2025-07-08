@@ -8,6 +8,7 @@ import {
     type RequiredInternalAgImageFill,
     type RequiredInternalAgPatternColor,
     createId,
+    isEmptyObject,
 } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
@@ -20,7 +21,12 @@ import type {
     ISeriesMarker,
 } from 'ag-charts-types';
 
-import type { HighlightNodeDatum, LegendItemClickEvent, LegendItemDoubleClickEvent } from '../../core/eventsHub';
+import type {
+    HighlightChangeEvent,
+    HighlightNodeDatum,
+    LegendItemClickEvent,
+    LegendItemDoubleClickEvent,
+} from '../../core/eventsHub';
 import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
@@ -209,6 +215,8 @@ export abstract class Series<
     pickModes: SeriesNodePickMode[];
     usesPlacedLabels: boolean = false;
 
+    protected hasHighlightChange: boolean = false;
+
     get pickModeAxis(): 'main' | 'main-category' | undefined {
         return 'main';
     }
@@ -365,8 +373,9 @@ export abstract class Series<
         this.propertyNames = propertyNames;
         this.canHaveAxes = canHaveAxes;
         this.usesPlacedLabels = usesPlacedLabels;
-
         this.pickModes = pickModes;
+
+        this.cleanup.register(this.ctx?.eventsHub.on('highlight:change', (event) => this.hasChangesOnHighlight(event)));
     }
 
     attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined) {
@@ -573,22 +582,21 @@ export abstract class Series<
     }
 
     protected getHighlightState(
+        datum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
         datumIndex?: TDatumIndex,
         legendItemValues?: string[]
     ): HighlightState {
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-
         if (isHighlight) {
             return HighlightState.Item;
         }
 
-        if (highlightedDatum?.series == null) {
+        if (datum?.series == null) {
             return HighlightState.None;
         }
 
-        if (this.isSeriesHighlighted(highlightedDatum, legendItemValues)) {
-            const itemHighlighted = this.isItemHighlighted(highlightedDatum, datumIndex);
+        if (this.isSeriesHighlighted(datum, legendItemValues)) {
+            const itemHighlighted = this.isItemHighlighted(datum, datumIndex);
             if (itemHighlighted == null) {
                 return HighlightState.Series;
             }
@@ -599,6 +607,26 @@ export abstract class Series<
         }
 
         return HighlightState.OtherSeries;
+    }
+
+    private hasChangesOnHighlight(event: HighlightChangeEvent) {
+        const previousHighlightedDatum = event.previousHighlight;
+        const currentHighlightedDatum = event.currentHighlight;
+
+        const currentHighlightState = this.getHighlightState(currentHighlightedDatum);
+        const previousHighlightState = this.getHighlightState(previousHighlightedDatum);
+
+        if (currentHighlightState === previousHighlightState) {
+            this.hasHighlightChange = false;
+            return;
+        }
+
+        const { highlightedSeries, unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
+
+        this.hasHighlightChange =
+            !isEmptyObject(highlightedSeries) ||
+            !isEmptyObject(unhighlightedItem) ||
+            !isEmptyObject(unhighlightedSeries);
     }
 
     protected isSeriesHighlighted(highlightedDatum?: HighlightNodeDatum, _legendItemValues?: string[]) {
@@ -612,7 +640,8 @@ export abstract class Series<
     }
 
     protected getHighlightStyle(isHighlight?: boolean, datumIndex?: TDatumIndex, legendItemValues?: string[]) {
-        const highlightState = this.getHighlightState(isHighlight, datumIndex, legendItemValues);
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
         return this.properties.highlight.getStyle(highlightState);
     }
 

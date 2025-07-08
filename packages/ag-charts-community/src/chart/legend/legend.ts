@@ -17,6 +17,7 @@ import type {
     FontStyle,
     FontWeight,
     Formatter,
+    StrokeOptions,
 } from 'ag-charts-types';
 
 import type { HighlightNodeDatum, LegendChangeEvent } from '../../core/eventsHub';
@@ -26,6 +27,7 @@ import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
+import { Rect } from '../../scene/shape/rect';
 import { Transformable } from '../../scene/transformable';
 import { isImageFill, isPatternFill } from '../../scene/util/fill';
 import { callWithContext } from '../../util/callbackCache';
@@ -148,6 +150,17 @@ class LegendListeners extends BaseProperties implements AgChartLegendListeners {
     legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent) => void;
 }
 
+class Border extends BaseProperties implements StrokeOptions {
+    @Property
+    stroke: string = 'black';
+
+    @Property
+    strokeOpacity: number = 1;
+
+    @Property
+    strokeWidth: number = 0;
+}
+
 const fillGradientDefaults: RequiredInternalAgGradientColor = {
     type: 'gradient',
     bounds: 'item',
@@ -196,6 +209,7 @@ export class Legend extends BaseProperties {
         this.group,
         LegendMarkerLabel
     );
+    private readonly containerNode = this.group.appendChild(new Rect());
 
     private readonly oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
@@ -270,6 +284,21 @@ export class Legend extends BaseProperties {
 
     @Property
     preventHidingAll?: boolean;
+
+    @Property
+    border = new Border();
+
+    @Property
+    cornerRadius: number = 0;
+
+    @Property
+    fill?: string;
+
+    @Property
+    fillOpacity: number = 1;
+
+    @Property
+    padding: number = 4;
 
     /**
      * Spacing between the legend and the edge of the chart's element.
@@ -415,6 +444,8 @@ export class Legend extends BaseProperties {
             return {};
         }
 
+        [width, height] = this.updateContainer(width, height);
+
         const size = this.size;
         const oldSize = this.oldSize;
         size[0] = width;
@@ -539,6 +570,29 @@ export class Legend extends BaseProperties {
         markerLabel.isCustomMarker = isCustomMarker;
 
         return paddedSymbolWidth;
+    }
+
+    private updateContainer(width: number, height: number) {
+        const containerStyles = this.getContainerStyles();
+
+        // Initialise the containerNode to zero size to not affect legends where it is not used
+        this.containerNode.width = 0;
+        this.containerNode.height = 0;
+
+        this.containerNode.fill = containerStyles.fill;
+        this.containerNode.fillOpacity = containerStyles.fillOpacity;
+        this.containerNode.cornerRadius = containerStyles.cornerRadius;
+        this.containerNode.stroke = containerStyles.stroke;
+        this.containerNode.strokeOpacity = containerStyles.strokeOpacity;
+        this.containerNode.strokeWidth = containerStyles.strokeWidth;
+
+        // Grow the desired legend size with the container
+        if (containerStyles.strokeWidth > 0) {
+            width += containerStyles.strokeWidth * 2 + containerStyles.padding * 2;
+            height += containerStyles.strokeWidth * 2 + containerStyles.padding * 2;
+        }
+
+        return [width, height];
     }
 
     private truncate(
@@ -832,6 +886,20 @@ export class Legend extends BaseProperties {
         );
     }
 
+    private getContainerStyles() {
+        const { stroke, strokeOpacity, strokeWidth } = this.border;
+        const { cornerRadius, fill, fillOpacity, padding } = this;
+        return {
+            cornerRadius,
+            fill,
+            fillOpacity,
+            padding,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+        };
+    }
+
     private computePagedBBox(): BBox {
         // Get BBox without group transforms applied.
         const actualBBox = Group.computeChildrenBBox(this.group.children());
@@ -839,6 +907,10 @@ export class Legend extends BaseProperties {
             const [maxPageWidth, maxPageHeight] = this.maxPageSize;
             actualBBox.height = Math.max(maxPageHeight, actualBBox.height);
             actualBBox.width = Math.max(maxPageWidth, actualBBox.width);
+        }
+        const containerStyles = this.getContainerStyles();
+        if (containerStyles.strokeWidth > 0) {
+            actualBBox.grow(containerStyles.strokeWidth + containerStyles.padding);
         }
         return actualBBox;
     }
@@ -1146,6 +1218,11 @@ export class Legend extends BaseProperties {
             // Round off for pixel grid alignment to work properly.
             this.group.translationX = Math.floor(x + translationX - legendBBox.x);
             this.group.translationY = Math.floor(y + translationY - legendBBox.y);
+
+            this.containerNode.x = legendBBox.x;
+            this.containerNode.y = legendBBox.y;
+            this.containerNode.width = legendBBox.width;
+            this.containerNode.height = legendBBox.height;
         }
         return oldPages;
     }

@@ -1,4 +1,4 @@
-import { findMaxIndex, findMinIndex, isEmptyObject, isFiniteNumber } from 'ag-charts-core';
+import { findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
@@ -371,6 +371,16 @@ export abstract class CartesianSeries<
         return series === this || (legendItemName != null && legendItemName === activeLegendItemName);
     }
 
+    protected strokewidthChange() {
+        // TODO: might need to check marker.strokeWidth
+        return (
+            'strokeWidth' in this.properties &&
+            this.properties.strokeWidth != null &&
+            this.properties.strokeWidth >
+                (this.properties.highlight.highlightedItem?.strokeWidth ?? this.properties.strokeWidth)
+        );
+    }
+
     update({ seriesRect }: { seriesRect?: BBox }) {
         const { _contextNodeData: previousContextData } = this;
 
@@ -516,14 +526,9 @@ export abstract class CartesianSeries<
             return;
         }
 
-        const { highlight: { unhighlightedItem, highlightedSeries, unhighlightedSeries } = {} } = this.properties;
+        const hasChangesOnHighlight = this.strokewidthChange() || this.hasHighlightChange;
 
-        const changesOnHighlight =
-            !isEmptyObject(unhighlightedItem) ||
-            !isEmptyObject(highlightedSeries) ||
-            !isEmptyObject(unhighlightedSeries);
-
-        if (nodeRefresh || changesOnHighlight) {
+        if (nodeRefresh || hasChangesOnHighlight) {
             this.updateDatumNodes({ datumSelection, isHighlight: false });
             if (!this.usesPlacedLabels) {
                 this.labelGroup.batchedUpdate(() => {
