@@ -5,12 +5,13 @@ import type { Point, SizedPoint } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { SpanJoin } from './lineInterpolation';
+import { SpanJoin, spanRange } from './lineInterpolation';
 import { plotInterpolatedSpans, plotSpan } from './lineInterpolationPlotting';
 import { CollapseMode, type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
 import {
     type LinePathSpan,
     type SpanAnimation,
+    pointsEq,
     prepareLinePathPropertyAnimation,
     prepareLinePathStrokeAnimationFns,
 } from './lineUtil';
@@ -53,13 +54,31 @@ export interface AreaSeriesNodeDataContext
 }
 
 export function plotAreaPathFill({ path }: Path, { spans, phantomSpans }: AreaFillPathDatum) {
+    let phantomSpanIndex = 0;
+    let p = { x: NaN, y: NaN };
     for (let i = 0; i < spans.length; i += 1) {
         const { span } = spans[i];
-        const phantomSpan = phantomSpans[i].span;
-        plotSpan(path, span, SpanJoin.MoveTo, false);
-        plotSpan(path, phantomSpan, SpanJoin.LineTo, true);
-        path.closePath();
+        const { 0: p0, 1: p1 } = spanRange(span);
+        if (pointsEq(p, p0)) {
+            plotSpan(path, span, SpanJoin.LineTo, false);
+        } else {
+            for (let j = i - 1; j >= phantomSpanIndex; j -= 1) {
+                plotSpan(path, phantomSpans[j].span, SpanJoin.LineTo, true);
+            }
+            path.closePath();
+
+            plotSpan(path, span, SpanJoin.MoveTo, false);
+
+            phantomSpanIndex = i;
+        }
+
+        p = p1;
     }
+
+    for (let j = spans.length - 1; j >= phantomSpanIndex; j -= 1) {
+        plotSpan(path, phantomSpans[j].span, SpanJoin.LineTo, true);
+    }
+    path.closePath();
 }
 
 export function plotInterpolatedAreaSeriesFillSpans(

@@ -94,7 +94,7 @@ export class AreaSeries extends CartesianSeries<
 
     override connectsToYAxis = true;
 
-    public dataAggregationFilters: LineSeriesDataAggregationFilter[] | undefined = undefined;
+    private dataAggregationFilters: LineSeriesDataAggregationFilter[] | undefined = undefined;
 
     readonly backgroundGroup = new Group({
         name: `${this.id}-background`,
@@ -222,22 +222,24 @@ export class AreaSeries extends CartesianSeries<
             valueProperty(yKey, yScaleType, { id: `yValue`, ...common, groupId: idMap.value }),
         ];
 
-        props.push(
-            ...groupAccumulativeValueProperty(
-                yKey,
-                'window',
-                'current',
-                { id: `yValueEnd`, ...common, groupId: idMap.values },
-                yScaleType
-            ),
-            ...groupAccumulativeValueProperty(
-                yKey,
-                'normal',
-                'current',
-                { id: `yValueCumulative`, ...common, groupId: idMap.marker },
-                yScaleType
-            )
-        );
+        if (stacked) {
+            props.push(
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'window',
+                    'current',
+                    { id: `yValueEnd`, ...common, groupId: idMap.values },
+                    yScaleType
+                ),
+                ...groupAccumulativeValueProperty(
+                    yKey,
+                    'normal',
+                    'current',
+                    { id: `yValueCumulative`, ...common, groupId: idMap.marker },
+                    yScaleType
+                )
+            );
+        }
 
         if (isDefined(normalizedTo)) {
             props.push(normaliseGroupTo(Object.values(idMap), normalizedTo));
@@ -271,6 +273,10 @@ export class AreaSeries extends CartesianSeries<
         return [y - r, y + r];
     }
 
+    private yCumulativeKey(processData: ProcessedData<any>) {
+        return processData.type === 'grouped' ? 'yValueCumulative' : 'yValue';
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel, axes } = this;
         if (!processedData || !dataModel) return [];
@@ -287,7 +293,11 @@ export class AreaSeries extends CartesianSeries<
             return fixNumericExtent(extent(keys));
         }
 
-        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yValueCumulative'], 'xValue');
+        const yExtent = this.domainForClippedRange(
+            ChartAxisDirection.Y,
+            [this.yCumulativeKey(processedData)],
+            'xValue'
+        );
 
         if (yAxis instanceof LogAxis || yAxis instanceof TimeAxis) {
             return fixNumericExtent(yExtent);
@@ -300,7 +310,12 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, ['yValueCumulative'], 'xValue', visibleRange);
+        const [y0, y1] = this.domainForVisibleRange(
+            ChartAxisDirection.Y,
+            [this.yCumulativeKey(this.processedData!)],
+            'xValue',
+            visibleRange
+        );
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 
@@ -309,7 +324,13 @@ export class AreaSeries extends CartesianSeries<
         yVisibleRange: [number, number],
         minVisibleItems: number
     ): number {
-        return this.countVisibleItems('xValue', ['yValueCumulative'], xVisibleRange, yVisibleRange, minVisibleItems);
+        return this.countVisibleItems(
+            'xValue',
+            [this.yCumulativeKey(this.processedData!)],
+            xVisibleRange,
+            yVisibleRange,
+            minVisibleItems
+        );
     }
 
     private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>) {
@@ -328,7 +349,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override createNodeData() {
-        const { axes, data, processedData, dataModel } = this;
+        const { axes, data, processedData, dataModel, dataAggregationFilters } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -356,10 +377,14 @@ export class AreaSeries extends CartesianSeries<
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
+        const stacked = processedData.type === 'grouped';
+
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        const yEndValues = dataModel.resolveColumnById(this, `yValueEnd`, processedData);
         const yRawValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
-        const yCumulativeValues = dataModel.resolveColumnById(this, `yValueCumulative`, processedData);
+        const yEndValues = stacked ? dataModel.resolveColumnById(this, `yValueEnd`, processedData) : yRawValues;
+        const yCumulativeValues = stacked
+            ? dataModel.resolveColumnById(this, `yValueCumulative`, processedData)
+            : yRawValues;
         const yFilterValues =
             yFilterKey != null ? dataModel.resolveColumnById(this, 'yFilterRaw', processedData) : undefined;
         const yStackValues =
@@ -393,6 +418,10 @@ export class AreaSeries extends CartesianSeries<
         let crossFiltering = false;
         const { dataSources } = processedData;
         const rawData = dataSources.get(this.id) ?? [];
+
+        const [r0, r1] = xScale.range;
+        const range = Math.abs(r1 - r0);
+        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         const handleDatum = (datumIndex: number) => {
             const xDatum = xValues[datumIndex];
@@ -461,8 +490,12 @@ export class AreaSeries extends CartesianSeries<
             for (const { datumIndex } of dataModel.forEachGroupDatum(this, processedData)) {
                 handleDatum(datumIndex);
             }
-        } else {
+        } else if (dataAggregationFilter == null) {
             for (let datumIndex = 0; datumIndex < rawData.length; datumIndex += 1) {
+                handleDatum(datumIndex);
+            }
+        } else {
+            for (const datumIndex of dataAggregationFilter.indices) {
                 handleDatum(datumIndex);
             }
         }
@@ -571,10 +604,20 @@ export class AreaSeries extends CartesianSeries<
                 } of dataModel.forEachGroupDatumTuple(this, processedData)) {
                     handleSeriesPoint(pIdx, datumIndex, nIdx);
                 }
-            } else {
+            } else if (dataAggregationFilter == null) {
                 for (let datumIndex = 0; datumIndex < rawData.length; datumIndex += 1) {
                     const pIdx = datumIndex > 0 ? datumIndex - 1 : undefined;
                     const nIdx = datumIndex < rawData.length - 1 ? datumIndex + 1 : undefined;
+                    handleSeriesPoint(pIdx, datumIndex, nIdx);
+                }
+            } else {
+                for (let i = 0; i < dataAggregationFilter.indices.length; i += 1) {
+                    const datumIndex = dataAggregationFilter.indices[i];
+                    const pIdx = i > 0 ? dataAggregationFilter.indices[i - 1] : undefined;
+                    const nIdx =
+                        i < dataAggregationFilter.indices.length - 1
+                            ? dataAggregationFilter.indices[index + 1]
+                            : undefined;
                     handleSeriesPoint(pIdx, datumIndex, nIdx);
                 }
             }
@@ -598,8 +641,12 @@ export class AreaSeries extends CartesianSeries<
                 yValueZeroPoints = Array.from(dataModel.forEachGroupDatum(this, processedData), ({ datumIndex }) => {
                     return getPoint(datumIndex);
                 });
-            } else {
+            } else if (dataAggregationFilter == null) {
                 yValueZeroPoints = rawData.map((_, datumIndex) => {
+                    return getPoint(datumIndex);
+                });
+            } else {
+                yValueZeroPoints = dataAggregationFilter.indices.map((datumIndex) => {
                     return getPoint(datumIndex);
                 });
             }

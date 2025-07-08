@@ -74,7 +74,7 @@ export function interpolatePoints(
     }));
 }
 
-function pointsEq(a: Point, b: Point, delta = 1e-3) {
+export function pointsEq(a: Point, b: Point, delta = 1e-3) {
     return Math.abs(a.x - b.x) < delta && Math.abs(a.y - b.y) < delta;
 }
 
