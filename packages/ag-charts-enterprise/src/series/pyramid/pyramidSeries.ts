@@ -583,10 +583,10 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum>;
         labelProperties: _ModuleSupport.Label<AgPyramidSeriesLabelFormatterParams>;
     }) {
-        const { labelSelection, labelProperties } = opts;
-        const { color: fill, fontSize, fontStyle, fontWeight, fontFamily } = labelProperties;
-
-        labelSelection.each((label, { visible, x, y, text, textAlign, textBaseline }, datumIndex) => {
+        opts.labelSelection.each((label, nodeDatum, datumIndex) => {
+            const { visible, x, y, text, textAlign, textBaseline } = nodeDatum;
+            const style = this.getLabelStyles(undefined, this.properties, opts.labelProperties);
+            const { color: fill, fontSize, fontStyle, fontWeight, fontFamily } = style;
             label.visible = visible;
             label.x = x;
             label.y = y;
@@ -599,7 +599,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             label.fontFamily = fontFamily;
             label.textAlign = textAlign;
             label.textBaseline = textBaseline;
-            label.setBoxing(labelProperties);
+            label.setBoxing(style);
         });
     }
 

@@ -1,5 +1,5 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, type RequireOptional } from 'ag-charts-core';
 import type { AgChordSeriesLabelFormatterParams } from 'ag-charts-types';
 
 import {
@@ -56,6 +56,7 @@ interface ChordNodeLabelDatum {
     centerY: number;
     angle: number;
     radius: number;
+    size: number;
 }
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
@@ -190,6 +191,7 @@ export class ChordSeries extends FlowProportionSeries<
                     centerY,
                     angle: NaN,
                     radius: NaN,
+                    size: node.size,
                 });
             });
 
@@ -339,10 +341,17 @@ export class ChordSeries extends FlowProportionSeries<
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, ChordNodeLabelDatum>;
     }) {
-        const { labelSelection } = opts;
-        const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = this.properties.label;
+        const params: AgChordSeriesLabelFormatterParams = {
+            toKey: this.properties.toKey,
+            fromKey: this.properties.fromKey,
+            sizeKey: this.properties.sizeKey,
+            size: NaN,
+        } satisfies RequireOptional<AgChordSeriesLabelFormatterParams>;
 
-        labelSelection.each((label, { text, centerX, centerY, radius, angle }) => {
+        opts.labelSelection.each((label, { size, text, centerX, centerY, radius, angle }) => {
+            params.size = size;
+            const style = this.getLabelStyles(undefined, params, this.properties.label);
+            const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = style;
             label.visible = true;
             label.translationX = centerX + radius * Math.cos(angle);
             label.translationY = centerY + radius * Math.sin(angle);
@@ -360,7 +369,7 @@ export class ChordSeries extends FlowProportionSeries<
                 label.textAlign = 'right';
                 label.rotation = angle - Math.PI;
             }
-            label.setBoxing(this.properties.label);
+            label.setBoxing(style);
         });
     }
 

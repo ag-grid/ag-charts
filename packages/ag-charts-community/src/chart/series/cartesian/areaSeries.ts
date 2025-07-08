@@ -731,11 +731,11 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, LabelSelectionDatum> }) {
-        const { labelSelection } = opts;
-        const { enabled: labelEnabled, fontStyle, fontWeight, fontSize, fontFamily, color } = this.properties.label;
-        labelSelection.each((text, datum) => {
+        opts.labelSelection.each((text, datum) => {
             const { x, y, labelText } = datum;
 
+            const style = this.getLabelStyles(datum, this.properties, this.properties.label);
+            const { enabled: labelEnabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (labelText && labelEnabled && this.visible) {
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
@@ -749,7 +749,7 @@ export class AreaSeries extends CartesianSeries<
                 text.fill = color;
                 text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
                 text.visible = true;
-                text.setBoxing(this.properties.label);
+                text.setBoxing(style);
             } else {
                 text.visible = false;
             }

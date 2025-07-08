@@ -559,10 +559,13 @@ export class MapShapeSeries
     private updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum>;
     }) {
-        const { labelSelection } = opts;
-        const { color: fill, fontStyle, fontWeight, fontFamily } = this.properties.label;
-
-        labelSelection.each((label, { x, y, text, fontSize, lineHeight }, datumIndex) => {
+        opts.labelSelection.each((label, { x, y, text, fontSize, lineHeight }, datumIndex) => {
+            const style = this.getLabelStyles<AgMapShapeSeriesLabelFormatterParams>(
+                undefined,
+                this.properties,
+                this.properties.label
+            );
+            const { color: fill, fontStyle, fontWeight, fontFamily } = style;
             label.visible = true;
             label.x = x;
             label.y = y;
@@ -576,7 +579,7 @@ export class MapShapeSeries
             label.textAlign = 'center';
             label.textBaseline = 'middle';
             label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
-            label.setBoxing(this.properties.label);
+            label.setBoxing(style);
         });
     }
 

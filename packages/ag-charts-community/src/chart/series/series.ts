@@ -968,7 +968,7 @@ export abstract class Series<
     }
 
     public getLabelStyles<TParams>(
-        nodeDatum: SeriesNodeDatum<unknown>,
+        nodeDatum: SeriesNodeDatum<unknown> | undefined,
         params: TParams,
         label: Label<TParams>
     ): AgChartLabelStyleOptions & { fontSize: number } {
@@ -979,7 +979,7 @@ export abstract class Series<
                 border: label.border,
                 color: label.color,
                 cornerRadius: label.cornerRadius,
-                datum: nodeDatum.datum,
+                datum: nodeDatum?.datum,
                 enabled: label.enabled,
                 fill: label.fill,
                 fillOpacity: label.fillOpacity,
