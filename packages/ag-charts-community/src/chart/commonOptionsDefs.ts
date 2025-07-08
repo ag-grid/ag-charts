@@ -265,6 +265,8 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         border: strokeOptionsDef,
         cornerRadius: number,
         padding: number,
+        fill: color,
+        fillOpacity: ratio,
         preventHidingAll: boolean,
         reverseOrder: boolean,
         toggleSeries: boolean,

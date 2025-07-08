@@ -386,6 +386,8 @@ export class ChartTheme {
                     strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 },
                 cornerRadius: 0,
+                fill: undefined,
+                fillOpacity: 1,
                 padding: 4,
                 spacing: 30,
                 listeners: {},

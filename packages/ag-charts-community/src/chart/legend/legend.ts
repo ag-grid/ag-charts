@@ -292,6 +292,12 @@ export class Legend extends BaseProperties {
     cornerRadius: number = 0;
 
     @Property
+    fill?: string;
+
+    @Property
+    fillOpacity: number = 1;
+
+    @Property
     padding: number = 4;
 
     /**
@@ -573,7 +579,8 @@ export class Legend extends BaseProperties {
         this.containerNode.width = 0;
         this.containerNode.height = 0;
 
-        this.containerNode.fill = undefined;
+        this.containerNode.fill = containerStyles.fill;
+        this.containerNode.fillOpacity = containerStyles.fillOpacity;
         this.containerNode.cornerRadius = containerStyles.cornerRadius;
         this.containerNode.stroke = containerStyles.stroke;
         this.containerNode.strokeOpacity = containerStyles.strokeOpacity;
@@ -881,9 +888,11 @@ export class Legend extends BaseProperties {
 
     private getContainerStyles() {
         const { stroke, strokeOpacity, strokeWidth } = this.border;
-        const { cornerRadius, padding } = this;
+        const { cornerRadius, fill, fillOpacity, padding } = this;
         return {
             cornerRadius,
+            fill,
+            fillOpacity,
             padding,
             stroke,
             strokeOpacity,
