@@ -1,4 +1,4 @@
-import type { AgColorType } from '../series/cartesian/commonOptions';
+import type { AgColorType, StrokeOptions } from '../series/cartesian/commonOptions';
 import type { Formatter } from './callbackOptions';
 import type { AgPreventableEvent } from './eventOptions';
 import type {
@@ -119,6 +119,12 @@ export interface AgChartLegendOptions<TContext = ContextDefault> {
     maxWidth?: PixelSize;
     /** Used to constrain the height of the legend. */
     maxHeight?: PixelSize;
+    /** The border around the legend. */
+    border?: StrokeOptions;
+    /** The corner radius of the legend. */
+    cornerRadius?: PixelSize;
+    /** The padding between the border and legend items. */
+    padding?: PixelSize;
     /** The spacing in pixels to use outside the legend. */
     spacing?: PixelSize;
     /** Configuration for the legend items that consist of a marker and a label. */

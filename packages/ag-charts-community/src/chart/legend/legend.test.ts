@@ -428,6 +428,26 @@ describe('Legend', () => {
         });
     });
 
+    describe('Border', () => {
+        it('should render as expected', async () => {
+            await compareSnapshot({
+                data: [
+                    { x: 'x1', a: 1, b: 2 },
+                    { x: 'x2', a: 1, b: 2 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'a' },
+                    { type: 'area', xKey: 'x', yKey: 'b' },
+                ],
+                legend: {
+                    border: { stroke: 'red', strokeWidth: 8 },
+                    cornerRadius: 16,
+                    padding: 8,
+                },
+            });
+        });
+    });
+
     describe('AG-12614', () => {
         test('updateDelta line to bar', async () => {
             const options: AgChartOptions = prepareTestOptions({
