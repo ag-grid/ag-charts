@@ -74,7 +74,7 @@ import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/ty
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
-import { Series, SeriesGroupingChangedEvent, SeriesNodeEvent } from './series/series';
+import { SeriesGroupingChangedEvent, SeriesNodeEvent, type UnknownSeries } from './series/series';
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
@@ -851,7 +851,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.onSeriesChange(newValue, oldValue);
         },
     })
-    series: Series<unknown, any, any>[] = [];
+    series: UnknownSeries[] = [];
 
     protected onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         if (oldValue == null && newValue.length === 0) return;
@@ -859,7 +859,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.ctx.axisManager.updateAxes(oldValue ?? [], newValue);
     }
 
-    protected onSeriesChange(newValue: Series<unknown, any, any>[], oldValue?: Series<unknown, any, any>[]) {
+    protected onSeriesChange(newValue: UnknownSeries[], oldValue?: UnknownSeries[]) {
         const seriesToDestroy = oldValue?.filter((series) => !newValue.includes(series)) ?? [];
         this.destroySeries(seriesToDestroy);
         this.seriesLayerManager?.setSeriesCount(newValue.length);
@@ -891,7 +891,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.seriesAreaManager?.seriesChanged(newValue);
     }
 
-    protected destroySeries(allSeries: Series<unknown, any, any>[]): void {
+    protected destroySeries(allSeries: UnknownSeries[]): void {
         allSeries?.forEach((series) => {
             series.removeEventListener('seriesNodeClick', this.onSeriesNodeClick);
             series.removeEventListener('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
@@ -904,7 +904,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         });
     }
 
-    private addSeriesListeners(series: Series<unknown, any, any>) {
+    private addSeriesListeners(series: UnknownSeries) {
         if (this.hasEventListener('seriesNodeClick')) {
             series.addEventListener('seriesNodeClick', this.onSeriesNodeClick);
         }
@@ -1436,7 +1436,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'axes[].label',
         ]);
 
-        const series = miniChart.series as Series<unknown, any, any>[];
+        const series: UnknownSeries[] = miniChart.series;
         for (const s of series) {
             // AG-12681
             s.properties.id = undefined;
@@ -1526,7 +1526,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         return modulesChanged;
     }
 
-    private initSeriesDeclarationOrder(series: Series<unknown, any, any>[]) {
+    private initSeriesDeclarationOrder(series: UnknownSeries[]) {
         // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
         for (let idx = 0; idx < series.length; idx++) {
             series[idx].setSeriesIndex(idx);
@@ -1534,7 +1534,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private applySeries(
-        chart: { series: Series<unknown, any, any>[] },
+        chart: { series: UnknownSeries[] },
         optSeries: AgChartOptions['series'],
         oldOptSeries?: AgChartOptions['series']
     ): SeriesChangeType {
@@ -1643,18 +1643,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         return true;
     }
 
-    private createSeries(seriesOptions: SeriesOptionsTypes): Series<unknown, any, any> {
-        const seriesInstance = seriesRegistry.create(seriesOptions.type, this.getModuleContext()) as Series<
-            any,
-            any,
-            any
-        >;
+    private createSeries(seriesOptions: SeriesOptionsTypes): UnknownSeries {
+        const seriesInstance = seriesRegistry.create(seriesOptions.type, this.getModuleContext()) as UnknownSeries;
         this.applySeriesOptionModules(seriesInstance, seriesOptions);
         this.applySeriesValues(seriesInstance, seriesOptions);
         return seriesInstance;
     }
 
-    private applySeriesOptionModules(series: Series<unknown, any, any>, options: SeriesOptionsTypes) {
+    private applySeriesOptionModules(series: UnknownSeries, options: SeriesOptionsTypes) {
         const moduleContext = series.createModuleContext();
         const moduleMap = series.getModuleMap();
 
@@ -1665,7 +1661,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
     }
 
-    private applySeriesValues(target: Series<unknown, any, any>, options: SeriesOptionsTypes) {
+    private applySeriesValues(target: UnknownSeries, options: SeriesOptionsTypes) {
         const moduleMap = target.getModuleMap();
         const { type: _, data, listeners, seriesGrouping, showInMiniChart: __, ...seriesOptions } = options as any;
 

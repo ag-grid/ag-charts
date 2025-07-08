@@ -41,7 +41,7 @@ import {
     tooltipContentAriaLabel,
 } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
-import { type PickFocusOutputs, type Series, type SeriesNodePickIntent } from './series';
+import { type PickFocusOutputs, type Series, type SeriesNodePickIntent, type UnknownSeries } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesNodeDatum } from './seriesTypes';
 
@@ -77,7 +77,7 @@ type PickedNodes = {
 };
 
 interface PickedNode {
-    series: Series<unknown, any, any>;
+    series: UnknownSeries;
     datum: SeriesNodeDatum<any>;
     datumIndex: unknown;
 }
@@ -128,7 +128,7 @@ class PickedNodeState {
 export class SeriesAreaManager extends BaseManager {
     readonly id = createId(this);
 
-    private series: Series<unknown, any, any>[] = [];
+    private series: UnknownSeries[] = [];
     private seriesRect?: BBox;
     private hoverRect?: BBox;
     public readonly focusIndicator?: FocusIndicator;
@@ -179,8 +179,8 @@ export class SeriesAreaManager extends BaseManager {
     private previousInputDevice: 'pointer' | 'keyboard' = 'keyboard';
 
     private readonly focus = {
-        sortedSeries: [] as Series<unknown, SeriesNodeDatum<unknown>, SeriesProperties<object>>[],
-        series: undefined as Series<unknown, any, any> | undefined,
+        sortedSeries: [] as UnknownSeries[],
+        series: undefined as UnknownSeries | undefined,
         seriesIndex: 0,
         datumIndex: 0,
         datum: undefined as SeriesNodeDatum<unknown> | undefined,

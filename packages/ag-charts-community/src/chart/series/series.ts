@@ -195,6 +195,8 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
     }
 }
 
+export type UnknownSeries = Series<unknown, SeriesNodeDatum<unknown>, SeriesProperties<object>>;
+
 export abstract class Series<
         TDatumIndex,
         TDatum extends SeriesNodeDatum<TDatumIndex>,

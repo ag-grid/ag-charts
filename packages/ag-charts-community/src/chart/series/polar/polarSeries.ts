@@ -51,6 +51,13 @@ export const DEFAULT_POLAR_DIRECTION_NAMES = {
     [ChartAxisDirection.Radius]: ['radiusName' as const],
 };
 
+export type UnknownPolarSeries = PolarSeries<
+    DataModelSeriesNodeDatum,
+    object,
+    SeriesProperties<object> & PolarSeriesProperties,
+    Node
+>;
+
 export abstract class PolarSeries<
     TDatum extends DataModelSeriesNodeDatum & { legendItemValue?: string },
     TProps extends SeriesProperties<any> & PolarSeriesProperties,

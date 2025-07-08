@@ -10,7 +10,7 @@ import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import { ChartAxisDirection } from './chartAxisDirection';
 import type { SeriesArea } from './series-area/seriesArea';
-import { PolarSeries } from './series/polar/polarSeries';
+import { PolarSeries, type UnknownPolarSeries } from './series/polar/polarSeries';
 import { ZIndexMap } from './zIndexMap';
 
 export class PolarChart extends Chart {
@@ -80,7 +80,8 @@ export class PolarChart extends Chart {
     }
 
     private async computeCircle(seriesBox: BBox) {
-        const polarSeries = this.series.filter(isPolarSeries);
+        const anySeries: any[] = this.series;
+        const polarSeries = anySeries.filter(isPolarSeries);
         const polarAxes = this.axes.filter(isPolarAxis);
 
         const setSeriesCircle = (cx: number, cy: number, r: number) => {
@@ -213,7 +214,7 @@ export class PolarChart extends Chart {
     }
 }
 
-function isPolarSeries(series: unknown): series is PolarSeries<any, any, any> {
+function isPolarSeries(series: unknown): series is UnknownPolarSeries {
     return series instanceof PolarSeries;
 }
 
