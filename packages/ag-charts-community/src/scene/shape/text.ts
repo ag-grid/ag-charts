@@ -1,15 +1,14 @@
 import { createSvgElement, isDefined } from 'ag-charts-core';
-import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize, Ratio } from 'ag-charts-types';
+import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
-import { objectsEqual } from '../../util/object';
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
-import { SceneObjectChangeDetection } from '../changeDetectable';
 import type { RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { DebugSelectors } from '../sceneDebug';
 import { Rotatable, Translatable } from '../transformable';
+import { Rect } from './rect';
 import { Shape, type ShapeColor } from './shape';
 
 export interface TextSizeProperties {
@@ -20,6 +19,18 @@ export interface TextSizeProperties {
     lineHeight?: number;
     textBaseline?: CanvasTextBaseline;
     textAlign?: CanvasTextAlign;
+}
+
+interface TextBoxingProperties {
+    cornerRadius?: PixelSize;
+    padding?: PixelSize;
+    fill?: ShapeColor;
+    fillOpacity?: Opacity;
+    border?: {
+        stroke?: CssColor;
+        strokeWidth?: PixelSize;
+        strokeOpacity?: Opacity;
+    };
 }
 
 // @todo() - Workaround for subclassing
@@ -71,26 +82,8 @@ export class Text<D = any> extends Shape<D> {
     @SceneChangeDetection()
     lineHeight?: number;
 
-    @SceneChangeDetection()
-    boxCornerRadius?: Ratio;
-
-    @SceneChangeDetection()
-    boxPadding?: PixelSize;
-
-    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (t: Text) => t.onFillChange() })
-    boxFill?: ShapeColor;
-
-    @SceneChangeDetection()
-    boxFillOpacity?: Opacity;
-
-    @SceneChangeDetection()
-    boxStroke?: CssColor;
-
-    @SceneChangeDetection()
-    boxStrokeWidth?: PixelSize;
-
-    @SceneChangeDetection()
-    boxStrokeOpacity?: Opacity;
+    private boxing?: Rect;
+    private boxPadding: number = 0;
 
     static computeBBox(
         lines: string | string[],
@@ -177,18 +170,7 @@ export class Text<D = any> extends Shape<D> {
             return super.render(renderCtx);
         }
 
-        const {
-            fill,
-            stroke,
-            strokeWidth,
-            boxFill,
-            boxFillOpacity = 1,
-            boxCornerRadius,
-            boxStroke,
-            boxStrokeWidth = 1,
-            boxStrokeOpacity = 1,
-            boxPadding = 0,
-        } = this;
+        const { fill, stroke, strokeWidth } = this;
         const { globalAlpha } = ctx;
         const { pixelRatio } = this.layerManager.canvas;
 
@@ -212,37 +194,14 @@ export class Text<D = any> extends Shape<D> {
         ctx.textAlign = textAlign;
         ctx.textBaseline = textBaseline;
 
-        if (boxFill != null || boxStroke != null) {
-            const { x, y, width, height } = this.getBBox(true).grow(boxPadding);
-            const maxRadius = Math.min(width, height) / 2;
-            const radius = Math.min(boxCornerRadius ?? 0, maxRadius);
-
-            ctx.beginPath();
-            ctx.moveTo(x + radius, y);
-            ctx.lineTo(x + width - radius, y);
-            ctx.arcTo(x + width, y, x + width, y + radius, radius);
-            ctx.lineTo(x + width, y + height - radius);
-            ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
-            ctx.lineTo(x + radius, y + height);
-            ctx.arcTo(x, y + height, x, y + height - radius, radius);
-            ctx.lineTo(x, y + radius);
-            ctx.arcTo(x, y, x + radius, y, radius);
-            ctx.closePath();
-
-            if (boxFill) {
-                ctx.fillStyle = boxFill as string; // TODO: gradients, images and etc..
-                ctx.globalAlpha = boxFillOpacity;
-                ctx.fill();
-            }
-
-            if (boxStroke) {
-                ctx.strokeStyle = boxStroke;
-                ctx.lineWidth = boxStrokeWidth;
-                ctx.globalAlpha = boxStrokeOpacity;
-                ctx.stroke();
-            }
-
-            ctx.globalAlpha = globalAlpha;
+        if (this.boxing) {
+            const { x, y, width, height } = this.getBBox(true).grow(this.boxPadding);
+            this.boxing.x = x;
+            this.boxing.y = y;
+            this.boxing.width = width;
+            this.boxing.height = height;
+            this.boxing.preRender(renderCtx);
+            this.boxing.render(renderCtx);
         }
 
         if (fill) {
@@ -326,6 +285,22 @@ export class Text<D = any> extends Shape<D> {
     setAlign(props: { textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }) {
         this.textAlign = props.textAlign;
         this.textBaseline = props.textBaseline;
+    }
+
+    setBoxing(props: TextBoxingProperties) {
+        if (props.fill != null || props.border?.stroke != null) {
+            this.boxing ??= new Rect();
+            this.boxing.fill = props.fill;
+            this.boxing.fillOpacity = props.fillOpacity ?? 1;
+            this.boxing.cornerRadius = props.cornerRadius ?? 0;
+            this.boxing.stroke = props.border?.stroke;
+            this.boxing.strokeWidth = props.border?.strokeWidth ?? 0;
+            this.boxing.strokeOpacity = props.border?.strokeOpacity ?? 1;
+            this.boxPadding = props.padding ?? 0;
+        } else if (this.boxing) {
+            this.boxing.destroy();
+            this.boxing = undefined;
+        }
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

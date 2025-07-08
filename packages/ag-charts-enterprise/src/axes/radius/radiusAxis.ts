@@ -174,6 +174,7 @@ export abstract class RadiusAxis<
             regularFlipRotation,
             labelX,
             sideFlag,
+            sizeLimit: undefined,
             removeOverflowLabels: false,
         });
 
@@ -327,7 +328,7 @@ export abstract class RadiusAxis<
             titleNode.textAlign = 'center';
             titleNode.textBaseline = 'bottom';
 
-            titleNode.text = this.callWithContext(formatter, this.getTitleFormatterParams(this.scale.domain));
+            titleNode.text = this.cachedCallWithContext(formatter, this.getTitleFormatterParams(this.scale.domain));
         }
 
         titleNode.visible = titleVisible;

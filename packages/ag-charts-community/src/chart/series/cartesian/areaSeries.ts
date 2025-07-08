@@ -800,19 +800,7 @@ export class AreaSeries extends CartesianSeries<
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, LabelSelectionDatum> }) {
         const { labelSelection } = opts;
-        const {
-            enabled: labelEnabled,
-            fontStyle,
-            fontWeight,
-            fontSize,
-            fontFamily,
-            color,
-            fill: boxFill,
-            fillOpacity: boxFillOpacity,
-            cornerRadius: boxCornerRadius,
-            padding: boxPadding,
-            border: { stroke: boxStroke, strokeWidth: boxStrokeWidth, strokeOpacity: boxStrokeOpacity },
-        } = this.properties.label;
+        const { enabled: labelEnabled, fontStyle, fontWeight, fontSize, fontFamily, color } = this.properties.label;
         labelSelection.each((text, datum) => {
             const { x, y, labelText } = datum;
 
@@ -829,13 +817,7 @@ export class AreaSeries extends CartesianSeries<
                 text.fill = color;
                 text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
                 text.visible = true;
-                text.boxCornerRadius = boxCornerRadius;
-                text.boxPadding = boxPadding;
-                text.boxFill = boxFill;
-                text.boxFillOpacity = boxFillOpacity;
-                text.boxStroke = boxStroke;
-                text.boxStrokeOpacity = boxStrokeOpacity;
-                text.boxStrokeWidth = boxStrokeWidth;
+                text.setBoxing(this.properties.label);
             } else {
                 text.visible = false;
             }
