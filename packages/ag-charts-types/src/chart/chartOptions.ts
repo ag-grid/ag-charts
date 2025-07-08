@@ -1,4 +1,5 @@
 import type { AgInitialStateOptions } from '../api/initialStateOptions';
+import type { StrokeOptions } from '../series/cartesian/commonOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { Renderer } from './callbackOptions';
@@ -49,8 +50,12 @@ export interface AgSeriesAreaPaddingOptions {
 }
 
 export interface AgSeriesAreaOptions {
+    /** The border around the series area. */
+    border?: StrokeOptions;
     /** Controls whether to strictly clip the series rendering to the series area. */
     clip?: boolean;
+    /** The corner radius of the series area. */
+    cornerRadius?: number;
     /** Configuration for the padding around the series area. */
     padding?: AgSeriesAreaPaddingOptions;
 }

@@ -7,7 +7,6 @@ export interface ChartLike {
     context?: unknown;
     axes: AxisLike[];
     series: SeriesLike[];
-    seriesArea: { clip?: boolean };
     seriesRoot: Group;
     padding: Padding;
 }

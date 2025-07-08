@@ -58,8 +58,7 @@ export class TopologyChart extends Chart {
         const { seriesRoot, annotationRoot } = this;
         const { layoutBox } = ctx;
 
-        layoutBox.shrink(this.seriesArea.padding.toJson());
-        const seriesRect = layoutBox.clone();
+        const seriesRect = layoutBox.clone().shrink(this.modulesManager.getModule<any>('seriesArea').getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
@@ -121,7 +120,7 @@ export class TopologyChart extends Chart {
         }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
-            series: { visible: seriesVisible, rect: seriesRect, paddedRect: seriesRect },
+            series: { visible: seriesVisible, rect: seriesRect, paddedRect: layoutBox },
         });
     }
 }

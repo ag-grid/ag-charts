@@ -41,7 +41,7 @@ import { mergeDefaults, without } from '../util/object';
 import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
 import { Padding } from '../util/padding';
-import { BaseProperties, Property } from '../util/properties';
+import { Property } from '../util/properties';
 import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { Widget } from '../widget/widget';
@@ -103,14 +103,6 @@ type SeriesChangeType =
     | 'series-grouping-change'
     | 'series-count-changed'
     | 'updated';
-
-class SeriesArea extends BaseProperties {
-    @Property
-    clip?: boolean;
-
-    @Property
-    padding = new Padding(0);
-}
 
 export abstract class Chart extends Observable implements ModuleInstance, ChartService {
     private static readonly chartsInstances = new WeakMap<HTMLElement, Chart>();
@@ -218,8 +210,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     @Property
     readonly padding = new Padding(20);
 
-    @Property
-    readonly seriesArea = new SeriesArea();
     get seriesAreaBoundingBox() {
         return this.seriesAreaManager.bbox;
     }
