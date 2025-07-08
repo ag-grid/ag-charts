@@ -35,7 +35,12 @@ export interface FactoryApi {
         optionsMetadata?: ChartInternalOptionMetadata,
         data?: DataServiceRestoredData
     ): AgChartProxy;
-    update(opts: AgChartOptions, chart?: AgChartInstance, specialOverrides?: ChartSpecialOverrides, apiStartTime?: number): AgChartProxy;
+    update(
+        opts: AgChartOptions,
+        chart?: AgChartInstance,
+        specialOverrides?: ChartSpecialOverrides,
+        apiStartTime?: number
+    ): AgChartProxy;
     updateUserDelta(chart: AgChartInstance, deltaOptions: DeepPartial<AgChartOptions>, apiStartTime?: number): void;
 }
 

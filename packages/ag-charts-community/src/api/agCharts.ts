@@ -145,7 +145,12 @@ class AgChartsInternal {
             });
         },
         update(opts, chart, specialOverrides, apiStartTime) {
-            return AgChartsInternal.createOrUpdate({ userOptions: opts, proxy: chart as AgChartInstanceProxy, specialOverrides, apiStartTime });
+            return AgChartsInternal.createOrUpdate({
+                userOptions: opts,
+                proxy: chart as AgChartInstanceProxy,
+                specialOverrides,
+                apiStartTime,
+            });
         },
         updateUserDelta(chart, deltaOptions, apiStartTime) {
             return AgChartsInternal.updateUserDelta(chart as AgChartInstanceProxy, deltaOptions, apiStartTime);
@@ -289,7 +294,11 @@ class AgChartsInternal {
         return modified;
     }
 
-    static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>, apiStartTime?: number) {
+    static updateUserDelta(
+        proxy: AgChartInstanceProxy,
+        deltaOptions: DeepPartial<AgChartOptions>,
+        apiStartTime?: number
+    ) {
         deltaOptions = deepClone(deltaOptions, ChartOptions.OPTIONS_CLONE_OPTS_FAST);
 
         const stripSymbols = jsonWalk(
