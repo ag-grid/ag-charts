@@ -536,7 +536,9 @@ export abstract class BaseFunnelSeries<
         });
     }
 
-    protected updateLabelNodes(opts: { labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text> }) {
+    protected updateLabelNodes(opts: {
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, FunnelNodeLabelDatum>;
+    }) {
         opts.labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
             updateLabelNode(textNode, this.properties.label, datum);

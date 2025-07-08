@@ -1,3 +1,5 @@
+import type { IsAny } from 'ag-charts-core';
+
 import type { Point } from '../../../scene/point';
 import type { Text } from '../../../scene/shape/text';
 import type { Label } from '../../label';
@@ -32,7 +34,14 @@ type LabelProps = Pick<
     | 'border'
 >;
 
-export function updateLabelNode(textNode: Text, label: LabelProps, labelDatum?: LabelDatum) {
+// Enforce that D must not be `any`
+export function updateLabelNode<D extends LabelDatum>(
+    textNode: IsAny<D> extends false ? Text : never,
+    label: IsAny<D> extends false ? LabelProps : never,
+    labelDatum: D | undefined
+): void;
+
+export function updateLabelNode(textNode: Text, label: LabelProps, labelDatum: LabelDatum | undefined) {
     if (label.enabled && labelDatum) {
         const { x, y, text, textAlign, textBaseline } = labelDatum;
         const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = label;
