@@ -12,6 +12,7 @@ import {
 import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { AxisZoomState, EventsHub, ZoomState } from '../../core/eventsHub';
+import { BandScale } from '../../scale/bandScale';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { type Scale, ScaleAlignment } from '../../scale/scale';
@@ -22,7 +23,6 @@ import { objectsEqual } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
-import { CategoryAxis } from '../axis/categoryAxis';
 import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
@@ -443,11 +443,14 @@ export class ZoomManager extends BaseManager {
     }
 
     public isVisibleItemsCountAtLeast(zoom: DefinedZoomState, minVisibleItems: number): boolean {
+        const { autoScaleYAxis } = this;
         const xAxis = this.getPrimaryAxis(ChartAxisDirection.X);
         const yAxis = this.getPrimaryAxis(ChartAxisDirection.Y);
 
-        if (this.autoScaleYAxis.enabled && !this.autoScaleYAxis.manuallyAdjusted && CategoryAxis.is(xAxis)) {
-            const maxZoom = minVisibleItems / xAxis.scale.bands.length;
+        const xScale = xAxis?.scale;
+
+        if (autoScaleYAxis.enabled && !autoScaleYAxis.manuallyAdjusted && BandScale.is(xScale)) {
+            const maxZoom = (minVisibleItems - xScale.paddingInner) / xScale.bands.length;
             const xZoomExtent = zoom.x.max - zoom.x.min;
             return xZoomExtent >= maxZoom;
         }
