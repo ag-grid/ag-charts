@@ -915,10 +915,12 @@ export abstract class CartesianSeries<
                 let [r0, r1] = this.visibleRangeIndices(crossAxisKey, xVisibleRange, undefined, { sortOrder });
 
                 const xValues = this.keysOrValues(crossAxisKey);
-                if (this.xCoordinateRange(xValues[r0], 1, r0)[0] < xVisibleRange[0]) {
+                // @todo(AG-7083) - figure out how to determine this
+                const pixelSize = 0;
+                if (this.xCoordinateRange(xValues[r0], pixelSize, r0)[0] < xVisibleRange[0]) {
                     r0 += 1;
                 }
-                if (r1 < xValues.length && this.xCoordinateRange(xValues[r1], 1, r1)[1] > xVisibleRange[1]) {
+                if (r1 < xValues.length && this.xCoordinateRange(xValues[r1], pixelSize, r1)[1] > xVisibleRange[1]) {
                     r1 -= 1;
                 }
 
