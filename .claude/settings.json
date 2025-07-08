@@ -3,15 +3,18 @@
         "allow": [
             "Bash(find:*)",
             "Bash(ls:*)",
+            "Bash(rg:*)",
+            "Bash(mkdir:*)",
+            "Bash(touch:*)",
             "Bash(nx lint:*)",
             "Bash(nx show projects:*)",
             "Bash(nx build:*)",
             "Bash(nx generate-examples:*)",
             "Bash(gh pr list:*)",
-            "Bash(mkdir:*)",
             "Bash(gh pr view:*)",
             "Bash(gh pr diff:*)",
-            "Bash(gh pr checks:*)"
+            "Bash(gh pr checks:*)",
+            "WebFetch(domain:github.com)"
         ],
         "deny": []
     }
