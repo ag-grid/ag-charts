@@ -52,32 +52,6 @@ export class SeriesItemHighlightStyle extends BaseProperties {
     lineDashOffset?: number;
 }
 
-export class HighlightOptions extends BaseProperties {
-    @Property
-    fill?: string;
-
-    @Property
-    fillOpacity?: number;
-
-    @Property
-    stroke?: string;
-
-    @Property
-    strokeWidth?: number;
-
-    @Property
-    strokeOpacity?: number;
-
-    @Property
-    lineDash?: number[];
-
-    @Property
-    lineDashOffset?: number;
-
-    @Property
-    opacity?: number;
-}
-
 export class HighlightProperties<T> extends BaseProperties {
     @Property
     enabled = true;
