@@ -7,6 +7,7 @@ export type AgZoomAxes = 'x' | 'y' | 'xy';
 export type AgZoomPanKey = 'alt' | 'ctrl' | 'meta' | 'shift';
 export type AgZoomDeceleration = 'off' | 'short' | 'long' | Ratio;
 export type AgAutoScaledAxes = Array<'y'>;
+export type AgZoomAxisDraggingMode = 'pan' | 'zoom';
 
 export interface AgZoomRange {
     /** The start of the axis zoom range. */
@@ -72,11 +73,21 @@ export interface AgZoomOptions {
      */
     anchorPointY?: AgZoomAnchorPoint;
     /**
+     * Zoom auto scaling options.
+     */
+    autoScaling?: AgZoomAutoScaling;
+    /**
      * The axes on which to zoom when scrolling, one of `xy`, `x`, or `y`.
      *
      * Default: `x`
      */
     axes?: AgZoomAxes;
+    /**
+     * Whether to pan or zoom when dragging an axis. Set `enableAxisDragging` to `true` to enable.
+     *
+     * Default: 'zoom'
+     */
+    axisDraggingMode?: AgZoomAxisDraggingMode;
     /** A set of buttons to perform common zoom actions. */
     buttons?: AgZoomButtons;
     /**
@@ -151,8 +162,4 @@ export interface AgZoomOptions {
      * Default: `0.1`
      */
     scrollingStep?: Ratio;
-    /**
-     * Zoom auto scaling options.
-     */
-    autoScaling?: AgZoomAutoScaling;
 }

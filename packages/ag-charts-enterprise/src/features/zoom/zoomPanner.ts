@@ -1,4 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import { entries, getWindow } from 'ag-charts-core';
 
 import type { AxisZoomStates, ZoomCoords } from './zoomTypes';
@@ -37,6 +37,7 @@ export class ZoomPanner {
     private onUpdate: ((e: ZoomPanUpdate) => void) | undefined;
 
     private coords?: ZoomCoords;
+    private direction?: _ModuleSupport.ChartAxisDirection;
 
     private coordsMonitorTimeout: NodeJS.Timeout | undefined;
     private zoomCoordsHistoryIndex = 0;
@@ -63,12 +64,13 @@ export class ZoomPanner {
         const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.coords ?? {};
         this.onUpdate?.({
             type: 'update',
-            deltaX: x1 - x2,
-            deltaY: y1 - y2,
+            deltaX: this.isPanningX() ? x1 - x2 : 0,
+            deltaY: this.isPanningY() ? y1 - y2 : 0,
         });
     }
 
-    start() {
+    start(direction?: _ModuleSupport.ChartAxisDirection) {
+        this.direction = direction;
         this.coordsMonitorTimeout = setInterval(this.recordCurrentZoomCoords.bind(this), 16);
     }
 
@@ -88,12 +90,13 @@ export class ZoomPanner {
             const coords1 = coordsHistory[index1];
             const coords0 = coordsHistory[index0];
 
-            deltaX = coords1.x - coords0.x;
-            deltaY = coords1.y - coords0.y;
+            deltaX = this.isPanningX() ? coords1.x - coords0.x : 0;
+            deltaY = this.isPanningY() ? coords1.y - coords0.y : 0;
             deltaT = coords1.t - coords0.t;
         }
 
         this.coords = undefined;
+        this.direction = undefined;
         clearInterval(this.coordsMonitorTimeout);
         this.coordsMonitorTimeout = undefined;
         this.zoomCoordsHistoryIndex = 0;
@@ -132,8 +135,8 @@ export class ZoomPanner {
 
         this.onUpdate?.({
             type: 'update',
-            deltaX: -Math.cos(angle) * (s1 - s0),
-            deltaY: -Math.sin(angle) * (s1 - s0),
+            deltaX: this.isPanningX() ? -Math.cos(angle) * (s1 - s0) : 0,
+            deltaY: this.isPanningY() ? -Math.sin(angle) * (s1 - s0) : 0,
         });
 
         // If we won't advance more than one pixel, stop inertial panning
@@ -150,6 +153,14 @@ export class ZoomPanner {
         } else {
             this.coords = { x1: x, y1: y, x2: x, y2: y };
         }
+    }
+
+    private isPanningX() {
+        return this.direction == null || this.direction === _ModuleSupport.ChartAxisDirection.X;
+    }
+
+    private isPanningY() {
+        return this.direction == null || this.direction === _ModuleSupport.ChartAxisDirection.Y;
     }
 
     translateZooms(bbox: _ModuleSupport.BBox, currentZooms: AxisZoomStates, deltaX: number, deltaY: number) {

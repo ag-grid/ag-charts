@@ -1,4 +1,4 @@
-import { type AgZoomAnchorPoint, _ModuleSupport, _Widget } from 'ag-charts-community';
+import { type AgZoomAnchorPoint, type AgZoomAxisDraggingMode, _ModuleSupport, _Widget } from 'ag-charts-community';
 import { debounce, entries, roundTo } from 'ag-charts-core';
 
 import { ZoomRect } from './scenes/zoomRect';
@@ -20,10 +20,10 @@ import {
     definedZoomState,
     dx,
     dy,
+    isMaxZoom,
     isZoomEqual,
     scaleZoom,
     scaleZoomAxisWithAnchor,
-    unitZoomState,
 } from './zoomUtils';
 
 const { ActionOnSet, ChartAxisDirection, ChartUpdateType, Property, InteractionState, ProxyProperty } = _ModuleSupport;
@@ -129,6 +129,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.ctx.zoomManager.setAutoScaleYAxis(newValue.enabled, newValue.padding);
     });
 
+    @ActionOnSet<Zoom>({
+        changeValue(newValue) {
+            if (!this.domProxy) return;
+            this.domProxy.setAxisCursor(newValue === 'pan' ? 'grab' : undefined);
+        },
+    })
+    @Property
+    public axisDraggingMode: AgZoomAxisDraggingMode = 'zoom';
+
     private readonly canResetZoom = (zoom?: Readonly<DefinedZoomState>): boolean => {
         zoom ??= this.getZoom();
         return !isZoomEqual(zoom, this.getResetZoom());
@@ -193,24 +202,18 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         );
 
         this.domProxy = new ZoomDOMProxy({
-            onDragStart: (id, dir) => this.onAxisDragStart(id, dir),
-            onDrag: (ev) => {
-                this.onDragMove({ ...ev, currentX: ev.offsetX, currentY: ev.offsetY });
-            },
-            onDragEnd: () => this.onDragEnd(),
-            onDoubleClick: (id, direction) => {
-                this.hoveredAxis = { id, direction };
-                this.onDoubleClick();
-                this.hoveredAxis = undefined;
-            },
+            onAxisDragStart: (id, direction) => this.onAxisDragStart(id, direction),
+            onAxisDragMove: (event) => this.onAxisDragMove(event),
+            onAxisDragEnd: () => this.onAxisDragEnd(),
+            onAxisDoubleClick: (id) => this.onAxisDoubleClick(id),
         });
 
         if (ctx.widgets.seriesDragInterpreter) {
             this.cleanup.register(
-                ctx.widgets.seriesDragInterpreter.events.on('dblclick', (event) => this.onDoubleClick(event)),
-                ctx.widgets.seriesDragInterpreter.events.on('drag-move', (event) => this.onDragMove(event)),
-                ctx.widgets.seriesDragInterpreter.events.on('drag-start', (event) => this.onDragStart(event)),
-                ctx.widgets.seriesDragInterpreter.events.on('drag-end', () => this.onDragEnd())
+                ctx.widgets.seriesDragInterpreter.events.on('dblclick', (event) => this.onSeriesAreaDoubleClick(event)),
+                ctx.widgets.seriesDragInterpreter.events.on('drag-move', (event) => this.onSeriesAreaDragMove(event)),
+                ctx.widgets.seriesDragInterpreter.events.on('drag-start', (event) => this.onSeriesAreaDragStart(event)),
+                ctx.widgets.seriesDragInterpreter.events.on('drag-end', () => this.onSeriesAreaDragEnd())
             );
         }
         this.cleanup.register(
@@ -259,46 +262,35 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!this.enablePanning) {
             return true;
         }
-        const { x, y } = this.getZoom();
-        return x.min === 0 && x.max === 1 && y.min === 0 && y.max === 1;
+        return isMaxZoom(this.getZoom());
     }
 
-    private onDoubleClick(event?: _ModuleSupport.DragInterpreterDblClickEvent & { preventZoomDblClick?: boolean }) {
-        const {
-            enabled,
-            enableDoubleClickToReset,
-            hoveredAxis,
-            ctx: { zoomManager },
-        } = this;
+    private onSeriesAreaDoubleClick(
+        event?: _ModuleSupport.DragInterpreterDblClickEvent & { preventZoomDblClick?: boolean }
+    ) {
+        const { enabled, enableDoubleClickToReset } = this;
 
-        if (!enabled || !enableDoubleClickToReset || !this.isState(InteractionState.ZoomClickable)) return;
+        if (!enabled || !enableDoubleClickToReset) return;
+        if (event?.preventZoomDblClick || !this.isState(InteractionState.ZoomClickable)) return;
 
-        if (hoveredAxis) {
-            zoomManager.resetAxisZoom('zoom', hoveredAxis.id);
-        } else if (!event?.preventZoomDblClick) {
-            this.resetZoom();
-        }
+        this.resetZoom();
     }
 
-    private onDragStart(event: _Widget.DragWidgetEvent<'drag-start'> | undefined) {
+    private onSeriesAreaDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
         const {
             enabled,
-            enableAxisDragging,
             enablePanning,
             enableSelecting,
-            hoveredAxis,
             ctx: { domManager, zoomManager },
         } = this;
 
-        if (!enabled) return;
-        if (!this.hoveredAxis) {
-            if (
-                !this.isState(InteractionState.ZoomDraggable) ||
-                this.dragState !== DragState.None ||
-                this.isIgnoredTouch(event)
-            ) {
-                return;
-            }
+        if (
+            !enabled ||
+            !this.isState(InteractionState.ZoomDraggable) ||
+            this.dragState !== DragState.None ||
+            this.isIgnoredTouch(event)
+        ) {
+            return;
         }
 
         this.panner.stopInteractions();
@@ -306,18 +298,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         // Determine which ZoomDrag behaviour to use.
         let newDragState = DragState.None;
 
-        if (enableAxisDragging && hoveredAxis) {
-            newDragState = DragState.Axis;
-        } else if (event != null) {
-            const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as MouseEvent);
-            // Allow panning if either selection is disabled or the panning key is pressed.
-            if (enablePanning && (!enableSelecting || panKeyPressed)) {
-                domManager.updateCursor(CURSOR_ID, 'grabbing');
-                newDragState = DragState.Pan;
-                this.panner.start();
-            } else if (enableSelecting && !panKeyPressed) {
-                newDragState = DragState.Select;
-            }
+        const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as MouseEvent);
+        // Allow panning if either selection is disabled or the panning key is pressed.
+        if (enablePanning && (!enableSelecting || panKeyPressed)) {
+            domManager.updateCursor(CURSOR_ID, 'grabbing');
+            newDragState = DragState.Pan;
+            this.panner.start();
+        } else if (enableSelecting && !panKeyPressed) {
+            newDragState = DragState.Select;
         }
 
         if ((this.dragState = newDragState) !== DragState.None) {
@@ -325,27 +313,18 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDragMove(event: _Widget.DragWidgetEvent<'drag-move'>) {
+    private onSeriesAreaDragMove(event: _Widget.DragWidgetEvent<'drag-move'>) {
         const {
-            anchorPointX,
-            anchorPointY,
-            axisDragger,
             dragState,
             enabled,
             paddedRect,
             panner,
             selector,
-            seriesRect,
-            shouldFlipXY,
-            hoveredAxis,
-            ctx: { interactionManager, tooltipManager, updateService, zoomManager },
+            ctx: { interactionManager, tooltipManager, updateService },
         } = this;
 
-        if (!enabled || !paddedRect || !seriesRect) return;
-        if (!hoveredAxis) {
-            if (!this.isState(InteractionState.ZoomDraggable) || this.isIgnoredTouch(event)) {
-                return;
-            }
+        if (!enabled || !paddedRect || !this.isState(InteractionState.ZoomDraggable) || this.isIgnoredTouch(event)) {
+            return;
         }
 
         interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
@@ -353,22 +332,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             event.sourceEvent.preventDefault();
         }
 
-        const zoom = this.getZoom();
-
         switch (dragState) {
-            case DragState.Axis: {
-                if (!hoveredAxis) break;
-
-                const { id: axisId, direction } = hoveredAxis;
-                let anchor = direction === ChartAxisDirection.X ? anchorPointX : anchorPointY;
-                if (shouldFlipXY) anchor = direction === ChartAxisDirection.X ? anchorPointY : anchorPointX;
-                const axisZoom = zoomManager.getAxisZoom(axisId);
-                const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
-                zoomManager.setAxisManuallyAdjusted('zoom', axisId);
-                this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, newZoom);
-                break;
-            }
-
             case DragState.Pan:
                 panner.update(event);
                 break;
@@ -385,9 +349,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
-    private onDragEnd() {
+    private onSeriesAreaDragEnd() {
         const {
-            axisDragger,
             dragState,
             enabled,
             panner,
@@ -401,11 +364,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!enabled || dragState === DragState.None) return;
 
         switch (dragState) {
-            case DragState.Axis:
-                this.hoveredAxis = undefined;
-                axisDragger.stop();
-                break;
-
             case DragState.Pan:
                 panner.stop();
                 break;
@@ -420,6 +378,109 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         this.dragState = DragState.None;
+        domManager.updateCursor(CURSOR_ID);
+        tooltipManager.removeTooltip(TOOLTIP_ID);
+    }
+
+    private onAxisDoubleClick(id: string) {
+        const {
+            enabled,
+            enableDoubleClickToReset,
+            ctx: { zoomManager },
+        } = this;
+        if (!enabled || !enableDoubleClickToReset || !this.isState(InteractionState.ZoomClickable)) return;
+
+        zoomManager.resetAxisZoom('zoom', id);
+    }
+
+    private onAxisDragStart(id: string, direction: _ModuleSupport.ChartAxisDirection) {
+        const {
+            axisDraggingMode,
+            domProxy,
+            enabled,
+            enableAxisDragging,
+            panner,
+            ctx: { zoomManager },
+        } = this;
+        if (!enabled || !enableAxisDragging) return;
+
+        this.hoveredAxis = { id, direction };
+        panner.stopInteractions();
+
+        if (axisDraggingMode === 'pan') {
+            domProxy.setAxisCursor('grabbing');
+
+            this.dragState = DragState.Pan;
+            this.panner.start(direction);
+
+            zoomManager.fireZoomPanStartEvent('zoom');
+        } else {
+            this.dragState = DragState.Axis;
+        }
+    }
+
+    private onAxisDragMove(event: _Widget.DragWidgetEvent<'drag-move'>) {
+        const {
+            anchorPointX,
+            anchorPointY,
+            axisDragger,
+            dragState,
+            enabled,
+            seriesRect,
+            shouldFlipXY,
+            hoveredAxis,
+            ctx: { interactionManager, tooltipManager, updateService, zoomManager },
+        } = this;
+
+        if (!enabled || !seriesRect || !hoveredAxis) return;
+
+        interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
+        if (event.device === 'touch') {
+            event.sourceEvent.preventDefault();
+        }
+
+        const zoom = this.getZoom();
+
+        if (dragState === DragState.Pan) {
+            this.panner.update({ currentX: event.offsetX, currentY: event.offsetY });
+        } else {
+            const { id: axisId, direction } = hoveredAxis;
+            let anchor = direction === ChartAxisDirection.X ? anchorPointX : anchorPointY;
+            if (shouldFlipXY) anchor = direction === ChartAxisDirection.X ? anchorPointY : anchorPointX;
+            const axisZoom = zoomManager.getAxisZoom(axisId);
+            const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
+            zoomManager.setAxisManuallyAdjusted('zoom', axisId);
+            this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, newZoom);
+        }
+
+        tooltipManager.updateTooltip(TOOLTIP_ID);
+        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+    }
+
+    private onAxisDragEnd() {
+        const {
+            axisDraggingMode,
+            axisDragger,
+            dragState,
+            domProxy,
+            enabled,
+            ctx: { domManager, interactionManager, tooltipManager },
+        } = this;
+
+        interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
+
+        // Stop single clicks from triggering drag end and resetting the zoom
+        if (!enabled || dragState === DragState.None) return;
+
+        this.hoveredAxis = undefined;
+        this.dragState = DragState.None;
+
+        if (axisDraggingMode === 'pan') {
+            domProxy.setAxisCursor('grab');
+            this.panner.stop();
+        }
+
+        axisDragger.stop();
         domManager.updateCursor(CURSOR_ID);
         tooltipManager.removeTooltip(TOOLTIP_ID);
     }
@@ -480,7 +541,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!seriesRect) return;
 
         const zoom = this.getZoom();
-        let isZoomCapped = event.deltaY > 0 && this.isMaxZoom(zoom);
+        let isZoomCapped = event.deltaY > 0 && isMaxZoom(zoom);
 
         const isAxisScrolling = enableAxisDragging && hoveredAxis != null;
 
@@ -516,11 +577,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         // reaches a min or max extent
         this.isFirstWheelEvent = false;
         this.debouncedWheelReset();
-    }
-
-    private onAxisDragStart(id: string, direction: _ModuleSupport.ChartAxisDirection) {
-        this.hoveredAxis = { id, direction };
-        this.onDragStart(undefined);
     }
 
     private onTouchStart(event: _Widget.TouchWidgetEvent<'touchstart'>, current: _Widget.Widget) {
@@ -567,7 +623,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         const zoom = this.getZoom();
-        this.buttons.toggleVisibleZoomed(this.isMaxZoom(zoom));
+        this.buttons.toggleVisibleZoomed(isMaxZoom(zoom));
     }
 
     private onZoomPanStart(event: _ModuleSupport.ZoomPanStartEvent): void {
@@ -623,10 +679,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private getAnchorPointY() {
         return this.shouldFlipXY ? this.anchorPointX : this.anchorPointY;
-    }
-
-    private isMaxZoom(zoom: DefinedZoomState): boolean {
-        return isZoomEqual(zoom, unitZoomState());
     }
 
     private isZoomValid(newZoom: DefinedZoomState) {
