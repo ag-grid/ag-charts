@@ -44,3 +44,5 @@ export type IsUnion<T> = [T] extends [infer U]
             : true
         : never
     : never;
+
+export type IsAny<T> = 0 extends 1 & T ? true : false;

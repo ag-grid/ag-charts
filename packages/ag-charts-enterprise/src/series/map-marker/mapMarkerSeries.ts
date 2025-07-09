@@ -31,6 +31,7 @@ const {
     Marker,
     applyShapeStyle,
     getShapeStyle,
+    getLabelStyles,
     LonLatBBox,
 } = _ModuleSupport;
 
@@ -555,10 +556,14 @@ export class MapMarkerSeries
             _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
         >;
     }) {
-        const { labelSelection } = opts;
-        const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
-
-        labelSelection.each((label, { x, y, width, height, text }, datumIndex) => {
+        opts.labelSelection.each((label, { x, y, width, height, text }, datumIndex) => {
+            const style = getLabelStyles<AgMapMarkerSeriesLabelFormatterParams>(
+                this,
+                undefined,
+                this.properties,
+                this.properties.label
+            );
+            const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x + width / 2;
             label.y = y + height / 2;
@@ -571,7 +576,7 @@ export class MapMarkerSeries
             label.textAlign = 'center';
             label.textBaseline = 'middle';
             label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
-            label.setBoxing(this.properties.label);
+            label.setBoxing(style);
         });
     }
 

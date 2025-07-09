@@ -49,6 +49,7 @@ export interface SankeyNodeLabelDatum {
     y: number;
     leading: boolean;
     text: string;
+    size: number;
 }
 
 class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {

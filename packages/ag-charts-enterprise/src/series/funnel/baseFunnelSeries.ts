@@ -1,6 +1,7 @@
-import { type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { type AgFunnelSeriesLabelFormatterParams, type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type {
     InternalAgColorType,
+    RequireOptional,
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
@@ -536,10 +537,16 @@ export abstract class BaseFunnelSeries<
         });
     }
 
-    protected updateLabelNodes(opts: { labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text> }) {
+    protected updateLabelNodes(opts: {
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, FunnelNodeLabelDatum>;
+    }) {
+        const params: RequireOptional<AgFunnelSeriesLabelFormatterParams> = {
+            stageKey: this.properties.stageKey,
+            valueKey: this.properties.valueKey,
+        };
         opts.labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(textNode, this.properties.label, datum);
+            updateLabelNode(this, textNode, params, this.properties.label, datum);
         });
     }
 

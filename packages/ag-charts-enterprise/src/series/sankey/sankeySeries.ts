@@ -32,6 +32,7 @@ const {
     TextUtils,
     createDatumId,
     getShapeStyle,
+    getLabelStyles,
     Rect,
     BBox,
 } = _ModuleSupport;
@@ -330,7 +331,7 @@ export class SankeySeries extends FlowProportionSeries<
                 const y1 = y + height / 2;
 
                 if (y0 >= bottom) {
-                    labelData.push({ x, y, leading, text });
+                    labelData.push({ x, y, leading, text, size: node.size });
                     bottom = y1;
                 }
             });
@@ -366,10 +367,11 @@ export class SankeySeries extends FlowProportionSeries<
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, SankeyNodeLabelDatum>;
     }) {
-        const { labelSelection } = opts;
-        const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
-
-        labelSelection.each((label, { x, y, leading, text }) => {
+        opts.labelSelection.each((label, datum) => {
+            const { x, y, leading, text } = datum;
+            const params: AgSankeySeriesLabelFormatterParams = datum;
+            const style = getLabelStyles(this, undefined, params, this.properties.label);
+            const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x;
             label.y = y;
@@ -381,7 +383,7 @@ export class SankeySeries extends FlowProportionSeries<
             label.fontFamily = fontFamily;
             label.textAlign = leading ? 'right' : 'left';
             label.textBaseline = 'middle';
-            label.setBoxing(this.properties.label);
+            label.setBoxing(style);
         });
     }
 

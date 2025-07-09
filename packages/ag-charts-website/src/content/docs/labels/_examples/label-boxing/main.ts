@@ -1,6 +1,7 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChartLabelStylerParams, AgCharts } from 'ag-charts-community';
 
-const options: AgCartesianChartOptions<{ month: string; value: number }> = {
+type DataType = { month: string; value: number };
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Data labels box options',
@@ -28,36 +29,36 @@ const options: AgCartesianChartOptions<{ month: string; value: number }> = {
             xKey: 'month',
             yKey: 'value',
             label: {
-                // styler: (params) => {
-                //     if (params.datum.month === 'Sep') {
-                //         return {
-                //             border: {
-                //                 stroke: 'red',
-                //                 strokeWidth: 2,
-                //             },
-                //             padding: 5,
-                //             shadow: true,
-                //             fontWeight: 'bold'
-                //         }
-                //     }
-                // },
+                itemStyler: (params: AgChartLabelStylerParams<DataType, unknown>) => {
+                    if (params.datum.month === 'Sep') {
+                        return {
+                            border: {
+                                stroke: 'red',
+                                strokeWidth: 6,
+                                strokeOpacity: 1,
+                            },
+                            padding: 15,
+                            fontWeight: 'bold',
+                            fill: {
+                                type: 'gradient',
+                                colorStops: [
+                                    { color: '#70C1FF', stop: 0.1 },
+                                    { color: '#FFD86F', stop: 0.3 },
+                                    { color: '#FF9A60', stop: 0.5 },
+                                    { color: '#D16BA5' },
+                                ],
+                            },
+                        };
+                    }
+                },
                 enabled: true,
                 cornerRadius: 8,
-                // fill: 'rgba(252, 255, 197)',
-                fill: {
-                    type: 'gradient',
-                    colorStops: [
-                        { color: '#70C1FF', stop: 0.1 },
-                        { color: '#FFD86F', stop: 0.3 },
-                        { color: '#FF9A60', stop: 0.5 },
-                        { color: '#D16BA5' },
-                    ],
-                },
+                fill: 'rgba(252, 255, 197)',
                 fillOpacity: 0.7,
                 padding: 10,
                 border: {
-                    stroke: 'red',
-                    strokeWidth: 5,
+                    stroke: '#AAA',
+                    strokeWidth: 3,
                     strokeOpacity: 0.2,
                 },
                 // yOffset: -6,

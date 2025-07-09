@@ -2,11 +2,15 @@ import { type RequireOptional, isPlainObject } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
+    AgChartLabelStyleOptions,
+    AgChartLabelStylerParams,
     AgTimeInterval,
     AgTimeIntervalUnit,
+    ContextDefault,
     FontStyle,
     FontWeight,
     Formatter,
+    Styler,
 } from 'ag-charts-types';
 
 import type { ContextFormatter } from '../module/axisContext';
@@ -80,6 +84,9 @@ export class Label<TParams = never, TDatum = any>
 
     @Property
     padding?: number;
+
+    @Property
+    itemStyler?: Styler<AgChartLabelStylerParams<TDatum, ContextDefault>, AgChartLabelStyleOptions>;
 
     private _cachedFormatter: FormatterCache | undefined = undefined;
     formatValue(

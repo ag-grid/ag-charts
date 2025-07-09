@@ -58,6 +58,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD,
 } from './cartesianSeries';
+import { getLabelStyles } from './labelUtil';
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
@@ -731,11 +732,11 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, LabelSelectionDatum> }) {
-        const { labelSelection } = opts;
-        const { enabled: labelEnabled, fontStyle, fontWeight, fontSize, fontFamily, color } = this.properties.label;
-        labelSelection.each((text, datum) => {
+        opts.labelSelection.each((text, datum) => {
             const { x, y, labelText } = datum;
 
+            const style = getLabelStyles(this, datum, this.properties, this.properties.label);
+            const { enabled: labelEnabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (labelText && labelEnabled && this.visible) {
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
@@ -749,7 +750,7 @@ export class AreaSeries extends CartesianSeries<
                 text.fill = color;
                 text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
                 text.visible = true;
-                text.setBoxing(this.properties.label);
+                text.setBoxing(style);
             } else {
                 text.visible = false;
             }

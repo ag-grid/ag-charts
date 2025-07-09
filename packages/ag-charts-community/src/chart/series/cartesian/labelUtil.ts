@@ -1,6 +1,15 @@
+import type { AnyFn, IsAny, RequireOptional } from 'ag-charts-core';
+import type { AgChartLabelStyleOptions, AgChartLabelStylerParams } from 'ag-charts-types';
+
 import type { Point } from '../../../scene/point';
 import type { Text } from '../../../scene/shape/text';
+import { mergeDefaults } from '../../../util/object';
 import type { Label } from '../../label';
+
+interface SeriesLike {
+    id: string;
+    callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F>;
+}
 
 type Bounds = {
     x: number;
@@ -12,44 +21,69 @@ type Bounds = {
 export type BarLabelPlacement = 'inside-center' | 'inside-start' | 'inside-end' | 'outside-start' | 'outside-end';
 
 type LabelDatum = Point & {
+    datum?: unknown;
     text: string;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
 };
 
-type LabelProps = Pick<
-    Label,
-    | 'enabled'
-    | 'color'
-    | 'fontStyle'
-    | 'fontWeight'
-    | 'fontSize'
-    | 'fontFamily'
-    | 'fill'
-    | 'fillOpacity'
-    | 'cornerRadius'
-    | 'padding'
-    | 'border'
->;
+export function getLabelStyles<TParams>(
+    series: SeriesLike,
+    nodeDatum: { datum?: unknown } | undefined,
+    params: TParams,
+    label: Label<TParams>
+): AgChartLabelStyleOptions & { fontSize: number } {
+    if (label.itemStyler) {
+        const styleParams: RequireOptional<Omit<AgChartLabelStylerParams<unknown, unknown>, 'context'>> & {
+            fontSize: number;
+        } = {
+            border: label.border,
+            color: label.color,
+            cornerRadius: label.cornerRadius,
+            datum: nodeDatum?.datum,
+            enabled: label.enabled,
+            fill: label.fill,
+            fillOpacity: label.fillOpacity,
+            fontFamily: label.fontFamily,
+            fontSize: label.fontSize,
+            fontStyle: label.fontStyle,
+            fontWeight: label.fontWeight,
+            itemId: undefined,
+            seriesId: series.id,
+            padding: label.padding,
+        };
+        return mergeDefaults(series.callWithContext(label.itemStyler, { ...params, ...styleParams }), styleParams);
+    }
 
-export function updateLabelNode(textNode: Text, label: LabelProps, labelDatum?: LabelDatum) {
+    return label;
+}
+
+// Enforce that D must not be `any`
+export function updateLabelNode<TParams, D extends LabelDatum>(
+    series: IsAny<D> extends false ? SeriesLike : never,
+    textNode: IsAny<D> extends false ? Text : never,
+    params: IsAny<D> extends false ? TParams : never,
+    label: IsAny<D> extends false ? Label<TParams, unknown> : never,
+    labelDatum: D | undefined
+): void;
+
+export function updateLabelNode<TParams>(
+    series: SeriesLike,
+    textNode: Text,
+    params: TParams,
+    label: Label<TParams, unknown>,
+    labelDatum: LabelDatum | undefined
+) {
     if (label.enabled && labelDatum) {
-        const { x, y, text, textAlign, textBaseline } = labelDatum;
-        const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = label;
-        textNode.setProperties({
-            visible: true,
-            x,
-            y,
-            text,
-            fill,
-            fontStyle,
-            fontWeight,
-            fontSize,
-            fontFamily,
-            textAlign,
-            textBaseline,
-        });
-        textNode.setBoxing(label);
+        const style = getLabelStyles<TParams>(series, labelDatum, params, label);
+        textNode.visible = true;
+        textNode.x = labelDatum.x;
+        textNode.y = labelDatum.y;
+        textNode.text = labelDatum.text;
+        textNode.fill = style.color;
+        textNode.setAlign(labelDatum);
+        textNode.setFont(style);
+        textNode.setBoxing(style);
     } else {
         textNode.visible = false;
     }

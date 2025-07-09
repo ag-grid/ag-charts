@@ -46,6 +46,7 @@ import {
 } from './cartesianSeries';
 import { calculateDataDiff } from './diffUtil';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
+import { getLabelStyles } from './labelUtil';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
@@ -461,11 +462,12 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, HistogramNodeDatum> }) {
-        const { fontStyle, fontWeight, fontSize, fontFamily, color } = this.properties.label;
         const labelEnabled = this.isLabelEnabled();
 
         opts.labelSelection.each((text, datum) => {
-            if (labelEnabled && datum?.label) {
+            const style = getLabelStyles(this, datum, this.properties, this.properties.label);
+            const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
+            if (enabled && labelEnabled && datum?.label) {
                 text.text = datum.label.text;
                 text.x = datum.label.x;
                 text.y = datum.label.y;
@@ -476,7 +478,7 @@ export class HistogramSeries extends CartesianSeries<
                 text.fill = color;
                 text.visible = true;
                 text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-                text.setBoxing(this.properties.label);
+                text.setBoxing(style);
             } else {
                 text.visible = false;
             }

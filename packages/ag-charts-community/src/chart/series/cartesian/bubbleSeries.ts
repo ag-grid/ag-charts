@@ -41,6 +41,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import { getLabelStyles } from './labelUtil';
 import { computeMarkerFocusBounds, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 
 type BubbleScatterAnimationData = CartesianAnimationData<Group, BubbleScatterNodeDatum>;
@@ -413,21 +414,25 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, BubbleScatterNodeDatum> }) {
-        const { label } = this.properties;
-
         opts.labelSelection.each((text, datum) => {
+            const style = getLabelStyles<AgBubbleSeriesLabelFormatterParams>(
+                this,
+                datum,
+                this.properties,
+                this.properties.label
+            );
             text.text = datum.label.text;
-            text.fill = label.color;
+            text.fill = style.color;
             text.x = datum.point?.x ?? 0;
             text.y = datum.point?.y ?? 0;
-            text.fontStyle = label.fontStyle;
-            text.fontWeight = label.fontWeight;
-            text.fontSize = label.fontSize;
-            text.fontFamily = label.fontFamily;
+            text.fontStyle = style.fontStyle;
+            text.fontWeight = style.fontWeight;
+            text.fontSize = style.fontSize;
+            text.fontFamily = style.fontFamily;
             text.textAlign = 'left';
             text.textBaseline = 'top';
             text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-            text.setBoxing(label);
+            text.setBoxing(style);
         });
     }
 
