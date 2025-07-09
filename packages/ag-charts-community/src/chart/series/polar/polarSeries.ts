@@ -53,7 +53,6 @@ export const DEFAULT_POLAR_DIRECTION_NAMES = {
 
 export type UnknownPolarSeries = PolarSeries<
     DataModelSeriesNodeDatum,
-    object,
     SeriesProperties<object> & PolarSeriesProperties,
     Node
 >;
