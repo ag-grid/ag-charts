@@ -537,6 +537,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { id: seriesId, properties } = this;
         const item = properties.item[itemId === 'subtotal' ? 'total' : itemId];
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex);
+        const highlightStyleItem = highlightStyle.item?.[itemId === 'subtotal' ? 'total' : itemId];
 
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = item;
         const { xKey, yKey } = properties;
@@ -550,7 +551,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 strokeOpacity: highlightStyle?.strokeOpacity ?? item.strokeOpacity,
                 lineDash: highlightStyle?.lineDash ?? item.lineDash ?? [],
                 lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
-                cornerRadius: highlightStyle?.cornerRadius ?? item.cornerRadius,
+                cornerRadius: highlightStyleItem?.cornerRadius ?? item.cornerRadius,
                 opacity: highlightStyle?.opacity ?? 1,
             },
             fillGradientDefaults,
