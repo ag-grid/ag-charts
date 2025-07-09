@@ -388,7 +388,7 @@ export class ChartTheme {
                 cornerRadius: 0,
                 fill: undefined,
                 fillOpacity: 1,
-                padding: 4,
+                padding: { $isUserOption: ['./fill', 4, { $isUserOption: ['./border/stroke', 4, 0] }] },
                 spacing: 30,
                 listeners: {},
                 toggleSeries: true,
