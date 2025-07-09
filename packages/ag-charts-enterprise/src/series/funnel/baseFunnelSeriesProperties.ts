@@ -15,8 +15,7 @@ import type {
 
 interface FunnelSeriesLabel extends _ModuleSupport.Label<AgFunnelSeriesLabelFormatterParams> {}
 
-export interface BaseFunnelProperties<SeriesOptions extends object>
-    extends _ModuleSupport.AbstractBarSeriesProperties<SeriesOptions> {
+export interface BaseFunnelProperties<TOpts extends object> extends _ModuleSupport.AbstractBarSeriesProperties<TOpts> {
     stageKey: string;
     valueKey: string;
     valueName?: string;

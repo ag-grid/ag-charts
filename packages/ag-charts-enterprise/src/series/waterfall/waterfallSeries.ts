@@ -1,4 +1,4 @@
-import type { AgWaterfallSeriesItemType } from 'ag-charts-community';
+import type { AgWaterfallSeriesItemType, AgWaterfallSeriesOptions } from 'ag-charts-community';
 import { type AgWaterfallSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
 
@@ -70,6 +70,7 @@ type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
 
 export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     _ModuleSupport.Rect<WaterfallNodeDatum>,
+    AgWaterfallSeriesOptions,
     WaterfallSeriesProperties,
     WaterfallNodeDatum,
     WaterfallNodeDatum,

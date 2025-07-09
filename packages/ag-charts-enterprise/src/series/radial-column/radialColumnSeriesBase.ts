@@ -1,4 +1,8 @@
-import type { AgRadialSeriesLabelFormatterParams, AgRadialSeriesStyle } from 'ag-charts-community';
+import type {
+    AgBaseRadialColumnSeriesOptions,
+    AgRadialSeriesLabelFormatterParams,
+    AgRadialSeriesStyle,
+} from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { isDefined } from 'ag-charts-core';
 
@@ -72,7 +76,12 @@ type ItemStyle = Required<AgRadialSeriesStyle>;
 
 export abstract class RadialColumnSeriesBase<
     ItemPathType extends _ModuleSupport.Sector | _ModuleSupport.RadialColumnShape,
-> extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum, RadialColumnSeriesBaseProperties<any>, ItemPathType> {
+> extends _ModuleSupport.PolarSeries<
+    RadialColumnNodeDatum,
+    AgBaseRadialColumnSeriesOptions,
+    RadialColumnSeriesBaseProperties<AgBaseRadialColumnSeriesOptions>,
+    ItemPathType
+> {
     protected override readonly NodeEvent = RadialColumnSeriesNodeEvent;
 
     private readonly groupScale = new CategoryScale<string>();

@@ -4,7 +4,6 @@ import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
 import { BBox } from '../../../scene/bbox';
-import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
@@ -88,10 +87,11 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
 }
 
 export abstract class HierarchySeries<
-    TNode extends Node = Group,
-    TProps extends HierarchySeriesProperties<any> = HierarchySeriesProperties<any>,
-    TNodeClass extends HierarchyNode = HierarchyNode,
-> extends Series<number[], TNodeClass, TProps> {
+    TNode extends Node,
+    TOpts extends object,
+    TProps extends HierarchySeriesProperties<TOpts>,
+    TNodeClass extends HierarchyNode,
+> extends Series<number[], TNodeClass, TOpts, TProps> {
     protected abstract NodeClass: new (...params: ConstructorParameters<typeof HierarchyNode<any, any>>) => TNodeClass;
 
     rootNode: TNodeClass | undefined;

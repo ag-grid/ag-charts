@@ -1,5 +1,6 @@
 import {
     type AgSankeySeriesLabelFormatterParams,
+    type AgSankeySeriesOptions,
     type FillOptions,
     type LineDashOptions,
     type StrokeOptions,
@@ -46,6 +47,7 @@ export class SankeySeries extends FlowProportionSeries<
     SankeyNodeDatum,
     SankeyLinkDatum,
     SankeyNodeLabelDatum,
+    AgSankeySeriesOptions,
     SankeySeriesProperties,
     _ModuleSupport.Rect,
     SankeyLink

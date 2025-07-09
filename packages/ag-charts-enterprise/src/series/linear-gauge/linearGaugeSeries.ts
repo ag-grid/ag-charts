@@ -1,6 +1,7 @@
 import {
     type AgGradientColorMode,
     type AgLinearGaugeMarkerShape,
+    type AgLinearGaugeOptions,
     type AgLinearGaugeTargetPlacement,
     type AgTimeInterval,
     type AgTimeIntervalUnit,
@@ -168,6 +169,7 @@ class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSuppor
 export class LinearGaugeSeries extends _ModuleSupport.Series<
     LinearGaugeNodeDatumIndex,
     LinearGaugeNodeDatum,
+    AgLinearGaugeOptions,
     LinearGaugeSeriesProperties,
     LinearGaugeLabelDatum,
     LinearGaugeNodeDataContext

@@ -1,5 +1,6 @@
 import {
     type AgTreemapSeriesLabelFormatterParams,
+    type AgTreemapSeriesOptions,
     type AgTreemapSeriesStyle,
     type FontOptions,
     type FontStyle,
@@ -107,7 +108,12 @@ class DistantGroup extends _ModuleSupport.Group implements _ModuleSupport.Distan
     }
 }
 
-export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, TreemapSeriesProperties, TreemapNode> {
+export class TreemapSeries extends _ModuleSupport.HierarchySeries<
+    DistantGroup,
+    AgTreemapSeriesOptions,
+    TreemapSeriesProperties,
+    TreemapNode
+> {
     static readonly className = 'TreemapSeries';
     static readonly type = 'treemap' as const;
 

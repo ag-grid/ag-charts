@@ -2,6 +2,7 @@ import type { RequireOptional } from 'ag-charts-core';
 import { isFiniteNumber } from 'ag-charts-core';
 import type {
     AgBarSeriesLabelFormatterParams,
+    AgBarSeriesOptions,
     AgBarSeriesStyle,
     AgErrorBoundSeriesTooltipRendererParams,
 } from 'ag-charts-types';
@@ -95,6 +96,7 @@ type BarAnimationData = AbstractBarSeriesAnimationData<BarShape, BarNodeDatum>;
 
 export class BarSeries extends AbstractBarSeries<
     BarShape<BarNodeDatum>,
+    AgBarSeriesOptions,
     BarSeriesProperties,
     BarNodeDatum,
     BarNodeDatum

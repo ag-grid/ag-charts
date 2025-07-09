@@ -1,6 +1,7 @@
 import type { Point, RequireOptional } from 'ag-charts-core';
 import {
     type AgBubbleSeriesLabelFormatterParams,
+    type AgBubbleSeriesOptions,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgSeriesMarkerStyle,
     type FillOptions,
@@ -66,7 +67,12 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     readonly selected: boolean | undefined;
 }
 
-export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties, BubbleScatterNodeDatum> {
+export class BubbleSeries extends CartesianSeries<
+    Group,
+    AgBubbleSeriesOptions & { opacity?: number },
+    BubbleSeriesProperties,
+    BubbleScatterNodeDatum
+> {
     static readonly className: string = 'BubbleSeries';
     static readonly type: string = 'bubble';
 

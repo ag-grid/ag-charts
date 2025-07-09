@@ -2,6 +2,7 @@ import type { RequireOptional } from 'ag-charts-core';
 import { isDefined } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
+    type AgAreaSeriesOptions,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgSeriesMarkerStyle,
 } from 'ag-charts-types';
@@ -83,6 +84,7 @@ type AreaAnimationData = CartesianAnimationData<
 
 export class AreaSeries extends CartesianSeries<
     Group,
+    AgAreaSeriesOptions,
     AreaSeriesProperties,
     MarkerSelectionDatum,
     LabelSelectionDatum,

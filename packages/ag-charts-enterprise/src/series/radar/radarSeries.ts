@@ -1,4 +1,9 @@
-import { type AgRadarSeriesLabelFormatterParams, type AgSeriesMarkerStyle, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgBaseRadarSeriesOptions,
+    type AgRadarSeriesLabelFormatterParams,
+    type AgSeriesMarkerStyle,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import { type RequireOptional, isFiniteNumber, isNumberEqual } from 'ag-charts-core';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
@@ -52,7 +57,8 @@ class RadarSeriesNodeEvent<
 
 export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     RadarNodeDatum,
-    RadarSeriesProperties<any>,
+    AgBaseRadarSeriesOptions,
+    RadarSeriesProperties<AgBaseRadarSeriesOptions>,
     _ModuleSupport.Marker
 > {
     static readonly className: string = 'RadarSeries';

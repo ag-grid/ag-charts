@@ -1,6 +1,6 @@
 import { type AgSunburstSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
-import type { AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
+import type { AgSunburstSeriesOptions, AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
@@ -81,6 +81,7 @@ type ItemStyle = Pick<AgSunburstSeriesStyle, 'fill' | 'stroke'> &
 
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     _ModuleSupport.Sector,
+    AgSunburstSeriesOptions,
     SunburstSeriesProperties,
     SunburstNode
 > {

@@ -11,10 +11,11 @@ abstract class TopologySeriesProperties<T extends object> extends _ModuleSupport
 
 export abstract class TopologySeries<
     TDatum extends TopologySeriesNodeDatum,
-    TProps extends TopologySeriesProperties<any>,
+    TOpts extends object,
+    TProps extends TopologySeriesProperties<TOpts>,
     TLabel extends object,
     TContext extends TopologySeriesNodeDataContext<TDatum, TLabel> = TopologySeriesNodeDataContext<TDatum, TLabel>,
-> extends _ModuleSupport.DataModelSeries<TDatum, TProps, TLabel, TContext> {
+> extends _ModuleSupport.DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
     override addChartEventListeners(): void {
         this.cleanup.register(
             this.ctx.eventsHub.on('legend:item-click', (event) => {

@@ -25,10 +25,11 @@ export type DataModelSeriesConstructorOpts<TProps extends SeriesProperties<any>>
 
 export abstract class DataModelSeries<
     TDatum extends SeriesNodeDatum<number>,
-    TProps extends SeriesProperties<any>,
+    TOpts extends object,
+    TProps extends SeriesProperties<TOpts>,
     TLabel = TDatum,
     TContext extends DataModelSeriesNodeDataContext<TDatum, TLabel> = DataModelSeriesNodeDataContext<TDatum, TLabel>,
-> extends Series<number, TDatum, TProps, TLabel, TContext> {
+> extends Series<number, TDatum, TOpts, TProps, TLabel, TContext> {
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
     private readonly categoryKey: string | undefined;

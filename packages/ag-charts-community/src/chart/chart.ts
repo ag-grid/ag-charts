@@ -851,7 +851,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.onSeriesChange(newValue, oldValue);
         },
     })
-    series: Series<unknown, any, any>[] = [];
+    series: Series<unknown, any, any, any>[] = [];
 
     protected onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         if (oldValue == null && newValue.length === 0) return;
