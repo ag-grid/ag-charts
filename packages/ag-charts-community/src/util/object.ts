@@ -37,6 +37,10 @@ export function objectsEqualWith<T extends PlainObject>(a: T, b: T, cmp: (a: T, 
  *
  * NOTE: `undefined` values take lower priority than actual values irrespective of precedent.
  */
+export function mergeDefaults<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(
+    ...sources: TArgs
+): Intersection<Exclude<TArgs[number], FalsyType>>;
+export function mergeDefaults<TSameSource extends PlainObject>(...sources: (TSameSource | undefined)[]): TSameSource;
 export function mergeDefaults<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(...sources: TArgs) {
     const target: PlainObject = {};
 
