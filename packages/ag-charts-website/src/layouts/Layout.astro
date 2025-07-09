@@ -7,11 +7,13 @@ import { Footer } from '@ag-website-shared/components/footer/Footer';
 import type { ApiMenuItem } from '@ag-grid-types';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { ApiTopBar } from '@components/top-bar/ApiTopBar';
-import { getIsProduction, getIsArchive, getIsStaging } from '@utils/env';
+import { getIsProduction, getIsArchive, getIsStaging, getIsDev } from '@utils/env';
 import { isDynamicFrameworkPath, isDynamicFrameworkPathMatch, replaceDynamicFrameworkPath } from '@utils/framework';
 import Plausible from '../components/Plausible.astro';
-import { FRAMEWORKS, SITE_BASE_URL } from '@constants';
+import { FRAMEWORKS, SITE_BASE_URL, PUBLIC_GTM_ID, PUBLIC_GTM_AUTH, PUBLIC_GTM_PREVIEW } from '@constants';
 import { DevTools } from '@ag-website-shared/components/dev-tools/DevTools';
+import GoogleTagManager from '@ag-website-shared/components/google-tag-manager/GoogleTagManager.astro';
+import GoogleTagManagerBody from '@ag-website-shared/components/google-tag-manager/GoogleTagManagerBody.astro';
 
 export interface Props {
     title?: string;
@@ -124,14 +126,17 @@ const isHomepage = Astro.url.pathname.replaceAll('/', '') === SITE_BASE_URL.repl
         <meta name="twitter:description" content={description}>
         <meta name="twitter:image" content={socialImage}>
 
+        {
+            !getIsDev() && (
+                <GoogleTagManager
+                    googleTagManagerId={PUBLIC_GTM_ID}
+                    googleTagManagerAuth={PUBLIC_GTM_AUTH}
+                    googleTagManagerPreview={PUBLIC_GTM_PREVIEW}
+                />
+            )
+        }
+
         {isProduction && <Fragment>
-            <script is:inline define:vars={{
-                googleTagManagerId: metadata.googleTagManagerId
-            }}>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer',googleTagManagerId);</script>
             <Plausible domain="ag-grid.com" />
 
             <script async type="text/javascript" src="https://secure.sharpinspiration-instinct.com/js/793321.js"></script>
@@ -192,8 +197,6 @@ const isHomepage = Astro.url.pathname.replaceAll('/', '') === SITE_BASE_URL.repl
             });
             observer.observe(htmlEl, { attributes: true });
         </script>
-        {isProduction && <noscript><iframe src={`https://www.googletagmanager.com/ns.html?id=${metadata.googleTagManagerId}`}
-            height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>}
 
         <div class="mainContainer">
             {!hideHeader && <SiteHeader showSearchBar={showSearchBar} showDocsNav={showDocsNav} apiPaths={apiPaths}/>}
@@ -234,5 +237,15 @@ const isHomepage = Astro.url.pathname.replaceAll('/', '') === SITE_BASE_URL.repl
                 padding: 0;
             }
         </style>
+
+        {
+            !getIsDev() && (
+                <GoogleTagManagerBody
+                    googleTagManagerId={PUBLIC_GTM_ID}
+                    googleTagManagerAuth={PUBLIC_GTM_AUTH}
+                    googleTagManagerPreview={PUBLIC_GTM_PREVIEW}
+                />
+            )
+        }
     </body>
 </html>
