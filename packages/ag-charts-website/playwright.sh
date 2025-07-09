@@ -46,9 +46,9 @@ if [ "$1" == "--host" ] ; then
 
     if [[ $(uname) == "Darwin" ]] ; then
       echo
-      echo Run the following commands to install and launch Docker Desktop for MacOS:
-      echo \$ brew install --cask docker
-      echo \$ open /Applications/Docker.app
+      echo Run the following commands to install and launch Colima for MacOS:
+      echo \$ brew install colima docker
+      echo \$ colima start
     fi
 
     exit 1
