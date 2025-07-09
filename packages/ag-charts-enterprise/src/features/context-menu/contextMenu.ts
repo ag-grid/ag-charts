@@ -10,7 +10,7 @@ type ContextMenuCallback = _ModuleSupport.ContextMenuCallback<AgContextMenuItemS
 
 const { Property, ContextMenuRegistry, callWithContext, getIconClassNames } = _ModuleSupport;
 
-type UnknownSeries = _ModuleSupport.UnknownSeries;
+type UnknownSeries = _ModuleSupport.ISeries<unknown, unknown, _ModuleSupport.SeriesProperties<object>, unknown>;
 type Caller = { context?: unknown } | undefined;
 
 const moduleId = 'context-menu';
