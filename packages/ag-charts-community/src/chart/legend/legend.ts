@@ -587,10 +587,8 @@ export class Legend extends BaseProperties {
         this.containerNode.strokeWidth = containerStyles.strokeWidth;
 
         // Grow the desired legend size with the container
-        if (containerStyles.strokeWidth > 0) {
-            width += containerStyles.strokeWidth * 2 + containerStyles.padding * 2;
-            height += containerStyles.strokeWidth * 2 + containerStyles.padding * 2;
-        }
+        width += containerStyles.strokeWidth * 2 + containerStyles.padding * 2;
+        height += containerStyles.strokeWidth * 2 + containerStyles.padding * 2;
 
         return [width, height];
     }
@@ -909,9 +907,7 @@ export class Legend extends BaseProperties {
             actualBBox.width = Math.max(maxPageWidth, actualBBox.width);
         }
         const containerStyles = this.getContainerStyles();
-        if (containerStyles.strokeWidth > 0) {
-            actualBBox.grow(containerStyles.strokeWidth + containerStyles.padding);
-        }
+        actualBBox.grow(containerStyles.strokeWidth + containerStyles.padding);
         return actualBBox;
     }
 
