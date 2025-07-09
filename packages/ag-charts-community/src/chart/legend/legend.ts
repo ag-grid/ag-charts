@@ -209,7 +209,7 @@ export class Legend extends BaseProperties {
         this.group,
         LegendMarkerLabel
     );
-    private readonly containerNode = this.group.appendChild(new Rect());
+    private readonly containerNode = this.group.appendChild(new Rect({ name: 'legend-container' }));
 
     private readonly oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
@@ -587,10 +587,8 @@ export class Legend extends BaseProperties {
         this.containerNode.strokeWidth = containerStyles.strokeWidth;
 
         // Grow the desired legend size with the container
-        if (containerStyles.strokeWidth > 0) {
-            width += containerStyles.strokeWidth * 2 + containerStyles.padding * 2;
-            height += containerStyles.strokeWidth * 2 + containerStyles.padding * 2;
-        }
+        width += containerStyles.strokeWidth * 2 + containerStyles.padding * 2;
+        height += containerStyles.strokeWidth * 2 + containerStyles.padding * 2;
 
         return [width, height];
     }
@@ -902,16 +900,14 @@ export class Legend extends BaseProperties {
 
     private computePagedBBox(): BBox {
         // Get BBox without group transforms applied.
-        const actualBBox = Group.computeChildrenBBox(this.group.children());
+        const actualBBox = Group.computeChildrenBBox(this.group.excludeChildren({ name: 'legend-container' }));
         if (this.pages.length > 1) {
             const [maxPageWidth, maxPageHeight] = this.maxPageSize;
             actualBBox.height = Math.max(maxPageHeight, actualBBox.height);
             actualBBox.width = Math.max(maxPageWidth, actualBBox.width);
         }
         const containerStyles = this.getContainerStyles();
-        if (containerStyles.strokeWidth > 0) {
-            actualBBox.grow(containerStyles.strokeWidth + containerStyles.padding);
-        }
+        actualBBox.grow(containerStyles.strokeWidth + containerStyles.padding);
         return actualBBox;
     }
 

@@ -29,18 +29,10 @@ export abstract class AnnotationScene extends _ModuleSupport.Group {
         this.toggleHandles(hovered);
     }
 
-    private *nonHandleChildren() {
-        for (const child of this.children()) {
-            if (!(child instanceof Handle)) {
-                yield child;
-            }
-        }
-    }
-
     protected computeBBoxWithoutHandles() {
         return _ModuleSupport.Transformable.toCanvas(
             this,
-            _ModuleSupport.Group.computeChildrenBBox(this.nonHandleChildren())
+            _ModuleSupport.Group.computeChildrenBBox(this.excludeChildren({ instance: Handle }))
         );
     }
 
