@@ -416,10 +416,10 @@ export class Group<D = any> extends Node<D> {
 
     *excludeChildren(exclude: { instance?: any; name?: string }) {
         for (const child of this.children()) {
-            if (exclude.instance && !(child instanceof exclude.instance)) {
-                yield child;
-            }
-            if (exclude.name && child.name !== exclude.name) {
+            if (
+                (exclude.instance && !(child instanceof exclude.instance)) ||
+                (exclude.name && child.name !== exclude.name)
+            ) {
                 yield child;
             }
         }
