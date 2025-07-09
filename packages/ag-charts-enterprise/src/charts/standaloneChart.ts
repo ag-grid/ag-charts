@@ -14,15 +14,14 @@ export class StandaloneChart extends Chart {
         const { seriesRoot, annotationRoot } = this;
         const { layoutBox } = ctx;
 
-        layoutBox.shrink(this.seriesArea.padding.toJson());
-        const seriesRect = layoutBox.clone();
+        const seriesRect = layoutBox.clone().shrink(this.modulesManager.getModule<any>('seriesArea').getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
 
         for (const group of [seriesRoot, annotationRoot]) {
-            group.translationX = Math.floor(layoutBox.x);
-            group.translationY = Math.floor(layoutBox.y);
+            group.translationX = Math.floor(seriesRect.x);
+            group.translationY = Math.floor(seriesRect.y);
         }
 
         seriesRoot.visible = this.series[0].visible;

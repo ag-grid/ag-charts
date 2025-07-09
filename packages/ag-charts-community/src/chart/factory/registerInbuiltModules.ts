@@ -8,6 +8,7 @@ import { TimeAxis } from '../axis/timeAxis';
 import { UnitTimeAxis } from '../axis/unitTimeAxis';
 import { BackgroundModule } from '../background/backgroundModule';
 import { CommunityLegendModule } from '../legend/legendModule';
+import { SeriesAreaModule } from '../series-area/seriesAreaModule';
 import { AreaSeriesModule } from '../series/cartesian/areaSeriesModule';
 import { BarSeriesModule } from '../series/cartesian/barSeriesModule';
 import { BubbleSeriesModule } from '../series/cartesian/bubbleSeriesModule';
@@ -21,6 +22,7 @@ import { axisRegistry } from './axisRegistry';
 export function registerInbuiltModules() {
     moduleRegistry.register(
         BackgroundModule,
+        SeriesAreaModule,
         CommunityLegendModule,
         LocaleModule,
         AreaSeriesModule,

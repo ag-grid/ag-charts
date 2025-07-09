@@ -247,7 +247,9 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         left: positiveNumber,
     },
     seriesArea: {
+        border: strokeOptionsDef,
         clip: boolean,
+        cornerRadius: number,
         padding: {
             top: positiveNumber,
             right: positiveNumber,

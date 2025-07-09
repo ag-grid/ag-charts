@@ -304,6 +304,12 @@ export class ChartTheme {
                 left: { $ref: 'chartPadding' },
             },
             seriesArea: {
+                border: {
+                    stroke: { $ref: 'foregroundColor' },
+                    strokeOpacity: 1,
+                    strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+                },
+                cornerRadius: 0,
                 padding: {
                     top: 0,
                     right: 0,
