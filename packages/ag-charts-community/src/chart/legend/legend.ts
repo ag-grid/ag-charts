@@ -209,7 +209,7 @@ export class Legend extends BaseProperties {
         this.group,
         LegendMarkerLabel
     );
-    private readonly containerNode = this.group.appendChild(new Rect());
+    private readonly containerNode = this.group.appendChild(new Rect({ name: 'legend-container' }));
 
     private readonly oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
@@ -900,7 +900,7 @@ export class Legend extends BaseProperties {
 
     private computePagedBBox(): BBox {
         // Get BBox without group transforms applied.
-        const actualBBox = Group.computeChildrenBBox(this.itemSelection.nodes());
+        const actualBBox = Group.computeChildrenBBox(this.group.excludeChildren({ name: 'legend-container' }));
         if (this.pages.length > 1) {
             const [maxPageWidth, maxPageHeight] = this.maxPageSize;
             actualBBox.height = Math.max(maxPageHeight, actualBBox.height);

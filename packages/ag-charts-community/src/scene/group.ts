@@ -414,6 +414,17 @@ export class Group<D = any> extends Node<D> {
         yield* this.childNodes;
     }
 
+    *excludeChildren(exclude: { instance?: any; name?: string }) {
+        for (const child of this.children()) {
+            if (exclude.instance && !(child instanceof exclude.instance)) {
+                yield child;
+            }
+            if (exclude.name && child.name !== exclude.name) {
+                yield child;
+            }
+        }
+    }
+
     *descendants(): Generator<Node, void, undefined> {
         for (const child of this.children()) {
             yield child;
