@@ -1,26 +1,27 @@
 import type { ApiReferenceConfig } from '@components/api-documentation/components/ApiReference';
 import type {
-    ApiReferenceNode,
-    ApiReferenceType,
     EnumNode,
     FunctionNode,
     InterfaceNode,
     MemberNode,
+    NodeType,
+    NodeTypes,
     TypeLiteralNode,
-    TypeNode,
     TypeParameterNode,
 } from '@generate-code-reference-plugin/doc-interfaces/types';
 import type Flexsearch from 'flexsearch';
 
 import { entries } from 'ag-charts-core';
 
-type PossibleTypeNode = TypeNode | undefined | PossibleTypeNode[];
+type ApiReferenceType = Map<string, NodeTypes>;
+type PossibleTypeNode = NodeTypes | undefined | PossibleTypeNode[];
 
 export type SearchDatum = { label: string; searchable: string; navPath: NavigationPath[] };
 export type SearchIndexDatum = SearchDatum & { id: number };
 export type SearchIndex = Flexsearch.Document<SearchIndexDatum>;
 
 export type SpecialTypesMap = Record<string, 'InterfaceArray' | 'NestedPage'>;
+type HasProperty<T, K extends PropertyKey> = T extends { [P in K]: any } ? T : never;
 
 export interface PageTitle {
     name: string;
@@ -120,6 +121,7 @@ export function processMembers(
     typeArguments?: string[]
 ) {
     let { members } = interfaceRef;
+    if (!Array.isArray(members)) return [];
     const { prioritise, include, exclude } = config;
     const isInterface = interfaceRef.kind === 'interface';
     const genericsMap = new Map(isInterface ? entries(interfaceRef.genericsMap ?? {}) : null);
@@ -152,7 +154,7 @@ export function processMembers(
             let omit: string[] | undefined;
             let memberType = normalizeType(member.type);
             if (memberType === 'Omit') {
-                const { typeArguments: memberTypeArguments } = member.type;
+                const { typeArguments: memberTypeArguments } = member.type as HasProperty<NodeType, 'typeArguments'>;
                 memberType = memberTypeArguments[0];
                 omit = memberTypeArguments[1];
             }
@@ -164,7 +166,7 @@ export function processMembers(
 }
 
 export function formatTypeToCode(
-    apiNode: ApiReferenceNode | MemberNode,
+    apiNode: NodeTypes,
     member: MemberNode,
     reference: ApiReferenceType,
     seen: Set<string>
@@ -390,12 +392,12 @@ export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[],
 
 export function extractSearchData(
     reference?: ApiReferenceType,
-    interfaceRef?: ApiReferenceNode,
+    interfaceRef?: NodeTypes,
     basePath: NavigationPath[] = [],
     labelPrefix = ''
 ): SearchDatum[] {
     if (interfaceRef?.kind === 'interface' || (interfaceRef?.kind === 'typeLiteral' && interfaceRef.name)) {
-        const { genericsMap } = interfaceRef as any;
+        const { genericsMap } = interfaceRef as HasProperty<NodeTypes, 'genericsMap'>;
         return interfaceRef.members.flatMap((member) => {
             const newPath = { name: cleanupName(member.name), type: getMemberType(member) };
             if (basePath.find((p) => p.name === newPath.name && p.type === newPath.type)) {
@@ -495,9 +497,9 @@ function findRequiredRefs(reference: ApiReferenceType) {
 }
 
 export function getOptionsStaticPaths(reference: ApiReferenceType) {
-    const getSubTypes = (ref: ApiReferenceNode): string[] =>
+    const getSubTypes = (ref: NodeTypes): string[] =>
         ref.kind === 'typeAlias' && typeof ref.type === 'object' && ref.type.kind === 'union'
-            ? ref.type.type.map((type) => (typeof type === 'string' ? type : type.type))
+            ? ref.type.type.map((type) => (typeof type === 'string' ? type : (type as any).type))
             : [];
 
     const extractTypeValue = (refName: string) => {
@@ -571,4 +573,9 @@ function addNewLineOnPipe(str: string) {
         }
     }
     return result;
+}
+
+export function parseJsDocs(docs?: string[]) {
+    return docs?.join('\n').replaceAll(/^@([a-z])/gm, (_, char) => char.toUpperCase());
+    // const hidden = text?.includes('@deprecated') || text?.includes('@experimental');
 }

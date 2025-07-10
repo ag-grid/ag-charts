@@ -1,5 +1,5 @@
 import { navigate, useHistory, useLocation } from '@ag-website-shared/utils/navigation';
-import type { ApiReferenceType, InterfaceNode } from '@generate-code-reference-plugin/doc-interfaces/types';
+import type { InterfaceNode, NodeTypes } from '@generate-code-reference-plugin/doc-interfaces/types';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';
 import { Action } from 'history';
@@ -8,7 +8,7 @@ import { useContext, useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 
-import type { PageTitle } from '../apiReferenceHelpers';
+import { type PageTitle, parseJsDocs } from '../apiReferenceHelpers';
 import type { NavigationData, SpecialTypesMap } from '../apiReferenceHelpers';
 import { ApiReference, ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './ApiReferencePage.module.scss';
@@ -16,7 +16,7 @@ import { OptionsNavigation, SelectionContext } from './OptionsNavigation';
 import { PropertyType } from './Properties';
 
 interface ApiReferencePageOptions {
-    reference: ApiReferenceType;
+    reference: Map<string, NodeTypes>;
     rootInterface: string;
     pageInterface?: string;
     breadcrumbs: string[];
@@ -110,7 +110,7 @@ function ApiReferencePageContent({
                         pageTitle?.name ?? pageRef.name
                     )}
                 </h1>
-                <Markdown remarkPlugins={[remarkBreaks]}>{pageRef.docs?.join('\n')}</Markdown>
+                <Markdown remarkPlugins={[remarkBreaks]}>{parseJsDocs(pageRef.docs)}</Markdown>
                 <PropertyType type={pageRef.name} />
             </header>
             <ApiReference

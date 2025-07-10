@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "ag-shared": "0.0.1",
+    "diff": "^8.0.2",
     "glob": "8.0.3",
     "typescript": "^5.4.5",
     "@nx/devkit": "^18.3.4",

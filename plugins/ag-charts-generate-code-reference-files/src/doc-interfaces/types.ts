@@ -1,6 +1,5 @@
-export type ApiReferenceType = Map<string, ApiReferenceNode>;
-
-export type ApiReferenceNode =
+export type NodeType =
+    | string
     | InterfaceNode
     | TypeAliasNode
     | TypeLiteralNode
@@ -11,35 +10,45 @@ export type ApiReferenceNode =
     | MultiTypeNode
     | ArrayNode;
 
-export type TypeNode = string | ApiReferenceNode;
+export type NodeTypes =
+    | InterfaceNode
+    | TypeAliasNode
+    | TypeLiteralNode
+    | TypeReferenceNode
+    | EnumNode
+    | FunctionNode
+    | IndexAccessNode
+    | MultiTypeNode
+    | ArrayNode
+    | ParameterNode
+    | TypeParameterNode
+    | MemberNode;
 
 export interface MemberNode {
     kind: 'member';
     name: string;
-    type: TypeNode;
-    docs?: string[];
-    omit?: string;
+    type: NodeType;
     optional?: boolean;
     defaultValue?: string;
+    docs?: string[];
 }
 
 export interface InterfaceNode {
     kind: 'interface';
     name: string;
-    docs?: string[];
-    members: MemberNode[];
     typeParams?: TypeParameterNode[];
-    genericsMap?: Record<string, string>;
-    deprecated?: boolean;
+    heritage?: NodeType[];
+    members: MemberNode[];
+    docs?: string[];
+    genericsMap?: Record<string, NodeType>;
 }
 
 export interface TypeAliasNode {
     kind: 'typeAlias';
     name: string;
-    docs?: string[];
-    type: TypeNode;
+    type: NodeType;
     typeParams?: TypeParameterNode[];
-    deprecated?: boolean;
+    docs?: string[];
 }
 
 export interface TypeLiteralNode {
@@ -57,41 +66,41 @@ export interface TypeReferenceNode {
 export interface EnumNode {
     kind: 'enum';
     name: string;
-    members: MemberNode[];
+    members: Record<string, string>;
 }
 
 export interface FunctionNode {
     kind: 'function';
     params?: ParameterNode[];
     typeParams?: TypeParameterNode[];
-    returnType: TypeNode;
+    returnType: NodeType;
 }
 
 export interface IndexAccessNode {
     kind: 'indexAccess';
-    type: TypeNode;
+    type: NodeType;
     index: string;
 }
 
 export interface MultiTypeNode {
     kind: 'union' | 'intersection' | 'tuple';
-    type: TypeNode[];
+    type: NodeType[];
 }
 
 export interface ArrayNode {
     kind: 'array';
-    type: TypeNode;
+    type: NodeType;
 }
 
 export interface ParameterNode {
     kind: 'param';
     name: string;
-    type: TypeNode;
+    type: NodeType;
 }
 
 export interface TypeParameterNode {
     kind: 'typeParam';
     name: string;
-    constraint: TypeNode;
-    default: TypeNode;
+    constraint?: NodeType;
+    default?: NodeType;
 }
