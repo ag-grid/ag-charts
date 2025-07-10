@@ -307,9 +307,9 @@ export class ChartTheme {
                 border: {
                     stroke: { $ref: 'foregroundColor' },
                     strokeOpacity: 1,
-                    strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+                    strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
                 },
-                cornerRadius: 0,
+                cornerRadius: 4,
                 padding: {
                     top: 0,
                     right: 0,
