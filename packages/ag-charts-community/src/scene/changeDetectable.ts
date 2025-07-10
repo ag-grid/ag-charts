@@ -1,6 +1,6 @@
 import { arraysEqual } from 'ag-charts-core';
 
-type Target = { [K in string]: any } & { onChangeDetection(privateKey: string): void };
+type Target = { [K in string]: any } & { onChangeDetection(key: string): void };
 
 type SceneChangeDetectionOptions<T = any> = {
     convertor?: (o: any) => any;
@@ -23,18 +23,17 @@ type SceneArrayChangeDetectionOptions<T = any> = {
     equals?: never;
 };
 
+type SetterFunction = (this: Target, value: any) => boolean;
+
 export const TRIPLE_EQ = (lhs: unknown, rhs: unknown) => lhs === rhs;
 
 export function SceneChangeDetection<T extends Target = any>(opts?: SceneChangeDetectionOptions) {
     return function (target: T, key: string) {
-        // `target` is either a constructor (static member) or prototype (instance member)
-        const privateKey = `__${key}`;
-
         if (target[key as keyof T]) {
             return;
         }
 
-        prepareGetSet(target, key, privateKey, opts);
+        prepareGetSet(target, key, opts);
     };
 }
 
@@ -48,23 +47,54 @@ export function SceneArrayChangeDetection<T extends Target = any>(opts?: SceneAr
     return SceneChangeDetection<T>(opts);
 }
 
-function prepareGetSet(target: any, key: string, privateKey: string, opts?: SceneChangeDetectionOptions) {
-    const { changeCb, convertor, checkDirtyOnAssignment = false } = opts ?? {};
+const ACCESSORS_KEY = '__change_detectable_decorator_accessors';
+
+function prepareGetSet(target: any, key: string, opts?: SceneChangeDetectionOptions) {
+    const { changeCb, convertor, checkDirtyOnAssignment = false, equals } = opts ?? {};
     const requiredOpts = { changeCb, checkDirtyOnAssignment, convertor };
+    if (Object.getOwnPropertyDescriptor(target, ACCESSORS_KEY) == null) {
+        const parentAccessors: (string | symbol)[] | undefined = Object.getPrototypeOf(target)?.[ACCESSORS_KEY];
+        const accessors = parentAccessors?.slice() ?? [];
+        Object.defineProperty(target, ACCESSORS_KEY, { value: accessors });
+    }
+
+    const accessors: any[] = target[ACCESSORS_KEY];
+    let index = accessors.indexOf(key);
+    if (index === -1) {
+        index = accessors.push(key) - 1;
+    }
 
     // Select the correctly optimized setter with minimal branches/checks for the specific type
     // of change detection.
-    const setter = buildCheckDirtyChain(
-        privateKey,
-        buildChangeCallbackChain(
-            buildConvertorChain(buildSetter(privateKey, requiredOpts), requiredOpts),
-            requiredOpts
-        ),
+    let setter: SetterFunction = function (this: Target, value: unknown) {
+        let accessorValues = this.__changeDetectableAccessors;
+        if (accessorValues == null) {
+            accessorValues = accessors.slice().fill(undefined);
+            Object.defineProperty(this, '__changeDetectableAccessors', { value: accessorValues });
+        }
+
+        const oldValue = accessorValues[index];
+        const valuesEqual = equals == null ? value === oldValue : oldValue != null && equals(value, oldValue);
+        if (valuesEqual) return false;
+
+        accessorValues[index] = value;
+        this.onChangeDetection(key);
+        return true;
+    };
+
+    setter = buildCheckDirtyChain(
+        key,
+        buildChangeCallbackChain(buildConvertorChain(setter, requiredOpts), requiredOpts),
         requiredOpts
     );
 
     const getter = function (this: any) {
-        return this[privateKey];
+        let accessorValues = this.__changeDetectableAccessors;
+        if (accessorValues == null) {
+            accessorValues = accessors.slice().fill(undefined);
+            Object.defineProperty(this, '__changeDetectableAccessors', { value: accessorValues });
+        }
+        return accessorValues[index];
     };
 
     Object.defineProperty(target, key, {
@@ -75,61 +105,49 @@ function prepareGetSet(target: any, key: string, privateKey: string, opts?: Scen
     });
 }
 
-function buildConvertorChain(setterFn: Function, opts: SceneChangeDetectionOptions) {
+function buildConvertorChain(setterFn: SetterFunction, opts: SceneChangeDetectionOptions): SetterFunction {
     const { convertor } = opts;
     if (convertor) {
         return function (this: any, value: unknown) {
-            setterFn.call(this, convertor(value));
+            return setterFn.call(this, convertor(value));
         };
     }
 
     return setterFn;
 }
 
-const NO_CHANGE = Symbol('no-change');
-
-function buildChangeCallbackChain(setterFn: Function, opts: SceneChangeDetectionOptions) {
+function buildChangeCallbackChain(setterFn: SetterFunction, opts: SceneChangeDetectionOptions): SetterFunction {
     const { changeCb } = opts;
     if (changeCb) {
         return function (this: any, value: unknown) {
-            const change = setterFn.call(this, value);
-            if (change !== NO_CHANGE) {
+            const didChange = setterFn.call(this, value);
+            if (didChange) {
                 changeCb.call(this, this);
             }
-            return change;
+            return didChange;
         };
     }
 
     return setterFn;
 }
 
-function buildCheckDirtyChain(privateKey: string, setterFn: Function, opts: SceneChangeDetectionOptions) {
+function buildCheckDirtyChain(
+    key: string,
+    setterFn: SetterFunction,
+    opts: SceneChangeDetectionOptions
+): SetterFunction {
     const { checkDirtyOnAssignment } = opts;
     if (checkDirtyOnAssignment) {
         return function (this: any, value: undefined | { _dirty: boolean }) {
-            const change = setterFn.call(this, value);
+            const didChange = setterFn.call(this, value);
 
             if (value?._dirty === true) {
-                this.markDirty(privateKey);
+                this.onChangeDetection(key);
             }
 
-            return change;
+            return didChange;
         };
     }
 
     return setterFn;
-}
-
-function buildSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
-    const { equals = TRIPLE_EQ } = opts;
-    return function (this: Target, value: unknown) {
-        const oldValue = this[privateKey];
-        if (!equals(value, oldValue)) {
-            this[privateKey] = value;
-            this.onChangeDetection(privateKey);
-            return value;
-        }
-
-        return NO_CHANGE;
-    };
 }

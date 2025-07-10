@@ -296,7 +296,6 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
 
     private effectiveStrokeWidth: number = this.strokeWidth;
 
-    private hittester = super.isPointInPath.bind(this);
     private distanceCalculator = super.distanceSquaredTransformedPoint.bind(this);
 
     /**
@@ -406,12 +405,9 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
 
         // Path's isPointInPath and distanceSquared are expensive computations,
         // so just use a BBox if the corners aren't rounded.
-        if ([topLeft, topRight, bottomRight, bottomLeft].every((r) => r === 0)) {
-            const bbox = this.getBBox();
-            this.hittester = bbox.containsPoint.bind(bbox);
+        if (topLeft === 0 && topRight === 0 && bottomRight === 0 && bottomLeft === 0) {
             this.distanceSquared = (hitX: number, hitY: number) => this.getBBox().distanceSquared(hitX, hitY);
         } else {
-            this.hittester = super.isPointInPath;
             this.distanceCalculator = super.distanceSquaredTransformedPoint;
         }
 
@@ -426,7 +422,18 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
     }
 
     override isPointInPath(x: number, y: number): boolean {
-        return this.hittester(x, y);
+        const {
+            topLeftCornerRadius: topLeft,
+            topRightCornerRadius: topRight,
+            bottomRightCornerRadius: bottomRight,
+            bottomLeftCornerRadius: bottomLeft,
+        } = this;
+        if (topLeft === 0 && topRight === 0 && bottomRight === 0 && bottomLeft === 0) {
+            const bbox = this.getBBox();
+            return bbox.containsPoint(x, y);
+        }
+
+        return super.isPointInPath(x, y);
     }
 
     get midPoint(): { x: number; y: number } {
