@@ -20,5 +20,6 @@
             "WebFetch(domain:github.com)"
         ],
         "deny": []
-    }
+    },
+    "enabledMcpjsonServers": ["mcp-atlassian", "mcp-github"]
 }

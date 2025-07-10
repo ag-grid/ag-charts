@@ -137,3 +137,10 @@ nx e2e ag-charts-website
 ## Development Documentation Guidelines
 
 -   When adding examples, make sure to also update the Markdoc page relating to the example (index.mdoc adjacent to the enclosing `_examples/` folder).
+
+## Example File Requirements
+
+-   Examples need to have a index.html file which nominally should just contain the content:
+    ```
+    <div id="myChart"></div>
+    ```
