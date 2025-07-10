@@ -153,6 +153,7 @@ export abstract class OhlcSeriesBase<
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.UngroupedData<any>
     ) {
+        if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];

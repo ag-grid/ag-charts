@@ -285,7 +285,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     private aggregateData(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
-        if (processedData?.type !== 'ungrouped') return;
+        if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
