@@ -24,7 +24,7 @@ import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import type { DatumPropertyDefinition } from '../../data/dataModel';
+import type { DataModel, DatumPropertyDefinition, ProcessedData, PropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import {
     animationValidation,
@@ -32,6 +32,7 @@ import {
     groupStackValueProperty,
     keyProperty,
     normaliseGroupTo,
+    processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
 import { getLabelStyles } from '../../labelUtil';
@@ -59,6 +60,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD,
 } from './cartesianSeries';
+import { type LineSeriesDataAggregationFilter, aggregateLineData } from './lineAggregation';
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
@@ -92,6 +94,8 @@ export class AreaSeries extends CartesianSeries<
     override properties = new AreaSeriesProperties();
 
     override connectsToYAxis = true;
+
+    private dataAggregationFilters: LineSeriesDataAggregationFilter[] | undefined = undefined;
 
     readonly backgroundGroup = new Group({
         name: `${this.id}-background`,
@@ -194,6 +198,7 @@ export class AreaSeries extends CartesianSeries<
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
+        const stacked = stackCount > 1 || normalizedTo != null;
 
         const idMap = {
             value: `area-stack-${groupIndex}-yValue`,
@@ -202,14 +207,6 @@ export class AreaSeries extends CartesianSeries<
             marker: `area-stack-${groupIndex}-yValues-marker`,
         };
 
-        const extraProps = [];
-        if (isDefined(normalizedTo)) {
-            extraProps.push(normaliseGroupTo(Object.values(idMap), normalizedTo));
-        }
-        if (animationEnabled) {
-            extraProps.push(animationValidation());
-        }
-
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
         if ((isDefined(normalizedTo) || connectMissingData) && stackCount > 1) {
             common.invalidValue = 0;
@@ -217,13 +214,17 @@ export class AreaSeries extends CartesianSeries<
         if (!visible) {
             common.forceValue = 0;
         }
-        await this.requestDataModel<any, any, true>(dataController, data, {
-            props: [
-                keyProperty(xKey, xScaleType, { id: 'xValue' }),
-                valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
-                ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })] : []),
-                ...groupStackValueProperty(yKey, yScaleType, { id: `yValueStack`, ...common, groupId: idMap.stack }),
-                valueProperty(yKey, yScaleType, { id: `yValue`, ...common, groupId: idMap.value }),
+
+        const props: PropertyDefinition<any, any>[] = [
+            keyProperty(xKey, xScaleType, { id: 'xValue' }),
+            valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
+            ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })] : []),
+            ...groupStackValueProperty(yKey, yScaleType, { id: `yValueStack`, ...common, groupId: idMap.stack }),
+            valueProperty(yKey, yScaleType, { id: `yValue`, ...common, groupId: idMap.value }),
+        ];
+
+        if (stacked) {
+            props.push(
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'window',
@@ -237,12 +238,24 @@ export class AreaSeries extends CartesianSeries<
                     'current',
                     { id: `yValueCumulative`, ...common, groupId: idMap.marker },
                     yScaleType
-                ),
-                ...extraProps,
-            ],
-            groupByKeys: true,
-            groupByData: false,
+                )
+            );
+        }
+
+        if (isDefined(normalizedTo)) {
+            props.push(normaliseGroupTo(Object.values(idMap), normalizedTo));
+        }
+        if (animationEnabled) {
+            props.push(animationValidation());
+        }
+
+        const { dataModel, processedData } = await this.requestDataModel<any, any>(dataController, data, {
+            props: props,
+            groupByKeys: stacked,
+            groupByData: !stacked,
         });
+
+        this.dataAggregationFilters = this.aggregateData(dataModel, processedData);
 
         this.animationState.transition('updateData');
     }
@@ -261,6 +274,10 @@ export class AreaSeries extends CartesianSeries<
         return [y - r, y + r];
     }
 
+    private yCumulativeKey(processData: ProcessedData<any>) {
+        return processData.type === 'grouped' ? 'yValueCumulative' : 'yValue';
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel, axes } = this;
         if (!processedData || !dataModel) return [];
@@ -277,7 +294,11 @@ export class AreaSeries extends CartesianSeries<
             return fixNumericExtent(extent(keys));
         }
 
-        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yValueCumulative'], 'xValue');
+        const yExtent = this.domainForClippedRange(
+            ChartAxisDirection.Y,
+            [this.yCumulativeKey(processedData)],
+            'xValue'
+        );
 
         if (yAxis instanceof LogAxis || yAxis instanceof TimeAxis) {
             return fixNumericExtent(yExtent);
@@ -290,25 +311,51 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, ['yValueCumulative'], 'xValue', visibleRange);
+        const [y0, y1] = this.domainForVisibleRange(
+            ChartAxisDirection.Y,
+            [this.yCumulativeKey(this.processedData!)],
+            'xValue',
+            visibleRange
+        );
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 
     override getVisibleItems(
         xVisibleRange: [number, number],
-        yVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
         minVisibleItems: number
     ): number {
-        return this.countVisibleItems('xValue', ['yValueCumulative'], xVisibleRange, yVisibleRange, minVisibleItems);
+        return this.countVisibleItems(
+            'xValue',
+            [this.yCumulativeKey(this.processedData!)],
+            xVisibleRange,
+            yVisibleRange,
+            minVisibleItems
+        );
+    }
+
+    private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>) {
+        if (processedData.type === 'grouped') return;
+        if (processedDataIsAnimatable(processedData)) return;
+
+        const xAxis = this.axes[ChartAxisDirection.X];
+        if (xAxis == null) return;
+
+        const { scale } = xAxis;
+        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
+        const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
+
+        return aggregateLineData(scale, xValues, yValues, domain);
     }
 
     override createNodeData() {
-        const { axes, data, processedData, dataModel } = this;
+        const { axes, data, processedData, dataModel, dataAggregationFilters } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!xAxis || !yAxis || !data || !dataModel || processedData?.type !== 'grouped') return;
+        if (!xAxis || !yAxis || !data || !dataModel || !processedData) return;
 
         const {
             yKey,
@@ -331,13 +378,44 @@ export class AreaSeries extends CartesianSeries<
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
+        const stacked = processedData.type === 'grouped';
+
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        const yEndValues = dataModel.resolveColumnById(this, `yValueEnd`, processedData);
         const yRawValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
-        const yCumulativeValues = dataModel.resolveColumnById(this, `yValueCumulative`, processedData);
+        const yEndValues = stacked ? dataModel.resolveColumnById(this, `yValueEnd`, processedData) : yRawValues;
+        const yCumulativeValues = stacked
+            ? dataModel.resolveColumnById(this, `yValueCumulative`, processedData)
+            : yRawValues;
         const yFilterValues =
             yFilterKey != null ? dataModel.resolveColumnById(this, 'yFilterRaw', processedData) : undefined;
-        const yStackValues = dataModel.resolveColumnById<number[]>(this, 'yValueStack', processedData);
+        const yStackValues =
+            processedData.type === 'grouped'
+                ? dataModel.resolveColumnById<number[]>(this, 'yValueStack', processedData)
+                : undefined;
+
+        const labelData: LabelSelectionDatum[] = [];
+        const markerData: MarkerSelectionDatum[] = [];
+        const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
+
+        let crossFiltering = false;
+        const { dataSources } = processedData;
+        const rawData = dataSources.get(this.id) ?? [];
+
+        const [r0, r1] = xScale.range;
+        const range = Math.abs(r1 - r0);
+        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
+
+        let startIndex = 0;
+        let endIndex = 0;
+        const indices = dataAggregationFilter?.indices;
+        [startIndex, endIndex] = this.visibleRangeIndices('xValue', xAxis.range, indices);
+        startIndex = Math.max(startIndex - 1, 0);
+        endIndex = Math.min(endIndex + 1, indices?.length ?? xValues.length);
+        // @todo(AG-13575) Remove this if block
+        if (processedData.input.count < 1e3) {
+            startIndex = 0;
+            endIndex = processedData.input.count;
+        }
 
         const createMarkerCoordinate = (xDatum: any, yEnd: number, rawYDatum: any): SizedPoint => {
             let currY;
@@ -358,14 +436,7 @@ export class AreaSeries extends CartesianSeries<
             };
         };
 
-        const labelData: LabelSelectionDatum[] = [];
-        const markerData: MarkerSelectionDatum[] = [];
-        const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
-
-        let crossFiltering = false;
-        const { dataSources } = processedData;
-        const rawData = dataSources.get(this.id) ?? [];
-        for (const { datumIndex } of dataModel.forEachGroupDatum(this, processedData)) {
+        const handleDatum = (datumIndex: number) => {
             const xDatum = xValues[datumIndex];
             if (xDatum == null) return;
 
@@ -426,6 +497,18 @@ export class AreaSeries extends CartesianSeries<
                     labelText,
                 });
             }
+        };
+
+        if (processedData.type === 'grouped') {
+            for (const { datumIndex } of dataModel.forEachGroupDatum(this, processedData)) {
+                handleDatum(datumIndex);
+            }
+        } else {
+            for (let i = startIndex; i < endIndex; i += 1) {
+                const datumIndex = indices?.[i] ?? i;
+                if (xValues[datumIndex] == null) continue;
+                handleDatum(datumIndex);
+            }
         }
 
         const spansForPoints = (points: Array<LineSpanPointDatum[] | { skip: number }>): Array<LinePathSpan | null> => {
@@ -446,40 +529,46 @@ export class AreaSeries extends CartesianSeries<
         const getSeriesSpans = (index: number) => {
             const points: Array<LineSpanPointDatum[] | { skip: number }> = [];
 
-            for (const {
-                datumIndexes: [pIdx, datumIndex, nIndx],
-            } of dataModel.forEachGroupDatumTuple(this, processedData)) {
+            const handleSeriesPoint = (pIdx: number | undefined, datumIndex: number, nIdx: number | undefined) => {
                 const xDatum = xValues[datumIndex];
-                const yValueStack = yStackValues[datumIndex];
-                const yDatum = yValueStack[index];
+                const yDatum = yStackValues != null ? yStackValues?.[datumIndex][index] : yRawValues[datumIndex];
+
+                if (connectMissingData && !Number.isFinite(yRawValues[datumIndex])) return;
 
                 const yDatumIsFinite = Number.isFinite(yDatum);
-
-                if (connectMissingData && !yDatumIsFinite) continue;
-
-                const lastYValueStack = pIdx != null ? yStackValues[pIdx] : undefined;
-                const nextYValueStack = nIndx != null ? yStackValues[nIndx] : undefined;
 
                 let yValueEndBackwards = 0;
                 let yBackwardsFinite = true;
                 let yValueEndForwards = 0;
                 let yForwardsFinite = true;
-                for (let j = 0; j <= index; j += 1) {
-                    const value = yValueStack[j];
+                if (yStackValues == null) {
+                    yBackwardsFinite = pIdx == null || Number.isFinite(yRawValues[pIdx]);
+                    yForwardsFinite = nIdx == null || Number.isFinite(yRawValues[nIdx]);
 
-                    if (Number.isFinite(value)) {
-                        const lastWasFinite = lastYValueStack == null || Number.isFinite(lastYValueStack[j]);
-                        const nextWasFinite = nextYValueStack == null || Number.isFinite(nextYValueStack[j]);
+                    yValueEndBackwards = pIdx != null && Number.isFinite(yRawValues[pIdx]) ? yDatum : 0;
+                    yValueEndForwards = nIdx != null && Number.isFinite(yRawValues[nIdx]) ? yDatum : 0;
+                } else {
+                    const yValueStack = yStackValues[datumIndex];
+                    const lastYValueStack = pIdx != null ? yStackValues[pIdx] : undefined;
+                    const nextYValueStack = nIdx != null ? yStackValues[nIdx] : undefined;
 
-                        if (lastWasFinite) {
-                            yValueEndBackwards += value;
-                        } else {
-                            yBackwardsFinite = false;
-                        }
-                        if (nextWasFinite) {
-                            yValueEndForwards += value;
-                        } else {
-                            yForwardsFinite = false;
+                    for (let j = 0; j <= index; j += 1) {
+                        const value = yValueStack[j];
+
+                        if (Number.isFinite(value)) {
+                            const lastWasFinite = lastYValueStack == null || Number.isFinite(lastYValueStack[j]);
+                            const nextWasFinite = nextYValueStack == null || Number.isFinite(nextYValueStack[j]);
+
+                            if (lastWasFinite) {
+                                yValueEndBackwards += value;
+                            } else {
+                                yBackwardsFinite = false;
+                            }
+                            if (nextWasFinite) {
+                                yValueEndForwards += value;
+                            } else {
+                                yForwardsFinite = false;
+                            }
                         }
                     }
                 }
@@ -518,6 +607,34 @@ export class AreaSeries extends CartesianSeries<
                         points.push([point]);
                     }
                 }
+            };
+
+            if (processedData.type === 'grouped') {
+                for (const {
+                    datumIndexes: [pIdx, datumIndex, nIdx],
+                } of dataModel.forEachGroupDatumTuple(this, processedData)) {
+                    handleSeriesPoint(pIdx, datumIndex, nIdx);
+                }
+            } else {
+                // Track the previous, current, and next datum indices
+                // Excluding all datum indices where the xValue is nil
+                let pIdx: number | undefined;
+                let datumIndex: number | undefined;
+                for (let i = startIndex; i < endIndex; i += 1) {
+                    const nIdx = indices?.[i] ?? i;
+                    if (xValues[nIdx] == null) continue;
+
+                    if (datumIndex != null) {
+                        handleSeriesPoint(pIdx, datumIndex, nIdx);
+                    }
+
+                    pIdx = datumIndex;
+                    datumIndex = nIdx;
+                }
+
+                if (datumIndex != null) {
+                    handleSeriesPoint(pIdx, datumIndex, undefined);
+                }
             }
 
             return spansForPoints(points);
@@ -526,16 +643,31 @@ export class AreaSeries extends CartesianSeries<
         const stackIndex = this.seriesGrouping?.stackIndex ?? 0;
 
         const getAxisSpans = () => {
-            const yValueZeroPoints = Array.from(dataModel.forEachGroupDatum(this, processedData), ({ datumIndex }) => {
+            const getPoint = (datumIndex: number) => {
                 const xDatum = xValues[datumIndex];
-                const yValueStack: number[] = yStackValues[datumIndex];
-                const yDatum = yValueStack[stackIndex];
+                const yDatum = yStackValues?.[datumIndex][stackIndex] ?? yRawValues[datumIndex];
 
                 if (connectMissingData && !Number.isFinite(yDatum)) return;
                 return createPoint(xDatum, 0);
-            }).filter((x): x is LineSpanPointDatum => x != null);
+            };
 
-            return interpolatePoints(yValueZeroPoints, interpolation);
+            let yValueZeroPoints: Array<LineSpanPointDatum | undefined>;
+            if (processedData.type === 'grouped') {
+                yValueZeroPoints = Array.from(dataModel.forEachGroupDatum(this, processedData), ({ datumIndex }) => {
+                    return getPoint(datumIndex);
+                });
+            } else {
+                yValueZeroPoints = [];
+                for (let i = startIndex; i < endIndex; i += 1) {
+                    const datumIndex = indices?.[i] ?? i;
+                    if (xValues[datumIndex] == null) continue;
+                    yValueZeroPoints.push(getPoint(datumIndex));
+                }
+            }
+
+            yValueZeroPoints = yValueZeroPoints.filter((x): x is LineSpanPointDatum => x != null);
+
+            return interpolatePoints(yValueZeroPoints as LineSpanPointDatum[], interpolation);
         };
 
         const currentSeriesSpans = getSeriesSpans(stackIndex);

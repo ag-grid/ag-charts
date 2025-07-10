@@ -442,32 +442,40 @@ export class ZoomManager extends BaseManager {
     }
 
     public isVisibleItemsCountAtLeast(zoom: DefinedZoomState, minVisibleItems: number): boolean {
+        const { autoScaleYAxis } = this;
         const xAxis = this.getPrimaryAxis(ChartAxisDirection.X);
         const yAxis = this.getPrimaryAxis(ChartAxisDirection.Y);
 
-        const processedSeriesIds = new Set();
-        let visibleItemsCount = 0;
+        let boundSeries: Set<ISeries<any, any, any>>;
+
+        if (this.independentAxes) {
+            const xBoundSeries = new Set(xAxis?.boundSeries ?? []);
+            const yBoundSeries = new Set(yAxis?.boundSeries ?? []);
+
+            boundSeries = new Set();
+            for (const series of xBoundSeries) {
+                if (yBoundSeries.has(series)) {
+                    boundSeries.add(series);
+                }
+            }
+        } else {
+            boundSeries = new Set([...(xAxis?.boundSeries ?? []), ...(yAxis?.boundSeries ?? [])]);
+        }
 
         const xVisibleRange: [number, number] = [zoom.x.min, zoom.x.max];
-        const yVisibleRange: [number, number] = [zoom.y.min, zoom.y.max];
+        const yVisibleRange: [number, number] | undefined =
+            autoScaleYAxis.enabled && !autoScaleYAxis.manuallyAdjusted ? undefined : [zoom.y.min, zoom.y.max];
 
-        for (const series of xAxis?.boundSeries ?? []) {
-            processedSeriesIds.add(series.id);
+        let visibleItemsCount = 0;
+
+        for (const series of boundSeries) {
             const remainingItems = minVisibleItems - (visibleItemsCount ?? 0);
             const seriesVisibleItems = series.getVisibleItems(xVisibleRange, yVisibleRange, remainingItems);
             visibleItemsCount += seriesVisibleItems;
             if (visibleItemsCount >= minVisibleItems) return true;
         }
 
-        for (const series of yAxis?.boundSeries ?? []) {
-            if (processedSeriesIds.has(series.id)) continue;
-            const remainingItems = minVisibleItems - (visibleItemsCount ?? 0);
-            const seriesVisibleItems = series.getVisibleItems(xVisibleRange, yVisibleRange, remainingItems);
-            visibleItemsCount += seriesVisibleItems;
-            if (visibleItemsCount >= minVisibleItems) return true;
-        }
-
-        return processedSeriesIds.size === 0;
+        return boundSeries.size === 0;
     }
 
     private getMementoRanges() {

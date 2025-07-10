@@ -50,7 +50,11 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): any[];
     getRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[];
-    getVisibleItems(xVisibleRange: [number, number], yVisibleRange: [number, number], minVisibleItems: number): number;
+    getVisibleItems(
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
+        minVisibleItems: number
+    ): number;
     dataCount(): number;
     shouldFlipXY?: () => boolean;
     getKeys(direction: ChartAxisDirection): string[];

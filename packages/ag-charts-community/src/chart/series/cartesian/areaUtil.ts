@@ -5,12 +5,13 @@ import type { Point, SizedPoint } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { SpanJoin } from './lineInterpolation';
+import { SpanJoin, spanRange } from './lineInterpolation';
 import { plotInterpolatedSpans, plotSpan } from './lineInterpolationPlotting';
 import { CollapseMode, type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
 import {
     type LinePathSpan,
     type SpanAnimation,
+    pointsEq,
     prepareLinePathPropertyAnimation,
     prepareLinePathStrokeAnimationFns,
 } from './lineUtil';
@@ -53,13 +54,35 @@ export interface AreaSeriesNodeDataContext
 }
 
 export function plotAreaPathFill({ path }: Path, { spans, phantomSpans }: AreaFillPathDatum) {
+    let phantomSpanIndex = 0;
+    let sp = { x: NaN, y: NaN };
+    let pp = { x: NaN, y: NaN };
     for (let i = 0; i < spans.length; i += 1) {
         const { span } = spans[i];
-        const phantomSpan = phantomSpans[i].span;
-        plotSpan(path, span, SpanJoin.MoveTo, false);
-        plotSpan(path, phantomSpan, SpanJoin.LineTo, true);
-        path.closePath();
+        const { span: phantomSpan } = phantomSpans[i];
+        const { 0: sp0, 1: sp1 } = spanRange(span);
+        const { 0: pp0, 1: pp1 } = spanRange(phantomSpan);
+        if (pointsEq(sp, sp0) && pointsEq(pp, pp0)) {
+            plotSpan(path, span, SpanJoin.LineTo, false);
+        } else {
+            for (let j = i - 1; j >= phantomSpanIndex; j -= 1) {
+                plotSpan(path, phantomSpans[j].span, SpanJoin.LineTo, true);
+            }
+            path.closePath();
+
+            plotSpan(path, span, SpanJoin.MoveTo, false);
+
+            phantomSpanIndex = i;
+        }
+
+        sp = sp1;
+        pp = pp1;
     }
+
+    for (let j = spans.length - 1; j >= phantomSpanIndex; j -= 1) {
+        plotSpan(path, phantomSpans[j].span, SpanJoin.LineTo, true);
+    }
+    path.closePath();
 }
 
 export function plotInterpolatedAreaSeriesFillSpans(

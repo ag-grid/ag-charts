@@ -770,7 +770,7 @@ export abstract class CartesianSeries<
     protected abstract xCoordinateRange(xValue: any, pixelSize: number, index: number): [number, number];
     protected abstract yCoordinateRange(yValues: any[], pixelSize: number, index: number): [number, number];
 
-    protected visibleRange(
+    visibleRangeIndices(
         axisKey: string,
         visibleRange: [any, any],
         indices?: number[],
@@ -814,7 +814,7 @@ export abstract class CartesianSeries<
 
         const sortOrder = this.sortOrder(crossAxisKey);
         if (sortOrder != null) {
-            const crossAxisRange = this.visibleRange(crossAxisKey, visibleRange, indices, { sortOrder });
+            const crossAxisRange = this.visibleRangeIndices(crossAxisKey, visibleRange, indices, { sortOrder });
             return dataModel!.getDomainBetweenRange(this, axisKeys, crossAxisRange, processedData!);
         }
 
@@ -884,7 +884,7 @@ export abstract class CartesianSeries<
         crossAxisKey: string,
         axisKeys: string[],
         xVisibleRange: [number, number],
-        yVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
         minVisibleItems: number
     ): number {
         const { dataModel, processedData } = this;
@@ -901,15 +901,46 @@ export abstract class CartesianSeries<
         const axis = this.axes[ChartAxisDirection.Y]!;
         const shouldFlipXY = this.shouldFlipXY();
 
-        const crossRange = crossAxis.range;
-        const range = axis.range;
+        if (yVisibleRange == null) {
+            const sortOrder = this.sortOrder(crossAxisKey);
+
+            if (sortOrder == null) {
+                yVisibleRange = [0, 1];
+            } else {
+                // Fast path if we only need to look at the x axis
+                const crossScale = crossAxis.scale;
+                const crossScaleRange = crossScale.range;
+                crossScale.range = [0, 1];
+
+                let [r0, r1] = this.visibleRangeIndices(crossAxisKey, xVisibleRange, undefined, { sortOrder });
+
+                const xValues = this.keysOrValues(crossAxisKey);
+                // @todo(AG-7083) - figure out how to determine this
+                const pixelSize = 0;
+                if (this.xCoordinateRange(xValues[r0], pixelSize, r0)[0] < xVisibleRange[0]) {
+                    r0 += 1;
+                }
+                if (r1 < xValues.length && this.xCoordinateRange(xValues[r1], pixelSize, r1)[1] > xVisibleRange[1]) {
+                    r1 -= 1;
+                }
+
+                const xItemsVisible = Math.abs(r1 - r0);
+
+                crossScale.range = crossScaleRange;
+
+                return xItemsVisible;
+            }
+        }
 
         const convert = (d: number[], r: number[], v: number) => {
             return d[0] + ((v - r[0]) / (r[1] - r[0])) * (d[1] - d[0]);
         };
 
-        const crossMin = convert(crossRange, crossAxis.visibleRange, xVisibleRange[0]);
-        const crossMax = convert(crossRange, crossAxis.visibleRange, xVisibleRange[1]);
+        const crossAxisRange = crossAxis.range;
+        const range = axis.range;
+
+        const crossMin = convert(crossAxisRange, crossAxis.visibleRange, xVisibleRange[0]);
+        const crossMax = convert(crossAxisRange, crossAxis.visibleRange, xVisibleRange[1]);
         const axisMin = convert(range, axis.visibleRange, shouldFlipXY ? yVisibleRange[0] : yVisibleRange[1]);
         const axisMax = convert(range, axis.visibleRange, shouldFlipXY ? yVisibleRange[1] : yVisibleRange[0]);
 

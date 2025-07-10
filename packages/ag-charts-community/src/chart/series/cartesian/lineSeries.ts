@@ -124,7 +124,7 @@ export class LineSeries extends CartesianSeries<
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
-        const stacked = stackCount >= 1 || normalizedTo != null;
+        const stacked = stackCount > 1 || normalizedTo != null;
 
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
         if (connectMissingData && stacked) {
@@ -251,7 +251,7 @@ export class LineSeries extends CartesianSeries<
 
     override getVisibleItems(
         xVisibleRange: [number, number],
-        yVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
         minVisibleItems: number
     ): number {
         const yKey = this.dataModel?.hasColumnById(this, `yValueEnd`) ? 'yValueEnd' : 'yValueRaw';
@@ -393,7 +393,7 @@ export class LineSeries extends CartesianSeries<
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         const indices = dataAggregationFilter?.indices;
-        let [start, end] = this.visibleRange('xValue', xAxis.range, indices);
+        let [start, end] = this.visibleRangeIndices('xValue', xAxis.range, indices);
         start = Math.max(start - 1, 0);
         end = Math.min(end + 1, indices?.length ?? xValues.length);
         // @todo(AG-13575) Remove this if block
