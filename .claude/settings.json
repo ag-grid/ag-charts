@@ -4,8 +4,10 @@
             "Bash(find:*)",
             "Bash(ls:*)",
             "Bash(rg:*)",
+            "Bash(grep:*)",
             "Bash(mkdir:*)",
             "Bash(touch:*)",
+            "Bash(mv:reports/*)",
             "Bash(nx lint:*)",
             "Bash(nx show projects:*)",
             "Bash(nx build:*)",
@@ -14,6 +16,7 @@
             "Bash(gh pr view:*)",
             "Bash(gh pr diff:*)",
             "Bash(gh pr checks:*)",
+            "Bash(git fetch:*)",
             "WebFetch(domain:github.com)"
         ],
         "deny": []

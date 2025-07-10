@@ -1,18 +1,45 @@
 # PR Review Instructions
 
+## Context
+
+### Open PRs for latest branch
+
+The list of open PRs for `latest` is available at https://github.com/ag-grid/ag-charts/pulls?q=is%3Apr+is%3Aopen+base%3Alatest+draft%3Afalse
+
+### JIRA ticket URLs
+
+JIRA ticket URLs are of the form https://ag-grid.atlassian.net/browse/AG-XXXX
+
+### Review related files
+
+-   Use `${REPO_ROOT}/reports/pr-reviews/tmp/` to store intermediate files such as the diff between the PR and the `latest` branch.
+-   Use `${REPO_ROOT}/reports/pr-reviews/` to store the final report.
+-   Use `${REPO_ROOT}/reports/pr-reviews-archive/` to store archived reports for closed PRs.
+
+### Review output
+
+-   Write a summary in `${REPO_ROOT}/reports/pr-reviews/${PR_NUMBER}-${JIRA_ID:-none}.md`.
+-   Check for stale reports; if a PR is closed, move the report to ${REPO_ROOT}/reports/pr-reviews-archive/${PR_NUMBER}-${JIRA_ID:-none}.md
+
+### PR Review Pre-requisites
+
+Unless I explicitly ask you to review a specific PR:
+
+-   Check the PR is open.
+-   Check the PR is not a draft.
+-   Check the PR is against the `latest` branch unless otherwise specified.
+-   Check if there is an existing report for the PR, and if so, check if the PR has been updated since the report was generated.
+    -   If the report is stale, perform a re-review.
+    -   If these report instructions have changed since the report was generated, perform a re-review.
+    -   Otherwise
+
 ## General Workflow
 
 Run this workflow if I ask you to review all open PRs.
 
+-   Clean up stale reports for closed PRs.
 -   Unless told otherwise, review open non-draft PRs against the `latest` branch.
--   The list of open PRs for `latest` is available at https://github.com/ag-grid/ag-charts/pulls?q=is%3Apr+is%3Aopen+base%3Alatest+draft%3Afalse
--   JIRA ticket URLs are of the form https://ag-grid.atlassian.net/browse/AG-XXXX
--   Use git commands to get the diff between the PR and the `latest` branch if that is the easiest way to read the changes.
--   Write a summary in ${REPO_ROOT}/reports/pr-reviews/${PR_NUMBER}-${JIRA_ID:-none}.md
--   If there is already a summary report, only perform a re-review if one of the following is true:
-    -   The PR has been updated since the summary report was generated.
-    -   The PR review instructions in this file have changed.
--   If a PR has been closed, move the report to ${REPO_ROOT}/reports/pr-reviews-archive/${PR_NUMBER}-${JIRA_ID:-none}.md
+-   Use `git` or `gh` commands to get the diff between the PR and the `latest` branch if that is the easiest way to read the changes.
 
 ## Review Criteria
 
@@ -31,13 +58,25 @@ For each PR, review and critique the following:
 
 ## Report Structure
 
-At the top of the report include:
+-   Status Section
 
--   Links to the PR and the JIRA ticket.
--   Author.
--   CI status.
--   Summary of the changes.
--   Breaking changes for users (contract changes in ag-charts-types, or behavioral changes elsewhere).
--   If there are visual snapshot changes, summarise the most significant changes.
--   Things testers should be aware of and test.
--   Things the product manager should be aware of changing.
+    -   Links to the PR and the JIRA ticket(s).
+    -   Author.
+    -   CI status.
+    -   Last review date/time.
+    -   Last PR update date/time.
+
+-   Analysis Section
+
+    -   Summary of the changes.
+    -   The main body of the report focusing on the review criteria.
+    -   If there are visual snapshot changes, summarise the most significant visual changes even if they are expected.
+        -   Warn about any unexpected visual changes.
+
+-   For stakeholder attention section:
+    -   Breaking changes for users, focusing on:
+        -   Contract changes in our public API contract in `ag-charts-types`.
+        -   Behavioral changes elsewhere.
+        -   DO NOT include other interface changes as we don't support users depending on these.
+    -   Points of interest for the QA team.
+    -   Points of interest for the Product Manager.
