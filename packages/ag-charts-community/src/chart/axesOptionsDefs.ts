@@ -56,6 +56,8 @@ import type {
     AgTimeInterval,
 } from 'ag-charts-types';
 
+import { labelBoxOptionsDef } from './commonOptionsDefs';
+
 export const timeIntervalUnit = union('millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year');
 
 const timeIntervalDefs: OptionsDefs<AgTimeInterval> = {
@@ -137,9 +139,11 @@ export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     formatter: callback,
     itemStyler: callbackDefs<AgBaseAxisLabelStyleOptions>({
         ...fontOptionsDef,
+        ...labelBoxOptionsDef,
         spacing: number,
     }),
     ...fontOptionsDef,
+    ...labelBoxOptionsDef,
 };
 
 export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabelOptions> = {
