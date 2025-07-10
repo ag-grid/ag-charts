@@ -1,4 +1,4 @@
-import type { AgColorType, FillOptions, StrokeOptions } from '../series/cartesian/commonOptions';
+import type { AgColorType, FillOptions, Padding, StrokeOptions } from '../series/cartesian/commonOptions';
 import type { Formatter } from './callbackOptions';
 import type { AgPreventableEvent } from './eventOptions';
 import type {
@@ -124,7 +124,7 @@ export interface AgChartLegendOptions<TContext = ContextDefault> extends FillOpt
     /** The corner radius of the legend. */
     cornerRadius?: PixelSize;
     /** The padding between the border and legend items. */
-    padding?: PixelSize;
+    padding?: Padding;
     /** The spacing in pixels to use outside the legend. */
     spacing?: PixelSize;
     /** Configuration for the legend items that consist of a marker and a label. */
