@@ -31,7 +31,7 @@ interface FormatterCache {
     formatter: ((value: any, fractionDigits?: number) => string) | undefined;
 }
 
-class LabelBorder {
+export class LabelBorder {
     @Property
     stroke?: string;
 
