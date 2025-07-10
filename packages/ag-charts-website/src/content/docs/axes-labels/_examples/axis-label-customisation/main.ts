@@ -29,7 +29,7 @@ const options: AgChartOptions = {
                     strokeOpacity: 0.2,
                 },
                 itemStyler: (params: AgAxisLabelStylerParams<unknown>) => {
-                    if (params.value === 5000) {
+                    if (params.value === '$5000.00') {
                         return {
                             border: {
                                 stroke: 'red',
