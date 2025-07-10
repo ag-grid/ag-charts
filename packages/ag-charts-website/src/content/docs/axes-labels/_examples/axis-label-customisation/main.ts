@@ -56,6 +56,7 @@ const options: AgChartOptions = {
             type: 'unit-time',
             position: 'bottom',
             label: {
+                color: 'blue',
                 rotation: -30,
                 format: '%b %Y',
                 cornerRadius: 2,
