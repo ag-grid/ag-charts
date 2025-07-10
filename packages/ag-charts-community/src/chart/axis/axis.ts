@@ -414,7 +414,12 @@ export abstract class Axis<
             fontSize: label.fontSize,
             fontStyle: label.fontStyle,
             fontWeight: label.fontWeight,
-        };
+            border: label.border,
+            cornerRadius: label.cornerRadius,
+            fill: label.fill,
+            fillOpacity: label.fillOpacity,
+            padding: label.padding,
+        } satisfies RequireOptional<AgBaseAxisLabelStyleOptions>;
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
             stylerOutput = this.cachedCallWithContext(label.itemStyler, {
