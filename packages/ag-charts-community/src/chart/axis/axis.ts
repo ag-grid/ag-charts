@@ -408,17 +408,17 @@ export abstract class Axis<
         label: AxisLabel = this.label
     ) {
         const defaultStyle = {
+            border: label.border,
             color: label.color,
-            spacing: label.spacing,
+            cornerRadius: label.cornerRadius,
+            fill: label.fill,
+            fillOpacity: label.fillOpacity,
             fontFamily: label.fontFamily,
             fontSize: label.fontSize,
             fontStyle: label.fontStyle,
             fontWeight: label.fontWeight,
-            border: label.border,
-            cornerRadius: label.cornerRadius,
-            fill: label.fill,
-            fillOpacity: label.fillOpacity,
             padding: label.padding,
+            spacing: label.spacing,
         } satisfies RequireOptional<AgBaseAxisLabelStyleOptions>;
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
@@ -429,17 +429,17 @@ export abstract class Axis<
         }
         const merged = mergeDefaults(stylerOutput, additionalStyles, defaultStyle);
         return {
+            border: merged.border,
+            color: merged.color,
+            cornerRadius: merged.cornerRadius,
             fill: merged.fill,
+            fillOpacity: merged.fillOpacity,
             fontFamily: merged.fontFamily,
             fontSize: merged.fontSize,
             fontStyle: merged.fontStyle,
             fontWeight: merged.fontWeight,
-            spacing: merged.spacing,
-            border: merged.border,
-            color: merged.color,
-            cornerRadius: merged.cornerRadius,
-            fillOpacity: merged.fillOpacity,
             padding: merged.padding,
+            spacing: merged.spacing,
         } satisfies RequireOptional<AgBaseAxisLabelStyleOptions>;
     }
 
