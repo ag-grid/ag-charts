@@ -15,6 +15,7 @@ import type {
     FontOptions,
     GoogleFontFamily,
     LineDashOptions,
+    PaddingOptions,
     StrokeOptions,
 } from 'ag-charts-types';
 
@@ -287,3 +288,9 @@ export const fontOptionsDef: OptionsDefs<FontOptions> = {
     fontStyle: union('normal', 'italic', 'oblique'),
     fontWeight: or(positiveNumber, union('normal', 'bold', 'bolder', 'lighter')),
 };
+
+export const paddingOptions = optionsDefs<PaddingOptions>(
+    { top: number, right: number, bottom: number, left: number },
+    'padding object'
+);
+export const padding = or(number, paddingOptions);
