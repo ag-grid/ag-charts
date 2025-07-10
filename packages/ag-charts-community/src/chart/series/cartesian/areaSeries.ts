@@ -505,6 +505,7 @@ export class AreaSeries extends CartesianSeries<
         } else {
             for (let i = startIndex; i < endIndex; i += 1) {
                 const datumIndex = indices?.[i] ?? i;
+                if (xValues[datumIndex] == null) continue;
                 handleDatum(datumIndex);
             }
         }
@@ -614,12 +615,24 @@ export class AreaSeries extends CartesianSeries<
                     handleSeriesPoint(pIdx, datumIndex, nIdx);
                 }
             } else {
-                const dataEndIndex = indices?.length ?? rawData.length;
+                // Track the previous, current, and next datum indices
+                // Excluding all datum indices where the xValue is nil
+                let pIdx: number | undefined;
+                let datumIndex: number | undefined;
                 for (let i = startIndex; i < endIndex; i += 1) {
-                    const datumIndex = indices?.[i] ?? i;
-                    const pIdx = i > 0 ? indices?.[i - 1] ?? i - 1 : undefined;
-                    const nIdx = i < dataEndIndex - 1 ? indices?.[i + 1] ?? i + 1 : undefined;
-                    handleSeriesPoint(pIdx, datumIndex, nIdx);
+                    const nIdx = indices?.[i] ?? i;
+                    if (xValues[nIdx] == null) continue;
+
+                    if (datumIndex != null) {
+                        handleSeriesPoint(pIdx, datumIndex, nIdx);
+                    }
+
+                    pIdx = datumIndex;
+                    datumIndex = nIdx;
+                }
+
+                if (datumIndex != null) {
+                    handleSeriesPoint(pIdx, datumIndex, undefined);
                 }
             }
 
@@ -646,6 +659,7 @@ export class AreaSeries extends CartesianSeries<
                 yValueZeroPoints = [];
                 for (let i = startIndex; i < endIndex; i += 1) {
                     const datumIndex = indices?.[i] ?? i;
+                    if (xValues[datumIndex] == null) continue;
                     yValueZeroPoints.push(getPoint(datumIndex));
                 }
             }
