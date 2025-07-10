@@ -9,6 +9,7 @@ import {
     constant,
     fillOptionsDef,
     fontOptionsDef,
+    labelBoxOptionsDef,
     lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
     number,
@@ -31,7 +32,6 @@ import { without } from '../../../util/object';
 import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
-    labelBoxOptionsDef,
     shadowOptionsDefs,
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';

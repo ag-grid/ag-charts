@@ -14,6 +14,7 @@ import type {
     FillOptions,
     FontOptions,
     GoogleFontFamily,
+    LabelBoxOptions,
     LineDashOptions,
     PaddingOptions,
     StrokeOptions,
@@ -294,3 +295,10 @@ export const paddingOptions = optionsDefs<PaddingOptions>(
     'padding object'
 );
 export const padding = or(number, paddingOptions);
+
+export const labelBoxOptionsDef: OptionsDefs<LabelBoxOptions> = {
+    border: { ...strokeOptionsDef },
+    cornerRadius: number,
+    padding: number,
+    ...fillOptionsDef,
+};

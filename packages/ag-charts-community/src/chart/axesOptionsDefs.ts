@@ -17,6 +17,7 @@ import {
     fontOptionsDef,
     greaterThan,
     isValidNumberFormat,
+    labelBoxOptionsDef,
     lessThan,
     lineDashOptionsDef,
     number,
@@ -55,8 +56,6 @@ import type {
     AgTimeAxisParentLevel,
     AgTimeInterval,
 } from 'ag-charts-types';
-
-import { labelBoxOptionsDef } from './commonOptionsDefs';
 
 export const timeIntervalUnit = union('millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year');
 

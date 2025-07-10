@@ -20,6 +20,7 @@ import {
     greaterThan,
     highlightOptionsDef,
     htmlElement,
+    labelBoxOptionsDef,
     lessThan,
     lineDashOptionsDef,
     number,
@@ -60,7 +61,6 @@ import {
     type AgTooltipRendererResult,
     type AgZoomButton,
     type FormatterPropertyType,
-    type LabelBoxOptions,
     type ToolbarButton,
 } from 'ag-charts-types';
 
@@ -553,13 +553,6 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-};
-
-export const labelBoxOptionsDef: OptionsDefs<LabelBoxOptions> = {
-    border: { ...strokeOptionsDef },
-    cornerRadius: number,
-    padding: number,
-    ...fillOptionsDef,
 };
 
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
