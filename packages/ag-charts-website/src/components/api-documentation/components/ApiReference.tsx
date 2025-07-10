@@ -4,9 +4,9 @@ import styles from '@ag-website-shared/components/reference-documentation/ApiRef
 import { navigate, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
 import type {
     MemberNode,
-    NodeType,
     NodeTypes,
     TypeAliasNode,
+    TypeNode,
 } from '@generate-code-reference-plugin/doc-interfaces/types';
 import { fetchInterfacesReference } from '@utils/client/fetchInterfacesReference';
 import { useToggle } from '@utils/hooks/useToggle';
@@ -69,7 +69,7 @@ interface ApiReferenceRowOptions {
     isExpanded?: boolean;
     nestedPath?: string;
     typeArguments?: string[];
-    genericsMap?: Record<string, NodeType>;
+    genericsMap?: Record<string, TypeNode>;
     onDetailsToggle?: () => void;
 }
 

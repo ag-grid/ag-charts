@@ -1,15 +1,3 @@
-export type NodeType =
-    | string
-    | InterfaceNode
-    | TypeAliasNode
-    | TypeLiteralNode
-    | TypeReferenceNode
-    | EnumNode
-    | FunctionNode
-    | IndexAccessNode
-    | MultiTypeNode
-    | ArrayNode;
-
 export type NodeTypes =
     | InterfaceNode
     | TypeAliasNode
@@ -24,10 +12,22 @@ export type NodeTypes =
     | TypeParameterNode
     | MemberNode;
 
+export type TypeNode =
+    | string
+    | InterfaceNode
+    | TypeAliasNode
+    | TypeLiteralNode
+    | TypeReferenceNode
+    | EnumNode
+    | FunctionNode
+    | IndexAccessNode
+    | MultiTypeNode
+    | ArrayNode;
+
 export interface MemberNode {
     kind: 'member';
     name: string;
-    type: NodeType;
+    type: TypeNode;
     optional?: boolean;
     defaultValue?: string;
     docs?: string[];
@@ -37,16 +37,16 @@ export interface InterfaceNode {
     kind: 'interface';
     name: string;
     typeParams?: TypeParameterNode[];
-    heritage?: NodeType[];
+    heritage?: TypeNode[];
     members: MemberNode[];
     docs?: string[];
-    genericsMap?: Record<string, NodeType>;
+    genericsMap?: Record<string, TypeNode>;
 }
 
 export interface TypeAliasNode {
     kind: 'typeAlias';
     name: string;
-    type: NodeType;
+    type: TypeNode;
     typeParams?: TypeParameterNode[];
     docs?: string[];
 }
@@ -73,34 +73,34 @@ export interface FunctionNode {
     kind: 'function';
     params?: ParameterNode[];
     typeParams?: TypeParameterNode[];
-    returnType: NodeType;
+    returnType: TypeNode;
 }
 
 export interface IndexAccessNode {
     kind: 'indexAccess';
-    type: NodeType;
+    type: TypeNode;
     index: string;
 }
 
 export interface MultiTypeNode {
     kind: 'union' | 'intersection' | 'tuple';
-    type: NodeType[];
+    type: TypeNode[];
 }
 
 export interface ArrayNode {
     kind: 'array';
-    type: NodeType;
+    type: TypeNode;
 }
 
 export interface ParameterNode {
     kind: 'param';
     name: string;
-    type: NodeType;
+    type: TypeNode;
 }
 
 export interface TypeParameterNode {
     kind: 'typeParam';
     name: string;
-    constraint?: NodeType;
-    default?: NodeType;
+    constraint?: TypeNode;
+    default?: TypeNode;
 }

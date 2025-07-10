@@ -4,9 +4,9 @@ import type {
     FunctionNode,
     InterfaceNode,
     MemberNode,
-    NodeType,
     NodeTypes,
     TypeLiteralNode,
+    TypeNode,
     TypeParameterNode,
 } from '@generate-code-reference-plugin/doc-interfaces/types';
 import type Flexsearch from 'flexsearch';
@@ -154,7 +154,7 @@ export function processMembers(
             let omit: string[] | undefined;
             let memberType = normalizeType(member.type);
             if (memberType === 'Omit') {
-                const { typeArguments: memberTypeArguments } = member.type as HasProperty<NodeType, 'typeArguments'>;
+                const { typeArguments: memberTypeArguments } = member.type as HasProperty<TypeNode, 'typeArguments'>;
                 memberType = memberTypeArguments[0];
                 omit = memberTypeArguments[1];
             }
@@ -577,5 +577,4 @@ function addNewLineOnPipe(str: string) {
 
 export function parseJsDocs(docs?: string[]) {
     return docs?.join('\n').replaceAll(/^@([a-z])/gm, (_, char) => char.toUpperCase());
-    // const hidden = text?.includes('@deprecated') || text?.includes('@experimental');
 }

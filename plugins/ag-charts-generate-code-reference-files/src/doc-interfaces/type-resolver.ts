@@ -1,9 +1,9 @@
 import { TypeMapper } from './type-mapper';
-import { InterfaceNode, MemberNode, MultiTypeNode, NodeType, NodeTypes, TypeReferenceNode } from './types';
+import { InterfaceNode, MemberNode, MultiTypeNode, NodeTypes, TypeNode, TypeReferenceNode } from './types';
 
 export class TypeResolver {
     protected nodeMap: Map<string, NodeTypes> = new Map();
-    protected genericsMap: Map<string, NodeType>;
+    protected genericsMap: Map<string, TypeNode>;
 
     constructor(protected typeMapper: TypeMapper) {
         for (const [name] of typeMapper.entries()) {
@@ -32,7 +32,7 @@ export class TypeResolver {
         return Object.fromEntries(Array.from(this.nodeMap.entries()).sort());
     }
 
-    protected resolveType(node: NodeType, typeArguments?: NodeType[]) {
+    protected resolveType(node: TypeNode, typeArguments?: TypeNode[]) {
         if (typeof node === 'string') {
             const mapItem = this.typeMapper.get(node);
             if (mapItem) {
@@ -87,7 +87,7 @@ export class TypeResolver {
         }
     }
 
-    protected resolveUnion(unionKey: NodeType) {
+    protected resolveUnion(unionKey: TypeNode) {
         if (typeof unionKey === 'string') {
             return unionKey.match(/^'.*'$/) ? unionKey : this.resolveType(unionKey).type;
         } else if (unionKey?.kind === 'union') {
@@ -99,7 +99,7 @@ export class TypeResolver {
         return unionKey;
     }
 
-    protected resolveNode(node: NodeTypes, typeArguments?: NodeType[]) {
+    protected resolveNode(node: NodeTypes, typeArguments?: TypeNode[]) {
         if ('typeParams' in node) {
             // Build a map of generic type parameters to their resolved types
             node.typeParams?.forEach((param, index) => {
@@ -135,7 +135,7 @@ export class TypeResolver {
                             ...rest,
                             kind: 'interface',
                             members: [],
-                            heritage: node.type.type.filter((subType: NodeType) => {
+                            heritage: node.type.type.filter((subType: TypeNode) => {
                                 if (typeof subType === 'object') {
                                     if (subType.kind === 'typeLiteral') {
                                         return true;
