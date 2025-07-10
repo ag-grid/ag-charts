@@ -6,6 +6,12 @@
 
 The list of open PRs for `latest` is available at https://github.com/ag-grid/ag-charts/pulls?q=is%3Apr+is%3Aopen+base%3Alatest+draft%3Afalse
 
+### JIRA ticket search
+
+When searching for JIRA tickets using the MCP server `mcp-atlassian`, unless requested otherwise on this project we're only interested in tickets in the `AG` project with a component of `Charts`.
+
+When searching for JIRA tickets that need review, we're usually interested in tickets with a status of `Needs Review`.
+
 ### JIRA ticket URLs
 
 JIRA ticket URLs are of the form https://ag-grid.atlassian.net/browse/AG-XXXX
@@ -33,7 +39,15 @@ Unless I explicitly ask you to review a specific PR:
     -   If these report instructions have changed since the report was generated, perform a re-review.
     -   Otherwise
 
-## General Workflow
+## General JIRA Ticket Review Workflow
+
+Run this workflow if I ask you to perform reviews.
+
+-   Find JIRA tickets that need review.
+-   For each JIRA ticket:
+    -   If there is a recently linked PR that hasn't been merged, perform PR review.
+
+## General PR Review Workflow
 
 Run this workflow if I ask you to review all open PRs.
 

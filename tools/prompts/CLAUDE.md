@@ -128,3 +128,8 @@ nx e2e ag-charts-website
 ## Tool Instructions
 
 -   When asked to perform a review, use the instructions in tools/prompts/pr-review.md
+
+## JIRA Ticket Search Guidelines
+
+-   When searching for JIRA tickets using the MCP server `mcp-atlassian`, unless requested otherwise on this project we're only interested in tickets in the `AG` project with a component of `Charts`.
+-   When searching for JIRA tickets that need review, we're usually interested in tickets with a status of `Needs Review`.

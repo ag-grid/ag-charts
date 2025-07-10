@@ -65,3 +65,4 @@ vitest.config.*.timestamp*
 # Ignore local .md files.
 /*.md
 !README.md
+.mcp.json
