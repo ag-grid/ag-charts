@@ -265,6 +265,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Series Area",
+                            "path": "series-area"
+                        },
+                        {
+                            "type": "item",
                             "title": "Themes",
                             "path": "themes"
                         },
