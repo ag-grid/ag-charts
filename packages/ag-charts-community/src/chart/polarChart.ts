@@ -80,8 +80,7 @@ export class PolarChart extends Chart {
     }
 
     private async computeCircle(seriesBox: BBox) {
-        const anySeries: any[] = this.series;
-        const polarSeries = anySeries.filter(isPolarSeries);
+        const polarSeries = this.series.filter(isPolarSeries);
         const polarAxes = this.axes.filter(isPolarAxis);
 
         const setSeriesCircle = (cx: number, cy: number, r: number) => {
