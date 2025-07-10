@@ -4,7 +4,6 @@ const { aggregationDomain, aggregationRangeFittingPoints, compactAggregationIndi
     _ModuleSupport;
 
 const AGGREGATION_THRESHOLD = 1e3;
-const PRECISION = 5;
 
 export interface RangeBarSeriesDataAggregationFilter {
     indexData: Int32Array;
@@ -22,7 +21,7 @@ export function aggregateRangeBarData(
 
     const [d0, d1] = aggregationDomain(scale, domain);
 
-    let maxRange = aggregationRangeFittingPoints(xValues, PRECISION);
+    let maxRange = aggregationRangeFittingPoints(xValues);
     let { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange);
 
     const filters: RangeBarSeriesDataAggregationFilter[] = [{ maxRange, indexData }];

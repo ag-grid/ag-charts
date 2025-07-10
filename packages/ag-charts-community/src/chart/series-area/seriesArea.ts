@@ -24,8 +24,7 @@ class Border extends BaseProperties implements StrokeOptions {
     @Property
     strokeWidth: number = 0;
 
-    // @ts-expect-error rectNode is used
-    constructor(private readonly rectNode: Rect) {
+    constructor(public readonly rectNode: Rect) {
         super();
     }
 }
