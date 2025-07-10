@@ -30,7 +30,7 @@ export type ExampleOverrides = {
 export function convertPageUrls(
     path: string,
     exampleOptions: Record<string, Record<string, ExampleOverrides>>,
-    ignorePages = ['benchmarks', /.*-test/]
+    ignorePages = ['benchmarks']
 ) {
     const astroPath = path.split('content/').at(1)!;
     const [pagePath, examplePath] = astroPath.split('/_examples/');
@@ -43,6 +43,19 @@ export function convertPageUrls(
         return [];
     }
 
+    let options = exampleOptions[page];
+    if (options == null) {
+        // eslint-disable-next-line no-restricted-properties
+        for (const [key, value] of Object.entries(exampleOptions)) {
+            if (!key.startsWith('/')) continue;
+            const re = new RegExp(key.slice(1));
+            if (re.test(page)) {
+                options = value;
+                break;
+            }
+        }
+    }
+
     const {
         frameworks,
         status = 'ok',
@@ -52,8 +65,8 @@ export function convertPageUrls(
         randomData = false,
         snapshot = false,
     } = {
-        ...exampleOptions[page]?.['*'],
-        ...exampleOptions[page]?.[example],
+        ...options?.['*'],
+        ...options?.[example],
     };
 
     return pages
