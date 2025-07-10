@@ -1,4 +1,4 @@
-import { type AnyFn, CleanupRegistry, WeakCache, createId } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, type RequireOptional, WeakCache, createId } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -7,10 +7,7 @@ import type {
     AnyFormatterSource,
     CssColor,
     DateFormatterStyle,
-    FontFamily,
     FontSize,
-    FontStyle,
-    FontWeight,
     FormatterParams,
 } from 'ag-charts-types';
 
@@ -29,7 +26,7 @@ import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group'
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import { Selection } from '../../scene/selection';
-import { TransformableText } from '../../scene/shape/text';
+import { type TextBoxingProperties, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { callWithContext } from '../../util/callbackCache';
 import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
@@ -54,16 +51,12 @@ import type { AnyTimeInterval } from './axisTickGenerator';
 import { AxisTitle } from './axisTitle';
 import { NiceMode } from './axisUtil';
 
-export interface LabelNodeDatum {
+export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties {
+    color?: CssColor;
     tickId: string;
-    fill?: CssColor;
-    fontFamily?: FontFamily;
     fontSize: FontSize;
-    fontStyle?: FontStyle;
-    fontWeight?: FontWeight;
     rotation: number;
     text: string;
-    textAlign?: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     visible: boolean;
     x: number;
@@ -429,15 +422,20 @@ export abstract class Axis<
                 ...defaultStyle,
             });
         }
-        const {
-            color: fill,
-            fontFamily,
-            fontSize,
-            fontStyle,
-            fontWeight,
-            spacing,
-        } = mergeDefaults(stylerOutput, additionalStyles, defaultStyle);
-        return { fill, fontFamily, fontSize, fontStyle, fontWeight, spacing };
+        const merged = mergeDefaults(stylerOutput, additionalStyles, defaultStyle);
+        return {
+            fill: merged.fill,
+            fontFamily: merged.fontFamily,
+            fontSize: merged.fontSize,
+            fontStyle: merged.fontStyle,
+            fontWeight: merged.fontWeight,
+            spacing: merged.spacing,
+            border: merged.border,
+            color: merged.color,
+            cornerRadius: merged.cornerRadius,
+            fillOpacity: merged.fillOpacity,
+            padding: merged.padding,
+        } satisfies RequireOptional<AgBaseAxisLabelStyleOptions>;
     }
 
     protected getTickSize(tick: AxisTick = this.tick) {
