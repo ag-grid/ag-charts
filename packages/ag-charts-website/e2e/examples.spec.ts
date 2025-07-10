@@ -84,6 +84,42 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         // FWs not ready yet
         '*': { frameworks: ['vanilla'] },
     },
+
+    'annotations-test': {
+        // FWs not intended to work.
+        '*': { frameworks: ['vanilla'] },
+        'initial-state': { ignoreConsoleWarnings: true }, // FIXME(AG-15386): Fails with a console warning.
+    },
+
+    'example-logger-test': {
+        // FWs not intended to work.
+        '*': { frameworks: ['vanilla'] },
+        'console-logs': { frameworks: [] }, // Not a normal example with a chart.
+    },
+
+    'layout-test': {
+        // FWs not intended to work.
+        '*': { frameworks: ['vanilla'] },
+        'layout-inline': { frameworks: [] }, // WAI.
+        'layout-matrix': { frameworks: [] }, // WAI.
+    },
+
+    'line-series-test': {
+        // FWs not intended to work.
+        '*': { frameworks: ['vanilla'] },
+        'easeOut-very-slow': { frameworks: [] }, // Too slow to test.
+    },
+
+    'pie-series-test': {
+        // FWs not intended to work.
+        '*': { frameworks: ['vanilla'] },
+        'duplicate-labels': { ignoreConsoleWarnings: true }, // Expected.
+    },
+
+    ['/.*-test$']: {
+        // FWs not intended to work.
+        '*': { frameworks: ['vanilla'] },
+    },
 };
 
 test.describe('examples', () => {
