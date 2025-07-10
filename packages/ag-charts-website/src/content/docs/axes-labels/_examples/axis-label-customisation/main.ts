@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgAxisLabelStylerParams, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -28,7 +28,7 @@ const options: AgChartOptions = {
                     strokeWidth: 3,
                     strokeOpacity: 0.2,
                 },
-                itemStyler: (params) => {
+                itemStyler: (params: AgAxisLabelStylerParams<unknown>) => {
                     if (params.value === 5000) {
                         return {
                             border: {
