@@ -69,7 +69,7 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
 
 export class BubbleSeries extends CartesianSeries<
     Group,
-    AgBubbleSeriesOptions & { opacity?: number },
+    AgBubbleSeriesOptions,
     BubbleSeriesProperties,
     BubbleScatterNodeDatum
 > {
