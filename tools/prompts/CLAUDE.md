@@ -133,3 +133,7 @@ nx e2e ag-charts-website
 
 -   When searching for JIRA tickets using the MCP server `mcp-atlassian`, unless requested otherwise on this project we're only interested in tickets in the `AG` project with a component of `Charts`.
 -   When searching for JIRA tickets that need review, we're usually interested in tickets with a status of `Needs Review`.
+
+## Development Documentation Guidelines
+
+-   When adding examples, make sure to also update the Markdoc page relating to the example (index.mdoc adjacent to the enclosing `_examples/` folder).
