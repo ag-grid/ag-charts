@@ -19,6 +19,7 @@
             "Bash(git fetch:*)",
             "WebFetch(domain:github.com)"
         ],
-        "deny": []
+        "deny": [],
+        "enabledMcpjsonServers": ["mcp-atlassian", "mcp-github"]
     }
 }

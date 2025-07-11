@@ -1,6 +1,7 @@
 import {
     type AgGradientColorMode,
     type AgRadialGaugeMarkerShape,
+    type AgRadialGaugeOptions,
     type AgRadialGaugeTargetPlacement,
     type FontStyle,
     type FontWeight,
@@ -148,6 +149,7 @@ export class RadialGaugeSeries
     extends _ModuleSupport.Series<
         RadialGaugeNodeDatumIndex,
         RadialGaugeNodeDatum,
+        AgRadialGaugeOptions,
         RadialGaugeSeriesProperties,
         RadialGaugeLabelDatum,
         RadialGaugeNodeDataContext

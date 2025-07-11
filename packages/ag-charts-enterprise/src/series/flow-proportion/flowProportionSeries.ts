@@ -86,12 +86,14 @@ export abstract class FlowProportionSeries<
     TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
     TLabel,
-    TProps extends FlowProportionSeriesProperties<any>,
+    TOpts extends object,
+    TProps extends FlowProportionSeriesProperties<TOpts>,
     TNode extends _ModuleSupport.Node & _ModuleSupport.DistantObject,
     TLink extends _ModuleSupport.Node & _ModuleSupport.DistantObject,
 > extends Series<
     FlowProportionNodeDatumIndex,
     TDatum<TNodeDatum, TLinkDatum>,
+    TOpts,
     TProps,
     TLabel,
     _ModuleSupport.SeriesNodeDataContext<FlowProportionNodeDatumIndex, TDatum<TNodeDatum, TLinkDatum>, TLabel>

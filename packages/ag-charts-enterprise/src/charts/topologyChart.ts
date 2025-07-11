@@ -3,7 +3,9 @@ import type { AgTopologyChartOptions } from 'ag-charts-types';
 
 const { Chart, MercatorScale, NumberAxis, Property } = _ModuleSupport;
 
-function isTopologySeries(series: _ModuleSupport.Series<unknown, any, any>): series is _ModuleSupport.ITopology {
+function isTopologySeries(
+    series: _ModuleSupport.Series<unknown, any, object, any>
+): series is _ModuleSupport.ITopology {
     return (
         series.type === 'map-shape' ||
         series.type === 'map-line' ||

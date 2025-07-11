@@ -8,7 +8,7 @@ class ExampleHierarchySeriesProperties extends HierarchySeriesProperties<never> 
     readonly tooltip: SeriesTooltip<never> = null!;
 }
 
-class ExampleHierarchySeries extends HierarchySeries<Group, ExampleHierarchySeriesProperties> {
+class ExampleHierarchySeries extends HierarchySeries<Group, object, ExampleHierarchySeriesProperties, HierarchyNode> {
     override properties = new ExampleHierarchySeriesProperties();
 
     NodeClass = HierarchyNode;

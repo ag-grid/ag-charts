@@ -8,7 +8,8 @@
     "strictNullChecks": true
   },
   "files": [],
-  "include": [],
+  "include": ["src/**/*.ts"],
+  "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"],
   "references": [
     {
       "path": "./tsconfig.lib.json"

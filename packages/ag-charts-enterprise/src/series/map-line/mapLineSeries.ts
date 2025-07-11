@@ -1,6 +1,6 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
-import type { AgMapLineSeriesLabelFormatterParams } from 'ag-charts-types';
+import type { AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
@@ -31,6 +31,7 @@ type ItemStyle = Required<AgMapLineSeriesStyle> & { opacity: number };
 
 export class MapLineSeries extends TopologySeries<
     MapLineNodeDatum,
+    AgMapLineSeriesOptions,
     MapLineSeriesProperties,
     MapLineNodeLabelDatum,
     MapLineNodeDataContext

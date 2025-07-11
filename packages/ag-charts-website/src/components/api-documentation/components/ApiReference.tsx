@@ -3,10 +3,10 @@ import { Icon } from '@ag-website-shared/components/icon/Icon';
 import styles from '@ag-website-shared/components/reference-documentation/ApiReference.module.scss';
 import { navigate, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
 import type {
-    ApiReferenceNode,
-    ApiReferenceType,
     MemberNode,
+    NodeTypes,
     TypeAliasNode,
+    TypeNode,
 } from '@generate-code-reference-plugin/doc-interfaces/types';
 import { fetchInterfacesReference } from '@utils/client/fetchInterfacesReference';
 import { useToggle } from '@utils/hooks/useToggle';
@@ -18,19 +18,20 @@ import Markdown from 'react-markdown';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 import remarkBreaks from 'remark-breaks';
 
-import type { SpecialTypesMap } from '../apiReferenceHelpers';
 import {
+    type SpecialTypesMap,
     cleanupName,
     formatTypeToCode,
     getMemberType,
     isInterfaceHidden,
     normalizeType,
+    parseJsDocs,
     processMembers,
 } from '../apiReferenceHelpers';
 import { SelectionContext } from './OptionsNavigation';
 import { type CollapsibleType, PropertyTitle, PropertyType } from './Properties';
 
-export const ApiReferenceContext = createContext<ApiReferenceType | undefined>(undefined);
+export const ApiReferenceContext = createContext<Map<string, NodeTypes> | undefined>(undefined);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
 
 // NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
@@ -68,7 +69,7 @@ interface ApiReferenceRowOptions {
     isExpanded?: boolean;
     nestedPath?: string;
     typeArguments?: string[];
-    genericsMap?: Record<string, string>;
+    genericsMap?: Record<string, TypeNode>;
     onDetailsToggle?: () => void;
 }
 
@@ -154,7 +155,7 @@ export function ApiReference({
         >
             {anchorId && <a id={anchorId} />}
             {!config.hideHeader &&
-                (interfaceRef.docs?.join('\n') ?? (
+                (parseJsDocs(interfaceRef.docs) ?? (
                     <p className={styles.propertyDescription}>
                         Properties available on the <code>{id}</code> interface.
                     </p>
@@ -178,20 +179,12 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
     const [isExpanded, toggleExpanded, setExpanded] = useToggle();
     const interfaceRef = useMemberAdditionalDetails(member);
     const config = useContext(ApiReferenceConfigContext);
-    const reference = useContext(ApiReferenceContext);
     const location = useLocation();
 
     const hasMembers = interfaceRef && 'members' in interfaceRef;
     const hasNestedPages = config.specialTypes?.[getMemberType(member)] === 'NestedPage';
 
     let skip: string[] | undefined;
-    if (member.omit && reference?.has(member.omit)) {
-        const omitType = reference.get(member.omit)!;
-        if (omitType.kind === 'typeAlias' && typeof omitType.type === 'object' && omitType.type.kind === 'union') {
-            skip = omitType.type.type.map((type) => normalizeType(type).replace(/^'(.*)'$/, '$1'));
-        }
-    }
-
     let typeArguments: string[] | undefined;
     if (hasMembers && typeof member.type === 'object' && member.type.kind === 'typeRef') {
         typeArguments = member.type.typeArguments?.map((genericType) =>
@@ -290,7 +283,7 @@ function ApiReferenceRow({
             <div className={styles.rightColumn}>
                 <div role="presentation" className={styles.description}>
                     <Markdown remarkPlugins={[remarkBreaks]} urlTransform={(url: string) => urlWithBaseUrl(url)}>
-                        {member.docs?.join('\n')}
+                        {parseJsDocs(member.docs)}
                     </Markdown>
                     {hasChildProps && (
                         <ChildPropertiesButton name={memberName} isExpanded={isExpanded} onClick={onDetailsToggle} />
@@ -327,9 +320,7 @@ function ApiReferenceRow({
     );
 }
 
-type ApiNode = ApiReferenceNode | MemberNode;
-
-export function TypeCodeBlock({ apiNode, member }: { apiNode: ApiNode | ApiNode[]; member: MemberNode }) {
+export function TypeCodeBlock({ apiNode, member }: { apiNode: NodeTypes | NodeTypes[]; member: MemberNode }) {
     const reference = useContext(ApiReferenceContext);
 
     if (!reference) {
@@ -350,7 +341,10 @@ export function TypeCodeBlock({ apiNode, member }: { apiNode: ApiNode | ApiNode[
     return <Code code={codeSample} />;
 }
 
-function getCollapsibleType(additionalDetails, nestedPath): CollapsibleType {
+function getCollapsibleType(
+    additionalDetails?: NodeTypes | (NodeTypes | undefined)[],
+    nestedPath?: string
+): CollapsibleType {
     const hasMembers = additionalDetails && 'members' in additionalDetails;
     let collapsibleType: CollapsibleType = 'none';
     if (hasMembers) {
@@ -365,24 +359,24 @@ function getDetailsId(id: string) {
     return `${id}-details`;
 }
 
-function useMemberAdditionalDetails(member: MemberNode) {
+function useMemberAdditionalDetails(member: MemberNode): NodeTypes | NodeTypes[] | undefined {
     const reference = useContext(ApiReferenceContext);
     const memberType = getMemberType(member);
 
     if (memberType === 'function') {
         return member;
     }
-    const resolve = (resolveType: string) => {
+
+    const resolve = (resolveType: string): NodeTypes | NodeTypes[] | undefined => {
         if (reference?.has(resolveType) && !isInterfaceHidden(resolveType)) {
-            const ref = reference.get(resolveType);
-
+            const ref = reference.get(resolveType)!;
             if (ref?.kind === 'typeAlias' && typeof ref.type === 'string' && reference.has(ref.type)) {
-                return [ref, reference.get(ref.type)];
+                return [ref, reference.get(ref.type)!];
             }
-
             return ref;
         }
     };
+
     const resolvedDetails = resolve(memberType);
     if (resolvedDetails) {
         return resolvedDetails;

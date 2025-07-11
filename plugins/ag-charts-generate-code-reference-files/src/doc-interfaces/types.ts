@@ -1,6 +1,19 @@
-export type ApiReferenceType = Map<string, ApiReferenceNode>;
+export type NodeTypes =
+    | InterfaceNode
+    | TypeAliasNode
+    | TypeLiteralNode
+    | TypeReferenceNode
+    | EnumNode
+    | FunctionNode
+    | IndexAccessNode
+    | MultiTypeNode
+    | ArrayNode
+    | ParameterNode
+    | TypeParameterNode
+    | MemberNode;
 
-export type ApiReferenceNode =
+export type TypeNode =
+    | string
     | InterfaceNode
     | TypeAliasNode
     | TypeLiteralNode
@@ -11,35 +24,31 @@ export type ApiReferenceNode =
     | MultiTypeNode
     | ArrayNode;
 
-export type TypeNode = string | ApiReferenceNode;
-
 export interface MemberNode {
     kind: 'member';
     name: string;
     type: TypeNode;
-    docs?: string[];
-    omit?: string;
     optional?: boolean;
     defaultValue?: string;
+    docs?: string[];
 }
 
 export interface InterfaceNode {
     kind: 'interface';
     name: string;
-    docs?: string[];
-    members: MemberNode[];
     typeParams?: TypeParameterNode[];
-    genericsMap?: Record<string, string>;
-    deprecated?: boolean;
+    heritage?: TypeNode[];
+    members: MemberNode[];
+    docs?: string[];
+    genericsMap?: Record<string, TypeNode>;
 }
 
 export interface TypeAliasNode {
     kind: 'typeAlias';
     name: string;
-    docs?: string[];
     type: TypeNode;
     typeParams?: TypeParameterNode[];
-    deprecated?: boolean;
+    docs?: string[];
 }
 
 export interface TypeLiteralNode {
@@ -57,7 +66,7 @@ export interface TypeReferenceNode {
 export interface EnumNode {
     kind: 'enum';
     name: string;
-    members: MemberNode[];
+    members: Record<string, string>;
 }
 
 export interface FunctionNode {
@@ -92,6 +101,6 @@ export interface ParameterNode {
 export interface TypeParameterNode {
     kind: 'typeParam';
     name: string;
-    constraint: TypeNode;
-    default: TypeNode;
+    constraint?: TypeNode;
+    default?: TypeNode;
 }

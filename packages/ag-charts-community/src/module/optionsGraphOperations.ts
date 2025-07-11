@@ -452,8 +452,24 @@ const locationOperations: Record<LocationOperation, OperationFns> = {
 };
 
 function isUserOptionOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const [relativePathVertex, thenVertex, elseVertex] = values;
+    const [relativePathVertices, thenVertex, elseVertex] = values;
 
+    const children = graph.neighboursWithEdgeValue(relativePathVertices, PATH_EDGE);
+    if (children) {
+        for (const child of children) {
+            const relativePathVertex = graph.findNeighbour(child, DEFAULTS_EDGE);
+            if (relativePathVertex && isUserOptionCheck(graph, vertex, relativePathVertex)) {
+                return graph.resolveVertexValue(vertex, thenVertex);
+            }
+        }
+    } else if (isUserOptionCheck(graph, vertex, relativePathVertices)) {
+        return graph.resolveVertexValue(vertex, thenVertex);
+    }
+
+    return graph.resolveVertexValue(vertex, elseVertex);
+}
+
+function isUserOptionCheck(graph: OptionsGraphInterface, vertex: VertexInterface, relativePathVertex: VertexInterface) {
     const relativePath = graph.resolveVertexValue(vertex, relativePathVertex);
     if (!isString(relativePath)) {
         throw new Error(`\`$isUserOption\` json operation failed on [${String(relativePath)}], expecting a string.`);
@@ -461,13 +477,9 @@ function isUserOptionOperation(graph: OptionsGraphInterface, vertex: VertexInter
 
     const pathArray = graph.getPathArray(vertex);
     const path = resolvePath(pathArray, relativePath);
-    if (path === UNRESOLVABLE_PATH) return;
+    if (path === UNRESOLVABLE_PATH) return false;
 
-    if (graph.hasUserOption(path)) {
-        return graph.resolveVertexValue(vertex, thenVertex);
-    }
-
-    return graph.resolveVertexValue(vertex, elseVertex);
+    return graph.hasUserOption(path);
 }
 
 function isThemeOverrideOperation(

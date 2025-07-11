@@ -1,6 +1,7 @@
 import { type Has, type InternalAgColorType, Logger, modulus } from 'ag-charts-core';
 import type {
     AgDonutSeriesLabelFormatterParams,
+    AgDonutSeriesOptions,
     AgDonutSeriesStyle,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesStyle,
@@ -132,7 +133,7 @@ interface PieDonutSeriesLabelFormatterParams
         AgPieSeriesLabelFormatterParams {}
 interface PieDonutSeriesStyle extends AgDonutSeriesStyle, AgPieSeriesStyle {}
 
-export class DonutSeries extends PolarSeries<PieDonutNodeDatum, DonutSeriesProperties, Sector> {
+export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOptions, DonutSeriesProperties, Sector> {
     static readonly className: string = 'DonutSeries';
     static readonly type: string = 'donut';
 
@@ -740,7 +741,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, DonutSeriesPrope
         const defaultColors = defaultColorRange[datumIndex % defaultColorRange.length];
         const defaultPatternFill = defaultPatternFills[datumIndex % defaultPatternFills.length];
 
-        const sectorFill: InternalAgColorType | undefined = fill ?? 'black';
+        const sectorFill: InternalAgColorType = fill ?? 'black';
 
         let format: PieDonutSeriesStyle | undefined;
         if (itemStyler) {

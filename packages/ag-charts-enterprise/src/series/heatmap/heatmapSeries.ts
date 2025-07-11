@@ -1,4 +1,11 @@
-import type { AgHeatmapSeriesStyle, FontStyle, FontWeight, TextAlign, VerticalAlign } from 'ag-charts-community';
+import type {
+    AgHeatmapSeriesOptions,
+    AgHeatmapSeriesStyle,
+    FontStyle,
+    FontWeight,
+    TextAlign,
+    VerticalAlign,
+} from 'ag-charts-community';
 import { type AgHeatmapSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 import { type InternalAgColorType, Logger } from 'ag-charts-core';
 
@@ -75,6 +82,7 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
 
 export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     _ModuleSupport.Rect,
+    AgHeatmapSeriesOptions,
     HeatmapSeriesProperties,
     HeatmapNodeDatum,
     HeatmapLabelDatum

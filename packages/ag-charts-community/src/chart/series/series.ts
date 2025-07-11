@@ -107,7 +107,7 @@ export type PickResult = { pickMode: SeriesNodePickMode; datums: SeriesNodeDatum
 
 export type INodeEventConstructor<
     TDatum extends SeriesNodeDatum<unknown>,
-    TSeries extends Series<any, TDatum, any>,
+    TSeries extends Series<any, TDatum, object, any>,
     TEvent extends string = SeriesNodeEventTypes,
 > = new <T extends TEvent>(type: T, event: Event, { datum }: TDatum, series: TSeries) => INodeEvent<T>;
 
@@ -152,7 +152,7 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
     type = 'groupingChanged';
 
     constructor(
-        public series: Series<unknown, any, any>,
+        public series: Series<unknown, any, object, any>,
         public seriesGrouping: SeriesGrouping | undefined,
         public oldGrouping: SeriesGrouping | undefined
     ) {}
@@ -195,10 +195,13 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
     }
 }
 
+export type UnknownSeries = Series<unknown, SeriesNodeDatum<unknown>, object, SeriesProperties<object>>;
+
 export abstract class Series<
         TDatumIndex,
         TDatum extends SeriesNodeDatum<TDatumIndex>,
-        TProps extends SeriesProperties<any>,
+        TOpts extends object,
+        TProps extends SeriesProperties<TOpts>,
         TLabel = TDatum,
         TContext extends SeriesNodeDataContext<TDatumIndex, TDatum, TLabel> = SeriesNodeDataContext<
             TDatumIndex,
@@ -221,7 +224,7 @@ export abstract class Series<
         return 'main';
     }
 
-    @ActionOnSet<Series<TDatumIndex, TDatum, TProps, TLabel>>({
+    @ActionOnSet<Series<TDatumIndex, TDatum, TOpts, TProps, TLabel>>({
         changeValue: function (newVal, oldVal) {
             this.onSeriesGroupingChange(oldVal, newVal);
         },
@@ -652,7 +655,10 @@ export abstract class Series<
     }
 
     // @todo(AG-7126) - removeThisDatum
-    abstract getTooltipContent(datumIndex: TDatumIndex, removeThisDatum: TDatum): TooltipContent | undefined;
+    abstract getTooltipContent(
+        datumIndex: TDatumIndex,
+        removeThisDatum: TDatum | undefined
+    ): TooltipContent | undefined;
 
     protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
     pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {

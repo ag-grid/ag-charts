@@ -13,6 +13,7 @@ const { fixNumericExtent, groupAccumulativeValueProperty, mergeDefaults, valuePr
 type ErrorBoundCartesianSeries = Omit<
     _ModuleSupport.CartesianSeries<
         _ModuleSupport.Node,
+        object,
         _ModuleSupport.CartesianSeriesProperties<any>,
         ErrorBarNodeDatum
     >,

@@ -2,15 +2,15 @@ import { AgCartesianChartOptions, AgCharts, AgErrorBarItemStylerParams } from 'a
 
 import { DataType, getData, getData2 } from './data';
 
-const highlightStyle = {
-    item: { stroke: 'red' },
-    series: { dimOpacity: 0.3 },
+const highlight = {
+    highlightedItem: { stroke: 'red' },
+    unhighlightedSeries: { opacity: 0.3 },
 };
 
 const itemStyler = (param: AgErrorBarItemStylerParams<DataType>) => {
     const errorBarStyle = { strokeWidth: 3 };
     if (param.highlighted) {
-        return { ...errorBarStyle, ...highlightStyle.item };
+        return { ...errorBarStyle, stroke: 'red' };
     } else {
         return errorBarStyle;
     }
@@ -33,7 +33,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 yUpperKey: 'temperatureUpper',
                 itemStyler,
             },
-            highlightStyle,
+            highlight,
         },
         {
             type: 'line',
@@ -46,7 +46,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 yUpperKey: 'temperatureUpper',
                 itemStyler,
             },
-            highlightStyle,
+            highlight,
         },
     ],
 };

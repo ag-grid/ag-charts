@@ -1,6 +1,6 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
 import { Logger, type RequireOptional } from 'ag-charts-core';
-import type { AgChordSeriesLabelFormatterParams } from 'ag-charts-types';
+import type { AgChordSeriesLabelFormatterParams, AgChordSeriesOptions } from 'ag-charts-types';
 
 import {
     FlowProportionDatumType,
@@ -72,6 +72,7 @@ export class ChordSeries extends FlowProportionSeries<
     ChordNodeDatum,
     ChordLinkDatum,
     ChordNodeLabelDatum,
+    AgChordSeriesOptions,
     ChordSeriesProperties,
     _ModuleSupport.Sector,
     ChordLink

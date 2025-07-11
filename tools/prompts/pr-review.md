@@ -53,7 +53,7 @@ Run this workflow if I ask you to review all open PRs.
 
 -   Clean up stale reports for closed PRs.
 -   Unless told otherwise, review open non-draft PRs against the `latest` branch.
--   Use `git` or `gh` commands to get the diff between the PR and the `latest` branch if that is the easiest way to read the changes.
+-   Use the `mcp-github` MCP server if available, otherwise use `git` or `gh` commands to get the diff between the PR and the `latest` branch.
 
 ## Review Criteria
 

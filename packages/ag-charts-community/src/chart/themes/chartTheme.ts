@@ -307,9 +307,9 @@ export class ChartTheme {
                 border: {
                     stroke: { $ref: 'foregroundColor' },
                     strokeOpacity: 1,
-                    strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+                    strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
                 },
-                cornerRadius: 0,
+                cornerRadius: 4,
                 padding: {
                     top: 0,
                     right: 0,
@@ -387,14 +387,15 @@ export class ChartTheme {
                     ],
                 },
                 border: {
-                    stroke: { $ref: 'foregroundColor' },
+                    stroke: { $foregroundBackgroundMix: 0.25 },
                     strokeOpacity: 1,
-                    strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+                    strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
                 },
-                cornerRadius: 0,
-                fill: undefined,
+                cornerRadius: 4,
                 fillOpacity: 1,
-                padding: { $isUserOption: ['./fill', 4, { $isUserOption: ['./border/stroke', 4, 0] }] },
+                padding: {
+                    $isUserOption: [['./fill', './border/stroke', './border/strokeWidth'], 5, 0],
+                },
                 spacing: 30,
                 listeners: {},
                 toggleSeries: true,

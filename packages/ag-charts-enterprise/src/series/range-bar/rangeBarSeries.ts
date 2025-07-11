@@ -1,6 +1,7 @@
 import {
     type AgRangeBarHighlightStyleOptions,
     type AgRangeBarSeriesLabelFormatterParams,
+    type AgRangeBarSeriesOptions,
     type AgRangeBarSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -106,6 +107,7 @@ class RangeBarSeriesNodeEvent<
 
 export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     _ModuleSupport.Rect<RangeBarNodeDatum>,
+    AgRangeBarSeriesOptions,
     RangeBarProperties,
     RangeBarNodeDatum,
     RangeBarNodeLabelDatum
@@ -179,7 +181,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
-        if (processedData.type !== 'grouped') return;
+        if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
@@ -376,10 +378,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 handleDatum(midDatumIndex, 0, x, width, yLow, yHigh, false);
             }
         } else if (processedData.type === 'ungrouped') {
-            let [start, end] = visibleRangeIndices(1, rawData.length, xAxis.range, (index) => {
-                const x = xPosition(index);
-                return [x, effectiveBarWidth];
-            });
+            let [start, end] = this.visibleRangeIndices('xValue', xAxis.range);
             // @todo(AG-13575) Remove this if block
             if (processedData.input.count < 1e3) {
                 start = 0;

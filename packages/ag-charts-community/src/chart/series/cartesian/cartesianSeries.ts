@@ -154,11 +154,12 @@ export const RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD = 100;
 
 export abstract class CartesianSeries<
     TNode extends Node,
-    TProps extends CartesianSeriesProperties<any>,
+    TOpts extends object,
+    TProps extends CartesianSeriesProperties<TOpts>,
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum<number> = TDatum,
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
-> extends DataModelSeries<TDatum, TProps, TLabel, TContext> {
+> extends DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
     private _contextNodeData?: TContext;
     get contextNodeData() {
         return this._contextNodeData;

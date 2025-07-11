@@ -4,6 +4,11 @@
             "implementation": "./dist/src/executors/generate/executor.js",
             "schema": "./src/executors/generate/schema.json",
             "description": "generate code reference files"
+        },
+        "compare": {
+            "implementation": "./dist/src/executors/compare/executor.js",
+            "schema": "./src/executors/compare/schema.json",
+            "description": "compare generated code reference files"
         }
     }
 }

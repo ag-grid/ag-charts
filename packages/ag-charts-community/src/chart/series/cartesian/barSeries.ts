@@ -2,6 +2,7 @@ import type { RequireOptional } from 'ag-charts-core';
 import { isFiniteNumber } from 'ag-charts-core';
 import type {
     AgBarSeriesLabelFormatterParams,
+    AgBarSeriesOptions,
     AgBarSeriesStyle,
     AgErrorBoundSeriesTooltipRendererParams,
 } from 'ag-charts-types';
@@ -95,6 +96,7 @@ type BarAnimationData = AbstractBarSeriesAnimationData<BarShape, BarNodeDatum>;
 
 export class BarSeries extends AbstractBarSeries<
     BarShape<BarNodeDatum>,
+    AgBarSeriesOptions,
     BarSeriesProperties,
     BarNodeDatum,
     BarNodeDatum
@@ -285,7 +287,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     private aggregateData(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
-        if (processedData?.type !== 'ungrouped') return;
+        if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];

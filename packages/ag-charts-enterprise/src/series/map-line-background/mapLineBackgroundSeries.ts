@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgMapLineBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -17,6 +17,7 @@ interface MapLineNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataC
 export class MapLineBackgroundSeries
     extends TopologySeries<
         MapLineBackgroundNodeDatum,
+        AgMapLineBackgroundOptions,
         MapLineBackgroundSeriesProperties,
         MapLineBackgroundNodeDatum,
         MapLineNodeDataContext

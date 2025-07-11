@@ -3,7 +3,7 @@ import { LinkIcon } from '@ag-website-shared/components/link-icon/LinkIcon';
 import styles from '@ag-website-shared/components/reference-documentation/ApiReference.module.scss';
 import { useScrollToAnchor } from '@ag-website-shared/utils/navigation';
 import classnames from 'classnames';
-import { type AllHTMLAttributes, type FunctionComponent, type ReactNode } from 'react';
+import type { AllHTMLAttributes, FunctionComponent, ReactNode } from 'react';
 
 import { cleanupName } from '../apiReferenceHelpers';
 
@@ -97,7 +97,7 @@ function CodeCollapsibleButton({
             onClick={onClick}
             aria-label={`See more details about ${name}`}
         >
-            <Icon className={`${styles.chevron} ${isExpanded ? 'expandedIcon' : ''}`} name="chevronDown" />
+            <Icon name="chevronDown" />
         </button>
     );
 }
@@ -111,8 +111,8 @@ export function PropertyType({
     isExpanded,
     onCollapseClick,
 }: {
-    name: string;
     type: string;
+    name?: string;
     typeUrl?: string;
     defaultValue?: string;
     collapsibleType?: CollapsibleType;
@@ -124,12 +124,14 @@ export function PropertyType({
     return (
         <div className={styles.metaItem}>
             <div className={styles.metaRow}>
-                <CodeCollapsibleButton
-                    name={name}
-                    isExpanded={isExpanded}
-                    onClick={onCollapseClick}
-                    collapsibleType={collapsibleType}
-                />
+                {name && (
+                    <CodeCollapsibleButton
+                        name={name}
+                        isExpanded={isExpanded}
+                        onClick={onCollapseClick}
+                        collapsibleType={collapsibleType}
+                    />
+                )}
                 {typeUrl && isCollapsibleCode ? (
                     <a
                         className={styles.metaValue}
@@ -188,12 +190,7 @@ function PropertyName({
         console.warn('PropertyName children must be of type string', children);
         return <Component {...props} />;
     }
-
-    return (
-        <>
-            <Component {...props}>{wbrInject(children, splitRegex)}</Component>
-        </>
-    );
+    return <Component {...props}>{wbrInject(children, splitRegex)}</Component>;
 }
 
 function wbrInject(text: string, splitRegex: RegExp) {

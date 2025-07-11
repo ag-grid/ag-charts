@@ -1,5 +1,6 @@
 import {
     type AgPyramidSeriesLabelFormatterParams,
+    type AgPyramidSeriesOptions,
     type AgPyramidSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -65,6 +66,7 @@ type PyramidAnimationEvent = {
 
 export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     PyramidNodeDatum,
+    AgPyramidSeriesOptions,
     PyramidProperties,
     PyramidNodeLabelDatum,
     PyramidNodeDataContext

@@ -1,4 +1,9 @@
-import { type AgFunnelSeriesLabelFormatterParams, type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgFunnelSeriesLabelFormatterParams,
+    type AgFunnelSeriesOptions,
+    type AgFunnelSeriesStyle,
+    _ModuleSupport,
+} from 'ag-charts-community';
 
 import {
     BaseFunnelSeries,
@@ -23,7 +28,7 @@ const {
 } = _ModuleSupport;
 
 type ItemStyle = Pick<AgFunnelSeriesStyle, 'fill' | 'stroke'> & Required<Omit<AgFunnelSeriesStyle, 'fill' | 'stroke'>>;
-export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNodeDatum>> {
+export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNodeDatum>, AgFunnelSeriesOptions> {
     static readonly className = 'FunnelSeries';
     static readonly type = 'funnel' as const;
 

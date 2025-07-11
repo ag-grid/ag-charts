@@ -17,6 +17,7 @@ import type {
     FontStyle,
     FontWeight,
     Formatter,
+    Padding,
     StrokeOptions,
 } from 'ag-charts-types';
 
@@ -298,7 +299,7 @@ export class Legend extends BaseProperties {
     fillOpacity: number = 1;
 
     @Property
-    padding: number = 4;
+    padding: Padding = 4;
 
     /**
      * Spacing between the legend and the edge of the chart's element.
@@ -587,8 +588,8 @@ export class Legend extends BaseProperties {
         this.containerNode.strokeWidth = containerStyles.strokeWidth;
 
         // Grow the desired legend size with the container
-        width += containerStyles.strokeWidth * 2 + containerStyles.padding * 2;
-        height += containerStyles.strokeWidth * 2 + containerStyles.padding * 2;
+        width += containerStyles.strokeWidth * 2 + containerStyles.padding.left + containerStyles.padding.right;
+        height += containerStyles.strokeWidth * 2 + containerStyles.padding.top + containerStyles.padding.bottom;
 
         return [width, height];
     }
@@ -887,11 +888,17 @@ export class Legend extends BaseProperties {
     private getContainerStyles() {
         const { stroke, strokeOpacity, strokeWidth } = this.border;
         const { cornerRadius, fill, fillOpacity, padding } = this;
+        const isPaddingNumber = typeof padding === 'number';
         return {
             cornerRadius,
             fill,
             fillOpacity,
-            padding,
+            padding: {
+                top: isPaddingNumber ? padding : padding.top ?? 0,
+                right: isPaddingNumber ? padding : padding.right ?? 0,
+                bottom: isPaddingNumber ? padding : padding.bottom ?? 0,
+                left: isPaddingNumber ? padding : padding.left ?? 0,
+            },
             stroke,
             strokeOpacity,
             strokeWidth,
@@ -906,8 +913,8 @@ export class Legend extends BaseProperties {
             actualBBox.height = Math.max(maxPageHeight, actualBBox.height);
             actualBBox.width = Math.max(maxPageWidth, actualBBox.width);
         }
-        const containerStyles = this.getContainerStyles();
-        actualBBox.grow(containerStyles.strokeWidth + containerStyles.padding);
+        const { strokeWidth, padding } = this.getContainerStyles();
+        actualBBox.grow(padding).grow(strokeWidth);
         return actualBBox;
     }
 
@@ -1190,7 +1197,7 @@ export class Legend extends BaseProperties {
         };
 
         if (this.visible) {
-            const legendPadding = this.spacing;
+            const legendSpacing = this.spacing;
 
             let translationX;
             let translationY;
@@ -1200,7 +1207,7 @@ export class Legend extends BaseProperties {
                 case 'bottom':
                     translationX = (width - legendBBox.width) / 2;
                     translationY = calculateTranslationPerpendicularDimension();
-                    layoutBox.shrink(legendBBox.height + legendPadding, this.position);
+                    layoutBox.shrink(legendBBox.height + legendSpacing, this.position);
                     break;
 
                 case 'left':
@@ -1208,7 +1215,7 @@ export class Legend extends BaseProperties {
                 default:
                     translationX = calculateTranslationPerpendicularDimension();
                     translationY = (height - legendBBox.height) / 2;
-                    layoutBox.shrink(legendBBox.width + legendPadding, this.position);
+                    layoutBox.shrink(legendBBox.width + legendSpacing, this.position);
             }
 
             // Round off for pixel grid alignment to work properly.

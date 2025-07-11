@@ -1,6 +1,7 @@
 import {
     type AgMarkerShape,
     type AgRangeAreaSeriesLabelFormatterParams,
+    type AgRangeAreaSeriesOptions,
     type FillOptions,
     type LineDashOptions,
     type StrokeOptions,
@@ -77,6 +78,7 @@ type ItemStyle = Required<
 
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     _ModuleSupport.Group,
+    AgRangeAreaSeriesOptions,
     RangeAreaProperties,
     RangeAreaMarkerDatum,
     RangeAreaLabelDatum,
@@ -148,6 +150,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
+        if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];

@@ -1,4 +1,9 @@
-import { type AgRadialSeriesLabelFormatterParams, type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgRadialBarSeriesOptions,
+    type AgRadialSeriesLabelFormatterParams,
+    type AgRadialSeriesStyle,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import { type RequiredInternalAgGradientColor, isDefined } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
@@ -70,7 +75,8 @@ type ItemStyle = Required<AgRadialSeriesStyle>;
 
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     RadialBarNodeDatum,
-    RadialBarSeriesProperties<any>,
+    AgRadialBarSeriesOptions,
+    RadialBarSeriesProperties<AgRadialBarSeriesOptions>,
     _ModuleSupport.Sector
 > {
     static readonly className = 'RadialBarSeries';

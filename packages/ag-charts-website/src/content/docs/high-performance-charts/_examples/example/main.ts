@@ -1,0 +1,134 @@
+import {
+    AgCartesianAxisOptions,
+    AgCartesianChartOptions,
+    AgCartesianSeriesOptions,
+    AgCharts,
+} from 'ag-charts-enterprise';
+
+import { getData } from './data';
+
+const options: AgCartesianChartOptions = {
+    container: document.getElementById('myChart'),
+    data: getData(1e3),
+    animation: { enabled: false },
+    zoom: {
+        enabled: true,
+        anchorPointX: 'pointer',
+        anchorPointY: 'pointer',
+        autoScaling: {
+            enabled: true,
+        },
+        minVisibleItems: 0,
+    },
+    navigator: {
+        enabled: true,
+        miniChart: {
+            enabled: true,
+        },
+    },
+    series: [
+        {
+            type: 'line',
+            xKey: 'timestamp',
+            yKey: 'close',
+            marker: { enabled: false },
+        },
+    ],
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+        },
+        {
+            type: 'ordinal-time',
+            position: 'bottom',
+            parentLevel: { enabled: true },
+        },
+    ],
+};
+
+const chart = AgCharts.create(options);
+
+function setSeries(type: string) {
+    let series: AgCartesianSeriesOptions;
+    switch (type) {
+        case 'bar':
+            series = {
+                type,
+                xKey: 'timestamp',
+                yKey: 'close',
+            };
+            break;
+        case 'area':
+        case 'line':
+            series = {
+                type,
+                xKey: 'timestamp',
+                yKey: 'close',
+                marker: { enabled: false },
+            };
+            break;
+        case 'range-area':
+        case 'range-bar':
+            series = {
+                type,
+                xKey: 'timestamp',
+                yLowKey: 'low',
+                yHighKey: 'high',
+            };
+            break;
+        case 'candlestick':
+        case 'ohlc':
+            series = {
+                type,
+                xKey: 'timestamp',
+                lowKey: 'low',
+                highKey: 'high',
+                openKey: 'open',
+                closeKey: 'close',
+            };
+            break;
+        default:
+            return;
+    }
+
+    options.series = [series];
+    chart.update(options);
+}
+
+function setAxes(type: string) {
+    let axis: AgCartesianAxisOptions;
+    switch (type) {
+        case 'time':
+            axis = {
+                type,
+                position: 'bottom',
+                nice: false,
+            };
+            break;
+        case 'ordinal-time':
+        case 'unit-time':
+            axis = {
+                type,
+                position: 'bottom',
+            };
+            break;
+        case 'ordinal-time-parent':
+            axis = {
+                type: 'ordinal-time',
+                position: 'bottom',
+                parentLevel: { enabled: true },
+            };
+            break;
+        default:
+            return;
+    }
+
+    options.axes = [{ type: 'number', position: 'left' }, axis];
+    chart.update(options);
+}
+
+function setData(points: number) {
+    options.data = getData(points);
+    chart.update(options);
+}

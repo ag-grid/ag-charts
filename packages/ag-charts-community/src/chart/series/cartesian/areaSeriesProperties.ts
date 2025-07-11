@@ -2,8 +2,8 @@ import type { InternalAgColorType } from 'ag-charts-core';
 import type {
     AgAreaSeriesLabelFormatterParams,
     AgAreaSeriesMarkerItemStylerParams,
+    AgAreaSeriesOptions,
     AgAreaSeriesTooltipRendererParams,
-    AgSeriesAreaOptions,
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
@@ -15,7 +15,7 @@ import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
 
-export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesAreaOptions> {
+export class AreaSeriesProperties extends CartesianSeriesProperties<AgAreaSeriesOptions> {
     @Property
     xKey!: string;
 

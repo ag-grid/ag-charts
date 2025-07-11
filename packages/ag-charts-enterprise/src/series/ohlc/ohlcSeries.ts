@@ -1,4 +1,4 @@
-import { type AgOhlcSeriesItemOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgOhlcSeriesItemOptions, type AgOhlcSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { OhlcNode } from './ohlcNode';
 import { OhlcSeriesBase } from './ohlcSeriesBase';
@@ -7,7 +7,7 @@ import { OhlcSeriesProperties } from './ohlcSeriesProperties';
 
 const { createDatumId, applyShapeStyle } = _ModuleSupport;
 
-export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
+export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, OhlcSeriesProperties> {
     static readonly className = 'ohlc';
     static readonly type = 'ohlc' as const;
 

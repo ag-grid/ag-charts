@@ -177,6 +177,19 @@ export interface FontOptions {
     fontFamily?: FontFamily;
 }
 
+export type Padding = PixelSize | PaddingOptions;
+
+export interface PaddingOptions {
+    /** The number of pixels of padding at the top. */
+    top?: PixelSize;
+    /** The number of pixels of padding at the right. */
+    right?: PixelSize;
+    /** The number of pixels of padding at the bottom. */
+    bottom?: PixelSize;
+    /** The number of pixels of padding at the left. */
+    left?: PixelSize;
+}
+
 /**
  * Represents toggleable options for chart elements.
  */

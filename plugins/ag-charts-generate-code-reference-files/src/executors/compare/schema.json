@@ -1,0 +1,32 @@
+{
+    "$schema": "http://json-schema.org/schema",
+    "version": 2,
+    "title": "GenerateCodeReferenceFiles compare",
+    "description": "Compare generated Typescript/JSDoc metadata JSON files.",
+    "cli": "nx",
+    "outputCapture": "pipe",
+    "type": "object",
+    "properties": {
+        "commit": {
+            "type": "string",
+            "description": "Git commit to compare against.",
+            "x-priority": "important"
+        },
+        "inputs": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "x-completion-type": "glob"
+            },
+            "description": "Globs for TS files to be included.",
+            "x-priority": "important"
+        },
+        "output": {
+            "type": "string",
+            "description": "The output path of the generated file.",
+            "x-completion-type": "file",
+            "x-priority": "important"
+        }
+    },
+    "required": ["commit", "inputs", "output"]
+}
