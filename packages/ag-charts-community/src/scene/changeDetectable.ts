@@ -66,7 +66,7 @@ function prepareGetSet(target: any, key: string, opts?: SceneChangeDetectionOpti
     // Select the correctly optimized setter with minimal branches/checks for the specific type
     // of change detection.
     let setter: SetterFunction;
-    if (equals == null && convertor == null && changeCb == null && checkDirtyOnAssignment == null) {
+    if (equals == null && convertor == null && changeCb == null && !checkDirtyOnAssignment) {
         setter = function (this: Target, value: unknown) {
             let accessorValues = this.__changeDetectableAccessors;
             if (accessorValues == null) {
