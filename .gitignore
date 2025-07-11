@@ -66,3 +66,4 @@ vitest.config.*.timestamp*
 /*.md
 !README.md
 .mcp.json
+.claude/commands/

@@ -4,8 +4,6 @@ import type { PointProperties } from '../annotationProperties';
 import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
 import { getGrouping } from './scale';
 
-const { clampArray } = _ModuleSupport;
-
 export function convertLine(
     datum: { start: Pick<PointProperties, 'x' | 'y'>; end: Pick<PointProperties, 'x' | 'y'> },
     context: AnnotationContext
@@ -59,8 +57,7 @@ export function invert(
     const width = scale.bandwidth === 0 ? scale.step : scale.bandwidth ?? 0;
     const bandStart = scale.convert(value);
     const bandEnd = bandStart + width;
-    const position = clampArray(n, scale.range);
-    const groupPercentage = bandStart === bandEnd ? 0 : (position - bandStart) / (bandEnd - bandStart);
+    const groupPercentage = bandStart === bandEnd ? 0 : (n - bandStart) / (bandEnd - bandStart);
 
     return { value, groupPercentage };
 }

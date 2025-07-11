@@ -10,6 +10,7 @@ AG Charts is a sophisticated TypeScript monorepo providing canvas-based JavaScri
 
 -   The main branch of this repo is `latest`
 -   Release branch names are of the form `b12.0.0`
+-   JIRA-related branch should be named of the form `ag-12345/${kebabCaseChangeSummary}`
 
 ## Essential Commands
 
