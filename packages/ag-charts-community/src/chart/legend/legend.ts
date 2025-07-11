@@ -1244,7 +1244,32 @@ export class Legend extends BaseProperties {
                     unreachable(this.position);
             }
 
-            if (!this.floating) {
+            if (this.floating) {
+                switch (this.position) {
+                    case 'top':
+                    case 'top-right':
+                    case 'top-left':
+                        translationY += legendSpacing;
+                        break;
+                    case 'bottom':
+                    case 'bottom-right':
+                    case 'bottom-left':
+                        translationY -= legendSpacing;
+                        break;
+                    case 'left':
+                    case 'left-top':
+                    case 'left-bottom':
+                        translationX += legendSpacing;
+                        break;
+                    case 'right':
+                    case 'right-top':
+                    case 'right-bottom':
+                        translationX -= legendSpacing;
+                        break;
+                    default:
+                        unreachable(this.position);
+                }
+            } else {
                 let shrinkAmount: number;
                 let shrinkDirection: NonNullable<Parameters<(typeof layoutBox)['shrink']>[1]>;
                 switch (this.position) {
