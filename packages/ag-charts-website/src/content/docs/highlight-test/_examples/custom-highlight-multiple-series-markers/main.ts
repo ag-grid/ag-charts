@@ -22,7 +22,6 @@ const options: AgChartOptions = {
                         },
                         highlightedSeries: {
                             strokeWidth: 4,
-                            fillOpacity: 0.8,
                         },
                         unhighlightedSeries: {
                             opacity: 0.2,
