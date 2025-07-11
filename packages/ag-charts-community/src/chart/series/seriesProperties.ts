@@ -6,6 +6,7 @@ import {
 } from 'ag-charts-core';
 import type {
     AgColorRepeat,
+    AgColorType,
     AgGradientColorBounds,
     AgGradientColorStop,
     AgGradientType,
@@ -29,6 +30,20 @@ export enum HighlightState {
     OtherSeries,
     OtherItem,
 }
+
+type HighlightMixins = {
+    fill: AgColorType;
+    fillOpacity: number;
+    stroke: string;
+    strokeWidth: number;
+    strokeOpacity: number;
+    lineDash: number[];
+    lineDashOffset: number;
+    opacity: number;
+};
+
+type HighlightOptions<TOpts extends object> = Partial<TOpts & HighlightMixins>;
+
 export class SeriesItemHighlightStyle extends BaseProperties {
     @Property
     fill?: string = 'rgba(255,255,255, 0.33)';
@@ -52,7 +67,7 @@ export class SeriesItemHighlightStyle extends BaseProperties {
     lineDashOffset?: number;
 }
 
-export class HighlightProperties<T> extends BaseProperties {
+export class HighlightProperties<TOpts extends object> extends BaseProperties {
     @Property
     enabled = true;
 
@@ -60,18 +75,18 @@ export class HighlightProperties<T> extends BaseProperties {
     public range: 'tooltip' | 'node' = 'tooltip';
 
     @Property
-    readonly highlightedItem: Partial<T> = {};
+    readonly highlightedItem: HighlightOptions<TOpts> = {};
 
     @Property
-    readonly unhighlightedItem: Partial<T> = {};
+    readonly unhighlightedItem: HighlightOptions<TOpts> = {};
 
     @Property
-    readonly highlightedSeries: Partial<T> = {};
+    readonly highlightedSeries: HighlightOptions<TOpts> = {};
 
     @Property
-    readonly unhighlightedSeries: Partial<T> = {};
+    readonly unhighlightedSeries: HighlightOptions<TOpts> = {};
 
-    private getItemHighlightStyle(highlightState: HighlightState) {
+    private getItemHighlightStyle(highlightState: HighlightState): HighlightOptions<TOpts> | undefined {
         switch (highlightState) {
             case HighlightState.Item:
                 return this.highlightedItem;
@@ -84,7 +99,7 @@ export class HighlightProperties<T> extends BaseProperties {
         }
     }
 
-    private getSeriesHighlightStyle(highlightState: HighlightState) {
+    private getSeriesHighlightStyle(highlightState: HighlightState): HighlightOptions<TOpts> | undefined {
         switch (highlightState) {
             case HighlightState.Item:
             case HighlightState.OtherItem:
@@ -95,8 +110,11 @@ export class HighlightProperties<T> extends BaseProperties {
         }
     }
 
-    getStyle(highlightState: HighlightState) {
-        return mergeDefaults(this.getItemHighlightStyle(highlightState), this.getSeriesHighlightStyle(highlightState));
+    getStyle(highlightState: HighlightState): HighlightOptions<TOpts> {
+        return mergeDefaults<HighlightOptions<TOpts>>(
+            this.getItemHighlightStyle(highlightState),
+            this.getSeriesHighlightStyle(highlightState)
+        );
     }
 }
 

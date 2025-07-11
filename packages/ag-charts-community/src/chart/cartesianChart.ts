@@ -14,7 +14,7 @@ import { ChartAxisDirection } from './chartAxisDirection';
 import { CartesianCrossLine } from './crossline/cartesianCrossLine';
 import type { SeriesArea } from './series-area/seriesArea';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
-import type { Series } from './series/series';
+import type { UnknownSeries } from './series/series';
 
 type Dimension = 'x' | 'y';
 type Direction = -1 | 1;
@@ -60,7 +60,7 @@ export class CartesianChart extends Chart {
         }
     }
 
-    override destroySeries(series: Series<unknown, any, any>[]) {
+    override destroySeries(series: UnknownSeries[]) {
         super.destroySeries(series);
 
         this.lastLayoutWidth = NaN;

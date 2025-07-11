@@ -195,6 +195,8 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
     }
 }
 
+export type UnknownSeries = Series<unknown, SeriesNodeDatum<unknown>, SeriesProperties<object>>;
+
 export abstract class Series<
         TDatumIndex,
         TDatum extends SeriesNodeDatum<TDatumIndex>,
@@ -652,7 +654,10 @@ export abstract class Series<
     }
 
     // @todo(AG-7126) - removeThisDatum
-    abstract getTooltipContent(datumIndex: TDatumIndex, removeThisDatum: TDatum): TooltipContent | undefined;
+    abstract getTooltipContent(
+        datumIndex: TDatumIndex,
+        removeThisDatum: TDatum | undefined
+    ): TooltipContent | undefined;
 
     protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
     pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {

@@ -41,8 +41,7 @@ import {
     tooltipContentAriaLabel,
 } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
-import { type PickFocusOutputs, type Series, type SeriesNodePickIntent } from './series';
-import type { SeriesProperties } from './seriesProperties';
+import { type PickFocusOutputs, type SeriesNodePickIntent, type UnknownSeries } from './series';
 import type { SeriesNodeDatum } from './seriesTypes';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
@@ -58,7 +57,7 @@ export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
     getUpdateType(): ChartUpdateType;
     getTooltipContent: <DatumIndex = unknown>(
-        series: Series<DatumIndex, any, any>,
+        series: UnknownSeries,
         datumIndex: DatumIndex,
         removeThisDatum: unknown
     ) => TooltipContent[];
@@ -77,7 +76,7 @@ type PickedNodes = {
 };
 
 interface PickedNode {
-    series: Series<unknown, any, any>;
+    series: UnknownSeries;
     datum: SeriesNodeDatum<any>;
     datumIndex: unknown;
 }
@@ -128,7 +127,7 @@ class PickedNodeState {
 export class SeriesAreaManager extends BaseManager {
     readonly id = createId(this);
 
-    private series: Series<unknown, any, any>[] = [];
+    private series: UnknownSeries[] = [];
     private seriesRect?: BBox;
     private hoverRect?: BBox;
     public readonly focusIndicator?: FocusIndicator;
@@ -179,8 +178,8 @@ export class SeriesAreaManager extends BaseManager {
     private previousInputDevice: 'pointer' | 'keyboard' = 'keyboard';
 
     private readonly focus = {
-        sortedSeries: [] as Series<unknown, SeriesNodeDatum<unknown>, SeriesProperties<object>>[],
-        series: undefined as Series<unknown, any, any> | undefined,
+        sortedSeries: [] as UnknownSeries[],
+        series: undefined as UnknownSeries | undefined,
         seriesIndex: 0,
         datumIndex: 0,
         datum: undefined as SeriesNodeDatum<unknown> | undefined,
@@ -297,7 +296,7 @@ export class SeriesAreaManager extends BaseManager {
         this.chart.ctx.updateService.update(type, opts);
     }
 
-    public seriesChanged(series: Series<unknown, SeriesNodeDatum<unknown>, SeriesProperties<object>>[]) {
+    public seriesChanged(series: UnknownSeries[]) {
         this.focus.sortedSeries = [...series].sort((a, b) => {
             let fpA = a.properties.focusPriority ?? Infinity;
             let fpB = b.properties.focusPriority ?? Infinity;
@@ -1026,7 +1025,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private getTooltipContent(
-        series: Series<unknown, any, any, any>,
+        series: UnknownSeries,
         datumIndex: any,
         datum: SeriesNodeDatum<unknown>
     ): TooltipContent[] | undefined {
