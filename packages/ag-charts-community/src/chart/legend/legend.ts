@@ -1312,6 +1312,9 @@ export class Legend extends BaseProperties {
 
         let legendWidth, legendHeight;
 
+        function unreachable(_a: never): never {
+            return undefined as never;
+        }
         switch (this.position) {
             case 'top':
             case 'bottom': {
@@ -1329,8 +1332,7 @@ export class Legend extends BaseProperties {
             }
 
             case 'left':
-            case 'right':
-            default: {
+            case 'right': {
                 // A vertical legend should take maximum between 25 and 50 percent of the chart width if width is larger than height
                 // and maximum 25 percent of the chart width if width is smaller than height.
                 const widthCoefficient =
@@ -1338,6 +1340,8 @@ export class Legend extends BaseProperties {
                 legendWidth = this.maxWidth ? Math.min(this.maxWidth, width) : Math.round(width * widthCoefficient);
                 legendHeight = this.maxHeight ? Math.min(this.maxHeight, height) : height;
             }
+            default:
+                unreachable(this.position);
         }
 
         return [legendWidth, legendHeight];
