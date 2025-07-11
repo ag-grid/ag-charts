@@ -1,4 +1,8 @@
-import { type AgConeFunnelSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgConeFunnelSeriesLabelFormatterParams,
+    type AgConeFunnelSeriesOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 
 import {
     BaseFunnelSeries,
@@ -12,7 +16,7 @@ import { resetLineSelectionsFn } from './coneFunnelUtil';
 
 const { Line, ChartAxisDirection } = _ModuleSupport;
 
-export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
+export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgConeFunnelSeriesOptions> {
     static readonly className = 'ConeFunnelSeries';
     static readonly type = 'cone-funnel' as const;
 

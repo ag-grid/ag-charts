@@ -43,14 +43,15 @@ export type AbstractBarSeriesAnimationData<
 
 export abstract class AbstractBarSeries<
     TNode extends QuadtreeCompatibleNode,
-    TProps extends AbstractBarSeriesProperties<any>,
+    TOpts extends object,
+    TProps extends AbstractBarSeriesProperties<TOpts>,
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum<number> = TDatum,
     TContext extends AbstractBarSeriesNodeDataContext<TDatum, TLabel> = AbstractBarSeriesNodeDataContext<
         TDatum,
         TLabel
     >,
-> extends CartesianSeries<TNode, TProps, TDatum, TLabel, TContext> {
+> extends CartesianSeries<TNode, TOpts, TProps, TDatum, TLabel, TContext> {
     /**
      * Used to get the position of bars within each group.
      */

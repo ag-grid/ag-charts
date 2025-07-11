@@ -1,4 +1,8 @@
-import { type AgCandlestickSeriesItemOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgCandlestickSeriesItemOptions,
+    type AgCandlestickSeriesOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import type { InternalAgGradientColor } from 'ag-charts-core';
 
 import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
@@ -8,11 +12,15 @@ import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 const { createDatumId, isGradientFill, isPatternFill, isImageFill, getShapeFill, applyShapeStyle, getShapeStyle } =
     _ModuleSupport;
 
-export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, CandlestickSeriesProperties<any>> {
+export class CandlestickSeries extends OhlcSeriesBase<
+    CandlestickNode,
+    AgCandlestickSeriesOptions,
+    CandlestickSeriesProperties<AgCandlestickSeriesOptions>
+> {
     static readonly className = 'CandleStickSeries';
     static readonly type = 'candlestick' as const;
 
-    override properties = new CandlestickSeriesProperties();
+    override properties = new CandlestickSeriesProperties<AgCandlestickSeriesOptions>();
 
     protected override nodeFactory() {
         return new CandlestickNode();

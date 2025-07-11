@@ -99,7 +99,7 @@ class FunnelSeriesNodeEvent<
     readonly xKey?: string;
     readonly yKey?: string;
 
-    constructor(type: TEvent, nativeEvent: Event, datum: FunnelNodeDatum, series: BaseFunnelSeries<any>) {
+    constructor(type: TEvent, nativeEvent: Event, datum: FunnelNodeDatum, series: BaseFunnelSeries<any, object>) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.stageKey;
         this.yKey = series.properties.valueKey;
@@ -121,9 +121,11 @@ export interface FunnelSeriesShapeStyle {
 
 export abstract class BaseFunnelSeries<
     TNode extends _ModuleSupport.QuadtreeCompatibleNode,
+    TOpts extends object,
 > extends _ModuleSupport.AbstractBarSeries<
     TNode,
-    BaseFunnelProperties<any>,
+    TOpts,
+    BaseFunnelProperties<TOpts>,
     FunnelNodeDatum,
     FunnelNodeLabelDatum,
     FunnelContext

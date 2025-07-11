@@ -1,6 +1,6 @@
 import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
-import { type AgMapMarkerSeriesLabelFormatterParams } from 'ag-charts-types';
+import { type AgMapMarkerSeriesLabelFormatterParams, type AgMapMarkerSeriesOptions } from 'ag-charts-types';
 
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
@@ -54,6 +54,7 @@ type ItemStyle = Required<AgMapMarkerSeriesStyle>;
 export class MapMarkerSeries
     extends TopologySeries<
         MapMarkerNodeDatum,
+        AgMapMarkerSeriesOptions,
         MapMarkerSeriesProperties,
         MapMarkerNodeLabelDatum,
         MapMarkerNodeDataContext

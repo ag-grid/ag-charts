@@ -3,6 +3,7 @@ import { isDefined } from 'ag-charts-core';
 import {
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgLineSeriesLabelFormatterParams,
+    type AgLineSeriesOptions,
     type AgSeriesMarkerStyle,
 } from 'ag-charts-types';
 
@@ -76,6 +77,7 @@ type SpanPoints = Array<LineSpanPointDatum[] | { skip: number }>;
 
 export class LineSeries extends CartesianSeries<
     Group,
+    AgLineSeriesOptions,
     LineSeriesProperties,
     LineNodeDatum,
     LineNodeDatum,

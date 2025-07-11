@@ -1,6 +1,7 @@
 import {
     type AgRangeBarHighlightStyleOptions,
     type AgRangeBarSeriesLabelFormatterParams,
+    type AgRangeBarSeriesOptions,
     type AgRangeBarSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -106,6 +107,7 @@ class RangeBarSeriesNodeEvent<
 
 export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     _ModuleSupport.Rect<RangeBarNodeDatum>,
+    AgRangeBarSeriesOptions,
     RangeBarProperties,
     RangeBarNodeDatum,
     RangeBarNodeLabelDatum

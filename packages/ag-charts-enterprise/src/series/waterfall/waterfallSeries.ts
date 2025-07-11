@@ -1,4 +1,4 @@
-import type { AgWaterfallSeriesItemType } from 'ag-charts-community';
+import type { AgWaterfallSeriesItemType, AgWaterfallSeriesOptions } from 'ag-charts-community';
 import { type AgWaterfallSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
 
@@ -70,6 +70,7 @@ type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
 
 export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     _ModuleSupport.Rect<WaterfallNodeDatum>,
+    AgWaterfallSeriesOptions,
     WaterfallSeriesProperties,
     WaterfallNodeDatum,
     WaterfallNodeDatum,
@@ -536,6 +537,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { id: seriesId, properties } = this;
         const item = properties.item[itemId === 'subtotal' ? 'total' : itemId];
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex);
+        const highlightStyleItem = highlightStyle.item?.[itemId === 'subtotal' ? 'total' : itemId];
 
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = item;
         const { xKey, yKey } = properties;
@@ -549,7 +551,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 strokeOpacity: highlightStyle?.strokeOpacity ?? item.strokeOpacity,
                 lineDash: highlightStyle?.lineDash ?? item.lineDash ?? [],
                 lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
-                cornerRadius: highlightStyle?.cornerRadius ?? item.cornerRadius,
+                cornerRadius: highlightStyleItem?.cornerRadius ?? item.cornerRadius,
                 opacity: highlightStyle?.opacity ?? 1,
             },
             fillGradientDefaults,

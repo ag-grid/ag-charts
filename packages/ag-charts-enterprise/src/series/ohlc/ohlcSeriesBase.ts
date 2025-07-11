@@ -1,4 +1,5 @@
 import {
+    type AgOhlcSeriesBaseOptions,
     type AgOhlcSeriesItemType,
     type FillOptions,
     type LineDashOptions,
@@ -66,7 +67,12 @@ class OhlcSeriesNodeEvent<
     readonly highKey?: string;
     readonly lowKey?: string;
 
-    constructor(type: TEvent, nativeEvent: Event, datum: OhlcNodeDatum, series: OhlcSeriesBase<OhlcBaseNode, any>) {
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: OhlcNodeDatum,
+        series: OhlcSeriesBase<OhlcBaseNode, AgOhlcSeriesBaseOptions, any>
+    ) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
         this.openKey = series.properties.openKey;
@@ -78,8 +84,9 @@ class OhlcSeriesNodeEvent<
 
 export abstract class OhlcSeriesBase<
     TNode extends OhlcBaseNode,
-    TSeriesOptions extends OhlcSeriesBaseProperties<any>,
-> extends _ModuleSupport.AbstractBarSeries<TNode, TSeriesOptions, OhlcNodeDatum> {
+    TOpts extends AgOhlcSeriesBaseOptions,
+    TProps extends OhlcSeriesBaseProperties<TOpts>,
+> extends _ModuleSupport.AbstractBarSeries<TNode, TOpts, TProps, OhlcNodeDatum> {
     protected override readonly NodeEvent = OhlcSeriesNodeEvent;
 
     private dataAggregationFilters: OhlcSeriesDataAggregationFilter[] | undefined = undefined;

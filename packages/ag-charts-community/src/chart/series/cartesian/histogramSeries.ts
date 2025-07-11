@@ -1,5 +1,9 @@
 import { isDate, isNumber } from 'ag-charts-core';
-import type { AgHistogramBinDatum, AgHistogramSeriesLabelFormatterParams } from 'ag-charts-types';
+import type {
+    AgHistogramBinDatum,
+    AgHistogramSeriesLabelFormatterParams,
+    AgHistogramSeriesOptions,
+} from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -55,6 +59,7 @@ type HistogramAnimationData = CartesianAnimationData<Rect<HistogramNodeDatum>, H
 
 export class HistogramSeries extends CartesianSeries<
     Rect<HistogramNodeDatum>,
+    AgHistogramSeriesOptions,
     HistogramSeriesProperties,
     HistogramNodeDatum
 > {

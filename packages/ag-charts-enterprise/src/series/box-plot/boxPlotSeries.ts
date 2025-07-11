@@ -1,4 +1,9 @@
-import { type AgBoxPlotHighlightStyleOptions, type AgBoxPlotSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgBoxPlotHighlightStyleOptions,
+    type AgBoxPlotSeriesOptions,
+    type AgBoxPlotSeriesStyle,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import type { DeepRequired } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
@@ -49,6 +54,7 @@ class BoxPlotSeriesNodeEvent<
 
 export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     BoxPlotGroup,
+    AgBoxPlotSeriesOptions,
     BoxPlotSeriesProperties,
     BoxPlotNodeDatum
 > {

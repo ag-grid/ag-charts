@@ -1,6 +1,10 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
-import type { AgMapShapeSeriesLabelFormatterParams, AgMapShapeSeriesStyle } from 'ag-charts-types';
+import type {
+    AgMapShapeSeriesLabelFormatterParams,
+    AgMapShapeSeriesOptions,
+    AgMapShapeSeriesStyle,
+} from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
@@ -51,7 +55,13 @@ interface LabelLayout {
     fixedPolygon: _ModuleSupport.Position[][];
 }
 export class MapShapeSeries
-    extends TopologySeries<MapShapeNodeDatum, MapShapeSeriesProperties, MapShapeNodeLabelDatum, MapShapeNodeDataContext>
+    extends TopologySeries<
+        MapShapeNodeDatum,
+        AgMapShapeSeriesOptions,
+        MapShapeSeriesProperties,
+        MapShapeNodeLabelDatum,
+        MapShapeNodeDataContext
+    >
     implements _ModuleSupport.ITopology
 {
     static readonly className = 'MapShapeSeries';
