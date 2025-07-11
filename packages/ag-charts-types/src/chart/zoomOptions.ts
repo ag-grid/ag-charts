@@ -83,9 +83,9 @@ export interface AgZoomOptions {
      */
     axes?: AgZoomAxes;
     /**
-     * Whether to pan or zoom when dragging an axis. Set `enableAxisDragging` to `true` to enable.
+     * Whether dragging an axis pans or zooms, if `enableAxisDragging` is enabled.
      *
-     * Default: 'zoom'
+     * Default: `zoom`
      */
     axisDraggingMode?: AgZoomAxisDraggingMode;
     /** A set of buttons to perform common zoom actions. */
