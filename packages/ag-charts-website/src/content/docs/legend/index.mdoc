@@ -55,6 +55,22 @@ legend: {
 }
 ```
 
+### Floating
+
+By default, the Legend reduces the amount of space availabe in the [Layout](./layout) of
+other parts of the chart, such as the series-area.
+
+The Legend can be drawn above the series-area using the `floating: true` property.
+
+{% chartExampleRunner title="Floating Legend" name="legend-floating" type="generated" /%}
+
+```js
+legend: {
+    position: 'right-top',
+    floating: true,
+}
+```
+
 ## Series Stroke
 
 The Legend item includes a line, representing the stroke style of the series. Use `showSeriesStroke` to disable this.
@@ -181,10 +197,10 @@ legend: {
 ## Legend Events
 
 The `legendItemClick` and `legendItemDoubleClick` events can be used to listen to Legend item clicks and double clicks, respectively.
-They can also be used to call a `preventDefault` function for complete control of when to stop the series toggling.  
+They can also be used to call a `preventDefault` function for complete control of when to stop the series toggling.
 For more information see [Legend Events](./events/#legend-events).
 
-The `seriesVisibilityChange` events can be used to listen for Series Visibility toggling.  
+The `seriesVisibilityChange` events can be used to listen for Series Visibility toggling.
 For more information see [Chart Events](./events/#seriesvisibilitychange).
 
 ## API Reference
