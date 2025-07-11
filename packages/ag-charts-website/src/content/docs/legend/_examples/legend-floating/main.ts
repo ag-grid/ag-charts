@@ -2,6 +2,7 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
+    title: { text: 'Yearly Dividend Yields by Stock' },
     data: [
         { ticker: 'AAPL', '2020': 0.7, '2021': 0.6, '2022': 0.5 },
         { ticker: 'KO', '2020': 3.0, '2021': 2.9, '2022': 2.8 },
@@ -45,6 +46,7 @@ const options: AgCartesianChartOptions = {
     legend: {
         position: 'right-top',
         floating: true,
+        spacing: 30,
     },
 };
 
