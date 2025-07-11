@@ -1,3 +1,4 @@
+import type { LabelBoxOptions } from '../series/cartesian/commonOptions';
 import type { Formatter, Styler } from './callbackOptions';
 import type {
     ContextDefault,
@@ -128,7 +129,7 @@ export interface AgAxisBaseIntervalOptions {
     minSpacing?: PixelSize;
 }
 
-export interface AgBaseAxisLabelStyleOptions {
+export interface AgBaseAxisLabelStyleOptions extends LabelBoxOptions {
     /** The font style to use for the labels. */
     fontStyle?: FontStyle;
     /** The font weight to use for the labels. */

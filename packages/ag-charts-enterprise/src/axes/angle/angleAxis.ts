@@ -320,8 +320,8 @@ export abstract class AngleAxis<
             node.fill = label.color;
             node.x = labelDatum.x;
             node.y = labelDatum.y;
-            node.textAlign = labelDatum.textAlign;
-            node.textBaseline = labelDatum.textBaseline;
+            node.setAlign(labelDatum);
+            node.setBoxing(label);
             node.visible = true;
             if (labelDatum.rotation) {
                 node.rotation = labelDatum.rotation;

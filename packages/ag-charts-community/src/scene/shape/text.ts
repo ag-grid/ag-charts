@@ -21,7 +21,7 @@ export interface TextSizeProperties {
     textAlign?: CanvasTextAlign;
 }
 
-interface TextBoxingProperties {
+export interface TextBoxingProperties {
     cornerRadius?: PixelSize;
     padding?: PixelSize;
     fill?: ShapeColor;
