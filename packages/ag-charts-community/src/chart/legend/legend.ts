@@ -1244,37 +1244,39 @@ export class Legend extends BaseProperties {
                     unreachable(this.position);
             }
 
-            let shrinkAmount: number;
-            let shrinkDirection: NonNullable<Parameters<(typeof layoutBox)['shrink']>[1]>;
-            switch (this.position) {
-                case 'top':
-                case 'top-right':
-                case 'top-left':
-                    shrinkAmount = legendBBox.height + legendSpacing;
-                    shrinkDirection = 'top';
-                    break;
-                case 'bottom':
-                case 'bottom-right':
-                case 'bottom-left':
-                    shrinkAmount = legendBBox.height + legendSpacing;
-                    shrinkDirection = 'bottom';
-                    break;
-                case 'left':
-                case 'left-top':
-                case 'left-bottom':
-                    shrinkAmount = legendBBox.width + legendSpacing;
-                    shrinkDirection = 'left';
-                    break;
-                case 'right':
-                case 'right-top':
-                case 'right-bottom':
-                    shrinkAmount = legendBBox.width + legendSpacing;
-                    shrinkDirection = 'right';
-                    break;
-                default:
-                    unreachable(this.position);
+            if (!this.floating) {
+                let shrinkAmount: number;
+                let shrinkDirection: NonNullable<Parameters<(typeof layoutBox)['shrink']>[1]>;
+                switch (this.position) {
+                    case 'top':
+                    case 'top-right':
+                    case 'top-left':
+                        shrinkAmount = legendBBox.height + legendSpacing;
+                        shrinkDirection = 'top';
+                        break;
+                    case 'bottom':
+                    case 'bottom-right':
+                    case 'bottom-left':
+                        shrinkAmount = legendBBox.height + legendSpacing;
+                        shrinkDirection = 'bottom';
+                        break;
+                    case 'left':
+                    case 'left-top':
+                    case 'left-bottom':
+                        shrinkAmount = legendBBox.width + legendSpacing;
+                        shrinkDirection = 'left';
+                        break;
+                    case 'right':
+                    case 'right-top':
+                    case 'right-bottom':
+                        shrinkAmount = legendBBox.width + legendSpacing;
+                        shrinkDirection = 'right';
+                        break;
+                    default:
+                        unreachable(this.position);
+                }
+                layoutBox.shrink(shrinkAmount, shrinkDirection);
             }
-            layoutBox.shrink(shrinkAmount, shrinkDirection);
 
             // Round off for pixel grid alignment to work properly.
             this.group.translationX = Math.floor(x + translationX - legendBBox.x);
