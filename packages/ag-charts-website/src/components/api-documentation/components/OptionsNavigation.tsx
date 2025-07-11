@@ -17,14 +17,12 @@ import {
     type NavigationPath,
     type SearchIndex,
     type SearchIndexDatum,
-    isInterfaceHidden,
-    normalizeType,
-} from '../apiReferenceHelpers';
-import {
     cleanupName,
     extractSearchData,
     getMemberType,
     getNavigationDataFromPath,
+    isInterfaceHidden,
+    normalizeType,
     processMembers,
 } from '../apiReferenceHelpers';
 import { ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
@@ -533,14 +531,12 @@ function getInterfaceArrayTypes(reference?: ApiReferenceType, interfaceRef?: Api
     ) {
         return interfaceRef.type.type
             .map((type) => {
-                if (typeof type !== 'string') {
-                    type = normalizeType(type);
-                }
-                const innerInterfaceRef = reference?.get(type);
+                const nodeType = normalizeType(type);
+                const innerInterfaceRef = reference?.get(nodeType);
                 if (innerInterfaceRef?.kind === 'interface') {
                     const typeMember = innerInterfaceRef.members.find((member) => member.name === 'type');
                     if (typeof typeMember?.type === 'string') {
-                        return { name: cleanupName(typeMember.type), type };
+                        return { name: cleanupName(typeMember.type), type: nodeType };
                     }
                 }
             })

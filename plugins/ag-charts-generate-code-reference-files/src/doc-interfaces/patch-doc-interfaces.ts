@@ -1,17 +1,28 @@
-import type { ApiReferenceNode, ApiReferenceType, InterfaceNode, MemberNode } from './types';
+import { TypeResolver } from './type-resolver';
+import type { InterfaceNode, MemberNode, NodeTypes } from './types';
 
 /**
  * Patch doc interfaces for the front end
  */
-export function patchDocInterfaces(resolvedEntries: ApiReferenceNode[]) {
-    const interfaceReference = new Map<string, ApiReferenceNode>(
-        resolvedEntries.map((item: InterfaceNode) => [item.name, item])
-    );
-    patchAgChartOptionsReference(interfaceReference);
-    return interfaceReference;
+export function patchDocInterfaces(typeResolver: TypeResolver) {
+    patchAgChartOptionsReference(typeResolver);
+    for (const [key, node] of typeResolver.entries()) {
+        // TODO support enums in the docs
+        if (node.kind === 'enum') {
+            typeResolver.set(key, {
+                kind: 'typeAlias',
+                name: node.name,
+                type: {
+                    kind: 'union',
+                    type: Object.values(node.members),
+                },
+            });
+        }
+    }
+    return typeResolver;
 }
 
-function getTypeUnion(typeRef: ApiReferenceNode | undefined): string[] {
+function getTypeUnion(typeRef: NodeTypes | undefined): string[] {
     if (typeRef?.kind === 'typeAlias') {
         if (typeof typeRef.type === 'string') {
             return [typeRef.type];
@@ -51,8 +62,8 @@ function readMemberName(member: MemberNode): string | undefined {
     return undefined;
 }
 
-function patchAgChartOptionsReference(reference: ApiReferenceType) {
-    const interfaceRef = reference.get('AgChartOptions');
+function patchAgChartOptionsReference(typeResolver: TypeResolver) {
+    const interfaceRef = typeResolver.get('AgChartOptions');
     if (interfaceRef == null) {
         throw new Error('Failed to find AgChartOptions reference type');
     }
@@ -63,7 +74,7 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
     let altInterface: InterfaceNode | null = null;
 
     for (const typeName of getTypeUnion(interfaceRef)) {
-        const typeRef = reference.get(typeName);
+        const typeRef = typeResolver.get(typeName);
 
         if (typeRef?.kind !== 'interface') {
             throw Error('Unexpected AgChartOptions union type');
@@ -79,11 +90,11 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
             if (memberTypeName == null) {
                 unsupportedMembers.push(member);
             } else {
-                const union = getTypeUnion(reference.get(memberTypeName));
+                const union = getTypeUnion(typeResolver.get(memberTypeName));
                 options.push(...union);
 
                 for (const subType of union) {
-                    const subInterfaceRef = reference.get(subType);
+                    const subInterfaceRef = typeResolver.get(subType);
                     if (subInterfaceRef == null) {
                         console.error('Cannot find API reference for', subType);
                         unsupportedMembers.push(member);
@@ -104,18 +115,18 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
         throw new Error('Failed to patch options due to unsupported members');
     }
 
-    reference.set('AgChartAxisOptions', {
+    typeResolver.set('AgChartAxisOptions', {
         kind: 'typeAlias',
         name: 'AgChartAxisOptions',
         type: { kind: 'union', type: specialOptions.axes },
     });
-    reference.set('AgChartSeriesOptions', {
+    typeResolver.set('AgChartSeriesOptions', {
         kind: 'typeAlias',
         name: 'AgChartSeriesOptions',
         type: { kind: 'union', type: specialOptions.series },
     });
 
-    altInterface = {
+    typeResolver.set('AgChartOptions', {
         ...altInterface,
         name: 'AgChartOptions',
         members: altInterface.members.map((member) => {
@@ -136,7 +147,5 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
         }),
         typeParams: undefined,
         genericsMap: undefined,
-    };
-
-    reference.set('AgChartOptions', altInterface);
+    });
 }

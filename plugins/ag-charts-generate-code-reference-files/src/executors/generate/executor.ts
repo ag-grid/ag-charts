@@ -1,9 +1,11 @@
 /* eslint-disable no-console */
-import { writeJSONFile } from 'ag-shared/plugin-utils';
+import { inputGlob, readFile, writeJSONFile } from 'ag-shared/plugin-utils';
+import { readFileSync } from 'fs';
 import * as ts from 'typescript';
 
 import { patchDocInterfaces } from '../../doc-interfaces/patch-doc-interfaces';
-import { TypeMapper } from '../../doc-interfaces/types-utils';
+import { TypeMapper } from '../../doc-interfaces/type-mapper';
+import { TypeResolver } from '../../doc-interfaces/type-resolver';
 
 type OptionsMode = 'debug-interfaces' | 'docs-interfaces';
 type ExecutorOptions = { mode: OptionsMode; inputs: string[]; output: string };
@@ -27,21 +29,23 @@ export default async function (options: ExecutorOptions) {
 }
 
 async function generateFile(options: ExecutorOptions) {
-    const typeMapper = new TypeMapper(options.inputs);
+    const inputFiles = readInputFiles(options.inputs);
+    const typeMapper = new TypeMapper(inputFiles);
 
     switch (options.mode) {
-        // flat version of the interfaces file, without resolving
         case 'debug-interfaces':
-            return await writeJSONFile(options.output, typeMapper.entries());
+            // flat version of the interface file, without resolving
+            return await writeJSONFile(options.output, typeMapper.toJSON());
 
         case 'docs-interfaces':
-            const resolvedEntries = typeMapper.resolvedEntries();
-            const patchedDocInterfaces = patchDocInterfaces(resolvedEntries);
-            const docInterfacesObject = Object.fromEntries(patchedDocInterfaces.entries());
-
-            return await writeJSONFile(options.output, docInterfacesObject);
+            const typeResolver = new TypeResolver(typeMapper);
+            return await writeJSONFile(options.output, patchDocInterfaces(typeResolver).toJSON());
 
         default:
             throw new Error(`Unsupported mode "${options.mode}"`);
     }
+}
+
+function readInputFiles(inputs: string[]): string[] {
+    return inputs.flatMap(inputGlob).map((filePath: string) => readFileSync(filePath, 'utf8'));
 }

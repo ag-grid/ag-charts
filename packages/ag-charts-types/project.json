@@ -48,6 +48,18 @@
         "output": "dist/{projectRoot}/resolved-interfaces.AUTO.json"
       }
     },
+    "compare-types": {
+      "executor": "ag-charts-generate-code-reference-files:compare",
+      "dependsOn": ["ag-charts-generate-code-reference-files:build"],
+      "inputs": ["{projectRoot}/src/**/*.ts", { "dependentTasksOutputFiles": "**/*", "transitive": false }],
+      "outputs": ["{options.output}"],
+      "cache": false,
+      "options": {
+        "commit": "origin/b12.0.0",
+        "inputs": ["{projectRoot}/src"],
+        "output": "dist/{projectRoot}/types-diff-report.html"
+      }
+    },
     "lint:eslint": {},
     "lint:circular": {},
     "lint:depcruise": {},
