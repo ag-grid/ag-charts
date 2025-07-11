@@ -1317,7 +1317,11 @@ export class Legend extends BaseProperties {
         }
         switch (this.position) {
             case 'top':
-            case 'bottom': {
+            case 'top-left':
+            case 'top-right':
+            case 'bottom':
+            case 'bottom-left':
+            case 'bottom-right': {
                 // A horizontal legend should take maximum between 20 and 50 percent of the chart height if height is larger than width
                 // and maximum 20 percent of the chart height if height is smaller than width.
                 const heightCoefficient =
@@ -1332,13 +1336,18 @@ export class Legend extends BaseProperties {
             }
 
             case 'left':
-            case 'right': {
+            case 'left-top':
+            case 'left-bottom':
+            case 'right':
+            case 'right-top':
+            case 'right-bottom': {
                 // A vertical legend should take maximum between 25 and 50 percent of the chart width if width is larger than height
                 // and maximum 25 percent of the chart width if width is smaller than height.
                 const widthCoefficient =
                     aspectRatio > 1 ? Math.min(maxCoefficient, minWidthCoefficient * aspectRatio) : minWidthCoefficient;
                 legendWidth = this.maxWidth ? Math.min(this.maxWidth, width) : Math.round(width * widthCoefficient);
                 legendHeight = this.maxHeight ? Math.min(this.maxHeight, height) : height;
+                break;
             }
             default:
                 unreachable(this.position);
