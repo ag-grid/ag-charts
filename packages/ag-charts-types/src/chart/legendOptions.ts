@@ -127,6 +127,11 @@ export interface AgChartLegendOptions<TContext = ContextDefault> extends FillOpt
     position?: AgChartLegendPosition;
     /** How the legend items should be arranged. */
     orientation?: AgChartLegendOrientation;
+    /** Whether the legend is floating. Floating legend on drawn above the series-area of the series.
+     *
+     * Default: `false`
+     */
+    floating?: boolean;
     /** Used to constrain the width of the legend. */
     maxWidth?: PixelSize;
     /** Used to constrain the height of the legend. */
