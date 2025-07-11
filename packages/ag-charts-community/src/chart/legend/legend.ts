@@ -1183,44 +1183,87 @@ export class Legend extends BaseProperties {
         const { oldPages } = this.calcLayout(legendWidth, legendHeight);
         const legendBBox = this.computePagedBBox();
 
-        const calculateTranslationPerpendicularDimension = () => {
-            switch (this.position) {
-                case 'top':
-                case 'left':
-                    return 0;
-                case 'bottom':
-                    return height - legendBBox.height;
-                case 'right':
-                    return width - legendBBox.width;
-                default:
-                    this.position satisfies never;
-            }
-        };
-
         if (this.visible) {
+            function unreachable(_a: never): never {
+                return undefined as never;
+            }
+
             const legendSpacing = this.spacing;
 
-            let translationX;
-            let translationY;
-
+            let translationX: number;
+            let translationY: number;
             switch (this.position) {
                 case 'top':
+                    translationX = (width - legendBBox.width) / 2;
+                    translationY = 0;
+                    break;
                 case 'bottom':
                     translationX = (width - legendBBox.width) / 2;
-                    translationY = calculateTranslationPerpendicularDimension();
-                    layoutBox.shrink(legendBBox.height + legendSpacing, this.position);
+                    translationY = height - legendBBox.height;
                     break;
-
-                case 'left':
                 case 'right':
-                    translationX = calculateTranslationPerpendicularDimension();
+                    translationX = width - legendBBox.width;
                     translationY = (height - legendBBox.height) / 2;
-                    layoutBox.shrink(legendBBox.width + legendSpacing, this.position);
                     break;
-
+                case 'left':
+                    translationX = 0;
+                    translationY = (height - legendBBox.height) / 2;
+                    break;
+                case 'top-right':
+                case 'right-top':
+                    translationX = width - legendBBox.width;
+                    translationY = 0;
+                    break;
+                case 'top-left':
+                case 'left-top':
+                    translationX = 0;
+                    translationY = 0;
+                    break;
+                case 'bottom-right':
+                case 'right-bottom':
+                    translationX = width - legendBBox.width;
+                    translationY = height - legendBBox.height;
+                    break;
+                case 'bottom-left':
+                case 'left-bottom':
+                    translationX = 0;
+                    translationY = height - legendBBox.height;
+                    break;
                 default:
-                    this.position satisfies never;
+                    unreachable(this.position);
             }
+
+            let shrinkAmount: number;
+            let shrinkDirection: NonNullable<Parameters<(typeof layoutBox)['shrink']>[1]>;
+            switch (this.position) {
+                case 'top':
+                case 'top-right':
+                case 'top-left':
+                    shrinkAmount = legendBBox.height + legendSpacing;
+                    shrinkDirection = 'top';
+                    break;
+                case 'bottom':
+                case 'bottom-right':
+                case 'bottom-left':
+                    shrinkAmount = legendBBox.height + legendSpacing;
+                    shrinkDirection = 'bottom';
+                    break;
+                case 'left':
+                case 'left-top':
+                case 'left-bottom':
+                    shrinkAmount = legendBBox.width + legendSpacing;
+                    shrinkDirection = 'left';
+                    break;
+                case 'right':
+                case 'right-top':
+                case 'right-bottom':
+                    shrinkAmount = legendBBox.width + legendSpacing;
+                    shrinkDirection = 'right';
+                    break;
+                default:
+                    unreachable(this.position);
+            }
+            layoutBox.shrink(shrinkAmount, shrinkDirection);
 
             // Round off for pixel grid alignment to work properly.
             this.group.translationX = Math.floor(x + translationX - legendBBox.x);
