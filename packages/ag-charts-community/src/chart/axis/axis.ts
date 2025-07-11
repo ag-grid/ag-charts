@@ -218,6 +218,7 @@ export abstract class Axis<
     });
 
     readonly gridGroup = new TranslatableGroup({ name: `${this.id}-Axis-grid`, zIndex: ZIndexMap.AXIS_GRID });
+    protected readonly gridFillGroup = this.gridGroup.appendChild(new Group({ name: `${this.id}-gridFills` }));
     protected readonly gridLineGroup = this.gridGroup.appendChild(new Group({ name: `${this.id}-gridLines` }));
 
     protected readonly crossLineRangeGroup = new TransformableGroup({

@@ -8,6 +8,7 @@ import type {
     FontStyle,
     FontWeight,
     PixelSize,
+    Ratio,
 } from './types';
 
 export interface AgAxisBoundSeries {
@@ -200,6 +201,10 @@ export interface AgTimeAxisFormattableLabelOptions<TContext = ContextDefault> ex
 }
 
 export interface AgAxisGridStyle {
+    /** The colour of the fill between grid lines. */
+    fill?: CssColor;
+    /** The opacity of the fill between grid lines. */
+    fillOpacity?: Ratio;
     /** The colour of the grid line. */
     stroke?: CssColor;
     /** Defines how the grid lines are rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
