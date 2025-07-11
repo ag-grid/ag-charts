@@ -155,9 +155,14 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     private updateCategoryLabels() {
         if (!this.computedLayout) return;
-        this.tickLabelGroupSelection
-            .update(this.computedLayout.tickLabelLayout)
-            .each((node, datum) => node.setProperties(datum));
+        this.tickLabelGroupSelection.update(this.computedLayout.tickLabelLayout).each((node, datum) => {
+            node.fill = datum.color;
+            node.text = datum.text;
+            node.textBaseline = datum.textBaseline;
+            node.textAlign = datum.textAlign ?? 'center';
+            node.setFont(datum);
+            node.setBoxing(datum);
+        });
     }
 
     private updateAxisLine() {
@@ -227,16 +232,16 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     }) || text;
             }
 
-            tempText.setProperties({
-                ...labelStyles,
-                text,
-                textAlign: 'center',
-                textBaseline: label.parallel ? 'top' : 'bottom',
-                lineHeight: TextUtils.getLineHeight(labelStyles.fontSize),
-                x: horizontal ? datum.screen : labelSpacing,
-                y: horizontal ? labelSpacing : datum.screen,
-                rotation: 0,
-            });
+            tempText.x = horizontal ? datum.screen : labelSpacing;
+            tempText.y = horizontal ? labelSpacing : datum.screen;
+            tempText.rotation = 0;
+            tempText.lineHeight = TextUtils.getLineHeight(labelStyles.fontSize);
+            tempText.fill = labelStyles.color;
+            tempText.text = text;
+            tempText.textAlign = 'center';
+            tempText.textBaseline = label.parallel ? 'top' : 'bottom';
+            tempText.setFont(labelStyles);
+            tempText.setBoxing(labelStyles);
 
             return true;
         };
