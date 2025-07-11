@@ -268,6 +268,9 @@ export class Legend extends BaseProperties {
     @Property
     position: AgChartLegendPosition = 'bottom';
 
+    @Property
+    floating: boolean = false;
+
     /** Used to constrain the width of the legend. */
     @Property
     maxWidth?: number;

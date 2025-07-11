@@ -59,6 +59,9 @@ export class GradientLegend {
     position: AgChartLegendPosition = 'bottom';
 
     @Property
+    floating: boolean = false;
+
+    @Property
     reverseOrder: boolean = false;
 
     @Property
