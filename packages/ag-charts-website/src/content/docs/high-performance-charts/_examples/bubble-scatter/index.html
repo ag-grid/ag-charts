@@ -1,0 +1,34 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <select onchange="setSeries(event.target.value)">
+            <option value="bubble" selected>Bubble</option>
+            <option value="scatter">Scatter</option>
+        </select>
+        <select onchange="setShape(event.target.value)">
+            <option value="circle" selected>Circle</option>
+            <option value="cross">Cross</option>
+            <option value="diamond">Diamond</option>
+            <option value="heart">Heart</option>
+            <option value="plus">Plus</option>
+            <option value="square">Square</option>
+            <option value="star">Star</option>
+            <option value="triangle">Triangle</option>
+        </select>
+        <button onclick="setData(1e3)">1k</button>
+        <button onclick="setData(1e4)">10k</button>
+        <button onclick="setData(1e5)">100k</button>
+        <button onclick="setData(1e6)">1m</button>
+        <label>
+            <span>Max Visible Items</span>
+            <input
+                type="range"
+                min="500"
+                max="10000"
+                step="500"
+                value="2000"
+                onchange="setMaxVisibleItems(event.target.valueAsNumber)"
+            />
+        </label>
+    </div>
+</div>
+<div id="myChart"></div>
