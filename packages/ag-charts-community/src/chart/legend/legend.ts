@@ -681,8 +681,16 @@ export class Legend extends BaseProperties {
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
         const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.item;
 
+        const vertPositions: readonly AgChartLegendPosition[] = [
+            'left',
+            'left-top',
+            'left-bottom',
+            'right',
+            'right-top',
+            'right-bottom',
+        ] as const;
         const orientation = this.getOrientation();
-        const paginationVertical = ['left', 'right'].includes(this.position);
+        const paginationVertical = vertPositions.includes(this.position);
 
         let paginationBBox: BBox = this.pagination.getBBox();
         let lastPassPaginationBBox: BBox = new BBox(0, 0, 0, 0);
