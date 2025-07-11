@@ -65,7 +65,7 @@ export class GradientLegend {
     readonly gradient = new GradientBar();
 
     private isVertical(): boolean {
-        return this.position === 'right' || this.position === 'left';
+        return this.position.startsWith('right') || this.position.startsWith('left');
     }
 
     /**
@@ -235,31 +235,42 @@ export class GradientLegend {
         let { x: left, y: top } = shrinkRect;
         const { width, height } = axisBox;
 
+        function unreachable(_a: never): never {
+            return undefined as never;
+        }
         switch (this.position) {
             case 'left':
+            case 'left-top':
+            case 'left-bottom':
                 top += shrinkRect.height / 2 - height / 2;
                 shrinkRect.shrink(width + this.spacing, 'left');
                 break;
 
             case 'right':
+            case 'right-top':
+            case 'right-bottom':
                 left += shrinkRect.width - width;
                 top += shrinkRect.height / 2 - height / 2;
                 shrinkRect.shrink(width + this.spacing, 'right');
                 break;
 
             case 'top':
+            case 'top-left':
+            case 'top-right':
                 left += shrinkRect.width / 2 - width / 2;
                 shrinkRect.shrink(height + this.spacing, 'top');
                 break;
 
             case 'bottom':
+            case 'bottom-left':
+            case 'bottom-right':
                 left += shrinkRect.width / 2 - width / 2;
                 top += shrinkRect.height - height;
                 shrinkRect.shrink(height + this.spacing, 'bottom');
                 break;
 
             default:
-                this.position satisfies never;
+                unreachable(this.position);
         }
 
         return { top, left };
