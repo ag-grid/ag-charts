@@ -1191,8 +1191,9 @@ export class Legend extends BaseProperties {
                 case 'bottom':
                     return height - legendBBox.height;
                 case 'right':
-                default:
                     return width - legendBBox.width;
+                default:
+                    this.position satisfies never;
             }
         };
 
@@ -1212,10 +1213,13 @@ export class Legend extends BaseProperties {
 
                 case 'left':
                 case 'right':
-                default:
                     translationX = calculateTranslationPerpendicularDimension();
                     translationY = (height - legendBBox.height) / 2;
                     layoutBox.shrink(legendBBox.width + legendSpacing, this.position);
+                    break;
+
+                default:
+                    this.position satisfies never;
             }
 
             // Round off for pixel grid alignment to work properly.

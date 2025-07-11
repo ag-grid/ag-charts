@@ -91,6 +91,8 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
                 label.mirrored = true;
                 label.parallel = false;
                 break;
+            default:
+                position satisfies never;
         }
 
         const boxes: _ModuleSupport.BBox[] = [];

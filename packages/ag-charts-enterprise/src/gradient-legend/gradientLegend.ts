@@ -256,6 +256,10 @@ export class GradientLegend {
                 left += shrinkRect.width / 2 - width / 2;
                 top += shrinkRect.height - height;
                 shrinkRect.shrink(height + this.spacing, 'bottom');
+                break;
+
+            default:
+                this.position satisfies never;
         }
 
         return { top, left };
