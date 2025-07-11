@@ -21,7 +21,11 @@ export type AgChartLegendPosition =
     | 'bottom-right'
     | 'bottom-left'
     | 'right'
-    | 'left';
+    | 'right-top'
+    | 'right-bottom'
+    | 'left'
+    | 'left-top'
+    | 'left-bottom';
 export type AgChartLegendOrientation = 'horizontal' | 'vertical';
 
 export interface AgChartLegendMarkerOptions {
