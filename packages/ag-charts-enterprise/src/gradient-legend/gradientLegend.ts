@@ -232,43 +232,69 @@ export class GradientLegend {
     }
 
     private getMeasurements(shrinkRect: _ModuleSupport.BBox, axisBox: _ModuleSupport.BBox) {
-        let { x: left, y: top } = shrinkRect;
-        const { width, height } = axisBox;
-
         function unreachable(_a: never): never {
             return undefined as never;
         }
+
+        let { x: left, y: top } = shrinkRect;
+        const { width, height } = axisBox;
+
+        switch (this.position) {
+            case 'left':
+                top += shrinkRect.height / 2 - height / 2;
+                break;
+            case 'right':
+                left += shrinkRect.width - width;
+                top += shrinkRect.height / 2 - height / 2;
+                break;
+            case 'top':
+                left += shrinkRect.width / 2 - width / 2;
+                break;
+            case 'bottom':
+                left += shrinkRect.width / 2 - width / 2;
+                top += shrinkRect.height - height;
+                break;
+            case 'right-top':
+            case 'top-right':
+                left += shrinkRect.width - width;
+                break;
+            case 'right-bottom':
+            case 'bottom-right':
+                left += shrinkRect.width - width;
+                top += shrinkRect.height - height;
+                break;
+            case 'left-bottom':
+            case 'bottom-left':
+                top += shrinkRect.height - height;
+                break;
+            case 'left-top':
+            case 'top-left':
+                break;
+            default:
+                unreachable(this.position);
+        }
+
         switch (this.position) {
             case 'left':
             case 'left-top':
             case 'left-bottom':
-                top += shrinkRect.height / 2 - height / 2;
                 shrinkRect.shrink(width + this.spacing, 'left');
                 break;
-
             case 'right':
             case 'right-top':
             case 'right-bottom':
-                left += shrinkRect.width - width;
-                top += shrinkRect.height / 2 - height / 2;
                 shrinkRect.shrink(width + this.spacing, 'right');
                 break;
-
             case 'top':
             case 'top-left':
             case 'top-right':
-                left += shrinkRect.width / 2 - width / 2;
                 shrinkRect.shrink(height + this.spacing, 'top');
                 break;
-
             case 'bottom':
             case 'bottom-left':
             case 'bottom-right':
-                left += shrinkRect.width / 2 - width / 2;
-                top += shrinkRect.height - height;
                 shrinkRect.shrink(height + this.spacing, 'bottom');
                 break;
-
             default:
                 unreachable(this.position);
         }
