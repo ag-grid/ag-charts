@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect } from '@jest/globals';
 
 import { AgChartLegendPosition, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
