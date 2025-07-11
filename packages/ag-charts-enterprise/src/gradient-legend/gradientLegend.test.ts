@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartLegendPosition, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -68,5 +68,52 @@ describe('GradientLegend', () => {
 
         chart = AgCharts.create(options);
         await compare();
+    });
+
+    describe('AG-7868 gradientLegend.position', () => {
+        async function testPosition(position: AgChartLegendPosition) {
+            const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+            options.gradientLegend!.position = position;
+            chart = AgCharts.create(options);
+            await compare();
+        }
+
+        test('top', async () => {
+            await testPosition('top');
+        });
+        test('top-right', async () => {
+            await testPosition('top-right');
+        });
+        test('top-left', async () => {
+            await testPosition('top-left');
+        });
+        test('bottom', async () => {
+            await testPosition('bottom');
+        });
+        test('bottom-right', async () => {
+            await testPosition('bottom-right');
+        });
+        test('bottom-left', async () => {
+            await testPosition('bottom-left');
+        });
+        test('right', async () => {
+            await testPosition('right');
+        });
+        test('right-top', async () => {
+            await testPosition('right-top');
+        });
+        test('right-bottom', async () => {
+            await testPosition('right-bottom');
+        });
+        test('left', async () => {
+            await testPosition('left');
+        });
+        test('left-top', async () => {
+            await testPosition('left-top');
+        });
+        test('left-bottom', async () => {
+            await testPosition('left-bottom');
+        });
     });
 });
