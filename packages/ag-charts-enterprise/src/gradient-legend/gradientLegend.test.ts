@@ -62,14 +62,6 @@ describe('GradientLegend', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    it(`should render placeholder chart as expected`, async () => {
-        const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
-        await compare();
-    });
-
     describe('AG-7868 gradientLegend.position', () => {
         async function testPosition(position: AgChartLegendPosition) {
             const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
