@@ -202,14 +202,6 @@ let options: AgCartesianChartOptions | AgPolarChartOptions = {
 // Create chart
 const chart = AgCharts.create(options as AgChartOptions);
 
-// Elements
-const tickingButton = document.getElementsByClassName('animation-data-updates__toggle-ticking')[0];
-const actionButtons = document.getElementsByClassName('animation-data-updates__action');
-
-if (tickingButton) {
-    tickingButton.textContent = 'Start Ticking Updates';
-}
-
 function changeSeriesBar() {
     variance = 20;
     offset = 0;
