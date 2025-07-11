@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import type {
     AgCartesianChartOptions,
     AgChartLegendListeners,
+    AgChartLegendPosition,
     AgChartOptions,
     AgLineSeriesOptions,
     AgMarkerShapeFnParams,
@@ -746,6 +747,68 @@ describe('Legend', () => {
             });
 
             await compare(chart);
+        });
+    });
+
+    describe('AG-7868 legend.position', () => {
+        const data = [
+            { quarter: 'Q1', coal: -666, manufacturedFuels: -14, primaryOil: -261, petroleum: -124, naturalGas: -1197 },
+            { quarter: 'Q2', coal: 208, manufacturedFuels: 71, primaryOil: 950, petroleum: -318, naturalGas: 906 },
+            { quarter: 'Q3', coal: 426, manufacturedFuels: 19, primaryOil: -845, petroleum: 166, naturalGas: 276 },
+            { quarter: 'Q4', coal: 158, manufacturedFuels: -29, primaryOil: -156, petroleum: -19, naturalGas: 672 },
+        ];
+        async function testPosition(position: AgChartLegendPosition) {
+            const options: AgChartOptions = {
+                data,
+                series: [
+                    { type: 'bar', xKey: 'quarter', yKey: 'naturalGas' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'coal' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'primaryOil' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'petroleum' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'manufacturedFuels' },
+                ],
+                legend: { position },
+            };
+            prepareTestOptions(options as any);
+            chart = deproxy(AgCharts.create(options));
+            await compare(chart);
+        }
+
+        test('top', async () => {
+            await testPosition('top');
+        });
+        test('top-right', async () => {
+            await testPosition('top-right');
+        });
+        test('top-left', async () => {
+            await testPosition('top-left');
+        });
+        test('bottom', async () => {
+            await testPosition('bottom');
+        });
+        test('bottom-right', async () => {
+            await testPosition('bottom-right');
+        });
+        test('bottom-left', async () => {
+            await testPosition('bottom-left');
+        });
+        test('right', async () => {
+            await testPosition('right');
+        });
+        test('right-top', async () => {
+            await testPosition('right-top');
+        });
+        test('right-bottom', async () => {
+            await testPosition('right-bottom');
+        });
+        test('left', async () => {
+            await testPosition('left');
+        });
+        test('left-top', async () => {
+            await testPosition('left-top');
+        });
+        test('left-bottom', async () => {
+            await testPosition('left-bottom');
         });
     });
 });
