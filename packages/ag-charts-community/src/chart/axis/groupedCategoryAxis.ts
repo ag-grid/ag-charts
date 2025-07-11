@@ -345,7 +345,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 visible: true,
                 range: this.scale.range,
                 tickId: idGenerator(text),
-                fill: tempText.fill as string,
+                color: tempText.fill as string,
                 fontFamily: tempText.fontFamily,
                 fontSize: tempText.fontSize,
                 fontStyle: tempText.fontStyle,

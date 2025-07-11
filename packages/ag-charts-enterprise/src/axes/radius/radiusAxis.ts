@@ -214,15 +214,12 @@ export abstract class RadiusAxis<
 
         // Apply label option values
         this.tickLabelGroupSelection.each((node, datum) => {
-            node.fill = datum.fill;
-            node.fontFamily = datum.fontFamily;
-            node.fontSize = datum.fontSize;
-            node.fontStyle = datum.fontStyle;
-            node.fontWeight = datum.fontWeight;
+            node.fill = datum.color;
             node.text = datum.text;
             node.textBaseline = datum.textBaseline;
             node.textAlign = datum.textAlign ?? 'center';
-
+            node.setFont(datum);
+            node.setBoxing(datum);
             node.setProperties(axisLabelPositionFn(node, datum));
         });
     }
