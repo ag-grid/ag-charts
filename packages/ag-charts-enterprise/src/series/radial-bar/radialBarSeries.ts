@@ -36,6 +36,7 @@ const {
     isGradientFill,
     applyShapeStyle,
     getShapeStyle,
+    updateLabelNode,
 } = _ModuleSupport;
 
 class RadialBarSeriesNodeEvent<
@@ -478,21 +479,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected updateLabels() {
-        const { label } = this.properties;
         this.labelSelection.update(this.nodeData).each((node, datum) => {
-            if (label.enabled && datum.label) {
-                node.x = datum.label.x;
-                node.y = datum.label.y;
-
-                node.text = datum.label.text;
-                node.fill = label.color;
-                node.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-                node.setFont(label);
-                node.setAlign(datum.label);
-                node.visible = true;
-            } else {
-                node.visible = false;
-            }
+            updateLabelNode(this, node, this.properties, this.properties.label, datum.label);
+            node.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
         });
     }
 
