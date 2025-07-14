@@ -60,12 +60,12 @@ export function createTicks(
     minCount?: number,
     maxCount?: number,
     visibleRange?: [number, number]
-): { ticks: number[]; count: number } {
-    if (start === stop) return { ticks: [start], count: 1 };
-    if (count < 2) return { ticks: [start, stop], count: 2 };
+): { ticks: number[]; count: number; firstTickIndex: number | undefined } {
+    if (start === stop) return { ticks: [start], count: 1, firstTickIndex: 0 };
+    if (count < 2) return { ticks: [start, stop], count: 2, firstTickIndex: 0 };
 
     const step = tickStep(start, stop, count, minCount, maxCount);
-    if (!Number.isFinite(step)) return { ticks: [], count: 0 };
+    if (!Number.isFinite(step)) return { ticks: [], count: 0, firstTickIndex: undefined };
 
     let d0 = start;
     let d1 = stop;
@@ -85,7 +85,12 @@ export function createTicks(
     }
 
     const { ticks } = range(d0, d1, step, visibleRange);
-    return { ticks, count: countTicks(start, stop, step) };
+    const firstTick = ticks.at(0);
+    return {
+        ticks,
+        count: countTicks(d0, d1, step),
+        firstTickIndex: firstTick == null ? undefined : Math.round((firstTick - d0) / step),
+    };
 }
 
 const minPrimaryTickRatio = Math.floor(((2 * durationWeek) / durationMonth) * 10) / 10;
@@ -218,11 +223,11 @@ export function range(
     end: number,
     step: number,
     visibleRange?: [number, number]
-): { ticks: number[]; count: number } {
+): { ticks: number[]; count: number; firstTickIndex: number | undefined } {
     if (!Number.isFinite(step) || step <= 0) {
-        return { ticks: [], count: 0 };
+        return { ticks: [], count: 0, firstTickIndex: undefined };
     } else if (start === end) {
-        return { ticks: [start], count: 1 };
+        return { ticks: [start], count: 1, firstTickIndex: 0 };
     }
 
     const f = 10 ** countFractionDigits(step);
@@ -254,7 +259,13 @@ export function range(
         }
     }
 
-    return { ticks, count: countTicks(d0, d1, step) };
+    const firstTick = ticks.at(0);
+
+    return {
+        ticks,
+        count: countTicks(d0, d1, step),
+        firstTickIndex: firstTick == null ? undefined : Math.round((firstTick - d0) / step),
+    };
 }
 
 export function isDenseInterval(count: number, availableRange: number) {
