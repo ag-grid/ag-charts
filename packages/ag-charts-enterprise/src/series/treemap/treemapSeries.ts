@@ -9,7 +9,7 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type InternalAgColorType, isNumberEqual } from 'ag-charts-core';
+import { type InternalAgColorType, type RequireOptional, isNumberEqual } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
@@ -26,6 +26,7 @@ const {
     Transformable,
     applyShapeStyle,
     getShapeStyle,
+    getLabelStyles,
 } = _ModuleSupport;
 
 class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
@@ -53,7 +54,6 @@ interface LabelLayout {
     fontStyle: FontStyle;
     fontFamily: string;
     fontWeight: FontWeight;
-    color: string;
     textAlign: TextAlign;
     verticalAlign: VerticalAlign;
     x: number;
@@ -623,12 +623,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                     (bbox.height - 2 * padding - labelHeight) * verticalAlignFactor;
 
                 if (label != null) {
-                    const {
-                        fontStyle = 'normal',
-                        fontFamily,
-                        fontWeight = 'normal',
-                        color = 'black',
-                    } = this.properties.tile.label;
+                    const { fontStyle = 'normal', fontFamily, fontWeight = 'normal' } = this.properties.tile.label;
                     node.label = {
                         text: label.text,
                         fontSize: label.fontSize,
@@ -636,7 +631,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                         fontStyle,
                         fontFamily,
                         fontWeight,
-                        color,
                         textAlign,
                         verticalAlign: 'middle',
                         x: labelX,
@@ -648,7 +642,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                         fontStyle = 'normal',
                         fontFamily,
                         fontWeight = 'normal',
-                        color = 'black',
                     } = this.properties.tile.secondaryLabel;
                     node.secondaryLabel = {
                         text: secondaryLabel.text,
@@ -657,7 +650,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                         fontStyle,
                         fontFamily,
                         fontWeight,
-                        color,
                         textAlign,
                         verticalAlign: 'middle',
                         x: labelX,
@@ -680,12 +672,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 });
                 const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
 
-                const {
-                    fontStyle = 'normal',
-                    fontFamily,
-                    fontWeight = 'normal',
-                    color = 'black',
-                } = this.properties.group.label;
+                const { fontStyle = 'normal', fontFamily, fontWeight = 'normal' } = this.properties.group.label;
 
                 node.label = {
                     text,
@@ -694,7 +681,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                     fontStyle,
                     fontFamily,
                     fontWeight,
-                    color,
                     textAlign,
                     verticalAlign: 'middle',
                     x: bbox.x + padding + innerWidth * textAlignFactor,
@@ -779,6 +765,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 text.visible = false;
                 return;
             }
+            const labelProps = tag === TextNodeTag.Primary ? tile.label : tile.secondaryLabel;
 
             let highlightedColor: string | undefined;
             if (highlighted) {
@@ -792,19 +779,30 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 }
             }
 
+            const params: RequireOptional<AgTreemapSeriesLabelFormatterParams> = {
+                childrenKey: this.properties.childrenKey,
+                colorKey: this.properties.colorKey,
+                colorName: this.properties.colorName ?? this.properties.colorKey,
+                depth: node.depth ?? NaN,
+                labelKey: this.properties.labelKey,
+                secondaryLabelKey: this.properties.secondaryLabelKey,
+                sizeKey: this.properties.sizeKey,
+                sizeName: this.properties.sizeName ?? this.properties.sizeKey,
+            };
+            const style = getLabelStyles(this, node, params, labelProps);
             text.text = label.text;
             text.fontSize = label.fontSize;
             text.lineHeight = label.lineHeight;
             text.fontStyle = label.fontStyle;
             text.fontFamily = label.fontFamily;
             text.fontWeight = label.fontWeight;
-            text.fill = highlightedColor ?? label.color;
+            text.fill = highlightedColor ?? style.color;
             text.fillOpacity = this.getHighlightStyle(highlighted, node.datumIndex)?.opacity ?? 1;
             text.textAlign = label.textAlign;
             text.textBaseline = label.verticalAlign;
             text.x = label.x;
             text.y = label.y;
-            text.visible = true;
+            text.setBoxing(style);
 
             text.zIndex = 1;
         };
