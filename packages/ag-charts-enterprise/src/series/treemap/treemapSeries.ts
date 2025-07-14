@@ -54,6 +54,7 @@ interface LabelLayout {
     fontStyle: FontStyle;
     fontFamily: string;
     fontWeight: FontWeight;
+    color: string;
     textAlign: TextAlign;
     verticalAlign: VerticalAlign;
     x: number;
@@ -623,7 +624,12 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                     (bbox.height - 2 * padding - labelHeight) * verticalAlignFactor;
 
                 if (label != null) {
-                    const { fontStyle = 'normal', fontFamily, fontWeight = 'normal' } = this.properties.tile.label;
+                    const {
+                        fontStyle = 'normal',
+                        fontFamily,
+                        fontWeight = 'normal',
+                        color = 'black',
+                    } = this.properties.tile.label;
                     node.label = {
                         text: label.text,
                         fontSize: label.fontSize,
@@ -631,6 +637,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                         fontStyle,
                         fontFamily,
                         fontWeight,
+                        color,
                         textAlign,
                         verticalAlign: 'middle',
                         x: labelX,
@@ -642,6 +649,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                         fontStyle = 'normal',
                         fontFamily,
                         fontWeight = 'normal',
+                        color = 'black',
                     } = this.properties.tile.secondaryLabel;
                     node.secondaryLabel = {
                         text: secondaryLabel.text,
@@ -650,6 +658,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                         fontStyle,
                         fontFamily,
                         fontWeight,
+                        color,
                         textAlign,
                         verticalAlign: 'middle',
                         x: labelX,
@@ -672,7 +681,12 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 });
                 const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
 
-                const { fontStyle = 'normal', fontFamily, fontWeight = 'normal' } = this.properties.group.label;
+                const {
+                    fontStyle = 'normal',
+                    fontFamily,
+                    fontWeight = 'normal',
+                    color = 'black',
+                } = this.properties.group.label;
 
                 node.label = {
                     text,
@@ -681,6 +695,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                     fontStyle,
                     fontFamily,
                     fontWeight,
+                    color,
                     textAlign,
                     verticalAlign: 'middle',
                     x: bbox.x + padding + innerWidth * textAlignFactor,
@@ -796,13 +811,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             text.fontStyle = label.fontStyle;
             text.fontFamily = label.fontFamily;
             text.fontWeight = label.fontWeight;
-            text.fill = highlightedColor ?? style.color;
+            text.fill = highlightedColor ?? label.color;
             text.fillOpacity = this.getHighlightStyle(highlighted, node.datumIndex)?.opacity ?? 1;
             text.textAlign = label.textAlign;
             text.textBaseline = label.verticalAlign;
             text.x = label.x;
             text.y = label.y;
             text.setBoxing(style);
+            text.visible = true;
 
             text.zIndex = 1;
         };
