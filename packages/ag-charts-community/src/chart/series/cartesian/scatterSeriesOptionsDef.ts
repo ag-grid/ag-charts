@@ -3,9 +3,11 @@ import {
     boolean,
     constant,
     multiSeriesHighlightOptionsDef,
+    number,
     required,
     shapeHighlightOptionsDef,
     string,
+    undocumented,
     union,
 } from 'ag-charts-core';
 import type { AgScatterSeriesOptions, AgScatterSeriesThemeableOptions } from 'ag-charts-types';
@@ -48,3 +50,6 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     errorBar: errorBarOptionsDefs,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
+
+// @ts-expect-error undocumented option
+scatterSeriesOptionsDef.maxVisibleItems = undocumented(number);
