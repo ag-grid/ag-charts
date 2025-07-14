@@ -113,15 +113,15 @@ export const unitEncoding: Record<AgTimeIntervalUnit, IntervalEncoder> = {
         decode(encoded: number, utc: boolean) {
             // Note: assigning years through the constructor
             // will break for years 0 - 99 AD (will turn 1900's).
-            const d = new Date();
+            // const d = new Date();
+            let d: Date;
             if (utc) {
+                d = new Date();
                 d.setUTCFullYear(encoded);
                 d.setUTCMonth(0, 1);
                 d.setUTCHours(0, 0, 0, 0);
             } else {
-                d.setFullYear(encoded);
-                d.setMonth(0, 1);
-                d.setHours(0, 0, 0, 0);
+                d = new Date(encoded, 0, 1, 0, 0, 0, 0);
             }
             return d;
         },

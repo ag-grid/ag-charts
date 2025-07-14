@@ -109,6 +109,32 @@ interface TickLayout<D, TickLayoutMeta> {
     layout?: TickLayoutMeta;
 }
 
+interface TickLayoutCache<D, TickLayoutMeta> {
+    domain: D[];
+    rangeExtent: number;
+    nice: boolean;
+    gridLength: number;
+    visibleRange: [number, number];
+    initialPrimaryTickCount: AxisPrimaryTickCount | undefined;
+    tickLayout: TickLayout<D, TickLayoutMeta>;
+}
+
+function tickLayoutCacheValid<D, TickLayoutMeta>(
+    a: TickLayoutCache<D, TickLayoutMeta>,
+    b: Omit<TickLayoutCache<D, TickLayoutMeta>, 'tickLayout'>
+): boolean {
+    return (
+        a.domain === b.domain &&
+        a.rangeExtent === b.rangeExtent &&
+        a.nice === b.nice &&
+        a.gridLength === b.gridLength &&
+        a.visibleRange[0] === b.visibleRange[0] &&
+        a.visibleRange[1] === b.visibleRange[1] &&
+        a.initialPrimaryTickCount?.unzoomed === b.initialPrimaryTickCount?.unzoomed &&
+        a.initialPrimaryTickCount?.zoomed === b.initialPrimaryTickCount?.zoomed
+    );
+}
+
 /**
  * A general purpose linear axis with no notion of orientation.
  * The axis is always rendered vertically, with horizontal labels positioned to the left
@@ -396,7 +422,6 @@ export abstract class Axis<
      */
     update() {
         this.formatterBoundSeries.clear();
-        this.unzoomedTickLayout = undefined;
 
         this.updatePosition();
         this.updateSelections();
@@ -445,6 +470,9 @@ export abstract class Axis<
     }
 
     processData() {
+        // Invalidate layout cache
+        this.invalidateLayoutCache();
+
         const { includeInvisibleDomains, boundSeries, direction } = this;
         const visibleSeries = includeInvisibleDomains ? boundSeries : boundSeries.filter((s) => s.isEnabled());
         const domains = visibleSeries.map((series) => series.getDomain(direction) as D[]);
@@ -475,35 +503,32 @@ export abstract class Axis<
 
     protected chartLayout?: ChartLayout;
 
-    private unzoomedInputDomain: D[] | undefined = undefined;
-    private unzoomedInputRangeExtent: number = NaN;
-    private unzoomedInputGridLength: number = NaN;
-    private unzoomedInputInitialPrimaryTickCount: AxisPrimaryTickCount | undefined = undefined;
-    private unzoomedTickLayout: TickLayout<D, TickLayoutMeta> | undefined;
+    private unzoomedTickLayoutCache: TickLayoutCache<D, TickLayoutMeta> | undefined;
     calculateDomain(initialPrimaryTickCount?: AxisPrimaryTickCount) {
         const {
-            nice,
             dataDomain: { domain },
             range,
+            nice,
             scale,
             gridLength,
-            unzoomedInputDomain,
-            unzoomedInputRangeExtent,
-            unzoomedInputGridLength,
-            unzoomedInputInitialPrimaryTickCount,
         } = this;
-        let { unzoomedTickLayout } = this;
         const rangeExtent = findRangeExtent(range);
+        const visibleRange = [0, 1] as [number, number];
 
         this.updateScale();
 
+        const { unzoomedTickLayoutCache } = this;
+        let unzoomedTickLayout: TickLayout<D, TickLayoutMeta>;
         if (
-            unzoomedTickLayout == null ||
-            unzoomedInputDomain !== domain ||
-            unzoomedInputRangeExtent !== rangeExtent ||
-            unzoomedInputGridLength !== gridLength ||
-            unzoomedInputInitialPrimaryTickCount?.unzoomed !== initialPrimaryTickCount?.unzoomed ||
-            unzoomedInputInitialPrimaryTickCount?.zoomed !== initialPrimaryTickCount?.zoomed
+            unzoomedTickLayoutCache == null ||
+            !tickLayoutCacheValid(unzoomedTickLayoutCache, {
+                domain,
+                rangeExtent,
+                nice,
+                gridLength,
+                visibleRange,
+                initialPrimaryTickCount,
+            })
         ) {
             const scaleRange = scale.range;
             this.setScaleRange([0, 1]);
@@ -513,11 +538,19 @@ export abstract class Axis<
 
             scale.range = scaleRange;
 
-            this.unzoomedInputDomain = domain;
-            this.unzoomedInputRangeExtent = rangeExtent;
-            this.unzoomedInputGridLength = gridLength;
-            this.unzoomedTickLayout = unzoomedTickLayout;
-            this.unzoomedInputInitialPrimaryTickCount = initialPrimaryTickCount;
+            this.unzoomedTickLayoutCache = {
+                domain,
+                rangeExtent,
+                nice,
+                gridLength,
+                visibleRange,
+                initialPrimaryTickCount,
+                tickLayout: unzoomedTickLayout,
+            };
+
+            this.unzoomedTickLayoutCache = unzoomedTickLayoutCache;
+        } else {
+            unzoomedTickLayout = unzoomedTickLayoutCache.tickLayout;
         }
 
         this.updateScale();
@@ -527,8 +560,8 @@ export abstract class Axis<
         return { unzoomedTickLayout, domain: scale.domain };
     }
 
-    protected tickLayout: TickLayoutMeta | undefined;
-
+    private tickLayoutCache: TickLayoutCache<D, TickLayoutMeta> | undefined;
+    protected tickLayout: TickLayoutMeta | undefined = undefined;
     calculateLayout(
         initialPrimaryTickCount?: AxisPrimaryTickCount,
         chartLayout?: ChartLayout
@@ -546,8 +579,35 @@ export abstract class Axis<
         if (unzoomed) {
             tickLayout = unzoomedTickLayout;
         } else {
+            const { range, gridLength } = this;
+            const rangeExtent = findRangeExtent(range);
             const niceMode = nice ? NiceMode.TicksOnly : NiceMode.Off;
-            tickLayout = this.calculateTickLayout(domain, niceMode, visibleRange, initialPrimaryTickCount);
+            const { tickLayoutCache } = this;
+            if (
+                tickLayoutCache == null ||
+                !tickLayoutCacheValid(tickLayoutCache, {
+                    domain,
+                    rangeExtent,
+                    nice,
+                    gridLength,
+                    visibleRange,
+                    initialPrimaryTickCount,
+                })
+            ) {
+                tickLayout = this.calculateTickLayout(domain, niceMode, visibleRange, initialPrimaryTickCount);
+
+                this.tickLayoutCache = {
+                    domain,
+                    rangeExtent,
+                    nice,
+                    gridLength,
+                    visibleRange,
+                    initialPrimaryTickCount,
+                    tickLayout,
+                };
+            } else {
+                tickLayout = tickLayoutCache.tickLayout;
+            }
         }
 
         const { rawTickCount: zoomedTickCount = 0, fractionDigits, bbox } = tickLayout;
@@ -568,6 +628,12 @@ export abstract class Axis<
         this.layoutCrossLines();
 
         return { primaryTickCount, bbox };
+    }
+
+    private invalidateLayoutCache() {
+        this.unzoomedTickLayoutCache = undefined;
+        this.tickLayoutCache = undefined;
+        this.tickLayout = undefined;
     }
 
     abstract layoutCrossLines(): void;
