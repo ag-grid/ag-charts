@@ -6,6 +6,16 @@ import { aggregationDomain, aggregationXRatioForXValue } from '../aggregation';
 const SIZE_QUANTIZATION = 3;
 const FILTER_DATUM_THRESHOLD = 5;
 
+export interface BubbleAggregation {
+    xValues: any[];
+    yValues: any[];
+    xd0: number;
+    xd1: number;
+    yd0: number;
+    yd1: number;
+    filters: BubbleAggregationFilter[];
+}
+
 export interface BubbleAggregationFilter {
     sizeRatio: number;
     node: BubbleAggregationNode | null;
@@ -33,7 +43,6 @@ interface ChildBucket {
 function getPrimaryDatumIndex(
     xValues: any[],
     yValues: any[],
-    _sizeValues: number[] | undefined,
     xd0: number,
     yd0: number,
     xd1: number,
@@ -64,10 +73,38 @@ function getPrimaryDatumIndex(
     return currentIndex;
 }
 
+function countVisibleItems(
+    xValues: any[],
+    yValues: any[],
+    xd0: number,
+    yd0: number,
+    xd1: number,
+    yd1: number,
+    indices: number[],
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number
+) {
+    let count = 0;
+    for (const datumIndex of indices) {
+        const xValue = xValues[datumIndex];
+        const yValue = yValues[datumIndex];
+        if (xValue == null || yValue == null) continue;
+        const xRatio = aggregationXRatioForXValue(xValue, xd0, xd1);
+        const yRatio = aggregationXRatioForXValue(yValue, yd0, yd1);
+
+        if (xRatio >= x0 && xRatio <= x1 && yRatio >= y0 && yRatio <= y1) {
+            count += 1;
+        }
+    }
+
+    return count;
+}
+
 function aggregateQuad(
     xValues: any[],
     yValues: any[],
-    sizeValues: number[] | undefined,
     xd0: number,
     yd0: number,
     xd1: number,
@@ -81,20 +118,7 @@ function aggregateQuad(
     if (indices.length < FILTER_DATUM_THRESHOLD) {
         return;
     } else if (x0 === x1 && y0 === y1) {
-        const primaryDatumIndex = getPrimaryDatumIndex(
-            xValues,
-            yValues,
-            sizeValues,
-            xd0,
-            yd0,
-            xd1,
-            yd1,
-            indices,
-            x0,
-            y0,
-            x1,
-            y1
-        );
+        const primaryDatumIndex = getPrimaryDatumIndex(xValues, yValues, xd0, yd0, xd1, yd1, indices, x0, y0, x1, y1);
         return { scale: 0, x0, y0, x1, y1, indices, primaryDatumIndex, children: null };
     }
 
@@ -126,7 +150,7 @@ function aggregateQuad(
     let children: BubbleAggregationNode[] | null = [];
     for (const childBucket of childBuckets) {
         const { indices: childIndices, x0: cx0, x1: cx1, y0: cy0, y1: cy1 } = childBucket;
-        const child = aggregateQuad(xValues, yValues, sizeValues, xd0, yd0, xd1, yd1, childIndices, cx0, cy0, cx1, cy1);
+        const child = aggregateQuad(xValues, yValues, xd0, yd0, xd1, yd1, childIndices, cx0, cy0, cx1, cy1);
         if (child != null) children.push(child);
     }
 
@@ -138,20 +162,7 @@ function aggregateQuad(
     }
 
     const scale = Math.hypot(x1 - x0, y1 - y0);
-    const primaryDatumIndex = getPrimaryDatumIndex(
-        xValues,
-        yValues,
-        sizeValues,
-        xd0,
-        yd0,
-        xd1,
-        yd1,
-        indices,
-        x0,
-        y0,
-        x1,
-        y1
-    );
+    const primaryDatumIndex = getPrimaryDatumIndex(xValues, yValues, xd0, yd0, xd1, yd1, indices, x0, y0, x1, y1);
     return { scale, x0, y0, x1, y1, indices, primaryDatumIndex, children };
 }
 
@@ -164,7 +175,7 @@ export function aggregateBubbleData(
     xDomain: any[],
     yDomain: any[],
     sizeDomain: number[]
-): BubbleAggregationFilter[] | undefined {
+): BubbleAggregation | undefined {
     const [xd0, xd1] = aggregationDomain(xScale, xDomain);
     const [yd0, yd1] = aggregationDomain(yScale, yDomain);
     const [sd0, sd1] = sizeDomain;
@@ -183,7 +194,7 @@ export function aggregateBubbleData(
 
         for (let i = 0; i < sizeIndices.length; i += 1) {
             const indices = sizeIndices[i];
-            const node = aggregateQuad(xValues, yValues, sizeValues, xd0, yd0, xd1, yd1, indices, 0, 0, 1, 1);
+            const node = aggregateQuad(xValues, yValues, xd0, yd0, xd1, yd1, indices, 0, 0, 1, 1);
 
             if (node != null) {
                 const sizeRatio = i / SIZE_QUANTIZATION;
@@ -192,23 +203,23 @@ export function aggregateBubbleData(
         }
     } else {
         const indices = xValues.map((_, i) => i);
-        const node = aggregateQuad(xValues, yValues, undefined, xd0, yd0, xd1, yd1, indices, 0, 0, 1, 1);
+        const node = aggregateQuad(xValues, yValues, xd0, yd0, xd1, yd1, indices, 0, 0, 1, 1);
 
         if (node != null) {
             filters.push({ sizeRatio: 0, node });
         }
     }
 
-    return filters.length > 0 ? filters : undefined;
+    return filters.length > 0 ? { xValues, yValues, xd0, xd1, yd0, yd1, filters } : undefined;
 }
 
-export interface AggregationOptions {
-    minSize: number;
-    maxSize: number;
+export interface BubbleAggregationOptions {
     xRange: number;
     yRange: number;
     xVisibleRange: [number, number];
     yVisibleRange: [number, number];
+    minSize: number;
+    maxSize: number;
 }
 
 export interface GroupedAggregation {
@@ -219,15 +230,24 @@ export interface GroupedAggregation {
 
 function computeBubbleAggregationCountIndices(
     dilation: number,
-    dataAggregationFilters: BubbleAggregationFilter[],
-    { xVisibleRange: [xvr0, xvr1], yVisibleRange: [yvr0, yvr1], xRange, yRange, minSize, maxSize }: AggregationOptions,
-    groupedAggregation?: GroupedAggregation[],
-    singleDatumIndices?: number[]
+    dataAggregation: BubbleAggregation,
+    options: BubbleAggregationOptions,
+    counter: { count: number } | undefined,
+    groupedAggregation: GroupedAggregation[] | undefined,
+    singleDatumIndices: number[] | undefined
 ) {
+    const {
+        xRange,
+        yRange,
+        xVisibleRange: [xvr0, xvr1],
+        yVisibleRange: [yvr0, yvr1],
+        minSize,
+        maxSize,
+    } = options;
+    const { xValues, yValues, xd0, xd1, yd0, yd1 } = dataAggregation;
     const baseScalingFactor = 1 / Math.min(xRange / (xvr1 - xvr0), yRange / (yvr1 - yvr0));
 
-    let count = 0;
-    for (const { sizeRatio, node } of dataAggregationFilters) {
+    for (const { sizeRatio, node } of dataAggregation.filters) {
         const radius = 0.5 * (minSize + sizeRatio * (maxSize - minSize));
         const baseMinScale = radius * baseScalingFactor;
         const minScale = dilation * baseMinScale;
@@ -245,46 +265,53 @@ function computeBubbleAggregationCountIndices(
             }
 
             if (item.scale <= minScale) {
-                count += 1;
+                if (counter != null) {
+                    counter.count += 1;
+                }
                 groupedAggregation?.push({
                     datumIndex: item.primaryDatumIndex,
                     count: item.indices.length,
                     dilation: clamp(1, item.scale / baseMinScale, dilation),
                 });
             } else if (item.children == null) {
-                count += item.indices.length;
-                singleDatumIndices?.push(...item.indices);
+                const { indices } = item;
+                if (counter != null) {
+                    const fullyVisible = item.x0 >= xvr0 && item.x1 <= xvr1 && item.y0 >= yvr0 && item.y1 <= yvr1;
+                    const itemCount = fullyVisible
+                        ? indices.length
+                        : countVisibleItems(xValues, yValues, xd0, yd0, xd1, yd1, indices, xvr0, yvr0, xvr1, yvr1);
+                    counter.count += itemCount;
+                }
+                singleDatumIndices?.push(...indices);
             } else {
                 queue.push(...item.children);
             }
         }
     }
-
-    groupedAggregation?.sort((a, b) => a.datumIndex - b.datumIndex);
-    singleDatumIndices?.sort((a, b) => a - b);
-
-    return count;
 }
 
 export function computeBubbleAggregationCount(
     dilation: number,
-    dataAggregationFilters: BubbleAggregationFilter[],
-    options: AggregationOptions
+    dataAggregation: BubbleAggregation,
+    options: BubbleAggregationOptions
 ) {
-    return computeBubbleAggregationCountIndices(dilation, dataAggregationFilters, options);
+    const counter = { count: 0 };
+    computeBubbleAggregationCountIndices(dilation, dataAggregation, options, counter, undefined, undefined);
+    return counter.count;
 }
 
 export function computeBubbleAggregationData(
     dilation: number,
-    dataAggregationFilters: BubbleAggregationFilter[],
-    options: AggregationOptions
+    dataAggregation: BubbleAggregation,
+    options: BubbleAggregationOptions
 ) {
     const groupedAggregation: GroupedAggregation[] = [];
     const singleDatumIndices: number[] = [];
     computeBubbleAggregationCountIndices(
         dilation,
-        dataAggregationFilters,
+        dataAggregation,
         options,
+        undefined,
         groupedAggregation,
         singleDatumIndices
     );

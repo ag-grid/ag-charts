@@ -17,7 +17,6 @@ const options: AgCartesianChartOptions = {
         autoScaling: {
             enabled: false,
         },
-        minVisibleItems: 0,
     },
     series: [
         {
