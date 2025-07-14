@@ -20,6 +20,7 @@ import {
     greaterThan,
     highlightOptionsDef,
     htmlElement,
+    labelBoxOptionsDef,
     lessThan,
     lineDashOptionsDef,
     number,
@@ -60,11 +61,25 @@ import {
     type AgTooltipRendererResult,
     type AgZoomButton,
     type FormatterPropertyType,
-    type LabelBoxOptions,
     type ToolbarButton,
 } from 'ag-charts-types';
 
 import { numberFormatValidator } from './axesOptionsDefs';
+
+const legendPositionUnion = union(
+    'top',
+    'top-right',
+    'top-left',
+    'bottom',
+    'bottom-right',
+    'bottom-left',
+    'right',
+    'right-top',
+    'right-bottom',
+    'left',
+    'left-top',
+    'left-bottom'
+);
 
 const shapeValidator = or(
     union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle'),
@@ -261,7 +276,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     legend: {
         enabled: boolean,
-        position: union('top', 'right', 'bottom', 'left'),
+        position: legendPositionUnion,
         orientation: union('horizontal', 'vertical'),
         maxWidth: positiveNumber,
         maxHeight: positiveNumber,
@@ -322,7 +337,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     gradientLegend: {
         enabled: boolean,
-        position: union('top', 'right', 'bottom', 'left'),
+        position: legendPositionUnion,
         spacing: positiveNumber,
         reverseOrder: boolean,
         gradient: {
@@ -553,13 +568,6 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-};
-
-export const labelBoxOptionsDef: OptionsDefs<LabelBoxOptions> = {
-    border: { ...strokeOptionsDef },
-    cornerRadius: number,
-    padding: number,
-    ...fillOptionsDef,
 };
 
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {

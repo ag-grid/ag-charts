@@ -20,9 +20,17 @@ export enum FONT_SIZE_RATIO {
 
 export enum CARTESIAN_POSITION {
     TOP = 'top',
+    TOP_RIGHT = 'top-right',
+    TOP_LEFT = 'top-left',
     RIGHT = 'right',
+    RIGHT_TOP = 'right-top',
+    RIGHT_BOTTOM = 'right-bottom',
     BOTTOM = 'bottom',
+    BOTTOM_RIGHT = 'bottom-right',
+    BOTTOM_LEFT = 'bottom-left',
     LEFT = 'left',
+    LEFT_TOP = 'left-top',
+    LEFT_BOTTOM = 'left-bottom',
 }
 
 export enum CARTESIAN_AXIS_TYPE {

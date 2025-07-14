@@ -681,8 +681,16 @@ export class Legend extends BaseProperties {
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
         const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.item;
 
+        const vertPositions: readonly AgChartLegendPosition[] = [
+            'left',
+            'left-top',
+            'left-bottom',
+            'right',
+            'right-top',
+            'right-bottom',
+        ] as const;
         const orientation = this.getOrientation();
-        const paginationVertical = ['left', 'right'].includes(this.position);
+        const paginationVertical = vertPositions.includes(this.position);
 
         let paginationBBox: BBox = this.pagination.getBBox();
         let lastPassPaginationBBox: BBox = new BBox(0, 0, 0, 0);
@@ -1183,40 +1191,87 @@ export class Legend extends BaseProperties {
         const { oldPages } = this.calcLayout(legendWidth, legendHeight);
         const legendBBox = this.computePagedBBox();
 
-        const calculateTranslationPerpendicularDimension = () => {
-            switch (this.position) {
-                case 'top':
-                case 'left':
-                    return 0;
-                case 'bottom':
-                    return height - legendBBox.height;
-                case 'right':
-                default:
-                    return width - legendBBox.width;
-            }
-        };
-
         if (this.visible) {
+            function unreachable(_a: never): never {
+                return undefined as never;
+            }
+
             const legendSpacing = this.spacing;
 
-            let translationX;
-            let translationY;
-
+            let translationX: number;
+            let translationY: number;
             switch (this.position) {
                 case 'top':
+                    translationX = (width - legendBBox.width) / 2;
+                    translationY = 0;
+                    break;
                 case 'bottom':
                     translationX = (width - legendBBox.width) / 2;
-                    translationY = calculateTranslationPerpendicularDimension();
-                    layoutBox.shrink(legendBBox.height + legendSpacing, this.position);
+                    translationY = height - legendBBox.height;
                     break;
-
-                case 'left':
                 case 'right':
-                default:
-                    translationX = calculateTranslationPerpendicularDimension();
+                    translationX = width - legendBBox.width;
                     translationY = (height - legendBBox.height) / 2;
-                    layoutBox.shrink(legendBBox.width + legendSpacing, this.position);
+                    break;
+                case 'left':
+                    translationX = 0;
+                    translationY = (height - legendBBox.height) / 2;
+                    break;
+                case 'top-right':
+                case 'right-top':
+                    translationX = width - legendBBox.width;
+                    translationY = 0;
+                    break;
+                case 'top-left':
+                case 'left-top':
+                    translationX = 0;
+                    translationY = 0;
+                    break;
+                case 'bottom-right':
+                case 'right-bottom':
+                    translationX = width - legendBBox.width;
+                    translationY = height - legendBBox.height;
+                    break;
+                case 'bottom-left':
+                case 'left-bottom':
+                    translationX = 0;
+                    translationY = height - legendBBox.height;
+                    break;
+                default:
+                    unreachable(this.position);
             }
+
+            let shrinkAmount: number;
+            let shrinkDirection: NonNullable<Parameters<(typeof layoutBox)['shrink']>[1]>;
+            switch (this.position) {
+                case 'top':
+                case 'top-right':
+                case 'top-left':
+                    shrinkAmount = legendBBox.height + legendSpacing;
+                    shrinkDirection = 'top';
+                    break;
+                case 'bottom':
+                case 'bottom-right':
+                case 'bottom-left':
+                    shrinkAmount = legendBBox.height + legendSpacing;
+                    shrinkDirection = 'bottom';
+                    break;
+                case 'left':
+                case 'left-top':
+                case 'left-bottom':
+                    shrinkAmount = legendBBox.width + legendSpacing;
+                    shrinkDirection = 'left';
+                    break;
+                case 'right':
+                case 'right-top':
+                case 'right-bottom':
+                    shrinkAmount = legendBBox.width + legendSpacing;
+                    shrinkDirection = 'right';
+                    break;
+                default:
+                    unreachable(this.position);
+            }
+            layoutBox.shrink(shrinkAmount, shrinkDirection);
 
             // Round off for pixel grid alignment to work properly.
             this.group.translationX = Math.floor(x + translationX - legendBBox.x);
@@ -1265,9 +1320,16 @@ export class Legend extends BaseProperties {
 
         let legendWidth, legendHeight;
 
+        function unreachable(_a: never): never {
+            return undefined as never;
+        }
         switch (this.position) {
             case 'top':
-            case 'bottom': {
+            case 'top-left':
+            case 'top-right':
+            case 'bottom':
+            case 'bottom-left':
+            case 'bottom-right': {
                 // A horizontal legend should take maximum between 20 and 50 percent of the chart height if height is larger than width
                 // and maximum 20 percent of the chart height if height is smaller than width.
                 const heightCoefficient =
@@ -1282,15 +1344,21 @@ export class Legend extends BaseProperties {
             }
 
             case 'left':
+            case 'left-top':
+            case 'left-bottom':
             case 'right':
-            default: {
+            case 'right-top':
+            case 'right-bottom': {
                 // A vertical legend should take maximum between 25 and 50 percent of the chart width if width is larger than height
                 // and maximum 25 percent of the chart width if width is smaller than height.
                 const widthCoefficient =
                     aspectRatio > 1 ? Math.min(maxCoefficient, minWidthCoefficient * aspectRatio) : minWidthCoefficient;
                 legendWidth = this.maxWidth ? Math.min(this.maxWidth, width) : Math.round(width * widthCoefficient);
                 legendHeight = this.maxHeight ? Math.min(this.maxHeight, height) : height;
+                break;
             }
+            default:
+                unreachable(this.position);
         }
 
         return [legendWidth, legendHeight];

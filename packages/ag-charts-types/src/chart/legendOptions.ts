@@ -13,7 +13,19 @@ import type {
     PixelSize,
 } from './types';
 
-export type AgChartLegendPosition = 'top' | 'right' | 'bottom' | 'left';
+export type AgChartLegendPosition =
+    | 'top'
+    | 'top-right'
+    | 'top-left'
+    | 'bottom'
+    | 'bottom-right'
+    | 'bottom-left'
+    | 'right'
+    | 'right-top'
+    | 'right-bottom'
+    | 'left'
+    | 'left-top'
+    | 'left-bottom';
 export type AgChartLegendOrientation = 'horizontal' | 'vertical';
 
 export interface AgChartLegendMarkerOptions {

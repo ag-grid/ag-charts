@@ -375,15 +375,15 @@ export class ChartTheme {
                 },
                 position: CARTESIAN_POSITION.BOTTOM,
                 orientation: {
-                    $if: [
-                        {
-                            $or: [
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT] },
-                            ],
-                        },
-                        'vertical',
+                    $switch: [
+                        { $path: './position' },
                         'horizontal',
+                        [CARTESIAN_POSITION.LEFT, 'vertical'],
+                        [CARTESIAN_POSITION.LEFT_TOP, 'vertical'],
+                        [CARTESIAN_POSITION.LEFT_BOTTOM, 'vertical'],
+                        [CARTESIAN_POSITION.RIGHT, 'vertical'],
+                        [CARTESIAN_POSITION.RIGHT_TOP, 'vertical'],
+                        [CARTESIAN_POSITION.RIGHT_BOTTOM, 'vertical'],
                     ],
                 },
                 border: {

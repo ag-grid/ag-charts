@@ -17,6 +17,7 @@ import { BaseProperties } from '../../util/properties';
 import { Property } from '../../util/properties';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { FormatManager } from '../formatter/formatManager';
+import { LabelBorder } from '../label';
 
 type FormatterCacheKey = `${DateFormatterStyle}:${'year' | 'month' | 'day' | 'none'}`;
 
@@ -30,6 +31,18 @@ interface FormatterCache {
 export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     @Property
     enabled = true;
+
+    @Property
+    border = new LabelBorder();
+
+    @Property
+    cornerRadius?: number;
+
+    @Property
+    fill?: string;
+
+    @Property
+    fillOpacity?: number;
 
     @Property
     fontStyle?: FontStyle;
@@ -108,6 +121,9 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     getSideFlag(): ChartAxisLabelFlipFlag {
         return this.mirrored ? 1 : -1;
     }
+
+    @Property
+    padding?: number;
 
     /**
      * Labels are rendered perpendicular to the axis line by default.

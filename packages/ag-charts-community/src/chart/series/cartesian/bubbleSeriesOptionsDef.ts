@@ -9,6 +9,7 @@ import {
     required,
     shapeHighlightOptionsDef,
     string,
+    undocumented,
     union,
 } from 'ag-charts-core';
 import type { AgBubbleSeriesOptions, AgBubbleSeriesThemeableOptions } from 'ag-charts-types';
@@ -51,3 +52,6 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     labelName: string,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
+
+// @ts-expect-error undocumented option
+bubbleSeriesOptionsDef.maxVisibleItems = undocumented(number);

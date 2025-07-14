@@ -361,17 +361,11 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 node.x = datum.label.x;
                 node.y = datum.label.y;
 
-                node.fill = label.color;
-
-                node.fontFamily = label.fontFamily;
-                node.fontSize = label.fontSize;
-                node.fontStyle = label.fontStyle;
-                node.fontWeight = label.fontWeight;
                 node.text = datum.label.text;
-                node.textAlign = datum.label.textAlign;
-                node.textBaseline = datum.label.textBaseline;
+                node.fill = label.color;
                 node.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-
+                node.setFont(label);
+                node.setAlign(datum.label);
                 node.visible = true;
             } else {
                 node.visible = false;

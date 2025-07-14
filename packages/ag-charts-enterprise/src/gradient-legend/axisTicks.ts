@@ -54,7 +54,7 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
     ) {}
 
     private get horizontal(): boolean {
-        return this.position === 'top' || this.position === 'bottom';
+        return this.position.startsWith('top') || this.position.startsWith('bottom');
     }
 
     attachAxis(axisNode: _ModuleSupport.Group) {
@@ -64,33 +64,46 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
     calculateLayout(): _ModuleSupport.BBox | undefined {
         const { position, translationX, translationY, horizontal, label } = this;
 
+        function unreachable(_a: never): never {
+            return undefined as never;
+        }
         let textBaseline: CanvasTextBaseline;
         let textAlign: CanvasTextAlign;
         switch (position) {
             case 'top':
+            case 'top-right':
+            case 'top-left':
                 textBaseline = 'bottom';
                 textAlign = 'center';
                 label.mirrored = false;
                 label.parallel = true;
                 break;
             case 'bottom':
+            case 'bottom-right':
+            case 'bottom-left':
                 textBaseline = 'top';
                 textAlign = 'center';
                 label.mirrored = false;
                 label.parallel = true;
                 break;
             case 'right':
+            case 'right-top':
+            case 'right-bottom':
                 textBaseline = 'middle';
                 textAlign = 'left';
                 label.mirrored = true;
                 label.parallel = false;
                 break;
             case 'left':
+            case 'left-top':
+            case 'left-bottom':
                 textBaseline = 'middle';
                 textAlign = 'right';
                 label.mirrored = true;
                 label.parallel = false;
                 break;
+            default:
+                unreachable(position);
         }
 
         const boxes: _ModuleSupport.BBox[] = [];

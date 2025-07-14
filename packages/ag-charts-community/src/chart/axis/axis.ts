@@ -1,4 +1,4 @@
-import { type AnyFn, CleanupRegistry, WeakCache, createId } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, type RequireOptional, WeakCache, createId } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -7,10 +7,7 @@ import type {
     AnyFormatterSource,
     CssColor,
     DateFormatterStyle,
-    FontFamily,
     FontSize,
-    FontStyle,
-    FontWeight,
     FormatterParams,
 } from 'ag-charts-types';
 
@@ -29,7 +26,7 @@ import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group'
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import { Selection } from '../../scene/selection';
-import { TransformableText } from '../../scene/shape/text';
+import { type TextBoxingProperties, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { callWithContext } from '../../util/callbackCache';
 import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
@@ -54,16 +51,12 @@ import type { AnyTimeInterval } from './axisTickGenerator';
 import { AxisTitle } from './axisTitle';
 import { NiceMode } from './axisUtil';
 
-export interface LabelNodeDatum {
+export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties {
+    color?: CssColor;
     tickId: string;
-    fill?: CssColor;
-    fontFamily?: FontFamily;
     fontSize: FontSize;
-    fontStyle?: FontStyle;
-    fontWeight?: FontWeight;
     rotation: number;
     text: string;
-    textAlign?: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     visible: boolean;
     x: number;
@@ -415,13 +408,18 @@ export abstract class Axis<
         label: AxisLabel = this.label
     ) {
         const defaultStyle = {
+            border: label.border,
             color: label.color,
-            spacing: label.spacing,
+            cornerRadius: label.cornerRadius,
+            fill: label.fill,
+            fillOpacity: label.fillOpacity,
             fontFamily: label.fontFamily,
             fontSize: label.fontSize,
             fontStyle: label.fontStyle,
             fontWeight: label.fontWeight,
-        };
+            padding: label.padding,
+            spacing: label.spacing,
+        } satisfies RequireOptional<AgBaseAxisLabelStyleOptions>;
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
             stylerOutput = this.cachedCallWithContext(label.itemStyler, {
@@ -429,15 +427,20 @@ export abstract class Axis<
                 ...defaultStyle,
             });
         }
-        const {
-            color: fill,
-            fontFamily,
-            fontSize,
-            fontStyle,
-            fontWeight,
-            spacing,
-        } = mergeDefaults(stylerOutput, additionalStyles, defaultStyle);
-        return { fill, fontFamily, fontSize, fontStyle, fontWeight, spacing };
+        const merged = mergeDefaults(stylerOutput, additionalStyles, defaultStyle);
+        return {
+            border: merged.border,
+            color: merged.color,
+            cornerRadius: merged.cornerRadius,
+            fill: merged.fill,
+            fillOpacity: merged.fillOpacity,
+            fontFamily: merged.fontFamily,
+            fontSize: merged.fontSize,
+            fontStyle: merged.fontStyle,
+            fontWeight: merged.fontWeight,
+            padding: merged.padding,
+            spacing: merged.spacing,
+        } satisfies RequireOptional<AgBaseAxisLabelStyleOptions>;
     }
 
     protected getTickSize(tick: AxisTick = this.tick) {
