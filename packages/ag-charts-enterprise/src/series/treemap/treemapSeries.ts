@@ -9,7 +9,7 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type InternalAgColorType, isNumberEqual } from 'ag-charts-core';
+import { type InternalAgColorType, type RequireOptional, isNumberEqual } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
@@ -26,6 +26,7 @@ const {
     Transformable,
     applyShapeStyle,
     getShapeStyle,
+    getLabelStyles,
 } = _ModuleSupport;
 
 class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
@@ -779,6 +780,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 text.visible = false;
                 return;
             }
+            const labelProps = tag === TextNodeTag.Primary ? tile.label : tile.secondaryLabel;
 
             let highlightedColor: string | undefined;
             if (highlighted) {
@@ -792,6 +794,17 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 }
             }
 
+            const params: RequireOptional<AgTreemapSeriesLabelFormatterParams> = {
+                childrenKey: this.properties.childrenKey,
+                colorKey: this.properties.colorKey,
+                colorName: this.properties.colorName ?? this.properties.colorKey,
+                depth: node.depth ?? NaN,
+                labelKey: this.properties.labelKey,
+                secondaryLabelKey: this.properties.secondaryLabelKey,
+                sizeKey: this.properties.sizeKey,
+                sizeName: this.properties.sizeName ?? this.properties.sizeKey,
+            };
+            const style = getLabelStyles(this, node, params, labelProps);
             text.text = label.text;
             text.fontSize = label.fontSize;
             text.lineHeight = label.lineHeight;
@@ -804,6 +817,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             text.textBaseline = label.verticalAlign;
             text.x = label.x;
             text.y = label.y;
+            text.setBoxing(style);
             text.visible = true;
 
             text.zIndex = 1;

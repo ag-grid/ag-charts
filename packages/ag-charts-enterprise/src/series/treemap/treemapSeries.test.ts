@@ -426,4 +426,45 @@ describe('TreemapSeries', () => {
             await compare();
         });
     });
+
+    test('AG-8290 label boxing', async () => {
+        const options = prepareEnterpriseTestOptions({
+            ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
+            series: [
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    secondaryLabelKey: 'change',
+                    sizeName: 'Valuation',
+                    sizeKey: 'valuation',
+                    group: {
+                        label: {
+                            fontSize: 18,
+                            spacing: 2,
+                            fill: 'pink',
+                            border: { stroke: 'black', strokeWidth: 1 },
+                        },
+                    },
+                    tile: {
+                        label: {
+                            fontSize: 24,
+                            minimumFontSize: 9,
+                            spacing: 8,
+                            fill: 'pink',
+                            border: { stroke: 'black', strokeWidth: 1 },
+                        },
+                        secondaryLabel: {
+                            formatter: (params) => `£${params.value.toFixed(1)}bn`,
+                            fill: 'lime',
+                            color: 'blue',
+                            border: { stroke: 'olive', strokeWidth: 3 },
+                        },
+                    },
+                },
+            ],
+        });
+
+        chart = deproxy(AgCharts.create(options));
+        await compare();
+    });
 });
