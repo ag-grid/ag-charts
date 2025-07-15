@@ -1,17 +1,16 @@
+import { CleanupRegistry } from 'ag-charts-core';
 import type { Padding } from 'ag-charts-types';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
-import type { ModuleInstance } from '../../module/baseModule';
-import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
 import { Border } from '../../util/border';
-import { Property } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { ZIndexMap } from '../zIndexMap';
 
-export class SeriesArea extends BaseModuleInstance implements ModuleInstance {
+export class SeriesArea extends BaseProperties {
     protected readonly node: Group;
     protected readonly rectNode = new Rect();
 
@@ -28,6 +27,8 @@ export class SeriesArea extends BaseModuleInstance implements ModuleInstance {
     @Property
     padding: Padding = 0;
 
+    protected readonly cleanup = new CleanupRegistry();
+
     constructor(protected readonly ctx: ModuleContext) {
         super();
 
@@ -40,6 +41,10 @@ export class SeriesArea extends BaseModuleInstance implements ModuleInstance {
             ctx.scene.attachNode(this.node),
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e))
         );
+    }
+
+    public destroy() {
+        this.cleanup.flush();
     }
 
     public getPadding() {
