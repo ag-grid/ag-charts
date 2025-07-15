@@ -1,6 +1,7 @@
 import { getMaxInnerRectSize, inRange, isArray, isObject, sortBasedOnArray, toArray } from 'ag-charts-core';
-import type { FontStyle, FontWeight, TextWrap } from 'ag-charts-types';
+import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 
+import type { ShapeColor } from '../../module-support';
 import type { ModuleContext } from '../../module/moduleContext';
 import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
 import { BBox } from '../../scene/bbox';
@@ -13,6 +14,7 @@ import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
 import { createDatumId } from '../data/processors';
+import { LabelBorder } from '../label';
 import type { LabelNodeDatum } from './axis';
 import { CategoryAxis } from './categoryAxis';
 import { type TreeLayout, treeLayout } from './tree';
@@ -39,7 +41,13 @@ class DepthLabelProperties extends BaseProperties {
     avoidCollisions?: boolean;
 
     @Property
+    border = new LabelBorder();
+
+    @Property
     color?: string;
+
+    @Property
+    cornerRadius?: number;
 
     @Property
     spacing?: number;
@@ -54,6 +62,9 @@ class DepthLabelProperties extends BaseProperties {
     truncate?: boolean;
 
     @Property
+    fill?: ShapeColor;
+
+    @Property
     fontStyle?: FontStyle;
 
     @Property
@@ -64,6 +75,9 @@ class DepthLabelProperties extends BaseProperties {
 
     @Property
     fontFamily?: string;
+
+    @Property
+    padding?: Padding;
 }
 
 class DepthTickProperties extends BaseProperties {
