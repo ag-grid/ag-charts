@@ -895,7 +895,7 @@ export class Legend extends BaseProperties {
             },
             stroke,
             strokeOpacity,
-            strokeWidth,
+            strokeWidth: this.border.enabled ? strokeWidth : 0,
         };
     }
 

@@ -49,15 +49,16 @@ export class SeriesArea extends BaseProperties {
 
     public getPadding() {
         const { border, padding } = this;
+        const strokeWidth = border.enabled ? border.strokeWidth : 0;
         if (typeof padding === 'number') {
-            const total = padding + border.strokeWidth;
+            const total = padding + strokeWidth;
             return { top: total, right: total, bottom: total, left: total };
         }
         return {
-            top: padding.top ?? 0 + border.strokeWidth,
-            right: padding.right ?? 0 + border.strokeWidth,
-            bottom: padding.bottom ?? 0 + border.strokeWidth,
-            left: padding.left ?? 0 + border.strokeWidth,
+            top: (padding.top ?? 0) + strokeWidth,
+            right: (padding.right ?? 0) + strokeWidth,
+            bottom: (padding.bottom ?? 0) + strokeWidth,
+            left: (padding.left ?? 0) + strokeWidth,
         };
     }
 
