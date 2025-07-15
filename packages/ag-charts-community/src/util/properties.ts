@@ -6,11 +6,12 @@ import { merge } from './object';
 export const Property = addFakeTransformToInstanceProperty;
 
 export class BaseProperties<T extends object = object> {
-    handleUnknownProperties(_unknownKeys: Set<string>, _properties: T) {
+    handleUnknownProperties(_unknownKeys: Set<unknown>, _properties: T) {
         // override point for derived class.
     }
 
     set(properties: T) {
+        type J = typeof this;
         const { className = this.constructor.name } = this.constructor as { className?: string };
 
         if (typeof properties !== 'object') {
@@ -18,7 +19,7 @@ export class BaseProperties<T extends object = object> {
             return this;
         }
 
-        const keys = new Set(Object.keys(properties));
+        const keys = new Set(Object.keys(properties)) as Set<keyof J>;
         for (const propertyKey of listDecoratedProperties(this)) {
             if (keys.has(propertyKey)) {
                 const value = properties[propertyKey as keyof T];
@@ -27,10 +28,10 @@ export class BaseProperties<T extends object = object> {
                     // re-set property to force re-validation
                     if (self[propertyKey] instanceof PropertiesArray) {
                         const array = self[propertyKey].reset(value);
-                        if (array != null) {
-                            self[propertyKey] = array;
+                        if (array == null) {
+                            Logger.warn(`unable to set [${String(propertyKey)}] - expecting a properties array`);
                         } else {
-                            Logger.warn(`unable to set [${propertyKey}] - expecting a properties array`);
+                            self[propertyKey] = array;
                         }
                     } else {
                         self[propertyKey].set(value);
@@ -45,16 +46,28 @@ export class BaseProperties<T extends object = object> {
         }
         this.handleUnknownProperties(keys, properties);
         for (const unknownKey of keys) {
-            Logger.warn(`unable to set [${unknownKey}] in ${className} - property is unknown`);
+            Logger.warn(`unable to set [${String(unknownKey)}] in ${className} - property is unknown`);
         }
 
         return this;
     }
 
+    clear() {
+        for (const propertyKey of listDecoratedProperties(this)) {
+            const currentValue = this[propertyKey];
+            if (isProperties(currentValue)) {
+                currentValue.clear();
+            } else {
+                this[propertyKey] = undefined!;
+            }
+        }
+        return this;
+    }
+
     toJson<J>(this: J): T {
         return listDecoratedProperties(this).reduce<Record<string, any>>((object, propertyKey) => {
-            const propertyValue = this[propertyKey as keyof J];
-            object[propertyKey] = isProperties(propertyValue) ? propertyValue.toJson() : propertyValue;
+            const propertyValue = this[propertyKey];
+            object[String(propertyKey)] = isProperties(propertyValue) ? propertyValue.toJson() : propertyValue;
             return object;
         }, {}) as T;
     }

@@ -151,18 +151,18 @@ export function isDecoratedObject(target: any): target is DecoratedObject {
     return typeof target !== 'undefined' && CONFIG_KEY in target;
 }
 
-export function listDecoratedProperties(target: any): string[] {
+export function listDecoratedProperties<T>(target: T): (keyof T)[] {
     const targets = new Set<object>();
     while (isDecoratedObject(target)) {
         targets.add(target?.[CONFIG_KEY]);
         target = Object.getPrototypeOf(target);
     }
-    return Array.from(targets).flatMap((configMap) => Object.keys(configMap));
+    return Array.from(targets).flatMap((configMap) => Object.keys(configMap) as (keyof T)[]);
 }
 
 export function extractDecoratedProperties(target: any) {
     return listDecoratedProperties(target).reduce<Record<string, any>>((result, key) => {
-        result[key] = target[key] ?? null;
+        result[String(key)] = target[key] ?? null;
         return result;
     }, {});
 }

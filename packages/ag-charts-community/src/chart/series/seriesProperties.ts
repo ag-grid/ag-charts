@@ -301,7 +301,7 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     // user pass-through option: no validation-decorator required.
     context?: unknown;
 
-    override handleUnknownProperties(unknownKeys: Set<string>, properties: T) {
+    override handleUnknownProperties(unknownKeys: Set<unknown>, properties: T) {
         if ('context' in properties) {
             this.context = properties.context;
             unknownKeys.delete('context');
