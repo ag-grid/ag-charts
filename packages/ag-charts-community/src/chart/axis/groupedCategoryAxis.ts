@@ -345,16 +345,21 @@ export class GroupedCategoryAxis extends CategoryAxis {
             }
 
             const { text = '' } = tempText;
+            const boxing = tempText.getBoxingProperties();
             tickLabelLayout.push({
                 text,
                 visible: true,
                 range: this.scale.range,
                 tickId: idGenerator(text),
+                border: boxing.border,
                 color: tempText.fill as string,
+                cornerRadius: boxing.cornerRadius,
+                fill: boxing.fill,
                 fontFamily: tempText.fontFamily,
                 fontSize: tempText.fontSize,
                 fontStyle: tempText.fontStyle,
                 fontWeight: tempText.fontWeight,
+                padding: boxing.padding,
                 rotation: tempText.rotation,
                 rotationCenterX: tempText.rotationCenterX,
                 rotationCenterY: tempText.rotationCenterY,
