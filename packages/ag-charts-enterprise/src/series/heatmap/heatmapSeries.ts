@@ -28,6 +28,7 @@ const {
     formatValue,
     addHitTestersToQuadtree,
     findQuadtreeMatch,
+    updateLabelNode,
 } = _ModuleSupport;
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
@@ -51,7 +52,7 @@ interface HeatmapLabelDatum extends _ModuleSupport.Point {
     fontWeight: FontWeight | undefined;
     color: string | undefined;
     textAlign: TextAlign;
-    verticalAlign: VerticalAlign;
+    textBaseline: VerticalAlign;
 }
 
 type ItemStyle = Pick<AgHeatmapSeriesStyle, 'fill'> &
@@ -311,7 +312,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                     fontWeight,
                     color,
                     textAlign,
-                    verticalAlign,
+                    textBaseline: verticalAlign,
                     x: lx,
                     y: ly,
                 });
@@ -439,24 +440,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, HeatmapLabelDatum>;
     }) {
+        type TParam = AgHeatmapSeriesLabelFormatterParams;
+        type TDatum = HeatmapLabelDatum;
         opts.labelSelection.each((text, datum) => {
-            text.text = datum.text;
-            text.fontSize = datum.fontSize;
-            text.lineHeight = datum.lineHeight;
-
-            text.fontStyle = datum.fontStyle;
-            text.fontFamily = datum.fontFamily;
-            text.fontWeight = datum.fontWeight;
-            text.fill = datum.color;
-            text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex)?.opacity ?? 1;
-
-            text.textAlign = datum.textAlign;
-            text.textBaseline = datum.verticalAlign;
-
-            text.x = datum.x;
-            text.y = datum.y;
-
             text.pointerEvents = PointerEvents.None;
+            text.text = datum.text;
+            text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex)?.opacity ?? 1;
+            updateLabelNode<TParam, TDatum>(this, text, this.properties, this.properties.label, datum);
         });
     }
 

@@ -64,4 +64,49 @@ describe('HeatmapSeries', () => {
         chart = AgCharts.create(options);
         await compare();
     });
+
+    test('AG-8290 label boxing', async () => {
+        const options = prepareEnterpriseTestOptions({
+            data: [
+                { year: '2018', month: 'Jan', temperature: 4.4 },
+                { year: '2018', month: 'Apr', temperature: 8.8 },
+                { year: '2018', month: 'Jul', temperature: 19.5 },
+                { year: '2018', month: 'Oct', temperature: 10.3 },
+                { year: '2019', month: 'Jan', temperature: 4.4 },
+                { year: '2019', month: 'Apr', temperature: 8.9 },
+                { year: '2019', month: 'Jul', temperature: 17.8 },
+                { year: '2019', month: 'Oct', temperature: 9.2 },
+                { year: '2020', month: 'Jan', temperature: 6.4 },
+                { year: '2020', month: 'Apr', temperature: 10.3 },
+                { year: '2020', month: 'Jul', temperature: 15.6 },
+                { year: '2020', month: 'Oct', temperature: 9.8 },
+                { year: '2021', month: 'Jan', temperature: 2.8 },
+                { year: '2021', month: 'Apr', temperature: 6.5 },
+                { year: '2021', month: 'Jul', temperature: 18.4 },
+                { year: '2021', month: 'Oct', temperature: 11.6 },
+                { year: '2022', month: 'Jan', temperature: 5.2 },
+                { year: '2022', month: 'Apr', temperature: 9.2 },
+                { year: '2022', month: 'Jul', temperature: 18.5 },
+                { year: '2022', month: 'Oct', temperature: 12.1 },
+            ],
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'month',
+                    yKey: 'year',
+                    colorKey: 'temperature',
+                    label: {
+                        padding: 5,
+                        border: { strokeWidth: 3, stroke: 'lightblue' },
+                        fill: 'lightgrey',
+                        fillOpacity: 0.7,
+                        cornerRadius: 10,
+                    },
+                },
+            ],
+        });
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
 });
