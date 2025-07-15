@@ -24,6 +24,7 @@ import { extent } from '../../../util/extent';
 import { formatValue } from '../../../util/format.util';
 import { mergeDefaults } from '../../../util/object';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
+import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
@@ -36,7 +37,13 @@ import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/t
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
-import { type BubbleAggregationFilter, aggregateBubbleData, computeBubbleAggregationCount } from './bubbleAggregation';
+import {
+    type BubbleAggregation,
+    type BubbleAggregationOptions,
+    aggregateBubbleData,
+    computeBubbleAggregationCount,
+    computeBubbleAggregationDilation,
+} from './bubbleAggregation';
 import { computeBubbleAggregationData } from './bubbleAggregation';
 import { BubbleSeriesProperties } from './bubbleSeriesProperties';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -85,7 +92,7 @@ export class BubbleSeries extends CartesianSeries<
 
     override properties = new BubbleSeriesProperties();
 
-    private dataAggregationFilters: BubbleAggregationFilter[] | undefined = undefined;
+    private dataAggregation: BubbleAggregation | undefined = undefined;
 
     private readonly sizeScale = new LinearScale();
 
@@ -146,7 +153,7 @@ export class BubbleSeries extends CartesianSeries<
             ],
         });
 
-        this.dataAggregationFilters = this.aggregateData(dataModel, processedData);
+        this.dataAggregation = this.aggregateData(dataModel, processedData);
 
         const sizeKeyIdx = sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`) : undefined;
         const mutableMarkerDomain: [number, number] | undefined = marker.domain
@@ -212,7 +219,15 @@ export class BubbleSeries extends CartesianSeries<
         yVisibleRange: [number, number] | undefined,
         minVisibleItems: number
     ): number {
-        return this.countVisibleItems('xValue', ['yValue'], xVisibleRange, yVisibleRange, minVisibleItems);
+        const { dataAggregation, axes } = this;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+        if (dataAggregation == null || xAxis == null || yAxis == null) {
+            return this.countVisibleItems('xValue', ['yValue'], xVisibleRange, yVisibleRange, minVisibleItems);
+        }
+
+        const aggregationOptions = this.aggregationOptions(xAxis, yAxis, xVisibleRange, yVisibleRange ?? [0, 1]);
+        return computeBubbleAggregationCount(0, dataAggregation, aggregationOptions);
     }
 
     private aggregateData(dataModel: DataModel<any, any, true>, processedData: ProcessedData<any>) {
@@ -237,6 +252,21 @@ export class BubbleSeries extends CartesianSeries<
         const sizeDomain = sizeKey ? sizeScale.domain : [0, 0];
 
         return aggregateBubbleData(xScale, yScale, xValues, yValues, sizeValues, xDomain, yDomain, sizeDomain);
+    }
+
+    private aggregationOptions(
+        xAxis: ChartAxis,
+        yAxis: ChartAxis,
+        xVisibleRange: [number, number] = xAxis.visibleRange,
+        yVisibleRange: [number, number] = yAxis.visibleRange
+    ): BubbleAggregationOptions {
+        const { sizeKey, marker } = this.properties;
+        const xRange = Math.abs(xAxis.range[1] - xAxis.range[0]);
+        const yRange = Math.abs(yAxis.range[1] - yAxis.range[0]);
+        const minSize = marker.size;
+        const maxSize = sizeKey ? marker.maxSize : minSize;
+
+        return { xRange, yRange, minSize, maxSize, xVisibleRange, yVisibleRange };
     }
 
     override createNodeData() {
@@ -378,49 +408,23 @@ export class BubbleSeries extends CartesianSeries<
             });
         };
 
-        const { dataAggregationFilters } = this;
-        if (dataAggregationFilters == null) {
+        const { dataAggregation } = this;
+        if (dataAggregation == null) {
             for (let datumIndex = 0; datumIndex < rawData.length; datumIndex++) {
                 handleDatum(datumIndex, 1, 1);
             }
         } else {
-            const minSize = marker.size;
-            const maxSize = sizeKey ? marker.maxSize : minSize;
-            const xRange = Math.abs(xAxis.range[1] - xAxis.range[0]);
-            const yRange = Math.abs(yAxis.range[1] - yAxis.range[0]);
-            const xVisibleRange = xAxis.visibleRange;
-            const yVisibleRange = yAxis.visibleRange;
-
-            const options = {
-                minSize,
-                maxSize,
-                xRange,
-                yRange,
-                xVisibleRange,
-                yVisibleRange,
-            };
-
-            let minDilation = 1;
-            let maxDilation = 2;
-            while (computeBubbleAggregationCount(maxDilation, dataAggregationFilters, options) > maxVisibleItems) {
-                minDilation *= 2;
-                maxDilation *= 2;
-            }
-            for (let i = 0; i < 8; i += 1) {
-                const dilation = (maxDilation + minDilation) / 2;
-                const count = computeBubbleAggregationCount(dilation, dataAggregationFilters, options);
-
-                if (count > maxVisibleItems) {
-                    minDilation = dilation;
-                } else {
-                    maxDilation = dilation;
-                }
-            }
+            const aggregationOptions = this.aggregationOptions(xAxis, yAxis);
+            const aggregationDilation = computeBubbleAggregationDilation(
+                dataAggregation,
+                aggregationOptions,
+                maxVisibleItems
+            );
 
             const { groupedAggregation, singleDatumIndices } = computeBubbleAggregationData(
-                minDilation,
-                dataAggregationFilters,
-                options
+                aggregationDilation,
+                dataAggregation,
+                aggregationOptions
             );
 
             for (const { datumIndex, count, dilation } of groupedAggregation) {
@@ -480,7 +484,7 @@ export class BubbleSeries extends CartesianSeries<
         this.sizeScale.range = [marker.size, marker.maxSize];
         const fillBBox = this.getShapeFillBBox();
 
-        const aggregated = this.dataAggregationFilters != null;
+        const aggregated = this.dataAggregation != null;
 
         markerSelection.each((node, datum, index) => {
             const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);

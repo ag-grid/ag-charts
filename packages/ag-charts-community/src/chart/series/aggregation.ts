@@ -10,7 +10,9 @@ export const AGGREGATION_SPAN = 4;
 
 export function aggregationRangeFittingPoints(data: any[], precision: number = 1) {
     let power = Math.ceil(Math.log2(data.length / precision)) - 1;
-    power = Math.min(Math.max(power, 0), 16);
+    // This cap represents ~500MB for a Float64Array with 4 values per point (or half that for an Int32Array)
+    // This is usually a temporary array, so actual resource usage is much lower
+    power = Math.min(Math.max(power, 0), 24);
     return (2 ** power) | 0;
 }
 
