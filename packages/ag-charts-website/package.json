@@ -57,13 +57,12 @@
     "dotenv": "10.0.0",
     "commander": "2.20.3",
     "prettier": "^3.2.5",
-    "puppeteer-core": "7.1.0",
     "sass": "1.83.4",
     "vitest": "2.1.9"
   },
   "devDependencies": {
     "@playwright/test": "1.45.0",
     "algoliasearch": "4.20.0",
-    "puppeteer-core": "7.1.0"
+    "puppeteer-core": "24.13.0"
   }
 }
