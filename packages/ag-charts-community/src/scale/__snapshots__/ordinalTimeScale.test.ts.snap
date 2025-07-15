@@ -3,7 +3,7 @@
 exports[`OrdinalTimeScale should create nice ticks 1`] = `
 {
   "count": undefined,
-  "firstTickIndex": 1,
+  "firstTickIndex": 0,
   "ticks": [
     2024-02-27T00:00:00.000Z,
     2024-02-29T00:00:00.000Z,
@@ -16,7 +16,7 @@ exports[`OrdinalTimeScale should create nice ticks 1`] = `
 exports[`OrdinalTimeScale should create nice ticks when reversed 1`] = `
 {
   "count": undefined,
-  "firstTickIndex": 1,
+  "firstTickIndex": 0,
   "ticks": [
     2024-02-27T00:00:00.000Z,
     2024-02-29T00:00:00.000Z,
