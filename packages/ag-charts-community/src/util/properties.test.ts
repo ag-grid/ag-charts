@@ -63,6 +63,44 @@ describe('BaseProperties', () => {
         const json = instance.toJson();
         expect(json).toEqual({ prop1: 'value1', prop2: 42 });
     });
+
+    it('should clear all properties correctly', () => {
+        class NestedProperties extends BaseProperties<{ nestedValue: string }> {
+            @Property
+            nestedValue!: string;
+        }
+
+        class MyClass extends BaseProperties<{ prop1: string; prop2: number; nested: { nestedValue: string } }> {
+            @Property
+            prop1!: string;
+
+            @Property
+            prop2!: number;
+
+            @Property
+            nested = new NestedProperties();
+        }
+
+        const instance = new MyClass();
+        instance.set({ 
+            prop1: 'value1', 
+            prop2: 42,
+            nested: { nestedValue: 'nested' }
+        });
+
+        // Verify properties are set
+        expect(instance.prop1).toBe('value1');
+        expect(instance.prop2).toBe(42);
+        expect(instance.nested.nestedValue).toBe('nested');
+
+        // Clear all properties
+        instance.clear();
+
+        // Verify properties are cleared
+        expect(instance.prop1).toBeUndefined();
+        expect(instance.prop2).toBeUndefined();
+        expect(instance.nested.nestedValue).toBeUndefined();
+    });
 });
 
 describe('PropertiesArray', () => {

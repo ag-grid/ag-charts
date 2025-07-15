@@ -14,6 +14,11 @@ export class BaseProperties<T extends object = object> {
         type J = typeof this;
         const { className = this.constructor.name } = this.constructor as { className?: string };
 
+        if (properties == null) {
+            this.clear();
+            return this;
+        }
+
         if (typeof properties !== 'object') {
             Logger.warn(`unable to set ${className} - expecting a properties object`);
             return this;
