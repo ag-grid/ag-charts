@@ -649,6 +649,48 @@ describe('DonutSeries', () => {
         });
     });
 
+    test('AG-8290 label boxing', async () => {
+        chart = await createChart({
+            data: [
+                { asset: 'Stocks', amount: 60000 },
+                { asset: 'Bonds', amount: 40000 },
+                { asset: 'Cash', amount: 7000 },
+                { asset: 'Real Estate', amount: 5000 },
+                { asset: 'Commodities', amount: 3000 },
+            ],
+            title: {
+                text: 'Portfolio Composition',
+            },
+            series: [
+                {
+                    type: 'pie',
+                    angleKey: 'amount',
+                    calloutLabelKey: 'asset',
+                    sectorLabelKey: 'amount',
+                    sectorLabel: {
+                        color: 'white',
+                        fontWeight: 'bold',
+                        padding: 5,
+                        border: { strokeWidth: 3, stroke: 'lightblue' },
+                        fill: 'lightgrey',
+                        fillOpacity: 0.7,
+                        cornerRadius: 10,
+                    },
+                    calloutLabel: {
+                        color: 'green',
+                        fontWeight: 'bold',
+                        padding: 5,
+                        border: { strokeWidth: 3, stroke: 'lightblue' },
+                        fill: 'lightgrey',
+                        fillOpacity: 0.7,
+                        cornerRadius: 10,
+                    },
+                },
+            ],
+        });
+        await compare();
+    });
+
     afterEach(() => {
         jest.restoreAllMocks();
     });
