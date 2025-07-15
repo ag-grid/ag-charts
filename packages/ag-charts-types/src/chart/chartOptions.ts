@@ -1,5 +1,5 @@
 import type { AgInitialStateOptions } from '../api/initialStateOptions';
-import type { StrokeOptions } from '../series/cartesian/commonOptions';
+import type { Padding, PaddingOptions, StrokeOptions } from '../series/cartesian/commonOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { Renderer } from './callbackOptions';
@@ -38,16 +38,8 @@ export interface AgChartPaddingOptions {
     left?: PixelSize;
 }
 
-export interface AgSeriesAreaPaddingOptions {
-    /** The number of pixels of padding at the top of the series area. */
-    top?: PixelSize;
-    /** The number of pixels of padding at the right of the series area. */
-    right?: PixelSize;
-    /** The number of pixels of padding at the bottom of the series area. */
-    bottom?: PixelSize;
-    /** The number of pixels of padding at the left of the series area. */
-    left?: PixelSize;
-}
+/** @deprecated v12.1.0 Use `Padding` or `PaddingOptions` instead. */
+export interface AgSeriesAreaPaddingOptions extends PaddingOptions {}
 
 export interface AgSeriesAreaOptions {
     /** The border around the series area. */
@@ -57,7 +49,7 @@ export interface AgSeriesAreaOptions {
     /** The corner radius of the series area. */
     cornerRadius?: number;
     /** Configuration for the padding around the series area. */
-    padding?: AgSeriesAreaPaddingOptions;
+    padding?: Padding;
 }
 
 export interface AgChartOverlayRendererParams<TContext> {

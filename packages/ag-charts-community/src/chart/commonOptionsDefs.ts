@@ -267,12 +267,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         border: strokeOptionsDef,
         clip: boolean,
         cornerRadius: number,
-        padding: {
-            top: positiveNumber,
-            right: positiveNumber,
-            bottom: positiveNumber,
-            left: positiveNumber,
-        },
+        padding: padding,
     },
     legend: {
         enabled: boolean,

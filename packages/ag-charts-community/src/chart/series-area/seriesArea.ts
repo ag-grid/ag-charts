@@ -1,4 +1,4 @@
-import type { StrokeOptions } from 'ag-charts-types';
+import type { Padding, StrokeOptions } from 'ag-charts-types';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ModuleInstance } from '../../module/baseModule';
@@ -6,7 +6,6 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
-import { Padding } from '../../util/padding';
 import { BaseProperties, Property } from '../../util/properties';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { ZIndexMap } from '../zIndexMap';
@@ -44,7 +43,7 @@ export class SeriesArea extends BaseModuleInstance implements ModuleInstance {
     cornerRadius: number = 0;
 
     @Property
-    padding = new Padding(0);
+    padding: Padding = 0;
 
     constructor(protected readonly ctx: ModuleContext) {
         super();
@@ -61,11 +60,16 @@ export class SeriesArea extends BaseModuleInstance implements ModuleInstance {
     }
 
     public getPadding() {
+        const { border, padding } = this;
+        if (typeof padding === 'number') {
+            const total = padding + border.strokeWidth;
+            return { top: total, right: total, bottom: total, left: total };
+        }
         return {
-            top: this.padding.top + this.border.strokeWidth,
-            right: this.padding.right + this.border.strokeWidth,
-            bottom: this.padding.bottom + this.border.strokeWidth,
-            left: this.padding.left + this.border.strokeWidth,
+            top: padding.top ?? 0 + border.strokeWidth,
+            right: padding.right ?? 0 + border.strokeWidth,
+            bottom: padding.bottom ?? 0 + border.strokeWidth,
+            left: padding.left ?? 0 + border.strokeWidth,
         };
     }
 

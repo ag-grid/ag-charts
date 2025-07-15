@@ -311,10 +311,7 @@ export class ChartTheme {
                 },
                 cornerRadius: 4,
                 padding: {
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    left: 0,
+                    $isUserOption: [['./border/stroke', './border/strokeWidth'], 5, 0],
                 },
             },
             keyboard: { enabled: true },
