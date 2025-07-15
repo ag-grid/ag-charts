@@ -1,4 +1,4 @@
-import type { Padding, StrokeOptions } from 'ag-charts-types';
+import type { Padding } from 'ag-charts-types';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ModuleInstance } from '../../module/baseModule';
@@ -6,27 +6,10 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
-import { BaseProperties, Property } from '../../util/properties';
+import { Border } from '../../util/border';
+import { Property } from '../../util/properties';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { ZIndexMap } from '../zIndexMap';
-
-class Border extends BaseProperties implements StrokeOptions {
-    @ProxyPropertyOnWrite('rectNode', 'stroke')
-    @Property
-    stroke: string = 'black';
-
-    @ProxyPropertyOnWrite('rectNode', 'strokeOpacity')
-    @Property
-    strokeOpacity: number = 1;
-
-    @ProxyPropertyOnWrite('rectNode', 'strokeWidth')
-    @Property
-    strokeWidth: number = 0;
-
-    constructor(public readonly rectNode: Rect) {
-        super();
-    }
-}
 
 export class SeriesArea extends BaseModuleInstance implements ModuleInstance {
     protected readonly node: Group;
