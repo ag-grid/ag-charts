@@ -1,0 +1,66 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+    SNYK-JS-WEBPACKDEVSERVER-10300775:
+        - '@angular-devkit/build-angular@17.3.11 > webpack-dev-server@4.15.1':
+              reason: Only used for dev server
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-07-15T11:28:00.000Z
+    SNYK-JS-HTTPPROXYMIDDLEWARE-8229906:
+        - '@angular-devkit/build-angular@17.3.11 > webpack-dev-server@4.15.1 > http-proxy-middleware@2.0.6':
+              reason: >-
+                  Only used by dev server
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-07-15T11:28:00.000Z
+    WEBPACKDEVMIDDLEWARE-6476555:
+        - '@angular-devkit/build-angular@17.3.11 > webpack-dev-server@4.15.1 > webpack-dev-middleware@5.3.3':
+              reason: >-
+                  Only used by dev server
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-07-15T11:28:00.000Z
+    SNYK-JS-WS-7266574:
+        - '@angular-devkit/build-angular@17.3.11 > webpack-dev-server@4.15.1 > ws@8.15.0':
+              reason: >-
+                  Only used by dev server
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-07-15T11:28:00.000Z
+    SNYK-JS-BODYPARSER-7926860:
+        - '@angular-devkit/build-angular@17.3.11 > webpack-dev-server@4.15.1 > express@4.18.2 > body-parser@1.20.1':
+              reason: >-
+                  Only used by dev server
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-07-15T11:28:00.000Z
+    SNYK-JS-CROSSSPAWN-8303230:
+        - '@angular-devkit/build-angular@17.3.11 > webpack-dev-server@4.15.1 > default-gateway@6.0.3 > execa@5.1.1 > cross-spawn@7.0.3':
+              reason: >-
+                  Only used by dev server
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-07-15T11:28:00.000Z
+    SNYK-JS-VITE-9653016:
+        - '@angular-devkit/build-angular@17.3.11 > vite@5.1.8':
+              reason: >-
+                  Vitest is only used for development and we do not expose
+                  the dev server to the network
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-07-15T11:28:00.000Z
+    SNYK-JS-UNDICI-8641354:
+        - '@angular-devkit/build-angular@17.3.11 > undici@6.11.1':
+              reason: >-
+                  Only used by angular dev server
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-07-15T11:28:00.000Z
+    SNYK-JS-BRACES-6838727:
+        - 'karma@6.4.2 > braces@3.0.2':
+              reason: >-
+                  Only used for testing
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-07-15T11:28:00.000Z
+    SNYK-JS-FOLLOWREDIRECTS-6141137:
+        - 'karma@6.4.2 > http-proxy@1.18.1 > follow-redirects@1.15.3':
+              reason: >-
+                  Only used for testing
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-07-15T11:28:00.000Z
+
+patch: {}
