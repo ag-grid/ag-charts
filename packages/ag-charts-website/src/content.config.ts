@@ -166,7 +166,6 @@ const metadata = defineCollection({
     schema: z.object({
         title: z.string(),
         description: z.string(),
-        googleTagManagerId: z.string().optional(),
         canonicalUrlBase: z.string(),
         socialImage: z.string().optional(),
     }),
