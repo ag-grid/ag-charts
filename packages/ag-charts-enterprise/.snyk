@@ -13,4 +13,10 @@ ignore:
                   Only used for testing, so a ReDoS would only affect a developers machine
               expires: 2025-09-21T12:00:00.000Z
               created: 2025-07-15T11:28:00.000Z
+    SNYK-JS-WS-7266574:
+        - jest-environment-jsdom@29.7.0 > jsdom@20.0.3 > ws@8.15.0:
+              reason: >-
+                  Only used for testing, so a DoS would only affect a developers machine
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-07-15T11:28:00.000Z
 patch: {}
