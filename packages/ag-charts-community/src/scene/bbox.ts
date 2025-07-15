@@ -160,6 +160,7 @@ export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
     }
 
     grow(amounts: Partial<Padding>): this;
+    grow(amount: number | Partial<Padding>): this;
     grow(amount: number, position?: ShrinkOrGrowPosition): this;
     grow(amount: number | Partial<Padding>, position?: ShrinkOrGrowPosition) {
         if (typeof amount === 'number') {

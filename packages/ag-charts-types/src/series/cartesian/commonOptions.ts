@@ -148,7 +148,7 @@ export interface LabelBoxOptions extends FillOptions {
     /** Apply rounded corners to the label box. */
     cornerRadius?: PixelSize;
     /** Distance between the label text and the border. */
-    padding?: PixelSize;
+    padding?: Padding;
 }
 
 /**

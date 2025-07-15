@@ -1,5 +1,14 @@
 import { createSvgElement, isDefined } from 'ag-charts-core';
-import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from 'ag-charts-types';
+import type {
+    CssColor,
+    FontFamily,
+    FontSize,
+    FontStyle,
+    FontWeight,
+    Opacity,
+    Padding,
+    PixelSize,
+} from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
@@ -23,7 +32,7 @@ export interface TextSizeProperties {
 
 export interface TextBoxingProperties {
     cornerRadius?: PixelSize;
-    padding?: PixelSize;
+    padding?: Padding;
     fill?: ShapeColor;
     fillOpacity?: Opacity;
     border?: {
@@ -83,7 +92,7 @@ export class Text<D = any> extends Shape<D> {
     lineHeight?: number;
 
     private boxing?: Rect;
-    private boxPadding: number = 0;
+    private boxPadding: Padding = 0;
 
     static computeBBox(
         lines: string | string[],
