@@ -1,6 +1,5 @@
 import type { StrokeOptions } from 'ag-charts-types';
 
-import type { Rect } from '../scene/shape/rect';
 import { BaseProperties, Property } from './properties';
 import { ActionOnSet, ProxyPropertyOnWrite } from './proxy';
 
@@ -37,7 +36,7 @@ export class Border extends BaseProperties implements StrokeOptions {
     @Property
     strokeWidth: number = 1;
 
-    constructor(public readonly node: Rect) {
+    constructor(public readonly node: { stroke?: string | object; strokeOpacity: number; strokeWidth: number }) {
         super();
     }
 }
