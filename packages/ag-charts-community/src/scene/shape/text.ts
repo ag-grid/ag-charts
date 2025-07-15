@@ -162,6 +162,21 @@ export class Text<D = any> extends Shape<D> {
         return bbox ? bbox.containsPoint(x, y) : false;
     }
 
+    private computeBoxingTranslation(): { translationX: number; translationY: number } | undefined {
+        function hasTranslation(obj: object): obj is { translationX: number; translationY: number } {
+            return (
+                'translationX' in obj &&
+                typeof obj.translationX === 'number' &&
+                'translationY' in obj &&
+                typeof obj.translationY === 'number'
+            );
+        }
+        if (hasTranslation(this)) {
+            return this;
+        }
+        return undefined;
+    }
+
     override render(renderCtx: RenderContext): void {
         const { ctx, stats } = renderCtx;
 
@@ -195,9 +210,10 @@ export class Text<D = any> extends Shape<D> {
         ctx.textBaseline = textBaseline;
 
         if (this.boxing) {
+            const { translationX = 0, translationY = 0 } = this.computeBoxingTranslation() ?? {};
             const { x, y, width, height } = this.getBBox(true).grow(this.boxPadding);
-            this.boxing.x = x;
-            this.boxing.y = y;
+            this.boxing.x = x - translationX;
+            this.boxing.y = y - translationY;
             this.boxing.width = width;
             this.boxing.height = height;
             this.boxing.preRender(renderCtx);
