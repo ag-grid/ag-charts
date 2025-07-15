@@ -8,6 +8,7 @@ import type {
     AgHighlightOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
+    LabelBoxOptions,
     WithThemeParams,
 } from 'ag-charts-types';
 
@@ -242,6 +243,16 @@ const ITEM_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
     ...ITEM_HIGHLIGHT_BASE_STYLE,
     fill: { $path: ['../../highlightStyle/item/fill', `rgba(255,255,255, 0.33)`] },
     fillOpacity: { $path: ['../../highlightStyle/item/fillOpacity', undefined] },
+};
+
+export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
+    padding: {
+        top: 8,
+        bottom: 8,
+        left: 12,
+        right: 12,
+    },
+    cornerRadius: 4,
 };
 
 export function multiSeriesHighlightStyle(

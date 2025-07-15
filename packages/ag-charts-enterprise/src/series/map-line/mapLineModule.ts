@@ -30,6 +30,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
             lineDash: [0],
             lineDashOffset: 0,
             label: {
+                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                 enabled: true,
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },

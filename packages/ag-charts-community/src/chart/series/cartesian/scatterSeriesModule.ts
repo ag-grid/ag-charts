@@ -8,6 +8,7 @@ import {
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
     multiSeriesHighlightStyle,
 } from '../../themes/util';
 import { ScatterSeries } from './scatterSeries';
@@ -44,6 +45,7 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             fillOpacity: 0.8,
             maxRenderedItems: 10_000,
             label: {
+                ...LABEL_BOXING_DEFAULTS,
                 enabled: false,
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },

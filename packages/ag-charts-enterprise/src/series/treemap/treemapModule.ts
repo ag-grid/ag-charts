@@ -27,6 +27,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             undocumentedGroupStrokes: { $palette: 'secondHierarchyColors' },
             group: {
                 label: {
+                    ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                     enabled: true,
                     color: { $ref: 'textColor' },
                     fontStyle: undefined,
@@ -44,6 +45,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             },
             tile: {
                 label: {
+                    ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                     enabled: true,
                     color: { $ref: 'chartBackgroundColor' },
                     fontStyle: undefined,
@@ -56,6 +58,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                     spacing: 2,
                 },
                 secondaryLabel: {
+                    ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                     enabled: true,
                     color: { $ref: 'chartBackgroundColor' },
                     fontStyle: undefined,

@@ -68,6 +68,7 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 },
             },
             label: {
+                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                 enabled: false,
                 placement: 'inside-start',
                 fontFamily: { $ref: 'fontFamily' },

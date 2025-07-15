@@ -35,6 +35,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
             lineDashOffset: 0,
             padding: 2,
             label: {
+                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                 color: { $ref: 'chartBackgroundColor' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },

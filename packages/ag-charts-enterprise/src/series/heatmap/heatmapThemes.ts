@@ -19,6 +19,7 @@ export const HEATMAP_SERIES_THEME: _ModuleSupport.SeriesModule<'heatmap'>['theme
             ],
         },
         label: {
+            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
             enabled: false,
             color: { $ref: 'textColor' },
             fontSize: { $ref: 'fontSize' },

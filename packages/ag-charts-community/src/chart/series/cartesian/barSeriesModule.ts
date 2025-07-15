@@ -9,6 +9,7 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
     multiSeriesHighlightStyle,
 } from '../../themes/util';
 import { BarSeries } from './barSeries';
@@ -39,6 +40,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             lineDash: [0],
             lineDashOffset: 0,
             label: {
+                ...LABEL_BOXING_DEFAULTS,
                 enabled: false,
                 fontWeight: { $ref: 'fontWeight' },
                 fontSize: { $ref: 'fontSize' },
