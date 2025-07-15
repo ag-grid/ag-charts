@@ -811,4 +811,29 @@ describe('Legend', () => {
             await testPosition('left-bottom');
         });
     });
+
+    describe('AG-15363 legend.floating', () => {
+        test('right-top', async () => {
+            const options = prepareTestOptions({
+                data: [
+                    { ticker: 'AAPL', 2020: 0.7, 2021: 0.6, 2022: 0.5 },
+                    { ticker: 'KO', 2020: 3.0, 2021: 2.9, 2022: 2.8 },
+                    { ticker: 'JNJ', 2020: 2.6, 2021: 2.5, 2022: 2.4 },
+                    { ticker: 'T', 2020: 6.5, 2021: 7.0, 2022: 6.0 },
+                    { ticker: 'PG', 2020: 2.3, 2021: 2.2, 2022: 2.1 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'ticker', yKey: '2020' },
+                    { type: 'bar', xKey: 'ticker', yKey: '2021' },
+                    { type: 'bar', xKey: 'ticker', yKey: '2022' },
+                ],
+                legend: {
+                    position: 'right-top',
+                    floating: true,
+                },
+            });
+            chart = deproxy(AgCharts.create(options));
+            await compare(chart);
+        });
+    });
 });
