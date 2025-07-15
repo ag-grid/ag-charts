@@ -1,10 +1,10 @@
 import { getMaxInnerRectSize, inRange, isArray, isObject, sortBasedOnArray, toArray } from 'ag-charts-core';
 import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 
-import type { ShapeColor } from '../../module-support';
 import type { ModuleContext } from '../../module/moduleContext';
 import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
 import { BBox } from '../../scene/bbox';
+import type { ShapeColor } from '../../scene/shape/shape';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { angularPadding, normalizeAngle360FromDegrees } from '../../util/angle';
