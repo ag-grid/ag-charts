@@ -42,6 +42,7 @@ import {
     type BubbleAggregationOptions,
     aggregateBubbleData,
     computeBubbleAggregationCount,
+    computeBubbleAggregationDilation,
 } from './bubbleAggregation';
 import { computeBubbleAggregationData } from './bubbleAggregation';
 import { BubbleSeriesProperties } from './bubbleSeriesProperties';
@@ -77,8 +78,6 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     readonly dilation: number;
     readonly selected: boolean | undefined;
 }
-
-const MAX_AGGREGATION_DILATION = 100;
 
 export class BubbleSeries extends CartesianSeries<
     Group,
@@ -228,8 +227,7 @@ export class BubbleSeries extends CartesianSeries<
         }
 
         const aggregationOptions = this.aggregationOptions(xAxis, yAxis, xVisibleRange, yVisibleRange ?? [0, 1]);
-        const count = computeBubbleAggregationCount(0, dataAggregation, aggregationOptions);
-        return count;
+        return computeBubbleAggregationCount(0, dataAggregation, aggregationOptions);
     }
 
     private aggregateData(dataModel: DataModel<any, any, true>, processedData: ProcessedData<any>) {
@@ -271,37 +269,6 @@ export class BubbleSeries extends CartesianSeries<
         return { xRange, yRange, minSize, maxSize, xVisibleRange, yVisibleRange };
     }
 
-    private computeAggregationDilation(
-        dataAggregation: BubbleAggregation,
-        aggregationOptions: BubbleAggregationOptions
-    ) {
-        const { maxVisibleItems } = this.properties;
-
-        let minDilation = 1;
-        let maxDilation = 2;
-        while (
-            computeBubbleAggregationCount(maxDilation, dataAggregation, aggregationOptions) > maxVisibleItems &&
-            maxDilation < MAX_AGGREGATION_DILATION
-        ) {
-            minDilation *= 2;
-            maxDilation *= 2;
-        }
-
-        // Higher precision here reduces flickering when zooming in and out
-        for (let i = 0; i < 12; i += 1) {
-            const dilation = (maxDilation + minDilation) / 2;
-            const count = computeBubbleAggregationCount(dilation, dataAggregation, aggregationOptions);
-
-            if (count > maxVisibleItems) {
-                minDilation = dilation;
-            } else {
-                maxDilation = dilation;
-            }
-        }
-
-        return minDilation;
-    }
-
     override createNodeData() {
         const { axes, dataModel, processedData, sizeScale, visible } = this;
         const {
@@ -318,6 +285,7 @@ export class BubbleSeries extends CartesianSeries<
             labelName,
             label,
             marker,
+            maxVisibleItems,
         } = this.properties;
         const { enabled: labelEnabled, placement } = label;
         const anchor = Marker.anchor(marker.shape);
@@ -447,7 +415,11 @@ export class BubbleSeries extends CartesianSeries<
             }
         } else {
             const aggregationOptions = this.aggregationOptions(xAxis, yAxis);
-            const aggregationDilation = this.computeAggregationDilation(dataAggregation, aggregationOptions);
+            const aggregationDilation = computeBubbleAggregationDilation(
+                dataAggregation,
+                aggregationOptions,
+                maxVisibleItems
+            );
 
             const { groupedAggregation, singleDatumIndices } = computeBubbleAggregationData(
                 aggregationDilation,

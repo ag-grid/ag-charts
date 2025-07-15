@@ -300,6 +300,38 @@ export function computeBubbleAggregationCount(
     return counter.count;
 }
 
+const MAX_AGGREGATION_DILATION = 100;
+const DILATION_ITERATIONS = 12; // Higher precision here reduces flickering when zooming in and out
+
+export function computeBubbleAggregationDilation(
+    dataAggregation: BubbleAggregation,
+    aggregationOptions: BubbleAggregationOptions,
+    maxVisibleItems: number
+) {
+    let minDilation = 1;
+    let maxDilation = 2;
+    while (
+        computeBubbleAggregationCount(maxDilation, dataAggregation, aggregationOptions) > maxVisibleItems &&
+        maxDilation < MAX_AGGREGATION_DILATION
+    ) {
+        minDilation *= 2;
+        maxDilation *= 2;
+    }
+
+    for (let i = 0; i < DILATION_ITERATIONS; i += 1) {
+        const dilation = (maxDilation + minDilation) / 2;
+        const count = computeBubbleAggregationCount(dilation, dataAggregation, aggregationOptions);
+
+        if (count > maxVisibleItems) {
+            minDilation = dilation;
+        } else {
+            maxDilation = dilation;
+        }
+    }
+
+    return minDilation;
+}
+
 export function computeBubbleAggregationData(
     dilation: number,
     dataAggregation: BubbleAggregation,
