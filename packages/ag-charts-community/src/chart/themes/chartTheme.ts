@@ -248,8 +248,8 @@ export class ChartTheme {
                     enabled: true,
                     style: {
                         $apply: [
-                            { stroke: { $ref: 'gridLineColor' }, lineDash: [] },
-                            [{ stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
+                            { fillOpacity: 1, stroke: { $ref: 'gridLineColor' }, lineDash: [] },
+                            [{ fillOpacity: 1, stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
                         ],
                     },
                 },

@@ -31,6 +31,16 @@ export interface AxisLineDatum {
     lineDash: number[] | undefined;
 }
 
+export interface AxisFillDatum {
+    tickId: string;
+    x1: number;
+    x2: number;
+    y1: number;
+    y2: number;
+    fill: string | undefined;
+    fillOpacity: number | undefined;
+}
+
 export interface AxisAnimationContext {
     visible: boolean;
     min: number;
