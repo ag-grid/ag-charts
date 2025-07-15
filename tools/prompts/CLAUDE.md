@@ -125,10 +125,7 @@ nx e2e ag-charts-website
 ## Code Review Guidelines
 
 -   When reviewing a PR, don't comment on lines not changed in the PR itself; we have tech-debt but can't fix it all at once.
-
-## Tool Instructions
-
--   When asked to perform a review, use the instructions in tools/prompts/pr-review.md
+-   See `tools/prompts/pr-review.md` for detailed PR review instructions.
 
 ## JIRA Ticket Search Guidelines
 
@@ -143,6 +140,8 @@ nx e2e ag-charts-website
 ## Development Server Notes
 
 -   Normally the Astro dev server is running on port 4600 (HTTPS) and you can just use it.
+-   If you need to run the dev server, use `nx dev` to start it.
+    -   This includes an incremental watch and build of all packages and website.
 -   Note that example paths are mapped from repo paths:
     -   `packages/ag-charts-website/src/content/gallery/_examples/${exampleName}/index.html` => `/charts/gallery/examples/${exampleName}`
     -   `packages/ag-charts-website/src/content/docs/${pageName}/_examples/${exampleName}/index.html` => `/charts/vanilla/${pageName}/examples/${exampleName}`
