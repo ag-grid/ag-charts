@@ -309,4 +309,34 @@ describe('RadarAreaSeries', () => {
             await compare();
         });
     });
+
+    test('AG-8290 label boxing', async () => {
+        const options = prepareEnterpriseTestOptions({
+            data: [
+                { department: 'Sales', quality: 40, efficiency: 75 },
+                { department: 'Engineering', quality: 45, efficiency: 90 },
+                { department: 'HR', quality: 80, efficiency: 60 },
+                { department: 'Marketing', quality: 80, efficiency: 60 },
+                { department: 'Finance', quality: 85, efficiency: 50 },
+            ],
+            series: [
+                {
+                    type: 'radar-area',
+                    angleKey: 'department',
+                    radiusKey: 'quality',
+                    label: {
+                        fontWeight: 'bold',
+                        padding: 5,
+                        border: { strokeWidth: 3, stroke: 'lightblue' },
+                        fill: 'lightgrey',
+                        fillOpacity: 0.7,
+                        cornerRadius: 10,
+                    },
+                },
+            ],
+        });
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
 });

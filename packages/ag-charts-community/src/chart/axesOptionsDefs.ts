@@ -183,6 +183,8 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
         width: positiveNumber,
         style: arrayOfDefs<AgAxisGridStyle>(
             {
+                fill: color,
+                fillOpacity: number,
                 stroke: or(color, themeOperator),
                 lineDash: arrayOf(positiveNumber),
             },

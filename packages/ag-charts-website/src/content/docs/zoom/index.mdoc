@@ -137,17 +137,13 @@ In the above example:
 
 ## Dragging an Axis
 
-By default, a user can click and drag on any axis to change the zoom of that axis. This ignores the `axes` property and is enabled by default for all axes. To disable, use `enableAxisDragging: false`.
-
-In the example below, we have two series, each attached to a different y-axis. Dragging one of the y-axes will zoom both of them.
+By default, a user can click and drag on any axis to change the zoom of that axis. This ignores the `axes` property and is enabled by default for all axes.
 
 {% chartExampleRunner title="Zoom Axis Dragging" name="zoom-axis-dragging" type="generated" /%}
 
-### Axis Panning
-
-To pan while dragging an axis instead of zooming, use `axisDraggingMode: 'pan'`.
-
-{% chartExampleRunner title="Zoom Axis Panning" name="zoom-axis-panning" type="generated" /%}
+-   When using `axisDraggingMode: 'zoom'` (default), dragging either of the y-axes will zoom both of them.
+-   Use `axisDraggingMode: 'pan'` to pan while dragging an axis.
+-   Use `enableAxisDragging: false` to disable all axis dragging.
 
 ## Double-Click to Reset
 

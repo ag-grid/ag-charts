@@ -460,6 +460,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.updateCategoryLabels();
         this.updateAxisLine();
         this.updateGridLines();
+        this.updateGridFills();
         this.updateTickLines();
         this.updateTitle(this.scale.domain, spacing);
         this.updateCrossLines();

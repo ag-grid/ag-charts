@@ -38,6 +38,7 @@ import {
     rangedValueProperty,
     valueProperty,
 } from '../../data/processors';
+import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -1286,13 +1287,11 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     private updateCalloutLabelNodes(seriesRect: BBox) {
         const { radiusScale } = this;
         const { calloutLabel, calloutLine } = this.properties;
-        const calloutLength = calloutLine.length;
-        const { offset, color } = calloutLabel;
 
         const tempTextNode = new Text();
 
         this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.Label).forEach((text) => {
-            const datum = text.closestDatum();
+            const datum: PieDonutNodeDatum = text.closestDatum();
             const label = datum.calloutLabel;
             const radius = radiusScale.convert(datum.radius);
             const outerRadius = Math.max(0, radius);
@@ -1301,8 +1300,10 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 text.visible = false;
                 return;
             }
+            type TParams = AgDonutSeriesLabelFormatterParams;
+            const style = getLabelStyles<TParams>(this, datum, this.properties, calloutLabel);
 
-            const labelRadius = outerRadius + calloutLength + offset;
+            const labelRadius = outerRadius + calloutLine.length + calloutLabel.offset;
             const x = datum.midCos * labelRadius;
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
 
@@ -1314,8 +1315,9 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             tempTextNode.text = label.text;
             tempTextNode.x = x;
             tempTextNode.y = y;
-            tempTextNode.setFont(this.properties.calloutLabel);
+            tempTextNode.setFont(style);
             tempTextNode.setAlign(align);
+            tempTextNode.setBoxing(style);
             const box = tempTextNode.getBBox(false);
 
             let displayText = label.text;
@@ -1329,9 +1331,10 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             text.text = displayText;
             text.x = x;
             text.y = y;
-            text.setFont(this.properties.calloutLabel);
+            text.setFont(style);
             text.setAlign(align);
-            text.fill = color;
+            text.setBoxing(style);
+            text.fill = style.color;
             text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
             text.visible = visible;
         });
@@ -1437,29 +1440,27 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     }
 
     private updateSectorLabelNodes() {
-        const { radiusScale } = this;
-        const innerRadius = radiusScale.convert(0);
-        const { fontSize, fontStyle, fontWeight, fontFamily, positionOffset, positionRatio, color } =
-            this.properties.sectorLabel;
+        const { properties } = this;
+        const { positionOffset, positionRatio } = this.properties.sectorLabel;
 
-        const isDonut = innerRadius > 0;
-        const singleVisibleSector = this.ctx.legendManager.getData(this.id)?.filter((d) => d.enabled).length === 1;
+        const innerRadius = this.radiusScale.convert(0);
+        const shouldPutTextInCenter =
+            innerRadius <= 0 && // is donut?
+            this.ctx.legendManager.getData(this.id)?.filter((d) => d.enabled).length === 1; // single visible sector?
 
+        const align = { textAlign: 'center', textBaseline: 'middle' } as const;
         const updateSectorLabel = (text: Text, datum: PieDonutNodeDatum) => {
-            const { sectorLabel, outerRadius, startAngle, endAngle } = datum;
+            const { outerRadius, startAngle, endAngle } = datum;
 
             let isTextVisible = false;
-            if (sectorLabel && outerRadius !== 0) {
+            if (datum.sectorLabel && outerRadius !== 0) {
+                type TParams = AgDonutSeriesLabelFormatterParams;
+                const style = getLabelStyles<TParams>(this, datum, properties, properties.sectorLabel);
                 const labelRadius = innerRadius * (1 - positionRatio) + outerRadius * positionRatio + positionOffset;
 
-                text.fill = color;
+                text.fill = style.color;
                 text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-                text.fontStyle = fontStyle;
-                text.fontWeight = fontWeight;
-                text.fontSize = fontSize;
-                text.fontFamily = fontFamily;
-                text.text = sectorLabel.text;
-                const shouldPutTextInCenter = !isDonut && singleVisibleSector;
+                text.text = datum.sectorLabel.text;
                 if (shouldPutTextInCenter) {
                     text.x = 0;
                     text.y = 0;
@@ -1467,8 +1468,9 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                     text.x = datum.midCos * labelRadius;
                     text.y = datum.midSin * labelRadius;
                 }
-                text.textAlign = 'center';
-                text.textBaseline = 'middle';
+                text.setFont(style);
+                text.setAlign(align);
+                text.setBoxing(style);
 
                 const bbox = text.getBBox(false);
                 const corners = [

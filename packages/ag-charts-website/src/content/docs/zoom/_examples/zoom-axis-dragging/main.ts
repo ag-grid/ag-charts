@@ -7,6 +7,12 @@ const options: AgCartesianChartOptions = {
     zoom: {
         enabled: true,
     },
+    initialState: {
+        zoom: {
+            ratioX: { start: 0.8, end: 1.0 },
+            ratioY: { start: 0.2, end: 0.6 },
+        },
+    },
     tooltip: {
         enabled: false,
     },
@@ -63,4 +69,9 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function setAxisMode(mode: 'zoom' | 'pan') {
+    options.zoom!.axisDraggingMode = mode;
+    chart.update(options);
+}

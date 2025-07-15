@@ -224,15 +224,24 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
             return;
         }
 
+        let r0 = Math.min(...band);
+        let r1 = Math.max(...band);
+
+        if (r1 - r0 < 1) {
+            const mid = (r0 + r1) / 2;
+            r0 = mid - 0.5;
+            r1 = mid + 0.5;
+        }
+
         if (this.isVertical()) {
             rangeNode.y1 = 0;
             rangeNode.y2 = bounds.height;
-            rangeNode.x1 = band[0];
-            rangeNode.x2 = band[1];
+            rangeNode.x1 = r0;
+            rangeNode.x2 = r1;
             rangeNode.horizontal = true;
         } else {
-            rangeNode.y1 = band[0];
-            rangeNode.y2 = band[1];
+            rangeNode.y1 = r0;
+            rangeNode.y2 = r1;
             rangeNode.x1 = 0;
             rangeNode.x2 = bounds.width;
             rangeNode.horizontal = false;

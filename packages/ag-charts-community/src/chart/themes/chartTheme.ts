@@ -248,8 +248,8 @@ export class ChartTheme {
                     enabled: true,
                     style: {
                         $apply: [
-                            { stroke: { $ref: 'gridLineColor' }, lineDash: [] },
-                            [{ stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
+                            { fillOpacity: 1, stroke: { $ref: 'gridLineColor' }, lineDash: [] },
+                            [{ fillOpacity: 1, stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
                         ],
                     },
                 },
@@ -386,6 +386,7 @@ export class ChartTheme {
                         [CARTESIAN_POSITION.RIGHT_BOTTOM, 'vertical'],
                     ],
                 },
+                floating: false,
                 border: {
                     stroke: { $foregroundBackgroundMix: 0.25 },
                     strokeOpacity: 1,

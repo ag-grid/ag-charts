@@ -31,6 +31,7 @@ const {
     Marker,
     mergeDefaults,
     getShapeStyle,
+    updateLabelNode,
 } = _ModuleSupport;
 
 export interface RadarPathPoint {
@@ -355,20 +356,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected updateLabels() {
-        const { label } = this.properties;
         this.labelSelection.update(this.nodeData).each((node, datum) => {
-            if (label.enabled && datum.label) {
-                node.x = datum.label.x;
-                node.y = datum.label.y;
-
-                node.text = datum.label.text;
-                node.fill = label.color;
+            if (datum.label) {
                 node.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-                node.setFont(label);
-                node.setAlign(datum.label);
-                node.visible = true;
-            } else {
-                node.visible = false;
+                type TDatum = typeof datum.label;
+                type TParam = AgRadarSeriesLabelFormatterParams;
+                updateLabelNode<TParam, TDatum>(this, node, this.properties, this.properties.label, datum.label);
             }
         });
     }
