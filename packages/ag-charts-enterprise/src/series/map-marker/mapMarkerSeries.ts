@@ -179,11 +179,11 @@ export class MapMarkerSeries
         }
     }
 
-    override setSeriesIndex(index: number): boolean {
-        if (!super.setSeriesIndex(index)) return false;
+    override setZIndex(zIndex: number): boolean {
+        super.setZIndex(zIndex);
 
-        this.contentGroup.zIndex = [MapZIndexMap.Marker, index];
-        this.highlightGroup.zIndex = [MapZIndexMap.MarkerHighlight, index];
+        this.contentGroup.zIndex = [MapZIndexMap.Marker, zIndex];
+        this.highlightGroup.zIndex = [MapZIndexMap.MarkerHighlight, zIndex];
 
         return true;
     }

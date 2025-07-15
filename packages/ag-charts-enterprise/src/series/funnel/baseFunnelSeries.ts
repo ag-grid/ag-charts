@@ -179,10 +179,10 @@ export abstract class BaseFunnelSeries<
         this.connectorNodeGroup.pointerEvents = PointerEvents.None;
     }
 
-    override setSeriesIndex(index: number): boolean {
-        if (!super.setSeriesIndex(index)) return false;
+    override setZIndex(zIndex: number): boolean {
+        super.setZIndex(zIndex);
 
-        this.connectorNodeGroup.zIndex = [SeriesZIndexMap.BACKGROUND, index];
+        this.connectorNodeGroup.zIndex = [SeriesZIndexMap.BACKGROUND, zIndex];
 
         return true;
     }

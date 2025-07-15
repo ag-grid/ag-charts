@@ -72,7 +72,10 @@ export class HighlightProperties<TOpts extends object> extends BaseProperties {
     enabled = true;
 
     @Property
-    public range: 'tooltip' | 'node' = 'tooltip';
+    range: 'tooltip' | 'node' = 'tooltip';
+
+    @Property
+    bringToFront: boolean = false;
 
     @Property
     readonly highlightedItem: HighlightOptions<TOpts> = {};

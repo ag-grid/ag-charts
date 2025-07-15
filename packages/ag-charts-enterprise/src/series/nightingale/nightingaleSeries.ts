@@ -21,13 +21,13 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
         super(moduleCtx, { animationResetFns: { item: resetNightingaleSelectionFn } });
     }
 
-    override setSeriesIndex(index: number) {
-        if (!super.setSeriesIndex(index)) return false;
+    override setZIndex(zIndex: number): boolean {
+        super.setZIndex(zIndex);
 
         // Ensures highlights always appear on top
-        this.contentGroup.zIndex = [0, PolarZIndexMap.FOREGROUND, index];
-        this.highlightGroup.zIndex = [0, PolarZIndexMap.HIGHLIGHT, index];
-        this.labelGroup.zIndex = [0, PolarZIndexMap.LABEL, index];
+        this.contentGroup.zIndex = [0, PolarZIndexMap.FOREGROUND, zIndex];
+        this.highlightGroup.zIndex = [0, PolarZIndexMap.HIGHLIGHT, zIndex];
+        this.labelGroup.zIndex = [0, PolarZIndexMap.LABEL, zIndex];
 
         return true;
     }

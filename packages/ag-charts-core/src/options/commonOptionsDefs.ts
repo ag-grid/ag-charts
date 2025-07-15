@@ -276,6 +276,7 @@ export function multiSeriesHighlightOptionsDef<I, S>(itemHighlightOptionsDef: I,
         unhighlightedItem: itemHighlightOptionsDef,
         highlightedSeries: seriesHighlightOptionsDef,
         unhighlightedSeries: seriesHighlightOptionsDef,
+        bringToFront: boolean,
     };
 }
 
