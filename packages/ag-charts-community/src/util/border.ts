@@ -2,9 +2,18 @@ import type { StrokeOptions } from 'ag-charts-types';
 
 import type { Rect } from '../scene/shape/rect';
 import { BaseProperties, Property } from './properties';
-import { ProxyPropertyOnWrite } from './proxy';
+import { ActionOnSet, ProxyPropertyOnWrite } from './proxy';
 
 export class Border extends BaseProperties implements StrokeOptions {
+    @ActionOnSet<Border>({
+        changeValue(newValue) {
+            if (newValue) {
+                this.node.strokeWidth = this.strokeWidth;
+            } else {
+                this.node.strokeWidth = 0;
+            }
+        },
+    })
     @Property
     enabled: boolean = false;
 
@@ -16,7 +25,15 @@ export class Border extends BaseProperties implements StrokeOptions {
     @Property
     strokeOpacity: number = 1;
 
-    @ProxyPropertyOnWrite('node', 'strokeWidth')
+    @ActionOnSet<Border>({
+        changeValue(newValue) {
+            if (this.enabled) {
+                this.node.strokeWidth = newValue;
+            } else {
+                this.node.strokeWidth = 0;
+            }
+        },
+    })
     @Property
     strokeWidth: number = 1;
 
