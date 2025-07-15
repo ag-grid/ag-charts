@@ -4,7 +4,7 @@
 
 ### Open PRs for latest branch
 
-The list of open PRs for `latest` is available at https://github.com/ag-grid/ag-charts/pulls?q=is%3Apr+is%3Aopen+base%3Alatest+draft%3Afalse
+Unless I specify to review specific PRs ($ARGUMENTS), the list of open PRs for `latest` is available at https://github.com/ag-grid/ag-charts/pulls?q=is%3Apr+is%3Aopen+base%3Alatest+draft%3Afalse
 
 ### JIRA ticket search
 
