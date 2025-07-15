@@ -390,7 +390,9 @@ export class ChartTheme {
                 },
                 cornerRadius: { $ref: 'borderRadius' },
                 fillOpacity: 1,
-                padding: { $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, 0] },
+                padding: {
+                    $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, { $isUserOption: ['./fill', 5, 0] }],
+                },
                 spacing: 30,
                 listeners: {},
                 toggleSeries: true,
