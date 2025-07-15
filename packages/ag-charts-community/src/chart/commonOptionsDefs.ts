@@ -278,6 +278,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         enabled: boolean,
         position: legendPositionUnion,
         orientation: union('horizontal', 'vertical'),
+        floating: boolean,
         maxWidth: positiveNumber,
         maxHeight: positiveNumber,
         spacing: positiveNumber,
@@ -338,6 +339,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     gradientLegend: {
         enabled: boolean,
         position: legendPositionUnion,
+        floating: boolean,
         spacing: positiveNumber,
         reverseOrder: boolean,
         gradient: {

@@ -59,6 +59,9 @@ export class GradientLegend {
     position: AgChartLegendPosition = 'bottom';
 
     @Property
+    floating: boolean = false;
+
+    @Property
     reverseOrder: boolean = false;
 
     @Property
@@ -274,29 +277,31 @@ export class GradientLegend {
                 unreachable(this.position);
         }
 
-        switch (this.position) {
-            case 'left':
-            case 'left-top':
-            case 'left-bottom':
-                shrinkRect.shrink(width + this.spacing, 'left');
-                break;
-            case 'right':
-            case 'right-top':
-            case 'right-bottom':
-                shrinkRect.shrink(width + this.spacing, 'right');
-                break;
-            case 'top':
-            case 'top-left':
-            case 'top-right':
-                shrinkRect.shrink(height + this.spacing, 'top');
-                break;
-            case 'bottom':
-            case 'bottom-left':
-            case 'bottom-right':
-                shrinkRect.shrink(height + this.spacing, 'bottom');
-                break;
-            default:
-                unreachable(this.position);
+        if (!this.floating) {
+            switch (this.position) {
+                case 'left':
+                case 'left-top':
+                case 'left-bottom':
+                    shrinkRect.shrink(width + this.spacing, 'left');
+                    break;
+                case 'right':
+                case 'right-top':
+                case 'right-bottom':
+                    shrinkRect.shrink(width + this.spacing, 'right');
+                    break;
+                case 'top':
+                case 'top-left':
+                case 'top-right':
+                    shrinkRect.shrink(height + this.spacing, 'top');
+                    break;
+                case 'bottom':
+                case 'bottom-left':
+                case 'bottom-right':
+                    shrinkRect.shrink(height + this.spacing, 'bottom');
+                    break;
+                default:
+                    unreachable(this.position);
+            }
         }
 
         return { top, left };
