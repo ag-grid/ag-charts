@@ -11,12 +11,13 @@
 
 ### General Workflow
 
-1. Identify PRs to review.
+1. Identify PRs to review (see Identifying sections below.).
 2. For each PR they must (unless otherwise specified):
-    - meet the reviewable PR criteria
-    - meet the report generation pre-requisites
-3. Generate a report for each PR.
-4. Archive stale reports for closed PRs.
+    - meet the reviewable PR criteria (see Reviewable PR criteria below)
+    - meet the report generation pre-requisites (see Report Generation Pre-requisites below)
+3. Generate a report for each PR `${REPO_ROOT}/reports/pr-reviews/${PR_NUMBER}-${JIRA_ID:-none}.md` (see Report output definitions below).
+4. Archive stale reports for closed PRs (see Report output definitions below).
+5. Concisely summarize the list of reports generated (PR number + path to report).
 
 ### Identifying single/specific PRs
 
@@ -57,7 +58,7 @@ Unless I explicitly ask you to review a specific PR:
 
 ### Report file paths
 
--   Reports must have a filename of the form`${PR_NUMBER}-${JIRA_ID:-none}.md`.
+-   Reports must have a filename of the form `${PR_NUMBER}-${JIRA_ID:-none}.md`.
 -   Use `${REPO_ROOT}/reports/pr-reviews/tmp/` to store intermediate files such as the diff between the PR and the `latest` branch.
 -   Use `${REPO_ROOT}/reports/pr-reviews/` to store the final report.
 -   Use `${REPO_ROOT}/reports/pr-reviews-archive/` to store archived reports for closed PRs.
