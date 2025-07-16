@@ -645,4 +645,64 @@ describe('LineSeries', () => {
             await compare();
         });
     });
+
+    test('AG-8290 label boxing', async () => {
+        chart = AgCharts.create(
+            prepareTestOptions({
+                data: [
+                    { month: 'Jan', value: 29.9 },
+                    { month: 'Apr', value: 129.2 },
+                    { month: 'Jul', value: 135.6 },
+                    { month: 'Oct', value: 194.1 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'month',
+                        yKey: 'value',
+                        label: {
+                            itemStyler: (params) => {
+                                if (params.datum.month === 'Jul') {
+                                    return {
+                                        border: {
+                                            stroke: 'red',
+                                            strokeWidth: 6,
+                                            strokeOpacity: 1,
+                                        },
+                                        padding: {
+                                            top: 30,
+                                            bottom: 60,
+                                            left: 40,
+                                            right: 20,
+                                        },
+                                        fontWeight: 'bold',
+                                        fill: {
+                                            type: 'gradient',
+                                            colorStops: [
+                                                { color: '#70C1FF', stop: 0.1 },
+                                                { color: '#FFD86F', stop: 0.3 },
+                                                { color: '#FF9A60', stop: 0.5 },
+                                                { color: '#D16BA5' },
+                                            ],
+                                        },
+                                    };
+                                }
+                            },
+                            enabled: true,
+                            cornerRadius: 8,
+                            fill: 'rgba(252, 255, 197)',
+                            fillOpacity: 0.7,
+                            padding: 10,
+                            border: {
+                                stroke: '#AAA',
+                                strokeWidth: 3,
+                                strokeOpacity: 0.2,
+                            },
+                        },
+                    },
+                ],
+            })
+        );
+        await compare();
+    });
 });

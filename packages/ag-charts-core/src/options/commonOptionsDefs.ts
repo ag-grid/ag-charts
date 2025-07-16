@@ -299,6 +299,6 @@ export const padding = or(number, paddingOptions);
 export const labelBoxOptionsDef: OptionsDefs<LabelBoxOptions> = {
     border: { ...strokeOptionsDef },
     cornerRadius: number,
-    padding: number,
+    padding,
     ...fillOptionsDef,
 };
