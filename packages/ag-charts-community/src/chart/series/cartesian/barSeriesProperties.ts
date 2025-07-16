@@ -6,6 +6,7 @@ import type {
     AgBarSeriesOptions,
     AgBarSeriesStyle,
     AgBarSeriesTooltipRendererParams,
+    PixelSize,
     Styler,
 } from 'ag-charts-types';
 
@@ -19,6 +20,9 @@ import { AbstractBarSeriesProperties } from './abstractBarSeries';
 class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
     @Property
     placement: AgBarSeriesLabelPlacement = 'inside-center';
+
+    @Property
+    spacing: PixelSize = 0;
 }
 
 export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeriesOptions> {

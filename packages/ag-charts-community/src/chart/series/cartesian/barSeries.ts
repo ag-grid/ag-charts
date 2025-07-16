@@ -434,7 +434,7 @@ export class BarSeries extends AbstractBarSeries<
                                   isUpward: isUpward,
                                   isVertical: !barAlongX,
                                   placement: label.placement,
-                                  padding: label.padding,
+                                  spacing: label.spacing,
                                   rect,
                               }),
                           }

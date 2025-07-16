@@ -1,5 +1,5 @@
 import type { AnyFn, IsAny, RequireOptional } from 'ag-charts-core';
-import type { AgChartLabelStyleOptions, AgChartLabelStylerParams } from 'ag-charts-types';
+import type { AgChartLabelStyleOptions, AgChartLabelStylerParams, PixelSize } from 'ag-charts-types';
 
 import type { Point } from '../scene/point';
 import type { Text } from '../scene/shape/text';
@@ -106,13 +106,13 @@ export function adjustLabelPlacement({
     isUpward,
     isVertical,
     placement,
-    padding = 0,
+    spacing = 0,
     rect,
 }: {
     placement: BarLabelPlacement;
     isUpward: boolean;
     isVertical: boolean;
-    padding?: number;
+    spacing?: PixelSize;
     rect: Bounds;
 }): Omit<LabelDatum, 'text'> {
     let x = rect.x + rect.width / 2;
@@ -128,12 +128,12 @@ export function adjustLabelPlacement({
         if (isVertical) {
             const y0 = isUpward ? rect.y + rect.height : rect.y;
             const height = rect.height * barDirection;
-            y = y0 + height * displacementRatio + padding * textAlignment * barDirection;
+            y = y0 + height * displacementRatio + spacing * textAlignment * barDirection;
             textBaseline = textAlignment === barDirection ? 'top' : 'bottom';
         } else {
             const x0 = isUpward ? rect.x : rect.x + rect.width;
             const width = rect.width * barDirection;
-            x = x0 + width * displacementRatio + padding * textAlignment * barDirection;
+            x = x0 + width * displacementRatio + spacing * textAlignment * barDirection;
             textAlign = textAlignment === barDirection ? 'left' : 'right';
         }
     }

@@ -24,7 +24,7 @@ export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefa
     /** Where to render series labels relative to the segments. */
     placement?: AgBarSeriesLabelPlacement;
     /** Distance between the shape edges and the text. */
-    padding?: PixelSize;
+    spacing?: PixelSize;
 }
 
 export interface AgBarSeriesItemStylerParams<TDatum, TContext = ContextDefault>

@@ -427,7 +427,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, label } = this.properties;
         const labelParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName };
 
-        const { placement, padding } = label;
+        const { placement, spacing: padding } = label;
         const paddingDirection = placement === 'outside' ? 1 : -1;
         const labelPadding = padding * paddingDirection;
 

@@ -433,7 +433,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                         isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
                         isVertical: !barAlongX,
                         placement: label.placement,
-                        padding: label.padding,
+                        spacing: label.spacing,
                         rect,
                     }),
                 },
