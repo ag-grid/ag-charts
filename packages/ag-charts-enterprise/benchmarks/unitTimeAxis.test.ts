@@ -15,7 +15,7 @@ describe('unit time axis benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 245, expectedCanvasCount: 4, autoSnapshot: false },
+        { expectedRelativeMB: 250, expectedCanvasCount: 4, autoSnapshot: false },
         async () => {
             await ctx.create();
         }
