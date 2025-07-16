@@ -55,7 +55,7 @@ export function aggregateLineData(
 
     const [d0, d1] = aggregationDomain(scale, domain);
 
-    let maxRange = aggregationRangeFittingPoints(xValues, MAX_POINTS);
+    let maxRange = aggregationRangeFittingPoints(xValues);
 
     const { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange);
 
