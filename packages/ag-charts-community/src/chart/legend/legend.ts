@@ -590,9 +590,10 @@ export class Legend extends BaseProperties {
         this.containerNode.strokeOpacity = containerStyles.strokeOpacity;
         this.containerNode.strokeWidth = containerStyles.strokeWidth;
 
-        // Grow the desired legend size with the container
-        width += containerStyles.strokeWidth * 2 + containerStyles.padding.left + containerStyles.padding.right;
-        height += containerStyles.strokeWidth * 2 + containerStyles.padding.top + containerStyles.padding.bottom;
+        // Shrink the desired legend size by the container, since the items layout is constrained by the inner
+        // dimensions of the container
+        width -= containerStyles.strokeWidth * 2 + containerStyles.padding.left + containerStyles.padding.right;
+        height -= containerStyles.strokeWidth * 2 + containerStyles.padding.top + containerStyles.padding.bottom;
 
         return [width, height];
     }
