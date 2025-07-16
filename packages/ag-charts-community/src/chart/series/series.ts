@@ -378,7 +378,7 @@ export abstract class Series<
         this.usesPlacedLabels = usesPlacedLabels;
         this.pickModes = pickModes;
 
-        this.cleanup.register(this.ctx?.eventsHub.on('highlight:change', (event) => this.hasChangesOnHighlight(event)));
+        this.cleanup.register(this.ctx?.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)));
     }
 
     attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined) {
@@ -395,18 +395,26 @@ export abstract class Series<
         annotationNode?.removeChild(this.annotationGroup);
     }
 
-    _declarationOrder: number = -1;
-    setSeriesIndex(index: number) {
-        if (index === this._declarationOrder) return false;
+    declarationOrder: number = -1;
+    private _broughtToFront = false;
+    setSeriesIndex(index: number, forceUpdate = false) {
+        const bringToFront =
+            this.properties.highlight.bringToFront &&
+            this.isSeriesHighlighted(this.ctx.highlightManager.getActiveHighlight());
+        if (!forceUpdate && index === this.declarationOrder && bringToFront === this._broughtToFront) return false;
 
-        this._declarationOrder = index;
-
-        this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.FOREGROUND];
-        this.highlightGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.HIGHLIGHT];
-        this.labelGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.LABEL];
-        this.annotationGroup.zIndex = index;
+        this.declarationOrder = index;
+        this._broughtToFront = bringToFront;
+        this.setZIndex(bringToFront ? Number.MAX_VALUE : index);
 
         return true;
+    }
+
+    setZIndex(zIndex: number) {
+        this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.FOREGROUND];
+        this.highlightGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.HIGHLIGHT];
+        this.labelGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.LABEL];
+        this.annotationGroup.zIndex = zIndex;
     }
 
     renderToOffscreenCanvas() {
@@ -612,12 +620,15 @@ export abstract class Series<
         return HighlightState.OtherSeries;
     }
 
-    private hasChangesOnHighlight(event: HighlightChangeEvent) {
+    protected onChangeHighlight(event: HighlightChangeEvent) {
         const previousHighlightedDatum = event.previousHighlight;
         const currentHighlightedDatum = event.currentHighlight;
 
         const currentHighlightState = this.getHighlightState(currentHighlightedDatum);
         const previousHighlightState = this.getHighlightState(previousHighlightedDatum);
+
+        // Force re-check of layer z-index
+        this.setSeriesIndex(this.declarationOrder);
 
         if (currentHighlightState === previousHighlightState) {
             this.hasHighlightChange = false;
@@ -632,7 +643,7 @@ export abstract class Series<
             !isEmptyObject(unhighlightedSeries);
     }
 
-    protected isSeriesHighlighted(highlightedDatum?: HighlightNodeDatum, _legendItemValues?: string[]) {
+    protected isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, _legendItemValues?: string[]) {
         return highlightedDatum?.series === this;
     }
 

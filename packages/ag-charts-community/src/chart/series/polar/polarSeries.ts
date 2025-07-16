@@ -179,14 +179,12 @@ export abstract class PolarSeries<
         );
     }
 
-    override setSeriesIndex(index: number) {
-        if (!super.setSeriesIndex(index)) return false;
+    override setZIndex(zIndex: number) {
+        super.setZIndex(zIndex);
 
-        this.contentGroup.zIndex = [index, PolarZIndexMap.FOREGROUND];
-        this.highlightGroup.zIndex = [index, PolarZIndexMap.HIGHLIGHT];
-        this.labelGroup.zIndex = [index, PolarZIndexMap.LABEL];
-
-        return true;
+        this.contentGroup.zIndex = [zIndex, PolarZIndexMap.FOREGROUND];
+        this.highlightGroup.zIndex = [zIndex, PolarZIndexMap.HIGHLIGHT];
+        this.labelGroup.zIndex = [zIndex, PolarZIndexMap.LABEL];
     }
 
     override resetAnimation(phase: ChartAnimationPhase): void {

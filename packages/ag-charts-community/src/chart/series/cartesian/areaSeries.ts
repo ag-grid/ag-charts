@@ -174,20 +174,22 @@ export class AreaSeries extends CartesianSeries<
     private _isStacked: boolean | undefined = undefined;
     override setSeriesIndex(index: number) {
         const isStacked = this.isStacked();
+        const isStackedChanged = isStacked === this._isStacked;
+        this._isStacked = isStackedChanged;
 
-        if (!super.setSeriesIndex(index) && this._isStacked === isStacked) return false;
+        return super.setSeriesIndex(index, isStackedChanged);
+    }
 
-        this._isStacked = isStacked;
+    override setZIndex(zIndex: number) {
+        super.setZIndex(zIndex);
 
-        if (isStacked) {
-            this.backgroundGroup.zIndex = [SeriesZIndexMap.BACKGROUND, index];
-            this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.FOREGROUND];
+        if (this.isStacked()) {
+            this.backgroundGroup.zIndex = [SeriesZIndexMap.BACKGROUND, zIndex];
+            this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.FOREGROUND];
         } else {
-            this.backgroundGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.FOREGROUND, 0];
-            this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.FOREGROUND, 1];
+            this.backgroundGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.FOREGROUND, 0];
+            this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, zIndex, SeriesContentZIndexMap.FOREGROUND, 1];
         }
-
-        return true;
     }
 
     override async processData(dataController: DataController) {

@@ -230,12 +230,10 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         seriesContentNode?.removeChild(this.backgroundGroup);
     }
 
-    override setSeriesIndex(index: number) {
-        if (!super.setSeriesIndex(index)) return false;
+    override setZIndex(zIndex: number) {
+        super.setZIndex(zIndex);
 
-        this.backgroundGroup.zIndex = [PolarZIndexMap.BACKGROUND, index];
-
-        return true;
+        this.backgroundGroup.zIndex = [PolarZIndexMap.BACKGROUND, zIndex];
     }
 
     protected override nodeFactory(): Sector {
