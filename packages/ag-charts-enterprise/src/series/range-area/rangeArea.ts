@@ -374,7 +374,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         series: RangeAreaSeries;
     }): RangeAreaLabelDatum {
         const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, label } = this.properties;
-        const { placement, spacing = 10 } = label;
+        const { placement } = label;
+        const spacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
 
         let actualItemId = itemId;
         if (inverted) {

@@ -398,6 +398,7 @@ export class BarSeries extends AbstractBarSeries<
 
             const lengthRatioMultiplier = this.shouldFlipXY() ? rect.height : rect.width;
 
+            const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
             return {
                 series: this,
                 itemId: phantom ? createDatumId(yKey, phantom) : yKey,
@@ -434,7 +435,7 @@ export class BarSeries extends AbstractBarSeries<
                                   isUpward: isUpward,
                                   isVertical: !barAlongX,
                                   placement: label.placement,
-                                  spacing: label.spacing,
+                                  spacing,
                                   rect,
                               }),
                           }

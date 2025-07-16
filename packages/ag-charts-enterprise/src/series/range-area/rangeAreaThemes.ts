@@ -22,7 +22,7 @@ export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>[
         label: {
             enabled: false,
             placement: 'outside',
-            padding: 10,
+            padding: 10, // compatibility with old `padding` property (now named `spacing`).
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },

@@ -410,6 +410,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 }
             );
 
+            const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
             const nodeDatum: WaterfallNodeDatum = {
                 index: datumIndex,
                 series: this,
@@ -433,7 +434,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                         isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
                         isVertical: !barAlongX,
                         placement: label.placement,
-                        spacing: label.spacing,
+                        spacing,
                         rect,
                     }),
                 },

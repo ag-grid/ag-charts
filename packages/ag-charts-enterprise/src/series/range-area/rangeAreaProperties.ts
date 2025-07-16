@@ -37,7 +37,7 @@ class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> 
     placement: AgRangeAreaSeriesLabelPlacement = 'outside';
 
     @Property
-    spacing: PixelSize = 6;
+    spacing: PixelSize = 0;
 }
 
 export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSeriesOptions> {

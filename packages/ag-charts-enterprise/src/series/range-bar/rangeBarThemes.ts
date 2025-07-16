@@ -17,6 +17,7 @@ export const RANGE_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'range-bar'>['t
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'chartBackgroundColor' },
             placement: 'inside',
+            padding: 6, // compatibility with old `padding` property (now named `spacing`).
         },
         highlight: _ModuleSupport.multiSeriesHighlightStyle(),
     },

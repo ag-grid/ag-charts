@@ -46,7 +46,7 @@ class WaterfallSeriesLabel extends Label<AgWaterfallSeriesLabelFormatterParams> 
     placement: AgWaterfallSeriesLabelPlacement = 'outside-end';
 
     @Property
-    spacing: PixelSize = 6;
+    spacing: PixelSize = 0;
 }
 
 export class WaterfallSeriesItem extends BaseProperties {

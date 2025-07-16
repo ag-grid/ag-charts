@@ -27,6 +27,7 @@ function itemTheme(
             color: { $ref: 'textColor' as const },
             formatter: undefined,
             placement: 'outside-end' as const,
+            padding: 6, // compatibility with old `padding` property (now named `spacing`).
         },
     };
 }
