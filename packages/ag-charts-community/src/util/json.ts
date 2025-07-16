@@ -264,7 +264,11 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             }
 
             if (isProperties(currentValue)) {
-                targetAny[property].set(newValue);
+                if (newValue === undefined) {
+                    currentValue.clear();
+                } else {
+                    currentValue.set(newValue);
+                }
             } else if (newValueType === 'object' && property !== 'context') {
                 if (!(property in targetAny)) {
                     Logger.warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
