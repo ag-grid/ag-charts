@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { AgCartesianChartOptions, type AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    AgCartesianChartOptions,
+    type AgChartOptions,
+    AgCharts,
+    AgRangeBarSeriesLabelPlacement,
+} from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -195,11 +200,11 @@ describe('RangeBarSeries', () => {
         ],
     };
 
-    const compare = async () => {
+    const compare = async (options = IMAGE_SNAPSHOT_DEFAULTS) => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(options);
     };
 
     function switchSeriesType<T extends AgCartesianChartOptions>(
@@ -702,6 +707,42 @@ describe('RangeBarSeries', () => {
             await waitForChartStability(chart);
 
             await compare();
+        });
+    });
+
+    describe('AG-8290', () => {
+        async function testCase(
+            labelOpts: { placement: AgRangeBarSeriesLabelPlacement; padding?: number; spacing?: number },
+            name: string
+        ) {
+            chart = AgCharts.create(
+                prepareEnterpriseTestOptions({
+                    data: [
+                        { x: '1', yL: 140, yH: 160 },
+                        { x: '2', yL: 124, yH: 141 },
+                        { x: '3', yL: 112, yH: 165 },
+                        { x: '4', yL: 118, yH: 132 },
+                    ],
+                    series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'yL', yHighKey: 'yH', label: { ...labelOpts } }],
+                })
+            );
+            await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
+        }
+        describe('spacing backward compatibility', () => {
+            test('inside', async () => {
+                await testCase({ placement: 'inside', padding: 30 }, 'AG-8290-range-bar-label-spacing-inside');
+            });
+            test('outside', async () => {
+                await testCase({ placement: 'outside', padding: 30 }, 'AG-8290-range-bar-label-spacing-outside');
+            });
+            /*
+            test('inside', async () => {
+                await testCase({ placement: 'inside', spacing: 30 }, 'AG-8290-range-bar-label-spacing-inside');
+            });
+            test('outside', async () => {
+                await testCase({ placement: 'outside', spacing: 30 }, 'AG-8290-range-bar-label-spacing-outside');
+            });
+            //*/
         });
     });
 });

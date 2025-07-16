@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type {
+    AgBarSeriesLabelPlacement,
+    AgBarSeriesOptions,
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgChartOptions,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import {
@@ -664,6 +670,54 @@ describe('BarSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    describe('AG-8290', () => {
+        async function testCase(
+            labelOpts: { placement: AgBarSeriesLabelPlacement; padding?: number; spacing?: number },
+            name: string
+        ) {
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    data: [
+                        { x: '1', y: 140 },
+                        { x: '2', y: 124 },
+                        { x: '3', y: 112 },
+                        { x: '4', y: 118 },
+                    ],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { ...labelOpts } }],
+                })
+            );
+            await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
+        }
+        describe('spacing backward compatibility', () => {
+            test('inside-start', async () => {
+                await testCase({ placement: 'inside-start', padding: 30 }, 'AG-8290-bar-label-spacing-inside-start');
+            });
+            test('inside-end', async () => {
+                await testCase({ placement: 'inside-end', padding: 30 }, 'AG-8290-bar-label-spacing-inside-end');
+            });
+            test('outside-start', async () => {
+                await testCase({ placement: 'outside-start', padding: 30 }, 'AG-8290-bar-label-spacing-outside-start');
+            });
+            test('outside-end', async () => {
+                await testCase({ placement: 'outside-end', padding: 30 }, 'AG-8290-bar-label-spacing-outside-end');
+            });
+            /*
+            test('inside-start', async () => {
+                await testCase({ placement: 'inside-start', spacing: 30 }, 'AG-8290-bar-label-spacing-inside-start');
+            });
+            test('inside-end', async () => {
+                await testCase({ placement: 'inside-end', spacing: 30 }, 'AG-8290-bar-label-spacing-inside-end');
+            });
+            test('outside-start', async () => {
+                await testCase({ placement: 'outside-start', spacing: 30 }, 'AG-8290-bar-label-spacing-outside-start');
+            });
+            test('outside-end', async () => {
+                await testCase({ placement: 'outside-end', spacing: 30 }, 'AG-8290-bar-label-spacing-outside-end');
+            });
+            //*/
         });
     });
 });
