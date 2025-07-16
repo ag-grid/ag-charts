@@ -26,7 +26,7 @@ import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group'
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import { Selection } from '../../scene/selection';
-import { Text, type TextBoxingProperties, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
+import { type TextBoxingProperties, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { callWithContext } from '../../util/callbackCache';
 import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
