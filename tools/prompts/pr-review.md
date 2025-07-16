@@ -1,5 +1,12 @@
 # PR Review Instructions
 
+## General Context
+
+-   The `ag-charts` project is a monorepo with multiple packages.
+-   The `ag-charts-types` package is the public API contract for the `ag-charts` project.
+-   Release branches are named `b12.0.0` and follow semantic versioning.
+    -   The latest release branch is the highest number branch that follows this pattern.
+
 ## Workflows and criteria
 
 ### General Workflow
@@ -94,8 +101,8 @@ For each PR, review and critique the following:
 
 -   For stakeholder attention section:
     -   Breaking changes for users, focusing on:
-        -   Contract changes in our public API contract in `ag-charts-types`.
-        -   Behavioral changes elsewhere.
-        -   DO NOT include other interface changes as we don't support users depending on these.
+        -   Contract changes in our public API contract in `ag-charts-types` since the latest release.
+        -   Behavioral changes in `ag-charts-community` or `ag-charts-enterprise`.
+        -   DO NOT include other interface or contract changes as we don't support users depending on these or writing custom code against these.
     -   Points of interest for the QA team.
     -   Points of interest for the Product Manager.
