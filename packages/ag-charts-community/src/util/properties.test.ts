@@ -82,10 +82,10 @@ describe('BaseProperties', () => {
         }
 
         const instance = new MyClass();
-        instance.set({ 
-            prop1: 'value1', 
+        instance.set({
+            prop1: 'value1',
             prop2: 42,
-            nested: { nestedValue: 'nested' }
+            nested: { nestedValue: 'nested' },
         });
 
         // Verify properties are set

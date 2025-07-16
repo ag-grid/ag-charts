@@ -501,7 +501,7 @@ describe('json module', () => {
             }
 
             const target = new TestProps();
-            
+
             // Set initial values
             jsonApply(target, { nested: { value: 'test' } });
             expect(target.nested.value).toBe('test');
@@ -509,7 +509,7 @@ describe('json module', () => {
             // Apply undefined - should clear the nested properties
             jsonApply(target, { nested: undefined });
             expect(target.nested.value).toBeUndefined();
-            
+
             // Verify no console warnings
             expect(console.warn).not.toHaveBeenCalled();
         });
