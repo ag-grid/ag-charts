@@ -17,7 +17,7 @@ import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../ut
 import { BBox } from '../bbox';
 import { SceneRefChangeDetection } from '../changeDetectable';
 import { Group } from '../group';
-import type { IScene, RenderContext } from '../node';
+import type { IScene, NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { DebugSelectors } from '../sceneDebug';
 import { Rotatable, Translatable } from '../transformable';
@@ -71,9 +71,10 @@ export class Text<D = any> extends Shape<D> {
             this.lines = [];
             this.richText ??= new Group();
             this.richText.setScene(this.scene);
-            this.richText.append(this.text.map(() => new Text()));
+            this.richText.append(this.text.map(() => new Text({ trimText: false })));
         } else {
-            this.lines = this.text?.split('\n') ?? [];
+            const lines = this.text?.split('\n') ?? [];
+            this.lines = this.trimText ? lines.map((line) => line.trim()) : lines;
         }
     }
 
@@ -106,6 +107,12 @@ export class Text<D = any> extends Shape<D> {
 
     private boxing?: Rect;
     private boxPadding: Padding = 0;
+    private readonly trimText: boolean;
+
+    constructor(options?: NodeOptions & { trimText?: boolean }) {
+        super(options);
+        this.trimText = options?.trimText ?? true;
+    }
 
     static computeBBox(
         lines: string | string[],

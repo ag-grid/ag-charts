@@ -286,7 +286,7 @@ describe('Text', () => {
                     } else if (breakWord) {
                         wrapping = 'always';
                     }
-                    textNode.text = TextWrapper.wrapText(textNode.text ?? '', {
+                    textNode.text = TextWrapper.wrapText((textNode.text as string) ?? '', {
                         maxWidth,
                         maxHeight: truncate ? maxHeight : Infinity,
                         font: textNode,
