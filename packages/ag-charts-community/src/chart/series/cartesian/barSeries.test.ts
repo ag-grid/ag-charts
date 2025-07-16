@@ -704,7 +704,6 @@ describe('BarSeries', () => {
             test('outside-end', async () => {
                 await testCase({ placement: 'outside-end', padding: 30 }, 'AG-8290-bar-label-spacing-outside-end');
             });
-            /*
             test('inside-start', async () => {
                 await testCase({ placement: 'inside-start', spacing: 30 }, 'AG-8290-bar-label-spacing-inside-start');
             });
@@ -717,7 +716,6 @@ describe('BarSeries', () => {
             test('outside-end', async () => {
                 await testCase({ placement: 'outside-end', spacing: 30 }, 'AG-8290-bar-label-spacing-outside-end');
             });
-            //*/
         });
     });
 });

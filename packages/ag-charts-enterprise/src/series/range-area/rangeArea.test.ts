@@ -495,14 +495,12 @@ describe('RangeAreaSeries', () => {
             test('outside', async () => {
                 await testCase({ placement: 'outside', padding: 30 }, 'AG-8290-range-area-label-spacing-outside');
             });
-            /*
             test('inside', async () => {
                 await testCase({ placement: 'inside', spacing: 30 }, 'AG-8290-range-area-label-spacing-inside');
             });
             test('outside', async () => {
                 await testCase({ placement: 'outside', spacing: 30 }, 'AG-8290-range-area-label-spacing-outside');
             });
-            //*/
         });
     });
 });

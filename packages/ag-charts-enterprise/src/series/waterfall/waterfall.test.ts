@@ -524,20 +524,27 @@ describe('WaterfallSeries', () => {
                     'AG-8290-waterfall-label-spacing-outside-end'
                 );
             });
-            /*
             test('inside-start', async () => {
-                await testCase({ placement: 'inside-start', spacing: 30 }, 'AG-8290-waterfall-label-spacing-inside-start');
+                await testCase(
+                    { placement: 'inside-start', spacing: 30 },
+                    'AG-8290-waterfall-label-spacing-inside-start'
+                );
             });
             test('inside-end', async () => {
                 await testCase({ placement: 'inside-end', spacing: 30 }, 'AG-8290-waterfall-label-spacing-inside-end');
             });
             test('outside-start', async () => {
-                await testCase({ placement: 'outside-start', spacing: 30 }, 'AG-8290-waterfall-label-spacing-outside-start');
+                await testCase(
+                    { placement: 'outside-start', spacing: 30 },
+                    'AG-8290-waterfall-label-spacing-outside-start'
+                );
             });
             test('outside-end', async () => {
-                await testCase({ placement: 'outside-end', spacing: 30 }, 'AG-8290-waterfall-label-spacing-outside-end');
+                await testCase(
+                    { placement: 'outside-end', spacing: 30 },
+                    'AG-8290-waterfall-label-spacing-outside-end'
+                );
             });
-            //*/
         });
     });
 });
