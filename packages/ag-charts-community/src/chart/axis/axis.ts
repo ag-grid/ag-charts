@@ -26,7 +26,7 @@ import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group'
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import { Selection } from '../../scene/selection';
-import { type TextBoxingProperties, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
+import { Text, type TextBoxingProperties, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { callWithContext } from '../../util/callbackCache';
 import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
@@ -34,6 +34,7 @@ import { deepFreeze, mergeDefaults } from '../../util/object';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
+import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -58,6 +59,7 @@ export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties
     rotation: number;
     text: string;
     textBaseline: CanvasTextBaseline;
+    textUntruncated?: string;
     visible: boolean;
     x: number;
     y: number;
@@ -294,10 +296,27 @@ export abstract class Axis<
     ) {
         this.range = this.scale.range.slice() as [number, number];
         this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
+        this.cleanup.register(
+            this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e))
+        );
     }
 
     resetAnimation(_phase: ChartAnimationPhase) {
         // Override in classes
+    }
+
+    private onMouseMove(event: MouseWidgetEvent<'mousemove'>) {
+        const node: Node<LabelNodeDatum> | undefined = this.tickLabelGroup.pickNode(event.currentX, event.currentY);
+        const { textUntruncated: title = undefined } = node?.datum ?? {};
+        if (node?.datum?.textUntruncated != null) {
+            this.moduleCtx.tooltipManager.updateTooltip(
+                this.id,
+                { canvasX: event.currentX, canvasY: event.currentY, showArrow: false },
+                [{ type: 'structured', title }]
+            );
+        } else {
+            this.moduleCtx.tooltipManager.removeTooltip(this.id);
+        }
     }
 
     private attachCrossLine(crossLine: CrossLine) {
