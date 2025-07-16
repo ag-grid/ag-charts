@@ -9,6 +9,7 @@ import {
     constant,
     date,
     fontOptionsDef,
+    labelBoxOptionsDef,
     number,
     or,
     positiveNumber,
@@ -106,6 +107,7 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
                 rotation: number,
                 spacing: number,
                 ...fontOptionsDef,
+                ...labelBoxOptionsDef,
             },
             tick: {
                 enabled: boolean,

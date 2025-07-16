@@ -1,14 +1,5 @@
-import { createSvgElement, isDefined } from 'ag-charts-core';
-import type {
-    CssColor,
-    FontFamily,
-    FontSize,
-    FontStyle,
-    FontWeight,
-    Opacity,
-    Padding,
-    PixelSize,
-} from 'ag-charts-types';
+import { type RequireOptional, createSvgElement, isDefined } from 'ag-charts-core';
+import type { FontFamily, FontSize, FontStyle, FontWeight, Opacity, Padding, PixelSize } from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
@@ -36,7 +27,7 @@ export interface TextBoxingProperties {
     fill?: ShapeColor;
     fillOpacity?: Opacity;
     border?: {
-        stroke?: CssColor;
+        stroke?: ShapeColor;
         strokeWidth?: PixelSize;
         strokeOpacity?: Opacity;
     };
@@ -326,6 +317,25 @@ export class Text<D = any> extends Shape<D> {
             this.boxing.destroy();
             this.boxing = undefined;
         }
+    }
+
+    getBoxingProperties(): TextBoxingProperties {
+        const {
+            fill = undefined,
+            fillOpacity = undefined,
+            cornerRadius = undefined,
+            stroke = undefined,
+            strokeWidth = undefined,
+            strokeOpacity = undefined,
+        } = this.boxing ?? {};
+
+        return {
+            border: { stroke, strokeWidth, strokeOpacity },
+            cornerRadius,
+            fill,
+            fillOpacity,
+            padding: this.boxPadding,
+        } satisfies RequireOptional<TextBoxingProperties>;
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
