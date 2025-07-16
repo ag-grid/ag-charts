@@ -10,6 +10,7 @@ import type {
     AgImageFill,
     AgLineHighlightStyleOptions,
     AgPatternColor,
+    BorderOptions,
     CssColor,
     FillOptions,
     FontOptions,
@@ -296,6 +297,13 @@ export const paddingOptions = optionsDefs<PaddingOptions>(
     'padding object'
 );
 export const padding = or(number, paddingOptions);
+
+export const borderOptionsDef: OptionsDefs<BorderOptions> = {
+    enabled: boolean,
+    stroke: color,
+    strokeWidth: positiveNumber,
+    strokeOpacity: ratio,
+};
 
 export const labelBoxOptionsDef: OptionsDefs<LabelBoxOptions> = {
     border: { ...strokeOptionsDef },

@@ -1,4 +1,4 @@
-import type { AgColorType, FillOptions, Padding, StrokeOptions } from '../series/cartesian/commonOptions';
+import type { AgColorType, BorderOptions, Padding } from '../series/cartesian/commonOptions';
 import type { Formatter } from './callbackOptions';
 import type { AgPreventableEvent } from './eventOptions';
 import type {
@@ -11,6 +11,7 @@ import type {
     FontWeight,
     Opacity,
     PixelSize,
+    Ratio,
 } from './types';
 
 export type AgChartLegendPosition =
@@ -120,7 +121,7 @@ export interface AgChartLegendListeners<TContext = ContextDefault> {
     legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent<TContext>) => void;
 }
 
-export interface AgChartLegendOptions<TContext = ContextDefault> extends FillOptions {
+export interface AgChartLegendOptions<TContext = ContextDefault> {
     /** Whether to show the legend. By default, the chart displays a legend when there is more than one series present. */
     enabled?: boolean;
     /** Where the legend should show in relation to the chart. */
@@ -137,9 +138,13 @@ export interface AgChartLegendOptions<TContext = ContextDefault> extends FillOpt
     /** Used to constrain the height of the legend. */
     maxHeight?: PixelSize;
     /** The border around the legend. */
-    border?: StrokeOptions;
+    border?: BorderOptions;
     /** The corner radius of the legend. */
     cornerRadius?: PixelSize;
+    /** The colour of the legend fill. */
+    fill?: CssColor;
+    /** The opacity of the fill colour. */
+    fillOpacity?: Ratio;
     /** The padding between the border and legend items. */
     padding?: Padding;
     /** The spacing in pixels to use outside the legend. */

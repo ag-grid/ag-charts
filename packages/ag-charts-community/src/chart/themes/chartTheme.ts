@@ -305,17 +305,13 @@ export class ChartTheme {
             },
             seriesArea: {
                 border: {
+                    enabled: false,
                     stroke: { $ref: 'foregroundColor' },
                     strokeOpacity: 1,
-                    strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
+                    strokeWidth: 1,
                 },
-                cornerRadius: 4,
-                padding: {
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    left: 0,
-                },
+                cornerRadius: { $ref: 'borderRadius' },
+                padding: { $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, 0] },
             },
             keyboard: { enabled: true },
             title: {
@@ -388,14 +384,15 @@ export class ChartTheme {
                 },
                 floating: false,
                 border: {
+                    enabled: false,
                     stroke: { $foregroundBackgroundMix: 0.25 },
                     strokeOpacity: 1,
-                    strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
+                    strokeWidth: 1,
                 },
-                cornerRadius: 4,
+                cornerRadius: { $ref: 'borderRadius' },
                 fillOpacity: 1,
                 padding: {
-                    $isUserOption: [['./fill', './border/stroke', './border/strokeWidth'], 5, 0],
+                    $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, { $isUserOption: ['./fill', 5, 0] }],
                 },
                 spacing: 30,
                 listeners: {},

@@ -18,7 +18,6 @@ import type {
     FontWeight,
     Formatter,
     Padding,
-    StrokeOptions,
 } from 'ag-charts-types';
 
 import type { HighlightNodeDatum, LegendChangeEvent } from '../../core/eventsHub';
@@ -31,6 +30,7 @@ import { Selection } from '../../scene/selection';
 import { Rect } from '../../scene/shape/rect';
 import { Transformable } from '../../scene/transformable';
 import { isImageFill, isPatternFill } from '../../scene/util/fill';
+import { Border } from '../../util/border';
 import { callWithContext } from '../../util/callbackCache';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties, Property } from '../../util/properties';
@@ -149,17 +149,6 @@ class LegendListeners extends BaseProperties implements AgChartLegendListeners {
 
     @Property
     legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent) => void;
-}
-
-class Border extends BaseProperties implements StrokeOptions {
-    @Property
-    stroke: string = 'black';
-
-    @Property
-    strokeOpacity: number = 1;
-
-    @Property
-    strokeWidth: number = 0;
 }
 
 const fillGradientDefaults: RequiredInternalAgGradientColor = {
@@ -290,7 +279,7 @@ export class Legend extends BaseProperties {
     preventHidingAll?: boolean;
 
     @Property
-    border = new Border();
+    border = new Border(this.containerNode);
 
     @Property
     cornerRadius: number = 0;
@@ -586,9 +575,6 @@ export class Legend extends BaseProperties {
         this.containerNode.fill = containerStyles.fill;
         this.containerNode.fillOpacity = containerStyles.fillOpacity;
         this.containerNode.cornerRadius = containerStyles.cornerRadius;
-        this.containerNode.stroke = containerStyles.stroke;
-        this.containerNode.strokeOpacity = containerStyles.strokeOpacity;
-        this.containerNode.strokeWidth = containerStyles.strokeWidth;
 
         // Shrink the desired legend size by the container, since the items layout is constrained by the inner
         // dimensions of the container
@@ -913,7 +899,7 @@ export class Legend extends BaseProperties {
             },
             stroke,
             strokeOpacity,
-            strokeWidth,
+            strokeWidth: this.border.enabled ? strokeWidth : 0,
         };
     }
 

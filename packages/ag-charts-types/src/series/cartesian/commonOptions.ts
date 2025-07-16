@@ -190,6 +190,8 @@ export interface PaddingOptions {
     left?: PixelSize;
 }
 
+export interface BorderOptions extends Toggleable, StrokeOptions {}
+
 /**
  * Represents toggleable options for chart elements.
  */
