@@ -667,7 +667,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             node.text = datum.text;
             node.textBaseline = datum.textBaseline;
             node.textAlign = datum.textAlign ?? 'center';
-            node.pointerEvents = datum.truncated ? PointerEvents.All : PointerEvents.None;
+            node.pointerEvents = datum.textUntruncated == null ? PointerEvents.None : PointerEvents.All;
             node.setFont(datum);
             node.setBoxing(datum);
         });
