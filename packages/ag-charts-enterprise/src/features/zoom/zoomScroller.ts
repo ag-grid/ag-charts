@@ -57,7 +57,7 @@ export class ZoomScroller {
         props: ZoomProperties,
         bbox: _ModuleSupport.BBox,
         oldZoom: DefinedZoomState
-    ): DefinedZoomState {
+    ): DefinedZoomState | undefined {
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
         const canvasX = event.offsetX + bbox.x;
@@ -69,6 +69,9 @@ export class ZoomScroller {
         let newZoom = definedZoomState(oldZoom);
         newZoom.x.max += isScalingX ? scrollingStep * dir * dx(oldZoom) : 0;
         newZoom.y.max += isScalingY ? scrollingStep * dir * dy(oldZoom) : 0;
+
+        // @todo(AG-15397) - We don't have a way to normalize this zoom yet, so we'll just discard the zoom event
+        if (newZoom.x.max < newZoom.x.min || newZoom.y.max < newZoom.y.min) return;
 
         if (isScalingX) {
             newZoom.x = scaleZoomAxisWithAnchor(newZoom.x, oldZoom.x, anchorPointX, origin.x);

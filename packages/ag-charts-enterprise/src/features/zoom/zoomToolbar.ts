@@ -5,7 +5,8 @@ import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
     DEFAULT_ANCHOR_POINT_X,
     DEFAULT_ANCHOR_POINT_Y,
-    UNIT,
+    UNIT_MAX,
+    UNIT_MIN,
     constrainAxis,
     constrainZoom,
     definedZoomState,
@@ -190,16 +191,16 @@ export class ZoomToolbar extends BaseProperties {
 
             switch (button?.value) {
                 case 'pan-start':
-                    enabled = zoom.x.min > UNIT.min;
+                    enabled = zoom.x.min > UNIT_MIN;
                     break;
                 case 'pan-end':
-                    enabled = zoom.x.max < UNIT.max;
+                    enabled = zoom.x.max < UNIT_MAX;
                     break;
                 case 'pan-left':
-                    enabled = zoom.x.min > UNIT.min;
+                    enabled = zoom.x.min > UNIT_MIN;
                     break;
                 case 'pan-right':
-                    enabled = zoom.x.max < UNIT.max;
+                    enabled = zoom.x.max < UNIT_MAX;
                     break;
                 case 'zoom-out':
                     enabled = !isZoomEqual(zoom, unitZoomState());
@@ -258,7 +259,7 @@ export class ZoomToolbar extends BaseProperties {
 
             case 'pan-end':
                 newZoom.min = newZoom.max - delta;
-                newZoom.max = UNIT.max;
+                newZoom.max = UNIT_MAX;
                 break;
 
             case 'pan-left':
@@ -306,8 +307,8 @@ export class ZoomToolbar extends BaseProperties {
                 break;
 
             case 'pan-end':
-                zoom.x.min = UNIT.max - dx(zoom);
-                zoom.x.max = UNIT.max;
+                zoom.x.min = UNIT_MAX - dx(zoom);
+                zoom.x.max = UNIT_MAX;
                 break;
 
             case 'pan-left':

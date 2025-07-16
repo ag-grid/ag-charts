@@ -564,6 +564,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             }
         } else {
             const newZoom = scroller.update(event, props, seriesRect, this.getZoom());
+            if (newZoom == null) return;
             updated = this.updateUnifiedZoom(newZoom);
         }
 
