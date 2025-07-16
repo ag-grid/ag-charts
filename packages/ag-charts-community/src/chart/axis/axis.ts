@@ -306,9 +306,11 @@ export abstract class Axis<
     }
 
     private onMouseMove(event: MouseWidgetEvent<'mousemove'>) {
-        const node: Node<LabelNodeDatum> | undefined = this.tickLabelGroup.pickNode(event.currentX, event.currentY);
-        const { textUntruncated: title = undefined } = node?.datum ?? {};
-        if (node?.datum?.textUntruncated != null) {
+        const node = this.tickLabelGroup.pickNode(event.currentX, event.currentY);
+        const datum: LabelNodeDatum | undefined = node?.datum;
+        const { textUntruncated: title = undefined } = datum ?? {};
+
+        if (title != null) {
             this.moduleCtx.tooltipManager.updateTooltip(
                 this.id,
                 { canvasX: event.currentX, canvasY: event.currentY, showArrow: false },

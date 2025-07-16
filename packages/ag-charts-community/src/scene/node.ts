@@ -152,7 +152,7 @@ export abstract class Node<D = any> {
     /**
      * Some arbitrary data bound to the node.
      */
-    get datum(): D | undefined {
+    get datum() {
         return this._datum;
     }
 
