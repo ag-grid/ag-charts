@@ -8,8 +8,8 @@ export const AGGREGATION_INDEX_Y_MIN = 2;
 export const AGGREGATION_INDEX_Y_MAX = 3;
 export const AGGREGATION_SPAN = 4;
 
-export function aggregationRangeFittingPoints(data: any[], precision: number = 1) {
-    let power = Math.ceil(Math.log2(data.length / precision)) - 1;
+export function aggregationRangeFittingPoints(data: any[]) {
+    let power = Math.ceil(Math.log2(data.length)) - 1;
     // This cap represents ~500MB for a Float64Array with 4 values per point (or half that for an Int32Array)
     // This is usually a temporary array, so actual resource usage is much lower
     power = Math.min(Math.max(power, 0), 24);
@@ -59,16 +59,17 @@ export function createAggregationIndices(
 
     for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {
         const xValue = xValues[datumIndex];
-        const yMaxValue = yMaxValues[datumIndex];
-        const yMinValue = yMinValues[datumIndex];
-        if (xValue == null || yMaxValue == null || yMinValue == null) continue;
+        if (xValue == null) continue;
 
         const xRatio = continuous
             ? aggregationXRatioForXValue(xValue, d0, d1)
             : aggregationXRatioForDatumIndex(datumIndex, domainCount);
-        const yMax: number = yMaxValue.valueOf();
-        const yMin: number = yMinValue.valueOf();
         const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
+
+        const yMaxValue = yMaxValues[datumIndex];
+        const yMinValue = yMinValues[datumIndex];
+        const yMax: number = yMaxValue != null ? yMaxValue.valueOf() : NaN;
+        const yMin: number = yMinValue != null ? yMinValue.valueOf() : NaN;
 
         const unset = indexData[aggIndex + AGGREGATION_INDEX_X_MIN] === -1;
 
@@ -80,11 +81,11 @@ export function createAggregationIndices(
             indexData[aggIndex + AGGREGATION_INDEX_X_MAX] = datumIndex;
             valueData[aggIndex + AGGREGATION_INDEX_X_MAX] = xRatio;
         }
-        if (unset || yMin < valueData[aggIndex + AGGREGATION_INDEX_Y_MIN]) {
+        if (!Number.isNaN(yMin) && (unset || yMin < valueData[aggIndex + AGGREGATION_INDEX_Y_MIN])) {
             indexData[aggIndex + AGGREGATION_INDEX_Y_MIN] = datumIndex;
             valueData[aggIndex + AGGREGATION_INDEX_Y_MIN] = yMin;
         }
-        if (unset || yMax > valueData[aggIndex + AGGREGATION_INDEX_Y_MAX]) {
+        if (!Number.isNaN(yMax) && (unset || yMax > valueData[aggIndex + AGGREGATION_INDEX_Y_MAX])) {
             indexData[aggIndex + AGGREGATION_INDEX_Y_MAX] = datumIndex;
             valueData[aggIndex + AGGREGATION_INDEX_Y_MAX] = yMax;
         }
