@@ -104,7 +104,14 @@ const zoomAnchorPoint = union('pointer', 'start', 'middle', 'end');
 
 const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     enabled: boolean,
-    text: string,
+    text: or(
+        string,
+        arrayOfDefs<any>({
+            text: required(string),
+            lineHeight: positiveNumber,
+            ...fontOptionsDef,
+        })
+    ),
     textAlign: union('left', 'center', 'right'),
     wrapping: union('never', 'always', 'hyphenate', 'on-space'),
     spacing: positiveNumber,

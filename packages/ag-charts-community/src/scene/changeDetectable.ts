@@ -2,26 +2,26 @@ import { arraysEqual } from 'ag-charts-core';
 
 type Target = { [K in string]: any } & { onChangeDetection(privateKey: string): void };
 
-type SceneChangeDetectionOptions<T = any> = {
+interface SceneChangeDetectionOptions<T = any> {
     convertor?: (o: any) => any;
     changeCb?: (o: T) => any;
     checkDirtyOnAssignment?: boolean;
     equals?: (newValue: T, oldValue: T) => boolean;
-};
+}
 
-type SceneObjectChangeDetectionOptions<T = any> = {
+interface SceneObjectChangeDetectionOptions<T = any> {
     convertor?: (o: any) => any;
     changeCb?: (o: T) => any;
     checkDirtyOnAssignment?: boolean;
     equals: (newValue: T, oldValue: T) => boolean;
-};
+}
 
-type SceneArrayChangeDetectionOptions<T = any> = {
+interface SceneArrayChangeDetectionOptions<T = any> {
     convertor?: (o: any) => any;
     changeCb?: (o: T) => any;
     checkDirtyOnAssignment?: boolean;
     equals?: never;
-};
+}
 
 export const TRIPLE_EQ = (lhs: unknown, rhs: unknown) => lhs === rhs;
 
@@ -29,13 +29,13 @@ export function SceneChangeDetection<T extends Target = any>(opts?: SceneChangeD
     return function (target: T, key: string) {
         // `target` is either a constructor (static member) or prototype (instance member)
         const privateKey = `__${key}`;
-
-        if (target[key as keyof T]) {
-            return;
-        }
-
+        if (target[key as keyof T]) return;
         prepareGetSet(target, key, privateKey, opts);
     };
+}
+
+export function SceneRefChangeDetection<T extends Target = any>(opts?: SceneChangeDetectionOptions) {
+    return SceneChangeDetection<T>(opts);
 }
 
 export function SceneObjectChangeDetection<T extends Target = any>(opts: SceneObjectChangeDetectionOptions) {

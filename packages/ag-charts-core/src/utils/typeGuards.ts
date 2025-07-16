@@ -7,7 +7,9 @@ export function isDefined<T>(val: T | undefined | null): val is T {
     return val != null;
 }
 
-export function isArray<T>(value: T | T[]): value is T[] {
+export function isArray<T>(value: T | T[]): value is T[];
+export function isArray(value: unknown): value is unknown[];
+export function isArray(value: unknown) {
     return Array.isArray(value);
 }
 

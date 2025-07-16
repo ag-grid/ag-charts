@@ -7,8 +7,8 @@ import type {
     AnyFormatterSource,
     CssColor,
     DateFormatterStyle,
-    FontSize,
     FormatterParams,
+    TextSegment,
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../../core/eventsHub';
@@ -54,9 +54,8 @@ import { NiceMode } from './axisUtil';
 export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties {
     color?: CssColor;
     tickId: string;
-    fontSize: FontSize;
     rotation: number;
-    text: string;
+    text: string | TextSegment[];
     textBaseline: CanvasTextBaseline;
     visible: boolean;
     x: number;

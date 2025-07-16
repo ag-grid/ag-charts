@@ -345,11 +345,13 @@ export class GroupedCategoryAxis extends CategoryAxis {
             }
 
             const { text = '' } = tempText;
+            const tickId = isArray(text) ? idGenerator(text.map((s) => s.text).join('')) : idGenerator(text);
+
             tickLabelLayout.push({
                 text,
+                tickId,
                 visible: true,
                 range: this.scale.range,
-                tickId: idGenerator(text),
                 color: tempText.fill as string,
                 fontFamily: tempText.fontFamily,
                 fontSize: tempText.fontSize,

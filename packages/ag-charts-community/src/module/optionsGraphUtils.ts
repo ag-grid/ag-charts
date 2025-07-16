@@ -90,7 +90,7 @@ export function getPathSafe(object: PlainObject, path: string[]) {
     return result as unknown;
 }
 
-export function setPathSafe(object: PlainObject, path: (string | number)[], value: any) {
+export function setPathSafe(object: PlainObject, path: (string | number)[], value: unknown) {
     const pathLength = path.length;
     if (pathLength === 0) return;
 
@@ -103,12 +103,9 @@ export function setPathSafe(object: PlainObject, path: (string | number)[], valu
         const nextPart = path[i + 1];
         let currentValue = result[part];
 
-        if (currentValue == null) {
-            currentValue = isNaN(Number(nextPart)) ? {} : [];
-            result[part] = currentValue;
-        } else if (!isObjectLike(currentValue)) {
+        if (currentValue == null || !isObjectLike(currentValue)) {
             // TODO: this is not the best fix, this happens when a default value is a string and the user value is an object
-            currentValue = {};
+            currentValue = isNaN(Number(nextPart)) ? {} : [];
             result[part] = currentValue;
         }
 

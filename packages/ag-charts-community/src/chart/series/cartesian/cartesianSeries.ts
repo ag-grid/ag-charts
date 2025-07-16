@@ -153,7 +153,7 @@ export interface CartesianSeriesNodeDataContext<
 export const RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD = 100;
 
 export abstract class CartesianSeries<
-    TNode extends Node,
+    TNode extends Node<any>,
     TOpts extends object,
     TProps extends CartesianSeriesProperties<TOpts>,
     TDatum extends CartesianSeriesNodeDatum,
