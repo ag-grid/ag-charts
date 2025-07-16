@@ -57,15 +57,12 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
     }
 
     override ticks(
-        {
-            interval,
-            maxTickCount,
-            tickCount = maxTickCount,
-        }: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
+        params: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
         domain?: Date[],
         visibleRange: [number, number] = [0, 1],
         { extend = false, dropInitial = false } = {}
     ): ScaleTickResult<Date> | undefined {
+        const { interval, maxTickCount, tickCount = maxTickCount } = params;
         const { bands } = this;
 
         if (!bands.length) return;
@@ -73,10 +70,10 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         this.refresh();
 
         if (interval == null) {
-            return {
-                ticks: this.getDefaultTicks(domain, tickCount, visibleRange, extend),
-                count: undefined,
-            };
+            const { ticks, tickOffset, tickEvery } = this.getDefaultTicks(domain, tickCount, visibleRange, extend);
+            let firstTickIndex = ticks.length > 0 ? this.findIndex(ticks[0]) : undefined;
+            firstTickIndex = firstTickIndex != null ? Math.floor((firstTickIndex - tickOffset) / tickEvery) : undefined;
+            return { ticks, count: undefined, firstTickIndex };
         }
 
         let start: number;
@@ -94,7 +91,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 
         const dateTicks =
             getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange, extend }) ??
-            this.getDefaultTicks(domain, tickCount, visibleRange, extend);
+            this.getDefaultTicks(domain, tickCount, visibleRange, extend).ticks;
 
         const ticks: Date[] = [];
         let lastIndex = -1;
@@ -108,10 +105,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             }
         }
 
-        return {
-            ticks,
-            count: undefined,
-        };
+        return { ticks, count: undefined, firstTickIndex: undefined };
     }
 
     stepTicks(bandStep: number, domain?: Date[], visibleRange: [number, number] = [0, 1], dropLast = true): Date[] {
@@ -143,13 +137,17 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         maxTickCount: number,
         visibleRange: [number, number],
         extend: boolean
-    ): Date[] {
+    ): { ticks: Date[]; tickOffset: number; tickEvery: number } {
         const { bands } = this;
         const tickEvery = Math.ceil(bands.length / maxTickCount);
         const tickOffset = Math.floor(tickEvery / 2);
         const bandIndices = domain ? this.bandDomainIndices(domain) : undefined;
 
-        return this.ticksEvery(bandIndices, visibleRange, tickEvery, tickOffset, extend);
+        return {
+            ticks: this.ticksEvery(bandIndices, visibleRange, tickEvery, tickOffset, extend),
+            tickOffset,
+            tickEvery,
+        };
     }
 
     private bandDomainIndices(domain: Date[]): [number, number] {

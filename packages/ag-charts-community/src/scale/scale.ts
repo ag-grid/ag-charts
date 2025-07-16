@@ -22,6 +22,9 @@ export interface ScaleTickResult<D> {
     // If you generated a tick every 2 between 0 and 5, you'd have 2.5 ticks
     // Use Math.floor to get the actual number of ticks rendered
     count: number | undefined;
+    // When rendering ticks within a visible range, this gives what the index of the first tick would be
+    // if all ticks were rendered.
+    firstTickIndex?: number;
     // Used for continuous time scale ticks
     timeInterval?: AgTimeInterval;
 }

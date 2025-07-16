@@ -2,7 +2,7 @@ import { isPlainObject } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { TickIntervals, defaultEpoch, getTickTimeInterval, isDenseInterval } from '../util/ticks';
-import { intervalRange, intervalStep } from '../util/time';
+import { intervalRange, intervalRangeStartIndex, intervalStep } from '../util/time';
 import { dateToNumber } from '../util/timeFormatDefaults';
 import { ContinuousScale } from './continuousScale';
 import type { ScaleTickParams, ScaleTickResult } from './scale';
@@ -85,9 +85,15 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
         });
         if (timeInterval == null) return;
 
+        const ticks = intervalRange(timeInterval, new Date(start), new Date(stop), { visibleRange, extend });
+        const firstTickIndex = intervalRangeStartIndex(timeInterval, new Date(start), new Date(stop), {
+            visibleRange,
+            extend,
+        });
         return {
-            ticks: intervalRange(timeInterval, new Date(start), new Date(stop), { visibleRange, extend }),
+            ticks,
             count: undefined,
+            firstTickIndex,
             timeInterval,
         };
     }

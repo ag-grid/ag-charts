@@ -28,6 +28,7 @@ import {
     intervalNext,
     intervalPrevious,
     intervalRange,
+    intervalRangeStartIndex,
     intervalUnit,
 } from '../../util/time';
 import { lowestGranularityForInterval } from '../../util/timeFormatDefaults';
@@ -472,6 +473,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             niceDomain,
             rawTicks,
             rawTickCount,
+            rawFirstTickIndex,
             generatePrimaryTicks,
             primaryTicksIndices,
             alignment,
@@ -483,6 +485,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             range,
             niceDomain,
             rawTicks,
+            rawFirstTickIndex,
             generatePrimaryTicks,
             primaryTicksIndices,
             alignment,
@@ -590,13 +593,20 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             let intervalTicks: Date[];
             switch (parentLevelMode) {
                 case ParentLevelMode.ContinuousTimeScaleTicks:
-                    intervalTicks = createTimeScaleTicks(intervalTickParams.interval, [p0, p1], pVisibleRange, true);
+                    intervalTicks = createTimeScaleTicks(
+                        intervalTickParams.interval,
+                        [p0, p1],
+                        pVisibleRange,
+                        true
+                    ).ticks;
                     break;
                 case ParentLevelMode.UnitTimeScaleTicks:
                 case ParentLevelMode.OrdinalTimeScaleTicks:
-                    intervalTicks =
-                        scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, { extend: true, dropInitial: true })
-                            ?.ticks ?? [];
+                    const scaleTicks = scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, {
+                        extend: true,
+                        dropInitial: true,
+                    });
+                    intervalTicks = scaleTicks?.ticks ?? [];
                     break;
                 case ParentLevelMode.OrdinalTimeStepTicks:
                     intervalTicks = (scale as any as OrdinalTimeScale).stepTicks(
@@ -647,7 +657,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             primaryTicksIndices = undefined;
         }
 
-        return { ticks, tickCount: undefined, primaryTicksIndices, alignment };
+        let firstTickIndex: number | undefined;
+
+        return { ticks, tickCount: undefined, firstTickIndex, primaryTicksIndices, alignment };
     }
 
     private getTicks({
@@ -704,6 +716,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         let tickDomain: D[] = niceDomain;
         let rawTicks: any[] | undefined;
         let rawTickCount: number | undefined;
+        let rawFirstTickIndex: number | undefined;
         let timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined;
         let primaryTicksIndices: Set<number> | undefined;
         let alignment: ScaleAlignment | undefined;
@@ -784,7 +797,13 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                       )
                     : undefined;
                 if (intervalTicks) {
-                    ({ ticks: rawTicks, tickCount: rawTickCount, primaryTicksIndices, alignment } = intervalTicks);
+                    ({
+                        ticks: rawTicks,
+                        tickCount: rawTickCount,
+                        firstTickIndex: rawFirstTickIndex,
+                        primaryTicksIndices,
+                        alignment,
+                    } = intervalTicks);
                 } else {
                     const intervalTickParams =
                         UnitTimeScale.is(scale) && tickParams.interval == null && timeInterval != null
@@ -794,6 +813,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
                     rawTicks = tickGeneration?.ticks ?? [];
                     rawTickCount = tickGeneration?.count;
+                    rawFirstTickIndex = tickGeneration?.firstTickIndex;
                     if (TimeScale.is(scale) || DiscreteTimeScale.is(scale)) {
                         const timeTickParams = tickParams as ScaleTickParams<
                             AgTimeInterval | AgTimeIntervalUnit | number
@@ -824,6 +844,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             niceDomain,
             rawTicks,
             rawTickCount,
+            rawFirstTickIndex,
             generatePrimaryTicks,
             primaryTicksIndices,
             alignment,
@@ -836,6 +857,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         niceDomain,
         range,
         rawTicks,
+        rawFirstTickIndex = 0,
         generatePrimaryTicks,
         primaryTicksIndices,
         alignment,
@@ -846,6 +868,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         niceDomain: D[];
         range: [number, number];
         rawTicks: any[];
+        rawFirstTickIndex: number | undefined;
         generatePrimaryTicks: boolean;
         primaryTicksIndices: Set<number> | undefined;
         alignment: ScaleAlignment | undefined;
@@ -907,6 +930,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
             ticks.push({
+                index: i + rawFirstTickIndex,
                 tick,
                 tickId,
                 tickLabel,
@@ -946,9 +970,9 @@ function createTimeScaleTicks(
     domain: [Date, Date],
     visibleRange?: [number, number],
     extend?: boolean
-) {
+): { ticks: Date[]; firstTickIndex: number | undefined } {
     if (interval == null) {
-        return domain;
+        return { ticks: domain, firstTickIndex: undefined };
     }
 
     const d0 = domain[0].valueOf();
@@ -958,7 +982,9 @@ function createTimeScaleTicks(
         const epoch = domain[0];
         const alignedInterval: AgTimeInterval =
             typeof interval === 'string' ? { unit: interval, epoch } : { ...interval, epoch };
-        return intervalRange(alignedInterval, domain[0], domain[1], { visibleRange, extend });
+        const ticks = intervalRange(alignedInterval, domain[0], domain[1], { visibleRange, extend });
+        const firstTickIndex = intervalRangeStartIndex(alignedInterval, domain[0], domain[1], { visibleRange, extend });
+        return { ticks, firstTickIndex };
     }
 
     const ticks: Date[] = [];
@@ -966,7 +992,7 @@ function createTimeScaleTicks(
         ticks.push(new Date(intervalTickTime));
     }
 
-    return ticks;
+    return { ticks, firstTickIndex: undefined };
 }
 
 function ticksEqual(a: unknown[], b: unknown[]) {

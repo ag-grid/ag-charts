@@ -12,6 +12,7 @@ export enum NiceMode {
 }
 
 export interface TickDatum {
+    index: number;
     tickLabel: string | undefined;
     tick: any;
     tickId: string;

@@ -155,6 +155,7 @@ describe('LinearScale', () => {
             expect(scale.ticks(ticks)).toEqual({
                 ticks: [0, 30, 60, 90],
                 count: expect.anything(), // Not using a nice domain - so this value is irrelevant
+                firstTickIndex: 0,
             });
         });
 
@@ -173,6 +174,7 @@ describe('LinearScale', () => {
             expect(scale.ticks(ticks, undefined, [0.25, 0.75])).toEqual({
                 ticks: [30, 40, 50, 60, 70],
                 count: 11,
+                firstTickIndex: 3,
             });
         });
     });
