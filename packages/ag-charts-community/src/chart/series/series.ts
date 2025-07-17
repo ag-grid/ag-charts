@@ -217,7 +217,7 @@ export abstract class Series<
     pickModes: SeriesNodePickMode[];
     usesPlacedLabels: boolean = false;
 
-    protected hasHighlightChange: boolean = false;
+    protected hasChangesOnHighlight: boolean = false;
 
     get pickModeAxis(): 'main' | 'main-category' | undefined {
         return 'main';
@@ -630,13 +630,13 @@ export abstract class Series<
         this.setSeriesIndex(this.declarationOrder);
 
         if (currentHighlightState === previousHighlightState) {
-            this.hasHighlightChange = false;
+            this.hasChangesOnHighlight = false;
             return;
         }
 
         const { highlightedSeries, unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
 
-        this.hasHighlightChange =
+        this.hasChangesOnHighlight =
             !isEmptyObject(highlightedSeries) ||
             !isEmptyObject(unhighlightedItem) ||
             !isEmptyObject(unhighlightedSeries);

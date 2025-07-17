@@ -14,7 +14,6 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { LinearScale } from '../../../scale/linearScale';
 import type { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
@@ -55,7 +54,7 @@ import {
 } from './cartesianSeries';
 import { computeMarkerFocusBounds, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 
-type BubbleScatterAnimationData = CartesianAnimationData<Group, BubbleScatterNodeDatum>;
+type BubbleScatterAnimationData = CartesianAnimationData<Marker, BubbleScatterNodeDatum>;
 
 class BubbleScatterSeriesNodeEvent<
     TEvent extends string = SeriesNodeEventTypes,
@@ -80,7 +79,7 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
 }
 
 export class BubbleSeries extends CartesianSeries<
-    Group,
+    Marker,
     AgBubbleSeriesOptions,
     BubbleSeriesProperties,
     BubbleScatterNodeDatum
@@ -120,11 +119,10 @@ export class BubbleSeries extends CartesianSeries<
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
             pathsPerSeries: [],
-            hasMarkers: true,
-            markerSelectionGarbageCollection: false,
+            datumSelectionGarbageCollection: false,
             animationResetFns: {
                 label: resetLabelFn,
-                marker: resetMarkerFn,
+                datum: resetMarkerFn,
             },
             usesPlacedLabels: true,
             clipFocusBox: false,
@@ -453,16 +451,16 @@ export class BubbleSeries extends CartesianSeries<
         return this.contextNodeData?.labelData ?? [];
     }
 
-    protected override updateMarkerSelection(opts: {
+    protected override updateDatumSelection(opts: {
         nodeData: BubbleScatterNodeDatum[];
-        markerSelection: Selection<Marker, BubbleScatterNodeDatum>;
+        datumSelection: Selection<Marker, BubbleScatterNodeDatum>;
     }) {
-        const { nodeData, markerSelection } = opts;
+        const { nodeData, datumSelection } = opts;
         const { sizeKey } = this.properties;
 
         if (this.properties.marker.isDirty()) {
-            markerSelection.clear();
-            markerSelection.cleanup();
+            datumSelection.clear();
+            datumSelection.cleanup();
         }
 
         const data = this.properties.marker.enabled ? nodeData : [];
@@ -470,14 +468,14 @@ export class BubbleSeries extends CartesianSeries<
         if (sizeKey) {
             getId = (datum) => createDatumId([datum.xValue, datum.yValue, datum.sizeValue, datum.label.text]);
         }
-        return markerSelection.update(data, undefined, getId);
+        return datumSelection.update(data, undefined, getId);
     }
 
-    protected override updateMarkerNodes(opts: {
-        markerSelection: Selection<Marker, BubbleScatterNodeDatum>;
+    protected override updateDatumNodes(opts: {
+        datumSelection: Selection<Marker, BubbleScatterNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight } = opts;
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
         const markerStyle = marker.getStyle();
 
@@ -486,7 +484,7 @@ export class BubbleSeries extends CartesianSeries<
 
         const aggregated = this.dataAggregation != null;
 
-        markerSelection.each((node, datum, index) => {
+        datumSelection.each((node, datum) => {
             const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
             const baseStyle = mergeDefaults(highlightStyle, markerStyle);
 
@@ -699,8 +697,8 @@ export class BubbleSeries extends CartesianSeries<
         ];
     }
 
-    override animateEmptyUpdateReady({ markerSelection, labelSelection }: BubbleScatterAnimationData) {
-        markerScaleInAnimation(this, this.ctx.animationManager, markerSelection);
+    override animateEmptyUpdateReady({ datumSelection, labelSelection }: BubbleScatterAnimationData) {
+        markerScaleInAnimation(this, this.ctx.animationManager, datumSelection);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
@@ -709,7 +707,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     protected nodeFactory() {
-        return new Group();
+        return new Marker();
     }
 
     public getFormattedMarkerStyle(datum: BubbleScatterNodeDatum): AgSeriesMarkerStyle & { size: number } {

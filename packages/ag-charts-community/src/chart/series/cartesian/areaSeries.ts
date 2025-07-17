@@ -39,7 +39,7 @@ import {
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
-import type { Marker } from '../../marker/marker';
+import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
@@ -76,14 +76,14 @@ const CROSS_FILTER_AREA_FILL_OPACITY_FACTOR = 0.125;
 const CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR = 0.25;
 
 type AreaAnimationData = CartesianAnimationData<
-    Group,
+    Marker,
     MarkerSelectionDatum,
     LabelSelectionDatum,
     AreaSeriesNodeDataContext
 >;
 
 export class AreaSeries extends CartesianSeries<
-    Group,
+    Marker,
     AgAreaSeriesOptions,
     AreaSeriesProperties,
     MarkerSelectionDatum,
@@ -116,13 +116,12 @@ export class AreaSeries extends CartesianSeries<
             categoryKey: 'xValue',
             pathsPerSeries: ['fill', 'stroke'],
             pathsZIndexSubOrderOffset: [0, 1000],
-            hasMarkers: true,
-            markerSelectionGarbageCollection: false,
+            datumSelectionGarbageCollection: false,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
-                marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
+                datum: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
             clipFocusBox: false,
         });
@@ -805,26 +804,26 @@ export class AreaSeries extends CartesianSeries<
         stroke.markDirty('AreaSeries');
     }
 
-    protected override updateMarkerSelection(opts: {
+    protected override updateDatumSelection(opts: {
         nodeData: MarkerSelectionDatum[];
-        markerSelection: Selection<Marker, MarkerSelectionDatum>;
+        datumSelection: Selection<Marker, MarkerSelectionDatum>;
     }) {
-        const { nodeData, markerSelection } = opts;
+        const { nodeData, datumSelection } = opts;
         const markersEnabled = this.properties.marker.enabled || this.contextNodeData?.crossFiltering === true;
 
         if (this.properties.marker.isDirty()) {
-            markerSelection.clear();
-            markerSelection.cleanup();
+            datumSelection.clear();
+            datumSelection.cleanup();
         }
 
-        return markerSelection.update(markersEnabled ? nodeData : []);
+        return datumSelection.update(markersEnabled ? nodeData : []);
     }
 
-    protected override updateMarkerNodes(opts: {
-        markerSelection: Selection<Marker, MarkerSelectionDatum>;
+    protected override updateDatumNodes(opts: {
+        datumSelection: Selection<Marker, MarkerSelectionDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight } = opts;
         const { xKey, yKey, marker, stroke, strokeWidth, strokeOpacity } = this.properties;
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
@@ -832,7 +831,7 @@ export class AreaSeries extends CartesianSeries<
         const fillBBox = this.getShapeFillBBox();
         const markerStyle = marker.getStyle();
 
-        markerSelection.each((node, datum) => {
+        datumSelection.each((node, datum) => {
             const { xValue, yValue } = datum;
             const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
             const baseStyle = mergeDefaults(highlightStyle, markerStyle, {
@@ -1024,13 +1023,13 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override animateEmptyUpdateReady(animationData: AreaAnimationData) {
-        const { markerSelection, labelSelection, contextData, paths } = animationData;
+        const { datumSelection, labelSelection, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
 
         this.updateAreaPaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, ...paths);
-        resetMotion([markerSelection], resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelection);
+        resetMotion([datumSelection], resetMarkerPositionFn);
+        markerSwipeScaleInAnimation(this, animationManager, datumSelection);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
     }
 
@@ -1043,7 +1042,7 @@ export class AreaSeries extends CartesianSeries<
 
     override animateWaitingUpdateReady(animationData: AreaAnimationData) {
         const { animationManager } = this.ctx;
-        const { markerSelection, labelSelection, contextData, paths, previousContextData } = animationData;
+        const { datumSelection, labelSelection, contextData, paths, previousContextData } = animationData;
         const [fill, stroke] = paths;
 
         if (contextData.visible === false && previousContextData?.visible === false) return;
@@ -1051,7 +1050,7 @@ export class AreaSeries extends CartesianSeries<
         // Handling initially hidden series case gracefully.
         if (fill == null && stroke == null) return;
 
-        this.resetMarkerAnimation(animationData);
+        this.resetDatumAnimation(animationData);
         this.resetLabelAnimation(animationData);
 
         const update = () => {
@@ -1067,7 +1066,7 @@ export class AreaSeries extends CartesianSeries<
             // Added series to existing chart case - fade in series.
             update();
 
-            markerFadeInAnimation(this, animationManager, 'added', markerSelection);
+            markerFadeInAnimation(this, animationManager, 'added', datumSelection);
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
             pathFadeInAnimation(this, 'stroke_path_properties', animationManager, 'add', stroke);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
@@ -1088,7 +1087,7 @@ export class AreaSeries extends CartesianSeries<
             return;
         }
 
-        markerFadeInAnimation(this, animationManager, undefined, markerSelection);
+        markerFadeInAnimation(this, animationManager, undefined, datumSelection);
 
         fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
         pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
@@ -1117,7 +1116,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected nodeFactory() {
-        return new Group();
+        return new Marker();
     }
 
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum): AgSeriesMarkerStyle & { size: number } {

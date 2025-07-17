@@ -43,7 +43,7 @@ const {
     createDatumId,
     applyShapeFillBBox,
     PointerEvents,
-    Group,
+    Marker,
     BBox,
     findMinMax,
     getShapeStyle,
@@ -77,7 +77,7 @@ type ItemStyle = Required<
 >;
 
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
-    _ModuleSupport.Group,
+    _ModuleSupport.Marker,
     AgRangeAreaSeriesOptions,
     RangeAreaProperties,
     RangeAreaMarkerDatum,
@@ -96,7 +96,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            hasMarkers: true,
             pathsPerSeries: ['fill', 'stroke'],
             pickModes: [_ModuleSupport.SeriesNodePickMode.AXIS_ALIGNED],
             propertyKeys: {
@@ -111,7 +110,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
-                marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
+                datum: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
             clipFocusBox: false,
         });
@@ -519,16 +518,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         stroke.markDirty('RangeArea');
     }
 
-    protected override updateMarkerSelection(opts: {
+    protected override updateDatumSelection(opts: {
         nodeData: RangeAreaMarkerDatum[];
-        markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
     }) {
-        const { nodeData, markerSelection } = opts;
+        const { nodeData, datumSelection } = opts;
         if (this.properties.marker.isDirty()) {
-            markerSelection.clear();
-            markerSelection.cleanup();
+            datumSelection.clear();
+            datumSelection.cleanup();
         }
-        return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
+        return datumSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
     private getMarkerItemBaseStyle(isHighlight: boolean, datum?: RangeAreaMarkerDatum): ItemStyle {
@@ -569,18 +568,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    protected override updateMarkerNodes(opts: {
-        markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
+    protected override updateDatumNodes(opts: {
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight } = opts;
         const { xKey, yLowKey, yHighKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity } =
             this.properties;
 
         const fillBBox = this.getShapeFillBBox();
         const markerStyle = marker.getStyle();
 
-        markerSelection.each((node, datum) => {
+        datumSelection.each((node, datum) => {
             const baseStyle = mergeDefaults(this.getHighlightStyle(isHighlight, datum?.datumIndex), markerStyle, {
                 fill,
                 fillOpacity,
@@ -758,30 +757,30 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     override onDataChange() {}
 
     protected nodeFactory() {
-        return new Group();
+        return new Marker();
     }
 
     override animateEmptyUpdateReady(
         animationData: _ModuleSupport.CartesianAnimationData<
-            _ModuleSupport.Group,
+            _ModuleSupport.Marker,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext
         >
     ) {
-        const { markerSelection, labelSelection, contextData, paths } = animationData;
+        const { datumSelection, labelSelection, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
 
         this.updateAreaPaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, ...paths);
-        resetMotion([markerSelection], resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelection);
+        resetMotion([datumSelection], resetMarkerPositionFn);
+        markerSwipeScaleInAnimation(this, animationManager, datumSelection);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
     }
 
     protected override animateReadyResize(
         animationData: _ModuleSupport.CartesianAnimationData<
-            _ModuleSupport.Group,
+            _ModuleSupport.Marker,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext
@@ -795,20 +794,20 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     override animateWaitingUpdateReady(
         animationData: _ModuleSupport.CartesianAnimationData<
-            _ModuleSupport.Group,
+            _ModuleSupport.Marker,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext
         >
     ) {
         const { animationManager } = this.ctx;
-        const { markerSelection, labelSelection, contextData, paths, previousContextData } = animationData;
+        const { datumSelection, labelSelection, contextData, paths, previousContextData } = animationData;
         const [fill, stroke] = paths;
 
         // Handling initially hidden series case gracefully.
         if (fill == null && stroke == null) return;
 
-        this.resetMarkerAnimation(animationData);
+        this.resetDatumAnimation(animationData);
         this.resetLabelAnimation(animationData);
 
         const update = () => {
@@ -824,7 +823,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             // Added series to existing chart case - fade in series.
             update();
 
-            markerFadeInAnimation(this, animationManager, 'added', markerSelection);
+            markerFadeInAnimation(this, animationManager, 'added', datumSelection);
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
             pathFadeInAnimation(this, 'stroke_path_properties', animationManager, 'add', stroke);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
@@ -857,7 +856,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         }
 
         if (fns.hasMotion) {
-            markerFadeInAnimation(this, animationManager, undefined, markerSelection);
+            markerFadeInAnimation(this, animationManager, undefined, datumSelection);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
         }
 
