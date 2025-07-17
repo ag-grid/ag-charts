@@ -93,11 +93,11 @@ const legendPositionOptionsDef: OptionsDefs<AgChartLegendPositionOptions> = {
     placement: union(...legendPlacementLiterals),
 };
 
-const legendPositionValidator = attachDescription(
+const legendPositionValidator: Validator = attachDescription(
     (value: unknown, context: ValidatorContext): boolean | ValidatorResult => {
         let result: ValidatorResult | boolean;
         if (typeof value === 'string') {
-            const allowedValues: readonly string[] = contextMenuItemLiterals;
+            const allowedValues: readonly string[] = legendPlacementLiterals;
             if (allowedValues.includes(value)) {
                 result = true;
             } else {
@@ -117,9 +117,8 @@ const legendPositionValidator = attachDescription(
         }
         return result;
     },
-    `a legend position object or placement string: [${legendPlacementLiterals.join(', ')}]`
+    `a legend position object or placement string`
 );
-
 const shapeValidator = or(
     union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle'),
     callback
