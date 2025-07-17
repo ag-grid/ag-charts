@@ -12862,11 +12862,6 @@ globby@^13.1.1:
     merge2 "^1.4.1"
     slash "^4.0.0"
 
-globrex@^0.1.2:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/globrex/-/globrex-0.1.2.tgz#dd5d9ec826232730cd6793a5e33a9302985e6098"
-  integrity sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==
-
 glur@^1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/glur/-/glur-1.1.2.tgz#f20ea36db103bfc292343921f1f91e83c3467689"
@@ -17977,7 +17972,7 @@ postcss@8.4.35, postcss@^8.4.35:
     picocolors "^1.0.0"
     source-map-js "^1.0.2"
 
-postcss@^8.2.14, postcss@^8.4.23, postcss@^8.4.32:
+postcss@^8.2.14, postcss@^8.4.23:
   version "8.4.32"
   resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.32.tgz#1dac6ac51ab19adb21b8b34fd2d93a86440ef6c9"
   integrity sha512-D/kj5JNu6oo2EIy+XL/26JEDTlIbB8hw85G8StOE6L74RQAVVP5rej6wxCNqyMbR4RkPfqvezVbPw81Ngd6Kcw==
@@ -21030,11 +21025,6 @@ ts-node@10.9.1:
     v8-compile-cache-lib "^3.0.1"
     yn "3.1.1"
 
-tsconfck@^2.1.0:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/tsconfck/-/tsconfck-2.1.2.tgz#f667035874fa41d908c1fe4d765345fcb1df6e35"
-  integrity sha512-ghqN1b0puy3MhhviwO2kGF8SeMDNhEbnKxjK7h6+fvY9JAxqvXi8y5NAHSQv687OVboS2uZIByzGd45/YxrRHg==
-
 tsconfck@^3.1.5:
   version "3.1.6"
   resolved "https://registry.yarnpkg.com/tsconfck/-/tsconfck-3.1.6.tgz#da1f0b10d82237ac23422374b3fce1edb23c3ead"
@@ -21743,26 +21733,6 @@ vite-plugin-svgr@^4.2.0:
     "@svgr/core" "^8.1.0"
     "@svgr/plugin-jsx" "^8.1.0"
 
-vite-tsconfig-paths@~4.2.0:
-  version "4.2.2"
-  resolved "https://registry.yarnpkg.com/vite-tsconfig-paths/-/vite-tsconfig-paths-4.2.2.tgz#fee5a59c885687ae046e1d5a394bdcfdb12d9361"
-  integrity sha512-dq0FjyxHHDnp0uS3P12WEOX2W7NeuLzX9AWP38D7Zw2CTbFErapwQVlCiT5DMJcVWKQ1MMdTe92PZl/rBQ7qcw==
-  dependencies:
-    debug "^4.1.1"
-    globrex "^0.1.2"
-    tsconfck "^2.1.0"
-
-vite@5.0.10:
-  version "5.0.10"
-  resolved "https://registry.yarnpkg.com/vite/-/vite-5.0.10.tgz#1e13ef5c3cf5aa4eed81f5df6d107b3c3f1f6356"
-  integrity sha512-2P8J7WWgmc355HUMlFrwofacvr98DAjoE52BfdbwQtyLH06XKwaL/FMnmKM2crF0iX4MpmMKoDlNCB1ok7zHCw==
-  dependencies:
-    esbuild "^0.19.3"
-    postcss "^8.4.32"
-    rollup "^4.2.0"
-  optionalDependencies:
-    fsevents "~2.3.3"
-
 vite@5.1.8:
   version "5.1.8"
   resolved "https://registry.yarnpkg.com/vite/-/vite-5.1.8.tgz#f728feda90c3f30b0ab530c0981e5aa7745b8aee"
@@ -21774,7 +21744,7 @@ vite@5.1.8:
   optionalDependencies:
     fsevents "~2.3.3"
 
-vite@5.4.19, vite@^5.0.0:
+vite@5.4.19, vite@^5.0.0, vite@~5.4.19:
   version "5.4.19"
   resolved "https://registry.yarnpkg.com/vite/-/vite-5.4.19.tgz#20efd060410044b3ed555049418a5e7d1998f959"
   integrity sha512-qO3aKv3HoQC8QKiNSTuUM1l9o/XX3+c+VTgLHbJWHZGeTPVAg2XwazI9UWzoxjIJCGCV2zU60uqMzjeLZuULqA==
