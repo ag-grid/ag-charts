@@ -103,7 +103,7 @@ Execute the plan systematically, potentially across multiple prompts if needed:
     -   All documented properties exist in the actual type definitions
     -   Property types match what's documented
     -   Required vs optional properties are correctly described
-    -   Default values are accurate
+    -   Default values are accurate (Note: TypeScript interfaces don't show defaults - check implementation files)
     -   Deprecated properties are NOT USED or referenced in the page
 
 #### Implementation Verification
@@ -111,8 +111,14 @@ Execute the plan systematically, potentially across multiple prompts if needed:
 -   **Check core implementation** in `packages/ag-charts-community/src/` and `packages/ag-charts-enterprise/src/` for:
     -   Documented behaviors actually exist in the code
     -   Configuration options work as described
+    -   Default values match what's actually implemented (e.g., check property decorators for `@Property` default assignments)
     -   Edge cases and limitations are properly documented
     -   Feature availability (community vs enterprise) is correctly indicated
+    
+-   **Chart type distinctions**: Be aware that pie and donut charts share implementation but are distinct from a user perspective:
+    -   Check files like `donutSeries.ts`, `donutSeriesProperties.ts` for pie/donut-specific behavior
+    -   Verify documentation correctly describes behavior for each chart type
+    -   Don't assume pie and donut charts behave identically - validate each claim
 
 #### Code Examples Validation
 
@@ -190,6 +196,10 @@ Execute the plan systematically, potentially across multiple prompts if needed:
     -   **Rapid hover testing**: Move mouse quickly across chart elements - verify tooltip updates and highlight states
     -   **Hover boundary testing**: Hover at the edges of chart elements - verify tooltip positioning and trigger zones
     -   **Multi-element hover testing**: Hover over overlapping chart elements - verify correct element is highlighted
+    -   **Default behavior verification**: Test documented default behaviors without explicit configuration
+        -   If docs say "by default X is hidden", verify X is actually hidden without any config
+        -   If docs say "set property Y to enable Z", verify Z is disabled by default
+        -   Test with minimal configuration to verify all documented defaults
     -   Resize browser window while interacting with charts - screenshot responsive behavior
     -   Test with different zoom levels (browser zoom, not chart zoom) - capture zoom states
     -   Scroll page while hovering over interactive elements - verify tooltip positioning
@@ -344,6 +354,15 @@ Provide specific, actionable recommendations for:
 -   **Focus on canvas interactions** - hover systematically over chart elements to discover interactive behaviors, tooltips, and highlights
 -   **Consider user experience** - think about whether a developer could successfully use this documentation
 -   **Note version-specific issues** - identify any outdated information that needs updating
+
+#### Common Pitfalls to Check
+
+-   **Default value documentation**: Always verify documented default values against actual code implementation
+    -   Example: Documentation might say "By default, X won't be displayed" but the code shows `@Property X = 0` which enables display
+    -   Check property decorators in implementation files for actual defaults
+-   **Chart type assumptions**: Don't assume similar chart types behave identically
+    -   Pie and donut charts may have different defaults or behaviors despite shared implementation
+    -   Always verify claims for the specific chart type being documented
 
 ## Tools to Use
 
