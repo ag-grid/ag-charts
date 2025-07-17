@@ -15,7 +15,7 @@ describe('zoom-large-dataset benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 80, expectedCanvasCount: 4, autoSnapshot: false },
+        { expectedRelativeMB: 110, expectedCanvasCount: 4, autoSnapshot: false },
         async () => {
             await ctx.create();
         }

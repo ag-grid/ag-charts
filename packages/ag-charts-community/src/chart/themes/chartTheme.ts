@@ -208,11 +208,15 @@ export class ChartTheme {
                     label: {
                         // TODO: { $merge: [{ $path: '../../label' }, { fontWeight: 'bold' }]}
                         enabled: { $path: '../../label/enabled' },
+                        border: { $path: '../../label/border' },
+                        fill: { $path: '../../label/fill' },
                         fontSize: { $path: '../../label/fontSize' },
                         fontFamily: { $path: '../../label/fontFamily' },
                         fontWeight: 'bold',
                         spacing: { $path: '../../label/spacing' },
                         color: { $path: '../../label/color' },
+                        cornerRadius: { $path: '../../label/cornerRadius' },
+                        padding: { $path: '../../label/padding' },
                         avoidCollisions: { $path: '../../label/avoidCollisions' },
                     },
                     tick: {

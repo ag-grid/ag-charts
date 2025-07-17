@@ -2,6 +2,7 @@ import { describe, expect, it, jest } from '@jest/globals';
 
 import { deepClone, jsonApply, jsonDiff, jsonPropertyCompare, jsonWalk } from './json';
 import { mergeDefaults } from './object';
+import { BaseProperties, Property } from './properties';
 
 const FIXED_DATE = new Date('2022-01-27T00:00:00.000+00:00');
 
@@ -486,6 +487,31 @@ describe('json module', () => {
             expect(console.warn).toBeCalledWith(
                 "AG Charts - unable to set [recurse] in TestApply - can't apply type of [primitive], allowed types are: [class-instance]"
             );
+        });
+
+        it('should clear BaseProperties when applying undefined value', () => {
+            class NestedProps extends BaseProperties<{ value: string }> {
+                @Property
+                value!: string;
+            }
+
+            class TestProps extends BaseProperties<{ nested?: NestedProps }> {
+                @Property
+                nested = new NestedProps();
+            }
+
+            const target = new TestProps();
+
+            // Set initial values
+            jsonApply(target, { nested: { value: 'test' } });
+            expect(target.nested.value).toBe('test');
+
+            // Apply undefined - should clear the nested properties
+            jsonApply(target, { nested: undefined });
+            expect(target.nested.value).toBeUndefined();
+
+            // Verify no console warnings
+            expect(console.warn).not.toHaveBeenCalled();
         });
     });
 

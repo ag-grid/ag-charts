@@ -44,7 +44,7 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
 }
 
 export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContext<LineNodeDatum> {
-    strokeData?: LineStrokePathDatum;
+    strokeData: LineStrokePathDatum;
     crossFiltering: boolean;
 }
 

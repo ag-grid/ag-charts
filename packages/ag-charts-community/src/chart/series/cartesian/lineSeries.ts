@@ -12,7 +12,6 @@ import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import type { BBox } from '../../../scene/bbox';
-import type { ExtendedPath2D } from '../../../scene/extendedPath2D';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
@@ -319,7 +318,7 @@ export class LineSeries extends CartesianSeries<
         };
 
         const nodeData: LineNodeDatum[] = [];
-        let spanPoints: SpanPoints | undefined;
+        const spanPoints: SpanPoints = [];
         const handleDatum = (datumIndex: number) => {
             const datum = rawData[datumIndex];
             const xDatum = xValues[datumIndex];
@@ -362,8 +361,6 @@ export class LineSeries extends CartesianSeries<
                 });
             }
 
-            if (spanPoints == null) return;
-
             const currentSpanPoints: LineSpanPointDatum[] | { skip: number } | undefined =
                 spanPoints[spanPoints.length - 1];
             if (yDatum != null) {
@@ -403,17 +400,14 @@ export class LineSeries extends CartesianSeries<
             start = 0;
             end = processedData.input.count;
         }
-        if (indices == null) {
-            spanPoints = [];
-        }
         for (let i = start; i < end; i += 1) {
             handleDatum(indices?.[i] ?? i);
         }
 
-        const strokeSpans = spanPoints?.flatMap((p): LinePathSpan[] => {
+        const strokeSpans = spanPoints.flatMap((p): LinePathSpan[] => {
             return Array.isArray(p) ? interpolatePoints(p, interpolation) : [];
         });
-        const strokeData = strokeSpans != null ? { itemId: yKey, spans: strokeSpans } : undefined;
+        const strokeData = { itemId: yKey, spans: strokeSpans };
 
         const crossFiltering =
             selectionValues?.some((selectionValue, index) => selectionValue === yValues[index]) ?? false;
@@ -710,29 +704,12 @@ export class LineSeries extends CartesianSeries<
         this.updateLinePaths(opts.paths, opts.contextData);
     }
 
-    private plotNodeDataPoints(path: ExtendedPath2D, nodeData: LineNodeDatum[]) {
-        if (nodeData.length === 0) return;
-
-        const initialPoint = nodeData[0].point;
-        path.moveTo(initialPoint.x, initialPoint.y);
-
-        for (let i = 1; i < nodeData.length; i += 1) {
-            const { x, y } = nodeData[i].point;
-            path.lineTo(x, y);
-        }
-    }
-
     private updateLinePaths(paths: Path[], contextData: LineSeriesNodeDataContext) {
-        const spans = contextData.strokeData?.spans;
+        const spans = contextData.strokeData.spans;
         const [lineNode] = paths;
 
         lineNode.path.clear();
-        if (spans != null) {
-            plotLinePathStroke(lineNode, spans);
-        } else {
-            this.plotNodeDataPoints(lineNode.path, contextData.nodeData);
-        }
-
+        plotLinePathStroke(lineNode, spans);
         lineNode.markDirty('LineSeries');
     }
 

@@ -37,7 +37,7 @@ export interface AgRangeBarSeriesLabelOptions<TDatum, TContext = ContextDefault>
     /** Where to render series labels relative to the bars. */
     placement?: AgRangeBarSeriesLabelPlacement;
     /** Padding in pixels between the label and the edge of the bar. */
-    padding?: PixelSize;
+    spacing?: PixelSize;
 }
 
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';

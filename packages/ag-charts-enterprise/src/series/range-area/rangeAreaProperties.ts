@@ -4,6 +4,7 @@ import type {
     AgRangeAreaSeriesOptions,
     AgRangeAreaSeriesOptionsKeys,
     AgRangeAreaSeriesTooltipRendererParams,
+    PixelSize,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
@@ -36,7 +37,7 @@ class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> 
     placement: AgRangeAreaSeriesLabelPlacement = 'outside';
 
     @Property
-    override padding: number = 6;
+    spacing: PixelSize = 0;
 }
 
 export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSeriesOptions> {

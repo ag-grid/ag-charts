@@ -25,10 +25,10 @@ export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, T
 
 export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, TParams, TContext> {
-    /** Padding in pixels between the label and the edge of the marker. */
-    padding?: PixelSize;
     /** Where to render series labels relative to the area. */
     placement?: AgRangeAreaSeriesLabelPlacement;
+    /** Padding in pixels between the label and the edge of the marker. */
+    spacing?: PixelSize;
 }
 
 export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';

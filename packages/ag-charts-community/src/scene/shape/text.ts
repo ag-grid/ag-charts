@@ -1,3 +1,5 @@
+import { type RequireOptional, createSvgElement, isDefined } from 'ag-charts-core';
+import type { FontFamily, FontSize, FontStyle, FontWeight, Opacity, Padding, PixelSize } from 'ag-charts-types';
 import { type BoxBounds, createSvgElement, isArray, isString } from 'ag-charts-core';
 import type {
     FontFamily,
@@ -40,7 +42,11 @@ export interface TextBoxingProperties {
     padding?: Padding;
     fill?: ShapeColor;
     fillOpacity?: Opacity;
-    border?: StrokeOptions;
+    border?: {
+        stroke?: ShapeColor;
+        strokeWidth?: PixelSize;
+        strokeOpacity?: Opacity;
+    };
 }
 
 // @todo() - Workaround for subclassing
@@ -317,13 +323,16 @@ export class Text<D = any> extends Shape<D> {
 
         if (this.boxing) {
             const { translationX = 0, translationY = 0 } = this.computeBoxingTranslation() ?? {};
-            const { x, y, width, height } = this.getBBox(true).grow(this.boxPadding);
-            this.boxing.x = x - translationX;
-            this.boxing.y = y - translationY;
-            this.boxing.width = width;
-            this.boxing.height = height;
-            this.boxing.preRender(renderCtx);
-            this.boxing.render(renderCtx);
+            const textBBox = this.getBBox(true);
+            if (textBBox.width !== 0 && textBBox.height !== 0) {
+                const { x, y, width, height } = this.getBBox(true).grow(this.boxPadding);
+                this.boxing.x = x - translationX;
+                this.boxing.y = y - translationY;
+                this.boxing.width = width;
+                this.boxing.height = height;
+                this.boxing.preRender(renderCtx);
+                this.boxing.render(renderCtx);
+            }
         }
 
         if (fill) {
@@ -414,6 +423,25 @@ export class Text<D = any> extends Shape<D> {
             this.boxing.destroy();
             this.boxing = undefined;
         }
+    }
+
+    getBoxingProperties(): TextBoxingProperties {
+        const {
+            fill = undefined,
+            fillOpacity = undefined,
+            cornerRadius = undefined,
+            stroke = undefined,
+            strokeWidth = undefined,
+            strokeOpacity = undefined,
+        } = this.boxing ?? {};
+
+        return {
+            border: { stroke, strokeWidth, strokeOpacity },
+            cornerRadius,
+            fill,
+            fillOpacity,
+            padding: this.boxPadding,
+        } satisfies RequireOptional<TextBoxingProperties>;
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

@@ -10,6 +10,7 @@ import type {
     FontStyle,
     FontWeight,
     Formatter,
+    Padding,
     Styler,
 } from 'ag-charts-types';
 
@@ -83,7 +84,7 @@ export class Label<TParams = never, TDatum = any>
     format?: string;
 
     @Property
-    padding?: number;
+    padding?: Padding;
 
     @Property
     itemStyler?: Styler<AgChartLabelStylerParams<TDatum, ContextDefault>, AgChartLabelStyleOptions>;

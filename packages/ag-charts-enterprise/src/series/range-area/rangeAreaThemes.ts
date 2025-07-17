@@ -1,6 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgChartThemeOverrides, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 
-export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>['themeTemplate'] = {
+export const RANGE_AREA_SERIES_THEME: WithThemeParams<
+    AgChartThemeOverrides['range-area'] & { series: { label: { padding: number } } }
+> = {
     series: {
         fill: { $palette: 'fill' },
         fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
@@ -22,7 +24,7 @@ export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>[
         label: {
             enabled: false,
             placement: 'outside',
-            padding: 10,
+            padding: { $isUserOption: ['./spacing', 0, 10] }, // compatibility with old `padding` property (now named `spacing`).
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },

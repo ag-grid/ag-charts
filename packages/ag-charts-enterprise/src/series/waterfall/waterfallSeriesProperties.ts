@@ -6,6 +6,7 @@ import type {
     AgWaterfallSeriesOptions,
     AgWaterfallSeriesStyle,
     AgWaterfallSeriesTooltipRendererParams,
+    PixelSize,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -45,7 +46,7 @@ class WaterfallSeriesLabel extends Label<AgWaterfallSeriesLabelFormatterParams> 
     placement: AgWaterfallSeriesLabelPlacement = 'outside-end';
 
     @Property
-    override padding: number = 6;
+    spacing: PixelSize = 0;
 }
 
 export class WaterfallSeriesItem extends BaseProperties {
