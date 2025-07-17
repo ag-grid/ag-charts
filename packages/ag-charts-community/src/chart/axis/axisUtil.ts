@@ -17,6 +17,7 @@ export interface TickDatum {
     tick: any;
     tickId: string;
     translation: number;
+    textUntruncated: string | undefined;
     primary: boolean;
 }
 

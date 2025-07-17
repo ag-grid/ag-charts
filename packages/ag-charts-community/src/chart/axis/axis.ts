@@ -34,6 +34,7 @@ import { deepFreeze, mergeDefaults } from '../../util/object';
 import { Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
+import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -58,6 +59,7 @@ export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties
     rotation: number;
     text: string;
     textBaseline: CanvasTextBaseline;
+    textUntruncated?: string;
     visible: boolean;
     x: number;
     y: number;
@@ -294,10 +296,29 @@ export abstract class Axis<
     ) {
         this.range = this.scale.range.slice() as [number, number];
         this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
+        this.cleanup.register(
+            this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e))
+        );
     }
 
     resetAnimation(_phase: ChartAnimationPhase) {
         // Override in classes
+    }
+
+    private onMouseMove(event: MouseWidgetEvent<'mousemove'>) {
+        const node = this.tickLabelGroup.pickNode(event.currentX, event.currentY);
+        const datum: LabelNodeDatum | undefined = node?.datum;
+        const { textUntruncated: title = undefined } = datum ?? {};
+
+        if (title != null) {
+            this.moduleCtx.tooltipManager.updateTooltip(
+                this.id,
+                { canvasX: event.currentX, canvasY: event.currentY, showArrow: false },
+                [{ type: 'structured', title }]
+            );
+        } else {
+            this.moduleCtx.tooltipManager.removeTooltip(this.id);
+        }
     }
 
     private attachCrossLine(crossLine: CrossLine) {

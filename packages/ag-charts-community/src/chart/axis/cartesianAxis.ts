@@ -9,6 +9,7 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
+import { PointerEvents } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { Rect } from '../../scene/shape/rect';
@@ -576,7 +577,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
-        const { tickId, tickLabel: text = '', translation, primary } = datum;
+        const { tickId, tickLabel: text = '', translation, primary, textUntruncated } = datum;
         const label = primary && primaryLabel?.enabled ? primaryLabel : this.label;
         const tick = primary && primaryTick?.enabled ? primaryTick : this.tick;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
@@ -595,6 +596,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             text,
             textAlign,
             textBaseline,
+            textUntruncated,
             visible,
             x,
             y,
@@ -665,6 +667,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             node.text = datum.text;
             node.textBaseline = datum.textBaseline;
             node.textAlign = datum.textAlign ?? 'center';
+            node.pointerEvents = datum.textUntruncated == null ? PointerEvents.None : PointerEvents.All;
             node.setFont(datum);
             node.setBoxing(datum);
         });
