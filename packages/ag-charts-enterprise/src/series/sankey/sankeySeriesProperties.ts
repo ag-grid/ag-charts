@@ -189,7 +189,7 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
         fills: InternalAgColorType[],
         strokes: string[],
         index: number
-    ): Required<AgSankeySeriesLinkStyle> | (Required<AgSankeySeriesNodeStyle> & { opacity: number }) {
+    ): Required<AgSankeySeriesLinkStyle> | Required<AgSankeySeriesNodeStyle> {
         const {
             fillOpacity,
             strokeWidth,
@@ -207,7 +207,6 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
             strokeOpacity,
             lineDash,
             lineDashOffset,
-            opacity: 1,
         };
     }
 }

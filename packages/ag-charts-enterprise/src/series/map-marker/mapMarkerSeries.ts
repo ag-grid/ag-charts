@@ -596,7 +596,7 @@ export class MapMarkerSeries
         isHighlight: boolean
     ): Required<AgMapMarkerSeriesStyle> {
         const { id: seriesId, properties, colorScale, sizeScale } = this;
-        const { colorRange, itemStyler } = properties;
+        const { colorRange, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
@@ -611,18 +611,31 @@ export class MapMarkerSeries
             baseStyle.size = sizeScale.convert(sizeValue, { clamp: true });
         }
 
-        let overrides;
+        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+
         if (itemStyler != null && datumIndex != null) {
-            overrides = this.cachedDatumCallback(createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'), () => {
-                return this.callWithContext(itemStyler, {
-                    seriesId,
-                    datum,
-                    highlighted: isHighlight,
-                    ...baseStyle,
-                });
-            });
+            const overrides = this.cachedDatumCallback(
+                createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
+                () => {
+                    return this.callWithContext(itemStyler, {
+                        seriesId,
+                        datum,
+                        highlighted: isHighlight,
+                        ...style,
+                    });
+                }
+            );
+
+            if (overrides) {
+                style = getShapeStyle(
+                    mergeDefaults(overrides, baseStyle),
+                    fillGradientDefaults,
+                    fillPatternDefaults,
+                    fillImageDefaults
+                );
+            }
         }
-        return overrides ? mergeDefaults(overrides, baseStyle) : baseStyle;
+        return style;
     }
 
     private updateMarkerNodes(opts: {

@@ -167,7 +167,7 @@ export abstract class CartesianSeries<
 
     private readonly paths: Path[];
     protected readonly dataNodeGroup = this.contentGroup.appendChild(
-        new Group({ name: `${this.id}-series-dataNodes`, zIndex: 0 })
+        new Group({ name: `${this.id}-series-dataNodes`, zIndex: 1 })
     );
     override readonly labelGroup = this.contentGroup.appendChild(
         new TranslatableGroup({ name: `${this.id}-series-labels` })

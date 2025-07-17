@@ -388,18 +388,13 @@ export class ChordSeries extends FlowProportionSeries<
         isHighlight: boolean
     ) {
         const { id: seriesId, properties } = this;
-        const { fills, strokes } = properties;
+        const { fills, strokes, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
         const { itemStyler } = properties.node;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.node.getStyle(fills, strokes, fromNodeDatumIndex));
 
-        let style = getShapeStyle(
-            baseStyle,
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
+        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -418,12 +413,14 @@ export class ChordSeries extends FlowProportionSeries<
             if (overrides) {
                 style = getShapeStyle(
                     mergeDefaults(overrides, style),
-                    this.properties.fillGradientDefaults,
-                    this.properties.fillPatternDefaults,
-                    this.properties.fillImageDefaults
+                    fillGradientDefaults,
+                    fillPatternDefaults,
+                    fillImageDefaults
                 );
             }
         }
+
+        style.opacity = 1;
 
         return style;
     }
@@ -497,6 +494,8 @@ export class ChordSeries extends FlowProportionSeries<
                 );
             }
         }
+
+        style.opacity = 1;
 
         return style;
     }

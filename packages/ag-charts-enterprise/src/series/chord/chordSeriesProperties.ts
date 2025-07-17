@@ -58,11 +58,7 @@ class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
     @Property
     itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<unknown>, AgChordSeriesLinkStyle>;
 
-    getStyle(
-        fills: InternalAgColorType[],
-        strokes: string[],
-        index: number
-    ): Required<AgChordSeriesLinkStyle> & { opacity: number } {
+    getStyle(fills: InternalAgColorType[], strokes: string[], index: number): Required<AgChordSeriesLinkStyle> {
         const { fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset, tension } = this;
         const fill = this.fill ?? fills[index % fills.length];
         const stroke = this.stroke ?? strokes[index % fills.length];
@@ -75,7 +71,6 @@ class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
             lineDash,
             lineDashOffset,
             tension,
-            opacity: 1,
         };
     }
 }
@@ -88,13 +83,13 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
     width: number = 1;
 
     @Property
-    fill: InternalAgColorType = '#c16068';
+    fill: InternalAgColorType | undefined = undefined;
 
     @Property
     fillOpacity = 1;
 
     @Property
-    stroke: string = '#874349';
+    stroke: string | undefined = undefined;
 
     @Property
     strokeOpacity = 1;
@@ -111,11 +106,7 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
     @Property
     itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<unknown>, AgChordSeriesNodeStyle>;
 
-    getStyle(
-        fills: InternalAgColorType[],
-        strokes: string[],
-        index: number
-    ): Required<AgChordSeriesNodeStyle> & { opacity: number } {
+    getStyle(fills: InternalAgColorType[], strokes: string[], index: number): Required<AgChordSeriesNodeStyle> {
         const { fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
         const fill = this.fill ?? fills[index % fills.length];
         const stroke = this.stroke ?? strokes[index % fills.length];
@@ -127,7 +118,6 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
             strokeOpacity,
             lineDash,
             lineDashOffset,
-            opacity: 1,
         };
     }
 }

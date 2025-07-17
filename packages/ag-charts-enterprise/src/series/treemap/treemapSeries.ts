@@ -353,7 +353,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const highlightStyle = isHighlight ? properties.highlightStyle.getStyle(isLeaf) : undefined;
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(isLeaf, fills, strokes, index));
 
-        if (colorValue != null) {
+        if (!isHighlight && isLeaf && colorValue != null) {
             baseStyle.fill = colorScale.convert(colorValue);
         }
 
@@ -625,11 +625,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             axis: new BBox(0, 0, width, height),
         };
 
-        const updateRectFn = (
-            node: TreemapNode,
-            rect: _ModuleSupport.Rect,
-            highlighted: boolean,
-        ) => {
+        const updateRectFn = (node: TreemapNode, rect: _ModuleSupport.Rect, isHighlight: boolean) => {
             const { bbox } = node;
             if (bbox == null) {
                 rect.visible = false;
@@ -639,14 +635,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             const { depth = -1 } = node;
             const isLeaf = node.children.length === 0;
 
-            const style = this.getItemStyle(node, isLeaf, highlighted);
+            const style = this.getItemStyle(node, isLeaf, isHighlight);
 
             rect.crisp = true;
 
             applyShapeStyle(rect, style, fillBBox);
 
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
-            rect.zIndex = [0, depth, highlighted ? 1 : 0];
+            rect.zIndex = [0, depth, isHighlight ? 1 : 0];
 
             const onlyLeaves = node.parent?.children.every((n) => n.children.length === 0);
             const parentBbox = node.parent != null ? node.parent.bbox : undefined;

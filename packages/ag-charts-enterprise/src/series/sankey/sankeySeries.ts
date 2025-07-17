@@ -451,6 +451,8 @@ export class SankeySeries extends FlowProportionSeries<
             }
         }
 
+        style.opacity = 1;
+
         return style;
     }
 
@@ -546,6 +548,7 @@ export class SankeySeries extends FlowProportionSeries<
             }
         }
 
+        style.opacity = 1;
         return style;
     }
 
