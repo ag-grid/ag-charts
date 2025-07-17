@@ -355,12 +355,14 @@ export abstract class CartesianSeries<
     }
 
     protected strokewidthChange() {
-        // TODO: might need to check marker.strokeWidth
+        const unhighlightedStrokeWidth = ('strokeWidth' in this.properties && this.properties.strokeWidth) ?? 0;
+        const highlightedSeriesStrokeWidth =
+            this.properties.highlight.highlightedSeries.strokeWidth ?? unhighlightedStrokeWidth;
+        const highlightedItemStrokeWidth =
+            this.properties.highlight.highlightedItem?.strokeWidth ?? unhighlightedStrokeWidth;
         return (
-            'strokeWidth' in this.properties &&
-            this.properties.strokeWidth != null &&
-            this.properties.strokeWidth >
-                (this.properties.highlight.highlightedItem?.strokeWidth ?? this.properties.strokeWidth)
+            unhighlightedStrokeWidth > highlightedItemStrokeWidth ||
+            highlightedSeriesStrokeWidth > highlightedItemStrokeWidth
         );
     }
 
