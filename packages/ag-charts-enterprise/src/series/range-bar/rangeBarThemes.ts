@@ -1,6 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgChartThemeOverrides, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 
-export const RANGE_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'range-bar'>['themeTemplate'] = {
+export const RANGE_BAR_SERIES_THEME: WithThemeParams<
+    AgChartThemeOverrides['range-bar'] & { series: { label: { padding: number } } }
+> = {
     series: {
         direction: 'vertical' as const,
         fill: { $palette: 'fill' },
@@ -17,6 +19,7 @@ export const RANGE_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'range-bar'>['t
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'chartBackgroundColor' },
             placement: 'inside',
+            padding: { $isUserOption: ['./spacing', 0, 6] }, // compatibility with old `padding` property (now named `spacing`).
         },
         highlight: _ModuleSupport.multiSeriesHighlightStyle(),
     },

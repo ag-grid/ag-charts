@@ -4,6 +4,7 @@ import {
     AgCartesianChartOptions,
     AgChartOptions,
     AgCharts,
+    AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesOptions,
     WaterfallSeriesTotalMeta,
 } from 'ag-charts-community';
@@ -111,11 +112,11 @@ describe('WaterfallSeries', () => {
         },
     };
 
-    const compare = async () => {
+    const compare = async (options = IMAGE_SNAPSHOT_DEFAULTS) => {
         await waitForChartStability(chart);
 
         const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        expect(imageData).toMatchImageSnapshot(options);
     };
 
     function switchSeriesType<T extends AgChartOptions>(opts: T, direction: 'horizontal' | 'vertical'): T {
@@ -458,6 +459,92 @@ describe('WaterfallSeries', () => {
 
             chart = AgCharts.create(options as any);
             await compare();
+        });
+    });
+
+    describe('AG-8290', () => {
+        async function testCase(
+            labelOpts: { placement: AgWaterfallSeriesLabelPlacement; padding?: number; spacing?: number },
+            name: string
+        ) {
+            chart = AgCharts.create(
+                prepareEnterpriseTestOptions({
+                    data: [
+                        { x: 'A', y: 185 },
+                        { x: 'B', y: 145 },
+                        { x: 'C', y: 134 },
+                        { x: 'D', y: 55 },
+                        { x: 'E', y: 34 },
+                        { x: 'F', y: -155 },
+                        { x: 'G', y: -112 },
+                        { x: 'H', y: -165 },
+                        { x: 'I', y: -163 },
+                        { x: 'J', y: -91 },
+                    ],
+                    series: [
+                        {
+                            type: 'waterfall',
+                            xKey: 'x',
+                            yKey: 'y',
+                            item: {
+                                positive: { label: { ...labelOpts } },
+                                negative: { label: { ...labelOpts } },
+                                total: { label: { ...labelOpts } },
+                            },
+                            totals: [
+                                { totalType: 'subtotal', index: 4, axisLabel: 'ABCDE' },
+                                { totalType: 'subtotal', index: 9, axisLabel: 'FGHIJ' },
+                                { totalType: 'total', index: 9, axisLabel: 'Total' },
+                            ],
+                        },
+                    ],
+                })
+            );
+            await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
+        }
+        describe('spacing backward compatibility', () => {
+            test('inside-start', async () => {
+                await testCase(
+                    { placement: 'inside-start', padding: 30 },
+                    'AG-8290-waterfall-label-spacing-inside-start'
+                );
+            });
+            test('inside-end', async () => {
+                await testCase({ placement: 'inside-end', padding: 30 }, 'AG-8290-waterfall-label-spacing-inside-end');
+            });
+            test('outside-start', async () => {
+                await testCase(
+                    { placement: 'outside-start', padding: 30 },
+                    'AG-8290-waterfall-label-spacing-outside-start'
+                );
+            });
+            test('outside-end', async () => {
+                await testCase(
+                    { placement: 'outside-end', padding: 30 },
+                    'AG-8290-waterfall-label-spacing-outside-end'
+                );
+            });
+            test('inside-start', async () => {
+                await testCase(
+                    { placement: 'inside-start', spacing: 30 },
+                    'AG-8290-waterfall-label-spacing-inside-start'
+                );
+            });
+            test('inside-end', async () => {
+                await testCase({ placement: 'inside-end', spacing: 30 }, 'AG-8290-waterfall-label-spacing-inside-end');
+            });
+            test('outside-start', async () => {
+                await testCase(
+                    { placement: 'outside-start', spacing: 30 },
+                    'AG-8290-waterfall-label-spacing-outside-start'
+                );
+            });
+            test('outside-end', async () => {
+                await testCase(
+                    { placement: 'outside-end', spacing: 30 },
+                    'AG-8290-waterfall-label-spacing-outside-end'
+                );
+            });
         });
     });
 });

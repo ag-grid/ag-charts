@@ -3,7 +3,7 @@ import { type AgWaterfallSeriesItemOptions, type WithThemeParams, _ModuleSupport
 function itemTheme(
     key: 'altUp' | 'altDown' | 'neutral',
     index: number
-): WithThemeParams<AgWaterfallSeriesItemOptions<any>> {
+): WithThemeParams<AgWaterfallSeriesItemOptions<any> & { label: { padding: number } }> {
     return {
         fill: {
             $if: [
@@ -27,6 +27,7 @@ function itemTheme(
             color: { $ref: 'textColor' as const },
             formatter: undefined,
             placement: 'outside-end' as const,
+            padding: { $isUserOption: ['./spacing', 0, 6] }, // compatibility with old `padding` property (now named `spacing`).
         },
     };
 }

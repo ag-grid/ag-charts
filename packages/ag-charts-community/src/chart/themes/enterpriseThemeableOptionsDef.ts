@@ -467,8 +467,8 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
     interpolation: interpolationOptionsDefs,
     label: {
         ...seriesLabelOptionsDefs,
-        padding: positiveNumber,
         placement: union('inside', 'outside'),
+        spacing: positiveNumber,
     },
     marker: markerOptionsDefs,
     tooltip: tooltipOptionsDefs,
@@ -493,8 +493,8 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
     }),
     label: {
         ...seriesLabelOptionsDefs,
-        padding: positiveNumber,
         placement: union('inside', 'outside'),
+        spacing: positiveNumber,
     },
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
@@ -652,8 +652,8 @@ const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<an
     }),
     label: {
         ...seriesLabelOptionsDefs,
-        padding: positiveNumber,
         placement: union('inside-start', 'inside-center', 'inside-end', 'outside-start', 'outside-end'),
+        spacing: positiveNumber,
     },
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,

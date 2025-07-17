@@ -43,7 +43,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     label: {
         ...seriesLabelOptionsDefs,
         placement: union('inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'),
-        padding: positiveNumber,
+        spacing: positiveNumber,
     },
     errorBar: errorBarThemeableOptionsDefs,
     shadow: shadowOptionsDefs,

@@ -427,9 +427,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, label } = this.properties;
         const labelParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName };
 
-        const { placement, padding } = label;
+        const { placement } = label;
+        const spacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
         const paddingDirection = placement === 'outside' ? 1 : -1;
-        const labelPadding = padding * paddingDirection;
+        const labelPadding = spacing * paddingDirection;
 
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
