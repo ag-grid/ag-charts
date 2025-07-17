@@ -94,7 +94,6 @@
     "nanostores": "^0.9.3",
     "npm-run-all": "^4.1.5",
     "nx": "20.3.1",
-    "nx-cloud": "19.1.0",
     "octokit": "^4.0.2",
     "patch-package": "^8.0.0",
     "pixelmatch": "^5.2.1",
