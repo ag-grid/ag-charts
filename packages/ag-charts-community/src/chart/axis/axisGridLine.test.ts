@@ -12,6 +12,16 @@ import {
     waitForChartStability,
 } from '../test/utils';
 
+const EXAMPLE_GRID_LINE = {
+    width: 2,
+    style: [
+        { fill: 'red', fillOpacity: 0.1, stroke: 'red' },
+        { fill: 'blue', fillOpacity: 0.1, stroke: 'blue' },
+        { fill: 'green', fillOpacity: 0.1, stroke: 'green' },
+        { fill: 'yellow', fillOpacity: 0.1, stroke: 'yellow' },
+    ],
+};
+
 describe('AxisGridLine', () => {
     setupMockConsole();
     let chart: AgChartInstance;
@@ -76,12 +86,7 @@ describe('AxisGridLine', () => {
                         {
                             type: 'number',
                             position: 'bottom',
-                            gridLine: {
-                                style: [
-                                    { fill: 'pink', stroke: 'red' },
-                                    { fill: 'lightblue', stroke: 'blue' },
-                                ],
-                            },
+                            gridLine: EXAMPLE_GRID_LINE,
                         },
                         {
                             type: 'number',
@@ -109,12 +114,7 @@ describe('AxisGridLine', () => {
                             type: 'unit-time',
                             position: 'bottom',
                             unit: 'month',
-                            gridLine: {
-                                style: [
-                                    { fill: 'pink', stroke: 'red' },
-                                    { fill: 'lightblue', stroke: 'blue' },
-                                ],
-                            },
+                            gridLine: EXAMPLE_GRID_LINE,
                         },
                         {
                             type: 'number',
@@ -147,12 +147,7 @@ describe('AxisGridLine', () => {
                         {
                             type: 'number',
                             position: 'left',
-                            gridLine: {
-                                style: [
-                                    { fill: 'pink', stroke: 'red' },
-                                    { fill: 'lightblue', stroke: 'blue' },
-                                ],
-                            },
+                            gridLine: EXAMPLE_GRID_LINE,
                         },
                     ],
                 });
@@ -179,12 +174,7 @@ describe('AxisGridLine', () => {
                         {
                             type: 'unit-time',
                             position: 'left',
-                            gridLine: {
-                                style: [
-                                    { fill: 'pink', stroke: 'red' },
-                                    { fill: 'lightblue', stroke: 'blue' },
-                                ],
-                            },
+                            gridLine: EXAMPLE_GRID_LINE,
                         },
                     ],
                 });

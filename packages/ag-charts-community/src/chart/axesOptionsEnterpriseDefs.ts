@@ -4,10 +4,8 @@ import {
     boolean,
     callback,
     constant,
-    date,
     fontOptionsDef,
     number,
-    or,
     positiveNumber,
     ratio,
     required,
@@ -24,6 +22,7 @@ import type {
 } from 'ag-charts-types';
 
 import {
+    bandTimeAxisIntervalOptionsDefs,
     cartesianAxisBandHighlightOptions,
     cartesianAxisCrosshairOptions,
     cartesianAxisOptionsDefs,
@@ -45,7 +44,7 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
     groupPaddingInner: ratio,
     label: cartesianTimeAxisLabel,
     parentLevel: cartesianTimeAxisParentLevel,
-    interval: continuousAxisOptions(or(number, date), true).interval,
+    interval: bandTimeAxisIntervalOptionsDefs,
     crosshair: cartesianAxisCrosshairOptions(true, true),
     bandHighlight: cartesianAxisBandHighlightOptions,
 };

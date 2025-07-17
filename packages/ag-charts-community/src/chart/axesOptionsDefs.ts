@@ -35,6 +35,8 @@ import {
     union,
 } from 'ag-charts-core';
 import type {
+    AgAxisBandTimeIntervalOptions,
+    AgAxisBaseIntervalOptions,
     AgAxisGridStyle,
     AgBandHighlightOptions,
     AgBaseAxisLabelOptions,
@@ -176,6 +178,11 @@ export const cartesianTimeAxisParentLevel: OptionsDefs<AgTimeAxisParentLevel> = 
     tick: cartesianAxisTick,
 };
 
+export const commonAxisIntervalOptionsDefs: OptionsDefs<AgAxisBaseIntervalOptions> = {
+    values: arrayOf(defined),
+    minSpacing: positiveNumber,
+};
+
 export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>> = {
     reverse: boolean,
     gridLine: {
@@ -191,10 +198,7 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
             'a grid-line style object array'
         ),
     },
-    interval: {
-        values: arrayOf(defined),
-        minSpacing: positiveNumber,
-    },
+    interval: commonAxisIntervalOptionsDefs,
     label: commonAxisLabelOptionsDefs,
     line: {
         enabled: boolean,
@@ -231,15 +235,15 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
     },
 };
 
+// @ts-expect-error undocumented option
+cartesianAxisOptionsDefs.title._enabledFromTheme = undocumented(boolean);
+
 export const cartesianAxisBandHighlightOptions: OptionsDefs<AgBandHighlightOptions> = {
     enabled: boolean,
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
 };
-
-// @ts-expect-error undocumented option
-cartesianAxisOptionsDefs.title._enabledFromTheme = undocumented(boolean);
 
 export function cartesianAxisCrosshairOptions(): OptionsDefs<AgCrosshairOptions<AgBaseCrosshairLabel>>;
 export function cartesianAxisCrosshairOptions(
@@ -319,3 +323,11 @@ export function continuousAxisOptions(
         },
     };
 }
+
+export const bandTimeAxisIntervalOptionsDefs: OptionsDefs<AgAxisBandTimeIntervalOptions> = {
+    step: or(positiveNumberNonZero, timeIntervalUnit, timeInterval),
+    values: arrayOf(or(number, date)),
+    minSpacing: and(positiveNumber, lessThan('maxSpacing')),
+    maxSpacing: and(positiveNumber, greaterThan('minSpacing')),
+    placement: union('on', 'between'),
+};

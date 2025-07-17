@@ -1,6 +1,7 @@
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
 import type { AgAnnotationsOptions } from './annotationsOptions';
 import type {
+    AgAxisBaseIntervalOptions,
     AgAxisBaseTickOptions,
     AgAxisCaptionOptions,
     AgAxisContinuousIntervalOptions,
@@ -8,6 +9,7 @@ import type {
     AgBaseAxisLabelOptions,
     AgBaseAxisLabelStyleOptions,
     AgBaseAxisOptions,
+    AgBaseContinuousAxisOptions,
     AgContinuousAxisOptions,
     AgNumericAxisFormattableLabelOptions,
     AgTimeAxisFormattableLabelFormat,
@@ -157,6 +159,17 @@ export interface AgGroupedCategoryDepthOptions<TContext = ContextDefault> {
     tick?: AgGroupedCategoryDepthTickOptions;
 }
 
+type AgAxisIntervalPlacement = 'on' | 'between';
+
+export interface AgAxisCategoryIntervalOptions extends AgAxisBaseIntervalOptions {
+    placement?: AgAxisIntervalPlacement;
+}
+
+export interface AgAxisBandTimeIntervalOptions
+    extends AgAxisContinuousIntervalOptions<AgTimeInterval | AgTimeIntervalUnit | number> {
+    placement?: AgAxisIntervalPlacement;
+}
+
 export interface AgCategoryAxisOptions<TContext = ContextDefault>
     extends AgBaseCartesianAxisOptions<
         AgBaseCartesianAxisLabelOptions<TContext>,
@@ -164,6 +177,8 @@ export interface AgCategoryAxisOptions<TContext = ContextDefault>
         TContext
     > {
     type: 'category';
+    /** Configuration for the axis ticks interval. */
+    interval?: AgAxisCategoryIntervalOptions;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
     /** The padding on the outside i.e. left and right of the first and last category. In association with `paddingInner`, this value can be between 0 and 1. */
@@ -214,7 +229,6 @@ export interface AgTimeAxisOptions<TContext = ContextDefault>
             >,
             'interval'
         >,
-        // eslint-disable-next-line sonarjs/use-type-alias
         AgContinuousAxisOptions<Date | number, AgTimeInterval | AgTimeIntervalUnit | number> {
     type: 'time';
     /** Options for labels and ticks for the parent level intervals. */
@@ -230,12 +244,14 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
             >,
             'interval'
         >,
-        Omit<AgContinuousAxisOptions<Date | number, AgTimeInterval | AgTimeIntervalUnit | number>, 'nice'> {
+        AgBaseContinuousAxisOptions<Date | number> {
     type: 'unit-time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** The size of each band. */
     unit?: AgTimeInterval | AgTimeIntervalUnit;
+    /** Configuration for the axis ticks interval. */
+    interval?: AgAxisBandTimeIntervalOptions;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
     /** The padding on the outside i.e. left and right of the first and last category. In association with `paddingInner`, this value can be between 0 and 1. */
@@ -256,7 +272,7 @@ export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** Configuration for the axis ticks interval. */
-    interval?: AgAxisContinuousIntervalOptions<AgTimeInterval | AgTimeIntervalUnit | number>;
+    interval?: AgAxisBandTimeIntervalOptions;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
     /** The padding on the outside i.e. left and right of the first and last category. In association with `paddingInner`, this value can be between 0 and 1. */

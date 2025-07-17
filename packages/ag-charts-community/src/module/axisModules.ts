@@ -9,7 +9,9 @@ import {
     constant,
     date,
     fontOptionsDef,
+    greaterThan,
     labelBoxOptionsDef,
+    lessThan,
     number,
     or,
     positiveNumber,
@@ -29,6 +31,7 @@ import type {
 } from 'ag-charts-types';
 
 import {
+    bandTimeAxisIntervalOptionsDefs,
     cartesianAxisBandHighlightOptions,
     cartesianAxisCrosshairOptions,
     cartesianAxisLabelOptionsDefs,
@@ -36,6 +39,7 @@ import {
     cartesianNumericAxisLabel,
     cartesianTimeAxisLabel,
     cartesianTimeAxisParentLevel,
+    commonAxisIntervalOptionsDefs,
     continuousAxisOptions,
     timeInterval,
     timeIntervalUnit,
@@ -46,7 +50,6 @@ import { LogAxis } from '../chart/axis/logAxis';
 import { NumberAxis } from '../chart/axis/numberAxis';
 import { TimeAxis } from '../chart/axis/timeAxis';
 import { UnitTimeAxis } from '../chart/axis/unitTimeAxis';
-import { without } from '../util/object';
 import type { ModuleContext } from './moduleContext';
 
 export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
@@ -87,6 +90,10 @@ export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
     groupPaddingInner: ratio,
     crosshair: cartesianAxisCrosshairOptions(),
     bandHighlight: cartesianAxisBandHighlightOptions,
+    interval: {
+        ...commonAxisIntervalOptionsDefs,
+        placement: union('on', 'between'),
+    },
 };
 
 export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOptions> = {
@@ -121,7 +128,6 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
 
 export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
-    ...without(continuousAxisOptions(or(number, date), true), ['nice']),
     type: required(constant('unit-time')),
     unit: or(timeInterval, timeIntervalUnit),
     label: cartesianTimeAxisLabel,
@@ -131,6 +137,9 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     groupPaddingInner: ratio,
     crosshair: cartesianAxisCrosshairOptions(true, true),
     bandHighlight: cartesianAxisBandHighlightOptions,
+    min: and(or(number, date), lessThan('max')),
+    max: and(or(number, date), greaterThan('min')),
+    interval: bandTimeAxisIntervalOptionsDefs,
 };
 
 export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions> = {
