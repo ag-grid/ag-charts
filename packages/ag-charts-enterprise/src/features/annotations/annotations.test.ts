@@ -592,35 +592,38 @@ describe('Annotations', () => {
         };
 
         it('should render vertical line annotations at extreme groupPercentage values', async () => {
-            await prepareChart({
-                annotations: [
-                    {
-                        type: 'vertical-line',
-                        value: { value: 'Q2', groupPercentage: -2 },
-                        text: { label: '-2' },
-                    },
-                    {
-                        type: 'vertical-line',
-                        value: { value: 'Q2', groupPercentage: -1 },
-                        text: { label: '-1' },
-                    },
-                    {
-                        type: 'vertical-line',
-                        value: { value: 'Q2', groupPercentage: 0 },
-                        text: { label: '0' },
-                    },
-                    {
-                        type: 'vertical-line',
-                        value: { value: 'Q3', groupPercentage: 1 },
-                        text: { label: '1' },
-                    },
-                    {
-                        type: 'vertical-line',
-                        value: { value: 'Q3', groupPercentage: 2 },
-                        text: { label: '2' },
-                    },
-                ],
-            }, BAR_SERIES_OPTIONS);
+            await prepareChart(
+                {
+                    annotations: [
+                        {
+                            type: 'vertical-line',
+                            value: { value: 'Q2', groupPercentage: -2 },
+                            text: { label: '-2' },
+                        },
+                        {
+                            type: 'vertical-line',
+                            value: { value: 'Q2', groupPercentage: -1 },
+                            text: { label: '-1' },
+                        },
+                        {
+                            type: 'vertical-line',
+                            value: { value: 'Q2', groupPercentage: 0 },
+                            text: { label: '0' },
+                        },
+                        {
+                            type: 'vertical-line',
+                            value: { value: 'Q3', groupPercentage: 1 },
+                            text: { label: '1' },
+                        },
+                        {
+                            type: 'vertical-line',
+                            value: { value: 'Q3', groupPercentage: 2 },
+                            text: { label: '2' },
+                        },
+                    ],
+                },
+                BAR_SERIES_OPTIONS
+            );
             await compare();
         });
 
@@ -651,62 +654,68 @@ describe('Annotations', () => {
                 height: 400,
             };
 
-            await prepareChart({
-                annotations: [
-                    {
-                        type: 'vertical-line',
-                        value: { value: 'Q2', groupPercentage: -1.5 },
-                        text: { label: 'Far left' },
-                    },
-                    {
-                        type: 'vertical-line',
-                        value: { value: 'Q2', groupPercentage: 0 },
-                        text: { label: 'Center' },
-                    },
-                    {
-                        type: 'vertical-line',
-                        value: { value: 'Q3', groupPercentage: 1.5 },
-                        text: { label: 'Far right' },
-                    },
-                    {
-                        type: 'horizontal-line',
-                        value: 40,
-                        text: { label: 'Target' },
-                    },
-                ],
-            }, GROUPED_BAR_OPTIONS);
+            await prepareChart(
+                {
+                    annotations: [
+                        {
+                            type: 'vertical-line',
+                            value: { value: 'Q2', groupPercentage: -1.5 },
+                            text: { label: 'Far left' },
+                        },
+                        {
+                            type: 'vertical-line',
+                            value: { value: 'Q2', groupPercentage: 0 },
+                            text: { label: 'Center' },
+                        },
+                        {
+                            type: 'vertical-line',
+                            value: { value: 'Q3', groupPercentage: 1.5 },
+                            text: { label: 'Far right' },
+                        },
+                        {
+                            type: 'horizontal-line',
+                            value: 40,
+                            text: { label: 'Target' },
+                        },
+                    ],
+                },
+                GROUPED_BAR_OPTIONS
+            );
             await compare();
         });
 
         it('should render point annotations with groupPercentage on bar series', async () => {
-            await prepareChart({
-                annotations: [
-                    {
-                        type: 'text',
-                        text: 'Left',
-                        x: { value: 'Q1', groupPercentage: -1 },
-                        y: 60,
-                    },
-                    {
-                        type: 'comment',
-                        text: 'Center',
-                        x: { value: 'Q2', groupPercentage: 0 },
-                        y: 80,
-                    },
-                    {
-                        type: 'note',
-                        text: 'Right',
-                        x: { value: 'Q3', groupPercentage: 1 },
-                        y: 70,
-                    },
-                    {
-                        type: 'callout',
-                        text: 'Outside',
-                        start: { x: { value: 'Q4', groupPercentage: 1.5 }, y: 90 },
-                        end: { x: { value: 'Q4', groupPercentage: 2 }, y: 100 },
-                    },
-                ],
-            }, BAR_SERIES_OPTIONS);
+            await prepareChart(
+                {
+                    annotations: [
+                        {
+                            type: 'text',
+                            text: 'Left',
+                            x: { value: 'Q1', groupPercentage: -1 },
+                            y: 60,
+                        },
+                        {
+                            type: 'comment',
+                            text: 'Center',
+                            x: { value: 'Q2', groupPercentage: 0 },
+                            y: 80,
+                        },
+                        {
+                            type: 'note',
+                            text: 'Right',
+                            x: { value: 'Q3', groupPercentage: 1 },
+                            y: 70,
+                        },
+                        {
+                            type: 'callout',
+                            text: 'Outside',
+                            start: { x: { value: 'Q4', groupPercentage: 1.5 }, y: 90 },
+                            end: { x: { value: 'Q4', groupPercentage: 2 }, y: 100 },
+                        },
+                    ],
+                },
+                BAR_SERIES_OPTIONS
+            );
             await compare();
         });
     });
