@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { countFractionDigits, createId } from 'ag-charts-core';
-import type { AgChartLegendPosition, FormatterParams } from 'ag-charts-types';
+import type { AgChartLegendPlacement, FormatterParams } from 'ag-charts-types';
 
 import { formatWithContext } from '../utils/formatter';
 
@@ -44,7 +44,7 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
     readonly label = new AxisLabel();
     readonly scale = new LinearScale();
 
-    position: AgChartLegendPosition = 'bottom';
+    placement: AgChartLegendPlacement = 'bottom';
     translationX: number = 0;
     translationY: number = 0;
 
@@ -54,7 +54,7 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
     ) {}
 
     private get horizontal(): boolean {
-        return this.position.startsWith('top') || this.position.startsWith('bottom');
+        return this.placement.startsWith('top') || this.placement.startsWith('bottom');
     }
 
     attachAxis(axisNode: _ModuleSupport.Group) {
@@ -62,14 +62,14 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
     }
 
     calculateLayout(): _ModuleSupport.BBox | undefined {
-        const { position, translationX, translationY, horizontal, label } = this;
+        const { placement, translationX, translationY, horizontal, label } = this;
 
         function unreachable(_a: never): never {
             return undefined as never;
         }
         let textBaseline: CanvasTextBaseline;
         let textAlign: CanvasTextAlign;
-        switch (position) {
+        switch (placement) {
             case 'top':
             case 'top-right':
             case 'top-left':
@@ -103,7 +103,7 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
                 label.parallel = false;
                 break;
             default:
-                unreachable(position);
+                unreachable(placement);
         }
 
         const boxes: _ModuleSupport.BBox[] = [];
@@ -194,7 +194,7 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
             maxTickCount,
         });
 
-        if (this.position === 'bottom' || this.position === 'top') {
+        if (this.placement === 'bottom' || this.placement === 'top') {
             const measurer = CachedTextMeasurerPool.getMeasurer({ font: this.label });
 
             const { domain } = this.scale;

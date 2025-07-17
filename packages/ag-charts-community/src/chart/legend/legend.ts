@@ -55,6 +55,7 @@ import type { CategoryLegendDatum } from './legendDatum';
 import { makeLegendItemEvent } from './legendEvent';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { LegendSymbolOptions } from './legendSymbol';
+import { expandLegendPosition } from './legendUtil';
 
 class LegendLabel extends BaseProperties {
     @Property
@@ -256,9 +257,6 @@ export class Legend extends BaseProperties {
 
     @Property
     position: AgChartLegendPosition = 'bottom';
-
-    @Property
-    floating: boolean = false;
 
     /** Used to constrain the width of the legend. */
     @Property
@@ -1174,6 +1172,7 @@ export class Legend extends BaseProperties {
     private positionLegendScene(ctx: LayoutContext) {
         if (!this.enabled || !this.data.length) return;
 
+        const { placement, floating } = expandLegendPosition(this.position);
         const { layoutBox } = ctx;
         const { x, y, width, height } = layoutBox;
         const [legendWidth, legendHeight] = this.calculateLegendDimensions(layoutBox);
@@ -1190,7 +1189,7 @@ export class Legend extends BaseProperties {
 
             let translationX: number;
             let translationY: number;
-            switch (this.position) {
+            switch (placement) {
                 case 'top':
                     translationX = (width - legendBBox.width) / 2;
                     translationY = 0;
@@ -1228,11 +1227,11 @@ export class Legend extends BaseProperties {
                     translationY = height - legendBBox.height;
                     break;
                 default:
-                    unreachable(this.position);
+                    unreachable(placement);
             }
 
-            if (this.floating) {
-                switch (this.position) {
+            if (floating) {
+                switch (placement) {
                     case 'top':
                     case 'top-right':
                     case 'top-left':
@@ -1254,12 +1253,12 @@ export class Legend extends BaseProperties {
                         translationX -= legendSpacing;
                         break;
                     default:
-                        unreachable(this.position);
+                        unreachable(placement);
                 }
             } else {
                 let shrinkAmount: number;
                 let shrinkDirection: NonNullable<Parameters<(typeof layoutBox)['shrink']>[1]>;
-                switch (this.position) {
+                switch (placement) {
                     case 'top':
                     case 'top-right':
                     case 'top-left':
@@ -1285,7 +1284,7 @@ export class Legend extends BaseProperties {
                         shrinkDirection = 'right';
                         break;
                     default:
-                        unreachable(this.position);
+                        unreachable(placement);
                 }
                 layoutBox.shrink(shrinkAmount, shrinkDirection);
             }
@@ -1329,6 +1328,7 @@ export class Legend extends BaseProperties {
 
     private calculateLegendDimensions(shrinkRect: BBox): [number, number] {
         const { width, height } = shrinkRect;
+        const { placement } = expandLegendPosition(this.position);
 
         const aspectRatio = width / height;
         const maxCoefficient = 0.5;
@@ -1340,7 +1340,7 @@ export class Legend extends BaseProperties {
         function unreachable(_a: never): never {
             return undefined as never;
         }
-        switch (this.position) {
+        switch (placement) {
             case 'top':
             case 'top-left':
             case 'top-right':
@@ -1375,7 +1375,7 @@ export class Legend extends BaseProperties {
                 break;
             }
             default:
-                unreachable(this.position);
+                unreachable(placement);
         }
 
         return [legendWidth, legendHeight];

@@ -42,6 +42,7 @@ import {
     typeUnion,
     undocumented,
     union,
+    validate,
 } from 'ag-charts-core';
 import {
     type AgBaseSeriesOptions,
@@ -51,6 +52,8 @@ import {
     type AgChartCaptionOptions,
     type AgChartLabelOptions,
     type AgChartLabelStyleOptions,
+    type AgChartLegendPlacement,
+    type AgChartLegendPositionOptions,
     type AgChartOverlayOptions,
     type AgContextMenuItem,
     type AgContextMenuItemLiteral,
@@ -70,7 +73,7 @@ import {
     type ToolbarButton,
 } from 'ag-charts-types';
 
-const legendPositionUnion = union(
+const legendPlacementLiterals: readonly AgChartLegendPlacement[] = [
     'top',
     'top-right',
     'top-left',
@@ -82,7 +85,39 @@ const legendPositionUnion = union(
     'right-bottom',
     'left',
     'left-top',
-    'left-bottom'
+    'left-bottom',
+];
+
+const legendPositionOptionsDef: OptionsDefs<AgChartLegendPositionOptions> = {
+    floating: boolean,
+    placement: union(...legendPlacementLiterals),
+};
+
+const legendPositionValidator = attachDescription(
+    (value: unknown, context: ValidatorContext): boolean | ValidatorResult => {
+        let result: ValidatorResult | boolean;
+        if (typeof value === 'string') {
+            const allowedValues: readonly string[] = contextMenuItemLiterals;
+            if (allowedValues.includes(value)) {
+                result = true;
+            } else {
+                result = { valid: false, invalid: [], cleared: null } satisfies ValidatorResult;
+                result.invalid.push(
+                    new ValidationError(
+                        ErrorType.Invalid,
+                        `a legend placement string: ["${legendPlacementLiterals.join('", "')}"]`,
+                        value,
+                        context.path
+                    )
+                );
+            }
+        } else {
+            const { cleared, invalid } = validate(value, legendPositionOptionsDef);
+            result = { valid: invalid.length === 0, cleared, invalid };
+        }
+        return result;
+    },
+    `a legend position object or placement string: [${legendPlacementLiterals.join(', ')}]`
 );
 
 const shapeValidator = or(
@@ -290,9 +325,8 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     legend: {
         enabled: boolean,
-        position: legendPositionUnion,
+        position: legendPositionValidator,
         orientation: union('horizontal', 'vertical'),
-        floating: boolean,
         maxWidth: positiveNumber,
         maxHeight: positiveNumber,
         spacing: positiveNumber,
@@ -352,8 +386,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     gradientLegend: {
         enabled: boolean,
-        position: legendPositionUnion,
-        floating: boolean,
+        position: legendPositionValidator,
         spacing: positiveNumber,
         reverseOrder: boolean,
         gradient: {

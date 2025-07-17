@@ -14,6 +14,7 @@ const {
     Marker,
     TranslatableGroup,
     BBox,
+    expandLegendPosition,
 } = _ModuleSupport;
 
 class GradientBar extends BaseProperties {
@@ -68,7 +69,8 @@ export class GradientLegend {
     readonly gradient = new GradientBar();
 
     private isVertical(): boolean {
-        return this.position.startsWith('right') || this.position.startsWith('left');
+        const { placement } = expandLegendPosition(this.position);
+        return placement.startsWith('right') || placement.startsWith('left');
     }
 
     /**
@@ -182,11 +184,12 @@ export class GradientLegend {
     }
 
     private updateAxis(data: _ModuleSupport.GradientLegendDatum) {
-        const { position, axisTicks, gradient, scale, gradientRect } = this;
+        const { axisTicks, gradient, scale, gradientRect } = this;
+        const { placement } = expandLegendPosition(this.position);
         const vertical = this.isVertical();
         const positiveAxis = this.reverseOrder !== vertical;
 
-        axisTicks.position = position;
+        axisTicks.placement = placement;
         const offset = gradient.thickness + (scale.padding ?? 0);
         axisTicks.translationX = vertical ? offset : 0;
         axisTicks.translationY = vertical ? 0 : offset;
@@ -241,8 +244,9 @@ export class GradientLegend {
 
         let { x: left, y: top } = shrinkRect;
         const { width, height } = axisBox;
+        const { placement, floating } = expandLegendPosition(this.position);
 
-        switch (this.position) {
+        switch (placement) {
             case 'left':
                 top += shrinkRect.height / 2 - height / 2;
                 break;
@@ -274,11 +278,11 @@ export class GradientLegend {
             case 'top-left':
                 break;
             default:
-                unreachable(this.position);
+                unreachable(placement);
         }
 
-        if (!this.floating) {
-            switch (this.position) {
+        if (!floating) {
+            switch (placement) {
                 case 'left':
                 case 'left-top':
                 case 'left-bottom':
@@ -300,7 +304,7 @@ export class GradientLegend {
                     shrinkRect.shrink(height + this.spacing, 'bottom');
                     break;
                 default:
-                    unreachable(this.position);
+                    unreachable(placement);
             }
         }
 

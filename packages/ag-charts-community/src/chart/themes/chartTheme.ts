@@ -386,7 +386,6 @@ export class ChartTheme {
                         [CARTESIAN_POSITION.RIGHT_BOTTOM, 'vertical'],
                     ],
                 },
-                floating: false,
                 border: {
                     enabled: false,
                     stroke: { $foregroundBackgroundMix: 0.25 },
