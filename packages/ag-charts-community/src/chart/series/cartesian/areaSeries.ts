@@ -473,7 +473,7 @@ export class AreaSeries extends CartesianSeries<
                     point,
                     fill: marker.fill ?? seriesFill,
                     stroke: marker.stroke ?? seriesStroke,
-                    strokeWidth: marker.strokeWidth ?? this.getStrokeWidth(this.properties.strokeWidth),
+                    strokeWidth: marker.strokeWidth ?? this.properties.strokeWidth,
                     selected,
                 });
             }

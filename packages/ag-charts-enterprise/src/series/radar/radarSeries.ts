@@ -686,7 +686,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
             lineNode.fill = undefined;
             lineNode.stroke = this.properties.stroke;
-            lineNode.strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
+            lineNode.strokeWidth = this.properties.strokeWidth;
             lineNode.strokeOpacity = this.properties.strokeOpacity;
 
             lineNode.lineDash = this.properties.lineDash;

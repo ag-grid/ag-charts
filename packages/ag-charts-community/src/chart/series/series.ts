@@ -581,16 +581,6 @@ export abstract class Series<
         return opacity;
     }
 
-    protected getStrokeWidth(defaultStrokeWidth: number): number {
-        if (!this.properties.highlight.enabled) {
-            // No change in styling for highlight cases.
-            return defaultStrokeWidth;
-        }
-
-        const { strokeWidth = defaultStrokeWidth } = this.getHighlightStyle();
-        return strokeWidth;
-    }
-
     protected getHighlightState(
         datum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
