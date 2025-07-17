@@ -1,6 +1,4 @@
-import { type RequireOptional, createSvgElement, isDefined } from 'ag-charts-core';
-import type { FontFamily, FontSize, FontStyle, FontWeight, Opacity, Padding, PixelSize } from 'ag-charts-types';
-import { type BoxBounds, createSvgElement, isArray, isString } from 'ag-charts-core';
+import { type BoxBounds, type RequireOptional, createSvgElement, isArray, isString } from 'ag-charts-core';
 import type {
     FontFamily,
     FontSize,
@@ -9,7 +7,6 @@ import type {
     Opacity,
     Padding,
     PixelSize,
-    StrokeOptions,
     TextSegment,
 } from 'ag-charts-types';
 

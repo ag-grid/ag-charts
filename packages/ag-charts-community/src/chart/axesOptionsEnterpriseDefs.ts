@@ -11,7 +11,6 @@ import {
     positiveNumber,
     ratio,
     required,
-    string,
     union,
 } from 'ag-charts-core';
 import type {

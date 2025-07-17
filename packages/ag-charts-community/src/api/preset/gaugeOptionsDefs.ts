@@ -20,7 +20,6 @@ import {
     positiveNumber,
     ratio,
     required,
-    string,
     strokeOptionsDef,
     undocumented,
     union,
