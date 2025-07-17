@@ -567,4 +567,147 @@ describe('Annotations', () => {
             await compare();
         });
     });
+
+    describe('bar series with groupPercentage', () => {
+        const BAR_SERIES_OPTIONS: AgCartesianChartOptions = {
+            data: [
+                { category: 'Q1', value: 50 },
+                { category: 'Q2', value: 70 },
+                { category: 'Q3', value: 60 },
+                { category: 'Q4', value: 80 },
+            ],
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            axes: [
+                { type: 'category', position: 'bottom' },
+                { type: 'number', position: 'left' },
+            ],
+            annotations: {
+                enabled: true,
+                toolbar: {
+                    enabled: false,
+                },
+            },
+            width: 800,
+            height: 400,
+        };
+
+        it('should render vertical line annotations at extreme groupPercentage values', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'vertical-line',
+                        value: { value: 'Q2', groupPercentage: -2 },
+                        text: { label: '-2' },
+                    },
+                    {
+                        type: 'vertical-line',
+                        value: { value: 'Q2', groupPercentage: -1 },
+                        text: { label: '-1' },
+                    },
+                    {
+                        type: 'vertical-line',
+                        value: { value: 'Q2', groupPercentage: 0 },
+                        text: { label: '0' },
+                    },
+                    {
+                        type: 'vertical-line',
+                        value: { value: 'Q3', groupPercentage: 1 },
+                        text: { label: '1' },
+                    },
+                    {
+                        type: 'vertical-line',
+                        value: { value: 'Q3', groupPercentage: 2 },
+                        text: { label: '2' },
+                    },
+                ],
+            }, BAR_SERIES_OPTIONS);
+            await compare();
+        });
+
+        it('should render annotations on grouped bar series', async () => {
+            const GROUPED_BAR_OPTIONS: AgCartesianChartOptions = {
+                data: [
+                    { category: 'Q1', sales: 50, profit: 30, expenses: 20 },
+                    { category: 'Q2', sales: 70, profit: 45, expenses: 25 },
+                    { category: 'Q3', sales: 60, profit: 35, expenses: 25 },
+                    { category: 'Q4', sales: 80, profit: 50, expenses: 30 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'sales', yName: 'Sales' },
+                    { type: 'bar', xKey: 'category', yKey: 'profit', yName: 'Profit' },
+                    { type: 'bar', xKey: 'category', yKey: 'expenses', yName: 'Expenses' },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+                annotations: {
+                    enabled: true,
+                    toolbar: {
+                        enabled: false,
+                    },
+                },
+                width: 800,
+                height: 400,
+            };
+
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'vertical-line',
+                        value: { value: 'Q2', groupPercentage: -1.5 },
+                        text: { label: 'Far left' },
+                    },
+                    {
+                        type: 'vertical-line',
+                        value: { value: 'Q2', groupPercentage: 0 },
+                        text: { label: 'Center' },
+                    },
+                    {
+                        type: 'vertical-line',
+                        value: { value: 'Q3', groupPercentage: 1.5 },
+                        text: { label: 'Far right' },
+                    },
+                    {
+                        type: 'horizontal-line',
+                        value: 40,
+                        text: { label: 'Target' },
+                    },
+                ],
+            }, GROUPED_BAR_OPTIONS);
+            await compare();
+        });
+
+        it('should render point annotations with groupPercentage on bar series', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'text',
+                        text: 'Left',
+                        x: { value: 'Q1', groupPercentage: -1 },
+                        y: 60,
+                    },
+                    {
+                        type: 'comment',
+                        text: 'Center',
+                        x: { value: 'Q2', groupPercentage: 0 },
+                        y: 80,
+                    },
+                    {
+                        type: 'note',
+                        text: 'Right',
+                        x: { value: 'Q3', groupPercentage: 1 },
+                        y: 70,
+                    },
+                    {
+                        type: 'callout',
+                        text: 'Outside',
+                        start: { x: { value: 'Q4', groupPercentage: 1.5 }, y: 90 },
+                        end: { x: { value: 'Q4', groupPercentage: 2 }, y: 100 },
+                    },
+                ],
+            }, BAR_SERIES_OPTIONS);
+            await compare();
+        });
+    });
 });

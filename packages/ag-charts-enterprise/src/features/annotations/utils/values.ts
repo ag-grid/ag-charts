@@ -33,6 +33,9 @@ export function convert(p: Point['x' | 'y'], context: Pick<AnnotationAxisContext
     const { scale, snapToGroup } = context;
     const width = scale.bandwidth === 0 ? scale.step ?? 0 : scale.bandwidth ?? 0;
 
+    // For band scales, groupPercentage represents the position within the band
+    // 0 = start of band, 0.5 = center, 1 = end of band
+    // Values outside 0-1 extend beyond the band boundaries
     const offset = snapToGroup ? width / 2 : width * groupPercentage;
     return scale.convert(value) + offset;
 }
