@@ -91,6 +91,7 @@ Execute the plan systematically, potentially across multiple prompts if needed:
 #### Visual Validation and Screenshot Analysis
 
 -   **Comprehensive screenshot capture**:
+
     -   Take screenshots of each example in default state - save to `reports/docs-review/${pageName}/${exampleName}/default-state.png`
     -   Capture screenshots during interactions (hover states, selections, animations) - save with descriptive names
     -   Screenshot different viewport sizes (desktop, tablet, mobile) - save as `desktop-view.png`, `tablet-view.png`, `mobile-view.png`
@@ -98,6 +99,7 @@ Execute the plan systematically, potentially across multiple prompts if needed:
     -   Take screenshots of error states and edge cases - save with descriptive error names
 
 -   **Visual correctness analysis**:
+
     -   Analyze screenshots for correct chart rendering (proper shapes, colors, positioning)
     -   Verify visual elements match documented descriptions
     -   Check that legends, axes, labels render as described
@@ -115,6 +117,7 @@ Execute the plan systematically, potentially across multiple prompts if needed:
 -   **Canvas-based chart interaction testing** (with visual validation):
 
     -   **Systematic hovering over chart elements**: Since charts are canvas-based, hover over different areas of the chart systematically:
+
         -   Hover over data series (bars, lines, pie slices, markers) - expect tooltips and highlight effects
         -   Hover over axes (axis lines, tick marks, labels) - check for interactive feedback
         -   Hover over legends (legend items, symbols) - verify hover states and series highlighting
@@ -216,10 +219,11 @@ For example, if reviewing `packages/ag-charts-website/src/content/docs/pie-serie
 **Save screenshots in organized subdirectories by example name.**
 
 For example, screenshots for the `simple-pie` example should be saved to `reports/docs-review/pie-series/simple-pie/` with descriptive filenames like:
-- `default-state.png`
-- `hover-tooltip.png`
-- `mobile-view.png`
-- `keyboard-focus.png`
+
+-   `default-state.png`
+-   `hover-tooltip.png`
+-   `mobile-view.png`
+-   `keyboard-focus.png`
 
 The report should include these sections:
 
