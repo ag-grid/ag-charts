@@ -612,4 +612,39 @@ describe('Time Axis Examples', () => {
         chart = await createChart(options);
         await compare();
     });
+
+    describe('AG-14639', () => {
+        it('should not show label boxing when text is empty', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { date: new Date(2024, 0, 1), value: 2 },
+                    { date: new Date(2024, 1, 1), value: 5 },
+                    { date: new Date(2024, 2, 1), value: 3 },
+                    { date: new Date(2024, 3, 1), value: 1 },
+                    { date: new Date(2024, 4, 1), value: 2 },
+                    { date: new Date(2024, 5, 1), value: 3 },
+                    { date: new Date(2024, 9, 1), value: 1 },
+                    { date: new Date(2024, 10, 1), value: 2 },
+                    { date: new Date(2024, 11, 1), value: 2 },
+                ],
+                series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+                axes: [
+                    {
+                        type: 'time',
+                        position: 'bottom',
+                        title: { text: 'Continuous Time Axis' },
+                        label: {
+                            color: 'blue',
+                            border: { strokeWidth: 2, stroke: 'red' },
+                            fill: 'pink',
+                            padding: 8,
+                        },
+                    },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+            chart = await createChart(options);
+            await compare();
+        });
+    });
 });

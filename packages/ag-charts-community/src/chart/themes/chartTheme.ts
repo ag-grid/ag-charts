@@ -208,11 +208,15 @@ export class ChartTheme {
                     label: {
                         // TODO: { $merge: [{ $path: '../../label' }, { fontWeight: 'bold' }]}
                         enabled: { $path: '../../label/enabled' },
+                        border: { $path: '../../label/border' },
+                        fill: { $path: '../../label/fill' },
                         fontSize: { $path: '../../label/fontSize' },
                         fontFamily: { $path: '../../label/fontFamily' },
                         fontWeight: 'bold',
                         spacing: { $path: '../../label/spacing' },
                         color: { $path: '../../label/color' },
+                        cornerRadius: { $path: '../../label/cornerRadius' },
+                        padding: { $path: '../../label/padding' },
                         avoidCollisions: { $path: '../../label/avoidCollisions' },
                     },
                     tick: {
@@ -248,8 +252,8 @@ export class ChartTheme {
                     enabled: true,
                     style: {
                         $apply: [
-                            { stroke: { $ref: 'gridLineColor' }, lineDash: [] },
-                            [{ stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
+                            { fillOpacity: 1, stroke: { $ref: 'gridLineColor' }, lineDash: [] },
+                            [{ fillOpacity: 1, stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
                         ],
                     },
                 },
@@ -305,17 +309,13 @@ export class ChartTheme {
             },
             seriesArea: {
                 border: {
+                    enabled: false,
                     stroke: { $ref: 'foregroundColor' },
                     strokeOpacity: 1,
-                    strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
+                    strokeWidth: 1,
                 },
-                cornerRadius: 4,
-                padding: {
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    left: 0,
-                },
+                cornerRadius: { $ref: 'borderRadius' },
+                padding: { $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, 0] },
             },
             keyboard: { enabled: true },
             title: {
@@ -375,26 +375,28 @@ export class ChartTheme {
                 },
                 position: CARTESIAN_POSITION.BOTTOM,
                 orientation: {
-                    $if: [
-                        {
-                            $or: [
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT] },
-                            ],
-                        },
-                        'vertical',
+                    $switch: [
+                        { $path: './position' },
                         'horizontal',
+                        [CARTESIAN_POSITION.LEFT, 'vertical'],
+                        [CARTESIAN_POSITION.LEFT_TOP, 'vertical'],
+                        [CARTESIAN_POSITION.LEFT_BOTTOM, 'vertical'],
+                        [CARTESIAN_POSITION.RIGHT, 'vertical'],
+                        [CARTESIAN_POSITION.RIGHT_TOP, 'vertical'],
+                        [CARTESIAN_POSITION.RIGHT_BOTTOM, 'vertical'],
                     ],
                 },
+                floating: false,
                 border: {
+                    enabled: false,
                     stroke: { $foregroundBackgroundMix: 0.25 },
                     strokeOpacity: 1,
-                    strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
+                    strokeWidth: 1,
                 },
-                cornerRadius: 4,
+                cornerRadius: { $ref: 'borderRadius' },
                 fillOpacity: 1,
                 padding: {
-                    $isUserOption: [['./fill', './border/stroke', './border/strokeWidth'], 5, 0],
+                    $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, { $isUserOption: ['./fill', 5, 0] }],
                 },
                 spacing: 30,
                 listeners: {},

@@ -122,11 +122,15 @@ export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault>
         | 'avoidCollisions'
         | 'rotation'
         | 'spacing'
+        | 'border'
         | 'color'
+        | 'cornerRadius'
+        | 'fill'
         | 'fontFamily'
         | 'fontSize'
         | 'fontStyle'
         | 'fontWeight'
+        | 'padding'
     > {
     /**
      * Text wrapping strategy for long text.

@@ -29,9 +29,9 @@ export class LinearScale extends ContinuousScale<number> {
         { interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount }: ScaleTickParams<number>,
         domain: number[] = this.domain,
         visibleRange?: [number, number]
-    ): { ticks: number[]; count: number } {
+    ): { ticks: number[]; count: number; firstTickIndex?: number } {
         if (!domain || domain.length < 2 || tickCount < 1 || !domain.every(isFinite)) {
-            return { ticks: [], count: 0 };
+            return { ticks: [], count: 0, firstTickIndex: 0 };
         }
         const [d0, d1] = domain;
 

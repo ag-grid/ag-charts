@@ -8,6 +8,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [
               6,
               3,
@@ -15,6 +16,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
             "stroke": "#c1d832",
           },
           {
+            "fillOpacity": 1,
             "lineDash": [
               10,
               5,
@@ -88,6 +90,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -153,13 +156,15 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#3f7cbf",
@@ -473,17 +478,13 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -527,6 +528,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -573,6 +575,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -620,6 +623,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -685,13 +689,15 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -1017,17 +1023,13 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -1071,6 +1073,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -1118,6 +1121,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -1181,13 +1185,15 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -1874,17 +1880,13 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -1928,6 +1930,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -1974,6 +1977,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -2037,13 +2041,15 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -2836,17 +2842,13 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -2890,6 +2892,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -2933,6 +2936,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -3088,16 +3092,15 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "padding": {
       "bottom": 15,
       "left": 20,
-      "right": 0,
-      "top": 0,
     },
   },
   "subtitle": {
@@ -3142,6 +3145,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -3204,6 +3208,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -3265,13 +3270,15 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -3669,17 +3676,13 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -3723,6 +3726,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -3769,6 +3773,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -3831,13 +3836,15 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -4539,17 +4546,13 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -4593,6 +4596,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -4639,6 +4643,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -4805,17 +4810,13 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -4860,6 +4861,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -4906,6 +4908,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -5073,17 +5076,13 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -5128,6 +5127,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [
               0,
               5,
@@ -5334,17 +5334,13 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -5388,6 +5384,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -5434,6 +5431,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -5593,17 +5591,13 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -5647,6 +5641,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -5693,6 +5688,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -5755,13 +5751,15 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -6006,17 +6004,13 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -6060,6 +6054,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -6106,6 +6101,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -6168,13 +6164,15 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -6425,17 +6423,13 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -6479,6 +6473,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -6525,6 +6520,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -6588,13 +6584,15 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -7323,17 +7321,13 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -7377,6 +7371,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -7424,6 +7419,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -7489,13 +7485,15 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -9008,17 +9006,13 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -9063,6 +9057,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -9107,6 +9102,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -9266,17 +9262,13 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -9320,6 +9312,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -9366,6 +9359,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -9429,13 +9423,15 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -10451,17 +10447,13 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -10505,6 +10497,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -10552,6 +10545,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -10615,13 +10609,15 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -10972,17 +10968,13 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -11026,6 +11018,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -11072,6 +11065,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -11135,13 +11129,15 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -11768,17 +11764,13 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -11822,6 +11814,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -11891,6 +11884,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -11954,13 +11948,15 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -12509,17 +12505,13 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -12563,6 +12555,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -12609,6 +12602,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -12777,17 +12771,13 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -12849,13 +12839,15 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -13100,17 +13092,13 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -13154,6 +13142,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -13223,6 +13212,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -13286,13 +13276,15 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -13527,17 +13519,13 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -13780,17 +13768,13 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -13834,6 +13818,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -13877,6 +13862,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -14025,17 +14011,13 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -14079,6 +14061,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -14146,6 +14129,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -14209,13 +14193,15 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -15070,17 +15056,13 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -15124,6 +15106,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -15170,6 +15153,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -15233,13 +15217,15 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -15684,17 +15670,13 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",
@@ -15738,6 +15720,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "enabled": false,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -15785,6 +15768,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "enabled": true,
         "style": [
           {
+            "fillOpacity": 1,
             "lineDash": [],
             "stroke": "#e8e8e9",
           },
@@ -15848,13 +15832,15 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
   },
   "legend": {
     "border": {
+      "enabled": false,
       "stroke": "#c5c7c7",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
     "enabled": true,
     "fillOpacity": 1,
+    "floating": false,
     "item": {
       "label": {
         "color": "#181d1f",
@@ -16381,17 +16367,13 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
   ],
   "seriesArea": {
     "border": {
+      "enabled": false,
       "stroke": "#181d1f",
       "strokeOpacity": 1,
-      "strokeWidth": 0,
+      "strokeWidth": 1,
     },
     "cornerRadius": 4,
-    "padding": {
-      "bottom": 0,
-      "left": 0,
-      "right": 0,
-      "top": 0,
-    },
+    "padding": 0,
   },
   "subtitle": {
     "color": "#707374",

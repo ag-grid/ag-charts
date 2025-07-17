@@ -16,12 +16,14 @@ describe('LogScale', () => {
             expect(scale.ticks(ticks)).toEqual({
                 ticks: [100, 1000, 10000, 100000, 1000000],
                 count: 5,
+                firstTickIndex: 0,
             });
 
             ticks.tickCount = 4;
             expect(scale.ticks(ticks)).toEqual({
                 ticks: [100, 1000, 10000, 100000, 1000000],
                 count: 5,
+                firstTickIndex: 0,
             });
         }
         {
@@ -38,6 +40,7 @@ describe('LogScale', () => {
             expect(scale.ticks(ticks)).toEqual({
                 ticks: [-1000, -300, -100, -30, -10],
                 count: 5,
+                firstTickIndex: 0,
             });
         }
     });
@@ -146,6 +149,7 @@ describe('LogScale', () => {
         const expTicks = {
             ticks: [20.085536923187668, 54.598150033144236, 148.4131591025766, 403.4287934927351],
             count: expect.anything(), // Not testing a nice domain, so this is value isn't useful
+            firstTickIndex: 0,
         };
         const scale = new LogScale();
         scale.domain = [10, 1000];
@@ -194,6 +198,7 @@ describe('LogScale', () => {
         expect(scale.ticks(ticks, undefined, [0.25, 0.75])).toEqual({
             ticks: [1000, 10000, 100000],
             count: 5,
+            firstTickIndex: 1,
         });
     });
 });

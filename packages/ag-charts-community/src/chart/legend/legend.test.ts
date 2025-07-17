@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import type {
     AgCartesianChartOptions,
     AgChartLegendListeners,
+    AgChartLegendPosition,
     AgChartOptions,
     AgLineSeriesOptions,
     AgMarkerShapeFnParams,
@@ -745,6 +746,93 @@ describe('Legend', () => {
                 legend: { item: { showSeriesStroke: true } },
             });
 
+            await compare(chart);
+        });
+    });
+
+    describe('AG-7868 legend.position', () => {
+        const data = [
+            { quarter: 'Q1', coal: -666, manufacturedFuels: -14, primaryOil: -261, petroleum: -124, naturalGas: -1197 },
+            { quarter: 'Q2', coal: 208, manufacturedFuels: 71, primaryOil: 950, petroleum: -318, naturalGas: 906 },
+            { quarter: 'Q3', coal: 426, manufacturedFuels: 19, primaryOil: -845, petroleum: 166, naturalGas: 276 },
+            { quarter: 'Q4', coal: 158, manufacturedFuels: -29, primaryOil: -156, petroleum: -19, naturalGas: 672 },
+        ];
+        async function testPosition(position: AgChartLegendPosition) {
+            const options: AgChartOptions = {
+                data,
+                series: [
+                    { type: 'bar', xKey: 'quarter', yKey: 'naturalGas' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'coal' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'primaryOil' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'petroleum' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'manufacturedFuels' },
+                ],
+                legend: { position },
+            };
+            prepareTestOptions(options as any);
+            chart = deproxy(AgCharts.create(options));
+            await compare(chart);
+        }
+
+        test('top', async () => {
+            await testPosition('top');
+        });
+        test('top-right', async () => {
+            await testPosition('top-right');
+        });
+        test('top-left', async () => {
+            await testPosition('top-left');
+        });
+        test('bottom', async () => {
+            await testPosition('bottom');
+        });
+        test('bottom-right', async () => {
+            await testPosition('bottom-right');
+        });
+        test('bottom-left', async () => {
+            await testPosition('bottom-left');
+        });
+        test('right', async () => {
+            await testPosition('right');
+        });
+        test('right-top', async () => {
+            await testPosition('right-top');
+        });
+        test('right-bottom', async () => {
+            await testPosition('right-bottom');
+        });
+        test('left', async () => {
+            await testPosition('left');
+        });
+        test('left-top', async () => {
+            await testPosition('left-top');
+        });
+        test('left-bottom', async () => {
+            await testPosition('left-bottom');
+        });
+    });
+
+    describe('AG-15363 legend.floating', () => {
+        test('right-top', async () => {
+            const options = prepareTestOptions({
+                data: [
+                    { ticker: 'AAPL', 2020: 0.7, 2021: 0.6, 2022: 0.5 },
+                    { ticker: 'KO', 2020: 3.0, 2021: 2.9, 2022: 2.8 },
+                    { ticker: 'JNJ', 2020: 2.6, 2021: 2.5, 2022: 2.4 },
+                    { ticker: 'T', 2020: 6.5, 2021: 7.0, 2022: 6.0 },
+                    { ticker: 'PG', 2020: 2.3, 2021: 2.2, 2022: 2.1 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'ticker', yKey: '2020' },
+                    { type: 'bar', xKey: 'ticker', yKey: '2021' },
+                    { type: 'bar', xKey: 'ticker', yKey: '2022' },
+                ],
+                legend: {
+                    position: 'right-top',
+                    floating: true,
+                },
+            });
+            chart = deproxy(AgCharts.create(options));
             await compare(chart);
         });
     });

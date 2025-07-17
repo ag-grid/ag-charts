@@ -135,13 +135,13 @@ function rangeData(
         epoch = start;
     }
 
-    [start, stop] = intervalExtent(start, stop, visibleRange);
-
     const offset = getOffset(params.unit, params.step, epoch, params.utc);
 
-    const d0 = extend ? encodingFloor(start, unit, step, utc, offset) : encodingCeil(start, unit, step, utc, offset);
+    let [d0, d1] = intervalExtent(start, stop, visibleRange);
+    d0 = extend ? encodingFloor(d0, unit, step, utc, offset) : encodingCeil(d0, unit, step, utc, offset);
+    d1 = extend ? encodingCeil(d1, unit, step, utc, offset) : encodingFloor(d1, unit, step, utc, offset);
+
     const e0 = encode(d0, unit, step, utc, offset);
-    const d1 = extend ? encodingCeil(stop, unit, step, utc, offset) : encodingFloor(stop, unit, step, utc, offset);
     let e1 = encode(d1, unit, step, utc, offset);
 
     if (limit != null && e1 - e0 > limit) {
@@ -183,11 +183,26 @@ export function intervalRange(
         offset,
     } = rangeData(interval, start, stop, params);
 
-    const range: Date[] = [];
+    const values: Date[] = [];
     for (let e = e0; e <= e1; e += 1) {
         const d = decode(e, unit, step, utc, offset);
-        range.push(d);
+        values.push(d);
     }
 
-    return range;
+    return values;
+}
+
+export function intervalRangeStartIndex(
+    interval: AgTimeInterval | AgTimeIntervalUnit,
+    start: Date,
+    stop: Date,
+    { extend, visibleRange, limit, defaultAlignment }: RangeParams = {}
+) {
+    const {
+        range: [s],
+    } = rangeData(interval, start, stop, { extend, visibleRange, limit, defaultAlignment });
+    const {
+        range: [s0],
+    } = rangeData(interval, start, stop, { extend, limit, defaultAlignment });
+    return s - s0;
 }

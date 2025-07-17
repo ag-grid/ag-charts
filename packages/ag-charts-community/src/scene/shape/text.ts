@@ -1,5 +1,5 @@
-import { createSvgElement, isDefined } from 'ag-charts-core';
-import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from 'ag-charts-types';
+import { type RequireOptional, createSvgElement, isDefined } from 'ag-charts-core';
+import type { FontFamily, FontSize, FontStyle, FontWeight, Opacity, Padding, PixelSize } from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
@@ -21,13 +21,13 @@ export interface TextSizeProperties {
     textAlign?: CanvasTextAlign;
 }
 
-interface TextBoxingProperties {
+export interface TextBoxingProperties {
     cornerRadius?: PixelSize;
-    padding?: PixelSize;
+    padding?: Padding;
     fill?: ShapeColor;
     fillOpacity?: Opacity;
     border?: {
-        stroke?: CssColor;
+        stroke?: ShapeColor;
         strokeWidth?: PixelSize;
         strokeOpacity?: Opacity;
     };
@@ -83,7 +83,7 @@ export class Text<D = any> extends Shape<D> {
     lineHeight?: number;
 
     private boxing?: Rect;
-    private boxPadding: number = 0;
+    private boxPadding: Padding = 0;
 
     static computeBBox(
         lines: string | string[],
@@ -162,6 +162,21 @@ export class Text<D = any> extends Shape<D> {
         return bbox ? bbox.containsPoint(x, y) : false;
     }
 
+    private computeBoxingTranslation(): { translationX: number; translationY: number } | undefined {
+        function hasTranslation(obj: object): obj is { translationX: number; translationY: number } {
+            return (
+                'translationX' in obj &&
+                typeof obj.translationX === 'number' &&
+                'translationY' in obj &&
+                typeof obj.translationY === 'number'
+            );
+        }
+        if (hasTranslation(this)) {
+            return this;
+        }
+        return undefined;
+    }
+
     override render(renderCtx: RenderContext): void {
         const { ctx, stats } = renderCtx;
 
@@ -195,13 +210,17 @@ export class Text<D = any> extends Shape<D> {
         ctx.textBaseline = textBaseline;
 
         if (this.boxing) {
-            const { x, y, width, height } = this.getBBox(true).grow(this.boxPadding);
-            this.boxing.x = x;
-            this.boxing.y = y;
-            this.boxing.width = width;
-            this.boxing.height = height;
-            this.boxing.preRender(renderCtx);
-            this.boxing.render(renderCtx);
+            const { translationX = 0, translationY = 0 } = this.computeBoxingTranslation() ?? {};
+            const textBBox = this.getBBox(true);
+            if (textBBox.width !== 0 && textBBox.height !== 0) {
+                const { x, y, width, height } = this.getBBox(true).grow(this.boxPadding);
+                this.boxing.x = x - translationX;
+                this.boxing.y = y - translationY;
+                this.boxing.width = width;
+                this.boxing.height = height;
+                this.boxing.preRender(renderCtx);
+                this.boxing.render(renderCtx);
+            }
         }
 
         if (fill) {
@@ -301,6 +320,25 @@ export class Text<D = any> extends Shape<D> {
             this.boxing.destroy();
             this.boxing = undefined;
         }
+    }
+
+    getBoxingProperties(): TextBoxingProperties {
+        const {
+            fill = undefined,
+            fillOpacity = undefined,
+            cornerRadius = undefined,
+            stroke = undefined,
+            strokeWidth = undefined,
+            strokeOpacity = undefined,
+        } = this.boxing ?? {};
+
+        return {
+            border: { stroke, strokeWidth, strokeOpacity },
+            cornerRadius,
+            fill,
+            fillOpacity,
+            padding: this.boxPadding,
+        } satisfies RequireOptional<TextBoxingProperties>;
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

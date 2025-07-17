@@ -8,13 +8,16 @@ import type {
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
+import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
 import * as axesExamples from '../test/examples-axes';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     createChart,
+    deproxy,
     extractImageData,
+    prepareTestOptions,
     reverseAxes,
     setupMockCanvas,
     setupMockConsole,
@@ -147,4 +150,82 @@ describe('Log Axis Examples', () => {
             }
         });
     }
+});
+
+describe('Log Axis interval property handling', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+
+    afterEach(() => {
+        if (chart) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    it('should not warn when switching from axis with interval to axis without interval', async () => {
+        const options: AgCartesianChartOptions = {
+            data: [
+                { os: 'A', share: 10 },
+                { os: 'B', share: 100 },
+                { os: 'C', share: 1000 },
+            ],
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'os',
+                    yKey: 'share',
+                },
+            ],
+            axes: [
+                {
+                    type: 'category',
+                    position: 'bottom',
+                },
+                {
+                    type: 'log',
+                    position: 'left',
+                    min: 10,
+                    interval: {
+                        minSpacing: 200,
+                    },
+                    label: {
+                        format: '.0f',
+                    },
+                },
+            ],
+        };
+
+        prepareTestOptions(options);
+        const apiChart = AgCharts.create(options);
+        chart = deproxy(apiChart);
+
+        // Update to log axis without interval property
+        const updatedOptions: AgCartesianChartOptions = {
+            ...options,
+            axes: [
+                {
+                    type: 'category',
+                    position: 'bottom',
+                },
+                {
+                    type: 'log',
+                    position: 'left',
+                    min: 10,
+                    label: {
+                        format: '.0f',
+                    },
+                    base: 2,
+                },
+            ],
+        };
+
+        // This should not produce any warnings
+        await apiChart.update(updatedOptions);
+
+        // Verify no warning was logged
+        expect(console.warn).not.toHaveBeenCalled();
+    });
 });

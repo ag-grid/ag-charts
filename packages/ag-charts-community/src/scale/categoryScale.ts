@@ -102,14 +102,19 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
         const i0 = Math.floor((vt0 - inset) / step) * step + inset;
         const i1 = Math.ceil((vt1 - inset) / step) * step + inset;
 
-        const out: D[] = [];
+        const ticks: D[] = [];
         for (let i = i0; i < i1; i += step) {
             if (i >= 0 && i < bands.length) {
-                out.push(bands[i]);
+                ticks.push(bands[i]);
             }
         }
 
-        return { ticks: out, count: undefined };
+        let firstTickIndex = ticks.length > 0 ? this.findIndex(ticks[0]) : undefined;
+        if (firstTickIndex != null) {
+            firstTickIndex = Math.floor((firstTickIndex - inset) / step);
+        }
+
+        return { ticks, count: undefined, firstTickIndex };
     }
 
     findIndex(value: D) {

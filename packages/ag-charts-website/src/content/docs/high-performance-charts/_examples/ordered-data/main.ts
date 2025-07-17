@@ -7,6 +7,9 @@ import {
 
 import { getData } from './data';
 
+// @ts-expect-error Undocumented option
+window.agChartsDebug = 'scene:stats';
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(1e3),
@@ -18,7 +21,6 @@ const options: AgCartesianChartOptions = {
         autoScaling: {
             enabled: true,
         },
-        minVisibleItems: 0,
     },
     navigator: {
         enabled: true,

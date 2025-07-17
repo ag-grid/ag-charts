@@ -59,6 +59,141 @@ describe('AxisGridLine', () => {
         await compare();
     });
 
+    describe('fills', () => {
+        describe('horizontal axis', () => {
+            it('should fill between and behind grid lines', async () => {
+                chart = AgCharts.create({
+                    ...opts,
+                    data: [
+                        { x: 0, y: 0 },
+                        { x: 1, y: 1 },
+                        { x: 2, y: 2 },
+                        { x: 3, y: 3 },
+                        { x: 4, y: 4 },
+                    ],
+                    series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+                    axes: [
+                        {
+                            type: 'number',
+                            position: 'bottom',
+                            gridLine: {
+                                style: [
+                                    { fill: 'pink', stroke: 'red' },
+                                    { fill: 'lightblue', stroke: 'blue' },
+                                ],
+                            },
+                        },
+                        {
+                            type: 'number',
+                            position: 'left',
+                        },
+                    ],
+                });
+
+                await compare();
+            });
+
+            it('should fill non-uniform between and behind grid lines', async () => {
+                chart = AgCharts.create({
+                    ...opts,
+                    data: [
+                        { x: new Date(2025, 0, 28), y: 0 },
+                        { x: new Date(2025, 1, 12), y: 1 },
+                        { x: new Date(2025, 2, 12), y: 2 },
+                        { x: new Date(2025, 10, 12), y: 3 },
+                        { x: new Date(2025, 11, 1), y: 1 },
+                    ],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: [
+                        {
+                            type: 'unit-time',
+                            position: 'bottom',
+                            unit: 'month',
+                            gridLine: {
+                                style: [
+                                    { fill: 'pink', stroke: 'red' },
+                                    { fill: 'lightblue', stroke: 'blue' },
+                                ],
+                            },
+                        },
+                        {
+                            type: 'number',
+                            position: 'left',
+                        },
+                    ],
+                });
+
+                await compare();
+            });
+        });
+
+        describe('vertical axis', () => {
+            it('should fill between and behind grid lines', async () => {
+                chart = AgCharts.create({
+                    ...opts,
+                    data: [
+                        { x: 0, y: 0 },
+                        { x: 1, y: 1 },
+                        { x: 2, y: 2 },
+                        { x: 3, y: 3 },
+                        { x: 4, y: 4 },
+                    ],
+                    series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+                    axes: [
+                        {
+                            type: 'number',
+                            position: 'bottom',
+                        },
+                        {
+                            type: 'number',
+                            position: 'left',
+                            gridLine: {
+                                style: [
+                                    { fill: 'pink', stroke: 'red' },
+                                    { fill: 'lightblue', stroke: 'blue' },
+                                ],
+                            },
+                        },
+                    ],
+                });
+
+                await compare();
+            });
+
+            it('should fill non-uniform between and behind grid lines', async () => {
+                chart = AgCharts.create({
+                    ...opts,
+                    data: [
+                        { y: new Date(2025, 0, 28), x: 0 },
+                        { y: new Date(2025, 1, 12), x: 1 },
+                        { y: new Date(2025, 2, 12), x: 2 },
+                        { y: new Date(2025, 10, 12), x: 3 },
+                        { y: new Date(2025, 11, 1), x: 1 },
+                    ],
+                    series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+                    axes: [
+                        {
+                            type: 'number',
+                            position: 'bottom',
+                        },
+                        {
+                            type: 'unit-time',
+                            position: 'left',
+                            gridLine: {
+                                style: [
+                                    { fill: 'pink', stroke: 'red' },
+                                    { fill: 'lightblue', stroke: 'blue' },
+                                ],
+                            },
+                        },
+                    ],
+                });
+
+                await compare();
+            });
+        });
+    });
+
     test('do not draw empty styles', async () => {
         chart = AgCharts.create({
             ...opts,

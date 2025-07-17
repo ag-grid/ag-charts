@@ -41,8 +41,8 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
         super(moduleCtx, new OrdinalTimeScale());
     }
 
-    protected override updateScale(): void {
-        super.updateScale();
+    override processData(): void {
+        super.processData();
 
         const { boundSeries, direction } = this;
         this.minimumTimeGranularity = minimumTimeAxisDatumGranularity(boundSeries, direction, undefined, undefined);

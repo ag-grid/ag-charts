@@ -13,7 +13,9 @@ const labelOptions = {
     autoRotate: { $path: '/series/0/stageLabel/autoRotate' },
     autoRotateAngle: { $path: '/series/0/stageLabel/autoRotateAngle' },
     avoidCollisions: { $path: ['/series/0/stageLabel/avoidCollisions', true] },
+    border: { $path: ['/series/0/stageLabel/border'] },
     color: { $path: ['/series/0/stageLabel/color', { $ref: 'textColor' }] },
+    cornerRadius: { $path: ['/series/0/stageLabel/cornerRadius'] },
     enabled: {
         $if: [
             { $eq: [{ $path: '/series/0/stageLabel/enabled' }, undefined] },
@@ -21,6 +23,8 @@ const labelOptions = {
             { $path: '/series/0/stageLabel/enabled' },
         ],
     },
+    fill: { $path: ['/series/0/stageLabel/fill'] },
+    fillOpacity: { $path: ['/series/0/stageLabel/fillOpacity'] },
     fontSize: { $path: ['/series/0/stageLabel/fontSize', { $ref: 'fontSize' }] },
     fontStyle: { $path: ['/series/0/stageLabel/fontStyle', { $ref: 'fontStyle' }] },
     fontWeight: { $path: ['/series/0/stageLabel/fontWeight', { $ref: 'fontWeight' }] },
@@ -28,6 +32,7 @@ const labelOptions = {
     formatter: { $path: '/series/0/stageLabel/formatter' },
     itemStyler: { $path: '/series/0/stageLabel/itemStyler' },
     minSpacing: { $path: '/series/0/stageLabel/minSpacing' },
+    padding: { $path: ['/series/0/stageLabel/padding'] },
     rotation: { $path: ['/series/0/stageLabel/rotation', 0] },
 };
 

@@ -19,6 +19,7 @@ export {
     intervalExtent,
     intervalRangeCount,
     intervalRange,
+    intervalRangeStartIndex,
 } from './range';
 
 export function intervalUnit(interval: AgTimeInterval | AgTimeIntervalUnit): AgTimeIntervalUnit {

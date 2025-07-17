@@ -36,6 +36,11 @@ export interface AgGradientLegendOptions<TContext = ContextDefault> {
     enabled?: boolean;
     /** Where the legend should show in relation to the chart. */
     position?: AgChartLegendPosition;
+    /** Whether the legend is floating. Floating legend on drawn above the series-area of the series.
+     *
+     * Default: `false`
+     */
+    floating?: boolean;
     /** Gradient bar configuration. */
     gradient?: AgGradientLegendBarOptions;
     /** The spacing in pixels to use outside the legend. */

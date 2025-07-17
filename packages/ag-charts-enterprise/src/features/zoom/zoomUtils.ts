@@ -1,17 +1,18 @@
 import type { AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, clamp, isNumberEqual, roundTo } from 'ag-charts-core';
+import { type BoxBounds, clamp, isNumberEqual } from 'ag-charts-core';
 
 import type { DefinedZoomState } from './zoomTypes';
 
-export const UNIT = { min: 0, max: 1 };
-export const UNIT_SIZE = UNIT.max - UNIT.min;
+export const UNIT_MIN = 0;
+export const UNIT_MAX = 1;
+export const UNIT_SIZE = UNIT_MAX - UNIT_MIN;
 export const DEFAULT_ANCHOR_POINT_X: AgZoomAnchorPoint = 'end';
 export const DEFAULT_ANCHOR_POINT_Y: AgZoomAnchorPoint = 'middle';
 
-const constrain = (value: number, min = UNIT.min, max = UNIT.max) => clamp(min, value, max);
+const constrain = (value: number, min = UNIT_MIN, max = UNIT_MAX) => clamp(min, value, max);
 
 export function unitZoomState(): DefinedZoomState {
-    return { x: { ...UNIT }, y: { ...UNIT } };
+    return { x: { min: UNIT_MIN, max: UNIT_MAX }, y: { min: UNIT_MIN, max: UNIT_MAX } };
 }
 
 export function dx(zoom: DefinedZoomState) {
@@ -30,21 +31,14 @@ export function isZoomEqual(left: DefinedZoomState, right: DefinedZoomState, eps
     return isZoomRangeEqual(left.x, right.x, epsilon) && isZoomRangeEqual(left.y, right.y, epsilon);
 }
 
-export function isZoomLess(zoom: DefinedZoomState, minRatioX: number, minRatioY: number) {
-    const isMinXZoom = roundTo(dx(zoom), 10) <= minRatioX;
-    const isMinYZoom = roundTo(dy(zoom), 10) <= minRatioY;
-
-    return isMinXZoom || isMinYZoom;
-}
-
 export function isMaxZoom(zoom: DefinedZoomState) {
     return isZoomEqual(zoom, unitZoomState());
 }
 
 export function definedZoomState(zoom?: _ModuleSupport.AxisZoomState): DefinedZoomState {
     return {
-        x: { min: zoom?.x?.min ?? UNIT.min, max: zoom?.x?.max ?? UNIT.max },
-        y: { min: zoom?.y?.min ?? UNIT.min, max: zoom?.y?.max ?? UNIT.max },
+        x: { min: zoom?.x?.min ?? UNIT_MIN, max: zoom?.x?.max ?? UNIT_MAX },
+        y: { min: zoom?.y?.min ?? UNIT_MIN, max: zoom?.y?.max ?? UNIT_MAX },
     };
 }
 
@@ -164,29 +158,11 @@ export function constrainZoom(zoom: DefinedZoomState): DefinedZoomState {
 export function constrainAxis(axis: { min: number; max: number }) {
     const size = axis.max - axis.min;
 
-    let min = axis.max > UNIT.max ? UNIT.max - size : axis.min;
-    let max = axis.min < UNIT.min ? size : axis.max;
+    let min = axis.max > UNIT_MAX ? UNIT_MAX - size : axis.min;
+    let max = axis.min < UNIT_MIN ? size : axis.max;
 
-    min = Math.max(UNIT.min, min);
-    max = Math.min(UNIT.max, max);
-
-    return { min, max };
-}
-
-export function constrainAxisWithOld(
-    { min, max }: { min: number; max: number },
-    old: { min: number; max: number },
-    minRatio: number
-) {
-    if (max === old.max) {
-        min = max - minRatio;
-    } else if (min === old.min) {
-        max = min + minRatio;
-    } else {
-        const c = min + (max - min) / 2;
-        min = c - minRatio / 2;
-        max = c + minRatio / 2;
-    }
+    min = Math.max(UNIT_MIN, min);
+    max = Math.min(UNIT_MAX, max);
 
     return { min, max };
 }

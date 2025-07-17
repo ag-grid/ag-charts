@@ -412,4 +412,39 @@ describe('PyramidSeries', () => {
             await compare();
         });
     });
+
+    test('AG-8290 label boxing', async () => {
+        const options = prepareEnterpriseTestOptions({
+            data: [
+                { group: 'Close', value: 4460 },
+                { group: 'Propose', value: 7260 },
+                { group: 'Develop', value: 7910 },
+                { group: 'Qualify', value: 9170 },
+            ],
+            series: [
+                {
+                    type: 'pyramid',
+                    stageKey: 'group',
+                    valueKey: 'value',
+                    label: {
+                        fontSize: 24,
+                        cornerRadius: 15,
+                        padding: 8,
+                        color: 'purple',
+                        fill: 'pink',
+                        border: { stroke: 'black', strokeWidth: 1 },
+                    },
+                    stageLabel: {
+                        fill: 'skyblue',
+                        color: 'blue',
+                        padding: 6,
+                        cornerRadius: 10,
+                        border: { stroke: 'olive', strokeWidth: 3 },
+                    },
+                },
+            ],
+        });
+        chart = deproxy(AgCharts.create(options));
+        await compare();
+    });
 });

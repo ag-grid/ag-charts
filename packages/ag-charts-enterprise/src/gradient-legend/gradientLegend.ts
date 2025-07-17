@@ -59,13 +59,16 @@ export class GradientLegend {
     position: AgChartLegendPosition = 'bottom';
 
     @Property
+    floating: boolean = false;
+
+    @Property
     reverseOrder: boolean = false;
 
     @Property
     readonly gradient = new GradientBar();
 
     private isVertical(): boolean {
-        return this.position === 'right' || this.position === 'left';
+        return this.position.startsWith('right') || this.position.startsWith('left');
     }
 
     /**
@@ -232,30 +235,73 @@ export class GradientLegend {
     }
 
     private getMeasurements(shrinkRect: _ModuleSupport.BBox, axisBox: _ModuleSupport.BBox) {
+        function unreachable(_a: never): never {
+            return undefined as never;
+        }
+
         let { x: left, y: top } = shrinkRect;
         const { width, height } = axisBox;
 
         switch (this.position) {
             case 'left':
                 top += shrinkRect.height / 2 - height / 2;
-                shrinkRect.shrink(width + this.spacing, 'left');
                 break;
-
             case 'right':
                 left += shrinkRect.width - width;
                 top += shrinkRect.height / 2 - height / 2;
-                shrinkRect.shrink(width + this.spacing, 'right');
                 break;
-
             case 'top':
                 left += shrinkRect.width / 2 - width / 2;
-                shrinkRect.shrink(height + this.spacing, 'top');
                 break;
-
             case 'bottom':
                 left += shrinkRect.width / 2 - width / 2;
                 top += shrinkRect.height - height;
-                shrinkRect.shrink(height + this.spacing, 'bottom');
+                break;
+            case 'right-top':
+            case 'top-right':
+                left += shrinkRect.width - width;
+                break;
+            case 'right-bottom':
+            case 'bottom-right':
+                left += shrinkRect.width - width;
+                top += shrinkRect.height - height;
+                break;
+            case 'left-bottom':
+            case 'bottom-left':
+                top += shrinkRect.height - height;
+                break;
+            case 'left-top':
+            case 'top-left':
+                break;
+            default:
+                unreachable(this.position);
+        }
+
+        if (!this.floating) {
+            switch (this.position) {
+                case 'left':
+                case 'left-top':
+                case 'left-bottom':
+                    shrinkRect.shrink(width + this.spacing, 'left');
+                    break;
+                case 'right':
+                case 'right-top':
+                case 'right-bottom':
+                    shrinkRect.shrink(width + this.spacing, 'right');
+                    break;
+                case 'top':
+                case 'top-left':
+                case 'top-right':
+                    shrinkRect.shrink(height + this.spacing, 'top');
+                    break;
+                case 'bottom':
+                case 'bottom-left':
+                case 'bottom-right':
+                    shrinkRect.shrink(height + this.spacing, 'bottom');
+                    break;
+                default:
+                    unreachable(this.position);
+            }
         }
 
         return { top, left };

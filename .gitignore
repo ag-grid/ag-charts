@@ -62,8 +62,8 @@ src/env.d.ts
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
 
-# Ignore local .md files.
-/*.md
-!README.md
+# Ignore local AI.
+.claude/
 .mcp.json
-.claude/commands/
+CLAUDE.md
+todos.md

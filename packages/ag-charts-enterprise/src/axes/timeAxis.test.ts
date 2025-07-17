@@ -72,6 +72,12 @@ describe('Time Axis Examples', () => {
     let chart: any;
     const ctx = setupMockCanvas();
 
+    const compare = async () => {
+        await waitForChartStability(chart);
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+    };
+
     const axisCompare = async () => {
         await waitForChartStability(chart);
 
@@ -114,5 +120,54 @@ describe('Time Axis Examples', () => {
                 await axisCompare();
             });
         }
+    });
+
+    describe('AG-14639', () => {
+        it('should apply label options to parent-label', async () => {
+            const startPrice = 100;
+            const maxDailyPriceChange = 1;
+
+            function seedRandom(seed = 1337) {
+                return function random() {
+                    seed = (seed * 16807) % 2147483647;
+                    return (seed - 1) / 2147483646;
+                };
+            }
+
+            function getData(days: number) {
+                let currentPrice = startPrice;
+                const random = seedRandom();
+                return Array.from({ length: days }, (_, i) => {
+                    const price = currentPrice;
+                    currentPrice += (random() * 2 - 1) * maxDailyPriceChange;
+                    const date = new Date(2024, 0, -i);
+                    return { date, price };
+                }).reverse();
+            }
+
+            const options: AgCartesianChartOptions = {
+                data: getData(800),
+                series: [{ type: 'line', xKey: 'date', yKey: 'price' }],
+                axes: [
+                    {
+                        type: 'unit-time',
+                        position: 'bottom',
+                        parentLevel: { enabled: true },
+                        label: {
+                            color: 'blue',
+                            border: { strokeWidth: 2, stroke: 'red' },
+                            fill: 'pink',
+                            padding: 5,
+                        },
+                    },
+                    { type: 'number', position: 'left' },
+                ],
+                zoom: { enabled: true },
+                initialState: { zoom: { ratioX: { start: 0.95, end: 1 } } },
+            };
+
+            chart = AgCharts.create(prepareEnterpriseTestOptions(options));
+            await compare();
+        });
     });
 });

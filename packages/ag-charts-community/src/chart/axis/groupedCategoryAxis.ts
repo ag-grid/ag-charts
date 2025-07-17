@@ -1,9 +1,10 @@
 import { getMaxInnerRectSize, inRange, isArray, isObject, sortBasedOnArray, toArray } from 'ag-charts-core';
-import type { FontStyle, FontWeight, TextWrap } from 'ag-charts-types';
+import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
 import { BBox } from '../../scene/bbox';
+import type { ShapeColor } from '../../scene/shape/shape';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { angularPadding, normalizeAngle360FromDegrees } from '../../util/angle';
@@ -13,6 +14,7 @@ import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
 import { createDatumId } from '../data/processors';
+import { LabelBorder } from '../label';
 import type { LabelNodeDatum } from './axis';
 import { CategoryAxis } from './categoryAxis';
 import { type TreeLayout, treeLayout } from './tree';
@@ -39,7 +41,13 @@ class DepthLabelProperties extends BaseProperties {
     avoidCollisions?: boolean;
 
     @Property
+    border = new LabelBorder();
+
+    @Property
     color?: string;
+
+    @Property
+    cornerRadius?: number;
 
     @Property
     spacing?: number;
@@ -54,6 +62,9 @@ class DepthLabelProperties extends BaseProperties {
     truncate?: boolean;
 
     @Property
+    fill?: ShapeColor;
+
+    @Property
     fontStyle?: FontStyle;
 
     @Property
@@ -64,6 +75,9 @@ class DepthLabelProperties extends BaseProperties {
 
     @Property
     fontFamily?: string;
+
+    @Property
+    padding?: Padding;
 }
 
 class DepthTickProperties extends BaseProperties {
@@ -155,9 +169,14 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     private updateCategoryLabels() {
         if (!this.computedLayout) return;
-        this.tickLabelGroupSelection
-            .update(this.computedLayout.tickLabelLayout)
-            .each((node, datum) => node.setProperties(datum));
+        this.tickLabelGroupSelection.update(this.computedLayout.tickLabelLayout).each((node, datum) => {
+            node.fill = datum.color;
+            node.text = datum.text;
+            node.textBaseline = datum.textBaseline;
+            node.textAlign = datum.textAlign ?? 'center';
+            node.setFont(datum);
+            node.setBoxing(datum);
+        });
     }
 
     private updateAxisLine() {
@@ -227,16 +246,16 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     }) || text;
             }
 
-            tempText.setProperties({
-                ...labelStyles,
-                text,
-                textAlign: 'center',
-                textBaseline: label.parallel ? 'top' : 'bottom',
-                lineHeight: TextUtils.getLineHeight(labelStyles.fontSize),
-                x: horizontal ? datum.screen : labelSpacing,
-                y: horizontal ? labelSpacing : datum.screen,
-                rotation: 0,
-            });
+            tempText.x = horizontal ? datum.screen : labelSpacing;
+            tempText.y = horizontal ? labelSpacing : datum.screen;
+            tempText.rotation = 0;
+            tempText.lineHeight = TextUtils.getLineHeight(labelStyles.fontSize);
+            tempText.fill = labelStyles.color;
+            tempText.text = text;
+            tempText.textAlign = 'center';
+            tempText.textBaseline = label.parallel ? 'top' : 'bottom';
+            tempText.setFont(labelStyles);
+            tempText.setBoxing(labelStyles);
 
             return true;
         };
@@ -340,16 +359,21 @@ export class GroupedCategoryAxis extends CategoryAxis {
             }
 
             const { text = '' } = tempText;
+            const boxing = tempText.getBoxingProperties();
             tickLabelLayout.push({
                 text,
                 visible: true,
                 range: this.scale.range,
                 tickId: idGenerator(text),
-                fill: tempText.fill as string,
+                border: boxing.border,
+                color: tempText.fill as string,
+                cornerRadius: boxing.cornerRadius,
+                fill: boxing.fill,
                 fontFamily: tempText.fontFamily,
                 fontSize: tempText.fontSize,
                 fontStyle: tempText.fontStyle,
                 fontWeight: tempText.fontWeight,
+                padding: boxing.padding,
                 rotation: tempText.rotation,
                 rotationCenterX: tempText.rotationCenterX,
                 rotationCenterY: tempText.rotationCenterY,
@@ -455,6 +479,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.updateCategoryLabels();
         this.updateAxisLine();
         this.updateGridLines();
+        this.updateGridFills();
         this.updateTickLines();
         this.updateTitle(this.scale.domain, spacing);
         this.updateCrossLines();

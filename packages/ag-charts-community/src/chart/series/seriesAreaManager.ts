@@ -301,7 +301,7 @@ export class SeriesAreaManager extends BaseManager {
             let fpA = a.properties.focusPriority ?? Infinity;
             let fpB = b.properties.focusPriority ?? Infinity;
             if (fpA === fpB) {
-                [fpA, fpB] = [a._declarationOrder, b._declarationOrder];
+                [fpA, fpB] = [a.declarationOrder, b.declarationOrder];
             }
             // Note: `Infinity-Infinity` results in `NaN`, so use `<` comparison instead of `-` subtraction.
             if (fpA < fpB) {

@@ -126,37 +126,48 @@ nx e2e ag-charts-website
 ## Code Review Guidelines
 
 -   When reviewing a PR, don't comment on lines not changed in the PR itself; we have tech-debt but can't fix it all at once.
-
-## Tool Instructions
-
--   When asked to perform a review, use the instructions in tools/prompts/pr-review.md
+-   See `tools/prompts/pr-review.md` for detailed PR review instructions.
 
 ## JIRA Ticket Search Guidelines
 
--   When searching for JIRA tickets using the MCP server `mcp-atlassian`, unless requested otherwise on this project we're only interested in tickets in the `AG` project with a component of `Charts`.
+-   When searching for JIRA tickets using the MCP server `mcp-ag-jira`, unless requested otherwise on this project we're only interested in tickets in the `AG` project with a component of `Charts`.
 -   When searching for JIRA tickets that need review, we're usually interested in tickets with a status of `Needs Review`.
-
-## Development Documentation Guidelines
-
--   When adding examples, make sure to also update the Markdoc page relating to the example (index.mdoc adjacent to the enclosing `_examples/` folder).
-
-## Example File Requirements
-
--   Examples need to have a index.html file which nominally should just contain the content:
-    ```
-    <div id="myChart"></div>
-    ```
 
 ## Documentation Resources
 
 -   AG Charts architecture docs can be found at https://docs.ag-grid.com/architecture/charts/ag-charts-overview
     -   This provides an overview of the important aspects of the ag-charts codebase, as well as links to deeper dives into specific aspects. Use this as a reference if you need help navigating the code.
 
+## Development Server Notes
+
+-   Normally the Astro dev server is running on port 4600 (HTTPS) and you can just use it.
+-   If you need to run the dev server, use `nx dev` to start it.
+    -   This includes an incremental watch and build of all packages and website.
+-   Note that example paths are mapped from repo paths:
+    -   `packages/ag-charts-website/src/content/gallery/_examples/${exampleName}/index.html` => `/charts/gallery/examples/${exampleName}`
+    -   `packages/ag-charts-website/src/content/docs/${pageName}/_examples/${exampleName}/index.html` => `/charts/vanilla/${pageName}/examples/${exampleName}`
+-   Docs paths are mapped from repo paths:
+    -   `packages/ag-charts-website/src/content/docs/${pageName}/index.mdoc` => `/charts/javascript/${pageName}/`
+
 ## Example Documentation Guidelines
 
+-   When adding examples, make sure to also update the Markdoc page relating to the example (index.mdoc adjacent to the enclosing `_examples/` folder).
 -   Never add inline documentation to examples.
 -   `-test` page examples are for internal testing and don't typically need much documentation.
 -   Any other examples should be documented in the related `index.mdoc` file which should be a sibling of the enclosing parent folder `_examples`.
+
+## Example Code Conventions
+
+-   Examples need to have a index.html file which nominally should just contain the content:
+
+    ```
+    <div id="myChart"></div>
+    ```
+
+-   Examples typically have a `data.ts` with a `getData()` function (for single data-set examples) which includes the dataset used by the example.
+-   If a TData type is useful for the example, `data.ts` should also declare this.
+-   AG Charts architecture docs can be found at https://docs.ag-grid.com/architecture/charts/ag-charts-overview
+    -   This provides an overview of the important aspects of the ag-charts codebase, as well as links to deeper dives into specific aspects. Use this as a reference if you need help navigating the code.
 
 ## Example Runner Guidelines
 
@@ -165,17 +176,3 @@ nx e2e ag-charts-website
     -   `main.ts` is automatically included at runtime.
 -   Styles for examples should be put into an adjacent `styles.css` file which will automatically be included at runtime.
     -   Styles in `external/ag-website-shared/src/components/example-runner/styles/example-controls.css` are applied automatically, and should be favoured for presenting controls in examples.
-
-## Development Server Notes
-
--   Normally the Astro dev server is running on port 4600 (HTTPS) and you can just use it.
--   Note that example paths are mapped from repo paths:
-    -   `packages/ag-charts-website/src/content/gallery/_examples/${exampleName}/index.html` => `/charts/gallery/examples/${exampleName}`
-    -   `packages/ag-charts-website/src/content/docs/${pageName}/_examples/${exampleName}/index.html` => `/charts/vanilla/${pageName}/examples/${exampleName}`
--   Docs paths are mapped from repo paths:
-    -   `packages/ag-charts-website/src/content/docs/${pageName}/index.mdoc` => `/charts/javascript/${pageName}/`
-
-## Example Code Conventions
-
--   Examples typically have a `data.ts` with a `getData()` function (for single data-set examples) which includes the dataset used by the example.
--   If a TData type is useful for the example, `data.ts` should also declare this.

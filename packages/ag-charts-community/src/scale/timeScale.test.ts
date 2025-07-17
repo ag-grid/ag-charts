@@ -52,6 +52,7 @@ describe('TimeScale', () => {
                 new Date(2022, 11, 1),
             ],
             count: undefined,
+            firstTickIndex: 0,
             timeInterval: {
                 epoch: undefined,
                 step: 1,

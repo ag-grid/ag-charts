@@ -9,6 +9,7 @@ import {
     arrayOfDefs,
     attachDescription,
     boolean,
+    borderOptionsDef,
     callback,
     callbackDefs,
     callbackOf,
@@ -20,6 +21,7 @@ import {
     greaterThan,
     highlightOptionsDef,
     htmlElement,
+    labelBoxOptionsDef,
     lessThan,
     lineDashOptionsDef,
     number,
@@ -60,11 +62,25 @@ import {
     type AgTooltipRendererResult,
     type AgZoomButton,
     type FormatterPropertyType,
-    type LabelBoxOptions,
     type ToolbarButton,
 } from 'ag-charts-types';
 
 import { numberFormatValidator } from './axesOptionsDefs';
+
+const legendPositionUnion = union(
+    'top',
+    'top-right',
+    'top-left',
+    'bottom',
+    'bottom-right',
+    'bottom-left',
+    'right',
+    'right-top',
+    'right-bottom',
+    'left',
+    'left-top',
+    'left-bottom'
+);
 
 const shapeValidator = or(
     union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle'),
@@ -249,24 +265,20 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         left: positiveNumber,
     },
     seriesArea: {
-        border: strokeOptionsDef,
+        border: borderOptionsDef,
         clip: boolean,
         cornerRadius: number,
-        padding: {
-            top: positiveNumber,
-            right: positiveNumber,
-            bottom: positiveNumber,
-            left: positiveNumber,
-        },
+        padding: padding,
     },
     legend: {
         enabled: boolean,
-        position: union('top', 'right', 'bottom', 'left'),
+        position: legendPositionUnion,
         orientation: union('horizontal', 'vertical'),
+        floating: boolean,
         maxWidth: positiveNumber,
         maxHeight: positiveNumber,
         spacing: positiveNumber,
-        border: strokeOptionsDef,
+        border: borderOptionsDef,
         cornerRadius: number,
         padding: padding,
         fill: color,
@@ -322,7 +334,8 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     gradientLegend: {
         enabled: boolean,
-        position: union('top', 'right', 'bottom', 'left'),
+        position: legendPositionUnion,
+        floating: boolean,
         spacing: positiveNumber,
         reverseOrder: boolean,
         gradient: {
@@ -553,13 +566,6 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-};
-
-export const labelBoxOptionsDef: OptionsDefs<LabelBoxOptions> = {
-    border: { ...strokeOptionsDef },
-    cornerRadius: number,
-    padding: number,
-    ...fillOptionsDef,
 };
 
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {

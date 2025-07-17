@@ -87,11 +87,11 @@ export class MapLineBackgroundSeries
         }
     }
 
-    override setSeriesIndex(index: number): boolean {
-        if (!super.setSeriesIndex(index)) return false;
+    override setZIndex(zIndex: number): boolean {
+        super.setZIndex(zIndex);
 
-        this.contentGroup.zIndex = [MapZIndexMap.ShapeLineBackground, index, 0];
-        this.highlightGroup.zIndex = [MapZIndexMap.ShapeLineBackground, index, 1];
+        this.contentGroup.zIndex = [MapZIndexMap.ShapeLineBackground, zIndex, 0];
+        this.highlightGroup.zIndex = [MapZIndexMap.ShapeLineBackground, zIndex, 1];
 
         return true;
     }

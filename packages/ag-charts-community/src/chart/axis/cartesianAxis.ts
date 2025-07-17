@@ -11,6 +11,7 @@ import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
+import { Rect } from '../../scene/shape/rect';
 import { TransformableText } from '../../scene/shape/text';
 import { normalizeAngle360 } from '../../util/angle';
 import { findMinMax } from '../../util/number';
@@ -26,6 +27,7 @@ import type { AnimationManager } from '../interaction/animationManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
 import { AxisTickGenerator, type TickGenerationResult } from './axisTickGenerator';
 import {
+    type AxisFillDatum,
     type AxisLabelDatum,
     type AxisLineDatum,
     NiceMode,
@@ -45,6 +47,7 @@ interface GeneratedTicks {
     ticks: TickDatum[];
     tickLines: AxisLineDatum[];
     gridLines: AxisLineDatum[];
+    gridFills: AxisFillDatum[];
     labels: LabelNodeDatum[];
     spacing: number;
 }
@@ -80,6 +83,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     protected tickLineGroupSelection = Selection.select<Line, AxisLineDatum>(this.tickLineGroup, Line, false);
     protected gridLineGroupSelection = Selection.select<Line, AxisLineDatum>(this.gridLineGroup, Line, false);
+    protected gridFillGroupSelection = Selection.select<Rect, AxisFillDatum>(this.gridFillGroup, Rect, false);
 
     private readonly tempText = new TransformableText({ debugDirty: false });
     private readonly tempCaption = new Caption();
@@ -130,6 +134,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     protected override onGridVisibilityChange(): void {
         this.gridLineGroupSelection.clear();
+        this.gridFillGroupSelection.clear();
     }
 
     override resetAnimation(phase: ChartAnimationPhase): void {
@@ -227,7 +232,14 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         ) {
             const { bbox, spacing } = this.tickBBox(domain, [], []);
             // Performance optimization: if ticks have no effect, don't generate them
-            const layout: GeneratedTicks = { ticks: [], tickLines: [], gridLines: [], labels: [], spacing };
+            const layout: GeneratedTicks = {
+                ticks: [],
+                tickLines: [],
+                gridLines: [],
+                gridFills: [],
+                labels: [],
+                spacing,
+            };
             return {
                 ticks: [],
                 rawTickCount: 0,
@@ -270,12 +282,36 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const p2 = direction * gridLength - gridPadding;
 
         const { gridLine } = this;
-        const gridLines = ticks.map(({ tickId, translation: offset }, index): AxisLineDatum => {
+        const gridLines = ticks.map(({ index, tickId, translation: offset }): AxisLineDatum => {
             const [x1, y1, x2, y2] = horizontal ? [offset, p1, offset, p2] : [p1, offset, p2, offset];
             const { style, width: strokeWidth } = gridLine;
             const { stroke, lineDash } = style[index % style.length] ?? {};
             return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
         });
+
+        const firstTickOffset = ticks[0] ? ticks[0].translation : undefined;
+        const gridFills: AxisFillDatum[] = [];
+
+        let gridFillIndex = 0;
+
+        const createGridFill = (
+            { tickId, translation: offset }: Pick<TickDatum, 'tickId' | 'translation'>,
+            tickIndex: number
+        ) => {
+            const [x1, y1, x2, y2] = horizontal
+                ? [offset, Math.abs(p1), ticks.at(tickIndex + 1)?.translation ?? range[1], Math.abs(p2)]
+                : [p1, offset, p2, ticks.at(tickIndex - 1)?.translation ?? range[0]];
+            const { fill, fillOpacity } = gridLine.style[gridFillIndex % gridLine.style.length] ?? {};
+            gridFillIndex++;
+            return { tickId, x1, y1, x2, y2, fill, fillOpacity };
+        };
+
+        // Inject an additional grid fill between the start and the first tick
+        if (ticks.length > 0 && firstTickOffset !== Math.floor(range[0])) {
+            gridFills.push(createGridFill({ tickId: `before:${ticks[0].tickId}`, translation: range[0] }, -1));
+        }
+
+        gridFills.push(...ticks.map(createGridFill));
 
         const { tick, primaryTick } = this;
         const tickLines = ticks.map(({ primary, tickId, translation: offset }): AxisLineDatum => {
@@ -289,7 +325,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         const { bbox, spacing } = this.tickBBox(tickDomain, ticks, labels);
 
-        const layout: GeneratedTicks = { ticks, gridLines, tickLines, labels, spacing };
+        const layout: GeneratedTicks = { ticks, gridLines, gridFills, tickLines, labels, spacing };
 
         return { ticks: rawTicks, rawTickCount, tickDomain, niceDomain, fractionDigits, timeInterval, bbox, layout };
     }
@@ -329,6 +365,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         this.updateTickLines();
         this.updateGridLines();
+        this.updateGridFills();
     }
 
     private getAxisTransform() {
@@ -571,12 +608,13 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         if (!this.tickLayout) return;
 
         const lineData = this.getAxisLineCoordinates();
-        const { tickLines, gridLines, labels } = this.tickLayout;
+        const { tickLines, gridLines, gridFills, labels } = this.tickLayout;
 
-        const getDatumId = (datum: AxisLabelDatum | AxisLineDatum) => datum.tickId;
+        const getDatumId = (datum: AxisLabelDatum | AxisLineDatum | AxisFillDatum) => datum.tickId;
 
         this.lineNode.datum = lineData;
         this.gridLineGroupSelection.update(this.gridLine.enabled ? gridLines : [], undefined, getDatumId);
+        this.gridFillGroupSelection.update(this.gridLine.enabled ? gridFills : [], undefined, getDatumId);
         this.tickLineGroupSelection.update(tickLines, undefined, getDatumId);
         this.tickLabelGroupSelection.update(labels, undefined, getDatumId);
     }
@@ -586,6 +624,18 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             line.stroke = datum.stroke;
             line.strokeWidth = datum.strokeWidth;
             line.lineDash = datum.lineDash;
+        });
+    }
+
+    protected updateGridFills() {
+        this.gridFillGroupSelection.each((rect, datum) => {
+            rect.x = datum.x1;
+            rect.y = datum.y1;
+            rect.width = Math.abs(datum.x2 - datum.x1);
+            rect.height = Math.abs(datum.y2 - datum.y1);
+            if (this.horizontal) rect.height *= -1;
+            rect.fill = datum.fill;
+            rect.fillOpacity = datum.fillOpacity ?? 1;
         });
     }
 
@@ -611,14 +661,12 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         // Apply label option values
         this.tickLabelGroupSelection.each((node, datum) => {
-            node.fill = datum.fill;
-            node.fontFamily = datum.fontFamily;
-            node.fontSize = datum.fontSize;
-            node.fontStyle = datum.fontStyle;
-            node.fontWeight = datum.fontWeight;
+            node.fill = datum.color;
             node.text = datum.text;
             node.textBaseline = datum.textBaseline;
             node.textAlign = datum.textAlign ?? 'center';
+            node.setFont(datum);
+            node.setBoxing(datum);
         });
     }
 

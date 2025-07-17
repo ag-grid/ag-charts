@@ -87,7 +87,7 @@ export class LogScale extends ContinuousScale<number> {
         { interval, tickCount = ContinuousScale.defaultTickCount }: ScaleTickParams<number>,
         domain: number[] = this.domain,
         visibleRange?: [number, number]
-    ): { ticks: number[]; count: number } | undefined {
+    ): { ticks: number[]; count: number; firstTickIndex: number | undefined } | undefined {
         if (!domain || domain.length < 2 || tickCount < 1) {
             return;
         }
@@ -103,11 +103,11 @@ export class LogScale extends ContinuousScale<number> {
         if (interval) {
             const inBounds = (tick: number) => tick >= start && tick <= stop;
             const step = Math.min(Math.abs(interval), Math.abs(p1 - p0));
-            const { ticks: rangeTicks, count } = range(p0, p1, step, visibleRange);
+            const { ticks: rangeTicks, count, firstTickIndex } = range(p0, p1, step, visibleRange);
             const ticks = rangeTicks.map(this.pow).filter(inBounds);
 
             if (!isDenseInterval(ticks.length, this.getPixelRange())) {
-                return { ticks, count };
+                return { ticks, count, firstTickIndex };
             }
         }
 
@@ -115,10 +115,11 @@ export class LogScale extends ContinuousScale<number> {
         // returns ticks in the format [10^1, 10^2, 10^3, 10^4, ...].
         if (!isInteger(base) || p1 - p0 >= tickCount) {
             const step = Math.min(p1 - p0, tickCount);
-            const { ticks, count } = createTicks(p0, p1, step, undefined, undefined, visibleRange);
+            const { ticks, count, firstTickIndex } = createTicks(p0, p1, step, undefined, undefined, visibleRange);
             return {
                 ticks: ticks.map(this.pow),
                 count,
+                firstTickIndex,
             };
         }
 

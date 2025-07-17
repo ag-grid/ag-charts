@@ -10,10 +10,12 @@ import type {
     AgImageFill,
     AgLineHighlightStyleOptions,
     AgPatternColor,
+    BorderOptions,
     CssColor,
     FillOptions,
     FontOptions,
     GoogleFontFamily,
+    LabelBoxOptions,
     LineDashOptions,
     PaddingOptions,
     StrokeOptions,
@@ -275,6 +277,7 @@ export function multiSeriesHighlightOptionsDef<I, S>(itemHighlightOptionsDef: I,
         unhighlightedItem: itemHighlightOptionsDef,
         highlightedSeries: seriesHighlightOptionsDef,
         unhighlightedSeries: seriesHighlightOptionsDef,
+        bringToFront: boolean,
     };
 }
 
@@ -294,3 +297,17 @@ export const paddingOptions = optionsDefs<PaddingOptions>(
     'padding object'
 );
 export const padding = or(number, paddingOptions);
+
+export const borderOptionsDef: OptionsDefs<BorderOptions> = {
+    enabled: boolean,
+    stroke: color,
+    strokeWidth: positiveNumber,
+    strokeOpacity: ratio,
+};
+
+export const labelBoxOptionsDef: OptionsDefs<LabelBoxOptions> = {
+    border: { ...strokeOptionsDef },
+    cornerRadius: number,
+    padding,
+    ...fillOptionsDef,
+};

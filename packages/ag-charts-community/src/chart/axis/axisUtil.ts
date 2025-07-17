@@ -12,6 +12,7 @@ export enum NiceMode {
 }
 
 export interface TickDatum {
+    index: number;
     tickLabel: string | undefined;
     tick: any;
     tickId: string;
@@ -29,6 +30,16 @@ export interface AxisLineDatum {
     stroke: string | undefined;
     strokeWidth: number;
     lineDash: number[] | undefined;
+}
+
+export interface AxisFillDatum {
+    tickId: string;
+    x1: number;
+    x2: number;
+    y1: number;
+    y2: number;
+    fill: string | undefined;
+    fillOpacity: number | undefined;
 }
 
 export interface AxisAnimationContext {

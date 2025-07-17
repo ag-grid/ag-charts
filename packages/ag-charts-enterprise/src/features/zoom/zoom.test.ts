@@ -148,6 +148,14 @@ describe('Zoom', () => {
             await scrollAction(cx, cy, 1)(chart);
             await compare();
         });
+
+        it('should handle infinite zoom cases', async () => {
+            await prepareChart();
+            await scrollAction(cx, cy, -10000)(chart);
+            // Should not zoom in
+            // @todo(AG-15504) - we should zoom in as far as possible
+            await compare();
+        });
     });
 
     describe('pixel scrolling', () => {

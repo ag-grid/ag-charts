@@ -3,6 +3,7 @@
 exports[`LinearScale should create ticks for interval: -1 domain: [-10, 0] case 1`] = `
 {
   "count": 11,
+  "firstTickIndex": 0,
   "ticks": [
     -10,
     -9,
@@ -22,6 +23,7 @@ exports[`LinearScale should create ticks for interval: -1 domain: [-10, 0] case 
 exports[`LinearScale should create ticks for interval: -1 domain: [0, 10] case 1`] = `
 {
   "count": 11,
+  "firstTickIndex": 0,
   "ticks": [
     0,
     1,
@@ -41,6 +43,7 @@ exports[`LinearScale should create ticks for interval: -1 domain: [0, 10] case 1
 exports[`LinearScale should create ticks for interval: -7.5 domain: [-37.5, -7.5] case 1`] = `
 {
   "count": 5,
+  "firstTickIndex": 0,
   "ticks": [
     -37.5,
     -30,
@@ -54,6 +57,7 @@ exports[`LinearScale should create ticks for interval: -7.5 domain: [-37.5, -7.5
 exports[`LinearScale should create ticks for interval: 0 domain: [-1, 1] case 1`] = `
 {
   "count": 5,
+  "firstTickIndex": 0,
   "ticks": [
     -1,
     -0.5,
@@ -67,6 +71,7 @@ exports[`LinearScale should create ticks for interval: 0 domain: [-1, 1] case 1`
 exports[`LinearScale should create ticks for interval: 0.005 domain: [0.01, 0.02] case 1`] = `
 {
   "count": 3,
+  "firstTickIndex": 0,
   "ticks": [
     0.01,
     0.015,
@@ -78,6 +83,7 @@ exports[`LinearScale should create ticks for interval: 0.005 domain: [0.01, 0.02
 exports[`LinearScale should create ticks for interval: 0.01 domain: [0.1, 0.2] case 1`] = `
 {
   "count": 11,
+  "firstTickIndex": 0,
   "ticks": [
     0.1,
     0.11,
@@ -97,6 +103,7 @@ exports[`LinearScale should create ticks for interval: 0.01 domain: [0.1, 0.2] c
 exports[`LinearScale should create ticks for interval: 0.1 domain: [0, 1] case 1`] = `
 {
   "count": 11,
+  "firstTickIndex": 0,
   "ticks": [
     0,
     0.1,
@@ -116,6 +123,7 @@ exports[`LinearScale should create ticks for interval: 0.1 domain: [0, 1] case 1
 exports[`LinearScale should create ticks for interval: 1 domain: [0, 10] case 1`] = `
 {
   "count": 11,
+  "firstTickIndex": 0,
   "ticks": [
     0,
     1,
@@ -135,6 +143,7 @@ exports[`LinearScale should create ticks for interval: 1 domain: [0, 10] case 1`
 exports[`LinearScale should create ticks for interval: 3 domain: [-3, 12] case 1`] = `
 {
   "count": 6,
+  "firstTickIndex": 0,
   "ticks": [
     -3,
     0,
@@ -149,6 +158,7 @@ exports[`LinearScale should create ticks for interval: 3 domain: [-3, 12] case 1
 exports[`LinearScale should create ticks for interval: 10.5 domain: [0, 102] case 1`] = `
 {
   "count": 10.714285714285714,
+  "firstTickIndex": 0,
   "ticks": [
     0,
     10.5,
@@ -167,6 +177,7 @@ exports[`LinearScale should create ticks for interval: 10.5 domain: [0, 102] cas
 exports[`LinearScale should create ticks for interval: 133 domain: [0, 665] case 1`] = `
 {
   "count": 6,
+  "firstTickIndex": 0,
   "ticks": [
     0,
     133,

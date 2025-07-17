@@ -136,11 +136,11 @@ export class MapShapeSeries
         }
     }
 
-    override setSeriesIndex(index: number): boolean {
-        if (!super.setSeriesIndex(index)) return false;
+    override setZIndex(zIndex: number): boolean {
+        super.setZIndex(zIndex);
 
-        this.contentGroup.zIndex = [MapZIndexMap.ShapeLine, index];
-        this.highlightGroup.zIndex = [MapZIndexMap.ShapeLineHighlight, index];
+        this.contentGroup.zIndex = [MapZIndexMap.ShapeLine, zIndex];
+        this.highlightGroup.zIndex = [MapZIndexMap.ShapeLineHighlight, zIndex];
 
         return true;
     }

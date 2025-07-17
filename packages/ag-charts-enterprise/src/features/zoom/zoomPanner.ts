@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { entries, getWindow } from 'ag-charts-core';
 
 import type { AxisZoomStates, ZoomCoords } from './zoomTypes';
-import { UNIT, constrainZoom, definedZoomState, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
+import { UNIT_MAX, UNIT_MIN, constrainZoom, definedZoomState, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
 
 export interface ZoomPanUpdate {
     type: 'update';
@@ -173,7 +173,7 @@ export class ZoomPanner {
 
         for (const [axisId, { direction, zoom: currentZoom }] of entries(currentZooms)) {
             // Skip panning axes that are fully zoomed out to prevent floating point issues
-            if (currentZoom && currentZoom.min === UNIT.min && currentZoom.max === UNIT.max) {
+            if (currentZoom && currentZoom.min === UNIT_MIN && currentZoom.max === UNIT_MAX) {
                 continue;
             }
 

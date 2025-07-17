@@ -310,7 +310,8 @@ export abstract class OhlcSeriesBase<
 
         if (dataAggregationFilter == null) {
             let [start, end] = visibleRangeIndices(1, rawData.length, xAxis.range, (index) => {
-                const x = xPosition(index);
+                const xOffset = applyWidthOffset ? 0 : -effectiveBarWidth / 2;
+                const x = xPosition(index) + xOffset;
                 return [x, x + effectiveBarWidth];
             });
             // @todo(AG-13575) Remove this if block
@@ -355,7 +356,8 @@ export abstract class OhlcSeriesBase<
                 const openIndex = indexData[aggIndex + OPEN];
                 const closeIndex = indexData[aggIndex + CLOSE];
                 if (openIndex === -1) return;
-                return [xPosition(openIndex), xPosition(closeIndex) + effectiveBarWidth];
+                const xOffset = applyWidthOffset ? 0 : -effectiveBarWidth / 2;
+                return [xPosition(openIndex) + xOffset, xPosition(closeIndex) + xOffset + effectiveBarWidth];
             });
 
             for (let i = start; i < end; i += 1) {

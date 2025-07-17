@@ -1,7 +1,13 @@
 import { Logger, findMaxIndex, findMinIndex, isPlainObject } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
-import { intervalFloor, intervalMilliseconds, intervalRange, intervalRangeCount } from '../util/time';
+import {
+    intervalFloor,
+    intervalMilliseconds,
+    intervalRange,
+    intervalRangeCount,
+    intervalRangeStartIndex,
+} from '../util/time';
 import { normalizeContinuousDomains } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
 import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from './scale';
@@ -47,7 +53,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
     private _bands: Date[] | undefined = undefined;
     get bands(): readonly Date[] {
-        this._bands ??= this.calculateBands(this._domain, [0, 1]);
+        this._bands ??= this.calculateBands(this._domain, [0, 1]).bands;
         return this._bands;
     }
 
@@ -71,7 +77,11 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return super.convert(value, options);
     }
 
-    private calculateBands(domain: Date[], visibleRange: [number, number], extend: boolean = false): Date[] {
+    private calculateBands(
+        domain: Date[],
+        visibleRange: [number, number],
+        extend: boolean = false
+    ): { bands: Date[]; firstBandIndex: number | undefined } {
         if (
             domain === this.domain &&
             visibleRange[0] === 0 &&
@@ -79,24 +89,26 @@ export class UnitTimeScale extends DiscreteTimeScale {
             !extend &&
             this._bands != null
         ) {
-            return this._bands;
+            return { bands: this._bands, firstBandIndex: 0 };
         }
 
-        if (domain.length < 2) return [];
+        if (domain.length < 2) return { bands: [], firstBandIndex: undefined };
 
         const { interval } = this;
-        if (interval == null) return [];
+        if (interval == null) return { bands: [], firstBandIndex: undefined };
 
         const rangeParams = { visibleRange, extend };
-        if (!supportsInterval(domain, interval, rangeParams)) return [];
+        if (!supportsInterval(domain, interval, rangeParams)) return { bands: [], firstBandIndex: undefined };
 
         const [start, stop] = calculateBandRange(domain, interval);
         if (intervalRangeCount(interval, start, stop, rangeParams) > MAX_BANDS) {
             Logger.warnOnce(`the configured unit results in too many bands, ignoring. Supply a larger unit.`);
-            return [];
+            return { bands: [], firstBandIndex: undefined };
         }
 
-        return intervalRange(interval, start, stop, rangeParams);
+        const bands = intervalRange(interval, start, stop, rangeParams);
+        const firstBandIndex = intervalRangeStartIndex(interval, start, stop, rangeParams);
+        return { bands, firstBandIndex };
     }
 
     override ticks(
@@ -107,10 +119,10 @@ export class UnitTimeScale extends DiscreteTimeScale {
     ): ScaleTickResult<Date> | undefined {
         if (domain.length < 2) return;
 
-        const bands = this.calculateBands(domain, visibleRange, extend);
+        const { bands, firstBandIndex } = this.calculateBands(domain, visibleRange, extend);
         const milliseconds = this.interval ? intervalMilliseconds(this.interval) : Infinity;
 
-        if (interval == null) return { ticks: bands, count: undefined };
+        if (interval == null) return { ticks: bands, count: undefined, firstTickIndex: firstBandIndex };
 
         const d0 = Math.min(domain[0].valueOf(), domain[1].valueOf());
         const d1 = Math.max(domain[0].valueOf(), domain[1].valueOf());
@@ -161,6 +173,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return {
             ticks: ticks.slice(firstTickIndex, lastTickIndex + 1),
             count: ticks.length,
+            firstTickIndex: firstBandIndex,
         };
     }
 }

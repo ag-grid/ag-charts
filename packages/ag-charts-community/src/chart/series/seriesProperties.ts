@@ -72,7 +72,10 @@ export class HighlightProperties<TOpts extends object> extends BaseProperties {
     enabled = true;
 
     @Property
-    public range: 'tooltip' | 'node' = 'tooltip';
+    range: 'tooltip' | 'node' = 'tooltip';
+
+    @Property
+    bringToFront: boolean = false;
 
     @Property
     readonly highlightedItem: HighlightOptions<TOpts> = {};
@@ -301,7 +304,7 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     // user pass-through option: no validation-decorator required.
     context?: unknown;
 
-    override handleUnknownProperties(unknownKeys: Set<string>, properties: T) {
+    override handleUnknownProperties(unknownKeys: Set<unknown>, properties: T) {
         if ('context' in properties) {
             this.context = properties.context;
             unknownKeys.delete('context');

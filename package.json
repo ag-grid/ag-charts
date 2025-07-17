@@ -1,6 +1,6 @@
 {
   "name": "ag-charts",
-  "version": "12.0.1-beta.20250706",
+  "version": "12.0.2",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
@@ -16,7 +16,8 @@
     "postinstall:nx-daemon-prebuild-restart": "(test -e .nx/workspace-data/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\"",
     "postinstall:nx-daemon-reset-metadata": "(test -e .nx/workspace-data/ && rm -rf .nx/workspace-data/) || echo \"Nx workspace not found\"",
     "postinstall:nx-plugin-build": "nx run-many -p ag-charts-generate-chart-thumbnail,ag-charts-generate-code-reference-files,ag-charts-generate-example-files,ag-charts-task-autogen -t build",
-    "postinstall:nx-daemon-restart": "(test -e .nx/workspace-data/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\""
+    "postinstall:nx-daemon-restart": "(test -e .nx/workspace-data/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\"",
+    "postinstall:setup-claude-prompts": "./tools/setup-claude-prompts.sh"
   },
   "private": true,
   "engines": {

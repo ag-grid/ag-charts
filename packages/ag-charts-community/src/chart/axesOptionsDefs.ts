@@ -17,6 +17,7 @@ import {
     fontOptionsDef,
     greaterThan,
     isValidNumberFormat,
+    labelBoxOptionsDef,
     lessThan,
     lineDashOptionsDef,
     number,
@@ -137,9 +138,11 @@ export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     formatter: callback,
     itemStyler: callbackDefs<AgBaseAxisLabelStyleOptions>({
         ...fontOptionsDef,
+        ...labelBoxOptionsDef,
         spacing: number,
     }),
     ...fontOptionsDef,
+    ...labelBoxOptionsDef,
 };
 
 export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabelOptions> = {
@@ -180,6 +183,8 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
         width: positiveNumber,
         style: arrayOfDefs<AgAxisGridStyle>(
             {
+                fill: color,
+                fillOpacity: number,
                 stroke: or(color, themeOperator),
                 lineDash: arrayOf(positiveNumber),
             },

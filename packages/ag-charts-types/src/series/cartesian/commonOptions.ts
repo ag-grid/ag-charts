@@ -148,7 +148,7 @@ export interface LabelBoxOptions extends FillOptions {
     /** Apply rounded corners to the label box. */
     cornerRadius?: PixelSize;
     /** Distance between the label text and the border. */
-    padding?: PixelSize;
+    padding?: Padding;
 }
 
 /**
@@ -189,6 +189,8 @@ export interface PaddingOptions {
     /** The number of pixels of padding at the left. */
     left?: PixelSize;
 }
+
+export interface BorderOptions extends Toggleable, StrokeOptions {}
 
 /**
  * Represents toggleable options for chart elements.

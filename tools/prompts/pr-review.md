@@ -1,66 +1,79 @@
 # PR Review Instructions
 
-## Context
+## General Context
 
-### Open PRs for latest branch
+-   The `ag-charts` project is a monorepo with multiple packages.
+-   The `ag-charts-types` package is the public API contract for the `ag-charts` project.
+-   Release branches are named `b12.0.0` and follow semantic versioning.
+    -   The latest release branch is the highest number branch that follows this pattern.
 
-The list of open PRs for `latest` is available at https://github.com/ag-grid/ag-charts/pulls?q=is%3Apr+is%3Aopen+base%3Alatest+draft%3Afalse
+## Workflows and criteria
 
-### JIRA ticket search
+### General Workflow
 
-When searching for JIRA tickets using the MCP server `mcp-atlassian`, unless requested otherwise on this project we're only interested in tickets in the `AG` project with a component of `Charts`.
+1. Identify PRs to review (see Identifying sections below.).
+2. For each PR they must (unless otherwise specified):
+    - meet the reviewable PR criteria (see Reviewable PR criteria below)
+    - meet the report generation pre-requisites (see Report Generation Pre-requisites below)
+3. Generate a report for each PR `${REPO_ROOT}/reports/pr-reviews/${PR_NUMBER}-${JIRA_ID:-none}.md` (see Report output definitions below).
+4. Archive stale reports for closed PRs (see Report output definitions below).
+5. Concisely summarize the list of reports generated (PR number + path to report).
 
-When searching for JIRA tickets that need review, we're usually interested in tickets with a status of `Needs Review`.
+### Identifying single/specific PRs
 
-### JIRA ticket URLs
+If I specify to review specific PRs ($ARGUMENTS), just perform review for them without searching in JIRA or GitHub.
 
-JIRA ticket URLs are of the form https://ag-grid.atlassian.net/browse/AG-XXXX
+### Identifying all open PRs
 
-### Review related files
+-   Review open PRs for the `ag-charts` project which meet the reviewable PR criteria and report generation pre-requisites (unless otherwise specified).
 
+### Identifying PRs for JIRA tickets
+
+-   Use the MCP server `mcp-ag-jira` to search for JIRA tickets.
+-   Unless requested otherwise:
+    -   We're only interested in tickets in the `AG` project with a component of `Charts`.
+    -   We're usually interested in tickets with a status of `Needs Review`.
+-   JIRAs will have comments with links to PRs that potentially need review.
+    -   PRs that meet the reviewable PR criteria will be reviewed.
+
+### Reviewable PR criteria
+
+PRs are reviewable if they meet these criteria (unless otherwise specified):
+
+-   Having base branch of `latest`.
+-   Being not a draft.
+-   Being open.
+-   Being not closed.
+
+### Report Generation Pre-requisites
+
+Unless I explicitly ask you to review a specific PR:
+
+-   Check if there is an existing report for the PR, and if so, check if the PR has been updated since the report was generated.
+    -   If the report is stale, perform a re-review.
+    -   If these report instructions have changed since the report was generated, perform a re-review.
+    -   Otherwise skip the report generation.
+
+## Report output definitions
+
+### Report file paths
+
+-   Reports must have a filename of the form `${PR_NUMBER}-${JIRA_ID:-none}.md`.
 -   Use `${REPO_ROOT}/reports/pr-reviews/tmp/` to store intermediate files such as the diff between the PR and the `latest` branch.
 -   Use `${REPO_ROOT}/reports/pr-reviews/` to store the final report.
 -   Use `${REPO_ROOT}/reports/pr-reviews-archive/` to store archived reports for closed PRs.
 
-### Review output
+### Archive reports for closed PRs
 
--   Write a summary in `${REPO_ROOT}/reports/pr-reviews/${PR_NUMBER}-${JIRA_ID:-none}.md`.
--   Check for stale reports; if a PR is closed, move the report to ${REPO_ROOT}/reports/pr-reviews-archive/${PR_NUMBER}-${JIRA_ID:-none}.md
+-   If a PR is closed, move the report to `${REPO_ROOT}/reports/pr-reviews-archive/`
 
-### PR Review Pre-requisites
-
-Unless I explicitly ask you to review a specific PR:
-
--   Check the PR is open.
--   Check the PR is not a draft.
--   Check the PR is against the `latest` branch unless otherwise specified.
--   Check if there is an existing report for the PR, and if so, check if the PR has been updated since the report was generated.
-    -   If the report is stale, perform a re-review.
-    -   If these report instructions have changed since the report was generated, perform a re-review.
-    -   Otherwise
-
-## General JIRA Ticket Review Workflow
-
-Run this workflow if I ask you to perform reviews.
-
--   Find JIRA tickets that need review.
--   For each JIRA ticket:
-    -   If there is a recently linked PR that hasn't been merged, perform PR review.
-
-## General PR Review Workflow
-
-Run this workflow if I ask you to review all open PRs.
-
--   Clean up stale reports for closed PRs.
--   Unless told otherwise, review open non-draft PRs against the `latest` branch.
--   Use the `mcp-github` MCP server if available, otherwise use `git` or `gh` commands to get the diff between the PR and the `latest` branch.
-
-## Review Criteria
+## Report criteria
 
 For each PR, review and critique the following:
 
 -   Does the PR have a subject which has a JIRA identifier?
--   Doe the subject capture the main changes in the PR?
+-   Does the subject capture the main changes in the PR?
+-   Does the PR have a JIRA ticket?
 -   Focusing only on the changed lines in the PR:
     -   Are the changes logically correct?
     -   Does the code style match the adjacent code?
@@ -89,8 +102,8 @@ For each PR, review and critique the following:
 
 -   For stakeholder attention section:
     -   Breaking changes for users, focusing on:
-        -   Contract changes in our public API contract in `ag-charts-types`.
-        -   Behavioral changes elsewhere.
-        -   DO NOT include other interface changes as we don't support users depending on these.
+        -   Contract changes in our public API contract in `ag-charts-types` since the latest release.
+        -   Behavioral changes in `ag-charts-community` or `ag-charts-enterprise`.
+        -   DO NOT include other interface or contract changes as we don't support users depending on these or writing custom code against these.
     -   Points of interest for the QA team.
     -   Points of interest for the Product Manager.
