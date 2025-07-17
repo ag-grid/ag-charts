@@ -81,4 +81,16 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgSunburstSeriesTooltipRendererParams<any>>();
+
+    getStyle(index: number): Required<AgSunburstSeriesStyle> & { opacity: number } {
+        const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity } = this;
+        return {
+            fill: fills[index % fills.length],
+            fillOpacity,
+            stroke: strokes[index % strokes.length],
+            strokeWidth,
+            strokeOpacity,
+            opacity: 1,
+        };
+    }
 }

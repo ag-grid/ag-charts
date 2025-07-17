@@ -118,4 +118,18 @@ export class FunnelProperties
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgFunnelSeriesTooltipRendererParams<unknown>>();
+
+    getStyle(index: number): Required<AgFunnelSeriesStyle> & { opacity: number } {
+        const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
+        return {
+            fill: fills[index % fills.length],
+            fillOpacity,
+            stroke: strokes[index % strokes.length],
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            opacity: 1,
+        };
+    }
 }

@@ -90,4 +90,21 @@ export class CandlestickSeriesProperties<T extends AgOhlcSeriesBaseOptions> exte
         super();
         this.highlightStyle.deprecated = false;
     }
+
+    getStyle(itemId: 'up' | 'down'): Required<AgCandlestickSeriesItemOptions> & { opacity: number } {
+        const { fill, fillOpacity, strokeWidth, strokeOpacity, stroke, lineDash, lineDashOffset, cornerRadius, wick } =
+            this.item[itemId];
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            opacity: 1,
+            wick,
+        };
+    }
 }

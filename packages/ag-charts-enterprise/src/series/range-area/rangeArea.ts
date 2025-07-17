@@ -1,10 +1,7 @@
 import {
-    type AgMarkerShape,
     type AgRangeAreaSeriesLabelFormatterParams,
     type AgRangeAreaSeriesOptions,
-    type FillOptions,
-    type LineDashOptions,
-    type StrokeOptions,
+    type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
@@ -40,7 +37,6 @@ const {
     fromToMotion,
     pathMotion,
     extent,
-    createDatumId,
     applyShapeFillBBox,
     PointerEvents,
     Marker,
@@ -71,10 +67,6 @@ interface RangeAreaSpanPointDatum {
     high: _ModuleSupport.LineSpanPointDatum;
     low: _ModuleSupport.LineSpanPointDatum;
 }
-
-type ItemStyle = Required<
-    FillOptions & StrokeOptions & LineDashOptions & { shape: AgMarkerShape; size: number; opacity: number }
->;
 
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     _ModuleSupport.Marker,
@@ -252,6 +244,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                         yHighKey,
                         point: { x, y, size },
                         enabled: true,
+                        style: this.properties.marker.getStyle(),
                     });
                     const highLabelDatum: RangeAreaLabelDatum = this.createLabelData({
                         datumIndex,
@@ -467,7 +460,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 strokeWidth,
                 opacity,
             },
-            undefined,
             fillBBox
         );
 
@@ -530,44 +522,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return datumSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
-    private getMarkerItemBaseStyle(isHighlight: boolean, datum?: RangeAreaMarkerDatum): ItemStyle {
-        const { properties } = this;
-        const { marker } = properties;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
-        return {
-            shape: marker.shape,
-            size: marker.size,
-            fill: highlightStyle?.fill ?? marker.fill!,
-            fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
-            stroke: highlightStyle?.stroke ?? marker.stroke!,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(marker.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? marker.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
-            opacity: highlightStyle.opacity ?? 1,
-        };
-    }
-
-    protected getMarkerItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted: boolean) {
-        const { id: seriesId, properties } = this;
-        const { xKey, yHighKey, yLowKey, marker } = properties;
-        const { itemStyler } = marker;
-
-        if (itemStyler == null) return;
-
-        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return this.callWithContext(itemStyler, {
-                seriesId,
-                datum,
-                xKey,
-                yHighKey,
-                yLowKey,
-                highlighted,
-                ...format,
-            });
-        });
-    }
-
     protected override updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
@@ -575,12 +529,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { datumSelection, isHighlight } = opts;
         const { xKey, yLowKey, yHighKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity } =
             this.properties;
-
         const fillBBox = this.getShapeFillBBox();
-        const markerStyle = marker.getStyle();
 
         datumSelection.each((node, datum) => {
-            const baseStyle = mergeDefaults(this.getHighlightStyle(isHighlight, datum?.datumIndex), markerStyle, {
+            const params = { xKey, yHighKey, yLowKey };
+
+            const style = this.getMarkerStyle(marker, datum, params, isHighlight, datum.point?.size, {
                 fill,
                 fillOpacity,
                 stroke,
@@ -588,16 +542,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 strokeOpacity,
             });
 
-            this.updateMarkerStyle(
-                marker,
-                node,
-                datum.datum,
-                datum.point,
-                { xKey, yHighKey, yLowKey },
-                isHighlight,
-                baseStyle,
-                fillBBox
-            );
+            this.applyMarkerStyle(style, node, datum.point, fillBBox);
         });
 
         if (!isHighlight) {
@@ -668,8 +613,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         if (xValue == null) return;
 
-        const format = this.getMarkerItemBaseStyle(false);
-        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format, false));
+        const format = this.getMarkerStyle(
+            this.properties.marker,
+            { datumIndex, datum },
+            { xKey, yLowKey, yHighKey },
+            false
+        ) as RequireOptional<AgSeriesMarkerStyle>;
 
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
         return this.formatTooltipWithContext(
@@ -876,7 +825,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {
         const { xKey, yLowKey, yHighKey } = this.properties;
-        return this.getMarkerStyle(this.properties.marker, datum.datum, { xKey, yLowKey, yHighKey }, true);
+        return this.getMarkerStyle(this.properties.marker, datum, { xKey, yLowKey, yHighKey }, true);
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {

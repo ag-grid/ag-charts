@@ -1,6 +1,6 @@
 import { type AgSunburstSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
-import type { AgSunburstSeriesOptions, AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
+import type { AgSunburstSeriesOptions, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
@@ -17,6 +17,7 @@ const {
     BBox,
     applyShapeStyle,
     getShapeStyle,
+    mergeDefaults,
 } = _ModuleSupport;
 
 class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
@@ -75,9 +76,6 @@ enum TextNodeTag {
     Primary,
     Secondary,
 }
-
-type ItemStyle = Pick<AgSunburstSeriesStyle, 'fill' | 'stroke'> &
-    Omit<Required<AgSunburstSeriesStyle>, 'fill' | 'stroke'>;
 
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     _ModuleSupport.Sector,
@@ -141,72 +139,46 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.labelSelection.update(descendants, updateLabelGroup, (node) => this.getDatumId(node));
     }
 
-    private getItemBaseStyle(highlighted: boolean): ItemStyle {
-        const { properties } = this;
-        const highlightStyle = highlighted ? properties.highlightStyle : undefined;
-
-        return getShapeStyle(
-            {
-                fill: highlightStyle?.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-                stroke: highlightStyle?.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            },
-            properties.fillGradientDefaults,
-            properties.fillPatternDefaults,
-            properties.fillImageDefaults
-        );
-    }
-
-    private getItemStyleOverrides(
-        datumId: number[],
-        datum: any,
-        depth: number,
-        colorValue: number | undefined,
-        format: ItemStyle,
-        highlighted: boolean
-    ) {
+    private getItemStyle({ datumIndex, datum, depth, colorValue }: Partial<SunburstNode>, isHighlight: boolean) {
         const { id: seriesId, properties, colorScale } = this;
-        const { fills, strokes, itemStyler } = properties;
 
-        const rootIndex = datumId[0];
+        const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
+        const rootIndex = datumIndex?.[0] ?? 0;
 
-        const fill = format.fill ?? fills[rootIndex % fills.length];
-        const stroke = format.stroke ?? strokes[rootIndex % strokes.length];
+        const highlightStyle = isHighlight ? properties.highlightStyle : undefined;
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(rootIndex));
 
-        const overrides: Partial<ItemStyle> = {};
-
-        if (!highlighted) {
-            overrides.fill = colorValue != null ? colorScale.convert(colorValue) : fill;
-            overrides.stroke = stroke;
+        if (colorValue != null) {
+            baseStyle.fill = colorScale.convert(colorValue);
         }
 
-        if (itemStyler != null) {
-            const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId.join(':'), highlighted ? 'highlight' : 'node'),
+        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+
+        if (itemStyler != null && depth != null && datumIndex != null) {
+            const overrides = this.cachedDatumCallback(
+                createDatumId(datumIndex.join(':'), isHighlight ? 'highlight' : 'node'),
                 () => {
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         depth,
-                        highlighted,
-                        fill,
-                        stroke,
-                        ...format,
+                        highlighted: isHighlight,
+                        ...style,
                     });
                 }
             );
 
-            Object.assign(overrides, itemStyle);
+            if (overrides) {
+                style = getShapeStyle(
+                    mergeDefaults(overrides, style),
+                    fillGradientDefaults,
+                    fillPatternDefaults,
+                    fillImageDefaults
+                );
+            }
         }
 
-        return getShapeStyle(
-            overrides,
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
+        return style;
     }
 
     updateNodes() {
@@ -454,13 +426,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             node.contentHeight = formatting.height;
         });
 
-        const updateSector = (
-            nodeDatum: SunburstNode,
-            sector: _ModuleSupport.Sector,
-            style: ItemStyle,
-            highlighted: boolean
-        ) => {
-            const { datum, datumIndex, depth, colorValue, startAngle, endAngle } = nodeDatum;
+        const updateSector = (nodeDatum: SunburstNode, sector: _ModuleSupport.Sector, highlighted: boolean) => {
+            const { depth, startAngle, endAngle } = nodeDatum;
             if (depth == null) {
                 sector.visible = false;
                 return;
@@ -468,14 +435,13 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             sector.visible = true;
 
-            const overrides = this.getItemStyleOverrides(datumIndex, datum, depth, colorValue, style, highlighted);
+            const style = this.getItemStyle(nodeDatum, highlighted);
 
-            const fill = overrides.fill ?? style.fill;
-            const strokeWidth = overrides.strokeWidth ?? style.strokeWidth;
+            const fill = style.fill;
+            const strokeWidth = style.strokeWidth;
 
             const fillBBox = _ModuleSupport.isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
-            applyShapeStyle(sector, style, overrides, fillBBox);
-
+            applyShapeStyle(sector, style, fillBBox);
             sector.centerX = 0;
             sector.centerY = 0;
             sector.innerRadius = depth * radiusScale;
@@ -486,14 +452,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             sector.cornerRadius = cornerRadius;
         };
 
-        const baseFormat = this.getItemBaseStyle(false);
-
         this.datumSelection.each((sector, datum) => {
-            updateSector(datum, sector, baseFormat, false);
+            updateSector(datum, sector, false);
         });
-        const highlightFormat = this.getItemBaseStyle(true);
         this.highlightSelection.each((rect, datum) => {
-            updateSector(datum, rect, highlightFormat, true);
+            updateSector(datum, rect, true);
         });
 
         const updateText = (
@@ -592,8 +555,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             data.push({ label: colorName, fallbackLabel: colorKey!, value: datumColor });
         }
 
-        const format = this.getItemBaseStyle(false) as Required<ItemStyle>;
-        Object.assign(format, this.getItemStyleOverrides(datumIndex, datum, depth, datumColor, format, false));
+        const format = this.getItemStyle({ datumIndex, datum, depth, colorValue: datumColor }, false);
 
         const color = format.fill as InternalAgColorType;
 

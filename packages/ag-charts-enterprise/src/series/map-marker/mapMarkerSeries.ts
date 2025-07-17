@@ -33,6 +33,7 @@ const {
     getShapeStyle,
     getLabelStyles,
     LonLatBBox,
+    mergeDefaults,
 } = _ModuleSupport;
 
 interface MapMarkerNodeDataContext
@@ -48,8 +49,6 @@ type MapMarkerAnimationEvent = {
     reset: undefined;
     skip: undefined;
 };
-
-type ItemStyle = Required<AgMapMarkerSeriesStyle>;
 
 export class MapMarkerSeries
     extends TopologySeries<
@@ -592,72 +591,38 @@ export class MapMarkerSeries
         );
     }
 
-    private getMarkerItemBaseStyle(isHighlight: boolean, datum?: MapMarkerNodeDatum): ItemStyle {
-        const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
-
-        return getShapeStyle(
-            {
-                shape: properties.shape,
-                size: properties.size,
-                fill: highlightStyle?.fill ?? properties.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-                stroke: highlightStyle?.stroke ?? properties.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-                lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-                opacity: highlightStyle.opacity ?? 1,
-            },
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
-    }
-
-    protected getMarkerItemStyleOverrides(
-        datumId: string,
-        datum: any,
-        colorValue: number | undefined,
-        sizeValue: number | undefined,
-        format: ItemStyle,
-        highlighted: boolean
-    ) {
+    protected getMarkerItemStyle(
+        { datumIndex, datum, colorValue, sizeValue }: Partial<MapMarkerNodeDatum>,
+        isHighlight: boolean
+    ): Required<AgMapMarkerSeriesStyle> {
         const { id: seriesId, properties, colorScale, sizeScale } = this;
         const { colorRange, itemStyler } = properties;
 
-        let overrides: Partial<ItemStyle> | undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
 
-        overrides ??= {};
-        if (!highlighted && colorValue != null) {
-            overrides.fill = this.isColorScaleValid()
+        if (colorValue != null) {
+            baseStyle.fill = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
-                : colorRange?.[0] ?? properties.fill;
+                : colorRange?.[0] ?? baseStyle.fill;
         }
 
         if (sizeValue != null) {
-            overrides.size = sizeScale.convert(sizeValue, { clamp: true });
+            baseStyle.size = sizeScale.convert(sizeValue, { clamp: true });
         }
 
-        if (itemStyler != null) {
-            const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
-                () => {
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        highlighted,
-                        ...format,
-                        ...overrides,
-                    });
-                }
-            );
-
-            overrides ??= {};
-            Object.assign(overrides, itemStyle);
+        let overrides;
+        if (itemStyler != null && datumIndex != null) {
+            overrides = this.cachedDatumCallback(createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'), () => {
+                return this.callWithContext(itemStyler, {
+                    seriesId,
+                    datum,
+                    highlighted: isHighlight,
+                    ...baseStyle,
+                });
+            });
         }
-
-        return overrides;
+        return overrides ? mergeDefaults(overrides, baseStyle) : baseStyle;
     }
 
     private updateMarkerNodes(opts: {
@@ -670,21 +635,13 @@ export class MapMarkerSeries
         const fillBBox = getTopologyShapeFillBBox(this.scale);
 
         markerSelection.each((marker, markerDatum) => {
-            const { datumIndex, datum, point, colorValue, sizeValue } = markerDatum;
-            const style = this.getMarkerItemBaseStyle(isHighlight, markerDatum);
-            const overrides = this.getMarkerItemStyleOverrides(
-                String(datumIndex),
-                datum,
-                colorValue,
-                sizeValue,
-                style,
-                isHighlight
-            );
+            const { datum, point } = markerDatum;
+            const style = this.getMarkerItemStyle(markerDatum, isHighlight);
 
-            marker.shape = overrides?.shape ?? style.shape;
-            marker.size = overrides?.size ?? style.size;
+            marker.shape = style.shape;
+            marker.size = style.size;
 
-            applyShapeStyle(marker, style, overrides, fillBBox);
+            applyShapeStyle(marker, style, fillBBox);
 
             marker.x = point.x;
             marker.y = point.y;
@@ -917,11 +874,7 @@ export class MapMarkerSeries
             heading = `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${lonValue >= 0 ? 'W' : 'E'}`;
         }
 
-        const format = this.getMarkerItemBaseStyle(false);
-        Object.assign(
-            format,
-            this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format, false)
-        );
+        const format = this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false);
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -953,12 +906,8 @@ export class MapMarkerSeries
     }
 
     public getFormattedMarkerStyle(markerDatum: MapMarkerNodeDatum) {
-        const { datumIndex, colorValue, sizeValue } = markerDatum;
-        const format = this.getMarkerItemBaseStyle(false);
-        Object.assign(
-            format,
-            this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format, false)
-        );
+        const format = this.getMarkerItemStyle(markerDatum, false);
+
         return { size: format.size, shape: format.shape };
     }
 

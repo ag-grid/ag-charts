@@ -1,7 +1,6 @@
 import {
     type AgFunnelSeriesLabelFormatterParams,
     type AgFunnelSeriesOptions,
-    type AgFunnelSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
 
@@ -25,9 +24,9 @@ const {
     motion,
     applyShapeStyle,
     getShapeStyle,
+    mergeDefaults,
 } = _ModuleSupport;
 
-type ItemStyle = Pick<AgFunnelSeriesStyle, 'fill' | 'stroke'> & Required<Omit<AgFunnelSeriesStyle, 'fill' | 'stroke'>>;
 export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNodeDatum>, AgFunnelSeriesOptions> {
     static readonly className = 'FunnelSeries';
     static readonly type = 'funnel' as const;
@@ -138,78 +137,45 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         };
     }
 
-    private getItemBaseStyle(isHighlight: boolean, datum?: FunnelNodeDatum): ItemStyle {
-        const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
+    private getItemStyle(datum: Partial<FunnelNodeDatum>, datumIndex: number, isHighlight: boolean) {
+        const { id: seriesId, properties } = this;
+        const { stageKey, valueKey, itemStyler } = properties;
 
-        return getShapeStyle(
-            {
-                fill: highlightStyle?.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-                stroke: highlightStyle?.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-                lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-                opacity: highlightStyle?.opacity ?? 1,
-            },
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(datumIndex));
+        let style = getShapeStyle(
+            baseStyle,
             properties.fillGradientDefaults,
             properties.fillPatternDefaults,
             properties.fillImageDefaults
         );
-    }
-
-    private getItemStyleOverrides(
-        datumId: string,
-        datum: any,
-        datumIndex: number,
-        format: ItemStyle,
-        highlighted: boolean
-    ) {
-        const { id: seriesId, properties } = this;
-        const { stageKey, valueKey, fills, strokes, itemStyler } = properties;
-
-        const fill = format.fill ?? fills[datumIndex % fills.length] ?? 'black';
-        const stroke = format.stroke ?? strokes[datumIndex % strokes.length] ?? 'black';
-
-        const overrides: Partial<ItemStyle> = {};
-
-        if (!highlighted) {
-            overrides.fill = fill;
-            overrides.stroke = stroke;
-        }
 
         if (itemStyler != null) {
-            const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+            const overrides = this.cachedDatumCallback(
+                createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = format;
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
-                        highlighted,
+                        highlighted: isHighlight,
                         stageKey,
                         valueKey,
-                        fill,
-                        fillOpacity,
-                        stroke,
-                        strokeOpacity,
-                        strokeWidth,
-                        lineDash,
-                        lineDashOffset,
+                        ...style,
                     });
                 }
             );
 
-            Object.assign(overrides, itemStyle);
+            if (overrides) {
+                style = getShapeStyle(
+                    mergeDefaults(overrides, style),
+                    properties.fillGradientDefaults,
+                    properties.fillPatternDefaults,
+                    properties.fillImageDefaults
+                );
+            }
         }
 
-        return getShapeStyle(
-            overrides,
-            properties.fillGradientDefaults,
-            properties.fillPatternDefaults,
-            properties.fillImageDefaults
-        );
+        return style;
     }
 
     protected override updateDatumNodes(opts: {
@@ -225,16 +191,9 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
 
         datumSelection.each((rect, datum) => {
             const { datumIndex } = datum;
-            const style = this.getItemBaseStyle(isHighlight, datum);
-            const overrides = this.getItemStyleOverrides(
-                String(datum.datumIndex),
-                datum.datum,
-                datumIndex,
-                style,
-                isHighlight
-            );
+            const style = this.getItemStyle(datum, datumIndex, isHighlight);
 
-            applyShapeStyle(rect, style, overrides, fillBBox);
+            applyShapeStyle(rect, style, fillBBox);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
@@ -244,9 +203,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
     }
 
     protected tooltipStyle(datum: unknown, datumIndex: number) {
-        const style = this.getItemBaseStyle(false) as Required<ItemStyle>;
-        Object.assign(style, this.getItemStyleOverrides(String(datumIndex), datum, datumIndex, style, false));
-        return style;
+        return this.getItemStyle({ datumIndex, datum }, datumIndex, false);
     }
 
     override animateEmptyUpdateReady(params: FunnelAnimationData<_ModuleSupport.Rect>) {

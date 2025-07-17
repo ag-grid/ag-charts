@@ -17,6 +17,7 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { BarShape } from '../../../scene/shape/barShape';
 import type { Text } from '../../../scene/shape/text';
+import { mergeDefaults } from '../../../util/object';
 import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -645,60 +646,52 @@ export class BarSeries extends AbstractBarSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemBaseStyle(isHighlight: boolean, datum?: BarNodeDatum): Required<AgBarSeriesStyle> {
-        const { properties } = this;
-        const { cornerRadius, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
-
-        return getShapeStyle(
-            {
-                fill: highlightStyle?.fill ?? properties.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-                opacity: highlightStyle?.opacity ?? 1,
-                stroke: highlightStyle?.stroke ?? properties.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-                lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
-                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-                cornerRadius: highlightStyle?.cornerRadius ?? cornerRadius,
-            },
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults
-        );
-    }
-
-    private getItemStyleOverrides(
-        datumId: string,
-        datum: any,
-        xValue: any,
-        yValue: any,
-        format: Required<AgBarSeriesStyle>,
-        highlighted: boolean
-    ) {
+    private getItemStyle(nodeDatum: Partial<BarNodeDatum>, isHighlight: boolean): Required<AgBarSeriesStyle> {
         const { id: seriesId, properties } = this;
 
         const { xKey, yKey, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
 
-        if (itemStyler == null) return;
+        const { xValue, yValue, datum, datumIndex } = nodeDatum;
 
-        const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
-            xDomain: this.getSeriesDomain(ChartAxisDirection.X),
-            yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
-        }))!;
-        const overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return this.callWithContext(itemStyler, {
-                seriesId,
-                ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
-                datum,
-                xValue,
-                yValue,
-                highlighted,
-                ...format,
-            });
-        });
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        let style = getShapeStyle(
+            mergeDefaults(highlightStyle, properties.getStyle()),
+            fillGradientDefaults,
+            fillPatternDefaults,
+            fillImageDefaults
+        );
 
-        return getShapeStyle(overrides, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+        if (itemStyler && nodeDatum != null && datumIndex != null) {
+            const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
+                xDomain: this.getSeriesDomain(ChartAxisDirection.X),
+                yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
+            }))!;
+            const overrides = this.cachedDatumCallback(
+                createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
+                () => {
+                    return this.callWithContext(itemStyler, {
+                        seriesId,
+                        ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
+                        datum,
+                        xValue,
+                        yValue,
+                        highlighted: isHighlight,
+                        ...style,
+                    });
+                }
+            );
+
+            if (overrides) {
+                style = getShapeStyle(
+                    mergeDefaults(overrides, style),
+                    fillGradientDefaults,
+                    fillPatternDefaults,
+                    fillImageDefaults
+                );
+            }
+        }
+
+        return style;
     }
 
     protected override updateDatumNodes(opts: {
@@ -712,20 +705,10 @@ export class BarSeries extends AbstractBarSeries<
         const direction = this.getBarDirection();
 
         opts.datumSelection.each((rect, datum) => {
-            const style = this.getItemBaseStyle(opts.isHighlight, datum);
+            const style = this.getItemStyle(datum, opts.isHighlight);
+            applyShapeStyle(rect, style, fillBBox);
 
-            const overrides = this.getItemStyleOverrides(
-                String(datum.datumIndex),
-                datum.datum,
-                datum.xValue,
-                datum.yValue,
-                style,
-                opts.isHighlight
-            );
-
-            applyShapeStyle(rect, style, overrides, fillBBox);
-
-            const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
+            const cornerRadius = rect.cornerRadius ?? 0;
             rect.topLeftCornerRadius = datum.topLeftCornerRadius ? cornerRadius : 0;
             rect.topRightCornerRadius = datum.topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = datum.bottomRightCornerRadius ? cornerRadius : 0;
@@ -782,9 +765,7 @@ export class BarSeries extends AbstractBarSeries<
         const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
 
         if (xValue == null) return;
-
-        const format = this.getItemBaseStyle(false);
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format, false));
+        const format = this.getItemStyle({ datumIndex, datum, xValue, yValue }, false);
 
         return this.formatTooltipWithContext(
             tooltip,

@@ -28,6 +28,7 @@ const {
     getShapeStyle,
     getLabelStyles,
     BBox,
+    mergeDefaults,
 } = _ModuleSupport;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum<ChordNodeDatum, ChordLinkDatum> {
@@ -62,7 +63,6 @@ interface ChordNodeLabelDatum {
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
     Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
-type LinkStyle = NodeStyle & { tension: number };
 
 interface ChordNodeDataContext
     extends FlowProportionSeriesContext<ChordNodeDatum, ChordLinkDatum, ChordNodeLabelDatum> {}
@@ -382,89 +382,50 @@ export class ChordSeries extends FlowProportionSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId([datum.type, datum.id]));
     }
 
-    protected getBaseNodeStyle(isHighlight: boolean, datum?: ChordDatum): NodeStyle {
-        const { properties } = this;
-        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.node;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
-        return getShapeStyle(
-            {
-                fill: highlightStyle?.fill ?? fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
-                stroke: highlightStyle?.stroke ?? stroke,
-                strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
-                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.node.strokeWidth),
-                lineDash: highlightStyle?.lineDash ?? lineDash,
-                lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
-            },
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
-    }
-
-    protected getNodeStyleOverrides(
-        datumId: string,
-        datum: any,
-        datumIndex: number,
-        size: number,
-        label: string | undefined,
-        format: NodeStyle,
-        highlighted: boolean
+    protected getNodeStyle(
+        { datumIndex, datum, size = 0, label }: Partial<ChordNodeDatum>,
+        fromNodeDatumIndex: number,
+        isHighlight: boolean
     ) {
         const { id: seriesId, properties } = this;
         const { fills, strokes } = properties;
         const { itemStyler } = properties.node;
 
-        const fill = format.fill ?? fills[datumIndex % fills.length];
-        const stroke = format.stroke ?? strokes[datumIndex % strokes.length];
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, properties.node.getStyle(fills, strokes, fromNodeDatumIndex));
 
-        let overrides: Partial<NodeStyle> | undefined;
-
-        if (!highlighted) {
-            overrides ??= {};
-            overrides.fill = fill;
-            overrides.stroke = stroke;
-        }
-
-        if (itemStyler != null) {
-            const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId, 'node', highlighted ? 'highlight' : 'node'),
-                () => {
-                    const {
-                        fillOpacity = 1,
-                        strokeOpacity = 1,
-                        strokeWidth = 0,
-                        lineDash = [],
-                        lineDashOffset = 0,
-                    } = format;
-
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        highlighted,
-                        label,
-                        size,
-                        fill,
-                        fillOpacity,
-                        stroke,
-                        strokeOpacity,
-                        strokeWidth,
-                        lineDash,
-                        lineDashOffset,
-                    });
-                }
-            );
-
-            overrides ??= {};
-            Object.assign(overrides, itemStyle);
-        }
-
-        return getShapeStyle(
-            overrides,
+        let style = getShapeStyle(
+            baseStyle,
             this.properties.fillGradientDefaults,
             this.properties.fillPatternDefaults,
             this.properties.fillImageDefaults
         );
+
+        if (itemStyler != null && datumIndex != null) {
+            const overrides = this.cachedDatumCallback(
+                createDatumId(datumIndex, 'node', isHighlight ? 'highlight' : 'node'),
+                () => {
+                    return this.callWithContext(itemStyler, {
+                        seriesId,
+                        datum,
+                        highlighted: isHighlight,
+                        ...style,
+                        size,
+                        label,
+                    });
+                }
+            );
+            if (overrides) {
+                style = getShapeStyle(
+                    mergeDefaults(overrides, style),
+                    this.properties.fillGradientDefaults,
+                    this.properties.fillPatternDefaults,
+                    this.properties.fillImageDefaults
+                );
+            }
+        }
+
+        return style;
     }
 
     protected updateNodeNodes(opts: {
@@ -476,19 +437,10 @@ export class ChordSeries extends FlowProportionSeries<
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((sector, datum) => {
-            const { datumIndex, size, label } = datum;
-            const format = this.getBaseNodeStyle(isHighlight, datum);
-            const overrides = this.getNodeStyleOverrides(
-                String(datumIndex.index),
-                datum.datum,
-                datumIndex.index,
-                size,
-                label,
-                format,
-                isHighlight
-            );
+            const { datumIndex } = datum;
+            const style = this.getNodeStyle(datum, datumIndex.index, isHighlight);
 
-            applyShapeStyle(sector, format, overrides, fillBBox);
+            applyShapeStyle(sector, style, fillBBox);
 
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
@@ -509,89 +461,44 @@ export class ChordSeries extends FlowProportionSeries<
         );
     }
 
-    protected getBaseLinkStyle(isHighlight: boolean, datum?: ChordDatum): LinkStyle {
-        const { properties } = this;
-        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, tension } = properties.link;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
-
-        return getShapeStyle(
-            {
-                fill: highlightStyle?.fill ?? fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
-                stroke: highlightStyle?.stroke ?? stroke,
-                strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
-                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.link.strokeWidth),
-                lineDash: highlightStyle?.lineDash ?? lineDash,
-                lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
-                tension,
-            },
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
-    }
-
-    protected getLinkStyleOverrides(
-        datumId: string,
-        datum: any,
+    protected getLinkStyle(
+        { datumIndex, datum }: Partial<ChordLinkDatum>,
         fromNodeDatumIndex: number,
-        format: LinkStyle,
-        highlighted: boolean
+        isHighlight: boolean
     ) {
         const { id: seriesId, properties } = this;
-        const { fills, strokes } = properties;
+        const { fills, strokes, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
         const { itemStyler } = properties.link;
 
-        const fill = format.fill ?? fills[fromNodeDatumIndex % fills.length];
-        const stroke = format.stroke ?? strokes[fromNodeDatumIndex % strokes.length];
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, properties.link.getStyle(fills, strokes, fromNodeDatumIndex));
 
-        let overrides: Partial<LinkStyle> | undefined;
+        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
-        if (!highlighted) {
-            overrides ??= {};
-            overrides.fill = fill;
-            overrides.stroke = stroke;
-        }
-
-        if (itemStyler != null) {
-            const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId, 'link', highlighted ? 'highlight' : 'node'),
+        if (itemStyler != null && datumIndex != null) {
+            const overrides = this.cachedDatumCallback(
+                createDatumId(datumIndex, 'link', isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const {
-                        fillOpacity = 1,
-                        strokeOpacity = 1,
-                        strokeWidth = 0,
-                        lineDash = [],
-                        lineDashOffset = 0,
-                        tension,
-                    } = format;
-
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
-                        highlighted,
-                        tension,
-                        fill,
-                        fillOpacity,
-                        stroke,
-                        strokeOpacity,
-                        strokeWidth,
-                        lineDash,
-                        lineDashOffset,
+                        highlighted: isHighlight,
+                        ...style,
                     });
                 }
             );
 
-            overrides ??= {};
-            Object.assign(overrides, itemStyle);
+            if (overrides) {
+                style = getShapeStyle(
+                    mergeDefaults(overrides, style),
+                    fillGradientDefaults,
+                    fillPatternDefaults,
+                    fillImageDefaults
+                );
+            }
         }
 
-        return getShapeStyle(
-            overrides,
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
+        return style;
     }
 
     protected updateLinkNodes(opts: {
@@ -603,16 +510,8 @@ export class ChordSeries extends FlowProportionSeries<
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((link, datum) => {
-            const { datumIndex } = datum;
             const fromNodeDatumIndex = datum.fromNode.datumIndex;
-            const style = this.getBaseLinkStyle(isHighlight, datum);
-            const overrides = this.getLinkStyleOverrides(
-                String(datumIndex.index),
-                datum.datum,
-                fromNodeDatumIndex.index,
-                style,
-                isHighlight
-            );
+            const style = this.getLinkStyle(datum, fromNodeDatumIndex.index, isHighlight);
 
             link.centerX = datum.centerX;
             link.centerY = datum.centerY;
@@ -622,9 +521,8 @@ export class ChordSeries extends FlowProportionSeries<
             link.startAngle2 = datum.startAngle2;
             link.endAngle2 = datum.endAngle2;
 
-            applyShapeStyle(link, style, overrides, fillBBox);
-
-            link.tension = overrides?.tension ?? style.tension;
+            link.tension = style.tension;
+            applyShapeStyle(link, style, fillBBox);
         });
     }
 
@@ -669,28 +567,10 @@ export class ChordSeries extends FlowProportionSeries<
         let format: Required<NodeStyle>;
         if (seriesDatum.type === FlowProportionDatumType.Link) {
             const fromNodeDatumIndex = seriesDatum.fromNode.datumIndex;
-            const linkFormat = this.getBaseLinkStyle(false);
-            Object.assign(
-                linkFormat,
-                this.getLinkStyleOverrides(String(datumIndex.index), datum, fromNodeDatumIndex.index, linkFormat, false)
-            );
-            format = linkFormat as any;
+            format = this.getLinkStyle({ datumIndex, datum }, fromNodeDatumIndex.index, false);
         } else {
             const label = seriesDatum.label;
-            const nodeFormat = this.getBaseNodeStyle(false);
-            Object.assign(
-                nodeFormat,
-                this.getNodeStyleOverrides(
-                    String(datumIndex.index),
-                    datum,
-                    datumIndex.index,
-                    size,
-                    label,
-                    nodeFormat,
-                    false
-                )
-            );
-            format = nodeFormat as any;
+            format = this.getNodeStyle({ datumIndex, datum, size, label }, datumIndex.index, false);
         }
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];

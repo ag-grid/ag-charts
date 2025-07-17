@@ -330,28 +330,23 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             }
         }
 
-        const markerStyle = marker.getStyle();
         const fillBBox = this.getShapeFillBBox();
 
         selection.update(selectionData).each((node, datum) => {
-            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
-
-            const baseStyle = mergeDefaults(highlightStyle, markerStyle, {
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-            });
-
-            this.updateMarkerStyle(
+            const style = this.getMarkerStyle(
                 marker,
-                node,
-                datum.datum,
-                datum.point,
+                datum,
                 this.getDatumStylerProperties(datum),
                 isHighlight,
-                baseStyle,
-                fillBBox
+                datum.point?.size,
+                {
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                }
             );
+
+            this.applyMarkerStyle(style, node, datum.point, fillBBox);
         });
     }
 
@@ -380,7 +375,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         if (angleValue == null) return;
 
-        const activeStyle = this.getMarkerStyle(marker, datum, this.getDatumStylerProperties(datum), false);
+        const activeStyle = this.getMarkerStyle(
+            marker,
+            { datum, datumIndex },
+            this.getDatumStylerProperties(datum),
+            false
+        );
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -708,7 +708,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     public getFormattedMarkerStyle(datum: RadarNodeDatum) {
         const { angleKey, radiusKey } = this.properties;
-        return this.getMarkerStyle(this.properties.marker, datum.datum, { angleKey, radiusKey }, true);
+        return this.getMarkerStyle(this.properties.marker, datum, { angleKey, radiusKey }, true);
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {

@@ -57,6 +57,27 @@ class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
 
     @Property
     itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<unknown>, AgChordSeriesLinkStyle>;
+
+    getStyle(
+        fills: InternalAgColorType[],
+        strokes: string[],
+        index: number
+    ): Required<AgChordSeriesLinkStyle> & { opacity: number } {
+        const { fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset, tension } = this;
+        const fill = this.fill ?? fills[index % fills.length];
+        const stroke = this.stroke ?? strokes[index % fills.length];
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            tension,
+            opacity: 1,
+        };
+    }
 }
 
 class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
@@ -67,13 +88,13 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
     width: number = 1;
 
     @Property
-    fill: InternalAgColorType | undefined = undefined;
+    fill: InternalAgColorType = '#c16068';
 
     @Property
     fillOpacity = 1;
 
     @Property
-    stroke: string | undefined = undefined;
+    stroke: string = '#874349';
 
     @Property
     strokeOpacity = 1;
@@ -89,6 +110,26 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
 
     @Property
     itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<unknown>, AgChordSeriesNodeStyle>;
+
+    getStyle(
+        fills: InternalAgColorType[],
+        strokes: string[],
+        index: number
+    ): Required<AgChordSeriesNodeStyle> & { opacity: number } {
+        const { fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
+        const fill = this.fill ?? fills[index % fills.length];
+        const stroke = this.stroke ?? strokes[index % fills.length];
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            opacity: 1,
+        };
+    }
 }
 
 export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions> {

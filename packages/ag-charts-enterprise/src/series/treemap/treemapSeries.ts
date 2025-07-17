@@ -27,6 +27,7 @@ const {
     applyShapeStyle,
     getShapeStyle,
     getLabelStyles,
+    mergeDefaults,
 } = _ModuleSupport;
 
 class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
@@ -336,138 +337,53 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         return undefined;
     }
 
-    private getGroupBaseStyle(highlighted: boolean): ItemStyle {
-        const { properties } = this;
-        const { group } = properties;
-        const highlightStyle = highlighted ? properties.highlightStyle.group : undefined;
-        return getShapeStyle(
-            {
-                fill: highlightStyle?.fill ?? group.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? group.fillOpacity,
-                stroke: highlightStyle?.stroke ?? group.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? group.strokeWidth,
-                strokeOpacity: highlightStyle?.strokeOpacity ?? group.strokeOpacity,
-            },
-            properties.fillGradientDefaults,
-            properties.fillPatternDefaults,
-            properties.fillImageDefaults
-        );
-    }
-
-    private getGroupStyleOverrides(
-        datumId: number[],
-        datum: any,
-        depth: number,
-        format: ItemStyle,
-        highlighted: boolean
-    ) {
-        const { id: seriesId, properties } = this;
-
-        const { undocumentedGroupFills, undocumentedGroupStrokes, itemStyler } = properties;
-
-        const fill = format.fill ?? undocumentedGroupFills[Math.min(depth ?? 0, undocumentedGroupFills.length)];
-        const stroke = format.stroke ?? undocumentedGroupStrokes[Math.min(depth ?? 0, undocumentedGroupStrokes.length)];
-
-        const overrides: Partial<ItemStyle> = {};
-
-        if (!highlighted) {
-            overrides.fill = fill;
-            overrides.stroke = stroke;
-        }
-
-        if (itemStyler != null) {
-            const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId.join(':'), highlighted ? 'highlight' : 'node'),
-                () => {
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        depth,
-                        highlighted,
-                        fill,
-                        stroke,
-                        ...format,
-                    });
-                }
-            );
-
-            Object.assign(overrides, itemStyle);
-        }
-
-        return getShapeStyle(
-            overrides,
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
-    }
-
-    private getTileBaseStyle(highlighted: boolean): ItemStyle {
-        const { properties } = this;
-        const { tile } = properties;
-        const highlightStyle = highlighted ? properties.highlightStyle.tile : undefined;
-        return getShapeStyle(
-            {
-                fill: highlightStyle?.fill ?? tile.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? tile.fillOpacity,
-                stroke: highlightStyle?.stroke ?? tile.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? tile.strokeWidth,
-                strokeOpacity: highlightStyle?.strokeOpacity ?? tile.strokeOpacity,
-            },
-            properties.fillGradientDefaults,
-            properties.fillPatternDefaults,
-            properties.fillImageDefaults
-        );
-    }
-
-    private getTileStyleOverrides(
-        datumId: number[],
-        datum: any,
-        depth: number,
-        colorValue: number | undefined,
-        format: ItemStyle,
-        highlighted: boolean
+    private getItemStyle(
+        { datumIndex, datum, depth = -1, colorValue }: Partial<TreemapNode>,
+        isLeaf: boolean,
+        isHighlight: boolean
     ) {
         const { id: seriesId, properties, colorScale } = this;
-        const { fills, strokes, itemStyler } = properties;
+        const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
+        const rootIndex = datumIndex?.[0] ?? 0;
 
-        const rootIndex = datumId[0];
+        const fills = isLeaf ? properties.fills : properties.undocumentedGroupFills;
+        const strokes = isLeaf ? properties.strokes : properties.undocumentedGroupStrokes;
+        const index = isLeaf ? rootIndex : depth;
 
-        const fill = format.fill ?? fills[rootIndex % fills.length];
-        const stroke = format.stroke ?? strokes[rootIndex % strokes.length];
+        const highlightStyle = isHighlight ? properties.highlightStyle.getStyle(isLeaf) : undefined;
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(isLeaf, fills, strokes, index));
 
-        const overrides: Partial<ItemStyle> = {};
-
-        if (!highlighted) {
-            overrides.fill = colorValue != null ? colorScale.convert(colorValue) : fill;
-            overrides.stroke = stroke;
+        if (colorValue != null) {
+            baseStyle.fill = colorScale.convert(colorValue);
         }
 
-        if (itemStyler != null) {
-            const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId.join(':'), highlighted ? 'highlight' : 'node'),
+        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+
+        if (itemStyler != null && datumIndex != null) {
+            const overrides = this.cachedDatumCallback(
+                createDatumId(datumIndex.join(':'), isHighlight ? 'highlight' : 'node'),
                 () => {
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         depth,
-                        highlighted,
-                        fill,
-                        stroke,
-                        ...format,
+                        highlighted: isHighlight,
+                        ...style,
                     });
                 }
             );
 
-            Object.assign(overrides, itemStyle);
+            if (overrides) {
+                style = getShapeStyle(
+                    mergeDefaults(overrides, style),
+                    fillGradientDefaults,
+                    fillPatternDefaults,
+                    fillImageDefaults
+                );
+            }
         }
 
-        return getShapeStyle(
-            overrides,
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
+        return style;
     }
 
     override updateSelections() {
@@ -712,9 +628,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const updateRectFn = (
             node: TreemapNode,
             rect: _ModuleSupport.Rect,
-            groupStyle: ItemStyle,
-            tileStyle: ItemStyle,
-            highlighted: boolean
+            highlighted: boolean,
         ) => {
             const { bbox } = node;
             if (bbox == null) {
@@ -722,17 +636,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 return;
             }
 
-            const { datum, depth = -1, datumIndex, colorValue } = node;
+            const { depth = -1 } = node;
             const isLeaf = node.children.length === 0;
 
-            const style = isLeaf ? tileStyle : groupStyle;
-            const overrides = isLeaf
-                ? this.getTileStyleOverrides(datumIndex, datum, depth, colorValue, style, highlighted)
-                : this.getGroupStyleOverrides(datumIndex, datum, depth, style, highlighted);
+            const style = this.getItemStyle(node, isLeaf, highlighted);
 
             rect.crisp = true;
 
-            applyShapeStyle(rect, style, overrides, fillBBox);
+            applyShapeStyle(rect, style, fillBBox);
 
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, highlighted ? 1 : 0];
@@ -757,15 +668,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             rect.visible = true;
         };
 
-        const baseGroupFormat = this.getGroupBaseStyle(false);
-        const baseTileFormat = this.getTileBaseStyle(false);
-        this.datumSelection.each((rect, datum) => updateRectFn(datum, rect, baseGroupFormat, baseTileFormat, false));
-
-        const highlightGroupFormat = this.getGroupBaseStyle(true);
-        const highlightTileFormat = this.getTileBaseStyle(true);
+        this.datumSelection.each((rect, datum) => updateRectFn(datum, rect, false));
 
         this.highlightSelection.each((rect, datum) => {
-            updateRectFn(datum, rect, highlightGroupFormat, highlightTileFormat, true);
+            updateRectFn(datum, rect, true);
         });
 
         const updateLabelFn = (
@@ -873,14 +779,11 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             data.push({ label: colorName, fallbackLabel: colorKey!, value: datumColor });
         }
 
-        let format: Required<ItemStyle>;
-        if (isLeaf) {
-            format = this.getTileBaseStyle(false) as Required<ItemStyle>;
-            Object.assign(format, this.getTileStyleOverrides(datumIndex, datum, depth, datumColor, format, false));
-        } else {
-            format = this.getGroupBaseStyle(false) as Required<ItemStyle>;
-            Object.assign(format, this.getGroupStyleOverrides(datumIndex, datum, depth, format, false));
-        }
+        const format: Required<ItemStyle> = this.getItemStyle(
+            { datumIndex, datum, depth, colorValue: datumColor },
+            isLeaf,
+            false
+        );
 
         const color = format.fill as InternalAgColorType;
 

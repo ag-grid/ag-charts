@@ -1,16 +1,11 @@
-import {
-    type AgCandlestickSeriesItemOptions,
-    type AgCandlestickSeriesOptions,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgCandlestickSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgGradientColor } from 'ag-charts-core';
 
 import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { createDatumId, isGradientFill, isPatternFill, isImageFill, getShapeFill, applyShapeStyle, getShapeStyle } =
-    _ModuleSupport;
+const { isGradientFill, isPatternFill, isImageFill, getShapeFill, applyShapeStyle } = _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<
     CandlestickNode,
@@ -33,74 +28,15 @@ export class CandlestickSeries extends OhlcSeriesBase<
         datumSelection: _ModuleSupport.Selection<CandlestickNode, OhlcNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { id: seriesId, properties } = this;
-        const { xKey, highKey, lowKey, openKey, closeKey, item, itemStyler } = properties;
+        const { item } = this.properties;
         const { up, down } = item;
-        const upStyle = getShapeStyle(
-            {
-                fill: up.fill,
-                fillOpacity: up.fillOpacity,
-                stroke: up.stroke,
-                strokeWidth: up.strokeWidth,
-                strokeOpacity: up.strokeOpacity,
-                lineDash: up.lineDash,
-                lineDashOffset: up.lineDashOffset,
-            },
-            up.fillGradientDefaults,
-            up.fillPatternDefaults,
-            up.fillImageDefaults
-        );
-        const downStyle = getShapeStyle(
-            {
-                fill: down.fill,
-                fillOpacity: down.fillOpacity,
-                stroke: down.stroke,
-                strokeWidth: down.strokeWidth,
-                strokeOpacity: down.strokeOpacity,
-                lineDash: down.lineDash,
-                lineDashOffset: down.lineDashOffset,
-            },
-            down.fillGradientDefaults,
-            down.fillPatternDefaults,
-            down.fillImageDefaults
-        );
+        const { strokeWidth: upStrokeWidth } = up;
+        const { strokeWidth: downStrokeWidth } = down;
 
         datumSelection.each((node, datum) => {
             const { isRising, centerX, width, y, height, yOpen, yClose, crisp } = datum;
 
-            let style: AgCandlestickSeriesItemOptions | undefined;
-            if (itemStyler != null) {
-                const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = isRising
-                    ? upStyle
-                    : downStyle;
-                style = getShapeStyle(
-                    this.cachedDatumCallback(
-                        createDatumId(this.getDatumId(datum), isHighlight ? 'highlight' : 'node'),
-                        () =>
-                            this.callWithContext(itemStyler, {
-                                seriesId,
-                                itemId: datum.itemId,
-                                xKey,
-                                highKey,
-                                lowKey,
-                                openKey,
-                                closeKey,
-                                datum: datum.datum,
-                                fill,
-                                fillOpacity,
-                                strokeOpacity,
-                                stroke,
-                                strokeWidth,
-                                lineDash,
-                                lineDashOffset,
-                                highlighted: isHighlight,
-                            })
-                    ),
-                    isRising ? up.fillGradientDefaults : down.fillGradientDefaults,
-                    isRising ? up.fillPatternDefaults : down.fillPatternDefaults,
-                    isRising ? up.fillImageDefaults : down.fillImageDefaults
-                );
-            }
+            const style = this.getItemStyle(datum, isHighlight);
 
             node.centerX = centerX;
             node.width = width;
@@ -110,39 +46,17 @@ export class CandlestickSeries extends OhlcSeriesBase<
             node.yClose = yClose;
             node.crisp = crisp;
 
-            const risingStyle = isRising ? upStyle : downStyle;
-            const risingWickStyle = isRising ? up.wick : down.wick;
-
-            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
-
-            applyShapeStyle(
-                node,
-                {
-                    fill: highlightStyle?.fill ?? style?.fill ?? risingStyle.fill,
-                    fillOpacity: highlightStyle?.fillOpacity ?? style?.fillOpacity ?? risingStyle.fillOpacity,
-                    stroke: highlightStyle?.stroke ?? style?.stroke ?? risingStyle.stroke,
-                    strokeWidth: highlightStyle?.strokeWidth ?? style?.strokeWidth ?? risingStyle.strokeWidth,
-                    strokeOpacity: highlightStyle?.strokeOpacity ?? style?.strokeOpacity ?? risingStyle.strokeOpacity,
-                    lineDash: highlightStyle?.lineDash ?? style?.lineDash ?? risingStyle.lineDash,
-                    lineDashOffset:
-                        highlightStyle?.lineDashOffset ?? style?.lineDashOffset ?? risingStyle.lineDashOffset,
-                    opacity: highlightStyle.opacity ?? 1,
-                },
-                undefined,
-                this.getShapeFillBBox()
-            );
+            applyShapeStyle(node, style, this.getShapeFillBBox());
 
             const styleWick = style?.wick;
-            node.wickStroke = highlightStyle?.stroke ?? styleWick?.stroke ?? risingWickStyle.stroke;
-            node.wickStrokeWidth = highlightStyle?.strokeWidth ?? styleWick?.strokeWidth ?? risingWickStyle.strokeWidth;
-            node.wickStrokeOpacity =
-                highlightStyle?.strokeOpacity ?? styleWick?.strokeOpacity ?? risingWickStyle.strokeOpacity;
-            node.wickLineDash = highlightStyle?.lineDash ?? styleWick?.lineDash ?? risingWickStyle.lineDash;
-            node.wickLineDashOffset =
-                highlightStyle?.lineDashOffset ?? styleWick?.lineDashOffset ?? risingWickStyle.lineDashOffset;
+            node.wickStroke = styleWick?.stroke;
+            node.wickStrokeWidth = styleWick?.strokeWidth;
+            node.wickStrokeOpacity = styleWick?.strokeOpacity;
+            node.wickLineDash = styleWick?.lineDash;
+            node.wickLineDashOffset = styleWick?.lineDashOffset;
 
             // Ignore highlight style
-            node.strokeAlignment = (style?.strokeWidth ?? risingStyle.strokeWidth) / 2;
+            node.strokeAlignment = (isRising ? upStrokeWidth : downStrokeWidth) / 2;
         });
     }
 

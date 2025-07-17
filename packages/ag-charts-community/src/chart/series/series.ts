@@ -993,28 +993,26 @@ export abstract class Series<
             fillPatternDefaults: RequiredInternalAgPatternColor;
             fillImageDefaults: RequiredInternalAgImageFill;
         },
-        datum?: any,
+        { datumIndex, datum }: Partial<TDatum>,
         params?: TParams,
-        highlighted = false,
+        isHighlight = false,
         size = marker.size ?? 0,
-        defaultStyle?: AgSeriesMarkerStyle
+        inheritedStyle?: AgSeriesMarkerStyle
     ) {
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = marker;
         const defaultSize = { size };
 
-        let markerStyle = getShapeStyle(
-            mergeDefaults(defaultSize, defaultStyle, marker.getStyle()),
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults
-        );
+        const highlightStyle: AgSeriesMarkerStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, defaultSize, marker.getStyle(), inheritedStyle);
+
+        let markerStyle = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
         if (itemStyler && params) {
             const style = this.cachedCallWithContext(itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
                 ...params,
-                highlighted,
+                highlighted: isHighlight,
                 datum,
             });
             markerStyle = getShapeStyle(
@@ -1028,26 +1026,17 @@ export abstract class Series<
         return markerStyle;
     }
 
-    protected updateMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams & { context?: never }> & {
-            fillGradientDefaults: RequiredInternalAgGradientColor;
-            fillPatternDefaults: RequiredInternalAgPatternColor;
-            fillImageDefaults: RequiredInternalAgImageFill;
-        },
+    protected applyMarkerStyle(
+        style: AgSeriesMarkerStyle,
         markerNode: Marker,
-        datum: any,
         point: { x: number; y: number; size?: number; focusSize?: number } | undefined,
-        params: TParams & { context?: never },
-        highlighted: boolean,
-        defaultStyle: AgSeriesMarkerStyle,
         fillBBox?: ShapeFillBBox,
         { applyTranslation = true, selected = true } = {}
     ) {
-        const activeStyle = this.getMarkerStyle(marker, datum, params, highlighted, point?.size, defaultStyle);
-        const { shape, size } = activeStyle;
+        const { shape, size = 0 } = style;
         const visible = this.visible && size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
 
-        applyShapeStyle(markerNode, activeStyle, undefined, fillBBox);
+        applyShapeStyle(markerNode, style, fillBBox);
 
         if (applyTranslation) {
             markerNode.setProperties({
@@ -1069,7 +1058,7 @@ export abstract class Series<
         }
 
         // Only for custom marker shapes
-        if (typeof marker.shape === 'function' && !markerNode.dirtyPath) {
+        if (typeof shape === 'function' && !markerNode.dirtyPath) {
             markerNode.path.clear(true);
             markerNode.updatePath();
             markerNode.checkPathDirty();
@@ -1079,7 +1068,7 @@ export abstract class Series<
             if (point != null && bb.isFinite()) {
                 const center = bb.computeCenter();
                 const [dx, dy] = (['x', 'y'] as const).map(
-                    (key) => (activeStyle.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
+                    (key) => (style.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
                 );
                 point.focusSize = Math.max(bb.width + dx, bb.height + dy);
             }

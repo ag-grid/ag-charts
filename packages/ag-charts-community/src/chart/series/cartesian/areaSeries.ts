@@ -751,7 +751,6 @@ export class AreaSeries extends CartesianSeries<
                 stroke: undefined,
                 fillOpacity: fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
             },
-            undefined,
             this.getShapeFillBBox()
         );
 
@@ -829,28 +828,22 @@ export class AreaSeries extends CartesianSeries<
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
         const fillBBox = this.getShapeFillBBox();
-        const markerStyle = marker.getStyle();
 
         datumSelection.each((node, datum) => {
             const { xValue, yValue } = datum;
-            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
-            const baseStyle = mergeDefaults(highlightStyle, markerStyle, {
+            const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
+            const style = this.getMarkerStyle(marker, datum, params, isHighlight, datum.point?.size, {
                 stroke,
                 strokeWidth,
                 strokeOpacity,
             });
-            this.updateMarkerStyle(
-                marker,
-                node,
-                datum.datum,
-                datum.point,
-                datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
-                isHighlight,
-                baseStyle,
-                fillBBox,
-                { selected: datum.selected }
-            );
+
+            this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
         });
+
+        if (!isHighlight) {
+            this.properties.marker.markClean();
+        }
 
         if (!isHighlight) {
             this.properties.marker.markClean();
@@ -911,15 +904,11 @@ export class AreaSeries extends CartesianSeries<
 
         if (xValue == null) return;
 
-        const style = marker.getStyle();
-
         const activeStyle = this.getMarkerStyle(
             marker,
-            datum,
+            { datum, datumIndex },
             datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
-            false,
-            undefined,
-            style
+            false
         );
 
         return this.formatTooltipWithContext(
@@ -973,7 +962,7 @@ export class AreaSeries extends CartesianSeries<
                   marker.fillImageDefaults
               );
 
-        const markerStyle = this.getMarkerStyle(marker, undefined, undefined, false, undefined, {
+        const markerStyle = this.getMarkerStyle(marker, {}, undefined, false, undefined, {
             fill: legendMarkerFill,
             fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
         });
@@ -1125,7 +1114,7 @@ export class AreaSeries extends CartesianSeries<
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
         return this.getMarkerStyle(
             this.properties.marker,
-            datum.datum,
+            datum,
             datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
             true
         );

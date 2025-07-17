@@ -21,7 +21,6 @@ import { Text } from '../../../scene/shape/text';
 import type { LabelPlacement, MeasuredLabel, PlacedLabel } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/extent';
 import { formatValue } from '../../../util/format.util';
-import { mergeDefaults } from '../../../util/object';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -477,32 +476,21 @@ export class BubbleSeries extends CartesianSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
-        const markerStyle = marker.getStyle();
 
         this.sizeScale.range = [marker.size, marker.maxSize];
         const fillBBox = this.getShapeFillBBox();
 
         const aggregated = this.dataAggregation != null;
 
-        datumSelection.each((node, datum) => {
-            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
-            const baseStyle = mergeDefaults(highlightStyle, markerStyle);
+        const params = { xKey, yKey, sizeKey, labelKey };
 
+        datumSelection.each((node, datum, index) => {
             const { count, dilation } = datum;
-            baseStyle.fillOpacity = (1 - (1 - (baseStyle.fillOpacity ?? 1)) ** count) / Math.sqrt(dilation);
 
-            this.updateMarkerStyle(
-                marker,
-                node,
-                datum.datum,
-                datum.point,
-                { xKey, yKey, sizeKey, labelKey },
-                isHighlight,
-                baseStyle,
-                fillBBox,
-                { selected: datum.selected }
-            );
+            const style = this.getMarkerStyle(marker, datum, params, isHighlight, datum.point?.size);
+            style.fillOpacity = (1 - (1 - (style.fillOpacity ?? 1)) ** count) / Math.sqrt(dilation);
 
+            this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
             node.zIndex = aggregated ? [-count, index] : 0;
         });
 
@@ -631,14 +619,11 @@ export class BubbleSeries extends CartesianSeries<
             data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? formatValue(value) });
         }
 
-        const style = marker.getStyle();
         const activeStyle = this.getMarkerStyle(
             marker,
-            datum,
+            { datum, datumIndex },
             { xKey, yKey, sizeKey, labelKey, highlighted: true },
-            false,
-            undefined,
-            style
+            false
         );
 
         return this.formatTooltipWithContext(
@@ -667,7 +652,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const marker = this.getMarkerStyle(this.properties.marker);
+        const marker = this.getMarkerStyle(this.properties.marker, {});
         return {
             marker,
         };

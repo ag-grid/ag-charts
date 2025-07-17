@@ -148,20 +148,18 @@ export function applyShapeFillBBox(
 
 export function applyShapeStyle(
     shape: Shape,
-    style: ShapeStyle,
-    overrides?: ShapeStyle,
+    style?: ShapeStyle,
     fillBBox?: ShapeFillBBox,
     fillParams?: GradientParams
 ) {
     // Opacity is managed by animation - so don't set it on the shape
-    const opacity = overrides?.opacity ?? style.opacity ?? 1;
-    const fill = overrides?.fill ?? style.fill;
-    shape.fill = fill;
-    applyShapeFillBBox(shape, overrides?.fill ?? style.fill, fillBBox, fillParams);
-    shape.fillOpacity = (overrides?.fillOpacity ?? style.fillOpacity ?? 1) * opacity;
-    shape.stroke = overrides?.stroke ?? style.stroke;
-    shape.strokeOpacity = (overrides?.strokeOpacity ?? style.strokeOpacity ?? 1) * opacity;
-    shape.strokeWidth = overrides?.strokeWidth ?? style.strokeWidth ?? 0;
-    shape.lineDash = overrides?.lineDash ?? style.lineDash;
-    shape.lineDashOffset = overrides?.lineDashOffset ?? style.lineDashOffset ?? 0;
+    const opacity = style?.opacity ?? 1;
+    shape.fill = style?.fill;
+    applyShapeFillBBox(shape, shape.fill, fillBBox, fillParams);
+    shape.fillOpacity = (style?.fillOpacity ?? 1) * opacity;
+    shape.stroke = style?.stroke;
+    shape.strokeOpacity = (style?.strokeOpacity ?? 1) * opacity;
+    shape.strokeWidth = style?.strokeWidth ?? 0;
+    shape.lineDash = style?.lineDash;
+    shape.lineDashOffset = style?.lineDashOffset ?? 0;
 }
