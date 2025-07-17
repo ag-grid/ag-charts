@@ -62,6 +62,7 @@ import {
     type AgTooltipRendererResult,
     type AgZoomButton,
     type FormatterPropertyType,
+    type TextSegment,
     type ToolbarButton,
 } from 'ag-charts-types';
 
@@ -99,19 +100,22 @@ const tooltipPlacementValidator = union(
     'center'
 );
 export const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
+export const textOrSegments = or(
+    string,
+    arrayOfDefs<TextSegment>({
+        text: required(string),
+        lineHeight: positiveNumber,
+        ...fontOptionsDef,
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+    })
+);
 
 const zoomAnchorPoint = union('pointer', 'start', 'middle', 'end');
 
 const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     enabled: boolean,
-    text: or(
-        string,
-        arrayOfDefs<any>({
-            text: required(string),
-            lineHeight: positiveNumber,
-            ...fontOptionsDef,
-        })
-    ),
+    text: textOrSegments,
     textAlign: union('left', 'center', 'right'),
     wrapping: union('never', 'always', 'hyphenate', 'on-space'),
     spacing: positiveNumber,
@@ -125,7 +129,7 @@ chartCaptionOptionsDefs.padding = undocumented(positiveNumber);
 
 const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     enabled: boolean,
-    text: string,
+    text: textOrSegments,
     renderer: callbackOf(or(string, htmlElement)),
 };
 

@@ -57,6 +57,8 @@ import type {
     AgTimeInterval,
 } from 'ag-charts-types';
 
+import { textOrSegments } from './commonOptionsDefs';
+
 export const timeIntervalUnit = union('millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year');
 
 const timeIntervalDefs: OptionsDefs<AgTimeInterval> = {
@@ -75,7 +77,7 @@ export const numberFormatValidator = attachDescription(isValidNumberFormat, 'a v
 
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
     enabled: boolean,
-    text: string,
+    text: textOrSegments,
     padding: number,
     ...fontOptionsDef,
 };
@@ -224,7 +226,7 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
     maxThicknessRatio: ratio,
     title: {
         enabled: boolean,
-        text: string,
+        text: textOrSegments,
         spacing: positiveNumber,
         formatter: callback,
         ...fontOptionsDef,
