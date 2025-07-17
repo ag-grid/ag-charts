@@ -338,7 +338,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 datum,
                 this.getDatumStylerProperties(datum),
                 isHighlight,
-                datum.point?.size,
+                undefined,
                 {
                     stroke,
                     strokeWidth,

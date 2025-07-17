@@ -983,17 +983,16 @@ export abstract class Series<
             fillPatternDefaults: RequiredInternalAgPatternColor;
             fillImageDefaults: RequiredInternalAgImageFill;
         },
-        { datumIndex, datum }: Partial<TDatum>,
+        { datumIndex, datum, point }: Partial<TDatum>,
         params?: TParams,
         isHighlight = false,
-        size = marker.size ?? 0,
+        defaultOverrideStyle: AgSeriesMarkerStyle & { size: number } = { size: point?.size ?? marker.size ?? 0 },
         inheritedStyle?: AgSeriesMarkerStyle
     ) {
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = marker;
-        const defaultSize = { size };
 
         const highlightStyle: AgSeriesMarkerStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, defaultSize, marker.getStyle(), inheritedStyle);
+        const baseStyle = mergeDefaults(highlightStyle, defaultOverrideStyle, marker.getStyle(), inheritedStyle);
 
         let markerStyle = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 

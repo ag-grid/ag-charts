@@ -244,7 +244,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                         yHighKey,
                         point: { x, y, size },
                         enabled: true,
-                        style: this.properties.marker.getStyle(),
                     });
                     const highLabelDatum: RangeAreaLabelDatum = this.createLabelData({
                         datumIndex,
@@ -534,7 +533,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datumSelection.each((node, datum) => {
             const params = { xKey, yHighKey, yLowKey };
 
-            const style = this.getMarkerStyle(marker, datum, params, isHighlight, datum.point?.size, {
+            const style = this.getMarkerStyle(marker, datum, params, isHighlight, undefined, {
                 fill,
                 fillOpacity,
                 stroke,

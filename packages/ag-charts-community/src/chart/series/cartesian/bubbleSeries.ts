@@ -3,7 +3,6 @@ import {
     type AgBubbleSeriesLabelFormatterParams,
     type AgBubbleSeriesOptions,
     type AgErrorBoundSeriesTooltipRendererParams,
-    type AgSeriesMarkerStyle,
     type FillOptions,
     type FormatterPropertyType,
     type LineDashOptions,
@@ -487,7 +486,7 @@ export class BubbleSeries extends CartesianSeries<
         datumSelection.each((node, datum, index) => {
             const { count, dilation } = datum;
 
-            const style = this.getMarkerStyle(marker, datum, params, isHighlight, datum.point?.size);
+            const style = this.getMarkerStyle(marker, datum, params, isHighlight);
             style.fillOpacity = (1 - (1 - (style.fillOpacity ?? 1)) ** count) / Math.sqrt(dilation);
 
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
@@ -695,9 +694,9 @@ export class BubbleSeries extends CartesianSeries<
         return new Marker();
     }
 
-    public getFormattedMarkerStyle(datum: BubbleScatterNodeDatum): AgSeriesMarkerStyle & { size: number } {
+    public getFormattedMarkerStyle(datum: BubbleScatterNodeDatum) {
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
-        return this.getMarkerStyle(marker, datum, { xKey, yKey, sizeKey, labelKey }, false, datum.point.size);
+        return this.getMarkerStyle(marker, datum, { xKey, yKey, sizeKey, labelKey }, false);
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {

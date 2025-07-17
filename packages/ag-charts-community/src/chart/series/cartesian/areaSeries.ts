@@ -832,7 +832,7 @@ export class AreaSeries extends CartesianSeries<
         datumSelection.each((node, datum) => {
             const { xValue, yValue } = datum;
             const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
-            const style = this.getMarkerStyle(marker, datum, params, isHighlight, datum.point?.size, {
+            const style = this.getMarkerStyle(marker, datum, params, isHighlight, undefined, {
                 stroke,
                 strokeWidth,
                 strokeOpacity,
@@ -962,7 +962,8 @@ export class AreaSeries extends CartesianSeries<
                   marker.fillImageDefaults
               );
 
-        const markerStyle = this.getMarkerStyle(marker, {}, undefined, false, undefined, {
+        const markerStyle = this.getMarkerStyle(marker, {}, undefined, false, {
+            size: marker.size,
             fill: legendMarkerFill,
             fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
         });
@@ -1108,7 +1109,7 @@ export class AreaSeries extends CartesianSeries<
         return new Marker();
     }
 
-    public getFormattedMarkerStyle(datum: MarkerSelectionDatum): AgSeriesMarkerStyle & { size: number } {
+    public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
         const { xValue, yValue, xKey, yKey } = datum;
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);

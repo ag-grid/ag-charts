@@ -490,7 +490,7 @@ export class LineSeries extends CartesianSeries<
 
             const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
 
-            const style = this.getMarkerStyle(marker, datum, params, isHighlight, datum.point?.size, {
+            const style = this.getMarkerStyle(marker, datum, params, isHighlight, undefined, {
                 stroke,
                 strokeWidth,
                 strokeOpacity,
@@ -594,7 +594,8 @@ export class LineSeries extends CartesianSeries<
         const color0 = 'rgba(0, 0, 0, 0)';
         const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.properties;
 
-        const markerStyle = this.getMarkerStyle(marker, {}, undefined, false, undefined, {
+        const markerStyle = this.getMarkerStyle(marker, {}, undefined, false, {
+            size: marker.size,
             fill: marker.fill ?? color0,
             stroke: marker.stroke ?? stroke ?? color0,
         });
