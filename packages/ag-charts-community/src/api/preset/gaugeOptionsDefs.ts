@@ -35,11 +35,11 @@ import type {
     FillsOptions,
 } from 'ag-charts-types';
 
-import { numberFormatValidator } from '../../chart/axesOptionsDefs';
 import {
     autoSizedLabelOptionsDefs,
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
+    numberFormatValidator,
     seriesLabelOptionsDefs,
     textOrSegments,
     tooltipOptionsDefs,

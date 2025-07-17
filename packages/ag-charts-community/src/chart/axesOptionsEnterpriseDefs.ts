@@ -33,9 +33,8 @@ import {
     commonCrossLineLabelOptionsDefs,
     commonCrossLineOptionsDefs,
     continuousAxisOptions,
-    numberFormatValidator,
 } from './axesOptionsDefs';
-import { textOrSegments } from './commonOptionsDefs';
+import { numberFormatValidator, textOrSegments } from './commonOptionsDefs';
 
 export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,

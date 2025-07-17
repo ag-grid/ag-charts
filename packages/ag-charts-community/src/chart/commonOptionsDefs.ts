@@ -1,7 +1,10 @@
-import type { OptionsDefs, Validator, ValidatorContext, ValidatorResult } from 'ag-charts-core';
 import {
     ErrorType,
+    type OptionsDefs,
     ValidationError,
+    type Validator,
+    type ValidatorContext,
+    type ValidatorResult,
     and,
     array,
     arrayLength,
@@ -21,6 +24,7 @@ import {
     greaterThan,
     highlightOptionsDef,
     htmlElement,
+    isValidNumberFormat,
     labelBoxOptionsDef,
     lessThan,
     lineDashOptionsDef,
@@ -66,8 +70,6 @@ import {
     type ToolbarButton,
 } from 'ag-charts-types';
 
-import { numberFormatValidator } from './axesOptionsDefs';
-
 const legendPositionUnion = union(
     'top',
     'top-right',
@@ -102,13 +104,16 @@ const tooltipPlacementValidator = union(
 export const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
 export const textOrSegments = or(
     string,
-    arrayOfDefs<TextSegment>({
-        text: required(string),
-        lineHeight: positiveNumber,
-        ...fontOptionsDef,
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-    })
+    arrayOfDefs<TextSegment>(
+        {
+            text: required(string),
+            lineHeight: positiveNumber,
+            ...fontOptionsDef,
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+        },
+        'text segments array'
+    )
 );
 
 const zoomAnchorPoint = union('pointer', 'start', 'middle', 'end');
@@ -259,6 +264,8 @@ export const formatObjectValidator = optionsDefs<Record<FormatterPropertyType, (
     calloutLabel: formatter,
     legendItem: formatter,
 });
+
+export const numberFormatValidator = attachDescription(isValidNumberFormat, 'a valid number format string');
 
 export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, 'navigator'>> = {
     width: positiveNumber,
