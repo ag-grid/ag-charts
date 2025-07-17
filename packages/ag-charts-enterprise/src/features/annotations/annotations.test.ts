@@ -597,8 +597,8 @@ describe('Annotations', () => {
                     annotations: [
                         {
                             type: 'vertical-line',
-                            value: { value: 'Q2', groupPercentage: -2 },
-                            text: { label: '-2' },
+                            value: { value: 'Q2', groupPercentage: -0.5 },
+                            text: { label: '-0.5' },
                         },
                         {
                             type: 'vertical-line',
@@ -659,7 +659,7 @@ describe('Annotations', () => {
                     annotations: [
                         {
                             type: 'vertical-line',
-                            value: { value: 'Q2', groupPercentage: -1.5 },
+                            value: { value: 'Q2', groupPercentage: -1 },
                             text: { label: 'Far left' },
                         },
                         {
