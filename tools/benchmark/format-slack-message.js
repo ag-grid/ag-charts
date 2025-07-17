@@ -4,9 +4,14 @@ const fs = require('fs');
 const path = require('path');
 
 const logFile = './reports/benchmark.json';
-const { base, compare, critical, rankedByTime, rankedByMemory } = JSON.parse(
-    fs.readFileSync(logFile, 'utf8').toString()
-);
+const {
+    base,
+    compare,
+    expectationBreaches = [],
+    critical,
+    rankedByTime,
+    rankedByMemory,
+} = JSON.parse(fs.readFileSync(logFile, 'utf8').toString());
 
 let channel = process.env.SLACK_CHANNEL;
 let username = process.env.SLACK_USERNAME;
@@ -81,6 +86,32 @@ const blocks = [
     { type: 'section', text: { type: 'mrkdwn', text: `Benchmark results for \`${base}\` vs \`${compare}\`.` } },
     { type: 'divider' },
 ];
+
+// Add expectation breaches section if any exist
+if (expectationBreaches.length > 0) {
+    const breachData = expectationBreaches.map((breach) => ({
+        test: breach.testName,
+        type: breach.type === 'memory' ? 'Memory' : 'Canvas',
+        expected: breach.type === 'memory' ? breach.expected.toFixed(1) + ' MB' : breach.expected,
+        actual: breach.type === 'memory' ? breach.actual.toFixed(1) + ' MB' : breach.actual,
+        exceeded:
+            breach.type === 'memory'
+                ? `+${(breach.actual - breach.expected).toFixed(1)} MB`
+                : `+${breach.actual - breach.expected}`,
+    }));
+
+    blocks.push(
+        {
+            type: 'section',
+            text: {
+                type: 'mrkdwn',
+                text: `*⚠️  Expectation Breaches*\n\`\`\`\n${formatSection(breachData, ['type', 'expected', 'actual', 'exceeded'], ['Type', 'Expected', 'Actual', 'Exceeded'])}\`\`\``,
+            },
+        },
+        { type: 'divider' }
+    );
+}
+
 if (critical.length > 0) {
     blocks.push(
         {
