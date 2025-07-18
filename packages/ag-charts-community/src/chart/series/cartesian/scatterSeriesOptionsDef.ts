@@ -7,7 +7,6 @@ import {
     required,
     shapeHighlightOptionsDef,
     string,
-    undocumented,
     union,
 } from 'ag-charts-core';
 import type { AgScatterSeriesOptions, AgScatterSeriesThemeableOptions } from 'ag-charts-types';
@@ -32,6 +31,7 @@ export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemea
     },
     tooltip: tooltipOptionsDefs,
     errorBar: errorBarThemeableOptionsDefs,
+    maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
@@ -50,6 +50,3 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     errorBar: errorBarOptionsDefs,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
-
-// @ts-expect-error undocumented option
-scatterSeriesOptionsDef.maxVisibleItems = undocumented(number);

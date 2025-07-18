@@ -43,7 +43,7 @@ const options: AgCartesianChartOptions = {
             shape: 'circle',
             visible: visibleCount >= 1,
             // @ts-expect-error Undocumented option - disable high performance optimisations
-            maxVisibleItems: 100_000,
+            maxRenderedItems: 100_000,
         },
         {
             type: 'line',

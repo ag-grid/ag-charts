@@ -9,7 +9,6 @@ import {
     required,
     shapeHighlightOptionsDef,
     string,
-    undocumented,
     union,
 } from 'ag-charts-core';
 import type { AgBubbleSeriesOptions, AgBubbleSeriesThemeableOptions } from 'ag-charts-types';
@@ -33,6 +32,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
         ...seriesLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
+    maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
@@ -52,6 +52,3 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     labelName: string,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
-
-// @ts-expect-error undocumented option
-bubbleSeriesOptionsDef.maxVisibleItems = undocumented(number);

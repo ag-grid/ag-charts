@@ -134,7 +134,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     readonly tooltip = makeSeriesTooltip<AgBubbleSeriesTooltipRendererParams>();
 
     @Property
-    maxVisibleItems: number = 2000;
+    maxRenderedItems: number = Infinity;
 
     // No validation. Not a part of the options contract.
     readonly marker = new BubbleSeriesMarker();

@@ -25,7 +25,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'y',
             sizeKey: 'size',
             // @ts-expect-error Undocumented option
-            maxVisibleItems: 2000,
+            maxRenderedItems: 2000,
         },
     ],
     theme: {
@@ -49,7 +49,7 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function setSeries(type: string) {
-    const { maxVisibleItems, shape } = options.series?.[0] as any;
+    const { maxRenderedItems, shape } = options.series?.[0] as any;
 
     let series: AgCartesianSeriesOptions;
     switch (type) {
@@ -61,7 +61,7 @@ function setSeries(type: string) {
                 sizeKey: 'size',
                 shape,
                 // @ts-expect-error Undocumented option
-                maxVisibleItems,
+                maxRenderedItems,
             };
             break;
         case 'scatter':
@@ -71,7 +71,7 @@ function setSeries(type: string) {
                 yKey: 'y',
                 shape,
                 // @ts-expect-error Undocumented option
-                maxVisibleItems,
+                maxRenderedItems,
             };
             break;
         default:
@@ -90,9 +90,9 @@ function setShape(shape: string) {
     chart.update(options);
 }
 
-function setMaxVisibleItems(maxVisibleItems: number) {
+function setMaxVisibleItems(maxRenderedItems: number) {
     let series = options.series?.[0] as any;
-    series.maxVisibleItems = maxVisibleItems;
+    series.maxRenderedItems = maxRenderedItems;
 
     options.series = [series];
     chart.update(options);

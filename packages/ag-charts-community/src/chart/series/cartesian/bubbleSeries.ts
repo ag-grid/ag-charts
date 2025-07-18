@@ -232,7 +232,7 @@ export class BubbleSeries extends CartesianSeries<
 
     private aggregateData(dataModel: DataModel<any, any, true>, processedData: ProcessedData<any>) {
         if (processedData.type === 'grouped') return;
-        if (processedData.input.count <= this.properties.maxVisibleItems) return;
+        if (processedData.input.count <= this.properties.maxRenderedItems) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
@@ -285,7 +285,7 @@ export class BubbleSeries extends CartesianSeries<
             labelName,
             label,
             marker,
-            maxVisibleItems,
+            maxRenderedItems,
         } = this.properties;
         const { enabled: labelEnabled, placement } = label;
         const anchor = Marker.anchor(marker.shape);
@@ -418,7 +418,7 @@ export class BubbleSeries extends CartesianSeries<
             const aggregationDilation = computeBubbleAggregationDilation(
                 dataAggregation,
                 aggregationOptions,
-                maxVisibleItems
+                maxRenderedItems
             );
 
             const { groupedAggregation, singleDatumIndices } = computeBubbleAggregationData(
