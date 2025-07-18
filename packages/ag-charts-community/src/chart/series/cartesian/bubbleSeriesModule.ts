@@ -43,6 +43,7 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
             fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             fillImageDefaults: FILL_IMAGE_DEFAULTS,
             fillOpacity: 0.8,
+            maxRenderedItems: 10_000,
             label: {
                 enabled: false,
                 fontSize: { $ref: 'fontSize' },

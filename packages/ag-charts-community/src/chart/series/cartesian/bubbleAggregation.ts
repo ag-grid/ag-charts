@@ -306,12 +306,12 @@ const DILATION_ITERATIONS = 12; // Higher precision here reduces flickering when
 export function computeBubbleAggregationDilation(
     dataAggregation: BubbleAggregation,
     aggregationOptions: BubbleAggregationOptions,
-    maxVisibleItems: number
+    maxRenderedItems: number
 ) {
     let minDilation = 1;
     let maxDilation = 2;
     while (
-        computeBubbleAggregationCount(maxDilation, dataAggregation, aggregationOptions) > maxVisibleItems &&
+        computeBubbleAggregationCount(maxDilation, dataAggregation, aggregationOptions) > maxRenderedItems &&
         maxDilation < MAX_AGGREGATION_DILATION
     ) {
         minDilation *= 2;
@@ -322,7 +322,7 @@ export function computeBubbleAggregationDilation(
         const dilation = (maxDilation + minDilation) / 2;
         const count = computeBubbleAggregationCount(dilation, dataAggregation, aggregationOptions);
 
-        if (count > maxVisibleItems) {
+        if (count > maxRenderedItems) {
             minDilation = dilation;
         } else {
             maxDilation = dilation;

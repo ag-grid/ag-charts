@@ -50,6 +50,8 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     size?: PixelSize;
     /** Determines the largest size a marker can be in pixels. */
     maxSize?: PixelSize;
+    /** Determines the largest number of items that can be rendered at once. If there are more items, they will be aggregated to resemble similar visual appearance. */
+    maxRenderedItems?: number;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */
