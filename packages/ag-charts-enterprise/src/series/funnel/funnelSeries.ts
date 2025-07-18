@@ -137,7 +137,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         };
     }
 
-    private getItemStyle(datum: Partial<FunnelNodeDatum>, datumIndex: number, isHighlight: boolean) {
+    private getItemStyle({ datum }: Partial<FunnelNodeDatum>, datumIndex: number, isHighlight: boolean) {
         const { id: seriesId, properties } = this;
         const { stageKey, valueKey, itemStyler } = properties;
 
