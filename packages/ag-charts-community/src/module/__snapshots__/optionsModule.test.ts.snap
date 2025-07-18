@@ -13188,17 +13188,21 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
       "innerLabels": [
         {
           "color": "#181d1f",
+          "cornerRadius": 4,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 24,
           "fontWeight": "bold",
+          "padding": 8,
           "spacing": 2,
           "text": "29,570",
         },
         {
           "color": "#181d1f",
+          "cornerRadius": 4,
           "fontFamily": "Verdana, sans-serif",
           "fontSize": 16,
           "fontWeight": 400,
+          "padding": 8,
           "spacing": 2,
           "text": "Total",
         },
