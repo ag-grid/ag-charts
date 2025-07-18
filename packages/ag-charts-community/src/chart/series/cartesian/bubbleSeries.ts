@@ -651,7 +651,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const marker = this.getMarkerStyle(this.properties.marker, {});
+        const marker = this.getMarkerStyle(this.properties.marker, {}, undefined, false, undefined, undefined, false);
         return {
             marker,
         };

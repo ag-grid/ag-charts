@@ -987,11 +987,14 @@ export abstract class Series<
         params?: TParams,
         isHighlight = false,
         defaultOverrideStyle: AgSeriesMarkerStyle & { size: number } = { size: point?.size ?? marker.size ?? 0 },
-        inheritedStyle?: AgSeriesMarkerStyle
+        inheritedStyle?: AgSeriesMarkerStyle,
+        checkForHighlight: boolean = true
     ) {
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = marker;
 
-        const highlightStyle: AgSeriesMarkerStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const highlightStyle: AgSeriesMarkerStyle | undefined = checkForHighlight
+            ? this.getHighlightStyle(isHighlight, datumIndex)
+            : undefined;
         const baseStyle = mergeDefaults(highlightStyle, defaultOverrideStyle, marker.getStyle(), inheritedStyle);
 
         let markerStyle = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);

@@ -594,11 +594,19 @@ export class LineSeries extends CartesianSeries<
         const color0 = 'rgba(0, 0, 0, 0)';
         const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.properties;
 
-        const markerStyle = this.getMarkerStyle(marker, {}, undefined, false, {
-            size: marker.size,
-            fill: marker.fill ?? color0,
-            stroke: marker.stroke ?? stroke ?? color0,
-        });
+        const markerStyle = this.getMarkerStyle(
+            marker,
+            {},
+            undefined,
+            false,
+            {
+                size: marker.size,
+                fill: marker.fill ?? color0,
+                stroke: marker.stroke ?? stroke ?? color0,
+            },
+            undefined,
+            false
+        );
 
         return {
             marker: {

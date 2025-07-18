@@ -962,11 +962,19 @@ export class AreaSeries extends CartesianSeries<
                   marker.fillImageDefaults
               );
 
-        const markerStyle = this.getMarkerStyle(marker, {}, undefined, false, {
-            size: marker.size,
-            fill: legendMarkerFill,
-            fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
-        });
+        const markerStyle = this.getMarkerStyle(
+            marker,
+            {},
+            undefined,
+            false,
+            {
+                size: marker.size,
+                fill: legendMarkerFill,
+                fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
+            },
+            undefined,
+            false
+        );
 
         return {
             marker: {
