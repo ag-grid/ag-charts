@@ -33,6 +33,7 @@ if (isHistoricBenchmarkTest()) {
 
 globalThis.agChartsDebugTimeout = 60_000; // Use Jest timeouts
 const repeatLimit = process.env.AG_BENCHMARK_REPEAT_LIMIT ? parseInt(process.env.AG_BENCHMARK_REPEAT_LIMIT) : undefined;
+const softFailMode = ['1', 'true'].includes(process.env.BENCHMARK_SOFT_FAIL ?? '0');
 
 interface BenchmarkExpectations {
     expectedRelativeMB?: number;
@@ -268,8 +269,6 @@ export function benchmark(
                 expectedRelativeMB: memory.relativeMemoryUse / BYTES_PER_MB,
                 expectedCanvasCount: canvasInstances.length,
             };
-
-            const softFailMode = process.env.BENCHMARK_SOFT_FAIL === 'true';
 
             for (const key in expected) {
                 const actualValue = actual[key];
