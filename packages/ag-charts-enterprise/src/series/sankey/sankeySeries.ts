@@ -419,10 +419,13 @@ export class SankeySeries extends FlowProportionSeries<
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(false, fills, strokes, fromNodeDatumIndex));
+        const hasNodeFill = properties.node.fill != null;
         let style = getShapeStyle(
             baseStyle,
-            { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
-            { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
+            hasNodeFill ? fillGradientDefaults : { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
+            hasNodeFill
+                ? fillPatternDefaults
+                : { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
             fillImageDefaults
         );
 
@@ -517,10 +520,13 @@ export class SankeySeries extends FlowProportionSeries<
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(true, fills, strokes, fromNodeDatumIndex));
+        const hasLinkFill = properties.link.fill != null;
         let style = getShapeStyle(
             baseStyle,
-            { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
-            { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
+            hasLinkFill ? fillGradientDefaults : { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
+            hasLinkFill
+                ? fillPatternDefaults
+                : { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
             fillImageDefaults
         );
 
