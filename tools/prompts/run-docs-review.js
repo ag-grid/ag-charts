@@ -20,24 +20,402 @@ const glob = require('glob');
  * - No longer relies on progress.json for completion tracking
  */
 
+// ============================================================================
+// Constants
+// ============================================================================
+
+const PATHS = {
+    DOCS: 'packages/ag-charts-website/src/content/docs',
+    REPORTS: 'reports/docs-review',
+};
+
+const FILE_NAMES = {
+    REVIEW_PLAN: 'review-plan.md',
+    REPORT: 'report.md',
+    SUMMARY: 'summary.md',
+    PROGRESS: 'progress.json',
+    CURRENT_PROMPT: 'current-prompt.md',
+    CURRENT_OUTPUT: 'current-prompt-output.md',
+    ERRORS: 'errors.json',
+    BATCH_SUMMARY: (num) => `batch-summary-${num}.json`,
+};
+
+const PHASES = {
+    PLANNING: 'planning',
+    EXECUTION: 'execution',
+    SUMMARY: 'summary',
+};
+
+const DEFAULT_OPTIONS = {
+    batchSize: 5,
+    summaryBatchSize: 10,
+    skipScreenshots: false,
+    planningModel: 'opus',
+    executionModel: 'sonnet',
+    summaryModel: 'sonnet',
+    resume: false,
+    resumePhase: PHASES.PLANNING,
+    force: false,
+    verbose: false,
+    dryRun: false,
+};
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Get the full path for a file in the reports directory
+ */
+function getReportPath(...parts) {
+    return path.join(PATHS.REPORTS, ...parts);
+}
+
+/**
+ * Get the path for a page-specific file
+ */
+function getPageFilePath(pageName, fileName) {
+    return getReportPath(pageName, fileName);
+}
+
+/**
+ * Check if a file exists (with force mode support)
+ */
+function fileExists(filePath, forceMode = false) {
+    if (forceMode) return false;
+    return fs.existsSync(filePath);
+}
+
+/**
+ * Write JSON file safely
+ */
+function writeJsonFile(filePath, data) {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+}
+
+/**
+ * Read JSON file safely
+ */
+function readJsonFile(filePath) {
+    try {
+        return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    } catch (error) {
+        return null;
+    }
+}
+
+/**
+ * Save a file with directory creation
+ */
+function saveFile(filePath, content) {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, content);
+}
+
+/**
+ * Clean up a file if it exists
+ */
+function cleanupFile(filePath) {
+    try {
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+    } catch (error) {
+        console.error(`❌ Failed to cleanup ${path.basename(filePath)}:`, error.message);
+    }
+}
+
+/**
+ * Build phase-specific prompt instructions
+ */
+function buildPromptInstructions(phase, pageName, dryRun = false) {
+    const baseInstructions = {
+        [PHASES.PLANNING]: `
+IMPORTANT: Write the review plan to: reports/docs-review/${pageName}/review-plan.md
+Do NOT write files to the root directory or any other location.`,
+        [PHASES.EXECUTION]: `
+IMPORTANT: When writing files during this phase:
+- Write the final report to: reports/docs-review/${pageName}/report.md
+- Save all screenshots to: reports/docs-review/${pageName}/{exampleName}/
+- If you need to create temporary files, use: reports/docs-review/${pageName}/tmp/
+- Do NOT write files to the root directory or any other location`,
+        [PHASES.SUMMARY]: `
+IMPORTANT: Write the complete summary to: reports/docs-review/summary.md
+Do NOT write files to the root directory or any other location.`,
+    };
+
+    const dryRunInstructions = {
+        [PHASES.PLANNING]: `
+
+IMPORTANT: This is a DRY RUN. Instead of creating a full review plan:
+- Create a minimal skeleton review plan with just headers and brief bullet points
+- Include only 2-3 key validation targets instead of exhaustive coverage
+- Keep the plan under 200 words
+- This is for testing the pipeline, not actual review`,
+        [PHASES.EXECUTION]: `
+
+IMPORTANT: This is a DRY RUN. Instead of a full execution:
+- Create a minimal skeleton report with just headers and brief findings
+- Skip actual validation and testing
+- Include only 1-2 mock findings instead of thorough testing
+- Skip screenshots entirely
+- Keep the report under 300 words
+- This is for testing the pipeline, not actual review`,
+        [PHASES.SUMMARY]: `
+
+IMPORTANT: This is a DRY RUN. Create a minimal summary with just basic statistics.`,
+    };
+
+    const instructions = baseInstructions[phase] || '';
+    const dryRunSuffix = dryRun ? dryRunInstructions[phase] || '' : '';
+
+    return instructions + dryRunSuffix;
+}
+
+// ============================================================================
+// Claude Execution Functions
+// ============================================================================
+
+/**
+ * Execute Claude with consistent error handling and file management
+ */
+async function executeClaudeCommand(prompt, model, pageName, phase, options) {
+    const { verbose, sessionId } = options;
+
+    // Save current prompt
+    const promptFile = getReportPath(FILE_NAMES.CURRENT_PROMPT);
+    const outputFile = getReportPath(FILE_NAMES.CURRENT_OUTPUT);
+
+    await saveCurrentPrompt(promptFile, prompt, pageName, phase, model, sessionId);
+
+    try {
+        const result = await runClaudeCode(prompt, model, pageName, phase, {
+            verbose,
+            outputFile,
+            sessionId,
+        });
+
+        // Cleanup on success
+        cleanupFile(promptFile);
+        cleanupFile(outputFile);
+
+        return result;
+    } catch (error) {
+        // Cleanup on error
+        cleanupFile(promptFile);
+        cleanupFile(outputFile);
+        throw error;
+    }
+}
+
+/**
+ * Save current prompt for debugging
+ */
+async function saveCurrentPrompt(filePath, prompt, pageName, phase, model, sessionId) {
+    const content = `# Current Claude Prompt
+
+**Page**: ${pageName}
+**Phase**: ${phase}
+**Model**: ${model}
+**Timestamp**: ${new Date().toISOString()}
+**Session ID**: ${sessionId}
+
+---
+
+\`\`\`
+${prompt}
+\`\`\`
+`;
+
+    saveFile(filePath, content);
+}
+
+/**
+ * Save current output for debugging
+ */
+function saveCurrentOutput(filePath, content, pageName, phase, model, sessionId) {
+    const header = `# Current Claude Output
+
+**Page**: ${pageName}
+**Phase**: ${phase}
+**Model**: ${model}
+**Timestamp**: ${new Date().toISOString()}
+**Session ID**: ${sessionId}
+
+---
+
+`;
+
+    saveFile(filePath, header + content);
+}
+
+/**
+ * Run Claude command with consistent behavior
+ */
+async function runClaudeCode(prompt, model, pageName, phase, options) {
+    const { verbose, outputFile, sessionId } = options;
+
+    return new Promise((resolve, reject) => {
+        const args = ['--model', model, '--permission-mode', 'bypassPermissions', '--print'];
+        const child = spawn('claude', args, {
+            stdio: ['pipe', 'pipe', 'pipe'],
+        });
+
+        let stdout = '';
+        let stderr = '';
+
+        // Show spinner for long-running operations (only in non-verbose mode)
+        const spinnerChars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+        let spinnerIndex = 0;
+        let spinnerInterval;
+
+        const startSpinner = () => {
+            if (!verbose) {
+                spinnerInterval = setInterval(() => {
+                    process.stdout.write(`\r${spinnerChars[spinnerIndex]} Claude is thinking...`);
+                    spinnerIndex = (spinnerIndex + 1) % spinnerChars.length;
+                }, 100);
+            }
+        };
+
+        const stopSpinner = () => {
+            if (spinnerInterval) {
+                clearInterval(spinnerInterval);
+                process.stdout.write('\r' + ' '.repeat(30) + '\r'); // Clear spinner line
+            }
+        };
+
+        // Start spinner after 1 second delay
+        const spinnerTimeout = verbose ? null : setTimeout(startSpinner, 1000);
+
+        // Initialize output file
+        if (outputFile) {
+            saveCurrentOutput(outputFile, '', pageName, phase, model, sessionId);
+        }
+
+        // In verbose mode, add a header
+        if (verbose) {
+            console.log(`\n📝 Claude output for ${pageName} (${phase}):`);
+            console.log('─'.repeat(60));
+        }
+
+        child.stdout.on('data', (data) => {
+            const chunk = data.toString();
+            stdout += chunk;
+
+            // Stream output to console in verbose mode
+            if (verbose) {
+                process.stdout.write(chunk);
+            }
+
+            // Stream output to file in real-time
+            if (outputFile) {
+                saveCurrentOutput(outputFile, stdout, pageName, phase, model, sessionId);
+            }
+        });
+
+        child.stderr.on('data', (data) => {
+            stderr += data.toString();
+
+            // Also show stderr in verbose mode
+            if (verbose) {
+                process.stderr.write(data);
+            }
+        });
+
+        child.on('close', (code) => {
+            if (spinnerTimeout) clearTimeout(spinnerTimeout);
+            stopSpinner();
+
+            if (verbose) {
+                console.log('\n' + '─'.repeat(60));
+            }
+
+            if (code === 0) {
+                resolve(stdout);
+            } else {
+                reject(new Error(`Claude exited with code ${code}: ${stderr}`));
+            }
+        });
+
+        child.on('error', (error) => {
+            if (spinnerTimeout) clearTimeout(spinnerTimeout);
+            stopSpinner();
+            reject(error);
+        });
+
+        // Send the prompt
+        child.stdin.write(prompt);
+        child.stdin.end();
+    });
+}
+
+// ============================================================================
+// Progress Bar Functions
+// ============================================================================
+
+function createProgressBar(total, label) {
+    let completed = 0;
+    let startTime = Date.now();
+
+    return {
+        tick: (itemName = '') => {
+            completed++;
+            const percentage = Math.min(100, Math.round((completed / total) * 100));
+            const filledBars = Math.min(50, Math.floor(percentage / 2));
+            const emptyBars = Math.max(0, 50 - filledBars);
+            const bar = '█'.repeat(filledBars) + '░'.repeat(emptyBars);
+
+            // Calculate ETA
+            const elapsed = Date.now() - startTime;
+            const rate = completed / (elapsed / 1000);
+            const remaining = total - completed;
+            const eta = remaining > 0 ? Math.round(remaining / rate) : 0;
+            const etaStr = eta > 0 ? ` ETA: ${formatTime(eta)}` : '';
+
+            // Truncate item name if too long
+            const displayName = itemName.length > 20 ? itemName.substring(0, 17) + '...' : itemName;
+            const nameStr = displayName ? ` | ${displayName}` : '';
+
+            process.stdout.write(`\r${label}: [${bar}] ${percentage}% (${completed}/${total})${nameStr}${etaStr}`);
+        },
+        terminate: () => {
+            const totalTime = Date.now() - startTime;
+            process.stdout.write(` | Completed in ${formatTime(totalTime / 1000)}\n`);
+        },
+    };
+}
+
+function formatTime(seconds) {
+    if (seconds < 60) return `${Math.round(seconds)}s`;
+    if (seconds < 3600) return `${Math.round(seconds / 60)}m ${Math.round(seconds % 60)}s`;
+    return `${Math.round(seconds / 3600)}h ${Math.round((seconds % 3600) / 60)}m`;
+}
+
+// ============================================================================
+// Main Orchestrator Class
+// ============================================================================
+
 class DocsReviewOrchestrator {
     constructor(options = {}) {
-        this.batchSize = options.batchSize || 5;
-        this.skipScreenshots = options.skipScreenshots || false;
-        this.planningModel = options.planningModel || 'opus'; // Expensive model for planning
-        this.executionModel = options.executionModel || 'sonnet'; // Cheaper model for execution
-        this.summaryModel = options.summaryModel || 'sonnet'; // Model for summary generation
-        this.docsPath = 'packages/ag-charts-website/src/content/docs';
-        this.reportsPath = 'reports/docs-review';
-        this.resume = options.resume || false;
-        this.pageGlob = options.pageGlob || null; // Optional glob pattern to filter pages
-        this.verbose = options.verbose || false; // Stream Claude output when true
-        this.dryRun = options.dryRun || false; // Request skeleton reports for quick testing
-        this.resumePhase = options.resumePhase || 'planning'; // Which phase to resume from (planning, execution, or summary)
-        this.force = options.force || false; // Force regeneration of existing files
-        this.progressFile = path.join(this.reportsPath, 'progress.json');
-        this.currentPromptFile = path.join(this.reportsPath, 'current-prompt.md');
-        this.currentOutputFile = path.join(this.reportsPath, 'current-prompt-output.md');
+        // Merge options with defaults
+        this.options = { ...DEFAULT_OPTIONS, ...options };
+
+        // Extract commonly used options
+        this.batchSize = this.options.batchSize;
+        this.skipScreenshots = this.options.skipScreenshots;
+        this.planningModel = this.options.planningModel;
+        this.executionModel = this.options.executionModel;
+        this.summaryModel = this.options.summaryModel;
+        this.resume = this.options.resume;
+        this.pageGlob = this.options.pageGlob;
+        this.verbose = this.options.verbose;
+        this.dryRun = this.options.dryRun;
+        this.resumePhase = this.options.resumePhase;
+        this.force = this.options.force;
+
+        // Initialize state
         this.results = {
             total: 0,
             completed: 0,
@@ -49,28 +427,7 @@ class DocsReviewOrchestrator {
     }
 
     async run() {
-        console.log('🚀 Starting AG Charts Documentation Review Orchestration');
-        console.log(`📋 Planning model: ${this.planningModel}`);
-        console.log(`⚡ Execution model: ${this.executionModel}`);
-        console.log(`📊 Summary model: ${this.summaryModel}`);
-        console.log(`🔄 Batch size: ${this.batchSize}`);
-        console.log(`📸 Skip screenshots: ${this.skipScreenshots}`);
-        console.log(`🗣️  Verbose mode: ${this.verbose}`);
-        console.log(`🧪 Dry run mode: ${this.dryRun}`);
-        if (this.force) {
-            console.log(`🔄 Force mode: regenerating existing files`);
-        }
-        if (this.pageGlob) {
-            console.log(`🎯 Page filter: ${this.pageGlob}`);
-        }
-        if (this.resume) {
-            if (this.resumePhase === 'execution') {
-                console.log(`⏩ Resume phase: execution only (skipping planning)`);
-            } else if (this.resumePhase === 'summary') {
-                console.log(`⏩ Resume phase: summary only (skipping planning and execution)`);
-            }
-        }
-        console.log('');
+        this.logConfiguration();
 
         try {
             // 1. Discovery: Find all documentation pages
@@ -86,8 +443,8 @@ class DocsReviewOrchestrator {
 
             console.log('');
 
-            // 3. Phase 1: Run planning for all pages (sequential for now)
-            if (this.resumePhase === 'planning') {
+            // 3. Phase 1: Run planning for all pages
+            if (this.shouldRunPhase(PHASES.PLANNING)) {
                 console.log('🧠 Phase 1: Creating review plans...');
                 await this.runPlanningPhase(pages);
                 console.log('');
@@ -97,7 +454,7 @@ class DocsReviewOrchestrator {
             }
 
             // 4. Phase 2: Execute reviews in parallel batches
-            if (this.resumePhase === 'planning' || this.resumePhase === 'execution') {
+            if (this.shouldRunPhase(PHASES.EXECUTION)) {
                 console.log('🔍 Phase 2: Executing reviews...');
                 await this.runExecutionPhase(pages);
                 console.log('');
@@ -114,10 +471,8 @@ class DocsReviewOrchestrator {
             // 6. Generate basic summary statistics
             this.generateSummaryReport();
 
-            // 7. Clean up progress and current prompt files on successful completion
-            this.cleanupProgress();
-            this.cleanupCurrentPrompt();
-            this.cleanupCurrentOutput();
+            // 7. Clean up temporary files
+            this.cleanup();
         } catch (error) {
             console.error('❌ Orchestration failed:', error);
             await this.saveProgress();
@@ -126,11 +481,46 @@ class DocsReviewOrchestrator {
         }
     }
 
+    logConfiguration() {
+        console.log('🚀 Starting AG Charts Documentation Review Orchestration');
+        console.log(`📋 Planning model: ${this.planningModel}`);
+        console.log(`⚡ Execution model: ${this.executionModel}`);
+        console.log(`📊 Summary model: ${this.summaryModel}`);
+        console.log(`🔄 Batch size: ${this.batchSize}`);
+        console.log(`📸 Skip screenshots: ${this.skipScreenshots}`);
+        console.log(`🗣️  Verbose mode: ${this.verbose}`);
+        console.log(`🧪 Dry run mode: ${this.dryRun}`);
+
+        if (this.force) {
+            console.log(`🔄 Force mode: regenerating existing files`);
+        }
+
+        if (this.pageGlob) {
+            console.log(`🎯 Page filter: ${this.pageGlob}`);
+        }
+
+        if (this.resume) {
+            if (this.resumePhase === PHASES.EXECUTION) {
+                console.log(`⏩ Resume phase: execution only (skipping planning)`);
+            } else if (this.resumePhase === PHASES.SUMMARY) {
+                console.log(`⏩ Resume phase: summary only (skipping planning and execution)`);
+            }
+        }
+
+        console.log('');
+    }
+
+    shouldRunPhase(phase) {
+        const phaseOrder = [PHASES.PLANNING, PHASES.EXECUTION, PHASES.SUMMARY];
+        const resumeIndex = phaseOrder.indexOf(this.resumePhase);
+        const phaseIndex = phaseOrder.indexOf(phase);
+        return phaseIndex >= resumeIndex;
+    }
+
     async discoverPages() {
-        const pattern = path.join(this.docsPath, '*/index.mdoc');
+        const pattern = path.join(PATHS.DOCS, '*/index.mdoc');
 
         try {
-            // Use glob package with callback-style API wrapped in Promise
             const files = await new Promise((resolve, reject) => {
                 glob(pattern, (err, matches) => {
                     if (err) reject(err);
@@ -150,9 +540,8 @@ class DocsReviewOrchestrator {
                         isBenchmarkPage: pageName.includes('benchmarks'),
                     };
                 })
-                .filter((page) => !page.isTestPage && !page.isBenchmarkPage) // Skip test and benchmark pages
+                .filter((page) => !page.isTestPage && !page.isBenchmarkPage)
                 .filter((page) => {
-                    // Apply glob filter if specified
                     if (this.pageGlob) {
                         const minimatch = require('minimatch');
                         return minimatch(page.name, this.pageGlob);
@@ -182,31 +571,25 @@ class DocsReviewOrchestrator {
             let executionCompleted = 0;
 
             // Get all page directories
-            const pagesDirs = fs.existsSync(this.reportsPath)
-                ? fs.readdirSync(this.reportsPath).filter((dir) => {
-                      const fullPath = path.join(this.reportsPath, dir);
-                      return (
-                          fs.statSync(fullPath).isDirectory() &&
-                          !['progress.json', 'summary.json', 'current-prompt.md', 'current-prompt-output.md'].includes(
-                              dir
-                          )
-                      );
+            const pagesDirs = fs.existsSync(PATHS.REPORTS)
+                ? fs.readdirSync(PATHS.REPORTS).filter((dir) => {
+                      const fullPath = path.join(PATHS.REPORTS, dir);
+                      return fs.statSync(fullPath).isDirectory() && !Object.values(FILE_NAMES).includes(dir);
                   })
                 : [];
 
             // Check each page directory for completed files
             for (const pageDir of pagesDirs) {
-                const pagePath = path.join(this.reportsPath, pageDir);
-                const planPath = path.join(pagePath, 'review-plan.md');
-                const reportPath = path.join(pagePath, 'report.md');
+                const planPath = getPageFilePath(pageDir, FILE_NAMES.REVIEW_PLAN);
+                const reportPath = getPageFilePath(pageDir, FILE_NAMES.REPORT);
 
                 if (fs.existsSync(planPath)) {
-                    this.completedPages.add(`${pageDir}:planning`);
+                    this.completedPages.add(`${pageDir}:${PHASES.PLANNING}`);
                     planningCompleted++;
                 }
 
                 if (fs.existsSync(reportPath)) {
-                    this.completedPages.add(`${pageDir}:execution`);
+                    this.completedPages.add(`${pageDir}:${PHASES.EXECUTION}`);
                     executionCompleted++;
                     this.results.completed++;
                 }
@@ -221,31 +604,25 @@ class DocsReviewOrchestrator {
                 console.log('📝 No previous progress found in filesystem, starting fresh');
             }
 
-            // Optionally load errors from previous runs, but only for completed pages
-            const summaryPath = path.join(this.reportsPath, 'summary.json');
-            if (fs.existsSync(summaryPath)) {
-                try {
-                    const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
-                    if (summary.results && summary.results.errors) {
-                        // Filter out errors for pages that will be reprocessed
-                        this.results.errors = summary.results.errors.filter((error) => {
-                            // Keep error only if the page won't be reprocessed
-                            const pageReportPath = path.join(this.reportsPath, error.page, 'report.md');
-                            const isPageComplete = fs.existsSync(pageReportPath);
+            // Load errors from previous runs
+            const summaryPath = getReportPath(FILE_NAMES.SUMMARY + '.json');
+            const summary = readJsonFile(summaryPath);
 
-                            if (!isPageComplete) {
-                                console.log(`   🔄 Clearing previous error for ${error.page} (will be reprocessed)`);
-                                return false;
-                            }
-                            return true;
-                        });
+            if (summary?.results?.errors) {
+                // Filter out errors for pages that will be reprocessed
+                this.results.errors = summary.results.errors.filter((error) => {
+                    const reportPath = getPageFilePath(error.page, FILE_NAMES.REPORT);
+                    const isPageComplete = fs.existsSync(reportPath);
 
-                        if (this.results.errors.length > 0) {
-                            console.log(`   ⚠️  Keeping ${this.results.errors.length} errors from completed pages`);
-                        }
+                    if (!isPageComplete) {
+                        console.log(`   🔄 Clearing previous error for ${error.page} (will be reprocessed)`);
+                        return false;
                     }
-                } catch (e) {
-                    // Ignore errors reading summary file
+                    return true;
+                });
+
+                if (this.results.errors.length > 0) {
+                    console.log(`   ⚠️  Keeping ${this.results.errors.length} errors from completed pages`);
                 }
             }
         } catch (error) {
@@ -255,31 +632,15 @@ class DocsReviewOrchestrator {
     }
 
     async saveProgress() {
-        // Progress is now tracked by filesystem state (review-plan.md and report.md files)
-        // This method is kept for compatibility but does minimal work
-        try {
-            // Only save error information if needed
-            if (this.results.errors.length > 0) {
-                const errorLog = {
-                    timestamp: new Date().toISOString(),
-                    errors: this.results.errors,
-                };
+        // Progress is now tracked by filesystem state
+        // Only save error information if needed
+        if (this.results.errors.length > 0) {
+            const errorLog = {
+                timestamp: new Date().toISOString(),
+                errors: this.results.errors,
+            };
 
-                fs.mkdirSync(path.dirname(this.progressFile), { recursive: true });
-                fs.writeFileSync(path.join(this.reportsPath, 'errors.json'), JSON.stringify(errorLog, null, 2));
-            }
-        } catch (error) {
-            console.error('❌ Failed to save error log:', error.message);
-        }
-    }
-
-    cleanupProgress() {
-        try {
-            if (fs.existsSync(this.progressFile)) {
-                fs.unlinkSync(this.progressFile);
-            }
-        } catch (error) {
-            console.error('❌ Failed to cleanup progress file:', error.message);
+            writeJsonFile(getReportPath(FILE_NAMES.ERRORS), errorLog);
         }
     }
 
@@ -289,19 +650,12 @@ class DocsReviewOrchestrator {
             return false;
         }
 
-        // Check filesystem state instead of memory
-        const pageDir = path.join(this.reportsPath, pageName);
-
-        if (phase === 'planning') {
-            const planPath = path.join(pageDir, 'review-plan.md');
-            return fs.existsSync(planPath);
-        } else if (phase === 'execution') {
-            const reportPath = path.join(pageDir, 'report.md');
-            return fs.existsSync(reportPath);
-        } else if (phase === 'summary') {
-            // Summary phase is completed if summary.md exists
-            const summaryPath = path.join(this.reportsPath, 'summary.md');
-            return fs.existsSync(summaryPath);
+        if (phase === PHASES.PLANNING) {
+            return fileExists(getPageFilePath(pageName, FILE_NAMES.REVIEW_PLAN));
+        } else if (phase === PHASES.EXECUTION) {
+            return fileExists(getPageFilePath(pageName, FILE_NAMES.REPORT));
+        } else if (phase === PHASES.SUMMARY) {
+            return fileExists(getReportPath(FILE_NAMES.SUMMARY));
         }
 
         return false;
@@ -327,64 +681,9 @@ class DocsReviewOrchestrator {
         }
     }
 
-    async saveCurrentPrompt(prompt, pageName, phase, model) {
-        try {
-            const content = `# Current Claude Prompt
-
-**Page**: ${pageName}
-**Phase**: ${phase}
-**Model**: ${model}
-**Timestamp**: ${new Date().toISOString()}
-**Session ID**: ${this.sessionId}
-
----
-
-\`\`\`
-${prompt}
-\`\`\`
-`;
-
-            fs.mkdirSync(path.dirname(this.currentPromptFile), { recursive: true });
-            fs.writeFileSync(this.currentPromptFile, content);
-        } catch (error) {
-            console.error('❌ Failed to save current prompt:', error.message);
-        }
-    }
-
-    cleanupCurrentPrompt() {
-        try {
-            if (fs.existsSync(this.currentPromptFile)) {
-                fs.unlinkSync(this.currentPromptFile);
-            }
-        } catch (error) {
-            console.error('❌ Failed to cleanup current prompt file:', error.message);
-        }
-    }
-
-    async saveCurrentOutput(content, pageName, phase, model) {
-        try {
-            const header = `# Current Claude Output\n\n**Page**: ${pageName}\n**Phase**: ${phase}\n**Model**: ${model}\n**Timestamp**: ${new Date().toISOString()}\n**Session ID**: ${this.sessionId}\n\n---\n\n`;
-
-            fs.mkdirSync(path.dirname(this.currentOutputFile), { recursive: true });
-            fs.writeFileSync(this.currentOutputFile, header + content);
-        } catch (error) {
-            console.error('❌ Failed to save current output:', error.message);
-        }
-    }
-
-    cleanupCurrentOutput() {
-        try {
-            if (fs.existsSync(this.currentOutputFile)) {
-                fs.unlinkSync(this.currentOutputFile);
-            }
-        } catch (error) {
-            console.error('❌ Failed to cleanup current output file:', error.message);
-        }
-    }
-
     async runPlanningPhase(pages) {
-        const remainingPages = pages.filter((page) => !this.isPageCompleted(page.name, 'planning'));
-        const progressBar = this.createProgressBar(pages.length, 'Planning');
+        const remainingPages = pages.filter((page) => !this.isPageCompleted(page.name, PHASES.PLANNING));
+        const progressBar = createProgressBar(pages.length, 'Planning');
 
         // Skip already completed pages in progress bar
         const alreadyCompleted = pages.length - remainingPages.length;
@@ -396,12 +695,12 @@ ${prompt}
             try {
                 progressBar.tick(`${page.name} (planning)`);
                 await this.runPhase1(page);
-                this.markPageCompleted(page.name, 'planning');
-                await this.saveProgress(); // Save progress after each page
+                this.markPageCompleted(page.name, PHASES.PLANNING);
+                await this.saveProgress();
             } catch (error) {
                 console.error(`\n❌ Planning failed for ${page.name}:`, error.message);
-                this.addError(page.name, 'planning', error.message);
-                await this.saveProgress(); // Save progress even on error
+                this.addError(page.name, PHASES.PLANNING, error.message);
+                await this.saveProgress();
             }
         }
 
@@ -409,8 +708,8 @@ ${prompt}
     }
 
     async runExecutionPhase(pages) {
-        const remainingPages = pages.filter((page) => !this.isPageCompleted(page.name, 'execution'));
-        const progressBar = this.createProgressBar(pages.length, 'Execution');
+        const remainingPages = pages.filter((page) => !this.isPageCompleted(page.name, PHASES.EXECUTION));
+        const progressBar = createProgressBar(pages.length, 'Execution');
 
         // Skip already completed pages in progress bar
         const alreadyCompleted = pages.length - remainingPages.length;
@@ -426,14 +725,14 @@ ${prompt}
                 try {
                     await this.runPhase2(page);
                     progressBar.tick(`${page.name} (executing)`);
-                    this.markPageCompleted(page.name, 'execution');
+                    this.markPageCompleted(page.name, PHASES.EXECUTION);
                     this.results.completed++;
-                    await this.saveProgress(); // Save progress after each page
+                    await this.saveProgress();
                 } catch (error) {
                     console.error(`\n❌ Execution failed for ${page.name}:`, error.message);
                     this.results.failed++;
-                    this.addError(page.name, 'execution', error.message);
-                    await this.saveProgress(); // Save progress even on error
+                    this.addError(page.name, PHASES.EXECUTION, error.message);
+                    await this.saveProgress();
                 }
             });
 
@@ -444,42 +743,42 @@ ${prompt}
     }
 
     async runPhase1(page) {
-        const dryRunInstructions = this.dryRun
-            ? `
-
-IMPORTANT: This is a DRY RUN. Instead of creating a full review plan:
-- Create a minimal skeleton review plan with just headers and brief bullet points
-- Include only 2-3 key validation targets instead of exhaustive coverage
-- Keep the plan under 200 words
-- This is for testing the pipeline, not actual review`
-            : '';
-
         const prompt = `I need you to run Phase 1 of the documentation review for the page: ${page.path}
 
 This is the planning phase. Create a detailed, page-specific review plan using the expensive model for sophisticated reasoning.
 
 Please use the documentation review prompt from tools/prompts/docs-review.md to create a comprehensive review plan. Focus on the Phase 1 requirements: read the documentation page, identify key validation targets, and create a structured plan with prioritized testing tasks.
+${buildPromptInstructions(PHASES.PLANNING, page.name, this.dryRun)}`;
 
-IMPORTANT: Write the review plan to: reports/docs-review/${page.name}/review-plan.md
-Do NOT write files to the root directory or any other location.${dryRunInstructions}`;
+        return executeClaudeCommand(prompt, this.planningModel, page.name, PHASES.PLANNING, {
+            verbose: this.verbose,
+            sessionId: this.sessionId,
+        });
+    }
 
-        await this.saveCurrentPrompt(prompt, page.name, 'planning', this.planningModel);
+    async runPhase2(page) {
+        const planPath = getPageFilePath(page.name, FILE_NAMES.REVIEW_PLAN);
+        const planExists = fs.existsSync(planPath);
 
-        try {
-            const result = await this.runClaudeCode(prompt, this.planningModel, page.name, 'planning');
-            this.cleanupCurrentPrompt();
-            this.cleanupCurrentOutput();
-            return result;
-        } catch (error) {
-            this.cleanupCurrentPrompt();
-            this.cleanupCurrentOutput();
-            throw error;
-        }
+        const prompt = `I need you to run Phase 2 of the documentation review for the page: ${page.path}
+
+This is the execution phase. Execute the review plan systematically using the cheaper model for systematic tasks.
+
+${planExists ? `Reference the existing review plan at: ${planPath}` : ''}
+${this.skipScreenshots ? 'Skip screenshot capture for this run.' : ''}
+
+Please use the documentation review prompt from tools/prompts/docs-review.md to execute the review plan. Focus on the Phase 2 requirements: work through planned validations, document findings, and create the final report with screenshots.
+${buildPromptInstructions(PHASES.EXECUTION, page.name, this.dryRun)}`;
+
+        return executeClaudeCommand(prompt, this.executionModel, page.name, PHASES.EXECUTION, {
+            verbose: this.verbose,
+            sessionId: this.sessionId,
+        });
     }
 
     async runSummaryPhase(pages) {
         // Check if summary already exists
-        if (this.isPageCompleted('summary', 'summary')) {
+        if (this.isPageCompleted('summary', PHASES.SUMMARY)) {
             console.log('✅ Summary report already exists, skipping...');
             return;
         }
@@ -487,7 +786,7 @@ Do NOT write files to the root directory or any other location.${dryRunInstructi
         try {
             // Filter to only pages that have completed reports
             const completedPages = pages.filter((page) => {
-                const reportPath = path.join(this.reportsPath, page.name, 'report.md');
+                const reportPath = getPageFilePath(page.name, FILE_NAMES.REPORT);
                 return fs.existsSync(reportPath);
             });
 
@@ -499,7 +798,7 @@ Do NOT write files to the root directory or any other location.${dryRunInstructi
             }
 
             // Process in batches to avoid context window limits
-            const summaryBatchSize = 10; // Smaller batches for summary processing
+            const summaryBatchSize = DEFAULT_OPTIONS.summaryBatchSize;
             const batchSummaries = [];
 
             // Step 1: Create batch summaries
@@ -511,19 +810,19 @@ Do NOT write files to the root directory or any other location.${dryRunInstructi
 
                 console.log(`  Processing batch ${batchNum}/${totalBatches} (${batch.length} pages)...`);
 
-                const batchSummaryPath = path.join(this.reportsPath, `batch-summary-${batchNum}.json`);
+                const batchSummaryPath = getReportPath(FILE_NAMES.BATCH_SUMMARY(batchNum));
 
                 // Skip if batch summary already exists (unless force mode)
                 if (fs.existsSync(batchSummaryPath) && !this.force) {
                     console.log(`  ✅ Batch ${batchNum} summary already exists, loading...`);
-                    const batchSummary = JSON.parse(fs.readFileSync(batchSummaryPath, 'utf8'));
+                    const batchSummary = readJsonFile(batchSummaryPath);
                     batchSummaries.push(batchSummary);
                 } else {
                     if (this.force && fs.existsSync(batchSummaryPath)) {
                         console.log(`  🔄 Force mode: regenerating batch ${batchNum} summary...`);
                     }
                     const batchSummary = await this.createBatchSummary(batch, batchNum);
-                    fs.writeFileSync(batchSummaryPath, JSON.stringify(batchSummary, null, 2));
+                    writeJsonFile(batchSummaryPath, batchSummary);
                     batchSummaries.push(batchSummary);
                 }
             }
@@ -535,28 +834,19 @@ Do NOT write files to the root directory or any other location.${dryRunInstructi
             // Step 3: Clean up batch summary files
             console.log('🧹 Cleaning up temporary batch files...');
             for (let i = 1; i <= Math.ceil(completedPages.length / summaryBatchSize); i++) {
-                const batchSummaryPath = path.join(this.reportsPath, `batch-summary-${i}.json`);
-                if (fs.existsSync(batchSummaryPath)) {
-                    fs.unlinkSync(batchSummaryPath);
-                }
+                cleanupFile(getReportPath(FILE_NAMES.BATCH_SUMMARY(i)));
             }
 
-            this.markPageCompleted('summary', 'summary');
+            this.markPageCompleted('summary', PHASES.SUMMARY);
             console.log('✅ Summary report generated successfully');
         } catch (error) {
             console.error('❌ Summary generation failed:', error.message);
-            this.addError('summary', 'summary', error.message);
+            this.addError('summary', PHASES.SUMMARY, error.message);
             throw error;
         }
     }
 
     async createBatchSummary(batch, batchNum) {
-        const dryRunInstructions = this.dryRun
-            ? `
-
-IMPORTANT: This is a DRY RUN. Create minimal batch summary with just basic counts.`
-            : '';
-
         const prompt = `I need you to analyze a batch of documentation review reports and create a structured summary.
 
 This is batch ${batchNum} of the summary phase. You need to:
@@ -596,37 +886,24 @@ This is batch ${batchNum} of the summary phase. You need to:
   "patterns": ["List any patterns you notice across pages in this batch"]
 }
 
-Read each report from: reports/docs-review/{pageName}/report.md${dryRunInstructions}`;
+Read each report from: reports/docs-review/{pageName}/report.md${this.dryRun ? '\n\nIMPORTANT: This is a DRY RUN. Create minimal batch summary with just basic counts.' : ''}`;
 
-        await this.saveCurrentPrompt(prompt, `batch-${batchNum}`, 'summary', this.summaryModel);
+        const result = await executeClaudeCommand(prompt, this.summaryModel, `batch-${batchNum}`, PHASES.SUMMARY, {
+            verbose: this.verbose,
+            sessionId: this.sessionId,
+        });
 
-        try {
-            const result = await this.runClaudeCode(prompt, this.summaryModel, `batch-${batchNum}`, 'summary');
-            this.cleanupCurrentPrompt();
-            this.cleanupCurrentOutput();
-
-            // Parse the JSON response
-            const jsonMatch = result.match(/```json\n([\s\S]*?)\n```/);
-            if (jsonMatch) {
-                return JSON.parse(jsonMatch[1]);
-            } else {
-                // Try to parse the entire response as JSON
-                return JSON.parse(result);
-            }
-        } catch (error) {
-            this.cleanupCurrentPrompt();
-            this.cleanupCurrentOutput();
-            throw error;
+        // Parse the JSON response
+        const jsonMatch = result.match(/```json\n([\s\S]*?)\n```/);
+        if (jsonMatch) {
+            return JSON.parse(jsonMatch[1]);
+        } else {
+            // Try to parse the entire response as JSON
+            return JSON.parse(result);
         }
     }
 
     async createFinalSummary(batchSummaries, allPages) {
-        const dryRunInstructions = this.dryRun
-            ? `
-
-IMPORTANT: This is a DRY RUN. Create a minimal summary with just basic statistics.`
-            : '';
-
         // Convert batch summaries to a readable format
         const batchSummaryText = batchSummaries
             .map((batch, idx) => `Batch ${idx + 1}:\n${JSON.stringify(batch, null, 2)}`)
@@ -657,197 +934,12 @@ Here are the batch summaries to aggregate:
 ${batchSummaryText}
 
 Total pages reviewed: ${allPages.length}
+${buildPromptInstructions(PHASES.SUMMARY, '', this.dryRun)}`;
 
-IMPORTANT: Write the complete summary to: reports/docs-review/summary.md
-Do NOT write files to the root directory or any other location.${dryRunInstructions}`;
-
-        await this.saveCurrentPrompt(prompt, 'final-summary', 'summary', this.summaryModel);
-
-        try {
-            const result = await this.runClaudeCode(prompt, this.summaryModel, 'final-summary', 'summary');
-            this.cleanupCurrentPrompt();
-            this.cleanupCurrentOutput();
-            return result;
-        } catch (error) {
-            this.cleanupCurrentPrompt();
-            this.cleanupCurrentOutput();
-            throw error;
-        }
-    }
-
-    async runPhase2(page) {
-        const planPath = path.join(this.reportsPath, page.name, 'review-plan.md');
-        const planExists = fs.existsSync(planPath);
-
-        const dryRunInstructions = this.dryRun
-            ? `
-
-IMPORTANT: This is a DRY RUN. Instead of a full execution:
-- Create a minimal skeleton report with just headers and brief findings
-- Skip actual validation and testing
-- Include only 1-2 mock findings instead of thorough testing
-- Skip screenshots entirely
-- Keep the report under 300 words
-- This is for testing the pipeline, not actual review`
-            : '';
-
-        const prompt = `I need you to run Phase 2 of the documentation review for the page: ${page.path}
-
-This is the execution phase. Execute the review plan systematically using the cheaper model for systematic tasks.
-
-${planExists ? `Reference the existing review plan at: ${planPath}` : ''}
-${this.skipScreenshots ? 'Skip screenshot capture for this run.' : ''}
-
-Please use the documentation review prompt from tools/prompts/docs-review.md to execute the review plan. Focus on the Phase 2 requirements: work through planned validations, document findings, and create the final report with screenshots.
-
-IMPORTANT: When writing files during this phase:
-- Write the final report to: reports/docs-review/${page.name}/report.md
-- Save all screenshots to: reports/docs-review/${page.name}/${exampleName}/
-- If you need to create temporary files, use: reports/docs-review/${page.name}/tmp/
-- Do NOT write files to the root directory or any other location${dryRunInstructions}`;
-
-        await this.saveCurrentPrompt(prompt, page.name, 'execution', this.executionModel);
-
-        try {
-            const result = await this.runClaudeCode(prompt, this.executionModel, page.name, 'execution');
-            this.cleanupCurrentPrompt();
-            this.cleanupCurrentOutput();
-            return result;
-        } catch (error) {
-            this.cleanupCurrentPrompt();
-            this.cleanupCurrentOutput();
-            throw error;
-        }
-    }
-
-    async runClaudeCode(prompt, model, pageName, phase) {
-        return new Promise((resolve, reject) => {
-            const args = ['--model', model, '--permission-mode', 'bypassPermissions', '--print'];
-            const child = spawn('claude', args, {
-                stdio: ['pipe', 'pipe', 'pipe'],
-            });
-
-            let stdout = '';
-            let stderr = '';
-
-            // Show spinner for long-running operations (only in non-verbose mode)
-            const spinnerChars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
-            let spinnerIndex = 0;
-            let spinnerInterval;
-
-            const startSpinner = () => {
-                if (!this.verbose) {
-                    spinnerInterval = setInterval(() => {
-                        process.stdout.write(`\r${spinnerChars[spinnerIndex]} Claude is thinking...`);
-                        spinnerIndex = (spinnerIndex + 1) % spinnerChars.length;
-                    }, 100);
-                }
-            };
-
-            const stopSpinner = () => {
-                if (spinnerInterval) {
-                    clearInterval(spinnerInterval);
-                    process.stdout.write('\r' + ' '.repeat(30) + '\r'); // Clear spinner line
-                }
-            };
-
-            // Start spinner after 1 second delay (only in non-verbose mode)
-            const spinnerTimeout = this.verbose ? null : setTimeout(startSpinner, 1000);
-
-            // Initialize output file
-            this.saveCurrentOutput('', pageName, phase, model);
-
-            // In verbose mode, add a header
-            if (this.verbose) {
-                console.log(`\n📝 Claude output for ${pageName} (${phase}):`);
-                console.log('─'.repeat(60));
-            }
-
-            child.stdout.on('data', (data) => {
-                const chunk = data.toString();
-                stdout += chunk;
-
-                // Stream output to console in verbose mode
-                if (this.verbose) {
-                    process.stdout.write(chunk);
-                }
-
-                // Stream output to file in real-time
-                this.saveCurrentOutput(stdout, pageName, phase, model);
-            });
-
-            child.stderr.on('data', (data) => {
-                stderr += data.toString();
-
-                // Also show stderr in verbose mode
-                if (this.verbose) {
-                    process.stderr.write(data);
-                }
-            });
-
-            child.on('close', (code) => {
-                if (spinnerTimeout) clearTimeout(spinnerTimeout);
-                stopSpinner();
-
-                if (this.verbose) {
-                    console.log('\n' + '─'.repeat(60));
-                }
-
-                if (code === 0) {
-                    resolve(stdout);
-                } else {
-                    reject(new Error(`Claude exited with code ${code}: ${stderr}`));
-                }
-            });
-
-            child.on('error', (error) => {
-                if (spinnerTimeout) clearTimeout(spinnerTimeout);
-                stopSpinner();
-                reject(error);
-            });
-
-            // Send the prompt
-            child.stdin.write(prompt);
-            child.stdin.end();
+        return executeClaudeCommand(prompt, this.summaryModel, 'final-summary', PHASES.SUMMARY, {
+            verbose: this.verbose,
+            sessionId: this.sessionId,
         });
-    }
-
-    createProgressBar(total, label) {
-        let completed = 0;
-        let startTime = Date.now();
-
-        return {
-            tick: (itemName = '') => {
-                completed++;
-                const percentage = Math.min(100, Math.round((completed / total) * 100)); // Cap at 100%
-                const filledBars = Math.min(50, Math.floor(percentage / 2)); // Cap at 50
-                const emptyBars = Math.max(0, 50 - filledBars); // Ensure non-negative
-                const bar = '█'.repeat(filledBars) + '░'.repeat(emptyBars);
-
-                // Calculate ETA
-                const elapsed = Date.now() - startTime;
-                const rate = completed / (elapsed / 1000);
-                const remaining = total - completed;
-                const eta = remaining > 0 ? Math.round(remaining / rate) : 0;
-                const etaStr = eta > 0 ? ` ETA: ${this.formatTime(eta)}` : '';
-
-                // Truncate item name if too long
-                const displayName = itemName.length > 20 ? itemName.substring(0, 17) + '...' : itemName;
-                const nameStr = displayName ? ` | ${displayName}` : '';
-
-                process.stdout.write(`\r${label}: [${bar}] ${percentage}% (${completed}/${total})${nameStr}${etaStr}`);
-            },
-            terminate: () => {
-                const totalTime = Date.now() - startTime;
-                process.stdout.write(` | Completed in ${this.formatTime(totalTime / 1000)}\n`);
-            },
-        };
-    }
-
-    formatTime(seconds) {
-        if (seconds < 60) return `${Math.round(seconds)}s`;
-        if (seconds < 3600) return `${Math.round(seconds / 60)}m ${Math.round(seconds % 60)}s`;
-        return `${Math.round(seconds / 3600)}h ${Math.round((seconds % 3600) / 60)}m`;
     }
 
     generateSummaryReport() {
@@ -868,35 +960,37 @@ IMPORTANT: When writing files during this phase:
         }
 
         // Write summary to file
-        const summaryPath = path.join(this.reportsPath, 'summary.json');
-        fs.mkdirSync(path.dirname(summaryPath), { recursive: true });
-        fs.writeFileSync(
-            summaryPath,
-            JSON.stringify(
-                {
-                    timestamp: new Date().toISOString(),
-                    configuration: {
-                        planningModel: this.planningModel,
-                        executionModel: this.executionModel,
-                        batchSize: this.batchSize,
-                        skipScreenshots: this.skipScreenshots,
-                        verbose: this.verbose,
-                        dryRun: this.dryRun,
-                    },
-                    results: this.results,
-                },
-                null,
-                2
-            )
-        );
+        const summaryPath = getReportPath(FILE_NAMES.SUMMARY + '.json');
+        writeJsonFile(summaryPath, {
+            timestamp: new Date().toISOString(),
+            configuration: {
+                planningModel: this.planningModel,
+                executionModel: this.executionModel,
+                summaryModel: this.summaryModel,
+                batchSize: this.batchSize,
+                skipScreenshots: this.skipScreenshots,
+                verbose: this.verbose,
+                dryRun: this.dryRun,
+            },
+            results: this.results,
+        });
 
         console.log(`📄 Summary report saved to: ${summaryPath}`);
         console.log('');
         console.log('✅ Documentation review orchestration completed!');
     }
+
+    cleanup() {
+        cleanupFile(getReportPath(FILE_NAMES.PROGRESS));
+        cleanupFile(getReportPath(FILE_NAMES.CURRENT_PROMPT));
+        cleanupFile(getReportPath(FILE_NAMES.CURRENT_OUTPUT));
+    }
 }
 
-// CLI interface
+// ============================================================================
+// CLI Interface
+// ============================================================================
+
 function parseArgs() {
     const args = process.argv.slice(2);
     const options = {};
@@ -927,9 +1021,9 @@ function parseArgs() {
             options.summaryModel = args[i + 1];
             i++;
         } else if (arg.startsWith('--page-glob=')) {
-            options.pageGlob = arg.split('=')[1].replace(/^['"]|['"]$/g, ''); // Remove quotes
+            options.pageGlob = arg.split('=')[1].replace(/^['"]|['"]$/g, '');
         } else if (arg === '--page-glob' && i + 1 < args.length) {
-            options.pageGlob = args[i + 1].replace(/^['"]|['"]$/g, ''); // Remove quotes
+            options.pageGlob = args[i + 1].replace(/^['"]|['"]$/g, '');
             i++;
         } else if (arg === '--resume') {
             options.resume = true;
@@ -937,7 +1031,7 @@ function parseArgs() {
             const phase = arg.split('=')[1];
             if (phase === 'planning' || phase === 'execution' || phase === 'summary') {
                 options.resumePhase = phase;
-                options.resume = true; // Automatically enable resume when phase is specified
+                options.resume = true;
             } else {
                 console.error(`❌ Invalid resume phase: ${phase}. Must be 'planning', 'execution', or 'summary'`);
                 process.exit(1);
@@ -946,7 +1040,7 @@ function parseArgs() {
             const phase = args[i + 1];
             if (phase === 'planning' || phase === 'execution' || phase === 'summary') {
                 options.resumePhase = phase;
-                options.resume = true; // Automatically enable resume when phase is specified
+                options.resume = true;
                 i++;
             } else {
                 console.error(`❌ Invalid resume phase: ${phase}. Must be 'planning', 'execution', or 'summary'`);
@@ -1002,16 +1096,17 @@ Examples:
     return options;
 }
 
-// Main execution
+// ============================================================================
+// Main Execution
+// ============================================================================
+
 if (require.main === module) {
     const options = parseArgs();
     const orchestrator = new DocsReviewOrchestrator(options);
 
     // Handle clean option
     if (options.clean) {
-        orchestrator.cleanupProgress();
-        orchestrator.cleanupCurrentPrompt();
-        orchestrator.cleanupCurrentOutput();
+        orchestrator.cleanup();
         console.log('🧹 Progress and current prompt files cleaned up');
         process.exit(0);
     }
@@ -1020,18 +1115,16 @@ if (require.main === module) {
     process.on('SIGINT', async () => {
         console.log('\n🛑 Received interrupt signal, saving progress...');
         await orchestrator.saveProgress();
-        orchestrator.cleanupCurrentPrompt();
-        orchestrator.cleanupCurrentOutput();
-        console.log(`💾 Progress saved. Resume with: node ${process.argv[1]} --resume`);
+        orchestrator.cleanup();
+        console.log(`💾 You can resume with: node ${process.argv[1]} --resume`);
         process.exit(0);
     });
 
     process.on('SIGTERM', async () => {
         console.log('\n🛑 Received termination signal, saving progress...');
         await orchestrator.saveProgress();
-        orchestrator.cleanupCurrentPrompt();
-        orchestrator.cleanupCurrentOutput();
-        console.log(`💾 Progress saved. Resume with: node ${process.argv[1]} --resume`);
+        orchestrator.cleanup();
+        console.log(`💾 You can resume with: node ${process.argv[1]} --resume`);
         process.exit(0);
     });
 
