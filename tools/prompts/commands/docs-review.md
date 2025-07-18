@@ -10,7 +10,7 @@ You are a technical documentation reviewer for AG Charts. Your task is to thorou
 
 You MUST immediately check and confirm the availability of:
 
-1. **Browser automation tools** (Puppeteer or similar browser tools)
+1. **Browser automation tools** (Puppeteer)
 
     - These are ESSENTIAL for exercising examples and taking screenshots
     - If unavailable, you CANNOT complete the review - FAIL IMMEDIATELY with error message
@@ -81,7 +81,7 @@ Before conducting the review, think deeply and create a detailed, page-specific 
 
 ### Phase 2: Execute Review Plan
 
-**Tool Check**: Verify Read, Write, AND Browser/Puppeteer tools are available before proceeding. Screenshots and example testing are MANDATORY for Phase 2.
+**Tool Check**: Verify Read, Write, AND Puppeteer tools are available before proceeding. Screenshots and example testing are MANDATORY for Phase 2.
 
 Execute the plan systematically, potentially across multiple prompts if needed:
 
@@ -380,8 +380,8 @@ Provide specific, actionable recommendations for:
 -   **Screenshot tools**: Take comprehensive screenshots of examples in various states, save to `reports/docs-review/${pageName}/${exampleName}/`
 -   **Visual analysis**: Analyze screenshots for correctness, consistency, and documentation alignment
 -   Search for related code and documentation (targeted searches)
--   Use browser tools to inspect example behavior and console errors
--   Puppeteer automation tools for user interaction fuzz testing with screenshot capture
+-   Use puppeteer tools to inspect example behavior and console errors
+-   Use puppeteer automation tools for user interaction fuzz testing with screenshot capture
 -   Write tool to create the report.md file in reports/docs-review/${pageName}/
 
 ## Usage Instructions
