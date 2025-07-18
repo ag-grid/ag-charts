@@ -47,9 +47,9 @@ The user will provide:
 1. The documentation page path (e.g., `packages/ag-charts-website/src/content/docs/${pageName}/index.mdoc`)
 2. The page should be tested against the live dev server at `https://localhost:4600/charts/javascript/${pageName}/` using the puppeteer tool
 
-## Two-Phase Review Process
+## Three-Phase Review Process
 
-**REMINDER: Check tool availability FIRST before starting either phase. Fail immediately if essential tools are missing.**
+**REMINDER: Check tool availability FIRST before starting any phase. Fail immediately if essential tools are missing.**
 
 ### Phase 1: Create Page-Specific Review Plan
 
@@ -91,6 +91,27 @@ Execute the plan systematically, potentially across multiple prompts if needed:
 4. **Complete all planned tests** before finalizing report
 
 **Output Phase 2**: Write the final `report.md` file to `reports/docs-review/${pageName}/report.md` with results. Save screenshots to `reports/docs-review/${pageName}/${exampleName}/` directories.
+
+### Phase 3: Generate Summary Report
+
+**Tool Check**: Verify Read and Write tools are available before proceeding.
+
+After all pages have been reviewed, generate a comprehensive summary document. Due to the large number of pages (~110), this phase uses a batched approach:
+
+1. **Process reports in batches** of ~10 pages each to avoid context limits
+2. **Create batch summaries** with structured JSON data for each batch
+3. **Aggregate batch summaries** into a final comprehensive report
+4. **Identify patterns** across all documentation pages
+5. **Provide prioritized recommendations** for documentation improvement
+
+**Implementation Details**:
+
+-   Each batch processes ~10 page reports and outputs structured data
+-   Batch summaries are temporarily saved as `batch-summary-{n}.json`
+-   Final aggregation combines all batch summaries into `summary.md`
+-   Batch files are cleaned up after successful completion
+
+**Output Phase 3**: Write a comprehensive `summary.md` file to `reports/docs-review/summary.md` with aggregated results and insights.
 
 ## Phase 2: Detailed Review Process
 
@@ -384,9 +405,84 @@ Provide specific, actionable recommendations for:
 -   Use puppeteer automation tools for user interaction fuzz testing with screenshot capture
 -   Write tool to create the report.md file in reports/docs-review/${pageName}/
 
+### Phase 3 Output: Summary Report
+
+**Write the summary report to a `summary.md` file at `reports/docs-review/summary.md`.**
+
+The summary report should include these sections:
+
+#### Executive Summary
+
+-   Total pages reviewed
+-   Overall success rate
+-   Key patterns identified
+-   High-priority recommendations
+
+#### Results Table
+
+Create a comprehensive table with the following columns:
+
+-   **Page Name**: The documentation page reviewed
+-   **Status**: ✅ Success, ⚠️ Issues Found, ❌ Failed
+-   **Technical Accuracy**: Count of accuracy issues
+-   **Example Issues**: Count of example consistency issues
+-   **Visual/Interaction Issues**: Count of visual/interaction issues
+-   **Priority**: High/Medium/Low based on severity
+-   **Report Link**: Link to detailed `report.md` file
+
+Example format:
+
+```markdown
+| Page Name  | Status | Technical Accuracy | Example Issues | Visual/Interaction | Priority | Report                                |
+| ---------- | ------ | ------------------ | -------------- | ------------------ | -------- | ------------------------------------- |
+| pie-series | ⚠️     | 3                  | 2              | 1                  | High     | [View Report](./pie-series/report.md) |
+| bar-series | ✅     | 0                  | 0              | 0                  | -        | [View Report](./bar-series/report.md) |
+```
+
+#### Common Issues Across Pages
+
+List patterns and recurring issues found across multiple pages:
+
+-   Deprecated API usage patterns
+-   Inconsistent documentation styles
+-   Missing example coverage for certain features
+-   Common visual/interaction problems
+
+#### Recommendations by Priority
+
+##### High Priority
+
+-   Critical accuracy issues that could mislead developers
+-   Broken examples that prevent feature adoption
+-   Security or performance issues in documented patterns
+
+##### Medium Priority
+
+-   Inconsistencies that create confusion
+-   Missing documentation for important features
+-   Visual issues that impact user experience
+
+##### Low Priority
+
+-   Minor typos or formatting issues
+-   Enhancement opportunities
+-   Nice-to-have additional examples
+
+#### Statistics
+
+-   Total issues found: X
+-   Issues by category:
+    -   Technical accuracy: X (Y%)
+    -   Example consistency: X (Y%)
+    -   Visual/interaction: X (Y%)
+    -   Content quality: X (Y%)
+-   Pages with most issues (top 5)
+-   Pages with no issues
+
 ## Usage Instructions
 
 1. **For Phase 1**: Provide the documentation page path. The reviewer will create a page-specific review plan.
 2. **For Phase 2**: Provide the documentation page path (and optionally reference the existing review-plan.md). The reviewer will execute the plan and create the final report with organized screenshots.
+3. **For Phase 3**: After all pages have been reviewed, run this phase to generate the comprehensive summary report that aggregates findings across all documentation.
 
 Remember: The goal is to ensure developers can trust this documentation to accurately guide their implementation of AG Charts features.

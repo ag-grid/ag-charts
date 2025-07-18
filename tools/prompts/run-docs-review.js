@@ -11,6 +11,7 @@ const glob = require('glob');
  * This script implements Option 2: Parallel Execution with Batching
  * - Phase 1 (Planning): Uses expensive model for sophisticated reasoning
  * - Phase 2 (Execution): Uses cheaper model for systematic tasks
+ * - Phase 3 (Summary): Generates comprehensive summary report
  * - Runs in parallel batches to optimize performance
  *
  * Resume functionality:
@@ -25,12 +26,14 @@ class DocsReviewOrchestrator {
         this.skipScreenshots = options.skipScreenshots || false;
         this.planningModel = options.planningModel || 'opus'; // Expensive model for planning
         this.executionModel = options.executionModel || 'sonnet'; // Cheaper model for execution
+        this.summaryModel = options.summaryModel || 'sonnet'; // Model for summary generation
         this.docsPath = 'packages/ag-charts-website/src/content/docs';
         this.reportsPath = 'reports/docs-review';
         this.resume = options.resume || false;
         this.pageGlob = options.pageGlob || null; // Optional glob pattern to filter pages
         this.verbose = options.verbose || false; // Stream Claude output when true
         this.dryRun = options.dryRun || false; // Request skeleton reports for quick testing
+        this.resumePhase = options.resumePhase || 'planning'; // Which phase to resume from (planning, execution, or summary)
         this.progressFile = path.join(this.reportsPath, 'progress.json');
         this.currentPromptFile = path.join(this.reportsPath, 'current-prompt.md');
         this.currentOutputFile = path.join(this.reportsPath, 'current-prompt-output.md');
@@ -48,12 +51,20 @@ class DocsReviewOrchestrator {
         console.log('🚀 Starting AG Charts Documentation Review Orchestration');
         console.log(`📋 Planning model: ${this.planningModel}`);
         console.log(`⚡ Execution model: ${this.executionModel}`);
+        console.log(`📊 Summary model: ${this.summaryModel}`);
         console.log(`🔄 Batch size: ${this.batchSize}`);
         console.log(`📸 Skip screenshots: ${this.skipScreenshots}`);
         console.log(`🗣️  Verbose mode: ${this.verbose}`);
         console.log(`🧪 Dry run mode: ${this.dryRun}`);
         if (this.pageGlob) {
             console.log(`🎯 Page filter: ${this.pageGlob}`);
+        }
+        if (this.resume) {
+            if (this.resumePhase === 'execution') {
+                console.log(`⏩ Resume phase: execution only (skipping planning)`);
+            } else if (this.resumePhase === 'summary') {
+                console.log(`⏩ Resume phase: summary only (skipping planning and execution)`);
+            }
         }
         console.log('');
 
@@ -72,19 +83,34 @@ class DocsReviewOrchestrator {
             console.log('');
 
             // 3. Phase 1: Run planning for all pages (sequential for now)
-            console.log('🧠 Phase 1: Creating review plans...');
-            await this.runPlanningPhase(pages);
-            console.log('');
+            if (this.resumePhase === 'planning') {
+                console.log('🧠 Phase 1: Creating review plans...');
+                await this.runPlanningPhase(pages);
+                console.log('');
+            } else {
+                console.log('⏩ Skipping Phase 1 (planning) as requested');
+                console.log('');
+            }
 
             // 4. Phase 2: Execute reviews in parallel batches
-            console.log('🔍 Phase 2: Executing reviews...');
-            await this.runExecutionPhase(pages);
+            if (this.resumePhase === 'planning' || this.resumePhase === 'execution') {
+                console.log('🔍 Phase 2: Executing reviews...');
+                await this.runExecutionPhase(pages);
+                console.log('');
+            } else {
+                console.log('⏩ Skipping Phase 2 (execution) as requested');
+                console.log('');
+            }
+
+            // 5. Phase 3: Generate comprehensive summary
+            console.log('📊 Phase 3: Generating summary report...');
+            await this.runSummaryPhase(pages);
             console.log('');
 
-            // 5. Generate summary report
+            // 6. Generate basic summary statistics
             this.generateSummaryReport();
 
-            // 6. Clean up progress and current prompt files on successful completion
+            // 7. Clean up progress and current prompt files on successful completion
             this.cleanupProgress();
             this.cleanupCurrentPrompt();
             this.cleanupCurrentOutput();
@@ -263,6 +289,10 @@ class DocsReviewOrchestrator {
         } else if (phase === 'execution') {
             const reportPath = path.join(pageDir, 'report.md');
             return fs.existsSync(reportPath);
+        } else if (phase === 'summary') {
+            // Summary phase is completed if summary.md exists
+            const summaryPath = path.join(this.reportsPath, 'summary.md');
+            return fs.existsSync(summaryPath);
         }
 
         return false;
@@ -425,6 +455,200 @@ Please use the documentation review prompt from tools/prompts/docs-review.md to 
 
         try {
             const result = await this.runClaudeCode(prompt, this.planningModel, page.name, 'planning');
+            this.cleanupCurrentPrompt();
+            this.cleanupCurrentOutput();
+            return result;
+        } catch (error) {
+            this.cleanupCurrentPrompt();
+            this.cleanupCurrentOutput();
+            throw error;
+        }
+    }
+
+    async runSummaryPhase(pages) {
+        // Check if summary already exists
+        if (this.isPageCompleted('summary', 'summary')) {
+            console.log('✅ Summary report already exists, skipping...');
+            return;
+        }
+
+        try {
+            // Filter to only pages that have completed reports
+            const completedPages = pages.filter((page) => {
+                const reportPath = path.join(this.reportsPath, page.name, 'report.md');
+                return fs.existsSync(reportPath);
+            });
+
+            console.log(`📊 Found ${completedPages.length} completed page reports to summarize`);
+
+            if (completedPages.length === 0) {
+                console.log('⚠️  No completed reports found, skipping summary generation');
+                return;
+            }
+
+            // Process in batches to avoid context window limits
+            const summaryBatchSize = 10; // Smaller batches for summary processing
+            const batchSummaries = [];
+
+            // Step 1: Create batch summaries
+            console.log(`📦 Processing ${Math.ceil(completedPages.length / summaryBatchSize)} batches...`);
+            for (let i = 0; i < completedPages.length; i += summaryBatchSize) {
+                const batch = completedPages.slice(i, i + summaryBatchSize);
+                const batchNum = Math.floor(i / summaryBatchSize) + 1;
+                const totalBatches = Math.ceil(completedPages.length / summaryBatchSize);
+
+                console.log(`  Processing batch ${batchNum}/${totalBatches} (${batch.length} pages)...`);
+
+                const batchSummaryPath = path.join(this.reportsPath, `batch-summary-${batchNum}.json`);
+
+                // Skip if batch summary already exists
+                if (fs.existsSync(batchSummaryPath)) {
+                    console.log(`  ✅ Batch ${batchNum} summary already exists, loading...`);
+                    const batchSummary = JSON.parse(fs.readFileSync(batchSummaryPath, 'utf8'));
+                    batchSummaries.push(batchSummary);
+                } else {
+                    const batchSummary = await this.createBatchSummary(batch, batchNum);
+                    fs.writeFileSync(batchSummaryPath, JSON.stringify(batchSummary, null, 2));
+                    batchSummaries.push(batchSummary);
+                }
+            }
+
+            // Step 2: Create final summary from batch summaries
+            console.log('📋 Creating final summary from batch results...');
+            await this.createFinalSummary(batchSummaries, completedPages);
+
+            // Step 3: Clean up batch summary files
+            console.log('🧹 Cleaning up temporary batch files...');
+            for (let i = 1; i <= Math.ceil(completedPages.length / summaryBatchSize); i++) {
+                const batchSummaryPath = path.join(this.reportsPath, `batch-summary-${i}.json`);
+                if (fs.existsSync(batchSummaryPath)) {
+                    fs.unlinkSync(batchSummaryPath);
+                }
+            }
+
+            this.markPageCompleted('summary', 'summary');
+            console.log('✅ Summary report generated successfully');
+        } catch (error) {
+            console.error('❌ Summary generation failed:', error.message);
+            this.addError('summary', 'summary', error.message);
+            throw error;
+        }
+    }
+
+    async createBatchSummary(batch, batchNum) {
+        const dryRunInstructions = this.dryRun
+            ? `
+
+IMPORTANT: This is a DRY RUN. Create minimal batch summary with just basic counts.`
+            : '';
+
+        const prompt = `I need you to analyze a batch of documentation review reports and create a structured summary.
+
+This is batch ${batchNum} of the summary phase. You need to:
+
+1. Read the report.md files for these pages: ${batch.map((p) => p.name).join(', ')}
+2. For each page, extract:
+   - Page name
+   - Status (Success/Issues Found/Failed)
+   - Count of technical accuracy issues
+   - Count of example consistency issues
+   - Count of visual/interaction issues
+   - List of specific issues with their descriptions
+   - Overall priority (High/Medium/Low)
+
+3. Create a JSON summary with this structure:
+{
+  "batchNumber": ${batchNum},
+  "pages": [
+    {
+      "name": "page-name",
+      "status": "Issues Found",
+      "counts": {
+        "technicalAccuracy": 3,
+        "exampleConsistency": 2,
+        "visualInteraction": 1,
+        "contentQuality": 0
+      },
+      "priority": "High",
+      "issues": [
+        {
+          "category": "Technical Accuracy",
+          "description": "Brief description of the issue"
+        }
+      ]
+    }
+  ],
+  "patterns": ["List any patterns you notice across pages in this batch"]
+}
+
+Read each report from: reports/docs-review/{pageName}/report.md${dryRunInstructions}`;
+
+        await this.saveCurrentPrompt(prompt, `batch-${batchNum}`, 'summary', this.summaryModel);
+
+        try {
+            const result = await this.runClaudeCode(prompt, this.summaryModel, `batch-${batchNum}`, 'summary');
+            this.cleanupCurrentPrompt();
+            this.cleanupCurrentOutput();
+
+            // Parse the JSON response
+            const jsonMatch = result.match(/```json\n([\s\S]*?)\n```/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[1]);
+            } else {
+                // Try to parse the entire response as JSON
+                return JSON.parse(result);
+            }
+        } catch (error) {
+            this.cleanupCurrentPrompt();
+            this.cleanupCurrentOutput();
+            throw error;
+        }
+    }
+
+    async createFinalSummary(batchSummaries, allPages) {
+        const dryRunInstructions = this.dryRun
+            ? `
+
+IMPORTANT: This is a DRY RUN. Create a minimal summary with just basic statistics.`
+            : '';
+
+        // Convert batch summaries to a readable format
+        const batchSummaryText = batchSummaries
+            .map((batch, idx) => `Batch ${idx + 1}:\n${JSON.stringify(batch, null, 2)}`)
+            .join('\n\n');
+
+        const prompt = `I need you to create the final comprehensive summary report from the batch summaries.
+
+You have ${batchSummaries.length} batch summaries to aggregate. Your task:
+
+1. Aggregate all page data from the batch summaries
+2. Identify common patterns across ALL pages
+3. Create a comprehensive markdown summary following the Phase 3 format from tools/prompts/docs-review.md
+
+The summary MUST include:
+- Executive Summary with total pages, success rate, key patterns
+- Results table with ALL pages (status, issue counts, priority, report links)
+- Common issues section grouping similar problems
+- Prioritized recommendations
+- Statistics section
+
+Format the results table like this:
+| Page Name | Status | Technical Accuracy | Example Issues | Visual/Interaction | Priority | Report |
+|-----------|--------|-------------------|----------------|-------------------|----------|---------|
+| page-name | ⚠️ | 3 | 2 | 1 | High | [View Report](./page-name/report.md) |
+
+Here are the batch summaries to aggregate:
+
+${batchSummaryText}
+
+Total pages reviewed: ${allPages.length}
+
+Write the complete summary to: reports/docs-review/summary.md${dryRunInstructions}`;
+
+        await this.saveCurrentPrompt(prompt, 'final-summary', 'summary', this.summaryModel);
+
+        try {
+            const result = await this.runClaudeCode(prompt, this.summaryModel, 'final-summary', 'summary');
             this.cleanupCurrentPrompt();
             this.cleanupCurrentOutput();
             return result;
@@ -675,6 +899,11 @@ function parseArgs() {
         } else if (arg === '--execution-model' && i + 1 < args.length) {
             options.executionModel = args[i + 1];
             i++;
+        } else if (arg.startsWith('--summary-model=')) {
+            options.summaryModel = arg.split('=')[1];
+        } else if (arg === '--summary-model' && i + 1 < args.length) {
+            options.summaryModel = args[i + 1];
+            i++;
         } else if (arg.startsWith('--page-glob=')) {
             options.pageGlob = arg.split('=')[1].replace(/^['"]|['"]$/g, ''); // Remove quotes
         } else if (arg === '--page-glob' && i + 1 < args.length) {
@@ -682,6 +911,25 @@ function parseArgs() {
             i++;
         } else if (arg === '--resume') {
             options.resume = true;
+        } else if (arg.startsWith('--resume-phase=')) {
+            const phase = arg.split('=')[1];
+            if (phase === 'planning' || phase === 'execution' || phase === 'summary') {
+                options.resumePhase = phase;
+                options.resume = true; // Automatically enable resume when phase is specified
+            } else {
+                console.error(`❌ Invalid resume phase: ${phase}. Must be 'planning', 'execution', or 'summary'`);
+                process.exit(1);
+            }
+        } else if (arg === '--resume-phase' && i + 1 < args.length) {
+            const phase = args[i + 1];
+            if (phase === 'planning' || phase === 'execution' || phase === 'summary') {
+                options.resumePhase = phase;
+                options.resume = true; // Automatically enable resume when phase is specified
+                i++;
+            } else {
+                console.error(`❌ Invalid resume phase: ${phase}. Must be 'planning', 'execution', or 'summary'`);
+                process.exit(1);
+            }
         } else if (arg === '--clean') {
             options.clean = true;
         } else if (arg === '--verbose' || arg === '-v') {
@@ -697,21 +945,27 @@ Options:
   --skip-screenshots          Skip screenshot capture during execution
   --planning-model <model>    Model to use for Phase 1 planning (default: opus)
   --execution-model <model>   Model to use for Phase 2 execution (default: sonnet)
+  --summary-model <model>     Model to use for Phase 3 summary (default: sonnet)
   --page-glob <pattern>       Glob pattern to filter pages (e.g., 'pie-*' for pie pages)
   --verbose, -v               Stream Claude output as it executes (instead of spinner)
   --dry-run                   Request skeleton reports for quick testing
-  --resume                    Resume from filesystem state (checks for existing review-plan.md and report.md files)
+  --resume                    Resume from filesystem state (checks for existing files)
+  --resume-phase <phase>      Resume from specific phase: 'planning' (default), 'execution', or 'summary'
+                              - 'execution': skips planning phase
+                              - 'summary': skips planning and execution phases
   --clean                     Clean up progress file and start fresh
   --help, -h                  Show this help message
 
 Examples:
   node run-docs-review.js
   node run-docs-review.js --batch-size=3 --skip-screenshots
-  node run-docs-review.js --planning-model=opus --execution-model=sonnet
+  node run-docs-review.js --planning-model=opus --execution-model=sonnet --summary-model=opus
   node run-docs-review.js --page-glob='pie-*' --batch-size=1
   node run-docs-review.js --page-glob='pie-series' (single page)
   node run-docs-review.js --verbose --dry-run  (quick test with output)
   node run-docs-review.js --resume
+  node run-docs-review.js --resume-phase=execution  (skip planning, run execution only)
+  node run-docs-review.js --resume-phase=summary  (skip to summary generation)
   node run-docs-review.js --clean
 `);
             process.exit(0);
