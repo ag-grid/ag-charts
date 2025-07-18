@@ -66,6 +66,24 @@ if [ "$1" == "--host" ] ; then
     sleep 1
   fi
 
+  if [ "${CI:-}" == "" ] ; then
+    if (lsof -i :4601 >/dev/null) ; then
+      echo "Port 4601 already in use, killing..."
+      lsof -i :4601 | awk 'NR>1 {print $2}' | xargs kill -9
+      sleep 3
+    fi
+
+    if (lsof -i :8080 >/dev/null) ; then
+      echo "Port 8080 already in use, killing..."
+      lsof -i :8080 | awk 'NR>1 {print $2}' | xargs kill -9
+      sleep 3
+    fi
+
+    if (lsof -i :4601 >/dev/null || lsof -i :8080 >/dev/null) ; then
+      echo "Ports 4601 and 8080 already in use, unable to start Playwright tests."
+    fi
+  fi
+
   npx astro dev --port=4601 --host &
   astro_pid=$!
   container_name=playwright-e2e-$$
