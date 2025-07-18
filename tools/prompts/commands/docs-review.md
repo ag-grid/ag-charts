@@ -114,7 +114,6 @@ Execute the plan systematically, potentially across multiple prompts if needed:
     -   Default values match what's actually implemented (e.g., check property decorators for `@Property` default assignments)
     -   Edge cases and limitations are properly documented
     -   Feature availability (community vs enterprise) is correctly indicated
-    
 -   **Chart type distinctions**: Be aware that pie and donut charts share implementation but are distinct from a user perspective:
     -   Check files like `donutSeries.ts`, `donutSeriesProperties.ts` for pie/donut-specific behavior
     -   Verify documentation correctly describes behavior for each chart type

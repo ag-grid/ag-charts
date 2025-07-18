@@ -12,7 +12,7 @@ const glob = require('glob');
  * - Phase 1 (Planning): Uses expensive model for sophisticated reasoning
  * - Phase 2 (Execution): Uses cheaper model for systematic tasks
  * - Runs in parallel batches to optimize performance
- * 
+ *
  * Resume functionality:
  * - Checks filesystem state for existing review-plan.md and report.md files
  * - Automatically skips completed pages based on file existence
@@ -146,38 +146,42 @@ class DocsReviewOrchestrator {
     async loadProgress() {
         try {
             console.log('📂 Checking filesystem state for existing progress...');
-            
+
             // Check for completed pages by looking at filesystem
             let planningCompleted = 0;
             let executionCompleted = 0;
-            
+
             // Get all page directories
-            const pagesDirs = fs.existsSync(this.reportsPath) 
-                ? fs.readdirSync(this.reportsPath).filter(dir => {
-                    const fullPath = path.join(this.reportsPath, dir);
-                    return fs.statSync(fullPath).isDirectory() && 
-                           !['progress.json', 'summary.json', 'current-prompt.md', 'current-prompt-output.md'].includes(dir);
-                })
+            const pagesDirs = fs.existsSync(this.reportsPath)
+                ? fs.readdirSync(this.reportsPath).filter((dir) => {
+                      const fullPath = path.join(this.reportsPath, dir);
+                      return (
+                          fs.statSync(fullPath).isDirectory() &&
+                          !['progress.json', 'summary.json', 'current-prompt.md', 'current-prompt-output.md'].includes(
+                              dir
+                          )
+                      );
+                  })
                 : [];
-            
+
             // Check each page directory for completed files
             for (const pageDir of pagesDirs) {
                 const pagePath = path.join(this.reportsPath, pageDir);
                 const planPath = path.join(pagePath, 'review-plan.md');
                 const reportPath = path.join(pagePath, 'report.md');
-                
+
                 if (fs.existsSync(planPath)) {
                     this.completedPages.add(`${pageDir}:planning`);
                     planningCompleted++;
                 }
-                
+
                 if (fs.existsSync(reportPath)) {
                     this.completedPages.add(`${pageDir}:execution`);
                     executionCompleted++;
                     this.results.completed++;
                 }
             }
-            
+
             if (planningCompleted > 0 || executionCompleted > 0) {
                 console.log(`✅ Found existing progress:`);
                 console.log(`   - Planning completed: ${planningCompleted} pages`);
@@ -186,7 +190,7 @@ class DocsReviewOrchestrator {
             } else {
                 console.log('📝 No previous progress found in filesystem, starting fresh');
             }
-            
+
             // Optionally load errors from previous runs, but only for completed pages
             const summaryPath = path.join(this.reportsPath, 'summary.json');
             if (fs.existsSync(summaryPath)) {
@@ -194,18 +198,18 @@ class DocsReviewOrchestrator {
                     const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
                     if (summary.results && summary.results.errors) {
                         // Filter out errors for pages that will be reprocessed
-                        this.results.errors = summary.results.errors.filter(error => {
+                        this.results.errors = summary.results.errors.filter((error) => {
                             // Keep error only if the page won't be reprocessed
                             const pageReportPath = path.join(this.reportsPath, error.page, 'report.md');
                             const isPageComplete = fs.existsSync(pageReportPath);
-                            
+
                             if (!isPageComplete) {
                                 console.log(`   🔄 Clearing previous error for ${error.page} (will be reprocessed)`);
                                 return false;
                             }
                             return true;
                         });
-                        
+
                         if (this.results.errors.length > 0) {
                             console.log(`   ⚠️  Keeping ${this.results.errors.length} errors from completed pages`);
                         }
@@ -230,12 +234,9 @@ class DocsReviewOrchestrator {
                     timestamp: new Date().toISOString(),
                     errors: this.results.errors,
                 };
-                
+
                 fs.mkdirSync(path.dirname(this.progressFile), { recursive: true });
-                fs.writeFileSync(
-                    path.join(this.reportsPath, 'errors.json'),
-                    JSON.stringify(errorLog, null, 2)
-                );
+                fs.writeFileSync(path.join(this.reportsPath, 'errors.json'), JSON.stringify(errorLog, null, 2));
             }
         } catch (error) {
             console.error('❌ Failed to save error log:', error.message);
@@ -255,7 +256,7 @@ class DocsReviewOrchestrator {
     isPageCompleted(pageName, phase) {
         // Check filesystem state instead of memory
         const pageDir = path.join(this.reportsPath, pageName);
-        
+
         if (phase === 'planning') {
             const planPath = path.join(pageDir, 'review-plan.md');
             return fs.existsSync(planPath);
@@ -263,7 +264,7 @@ class DocsReviewOrchestrator {
             const reportPath = path.join(pageDir, 'report.md');
             return fs.existsSync(reportPath);
         }
-        
+
         return false;
     }
 
@@ -273,10 +274,8 @@ class DocsReviewOrchestrator {
 
     addError(page, phase, errorMessage) {
         // Check if error already exists for this page and phase
-        const existingError = this.results.errors.find(
-            e => e.page === page && e.phase === phase
-        );
-        
+        const existingError = this.results.errors.find((e) => e.page === page && e.phase === phase);
+
         if (!existingError) {
             this.results.errors.push({
                 page: page,
@@ -406,13 +405,15 @@ ${prompt}
     }
 
     async runPhase1(page) {
-        const dryRunInstructions = this.dryRun ? `
+        const dryRunInstructions = this.dryRun
+            ? `
 
 IMPORTANT: This is a DRY RUN. Instead of creating a full review plan:
 - Create a minimal skeleton review plan with just headers and brief bullet points
 - Include only 2-3 key validation targets instead of exhaustive coverage
 - Keep the plan under 200 words
-- This is for testing the pipeline, not actual review` : '';
+- This is for testing the pipeline, not actual review`
+            : '';
 
         const prompt = `I need you to run Phase 1 of the documentation review for the page: ${page.path}
 
@@ -438,7 +439,8 @@ Please use the documentation review prompt from tools/prompts/docs-review.md to 
         const planPath = path.join(this.reportsPath, page.name, 'review-plan.md');
         const planExists = fs.existsSync(planPath);
 
-        const dryRunInstructions = this.dryRun ? `
+        const dryRunInstructions = this.dryRun
+            ? `
 
 IMPORTANT: This is a DRY RUN. Instead of a full execution:
 - Create a minimal skeleton report with just headers and brief findings
@@ -446,7 +448,8 @@ IMPORTANT: This is a DRY RUN. Instead of a full execution:
 - Include only 1-2 mock findings instead of thorough testing
 - Skip screenshots entirely
 - Keep the report under 300 words
-- This is for testing the pipeline, not actual review` : '';
+- This is for testing the pipeline, not actual review`
+            : '';
 
         const prompt = `I need you to run Phase 2 of the documentation review for the page: ${page.path}
 
@@ -517,19 +520,19 @@ Please use the documentation review prompt from tools/prompts/docs-review.md to 
             child.stdout.on('data', (data) => {
                 const chunk = data.toString();
                 stdout += chunk;
-                
+
                 // Stream output to console in verbose mode
                 if (this.verbose) {
                     process.stdout.write(chunk);
                 }
-                
+
                 // Stream output to file in real-time
                 this.saveCurrentOutput(stdout, pageName, phase, model);
             });
 
             child.stderr.on('data', (data) => {
                 stderr += data.toString();
-                
+
                 // Also show stderr in verbose mode
                 if (this.verbose) {
                     process.stderr.write(data);
