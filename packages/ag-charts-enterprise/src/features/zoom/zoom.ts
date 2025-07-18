@@ -15,6 +15,8 @@ import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
     DEFAULT_ANCHOR_POINT_X,
     DEFAULT_ANCHOR_POINT_Y,
+    UNIT_MAX,
+    UNIT_MIN,
     UNIT_SIZE,
     constrainZoom,
     definedZoomState,
@@ -79,6 +81,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     @Property
     public enableAxisDragging = true;
+
+    @Property
+    public enableAxisScrolling = false;
 
     @Property
     public enableDoubleClickToReset = true;
@@ -206,6 +211,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             onAxisDragMove: (event) => this.onAxisDragMove(event),
             onAxisDragEnd: () => this.onAxisDragEnd(),
             onAxisDoubleClick: (id) => this.onAxisDoubleClick(id),
+            onAxisWheel: (direction, event) => this.onAxisWheel(direction, event),
         });
 
         if (ctx.widgets.seriesDragInterpreter) {
@@ -529,10 +535,38 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onWheelScrolling(event: _Widget.WheelWidgetEvent) {
+        const zoom = this.getZoom();
+        const isZoomCapped = event.deltaY > 0 && isMaxZoom(zoom);
+
+        this.handleWheelScrolling(event, isZoomCapped);
+    }
+
+    private onAxisWheel(axisDirection: _ModuleSupport.ChartAxisDirection, event: _ModuleSupport.WheelWidgetEvent) {
+        const { enableAxisScrolling } = this;
+        if (!enableAxisScrolling) return;
+        if (axisDirection !== ChartAxisDirection.X && axisDirection !== ChartAxisDirection.Y) {
+            return;
+        }
+
+        const isScalingX = axisDirection === ChartAxisDirection.X;
+        const isScalingY = !isScalingX;
+
+        const props = this.getModuleProperties({ isScalingX, isScalingY });
+
+        const zoom = this.getZoom();
+        const isZoomCapped =
+            event.deltaY > 0 && zoom[axisDirection].min === UNIT_MIN && zoom[axisDirection].max === UNIT_MAX;
+
+        this.handleWheelScrolling(event, isZoomCapped, props);
+    }
+
+    private handleWheelScrolling(
+        event: _ModuleSupport.WheelWidgetEvent,
+        isZoomCapped: boolean,
+        props: ZoomProperties = this.getModuleProperties()
+    ) {
         const {
-            enableAxisDragging,
             enableIndependentAxes,
-            hoveredAxis,
             scroller,
             seriesRect,
             ctx: { zoomManager },
@@ -540,26 +574,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (!seriesRect) return;
 
-        const zoom = this.getZoom();
-        let isZoomCapped = event.deltaY > 0 && isMaxZoom(zoom);
-
-        const isAxisScrolling = enableAxisDragging && hoveredAxis != null;
-
-        let isScalingX = this.isScalingX();
-        let isScalingY = this.isScalingY();
-
-        if (isAxisScrolling) {
-            isScalingX = hoveredAxis.direction === _ModuleSupport.ChartAxisDirection.X;
-            isScalingY = !isScalingX;
-        }
-
-        const props = this.getModuleProperties({ isScalingX, isScalingY });
         let updated = true;
 
         if (enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
             for (const [axisId, { direction, zoom: axisZoom }] of entries(newZooms)) {
-                if (isAxisScrolling && hoveredAxis.id !== axisId) continue;
                 updated &&= this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, axisZoom);
             }
         } else {

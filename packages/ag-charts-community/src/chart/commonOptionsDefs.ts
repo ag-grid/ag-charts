@@ -452,6 +452,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     zoom: {
         enabled: boolean,
         enableAxisDragging: boolean,
+        enableAxisScrolling: boolean,
         enableDoubleClickToReset: boolean,
         enablePanning: boolean,
         enableScrolling: boolean,
