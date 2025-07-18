@@ -24,7 +24,6 @@ const options: AgCartesianChartOptions = {
             xKey: 'x',
             yKey: 'y',
             sizeKey: 'size',
-            // @ts-expect-error Undocumented option
             maxRenderedItems: 2000,
         },
     ],
@@ -60,7 +59,6 @@ function setSeries(type: string) {
                 yKey: 'y',
                 sizeKey: 'size',
                 shape,
-                // @ts-expect-error Undocumented option
                 maxRenderedItems,
             };
             break;
@@ -70,7 +68,6 @@ function setSeries(type: string) {
                 xKey: 'x',
                 yKey: 'y',
                 shape,
-                // @ts-expect-error Undocumented option
                 maxRenderedItems,
             };
             break;

@@ -42,7 +42,7 @@ const options: AgCartesianChartOptions = {
             title: 'Scatter',
             shape: 'circle',
             visible: visibleCount >= 1,
-            // @ts-expect-error Undocumented option - disable high performance optimisations
+            // disable high performance optimisations
             maxRenderedItems: 100_000,
         },
         {
