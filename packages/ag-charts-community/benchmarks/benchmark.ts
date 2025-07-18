@@ -43,9 +43,9 @@ interface BenchmarkExpectations {
 
 interface ExpectationBreach {
     testName: string;
-    type: 'memory' | 'canvasCount';
-    expected: number;
-    actual: number;
+    type: 'memory' | 'canvasCount' | 'snapshot';
+    expected: number | string;
+    actual: number | string;
 }
 
 // Global array to collect breaches when in soft-fail mode
@@ -185,6 +185,92 @@ function defaultTimeoutMs(ctx: BenchmarkContext) {
     return 10_000;
 }
 
+function runAutoSnapshot(ctx: BenchmarkContext, expectations: BenchmarkExpectations, currentTestName: string) {
+    const { autoSnapshot } = expectations;
+    if (!(autoSnapshot ?? true)) return;
+
+    const newImageData = mockCanvas.extractImageData(ctx.canvasCtx.ctx);
+    const assertSnapshot = () => {
+        expect(newImageData).toMatchImageSnapshot({
+            failureThresholdType: 'pixel',
+            failureThreshold: 5,
+            customDiffConfig: {
+                threshold: 0.05,
+            },
+        });
+    };
+    if (!softFailMode) {
+        // Normal mode - let the assertion fail
+        assertSnapshot();
+        return;
+    }
+
+    // In soft-fail mode, try-catch snapshot assertions
+    try {
+        assertSnapshot();
+    } catch {
+        // Collect snapshot breach
+        expectationBreaches.push({
+            testName: currentTestName,
+            type: 'snapshot',
+            expected: 'snapshot match',
+            actual: 'snapshot mismatch',
+        });
+        console.log(`[${currentTestName}]: BREACH - Snapshot mismatch detected`);
+    }
+}
+
+function runExpectations(
+    ctx: BenchmarkContext,
+    expectations: BenchmarkExpectations,
+    currentTestName: string,
+    memory: ReturnType<typeof recordTiming>,
+    canvasInstances: unknown[]
+) {
+    const { expectedRelativeMB, expectedCanvasCount } = expectations;
+    const expected = {
+        expectedRelativeMB,
+        expectedCanvasCount,
+    };
+
+    const BYTES_PER_MB = 1024 ** 2;
+    const actual = {
+        expectedRelativeMB: memory.relativeMemoryUse / BYTES_PER_MB,
+        expectedCanvasCount: canvasInstances.length,
+    };
+
+    for (const key in expected) {
+        const actualValue = actual[key];
+        const expectedValue = expected[key];
+
+        if (actualValue < expectedValue * 0.8) {
+            console.log(
+                `[${currentTestName}]: ${key} is much less than expected (expected: ${expectedValue}, actual: ${actualValue})`
+            );
+            return;
+        }
+
+        if (actualValue <= expectedValue) return;
+
+        if (!softFailMode) {
+            // Normal mode - fail the test
+            expect(actualValue).toBeLessThanOrEqual(expectedValue);
+            return;
+        }
+
+        // In soft-fail mode, collect breaches instead of failing
+        expectationBreaches.push({
+            testName: currentTestName,
+            type: key === 'expectedRelativeMB' ? 'memory' : 'canvasCount',
+            expected: expectedValue,
+            actual: actualValue,
+        });
+        console.log(
+            `[${currentTestName}]: BREACH - ${key} exceeded expected (expected: ${expectedValue}, actual: ${actualValue})`
+        );
+    }
+}
+
 export function benchmark(
     name: string,
     ctx: BenchmarkContext,
@@ -252,50 +338,8 @@ export function benchmark(
                 return;
             }
 
-            const { autoSnapshot, ...expected } = expectations;
-            if (autoSnapshot ?? true) {
-                const newImageData = mockCanvas.extractImageData(ctx.canvasCtx.ctx);
-                expect(newImageData).toMatchImageSnapshot({
-                    failureThresholdType: 'pixel',
-                    failureThreshold: 5,
-                    customDiffConfig: {
-                        threshold: 0.05,
-                    },
-                });
-            }
-
-            const BYTES_PER_MB = 1024 ** 2;
-            const actual = {
-                expectedRelativeMB: memory.relativeMemoryUse / BYTES_PER_MB,
-                expectedCanvasCount: canvasInstances.length,
-            };
-
-            for (const key in expected) {
-                const actualValue = actual[key];
-                const expectedValue = expected[key];
-
-                if (actualValue > expectedValue) {
-                    if (softFailMode) {
-                        // In soft-fail mode, collect breaches instead of failing
-                        expectationBreaches.push({
-                            testName: currentTestName,
-                            type: key === 'expectedRelativeMB' ? 'memory' : 'canvasCount',
-                            expected: expectedValue,
-                            actual: actualValue,
-                        });
-                        console.log(
-                            `[${currentTestName}]: BREACH - ${key} exceeded expected (expected: ${expectedValue}, actual: ${actualValue})`
-                        );
-                    } else {
-                        // Normal mode - fail the test
-                        expect(actualValue).toBeLessThanOrEqual(expectedValue);
-                    }
-                } else if (actualValue < expectedValue * 0.8) {
-                    console.log(
-                        `[${currentTestName}]: ${key} is much less than expected (expected: ${expectedValue}, actual: ${actualValue})`
-                    );
-                }
-            }
+            runAutoSnapshot(ctx, expectations, currentTestName);
+            runExpectations(ctx, expectations, currentTestName, memory, canvasInstances);
         },
         timeoutMs
     );
