@@ -35,6 +35,7 @@ import {
     type TickDatum,
     prepareAxisAnimationContext,
     prepareAxisAnimationFunctions,
+    resetAxisFillSelectionFn,
     resetAxisGroupFn,
     resetAxisLabelSelectionFn,
     resetAxisLineSelectionFn,
@@ -277,58 +278,107 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult));
 
-        const { position, horizontal, gridPadding, gridLength } = this;
+        const { position, gridPadding, gridLength } = this;
         const direction = position === 'bottom' || position === 'right' ? -1 : 1;
         const p1 = gridPadding;
         const p2 = direction * gridLength - gridPadding;
 
-        const { gridLine } = this;
-        const gridLines = ticks.map(({ index, tickId, translation: offset }): AxisLineDatum => {
-            const [x1, y1, x2, y2] = horizontal ? [offset, p1, offset, p2] : [p1, offset, p2, offset];
-            const { style, width: strokeWidth } = gridLine;
-            const { stroke, lineDash } = style[index % style.length] ?? {};
-            return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
-        });
-
-        const firstTickOffset = ticks[0] ? ticks[0].translation : undefined;
-        const gridFills: AxisFillDatum[] = [];
-
-        let gridFillIndex = 0;
-
-        const createGridFill = (
-            { tickId, translation: offset }: Pick<TickDatum, 'tickId' | 'translation'>,
-            tickIndex: number
-        ) => {
-            const [x1, y1, x2, y2] = horizontal
-                ? [offset, Math.abs(p1), ticks.at(tickIndex + 1)?.translation ?? range[1], Math.abs(p2)]
-                : [p1, offset, p2, ticks.at(tickIndex - 1)?.translation ?? range[0]];
-            const { fill, fillOpacity } = gridLine.style[gridFillIndex % gridLine.style.length] ?? {};
-            gridFillIndex++;
-            return { tickId, x1, y1, x2, y2, fill, fillOpacity };
-        };
-
-        // Inject an additional grid fill between the start and the first tick
-        if (ticks.length > 0 && firstTickOffset !== Math.floor(range[0])) {
-            gridFills.push(createGridFill({ tickId: `before:${ticks[0].tickId}`, translation: range[0] }, -1));
-        }
-
-        gridFills.push(...ticks.map(createGridFill));
-
-        const { tick, primaryTick } = this;
-        const tickLines = ticks.map(({ primary, tickId, translation: offset }): AxisLineDatum => {
-            const datumTick = primary && primaryTick?.enabled ? primaryTick : tick;
-            const h = -direction * this.getTickSize(datumTick);
-            const [x1, y1, x2, y2] = horizontal ? [offset, 0, offset, h] : [0, offset, h, offset];
-            const { stroke, width: strokeWidth } = datumTick;
-            const lineDash = undefined;
-            return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
-        });
-
+        const gridLines = this.calculateGridLines(ticks, p1, p2);
+        const gridFills = this.calculateGridFills(ticks, p1, p2);
+        const tickLines = this.calculateTickLines(ticks, direction);
         const { bbox, spacing } = this.tickBBox(tickDomain, ticks, labels);
-
         const layout: GeneratedTicks = { ticks, gridLines, gridFills, tickLines, labels, spacing };
 
         return { ticks: rawTicks, rawTickCount, tickDomain, niceDomain, fractionDigits, timeInterval, bbox, layout };
+    }
+
+    protected calculateGridLines(ticks: TickDatum[], p1: number, p2: number) {
+        return ticks.map((tick, index) => this.calculateGridLine(tick, index, p1, p2, ticks));
+    }
+
+    protected calculateGridLine(
+        { index: tickIndex, tickId, translation: offset }: Pick<TickDatum, 'index' | 'tickId' | 'translation'>,
+        _index: number,
+        p1: number,
+        p2: number,
+        _ticks: TickDatum[]
+    ): AxisLineDatum {
+        const { gridLine, horizontal } = this;
+
+        const [x1, y1, x2, y2] = horizontal ? [offset, p1, offset, p2] : [p1, offset, p2, offset];
+        const { style, width: strokeWidth } = gridLine;
+        const { stroke, lineDash } = style[tickIndex % style.length] ?? {};
+
+        return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
+    }
+
+    protected calculateGridFills(ticks: TickDatum[], p1: number, p2: number) {
+        const { range } = this;
+
+        const gridFills: AxisFillDatum[] = [];
+        if (ticks.length == 0) return gridFills;
+
+        let gridFillIndex = ticks[0].index;
+
+        // Inject an additional grid fill between the start and the first tick
+        if (ticks[0].translation !== Math.floor(range[0])) {
+            const tick = { tickId: `before:${ticks[0].tickId}`, translation: range[0] };
+            gridFills.push(this.calculateGridFill(tick, -1, gridFillIndex, p1, p2, ticks));
+            gridFillIndex++;
+        }
+
+        gridFills.push(
+            ...ticks.map((tick, index) => {
+                const gridFill = this.calculateGridFill(tick, index, gridFillIndex, p1, p2, ticks);
+                gridFillIndex++;
+                return gridFill;
+            })
+        );
+
+        return gridFills;
+    }
+
+    protected calculateGridFill(
+        { tickId, translation }: Pick<TickDatum, 'tickId' | 'translation'>,
+        index: number,
+        gridFillIndex: number,
+        p1: number,
+        p2: number,
+        ticks: TickDatum[]
+    ): AxisFillDatum {
+        const { gridLine, horizontal, range } = this;
+
+        const nextTick = ticks[index + 1];
+        const startOffset = translation;
+        const endOffset = nextTick ? nextTick.translation : range[1];
+
+        const [x1, y1, x2, y2] = horizontal
+            ? [startOffset, Math.max(p1, p2), endOffset, Math.min(p1, p2)]
+            : [Math.min(p1, p2), Math.min(startOffset, endOffset), Math.max(p1, p2), Math.max(startOffset, endOffset)];
+        const { fill, fillOpacity } = gridLine.style[gridFillIndex % gridLine.style.length] ?? {};
+
+        return { tickId, x1, y1, x2, y2, fill, fillOpacity };
+    }
+
+    protected calculateTickLines(ticks: TickDatum[], direction: number): AxisLineDatum[] {
+        return ticks.map((tick) => this.calculateTickLine(tick, tick.index, direction, ticks));
+    }
+
+    protected calculateTickLine(
+        { primary, tickId, translation: offset }: Pick<TickDatum, 'primary' | 'tickId' | 'translation'>,
+        _index: number,
+        direction: number,
+        _ticks: TickDatum[]
+    ): AxisLineDatum {
+        const { horizontal, tick, primaryTick } = this;
+
+        const datumTick = primary && primaryTick?.enabled ? primaryTick : tick;
+        const h = -direction * this.getTickSize(datumTick);
+        const [x1, y1, x2, y2] = horizontal ? [offset, 0, offset, h] : [0, offset, h, offset];
+        const { stroke, width: strokeWidth } = datumTick;
+        const lineDash = undefined;
+
+        return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
     }
 
     override update() {
@@ -631,11 +681,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     protected updateGridFills() {
         this.gridFillGroupSelection.each((rect, datum) => {
-            rect.x = datum.x1;
-            rect.y = datum.y1;
-            rect.width = Math.abs(datum.x2 - datum.x1);
-            rect.height = Math.abs(datum.y2 - datum.y1);
-            if (this.horizontal) rect.height *= -1;
             rect.fill = datum.fill;
             rect.fillOpacity = datum.fillOpacity ?? 1;
         });
@@ -721,6 +766,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             resetAxisGroupFn()
         );
         resetMotion([this.gridLineGroupSelection, this.tickLineGroupSelection], resetAxisLineSelectionFn());
+        resetMotion([this.gridFillGroupSelection], resetAxisFillSelectionFn());
         resetMotion([this.tickLabelGroupSelection], resetAxisLabelSelectionFn());
         resetMotion([this.title.caption.node], resetAxisLabelSelectionFn());
         resetMotion([this.lineNode], resetAxisLineSelectionFn());

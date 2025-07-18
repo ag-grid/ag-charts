@@ -74,18 +74,13 @@ const options: AgChartOptions = {
             },
             paddingInner: 0.5,
             paddingOuter: 0.2,
-            crossLines: [
-                {
-                    type: 'range',
-                    range: ['Peter', 'Peter'],
-                    strokeWidth: 0,
-                },
-                {
-                    type: 'range',
-                    range: ['Mercutio', 'Mercutio'],
-                    strokeWidth: 0,
-                },
-            ],
+            gridLine: {
+                width: 0,
+                style: [{ fill: 'black', fillOpacity: 0.07 }, {}],
+            },
+            interval: {
+                placement: 'between',
+            },
         },
         {
             position: 'left',

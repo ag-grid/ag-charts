@@ -455,6 +455,50 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
     };
 }
 
+const EXAMPLE_GRID_LINE = {
+    width: 2,
+    style: [
+        { fill: 'red', fillOpacity: 0.1, stroke: 'red' },
+        { fill: 'blue', fillOpacity: 0.1, stroke: 'blue' },
+        { fill: 'green', fillOpacity: 0.1, stroke: 'green' },
+        { fill: 'yellow', fillOpacity: 0.1, stroke: 'yellow' },
+    ],
+};
+
+function applyIntervalOn<T extends AgCartesianChartOptions>(opts: T): T {
+    return {
+        ...opts,
+        axes:
+            opts.axes?.map((axis) =>
+                axis.type === 'ordinal-time'
+                    ? {
+                          ...axis,
+                          interval: { ...(axis.interval ?? {}), placement: 'on' },
+                          gridLine: EXAMPLE_GRID_LINE,
+                          tick: { ...(axis.tick ?? {}), enabled: true },
+                      }
+                    : axis
+            ) ?? undefined,
+    };
+}
+
+function applyIntervalBetween<T extends AgCartesianChartOptions>(opts: T): T {
+    return {
+        ...opts,
+        axes:
+            opts.axes?.map((axis) =>
+                axis.type === 'ordinal-time'
+                    ? {
+                          ...axis,
+                          interval: { ...(axis.interval ?? {}), placement: 'between' },
+                          gridLine: EXAMPLE_GRID_LINE,
+                          tick: { ...(axis.tick ?? {}), enabled: true },
+                      }
+                    : axis
+            ) ?? undefined,
+    };
+}
+
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
     assertions: (chart: ChartOrProxy) => Promise<void> | void;
@@ -632,5 +676,19 @@ describe('Ordinal Time Axis Examples', () => {
 
             expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
+    });
+
+    it('should render interval on as expected', async () => {
+        const options = applyIntervalOn(BASIC_ORDINAL_TIME_AXIS_EXAMPLE);
+        chart = await createEnterpriseChart(options);
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+    });
+
+    it('should render interval between as expected', async () => {
+        const options = applyIntervalBetween(BASIC_ORDINAL_TIME_AXIS_EXAMPLE);
+        chart = await createEnterpriseChart(options);
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     });
 });

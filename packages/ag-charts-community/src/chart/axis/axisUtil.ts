@@ -2,6 +2,7 @@ import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
 import type { FromToFns } from '../../motion/fromToMotion';
 import type { Group, TranslatableGroup } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
+import type { Rect } from '../../scene/shape/rect';
 import type { RotatableText } from '../../scene/shape/text';
 import { findMinMax } from '../../util/number';
 
@@ -237,5 +238,12 @@ export function resetAxisLineSelectionFn() {
     return (_node: Line, datum: AxisLineDatum) => {
         const { x1, x2, y1, y2 } = datum;
         return { x1, x2, y1, y2 };
+    };
+}
+
+export function resetAxisFillSelectionFn() {
+    return (_node: Rect, datum: AxisFillDatum) => {
+        const { x1, x2, y1, y2 } = datum;
+        return { x: x1, y: y1, width: x2 - x1, height: y2 - y1 };
     };
 }
