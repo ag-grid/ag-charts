@@ -1,4 +1,9 @@
-import { type AgChartLegendPosition, type AgGradientLegendScaleOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgChartLegendPosition,
+    type AgGradientLegendOptions,
+    type AgGradientLegendScaleOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import { CleanupRegistry, createId } from 'ag-charts-core';
 
 import { AxisTicks } from './axisTicks';
@@ -38,7 +43,7 @@ class GradientLegendScale implements Omit<AgGradientLegendScaleOptions, 'label'>
     padding?: AxisTicks['padding'];
 }
 
-export class GradientLegend {
+export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLegendOptions> {
     static readonly className = 'GradientLegend';
 
     readonly id = createId(this);
@@ -60,9 +65,6 @@ export class GradientLegend {
     position: AgChartLegendPosition = 'bottom';
 
     @Property
-    floating: boolean = false;
-
-    @Property
     reverseOrder: boolean = false;
 
     @Property
@@ -79,11 +81,13 @@ export class GradientLegend {
     @Property
     spacing = 20;
 
+    @Property
     scale: GradientLegendScale;
 
     data: _ModuleSupport.GradientLegendDatum[] = [];
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
+        super();
         this.highlightManager = ctx.highlightManager;
 
         this.axisTicks = new AxisTicks(ctx, this);
