@@ -39,10 +39,10 @@ describe('Overlay', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Option \`overlays.noData.text\` cannot be set to \`0\`; expecting a string, ignoring.",
+    "AG Charts - Option \`overlays.noData.text\` cannot be set to \`0\`; expecting a string or text segments array, ignoring.",
   ],
   [
-    "AG Charts - Option \`overlays.noVisibleSeries.text\` cannot be set to \`0\`; expecting a string, ignoring.",
+    "AG Charts - Option \`overlays.noVisibleSeries.text\` cannot be set to \`0\`; expecting a string or text segments array, ignoring.",
   ],
 ]
 `);

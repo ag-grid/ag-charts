@@ -33,6 +33,7 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     shadowOptionsDefs,
+    textOrSegments,
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
@@ -56,7 +57,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
     }),
     title: {
         enabled: boolean,
-        text: string,
+        text: textOrSegments,
         showInLegend: boolean,
         spacing: positiveNumber,
         ...fontOptionsDef,

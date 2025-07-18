@@ -1,4 +1,4 @@
-import { createId } from 'ag-charts-core';
+import { createId, isArray } from 'ag-charts-core';
 import type { FontStyle, FontWeight, TextAlign, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../module/moduleContext';
@@ -83,6 +83,9 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
         const { text, padding, wrapping } = this;
+
+        if (isArray(text)) return;
+
         const maxWidth = Math.min(this.maxWidth ?? Infinity, containerWidth) - padding * 2;
         const maxHeight = this.maxHeight ?? containerHeight - padding * 2;
         if (!isFinite(maxWidth) && !isFinite(maxHeight)) {

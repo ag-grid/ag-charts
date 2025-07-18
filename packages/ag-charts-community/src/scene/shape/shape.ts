@@ -1,5 +1,5 @@
-import { type InternalAgGradientColor, boxesEqual, clamp, generateUUID } from 'ag-charts-core';
-import type { AgImageFill, AgPatternColor } from 'ag-charts-types';
+import { type InternalAgGradientColor, boxesEqual, clamp, generateUUID, isString } from 'ag-charts-core';
+import type { AgImageFill, AgPatternColor, CssColor, LineDashOptions, StrokeOptions } from 'ag-charts-types';
 
 import { objectsEqual } from '../../util/object';
 import type { BBox } from '../bbox';
@@ -15,6 +15,7 @@ import { Node, SceneChangeDetection } from '../node';
 import { Pattern } from '../pattern/pattern';
 import { isGradientFill, isImageFill, isPatternFill } from '../util/fill';
 import { align } from '../util/pixel';
+import { setSvgLineDashAttributes, setSvgStrokeAttributes } from './svgUtils';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
@@ -30,9 +31,11 @@ export type CanvasContext = CanvasFillStrokeStyles &
 
 export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { colorSpace?: ColorSpace };
 
-export type ShapeColor = string | ShapeGradientColor | AgPatternColor | AgImageFill;
+export type ShapeColor = CssColor | ShapeGradientColor | AgPatternColor | AgImageFill;
 
-export abstract class Shape<D = any> extends Node<D> {
+type SvgAttributes = StrokeOptions & LineDashOptions;
+
+export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     @SceneChangeDetection()
     fillOpacity: number = 1;
 
@@ -355,18 +358,8 @@ export abstract class Shape<D = any> extends Node<D> {
     }
 
     protected applySvgStrokeAttributes(element: SVGElement) {
-        const { stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this;
-        if (stroke != null) {
-            element.setAttribute('stroke', typeof stroke === 'string' ? stroke : 'none');
-            element.setAttribute('stroke-opacity', String(strokeOpacity));
-            element.setAttribute('stroke-width', String(strokeWidth));
-        }
-        if (lineDash?.some((d) => d !== 0) === true) {
-            // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/setLineDash#segments
-            // If the number of elements in the array is odd, the elements of the array get copied and concatenated
-            const svgLineDash = lineDash.length % 2 === 1 ? [...lineDash, ...lineDash] : lineDash;
-            element.setAttribute('stroke-dasharray', svgLineDash.join(' '));
-            element.setAttribute('stroke-dashoffset', String(lineDashOffset));
-        }
+        const { stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this as SvgAttributes;
+        setSvgStrokeAttributes(element, { stroke: isString(stroke) ? stroke : undefined, strokeOpacity, strokeWidth });
+        setSvgLineDashAttributes(element, { lineDash, lineDashOffset });
     }
 }

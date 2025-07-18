@@ -67,12 +67,13 @@ import type {
 } from 'ag-charts-types';
 
 import { without } from '../../util/object';
-import { commonAxisLabelOptionsDefs, numberFormatValidator } from '../axesOptionsDefs';
+import { commonAxisLabelOptionsDefs } from '../axesOptionsDefs';
 import {
     autoSizedLabelOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     interpolationOptionsDefs,
     markerOptionsDefs,
+    numberFormatValidator,
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
     tooltipOptionsDefs,

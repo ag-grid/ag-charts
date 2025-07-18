@@ -1,5 +1,11 @@
-import type { PlainObject, Vertex } from 'ag-charts-core';
-import { AdjacencyListGraph, isObject, isObjectLike, isPlainObject } from 'ag-charts-core';
+import {
+    AdjacencyListGraph,
+    type PlainObject,
+    type Vertex,
+    isObject,
+    isObjectLike,
+    isPlainObject,
+} from 'ag-charts-core';
 
 import { chartTypes } from '../chart/factory/chartTypes';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
@@ -89,7 +95,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         params: PlainObject | undefined = undefined,
         palette: PlainObject | undefined = undefined,
         private readonly overrides: PlainObject = {},
-        private readonly internalParams: Map<any, any> = new Map()
+        private readonly internalParams: Map<unknown, unknown> = new Map()
     ) {
         super(PATH_EDGE, OPERATION_EDGE);
 
@@ -290,7 +296,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             return resolved === RESOLVED_TO_BRANCH ? undefined : resolved;
         }
 
-        let value: any = this.getVertexValue(valueVertex);
+        let value = this.getVertexValue(valueVertex);
 
         if (Array.isArray(value)) {
             const object = {};

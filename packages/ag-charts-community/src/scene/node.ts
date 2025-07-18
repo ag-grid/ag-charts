@@ -59,7 +59,7 @@ const MAX_ERROR_COUNT = 5;
  * Abstract scene graph node.
  * Each node can have zero or one parent and belong to zero or one scene.
  */
-export abstract class Node<D = any> {
+export abstract class Node<TDatum = unknown> {
     private static _nextSerialNumber = 0;
     // eslint-disable-next-line sonarjs/public-static-readonly
     public static _debugEnabled = false;
@@ -110,8 +110,8 @@ export abstract class Node<D = any> {
     transitionOut: boolean | undefined = undefined;
     pointerEvents: PointerEvents = PointerEvents.All;
 
-    protected _datum: D | undefined = undefined;
-    protected _previousDatum: D | undefined = undefined;
+    protected _datum: TDatum | undefined = undefined;
+    protected _previousDatum: TDatum | undefined = undefined;
 
     protected scene: IScene | undefined = undefined;
     private readonly _debugDirtyProperties: Map<string, string[]> | undefined = undefined;

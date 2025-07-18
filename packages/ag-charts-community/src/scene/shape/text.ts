@@ -1,19 +1,32 @@
-import { type RequireOptional, createSvgElement, isDefined } from 'ag-charts-core';
-import type { FontFamily, FontSize, FontStyle, FontWeight, Opacity, Padding, PixelSize } from 'ag-charts-types';
+import { type BoxBounds, type RequireOptional, createSvgElement, isArray, isString } from 'ag-charts-core';
+import type {
+    FontFamily,
+    FontSize,
+    FontStyle,
+    FontWeight,
+    Opacity,
+    Padding,
+    PixelSize,
+    TextSegment,
+} from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
+import { mergeDefaults } from '../../util/object';
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
-import type { RenderContext } from '../node';
+import { SceneRefChangeDetection } from '../changeDetectable';
+import { Group } from '../group';
+import type { IScene, NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { DebugSelectors } from '../sceneDebug';
 import { Rotatable, Translatable } from '../transformable';
 import { Rect } from './rect';
 import { Shape, type ShapeColor } from './shape';
+import { setSvgFontAttributes } from './svgUtils';
 
 export interface TextSizeProperties {
     fontFamily?: FontFamily;
-    fontSize?: FontSize;
+    fontSize: FontSize;
     fontStyle?: FontStyle;
     fontWeight?: FontWeight;
     lineHeight?: number;
@@ -43,6 +56,9 @@ export class Text<D = any> extends Shape<D> {
 
     private static readonly defaultFontSize = 10;
 
+    private richText?: Group<Text>;
+    private textMap?: Map<Text, BoxBounds>;
+
     @SceneChangeDetection()
     x: number = 0;
 
@@ -51,14 +67,24 @@ export class Text<D = any> extends Shape<D> {
 
     private lines: string[] = [];
     private onTextChange() {
-        this.lines = this.text?.split('\n').map((s) => s.trim()) ?? [];
+        this.richText?.clear();
+        this.textMap?.clear();
+
+        if (isArray(this.text)) {
+            this.lines = [];
+            this.richText ??= new Group();
+            this.richText.setScene(this.scene);
+            this.richText.append(this.text.map(() => new Text({ trimText: false })));
+        } else {
+            const lines = this.text?.split('\n') ?? [];
+            this.lines = this.trimText ? lines.map((line) => line.trim()) : lines;
+        }
     }
 
-    @SceneChangeDetection({
-        convertor: (value) => (isDefined(value) ? String(value) : value),
+    @SceneRefChangeDetection({
         changeCb: (o: Text) => o.onTextChange(),
     })
-    text?: string = undefined;
+    text?: string | TextSegment[] = undefined;
 
     @SceneChangeDetection()
     fontStyle?: FontStyle;
@@ -84,6 +110,12 @@ export class Text<D = any> extends Shape<D> {
 
     private boxing?: Rect;
     private boxPadding: Padding = 0;
+    private readonly trimText: boolean;
+
+    constructor(options?: NodeOptions & { trimText?: boolean }) {
+        super(options);
+        this.trimText = options?.trimText ?? true;
+    }
 
     static computeBBox(
         lines: string | string[],
@@ -96,7 +128,7 @@ export class Text<D = any> extends Shape<D> {
             font,
             font: { fontSize },
             textAlign,
-            textBaseline = 'alphabetic',
+            textBaseline,
             lineHeight = useGlyphIndependentMeasurements ? TextUtils.getLineHeight(fontSize) : undefined,
         } = opts;
         const {
@@ -131,15 +163,21 @@ export class Text<D = any> extends Shape<D> {
     protected override computeBBox(
         useGlyphIndependentMeasurements: boolean = externUseGlyphIndependentMeasurements
     ): BBox {
+        this.generateTextMap();
+        if (this.textMap?.size) {
+            const bbox = BBox.merge(this.textMap.values());
+            bbox.x = this.x;
+            bbox.y = this.y;
+            return bbox;
+        }
         const { x, y, lines, textBaseline, textAlign, lineHeight } = this;
-        const bbox = Text.computeBBox(
+        return Text.computeBBox(
             lines,
             x,
             y,
             { font: this, textBaseline, textAlign, lineHeight },
             useGlyphIndependentMeasurements
         );
-        return bbox;
     }
 
     override getBBox(useGlyphIndependentMeasurements: boolean = true): BBox {
@@ -177,23 +215,94 @@ export class Text<D = any> extends Shape<D> {
         return undefined;
     }
 
+    getStyle(): Omit<TextSegment, 'text'> & { fontSize: number } {
+        return {
+            fontSize: this.fontSize,
+            fontFamily: this.fontFamily,
+            fontStyle: this.fontStyle,
+            fontWeight: this.fontWeight,
+            fill: this.fill,
+            fillOpacity: this.fillOpacity,
+            stroke: this.stroke as string,
+            strokeWidth: this.strokeWidth,
+            strokeOpacity: this.strokeOpacity,
+        };
+    }
+
+    override setScene(scene?: IScene) {
+        this.richText?.setScene(scene);
+        super.setScene(scene);
+    }
+
+    private generateTextMap() {
+        if (!isArray(this.text) || this.textMap?.size) return;
+
+        this.textMap ??= new Map();
+
+        let index = 0;
+        let totalWidth = 0;
+        let offsetY = this.y;
+        const mainStyle = this.getStyle();
+
+        for (const textNode of this.richText!.children() as Iterable<Text>) {
+            const { color, ...textSegment } = this.text[index++];
+            textSegment.fill = color;
+            textNode.x = 0;
+            textNode.y = 0;
+            textNode.setProperties(mergeDefaults(textSegment, mainStyle));
+            const textBBox = textNode.getBBox();
+            this.textMap.set(textNode, textBBox);
+            offsetY = Math.max(offsetY, textNode.lineHeight ?? TextUtils.getLineHeight(textNode.fontSize));
+            totalWidth += textBBox.x + textBBox.width;
+        }
+        let offsetX = this.x - totalWidth / 2;
+        for (const [textNode, bbox] of this.textMap) {
+            textNode.x += offsetX;
+            textNode.y += offsetY;
+            offsetX += bbox.width;
+        }
+    }
+
     override render(renderCtx: RenderContext): void {
         const { ctx, stats } = renderCtx;
 
-        if (!this.lines.length || !this.layerManager) {
+        if (!this.text || !this.layerManager) {
             if (stats) stats.nodesSkipped += 1;
             return super.render(renderCtx);
         }
 
-        const { fill, stroke, strokeWidth } = this;
-        const { globalAlpha } = ctx;
-        const { pixelRatio } = this.layerManager.canvas;
+        if (isArray(this.text)) {
+            this.generateTextMap();
+            this.richText!.render(renderCtx);
+        } else {
+            this.renderText(renderCtx);
+        }
 
-        if (!fill && !(stroke != null && strokeWidth > 0)) {
+        if (Text.debug.check() && !this.textMap?.size) {
+            const bbox = this.getBBox(true);
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
+        }
+
+        super.render(renderCtx);
+    }
+
+    override markDirty(property?: string) {
+        this.textMap?.clear();
+        return super.markDirty(property);
+    }
+
+    private renderText(renderCtx: RenderContext): void {
+        const { fill, stroke, strokeWidth } = this;
+
+        if ((!fill && !(stroke && strokeWidth)) || !this.layerManager) {
             // Short circuit early if nothing will be rendered.
             return super.render(renderCtx);
         }
 
+        const { ctx } = renderCtx;
+        const { globalAlpha } = ctx;
         const font = TextUtils.toFontString(this);
         // Try to avoid this assignment, which typically always incurs a font switch cost.
         if (ctx.font !== font) {
@@ -225,16 +334,7 @@ export class Text<D = any> extends Shape<D> {
 
         if (fill) {
             this.applyFillAndAlpha(ctx);
-
-            const { fillShadow } = this;
-
-            if (fillShadow?.enabled) {
-                ctx.shadowColor = fillShadow.color;
-                ctx.shadowOffsetX = fillShadow.xOffset * pixelRatio;
-                ctx.shadowOffsetY = fillShadow.yOffset * pixelRatio;
-                ctx.shadowBlur = fillShadow.blur * pixelRatio;
-            }
-
+            this.applyShadow(ctx);
             this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.fillText(line, x, y));
 
             ctx.globalAlpha = globalAlpha;
@@ -247,7 +347,7 @@ export class Text<D = any> extends Shape<D> {
             const { lineDash, lineDashOffset, lineCap, lineJoin } = this;
 
             if (lineDash) {
-                ctx.setLineDash([...lineDash]);
+                ctx.setLineDash(lineDash as number[]);
             }
 
             if (lineDashOffset) {
@@ -266,15 +366,15 @@ export class Text<D = any> extends Shape<D> {
 
             ctx.globalAlpha = globalAlpha;
         }
+    }
 
-        if (Text.debug.check()) {
-            const bbox = this.getBBox(true);
-            ctx.strokeStyle = 'red';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
-        }
-
-        super.render(renderCtx);
+    protected override executeStroke(ctx: CanvasRenderingContext2D) {
+        const { fontSize, lineHeight = TextUtils.getLineHeight(fontSize), textBaseline, lines } = this;
+        const lineOriginY =
+            textBaseline === 'alphabetic'
+                ? 0
+                : -TextUtils.getVerticalModifier(textBaseline) * lineHeight * (lines.length - 1);
+        this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.strokeText(line, x, y));
     }
 
     private renderLines(
@@ -296,7 +396,7 @@ export class Text<D = any> extends Shape<D> {
 
     setFont(props: TextSizeProperties) {
         this.fontFamily = props.fontFamily;
-        this.fontSize = props.fontSize ?? Text.defaultFontSize;
+        this.fontSize = props.fontSize;
         this.fontStyle = props.fontStyle;
         this.fontWeight = props.fontWeight;
     }
@@ -346,36 +446,40 @@ export class Text<D = any> extends Shape<D> {
 
         const element = createSvgElement('text');
 
-        this.applySvgFillAttributes(element);
-        element.setAttribute('font-family', this.fontFamily?.split(',')[0] ?? '');
-        element.setAttribute('font-size', String(this.fontSize));
-        element.setAttribute('font-style', this.fontStyle ?? '');
-        element.setAttribute('font-weight', String(this.fontWeight ?? ''));
-        element.setAttribute(
-            'text-anchor',
-            {
-                center: 'middle',
-                left: 'start',
-                right: 'end',
-                start: 'start',
-                end: 'end',
-            }[this.textAlign ?? 'start']
-        );
-        element.setAttribute(
-            'alignment-baseline',
-            {
-                alphabetic: 'alphabetic',
-                top: 'top',
-                bottom: 'bottom',
-                hanging: 'hanging',
-                middle: 'middle',
-                ideographic: 'ideographic',
-            }[this.textBaseline ?? 'alphabetic']
-        );
-        element.setAttribute('x', String(this.x));
-        element.setAttribute('y', String(this.y));
+        if (isString(this.text)) {
+            this.applySvgFillAttributes(element);
+            setSvgFontAttributes(element, this);
+            element.setAttribute(
+                'text-anchor',
+                {
+                    center: 'middle',
+                    left: 'start',
+                    right: 'end',
+                    start: 'start',
+                    end: 'end',
+                }[this.textAlign ?? 'start']
+            );
+            element.setAttribute('alignment-baseline', this.textBaseline);
+            element.setAttribute('x', String(this.x));
+            element.setAttribute('y', String(this.y));
 
-        element.textContent = this.text ?? '';
+            element.textContent = this.text;
+        } else {
+            for (const segment of this.text) {
+                const segmentElement = createSvgElement('tspan');
+
+                setSvgFontAttributes(segmentElement, {
+                    fontSize: segment.fontSize ?? this.fontSize,
+                    fontFamily: segment.fontFamily ?? this.fontFamily,
+                    fontWeight: segment.fontWeight ?? this.fontWeight,
+                    fontStyle: segment.fontStyle ?? this.fontStyle,
+                });
+                this.applySvgFillAttributes(segmentElement);
+
+                segmentElement.textContent = segment.text;
+                element.append(segmentElement);
+            }
+        }
 
         return { elements: [element] };
     }

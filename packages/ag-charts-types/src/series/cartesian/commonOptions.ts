@@ -204,3 +204,8 @@ export interface Visible {
     /** Whether the element should be visible. */
     visible?: boolean;
 }
+
+export interface TextSegment extends FillOptions, StrokeOptions, FontOptions {
+    text: string;
+    lineHeight?: number;
+}

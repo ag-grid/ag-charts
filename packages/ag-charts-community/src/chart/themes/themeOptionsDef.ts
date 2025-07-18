@@ -55,7 +55,6 @@ import {
     cartesianCrossLineOptionsDefs,
     commonCrossLineLabelOptionsDefs,
     commonCrossLineOptionsDefs,
-    numberFormatValidator,
 } from '../axesOptionsDefs';
 import {
     angleCategoryAxisOptionsDefs,
@@ -64,7 +63,7 @@ import {
     radiusCategoryAxisOptionsDefs,
     radiusNumberAxisOptionsDefs,
 } from '../axesOptionsEnterpriseDefs';
-import { commonChartOptionsDefs } from '../commonOptionsDefs';
+import { commonChartOptionsDefs, numberFormatValidator } from '../commonOptionsDefs';
 import { areaSeriesThemeableOptionsDef } from '../series/cartesian/areaSeriesOptionsDef';
 import { barSeriesThemeableOptionsDef } from '../series/cartesian/barSeriesOptionsDef';
 import { bubbleSeriesThemeableOptionsDef } from '../series/cartesian/bubbleSeriesOptionsDef';

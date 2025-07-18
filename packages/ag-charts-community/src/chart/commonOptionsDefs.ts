@@ -1,7 +1,10 @@
-import type { OptionsDefs, Validator, ValidatorContext, ValidatorResult } from 'ag-charts-core';
 import {
     ErrorType,
+    type OptionsDefs,
     ValidationError,
+    type Validator,
+    type ValidatorContext,
+    type ValidatorResult,
     and,
     array,
     arrayLength,
@@ -21,6 +24,7 @@ import {
     greaterThan,
     highlightOptionsDef,
     htmlElement,
+    isValidNumberFormat,
     labelBoxOptionsDef,
     lessThan,
     lineDashOptionsDef,
@@ -62,10 +66,9 @@ import {
     type AgTooltipRendererResult,
     type AgZoomButton,
     type FormatterPropertyType,
+    type TextSegment,
     type ToolbarButton,
 } from 'ag-charts-types';
-
-import { numberFormatValidator } from './axesOptionsDefs';
 
 const legendPositionUnion = union(
     'top',
@@ -99,12 +102,25 @@ const tooltipPlacementValidator = union(
     'center'
 );
 export const rangeValidator = or(positiveNumber, union('exact', 'nearest'));
+export const textOrSegments = or(
+    string,
+    arrayOfDefs<TextSegment>(
+        {
+            text: required(string),
+            lineHeight: positiveNumber,
+            ...fontOptionsDef,
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+        },
+        'text segments array'
+    )
+);
 
 const zoomAnchorPoint = union('pointer', 'start', 'middle', 'end');
 
 const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     enabled: boolean,
-    text: string,
+    text: textOrSegments,
     textAlign: union('left', 'center', 'right'),
     wrapping: union('never', 'always', 'hyphenate', 'on-space'),
     spacing: positiveNumber,
@@ -118,7 +134,7 @@ chartCaptionOptionsDefs.padding = undocumented(positiveNumber);
 
 const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     enabled: boolean,
-    text: string,
+    text: textOrSegments,
     renderer: callbackOf(or(string, htmlElement)),
 };
 
@@ -248,6 +264,8 @@ export const formatObjectValidator = optionsDefs<Record<FormatterPropertyType, (
     calloutLabel: formatter,
     legendItem: formatter,
 });
+
+export const numberFormatValidator = attachDescription(isValidNumberFormat, 'a valid number format string');
 
 export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, 'navigator'>> = {
     width: positiveNumber,

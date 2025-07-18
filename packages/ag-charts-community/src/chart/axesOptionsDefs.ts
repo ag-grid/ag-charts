@@ -16,7 +16,6 @@ import {
     fillOptionsDef,
     fontOptionsDef,
     greaterThan,
-    isValidNumberFormat,
     labelBoxOptionsDef,
     lessThan,
     lineDashOptionsDef,
@@ -57,6 +56,8 @@ import type {
     AgTimeInterval,
 } from 'ag-charts-types';
 
+import { numberFormatValidator, textOrSegments } from './commonOptionsDefs';
+
 export const timeIntervalUnit = union('millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year');
 
 const timeIntervalDefs: OptionsDefs<AgTimeInterval> = {
@@ -71,11 +72,9 @@ timeIntervalDefs.every = callback;
 
 export const timeInterval = optionsDefs<AgTimeInterval>(timeIntervalDefs, 'a time interval object');
 
-export const numberFormatValidator = attachDescription(isValidNumberFormat, 'a valid number format string');
-
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
     enabled: boolean,
-    text: string,
+    text: textOrSegments,
     padding: number,
     ...fontOptionsDef,
 };
@@ -224,7 +223,7 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
     maxThicknessRatio: ratio,
     title: {
         enabled: boolean,
-        text: string,
+        text: textOrSegments,
         spacing: positiveNumber,
         formatter: callback,
         ...fontOptionsDef,
