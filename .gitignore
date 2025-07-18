@@ -66,4 +66,4 @@ vitest.config.*.timestamp*
 .claude/
 .mcp.json
 CLAUDE.md
-todo.md
+todos.md
