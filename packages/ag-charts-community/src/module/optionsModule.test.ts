@@ -486,12 +486,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -585,12 +580,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -684,12 +674,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -783,12 +768,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -846,12 +826,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
     },
     "lineDash": [
       0,
@@ -937,12 +912,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
     },
     "lineDash": [
       0,
@@ -1075,12 +1045,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -1174,12 +1139,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -1273,12 +1233,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -1372,12 +1327,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -1435,12 +1385,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
     },
     "lineDash": [
       0,
@@ -1526,12 +1471,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
     },
     "lineDash": [
       0,
@@ -1664,12 +1604,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -1763,12 +1698,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -1862,12 +1792,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -1961,12 +1886,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -2024,12 +1944,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
     },
     "lineDash": [
       0,
@@ -2115,12 +2030,7 @@ describe('ChartOptions', () => {
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
       "fontWeight": 400,
-      "padding": {
-        "bottom": 8,
-        "left": 12,
-        "right": 12,
-        "top": 8,
-      },
+      "padding": 8,
     },
     "lineDash": [
       0,

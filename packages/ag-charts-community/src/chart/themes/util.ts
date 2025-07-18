@@ -246,12 +246,7 @@ const ITEM_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
 };
 
 export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
-    padding: {
-        top: 8,
-        bottom: 8,
-        left: 12,
-        right: 12,
-    },
+    padding: 8,
     cornerRadius: 4,
 };
 
