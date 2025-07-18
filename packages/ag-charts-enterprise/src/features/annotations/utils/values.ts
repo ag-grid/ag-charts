@@ -4,8 +4,6 @@ import type { PointProperties } from '../annotationProperties';
 import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
 import { getGrouping } from './scale';
 
-const { clampArray } = _ModuleSupport;
-
 export function convertLine(
     datum: { start: Pick<PointProperties, 'x' | 'y'>; end: Pick<PointProperties, 'x' | 'y'> },
     context: AnnotationContext
@@ -35,6 +33,9 @@ export function convert(p: Point['x' | 'y'], context: Pick<AnnotationAxisContext
     const { scale, snapToGroup } = context;
     const width = scale.bandwidth === 0 ? scale.step ?? 0 : scale.bandwidth ?? 0;
 
+    // For band scales, groupPercentage represents the position within the band
+    // 0 = start of band, 0.5 = center, 1 = end of band
+    // Values outside 0-1 extend beyond the band boundaries
     const offset = snapToGroup ? width / 2 : width * groupPercentage;
     return scale.convert(value) + offset;
 }
@@ -59,8 +60,7 @@ export function invert(
     const width = scale.bandwidth === 0 ? scale.step : scale.bandwidth ?? 0;
     const bandStart = scale.convert(value);
     const bandEnd = bandStart + width;
-    const position = clampArray(n, scale.range);
-    const groupPercentage = bandStart === bandEnd ? 0 : (position - bandStart) / (bandEnd - bandStart);
+    const groupPercentage = bandStart === bandEnd ? 0 : (n - bandStart) / (bandEnd - bandStart);
 
     return { value, groupPercentage };
 }

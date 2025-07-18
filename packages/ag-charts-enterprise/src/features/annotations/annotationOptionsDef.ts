@@ -57,7 +57,7 @@ const annotationValue = or(
     xValue,
     optionsDefs<AgGroupingValueType>({
         value: xValue,
-        groupPercentage: numberRange(-1, 1),
+        groupPercentage: numberRange(-1, 2),
     })
 );
 
