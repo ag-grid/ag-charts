@@ -41,6 +41,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             lineDashOffset: 0,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
+                padding: { $isUserOption: ['./spacing', 0, 8] } as any, // compatibility with old `padding` property (now named `spacing`).
                 enabled: false,
                 fontWeight: { $ref: 'fontWeight' },
                 fontSize: { $ref: 'fontSize' },
