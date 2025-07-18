@@ -43,7 +43,7 @@ const options: AgCartesianChartOptions = {
             shape: 'circle',
             visible: visibleCount >= 1,
             // disable high performance optimisations
-            maxRenderedItems: 100_000,
+            maxRenderedItems: 1_000_000,
         },
         {
             type: 'line',
