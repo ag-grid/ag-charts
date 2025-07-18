@@ -2,6 +2,7 @@
 
 const { spawnSync } = require('child_process');
 const fs = require('fs');
+const path = require('path');
 const yargs = require('yargs');
 const { hideBin } = require('yargs/helpers');
 
@@ -166,8 +167,39 @@ result = result.filter((r) => !isBaseline(r));
 const rankedByTime = result.toSorted((a, b) => a.pctTimeChange - b.pctTimeChange);
 const rankedByMemory = result.toSorted((a, b) => a.pctMemoryChange - b.pctMemoryChange);
 
+// Load expectation breaches if they exist
+let expectationBreaches = [];
+const breachesPath = path.join(process.cwd(), 'reports/benchmark-breaches.json');
+if (fs.existsSync(breachesPath)) {
+    try {
+        expectationBreaches = JSON.parse(fs.readFileSync(breachesPath, 'utf8'));
+        // Clean up the file after reading
+        fs.unlinkSync(breachesPath);
+    } catch (e) {
+        console.error('Warning: Failed to read expectation breaches:', e.message);
+    }
+}
+
 if (argv.format === 'table') {
     console.log(`Comparing ${argv.base} (baseline) vs. ${argv.compare}`);
+
+    // Report expectation breaches if any
+    if (expectationBreaches.length > 0) {
+        console.log('\n⚠️  Expectation Breaches');
+        console.table(
+            expectationBreaches.map((breach) => ({
+                test: breach.testName,
+                type: breach.type === 'memory' ? 'Memory (MB)' : 'Canvas Count',
+                expected: breach.type === 'memory' ? breach.expected.toFixed(1) : breach.expected,
+                actual: breach.type === 'memory' ? breach.actual.toFixed(1) : breach.actual,
+                exceeded:
+                    breach.type === 'memory'
+                        ? `+${(breach.actual - breach.expected).toFixed(1)} MB`
+                        : `+${breach.actual - breach.expected}`,
+            }))
+        );
+    }
+
     if (critical.length > 0) {
         if (argv['report-only']) {
             console.log('Critical Cases');
@@ -199,6 +231,7 @@ if (argv.format === 'table') {
             {
                 base: argv.base,
                 compare: argv.compare,
+                expectationBreaches,
                 critical,
                 rankedByTime,
                 rankedByMemory,

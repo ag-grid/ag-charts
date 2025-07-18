@@ -915,9 +915,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
             const primary = primaryTicksIndices?.has(i) ?? false;
             let tickLabel = primary ? axisPrimaryTickFormatter?.(tick, i) : axisTickFormatter?.(tick, i);
+            const inputText: string = tickLabel ?? String(tick);
 
             if (label.avoidCollisions) {
-                tickLabel = TextWrapper.wrapText(tickLabel ?? String(tick), wrapOptions) || tickLabel;
+                tickLabel = TextWrapper.wrapText(inputText, wrapOptions) || tickLabel;
             }
 
             let tickId: string;
@@ -934,6 +935,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 tick,
                 tickId,
                 tickLabel,
+                textUntruncated: tickLabel != null && inputText !== tickLabel ? inputText : undefined,
                 translation: Math.floor(translation),
                 primary,
             });

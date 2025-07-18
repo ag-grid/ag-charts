@@ -1,4 +1,6 @@
 import { afterEach, beforeEach } from '@jest/globals';
+import * as fs from 'fs';
+import * as path from 'path';
 
 import {
     CANVAS_HEIGHT,
@@ -31,12 +33,23 @@ if (isHistoricBenchmarkTest()) {
 
 globalThis.agChartsDebugTimeout = 60_000; // Use Jest timeouts
 const repeatLimit = process.env.AG_BENCHMARK_REPEAT_LIMIT ? parseInt(process.env.AG_BENCHMARK_REPEAT_LIMIT) : undefined;
+const softFailMode = ['1', 'true'].includes(process.env.BENCHMARK_SOFT_FAIL ?? '0');
 
 interface BenchmarkExpectations {
     expectedRelativeMB?: number;
     expectedCanvasCount?: number;
     autoSnapshot?: boolean;
 }
+
+interface ExpectationBreach {
+    testName: string;
+    type: 'memory' | 'canvasCount';
+    expected: number;
+    actual: number;
+}
+
+// Global array to collect breaches when in soft-fail mode
+const expectationBreaches: ExpectationBreach[] = [];
 
 export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
     chart?: AgChartInstance;
@@ -258,10 +271,28 @@ export function benchmark(
             };
 
             for (const key in expected) {
-                expect(actual[key]).toBeLessThanOrEqual(expected[key]);
-                if (actual[key] < expected[key] * 0.8) {
+                const actualValue = actual[key];
+                const expectedValue = expected[key];
+
+                if (actualValue > expectedValue) {
+                    if (softFailMode) {
+                        // In soft-fail mode, collect breaches instead of failing
+                        expectationBreaches.push({
+                            testName: currentTestName,
+                            type: key === 'expectedRelativeMB' ? 'memory' : 'canvasCount',
+                            expected: expectedValue,
+                            actual: actualValue,
+                        });
+                        console.log(
+                            `[${currentTestName}]: BREACH - ${key} exceeded expected (expected: ${expectedValue}, actual: ${actualValue})`
+                        );
+                    } else {
+                        // Normal mode - fail the test
+                        expect(actualValue).toBeLessThanOrEqual(expectedValue);
+                    }
+                } else if (actualValue < expectedValue * 0.8) {
                     console.log(
-                        `[${currentTestName}]: ${key} is much less than expected (expected: ${expected[key]}, actual: ${actual[key]})`
+                        `[${currentTestName}]: ${key} is much less than expected (expected: ${expectedValue}, actual: ${actualValue})`
                     );
                 }
             }
@@ -310,7 +341,26 @@ export function setupBenchmark<T extends AgChartOptions>(
 
 afterAll(() => {
     flushTimings();
+
+    // If we're in soft-fail mode and have breaches, write them to a file
+    if (process.env.BENCHMARK_SOFT_FAIL === 'true' && expectationBreaches.length > 0) {
+        const breachesPath = path.join(__dirname, '../../../reports/benchmark-breaches.json');
+
+        // Ensure reports directory exists
+        const reportsDir = path.dirname(breachesPath);
+        if (!fs.existsSync(reportsDir)) {
+            fs.mkdirSync(reportsDir, { recursive: true });
+        }
+
+        fs.writeFileSync(breachesPath, JSON.stringify(expectationBreaches, null, 2));
+        console.log(`\nWrote ${expectationBreaches.length} expectation breaches to ${breachesPath}`);
+    }
 });
+
+// Export function to get breaches programmatically
+export function getExpectationBreaches(): ExpectationBreach[] {
+    return [...expectationBreaches];
+}
 
 export async function addSeriesNodePoints<T extends AgChartOptions>(
     ctx: BenchmarkContext<T>,
