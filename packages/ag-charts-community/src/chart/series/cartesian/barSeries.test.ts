@@ -691,7 +691,7 @@ describe('BarSeries', () => {
             );
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
-        describe('spacing backward compatibility', () => {
+        describe('padding backward compatibility', () => {
             test('inside-start', async () => {
                 await testCase({ placement: 'inside-start', padding: 30 }, 'AG-8290-bar-label-spacing-inside-start');
             });
@@ -704,6 +704,8 @@ describe('BarSeries', () => {
             test('outside-end', async () => {
                 await testCase({ placement: 'outside-end', padding: 30 }, 'AG-8290-bar-label-spacing-outside-end');
             });
+        });
+        describe('spacing backward compatibility', () => {
             test('inside-start', async () => {
                 await testCase({ placement: 'inside-start', spacing: 30 }, 'AG-8290-bar-label-spacing-inside-start');
             });
