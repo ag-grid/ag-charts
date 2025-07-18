@@ -57,6 +57,12 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     if (!isAtOrAfterVersion(10, 0, 0)) {
         (options as any).autoSize = false;
     }
+    if (isHistoricBenchmarkTest() && isBeforeVersion(12, 0, 2) /* Change to 12.1.0 */) {
+        options.series?.forEach((series: any) => {
+            // Unsupported option
+            delete series.maxRenderedItems;
+        });
+    }
     if (isHistoricBenchmarkTest() && isBeforeVersion(12, 0, 0)) {
         // highlightStyle => highlight for 12.
         for (const seriesType of Object.values((options as any).theme?.overrides ?? {})) {
