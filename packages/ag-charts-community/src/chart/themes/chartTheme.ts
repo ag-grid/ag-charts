@@ -375,15 +375,25 @@ export class ChartTheme {
                 },
                 position: CARTESIAN_POSITION.BOTTOM,
                 orientation: {
-                    $switch: [
-                        { $path: './position' },
+                    $if: [
+                        {
+                            $or: [
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT_TOP] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT_BOTTOM] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT_TOP] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT_BOTTOM] },
+                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT] },
+                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT_TOP] },
+                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT_BOTTOM] },
+                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT] },
+                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT_TOP] },
+                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT_BOTTOM] },
+                            ],
+                        },
+                        'vertical',
                         'horizontal',
-                        [CARTESIAN_POSITION.LEFT, 'vertical'],
-                        [CARTESIAN_POSITION.LEFT_TOP, 'vertical'],
-                        [CARTESIAN_POSITION.LEFT_BOTTOM, 'vertical'],
-                        [CARTESIAN_POSITION.RIGHT, 'vertical'],
-                        [CARTESIAN_POSITION.RIGHT_TOP, 'vertical'],
-                        [CARTESIAN_POSITION.RIGHT_BOTTOM, 'vertical'],
                     ],
                 },
                 border: {

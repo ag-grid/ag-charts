@@ -677,8 +677,9 @@ export class Legend extends BaseProperties {
             'right-top',
             'right-bottom',
         ] as const;
+        const { placement } = expandLegendPosition(this.position);
         const orientation = this.getOrientation();
-        const paginationVertical = vertPositions.includes(this.position);
+        const paginationVertical = vertPositions.includes(placement);
 
         let paginationBBox: BBox = this.pagination.getBBox();
         let lastPassPaginationBBox: BBox = new BBox(0, 0, 0, 0);
