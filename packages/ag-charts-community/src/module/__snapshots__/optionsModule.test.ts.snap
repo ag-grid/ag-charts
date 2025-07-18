@@ -235,10 +235,17 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -320,10 +327,17 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -405,10 +419,17 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -804,10 +825,17 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -895,10 +923,17 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -950,10 +985,17 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -1268,10 +1310,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -1358,10 +1407,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -1448,10 +1504,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -1538,10 +1601,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -1628,10 +1698,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -1718,10 +1795,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -1808,10 +1892,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -2154,10 +2245,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -2246,10 +2344,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -2338,10 +2443,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -2430,10 +2542,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -2522,10 +2641,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -2614,10 +2740,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -2706,10 +2839,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -2798,10 +2938,17 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -3061,10 +3208,17 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "itemStyler": [Function],
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "maxRenderedItems": 10000,
       "maxSize": 100,
@@ -3349,10 +3503,17 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -3434,10 +3595,17 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -3519,10 +3687,17 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -3604,10 +3779,17 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -3958,10 +4140,17 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -4087,10 +4276,17 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -4216,10 +4412,17 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -4345,10 +4548,17 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -4474,10 +4684,17 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -4769,10 +4986,17 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -5034,11 +5258,18 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "bold",
         "formatter": [Function],
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -5304,10 +5535,17 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "maxRenderedItems": 10000,
       "maxSize": 30,
@@ -5560,10 +5798,17 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "labelKey": "city",
       "labelName": "City",
@@ -5870,10 +6115,17 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -5964,10 +6216,17 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -6286,10 +6545,17 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -6383,10 +6649,17 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -6706,10 +6979,17 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -6802,10 +7082,17 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -6898,10 +7185,17 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -6994,10 +7288,17 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -7090,10 +7391,17 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -7186,10 +7494,17 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -7282,10 +7597,17 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -7571,10 +7893,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -7662,10 +7991,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -7753,10 +8089,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -7844,10 +8187,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -7935,10 +8285,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -8026,10 +8383,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -8117,10 +8481,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -8208,10 +8579,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -8299,10 +8677,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -8390,10 +8775,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -8481,10 +8873,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -8572,10 +8971,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -8663,10 +9069,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -8754,10 +9167,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -8845,10 +9265,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -8936,10 +9363,17 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -9194,10 +9628,17 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -9547,10 +9988,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -9684,10 +10132,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -9821,10 +10276,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -9958,10 +10420,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -10095,10 +10564,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -10232,10 +10708,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -10369,10 +10852,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -10731,10 +11221,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -10829,10 +11326,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -10927,10 +11431,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -11248,10 +11759,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -11343,10 +11861,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -11438,10 +11963,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -11533,10 +12065,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -11628,10 +12167,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -11723,10 +12269,17 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -12066,10 +12619,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -12189,10 +12749,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -12312,10 +12879,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -12435,10 +13009,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -12731,11 +13312,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       },
       "label": {
         "color": "#eeeeee",
+        "cornerRadius": 4,
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -12908,12 +13496,19 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
       "angleKey": "count",
       "calloutLabel": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "minAngle": 0.001,
         "offset": 3,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "calloutLabelKey": "type",
       "calloutLine": {
@@ -13041,11 +13636,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
       "rotation": 0,
       "sectorLabel": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "bold",
         "formatter": [Function],
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "positionOffset": 0,
         "positionRatio": 0.5,
       },
@@ -13362,10 +13964,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -13451,10 +14060,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -13604,12 +14220,19 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
       "angleKey": "population",
       "calloutLabel": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "minAngle": 0,
         "offset": 3,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "calloutLabelKey": "religion",
       "calloutLine": {
@@ -13718,11 +14341,18 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
       "rotation": 0,
       "sectorLabel": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": true,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "bold",
         "formatter": [Function],
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "positionOffset": 0,
         "positionRatio": 0.5,
       },
@@ -13989,10 +14619,17 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "maxRenderedItems": 10000,
       "shape": "circle",
@@ -14315,10 +14952,17 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -14448,10 +15092,17 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -14581,10 +15232,17 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -14714,10 +15372,17 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -14847,10 +15512,17 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -14980,10 +15652,17 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       },
       "label": {
         "color": "#181d1f",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
       },
       "lineDash": [
         0,
@@ -15340,10 +16019,17 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -15437,10 +16123,17 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -15534,10 +16227,17 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -15631,10 +16331,17 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -15952,10 +16659,17 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -16046,10 +16760,17 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -16140,10 +16861,17 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -16234,10 +16962,17 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
@@ -16328,10 +17063,17 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       },
       "label": {
         "color": "white",
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
+        "padding": {
+          "bottom": 8,
+          "left": 12,
+          "right": 12,
+          "top": 8,
+        },
         "placement": "inside-center",
       },
       "lineDash": [
