@@ -299,6 +299,13 @@ For example, screenshots for the `simple-pie` example should be saved to `report
 -   `mobile-view.png`
 -   `keyboard-focus.png`
 
+**Important file location guidelines:**
+
+-   Always write files within the `reports/docs-review/` directory structure
+-   If you need temporary files during execution, use `reports/docs-review/${pageName}/tmp/`
+-   Never write files to the project root or other directories
+-   Clean up temporary files after use
+
 The report should include these sections:
 
 ### Technical Accuracy Issues

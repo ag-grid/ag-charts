@@ -34,6 +34,7 @@ class DocsReviewOrchestrator {
         this.verbose = options.verbose || false; // Stream Claude output when true
         this.dryRun = options.dryRun || false; // Request skeleton reports for quick testing
         this.resumePhase = options.resumePhase || 'planning'; // Which phase to resume from (planning, execution, or summary)
+        this.force = options.force || false; // Force regeneration of existing files
         this.progressFile = path.join(this.reportsPath, 'progress.json');
         this.currentPromptFile = path.join(this.reportsPath, 'current-prompt.md');
         this.currentOutputFile = path.join(this.reportsPath, 'current-prompt-output.md');
@@ -56,6 +57,9 @@ class DocsReviewOrchestrator {
         console.log(`📸 Skip screenshots: ${this.skipScreenshots}`);
         console.log(`🗣️  Verbose mode: ${this.verbose}`);
         console.log(`🧪 Dry run mode: ${this.dryRun}`);
+        if (this.force) {
+            console.log(`🔄 Force mode: regenerating existing files`);
+        }
         if (this.pageGlob) {
             console.log(`🎯 Page filter: ${this.pageGlob}`);
         }
@@ -280,6 +284,11 @@ class DocsReviewOrchestrator {
     }
 
     isPageCompleted(pageName, phase) {
+        // Force mode always returns false to regenerate files
+        if (this.force) {
+            return false;
+        }
+
         // Check filesystem state instead of memory
         const pageDir = path.join(this.reportsPath, pageName);
 
@@ -449,7 +458,10 @@ IMPORTANT: This is a DRY RUN. Instead of creating a full review plan:
 
 This is the planning phase. Create a detailed, page-specific review plan using the expensive model for sophisticated reasoning.
 
-Please use the documentation review prompt from tools/prompts/docs-review.md to create a comprehensive review plan. Focus on the Phase 1 requirements: read the documentation page, identify key validation targets, and create a structured plan with prioritized testing tasks.${dryRunInstructions}`;
+Please use the documentation review prompt from tools/prompts/docs-review.md to create a comprehensive review plan. Focus on the Phase 1 requirements: read the documentation page, identify key validation targets, and create a structured plan with prioritized testing tasks.
+
+IMPORTANT: Write the review plan to: reports/docs-review/${page.name}/review-plan.md
+Do NOT write files to the root directory or any other location.${dryRunInstructions}`;
 
         await this.saveCurrentPrompt(prompt, page.name, 'planning', this.planningModel);
 
@@ -501,12 +513,15 @@ Please use the documentation review prompt from tools/prompts/docs-review.md to 
 
                 const batchSummaryPath = path.join(this.reportsPath, `batch-summary-${batchNum}.json`);
 
-                // Skip if batch summary already exists
-                if (fs.existsSync(batchSummaryPath)) {
+                // Skip if batch summary already exists (unless force mode)
+                if (fs.existsSync(batchSummaryPath) && !this.force) {
                     console.log(`  ✅ Batch ${batchNum} summary already exists, loading...`);
                     const batchSummary = JSON.parse(fs.readFileSync(batchSummaryPath, 'utf8'));
                     batchSummaries.push(batchSummary);
                 } else {
+                    if (this.force && fs.existsSync(batchSummaryPath)) {
+                        console.log(`  🔄 Force mode: regenerating batch ${batchNum} summary...`);
+                    }
                     const batchSummary = await this.createBatchSummary(batch, batchNum);
                     fs.writeFileSync(batchSummaryPath, JSON.stringify(batchSummary, null, 2));
                     batchSummaries.push(batchSummary);
@@ -643,7 +658,8 @@ ${batchSummaryText}
 
 Total pages reviewed: ${allPages.length}
 
-Write the complete summary to: reports/docs-review/summary.md${dryRunInstructions}`;
+IMPORTANT: Write the complete summary to: reports/docs-review/summary.md
+Do NOT write files to the root directory or any other location.${dryRunInstructions}`;
 
         await this.saveCurrentPrompt(prompt, 'final-summary', 'summary', this.summaryModel);
 
@@ -682,7 +698,13 @@ This is the execution phase. Execute the review plan systematically using the ch
 ${planExists ? `Reference the existing review plan at: ${planPath}` : ''}
 ${this.skipScreenshots ? 'Skip screenshot capture for this run.' : ''}
 
-Please use the documentation review prompt from tools/prompts/docs-review.md to execute the review plan. Focus on the Phase 2 requirements: work through planned validations, document findings, and create the final report with screenshots.${dryRunInstructions}`;
+Please use the documentation review prompt from tools/prompts/docs-review.md to execute the review plan. Focus on the Phase 2 requirements: work through planned validations, document findings, and create the final report with screenshots.
+
+IMPORTANT: When writing files during this phase:
+- Write the final report to: reports/docs-review/${page.name}/report.md
+- Save all screenshots to: reports/docs-review/${page.name}/${exampleName}/
+- If you need to create temporary files, use: reports/docs-review/${page.name}/tmp/
+- Do NOT write files to the root directory or any other location${dryRunInstructions}`;
 
         await this.saveCurrentPrompt(prompt, page.name, 'execution', this.executionModel);
 
@@ -932,6 +954,8 @@ function parseArgs() {
             }
         } else if (arg === '--clean') {
             options.clean = true;
+        } else if (arg === '--force') {
+            options.force = true;
         } else if (arg === '--verbose' || arg === '-v') {
             options.verbose = true;
         } else if (arg === '--dry-run') {
@@ -953,6 +977,7 @@ Options:
   --resume-phase <phase>      Resume from specific phase: 'planning' (default), 'execution', or 'summary'
                               - 'execution': skips planning phase
                               - 'summary': skips planning and execution phases
+  --force                     Force regeneration of existing files (overrides resume behavior)
   --clean                     Clean up progress file and start fresh
   --help, -h                  Show this help message
 
@@ -966,6 +991,8 @@ Examples:
   node run-docs-review.js --resume
   node run-docs-review.js --resume-phase=execution  (skip planning, run execution only)
   node run-docs-review.js --resume-phase=summary  (skip to summary generation)
+  node run-docs-review.js --force  (regenerate all files even if they exist)
+  node run-docs-review.js --force --page-glob='pie-*'  (force regenerate specific pages)
   node run-docs-review.js --clean
 `);
             process.exit(0);
