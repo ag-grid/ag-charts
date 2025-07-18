@@ -184,7 +184,7 @@ jobs:
                       })
 
             - name: Slack Notification
-              if: always() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true))
+              if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true))
               continue-on-error: true
               env:
                   SLACK_CHANNEL: '#charts-performance'
@@ -194,6 +194,34 @@ jobs:
                   SLACK_COLOR: ${{ steps.benchmark-json.outputs.status != 'failure' && 'success' || 'failure' }}
               run: |
                   node ./tools/benchmark/format-slack-message.js > ./reports/benchmark-slack.json
+                  curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/benchmark-slack.json
+
+            - name: Slack Notification
+              if: failure() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true))
+              continue-on-error: true
+              env:
+                  SLACK_CHANNEL: '#charts-performance'
+                  SLACK_ICON: 'https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png'
+                  SLACK_USERNAME: 'ag-charts CI'
+                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+                  SLACK_COLOR: ${{ steps.benchmark-json.outputs.status != 'failure' && 'success' || 'failure' }}
+              run: |
+                  cat <<EOF > ./reports/benchmark-slack.json
+                  {
+                    "channel": "${SLACK_CHANNEL}",
+                    "username": "${SLACK_USERNAME}",
+                    "icon_url": "${SLACK_ICON}",
+                    "blocks": [
+                      {
+                        "type": "section",
+                        "text": {
+                          "type": "mrkdwn",
+                          "text": "❌ Benchmark failed: [Run #${{ github.run_id }}](${JOB_URL})"
+                        }
+                      }
+                    ]
+                  }
+                  EOF
                   curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/benchmark-slack.json
 
             - name: Perist benchmark results
