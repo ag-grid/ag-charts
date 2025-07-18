@@ -169,17 +169,24 @@ export abstract class DataModelSeries<
     }
 
     // Workaround - it would be nice if this difference didn't exist
+    private dataModelPropertyIsKey(key: string) {
+        const { processedData } = this;
+        if (!processedData) return false;
+        return processedData.defs.keys.some((def) => def.id === key && def.idsMap?.get(this.id)?.has(key) === true);
+    }
+
     protected keysOrValues<T = any>(xKey: string): T[] {
-        const key = this.dataModel!.resolveProcessedDataIndexById(this, xKey);
-        return this.processedData?.keys[key]?.get(this.id) ?? this.processedData?.columns[key] ?? [];
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return [];
+        return this.dataModelPropertyIsKey(xKey)
+            ? dataModel.resolveKeysById(this, xKey, processedData)
+            : dataModel.resolveColumnById(this, xKey, processedData);
     }
 
     protected sortOrder(xKey: string): -1 | 1 | undefined {
-        const dataModel = this.dataModel!;
-        const processedData = this.processedData!;
-        const key = dataModel.resolveProcessedDataIndexById(this, xKey);
-        const isKey = processedData.keys[key]?.get(this.id) != null;
-        return isKey
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return;
+        return this.dataModelPropertyIsKey(xKey)
             ? dataModel.getKeySortOrder(this, xKey, processedData)
             : dataModel.getColumnSortOrder(this, xKey, processedData);
     }
