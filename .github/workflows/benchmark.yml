@@ -33,6 +33,7 @@ jobs:
         env:
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
             JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            BENCHMARK_SOFT_FAIL: 'true'
         steps:
             - name: Notify start
               id: notify-start
@@ -137,8 +138,6 @@ jobs:
             - name: nx benchmark
               id: benchmark-table
               if: github.event_name == 'issue_comment' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
-              env:
-                  BENCHMARK_SOFT_FAIL: 'true'
               run: |
                   ./tools/benchmark/compare-latest.sh origin/${{ steps.get-branch.outputs.base }}
                   echo "report<<EOF" >> $GITHUB_OUTPUT
