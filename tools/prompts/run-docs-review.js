@@ -12,6 +12,11 @@ const glob = require('glob');
  * - Phase 1 (Planning): Uses expensive model for sophisticated reasoning
  * - Phase 2 (Execution): Uses cheaper model for systematic tasks
  * - Runs in parallel batches to optimize performance
+ * 
+ * Resume functionality:
+ * - Checks filesystem state for existing review-plan.md and report.md files
+ * - Automatically skips completed pages based on file existence
+ * - No longer relies on progress.json for completion tracking
  */
 
 class DocsReviewOrchestrator {
@@ -86,7 +91,7 @@ class DocsReviewOrchestrator {
         } catch (error) {
             console.error('❌ Orchestration failed:', error);
             await this.saveProgress();
-            console.log(`💾 Progress saved. Resume with: node ${process.argv[1]} --resume`);
+            console.log(`💾 You can resume with: node ${process.argv[1]} --resume`);
             process.exit(1);
         }
     }
@@ -140,50 +145,100 @@ class DocsReviewOrchestrator {
 
     async loadProgress() {
         try {
-            if (fs.existsSync(this.progressFile)) {
-                const progress = JSON.parse(fs.readFileSync(this.progressFile, 'utf8'));
-
-                // Validate progress file structure
-                if (progress.sessionId && progress.completedPages) {
-                    this.completedPages = new Set(progress.completedPages);
-                    this.results = { ...this.results, ...progress.results };
-
-                    console.log(`📂 Resuming session ${progress.sessionId}`);
-                    console.log(`✅ Already completed: ${this.completedPages.size} pages`);
-                    console.log(`🔄 Remaining: ${this.results.total - this.completedPages.size} pages`);
-                } else {
-                    console.log('⚠️  Invalid progress file format, starting fresh');
+            console.log('📂 Checking filesystem state for existing progress...');
+            
+            // Check for completed pages by looking at filesystem
+            let planningCompleted = 0;
+            let executionCompleted = 0;
+            
+            // Get all page directories
+            const pagesDirs = fs.existsSync(this.reportsPath) 
+                ? fs.readdirSync(this.reportsPath).filter(dir => {
+                    const fullPath = path.join(this.reportsPath, dir);
+                    return fs.statSync(fullPath).isDirectory() && 
+                           !['progress.json', 'summary.json', 'current-prompt.md', 'current-prompt-output.md'].includes(dir);
+                })
+                : [];
+            
+            // Check each page directory for completed files
+            for (const pageDir of pagesDirs) {
+                const pagePath = path.join(this.reportsPath, pageDir);
+                const planPath = path.join(pagePath, 'review-plan.md');
+                const reportPath = path.join(pagePath, 'report.md');
+                
+                if (fs.existsSync(planPath)) {
+                    this.completedPages.add(`${pageDir}:planning`);
+                    planningCompleted++;
                 }
+                
+                if (fs.existsSync(reportPath)) {
+                    this.completedPages.add(`${pageDir}:execution`);
+                    executionCompleted++;
+                    this.results.completed++;
+                }
+            }
+            
+            if (planningCompleted > 0 || executionCompleted > 0) {
+                console.log(`✅ Found existing progress:`);
+                console.log(`   - Planning completed: ${planningCompleted} pages`);
+                console.log(`   - Execution completed: ${executionCompleted} pages`);
+                console.log(`🔄 Will resume from filesystem state`);
             } else {
-                console.log('📝 No previous progress found, starting fresh');
+                console.log('📝 No previous progress found in filesystem, starting fresh');
+            }
+            
+            // Optionally load errors from previous runs, but only for completed pages
+            const summaryPath = path.join(this.reportsPath, 'summary.json');
+            if (fs.existsSync(summaryPath)) {
+                try {
+                    const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+                    if (summary.results && summary.results.errors) {
+                        // Filter out errors for pages that will be reprocessed
+                        this.results.errors = summary.results.errors.filter(error => {
+                            // Keep error only if the page won't be reprocessed
+                            const pageReportPath = path.join(this.reportsPath, error.page, 'report.md');
+                            const isPageComplete = fs.existsSync(pageReportPath);
+                            
+                            if (!isPageComplete) {
+                                console.log(`   🔄 Clearing previous error for ${error.page} (will be reprocessed)`);
+                                return false;
+                            }
+                            return true;
+                        });
+                        
+                        if (this.results.errors.length > 0) {
+                            console.log(`   ⚠️  Keeping ${this.results.errors.length} errors from completed pages`);
+                        }
+                    }
+                } catch (e) {
+                    // Ignore errors reading summary file
+                }
             }
         } catch (error) {
-            console.error('❌ Failed to load progress:', error.message);
+            console.error('❌ Failed to check filesystem state:', error.message);
             console.log('🔄 Starting fresh...');
         }
     }
 
     async saveProgress() {
+        // Progress is now tracked by filesystem state (review-plan.md and report.md files)
+        // This method is kept for compatibility but does minimal work
         try {
-            const progress = {
-                sessionId: this.sessionId,
-                timestamp: new Date().toISOString(),
-                completedPages: Array.from(this.completedPages),
-                results: this.results,
-                configuration: {
-                    planningModel: this.planningModel,
-                    executionModel: this.executionModel,
-                    batchSize: this.batchSize,
-                    skipScreenshots: this.skipScreenshots,
-                    verbose: this.verbose,
-                    dryRun: this.dryRun,
-                },
-            };
-
-            fs.mkdirSync(path.dirname(this.progressFile), { recursive: true });
-            fs.writeFileSync(this.progressFile, JSON.stringify(progress, null, 2));
+            // Only save error information if needed
+            if (this.results.errors.length > 0) {
+                const errorLog = {
+                    timestamp: new Date().toISOString(),
+                    errors: this.results.errors,
+                };
+                
+                fs.mkdirSync(path.dirname(this.progressFile), { recursive: true });
+                fs.writeFileSync(
+                    path.join(this.reportsPath, 'errors.json'),
+                    JSON.stringify(errorLog, null, 2)
+                );
+            }
         } catch (error) {
-            console.error('❌ Failed to save progress:', error.message);
+            console.error('❌ Failed to save error log:', error.message);
         }
     }
 
@@ -198,11 +253,40 @@ class DocsReviewOrchestrator {
     }
 
     isPageCompleted(pageName, phase) {
-        return this.completedPages.has(`${pageName}:${phase}`);
+        // Check filesystem state instead of memory
+        const pageDir = path.join(this.reportsPath, pageName);
+        
+        if (phase === 'planning') {
+            const planPath = path.join(pageDir, 'review-plan.md');
+            return fs.existsSync(planPath);
+        } else if (phase === 'execution') {
+            const reportPath = path.join(pageDir, 'report.md');
+            return fs.existsSync(reportPath);
+        }
+        
+        return false;
     }
 
     markPageCompleted(pageName, phase) {
         this.completedPages.add(`${pageName}:${phase}`);
+    }
+
+    addError(page, phase, errorMessage) {
+        // Check if error already exists for this page and phase
+        const existingError = this.results.errors.find(
+            e => e.page === page && e.phase === phase
+        );
+        
+        if (!existingError) {
+            this.results.errors.push({
+                page: page,
+                phase: phase,
+                error: errorMessage,
+            });
+        } else {
+            // Update existing error message
+            existingError.error = errorMessage;
+        }
     }
 
     async saveCurrentPrompt(prompt, pageName, phase, model) {
@@ -278,11 +362,7 @@ ${prompt}
                 await this.saveProgress(); // Save progress after each page
             } catch (error) {
                 console.error(`\n❌ Planning failed for ${page.name}:`, error.message);
-                this.results.errors.push({
-                    page: page.name,
-                    phase: 'planning',
-                    error: error.message,
-                });
+                this.addError(page.name, 'planning', error.message);
                 await this.saveProgress(); // Save progress even on error
             }
         }
@@ -314,11 +394,7 @@ ${prompt}
                 } catch (error) {
                     console.error(`\n❌ Execution failed for ${page.name}:`, error.message);
                     this.results.failed++;
-                    this.results.errors.push({
-                        page: page.name,
-                        phase: 'execution',
-                        error: error.message,
-                    });
+                    this.addError(page.name, 'execution', error.message);
                     await this.saveProgress(); // Save progress even on error
                 }
             });
@@ -621,7 +697,7 @@ Options:
   --page-glob <pattern>       Glob pattern to filter pages (e.g., 'pie-*' for pie pages)
   --verbose, -v               Stream Claude output as it executes (instead of spinner)
   --dry-run                   Request skeleton reports for quick testing
-  --resume                    Resume from previous interrupted session
+  --resume                    Resume from filesystem state (checks for existing review-plan.md and report.md files)
   --clean                     Clean up progress file and start fresh
   --help, -h                  Show this help message
 
