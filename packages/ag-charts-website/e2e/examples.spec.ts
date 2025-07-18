@@ -88,7 +88,6 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     'annotations-test': {
         // FWs not intended to work.
         '*': { frameworks: ['vanilla'] },
-        'initial-state': { ignoreConsoleWarnings: true }, // FIXME(AG-15386): Fails with a console warning.
     },
 
     'example-logger-test': {
