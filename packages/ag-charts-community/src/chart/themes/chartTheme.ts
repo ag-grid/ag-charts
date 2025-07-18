@@ -256,7 +256,7 @@ export class ChartTheme {
                                 ],
                             },
                             { left: 12, right: 12, top: 8, bottom: 8 },
-                            0,
+                            undefined,
                         ],
                     },
                 },
