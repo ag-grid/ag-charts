@@ -12,6 +12,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 const issueTypeValueFormatter = (params: any) => (params.value === 'Bug' ? 'Defect' : 'Feature Request');
 
+const gridToChartVersion = (gridVersion: string) => {
+    const versionParts = gridVersion.split('.');
+
+    // the first charts release was on grid version 22 - we'll keep in lock step release wise going forward so this
+    // works
+    const chartMajorVersion = parseInt(versionParts[0]) - 22;
+    return `${chartMajorVersion}.${versionParts[1]}.${versionParts[2]}`;
+};
+
 const COLUMN_DEFS = [
     {
         field: 'key',
@@ -49,25 +58,19 @@ const COLUMN_DEFS = [
     {
         field: 'status',
         width: 135,
-        valueGetter: (params: any) => {
-            const fixVersionsArr: any = params.data.versions;
-            const hasFixVersion: any = fixVersionsArr.length > 0;
+        valueGetter: (params) => {
+            const fixVersionsArr = params.data.versions;
+            const hasFixVersion = fixVersionsArr.length > 0;
             if (hasFixVersion) {
-                const latestFixVersion: any = fixVersionsArr.length - 1;
-                const fixVersion: any = fixVersionsArr[latestFixVersion];
-                if (fixVersion === 'Next' && (params.data.status === 'Backlog' || params.data.status === 'Done')) {
-                    return 'Next Release';
+                const latestFixVersion = fixVersionsArr.length - 1;
+                const fixVersion = fixVersionsArr[latestFixVersion];
+                if (fixVersion.toUpperCase() === 'NEXT') {
+                    return 'Scheduled';
+                } else {
+                    return gridToChartVersion(fixVersion);
                 }
             }
-            if (params.data.status === 'Done' && params.data.resolution !== 'Done') {
-                return params.data.resolution;
-            }
-
-            if (params.data.status !== 'Done' && params.data.status !== 'Backlog') {
-                return 'Scheduled';
-            } else {
-                return 'Backlog';
-            }
+            return 'Backlog';
         },
     },
 ];
