@@ -155,6 +155,7 @@
     ]
   },
   "resolutions": {
-    "**/micromatch": "4.0.8"
+    "**/micromatch": "4.0.8",
+    "**/axios/form-data": "4.0.4"
   }
 }
