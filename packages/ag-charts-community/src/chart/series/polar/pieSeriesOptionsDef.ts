@@ -39,7 +39,15 @@ import {
 
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
 
-export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptions> = {
+type UndocumentedOptions = {
+    calloutLabel?: {
+        itemStyler?: unknown;
+    };
+    sectorLabel?: {
+        itemStyler?: unknown;
+    };
+};
+export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptions & UndocumentedOptions> = {
     ...commonSeriesThemeableOptionsDefs,
     radiusMin: positiveNumber,
     radiusMax: positiveNumber,
