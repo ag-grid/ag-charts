@@ -28,28 +28,6 @@ const options: AgChartOptions = {
                     strokeWidth: 3,
                     strokeOpacity: 0.2,
                 },
-                itemStyler: (params: AgAxisLabelStylerParams<unknown>) => {
-                    if (params.value === '$5000.00') {
-                        return {
-                            border: {
-                                stroke: 'red',
-                                strokeWidth: 6,
-                                strokeOpacity: 1,
-                            },
-                            padding: 15,
-                            fontWeight: 'bold',
-                            fill: {
-                                type: 'gradient',
-                                colorStops: [
-                                    { color: '#70C1FF', stop: 0.1 },
-                                    { color: '#FFD86F', stop: 0.3 },
-                                    { color: '#FF9A60', stop: 0.5 },
-                                    { color: '#D16BA5' },
-                                ],
-                            },
-                        };
-                    }
-                },
             },
         },
         {
