@@ -16,6 +16,7 @@ export const MAP_THEME_DEFAULTS: _ModuleSupport.ExtensibleTheme<'map-shape' | 'm
     },
     gradientLegend: {
         enabled: false,
+        ..._ModuleSupport.LEGEND_CONTAINER_THEME,
     },
 };
 

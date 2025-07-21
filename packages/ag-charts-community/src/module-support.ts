@@ -21,6 +21,7 @@ export { NewHistogramSeriesModule } from './chart/series/cartesian/histogramSeri
 export { NewScatterSeriesModule } from './chart/series/cartesian/scatterSeriesModule';
 
 export * from './util/angle';
+export * from './util/border';
 export * from './util/callbackCache';
 export * from './util/date';
 export { extractDecoratedProperties, isDecoratedObject, listDecoratedProperties } from './util/decorator';
