@@ -6,7 +6,7 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Custom Highlight Multiple Series Markers',
+        text: 'Default Highlight Multiple Series Markers',
     },
     animation: {
         enabled: true,
@@ -16,15 +16,13 @@ const options: AgChartOptions = {
         overrides: {
             line: {
                 series: {
-                    highlight: {
-                        highlightedItem: {
-                            fillOpacity: 0.8,
-                        },
-                        highlightedSeries: {
-                            strokeWidth: 4,
-                        },
-                        unhighlightedSeries: {
-                            opacity: 0.2,
+                    marker: {
+                        itemStyler({ highlighted }) {
+                            return {
+                                size: highlighted ? 15 : 25,
+                                shape: highlighted ? 'star' : 'circle',
+                                fillOpacity: highlighted ? 0.5 : 1,
+                            };
                         },
                     },
                 },
@@ -37,12 +35,6 @@ const options: AgChartOptions = {
             xKey: 'quarter',
             yKey: 'petrol',
             yName: 'Petrol',
-        },
-        {
-            type: 'line',
-            xKey: 'quarter',
-            yKey: 'diesel',
-            yName: 'Diesel',
         },
     ],
 };

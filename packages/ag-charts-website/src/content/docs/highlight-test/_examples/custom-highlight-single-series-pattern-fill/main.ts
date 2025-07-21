@@ -6,7 +6,7 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Default Highlight Single Series',
+        text: 'Custom Highlight Single Series',
     },
     data: getData(),
     series: [
@@ -20,6 +20,17 @@ const options: AgChartOptions = {
             },
             stroke: 'lime',
             strokeWidth: 4,
+            highlight: {
+                highlightedItem: {
+                    stroke: 'red',
+                    strokeWidth: 2,
+                    lineDash: [4, 5],
+                    fillOpacity: 0.8,
+                },
+            },
+            fill: {
+                type: 'pattern',
+            },
         },
     ],
     axes: [

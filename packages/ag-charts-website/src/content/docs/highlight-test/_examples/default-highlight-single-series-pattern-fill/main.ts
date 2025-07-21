@@ -20,6 +20,9 @@ const options: AgChartOptions = {
             },
             stroke: 'lime',
             strokeWidth: 4,
+            fill: {
+                type: 'pattern',
+            },
         },
     ],
     axes: [
