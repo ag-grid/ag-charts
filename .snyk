@@ -64,4 +64,10 @@ ignore:
                   Only used for testing packages, so ReDos attack would only affect developer machines and CI
               expires: 2025-09-21T12:00:00.000Z
               created: 2025-06-25T14:14:23.307Z
+    SNYK-JS-WS-7266574:
+        - jsdom@22.1.0 > ws@8.15.0:
+              reason: >-
+                  Only used for building, so DoS attack would only affect developer machines and CI
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-06-25T14:14:23.307Z
 patch: {}
