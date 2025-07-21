@@ -104,6 +104,10 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
     bandHighlight: cartesianAxisBandHighlightOptions,
     paddingInner: ratio,
     groupPaddingInner: ratio,
+    interval: {
+        ...commonAxisIntervalOptionsDefs,
+        placement: union('on', 'between'),
+    },
     depthOptions: arrayOfDefs<AgGroupedCategoryDepthOptions>(
         {
             label: {
