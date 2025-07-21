@@ -201,6 +201,8 @@ export interface AgGroupedCategoryAxisOptions<TContext = ContextDefault>
         'tick'
     > {
     type: 'grouped-category';
+    /** Configuration for the axis ticks interval. */
+    interval?: AgAxisCategoryIntervalOptions;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
     /** This property is for grouped column/bar series plotted on a category axis. It is a proportion between 0 and 1 which determines the size of the gap between the bars or columns within a single group along the axis. */

@@ -9,7 +9,7 @@ import { Property } from '../../util/properties';
 import type { FormatDatumParams } from '../chartAxis';
 import type { AxisTickFormatParams } from './axis';
 import type { AxisFillDatum, AxisLineDatum, TickDatum } from './axisUtil';
-import { CartesianAxis } from './cartesianAxis';
+import { CartesianAxis, type GridLineStyleTickDatum } from './cartesianAxis';
 
 export class CategoryAxis<
     S extends CategoryScale<string | object> | UnitTimeScale | OrdinalTimeScale = CategoryScale<string | object>,
@@ -55,7 +55,7 @@ export class CategoryAxis<
         this.scale.paddingOuter = paddingOuter ?? 0;
     }
 
-    protected override calculateGridLines(ticks: TickDatum[], p1: number, p2: number): AxisLineDatum[] {
+    protected override calculateGridLines(ticks: GridLineStyleTickDatum[], p1: number, p2: number): AxisLineDatum[] {
         const gridLines = super.calculateGridLines(ticks, p1, p2);
 
         if (this.interval.placement === 'between' && ticks.length > 0) {
@@ -78,11 +78,11 @@ export class CategoryAxis<
     }
 
     protected override calculateGridLine(
-        { index: tickIndex, tickId, translation }: Pick<TickDatum, 'index' | 'tickId' | 'translation'>,
+        { index: tickIndex, tickId, translation }: GridLineStyleTickDatum,
         index: number,
         p1: number,
         p2: number,
-        ticks: TickDatum[]
+        ticks: GridLineStyleTickDatum[]
     ): AxisLineDatum {
         const { gridLine, horizontal, interval, range } = this;
 
@@ -101,7 +101,7 @@ export class CategoryAxis<
         return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
     }
 
-    protected override calculateGridFills(ticks: TickDatum[], p1: number, p2: number): AxisFillDatum[] {
+    protected override calculateGridFills(ticks: GridLineStyleTickDatum[], p1: number, p2: number): AxisFillDatum[] {
         if (this.interval.placement !== 'between') {
             return super.calculateGridFills(ticks, p1, p2);
         }
@@ -109,12 +109,12 @@ export class CategoryAxis<
     }
 
     protected override calculateGridFill(
-        { tickId, translation }: Pick<TickDatum, 'tickId' | 'translation'>,
+        { tickId, translation }: Pick<GridLineStyleTickDatum, 'tickId' | 'translation'>,
         index: number,
         gridFillIndex: number,
         p1: number,
         p2: number,
-        ticks: TickDatum[]
+        ticks: GridLineStyleTickDatum[]
     ): AxisFillDatum {
         const { gridLine, horizontal, interval, range } = this;
 
