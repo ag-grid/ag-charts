@@ -16,6 +16,7 @@ const options: AgChartOptions = {
             yKey: 'visitors',
             label: {
                 enabled: true,
+                color: 'black',
             },
             stroke: 'lime',
             strokeWidth: 4,

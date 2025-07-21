@@ -27,6 +27,9 @@ const options: AgChartOptions = {
                     lineDash: [4, 5],
                 },
             },
+            fill: {
+                type: 'pattern',
+            },
         },
     ],
     axes: [

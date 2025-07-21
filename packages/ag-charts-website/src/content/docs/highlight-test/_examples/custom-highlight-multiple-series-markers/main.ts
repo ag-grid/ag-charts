@@ -6,7 +6,7 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Default Highlight Multiple Series Markers',
+        text: 'Custom Highlight Multiple Series Markers',
     },
     animation: {
         enabled: true,

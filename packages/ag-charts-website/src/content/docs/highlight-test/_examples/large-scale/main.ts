@@ -40,6 +40,8 @@ const options: AgCartesianChartOptions = {
             title: 'Scatter',
             shape: 'circle',
             visible: visibleCount >= 1,
+            // disable high performance optimisations
+            maxRenderedItems: 1_000_000,
         },
         {
             type: 'line',
