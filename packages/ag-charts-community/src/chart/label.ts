@@ -125,7 +125,7 @@ export class Label<TParams = never, TDatum = any>
     }
 }
 
-function expandPadding(padding: Padding | undefined): Required<PaddingOptions> {
+export function expandLabelPadding(padding: Padding | undefined): Required<PaddingOptions> {
     if (padding == null) {
         return { bottom: 0, left: 0, right: 0, top: 0 };
     } else if (typeof padding === 'number') {
@@ -249,7 +249,7 @@ export function timeIntervalMaxLabelSize(
     let maxWidth = 0;
     let maxHeight = 0;
     if (labelFormatter != null) {
-        const padding = expandPadding(label.padding);
+        const padding = expandLabelPadding(label.padding);
         const xPadding = padding.left + padding.right;
         const yPadding = padding.top + padding.bottom;
         let l0: Date;
@@ -271,7 +271,7 @@ export function timeIntervalMaxLabelSize(
     }
 
     if (primaryLabelFormatter != null && hierarchyRange != null) {
-        const padding = expandPadding(primaryLabel?.padding);
+        const padding = expandLabelPadding(primaryLabel?.padding);
         const xPadding = padding.left + padding.right;
         const yPadding = padding.top + padding.bottom;
         for (const date of hierarchyRange) {
@@ -293,15 +293,21 @@ export function createLabelData(
     tickData: { tickLabel: string | undefined; translation: number }[],
     labelX: number,
     labelMatrix: Matrix,
-    textMeasurer: TextMeasurer
+    textMeasurer: TextMeasurer,
+    label: ChartAxisLabel
 ) {
+    const padding = expandLabelPadding(label.padding);
+    const xPadding = padding.left + padding.right;
+    const yPadding = padding.top + padding.bottom;
     const labelData: PlacedLabelDatum[] = [];
 
     for (const { tickLabel: text, translation } of tickData) {
         if (!text) continue;
 
         const { x, y } = labelMatrix.transformBBox(new BBox(labelX, translation, 0, 0));
-        const { width, height } = textMeasurer.measureLines(text);
+        const metrics = textMeasurer.measureLines(text);
+        const width = metrics.width + xPadding;
+        const height = metrics.height + yPadding;
         labelData.push({
             point: { x, y },
             label: { text, width, height },

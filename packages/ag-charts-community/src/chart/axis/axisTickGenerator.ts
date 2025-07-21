@@ -235,7 +235,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         const getLabelData = ({ ticks }: TickData, iterationRotation: number) => {
             updateLabelMatrix(iterationRotation);
-            return createLabelData(ticks, labelX, labelMatrix, textMeasurer);
+            return createLabelData(ticks, labelX, labelMatrix, textMeasurer, label);
         };
 
         const getTimeLabelData = (tickData: TickData, iterationRotation: number) => {
