@@ -17,6 +17,9 @@ const options: AgChartOptions = {
             line: {
                 series: {
                     highlight: {
+                        highlightedItem: {
+                            fillOpacity: 0.8,
+                        },
                         highlightedSeries: {
                             strokeWidth: 4,
                         },

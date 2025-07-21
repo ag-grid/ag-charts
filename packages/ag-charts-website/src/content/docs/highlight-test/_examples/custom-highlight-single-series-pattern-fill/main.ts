@@ -25,6 +25,7 @@ const options: AgChartOptions = {
                     stroke: 'red',
                     strokeWidth: 2,
                     lineDash: [4, 5],
+                    fillOpacity: 0.8,
                 },
             },
             fill: {
