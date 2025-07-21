@@ -38,6 +38,11 @@ ignore:
                   Only used for building, so ReDos attack would only affect developer machines and CI
               expires: 2025-09-21T12:00:00.000Z
               created: 2025-07-15T11:28:00.000Z
+        - '@swc/cli@0.3.14 > @mole-inc/bin-wrapper@8.0.1 > bin-version-check@5.1.0 > bin-version@6.0.0 > execa@5.1.1 > cross-spawn@7.0.3':
+              reason: >-
+                  Only used for building, so ReDos attack would only affect developer machines and CI
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-07-15T11:28:00.000Z
     SNYK-JS-VITE-9653016:
         - vitest@2.1.6:
               reason: >-
@@ -68,6 +73,17 @@ ignore:
         - jsdom@22.1.0 > ws@8.15.0:
               reason: >-
                   Only used for building, so DoS attack would only affect developer machines and CI
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-06-25T14:14:23.307Z
+        - jest-environment-jsdom@29.7.0 > jsdom@20.0.3 > ws@8.15.0:
+              reason: >-
+                  Only used for testing, so DoS attack would only affect developer machines and CI
+              expires: 2025-09-21T12:00:00.000Z
+              created: 2025-06-25T14:14:23.307Z
+    SNYK-JS-FORMDATA-10841150:
+        - request@2.88.2 > form-data@2.3.3:
+              reason: >-
+                  Only used for building and getting changelog/pipeline data
               expires: 2025-09-21T12:00:00.000Z
               created: 2025-06-25T14:14:23.307Z
 patch: {}
