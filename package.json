@@ -156,6 +156,7 @@
   },
   "resolutions": {
     "**/micromatch": "4.0.8",
-    "**/axios/form-data": "4.0.4"
+    "**/axios/form-data": "4.0.4",
+    "npm-run-all/cross-spawn": "6.0.6"
   }
 }
