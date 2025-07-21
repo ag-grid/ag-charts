@@ -91,6 +91,8 @@ const legendPlacementLiterals: readonly AgChartLegendPlacement[] = [
 const legendPositionOptionsDef: OptionsDefs<AgChartLegendPositionOptions> = {
     floating: boolean,
     placement: union(...legendPlacementLiterals),
+    xOffset: number,
+    yOffset: number,
 };
 
 const legendPositionValidator: Validator = attachDescription(
