@@ -71,6 +71,7 @@ const highlightExamples = [
     'large-scale-multi-series',
     'default-highlight-single-series-pattern-fill',
     'custom-highlight-single-series-pattern-fill',
+    'custom-highlight-single-series-item-styler',
 ];
 
 test.describe('highlight states', () => {
