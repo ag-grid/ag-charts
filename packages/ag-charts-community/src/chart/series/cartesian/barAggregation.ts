@@ -1,4 +1,4 @@
-import type { Scale } from '../../../scale/scale';
+import type { ScaleType } from '../../../scale/scale';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
@@ -35,7 +35,7 @@ function getIndices(maxRange: number, indexData: Int32Array): number[] {
 }
 
 export function aggregateBarData(
-    scale: Scale<unknown, number>,
+    scale: ScaleType,
     xValues: any[],
     yValues: any[],
     domain: number[]

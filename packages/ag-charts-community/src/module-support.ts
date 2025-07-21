@@ -31,6 +31,7 @@ export * from './util/format.util';
 export * from './util/json';
 export * from './util/keynavUtil';
 export * from './util/nearest';
+export * from './util/memo';
 export * from './util/number';
 export * from './util/object';
 export * from './util/placement';
