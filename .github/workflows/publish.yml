@@ -1,5 +1,7 @@
 name: Bump Beta Version
 
+# NOTE: This workflow is an automated version of ./tools/update-release.sh if you want to run it manually.
+
 on:
     workflow_dispatch: {}
     schedule:
