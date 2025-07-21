@@ -31,7 +31,7 @@ const DOM_ELEMENT_CLASSES = [
     'series-area',
     'tooltip-container',
 ] as const;
-const MINIMAL_DOM_ELEMENT_ROLES = new Set(['canvas-container', 'canvas', 'tooltip-container']);
+const MINIMAL_DOM_ELEMENT_ROLES = new Set(['styles', 'canvas-container', 'canvas', 'tooltip-container']);
 const CONTAINER_MODIFIERS = {
     safeHorizontal: 'ag-charts-wrapper--safe-horizontal',
     safeVertical: 'ag-charts-wrapper--safe-vertical',
@@ -320,7 +320,7 @@ export class DOMManager extends BaseManager {
         this.container = pendingContainer;
         this.pendingContainer = undefined;
         this.documentRoot = this.getShadowDocumentRoot(pendingContainer);
-        this.initiallyConnected = this.mode === 'minimal' || pendingContainer.isConnected;
+        this.initiallyConnected = pendingContainer.isConnected;
 
         // If we moved from a shadow DOM to outside, we need to ensure the page styles are present
         // Or if the container is added lazily, we need to ensure styles are added before the container
