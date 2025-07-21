@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgAreaSeriesOptions, AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type {
+    AgAreaSeriesOptions,
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgChartOptions,
+    AgLineSeriesOptions,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { deepClone } from '../../../util/json';
@@ -647,8 +653,12 @@ describe('LineSeries', () => {
     });
 
     test('AG-8290 label boxing', async () => {
+        type TDatum = { month: string; value: number };
+        type TContext = unknown;
+        type DocumentedOptions = { data: TDatum[]; series: AgLineSeriesOptions<TDatum, TContext>[] };
+        type UndocumentedOptions = { series: { label: { itemStyler: (p: any) => any } }[] };
         chart = AgCharts.create(
-            prepareTestOptions({
+            prepareTestOptions<DocumentedOptions & UndocumentedOptions>({
                 data: [
                     { month: 'Jan', value: 29.9 },
                     { month: 'Apr', value: 129.2 },
