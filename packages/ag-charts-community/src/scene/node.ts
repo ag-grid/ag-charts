@@ -73,6 +73,7 @@ export abstract class Node<TDatum = unknown> {
         root.setAttribute('width', String(width));
         root.setAttribute('height', String(height));
         root.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        root.setAttribute('overflow', 'visible');
 
         if (svg.defs?.length) {
             const defs = createSvgElement('defs');
