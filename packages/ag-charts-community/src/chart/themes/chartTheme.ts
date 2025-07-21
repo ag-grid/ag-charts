@@ -236,6 +236,29 @@ export class ChartTheme {
                     spacing: 11,
                     color: { $ref: 'textColor' },
                     avoidCollisions: true,
+                    cornerRadius: 4,
+                    border: {
+                        strokeWidth: 1,
+                        stroke: {
+                            $if: [
+                                { $isUserOption: ['../border', true, false] },
+                                { $foregroundOpacity: 0.08 },
+                                undefined,
+                            ],
+                        },
+                    },
+                    padding: {
+                        $if: [
+                            {
+                                $or: [
+                                    { $isUserOption: ['./border', true, false] },
+                                    { $isUserOption: ['./fill', true, false] },
+                                ],
+                            },
+                            { left: 12, right: 12, top: 8, bottom: 8 },
+                            undefined,
+                        ],
+                    },
                 },
                 line: {
                     enabled: true,
