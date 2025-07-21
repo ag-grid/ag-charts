@@ -172,13 +172,14 @@ export class Text<D = any> extends Shape<D> {
             return bbox;
         }
         const { x, y, lines, textBaseline, textAlign, lineHeight } = this;
+        const padding = this.boxing == null ? {} : this.boxPadding;
         return Text.computeBBox(
             lines,
             x,
             y,
             { font: this, textBaseline, textAlign, lineHeight },
             useGlyphIndependentMeasurements
-        );
+        ).grow(padding);
     }
 
     override getBBox(useGlyphIndependentMeasurements: boolean = true): BBox {
