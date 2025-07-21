@@ -249,6 +249,9 @@ export function timeIntervalMaxLabelSize(
     let maxWidth = 0;
     let maxHeight = 0;
     if (labelFormatter != null) {
+        const padding = expandPadding(label.padding);
+        const xPadding = padding.left + padding.right;
+        const yPadding = padding.top + padding.bottom;
         let l0: Date;
         let l1: Date;
         if (hierarchyRange != null && hierarchyRange.length > 1) {
@@ -262,15 +265,15 @@ export function timeIntervalMaxLabelSize(
         for (const date of labelRange) {
             const text = labelFormatter(date);
             const { width, height } = textMeasurer.measureLines(text);
-            maxWidth = Math.max(maxWidth, width);
-            maxHeight = Math.max(maxHeight, height);
+            maxWidth = Math.max(maxWidth, width + xPadding);
+            maxHeight = Math.max(maxHeight, height + yPadding);
         }
     }
 
-    const padding = expandPadding(label.padding);
-    const xPadding = padding.left + padding.right;
-    const yPadding = padding.top + padding.bottom;
     if (primaryLabelFormatter != null && hierarchyRange != null) {
+        const padding = expandPadding(primaryLabel?.padding);
+        const xPadding = padding.left + padding.right;
+        const yPadding = padding.top + padding.bottom;
         for (const date of hierarchyRange) {
             const text = primaryLabelFormatter(date);
             const { width, height } = textMeasurer.measureLines(text);
