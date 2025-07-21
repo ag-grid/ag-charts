@@ -237,7 +237,7 @@ jobs:
               uses: ./.github/actions/snapshot-branch
               with:
                   path: packages/ag-charts-{community,enterprise}/{benchmarks,src}/
-                  source_branch: ${{ github.event.pull_request.base.ref || github.event.base_ref || 'latest' }}
+                  source_branch: ${{ github.event.pull_request.head.ref || github.head_ref || 'latest' }}
                   branch: ${{ needs.init.outputs.snapshot_branch }}
                   type: test (shard ${{matrix.shard}})
 
