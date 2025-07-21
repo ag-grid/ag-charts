@@ -273,7 +273,10 @@ export class Text<D = any> extends Shape<D> {
 
         if (isArray(this.text)) {
             this.generateTextMap();
+            ctx.save();
+            ctx.translate(0, this.y);
             this.richText!.render(renderCtx);
+            ctx.restore();
         } else {
             this.renderText(renderCtx);
         }

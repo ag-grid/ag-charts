@@ -1503,15 +1503,16 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             text.fill = color;
             text.textAlign = 'center';
             text.textBaseline = 'alphabetic';
-            textBBoxes.push(text.getBBox(false));
+            textBBoxes.push(text.getBBox());
             margins.push(datum.spacing);
         });
         const getMarginTop = (index: number) => (index === 0 ? 0 : margins[index]);
         const getMarginBottom = (index: number) => (index === margins.length - 1 ? 0 : margins[index]);
-        const totalHeight = textBBoxes.reduce((sum, bbox, i) => {
-            return sum + bbox.height + getMarginTop(i) + getMarginBottom(i);
-        }, 0);
-        const totalWidth = Math.max(...textBBoxes.map((bbox) => bbox.width));
+        const totalWidth = textBBoxes.reduce((max, bbox) => (max < bbox.width ? bbox.width : max), 0);
+        const totalHeight = textBBoxes.reduce(
+            (sum, bbox, i) => sum + bbox.height + getMarginTop(i) + getMarginBottom(i),
+            0
+        );
         const innerRadius = this.getInnerRadius();
         const labelRadius = Math.sqrt(Math.pow(totalWidth / 2, 2) + Math.pow(totalHeight / 2, 2));
         const labelsVisible = labelRadius <= (innerRadius > 0 ? innerRadius : this.getOuterRadius());
@@ -1524,8 +1525,12 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             prev = bottom + getMarginBottom(i);
         }
         this.innerLabelsSelection.each((text, _datum, index) => {
-            text.y = textBottoms[index];
             text.visible = labelsVisible;
+            if (Array.isArray(text.text)) {
+                text.y = textBottoms[index] - textBBoxes[index].height;
+            } else {
+                text.y = textBottoms[index];
+            }
         });
     }
 
