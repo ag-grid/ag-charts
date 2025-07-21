@@ -3,7 +3,7 @@ import { lineDistanceSquared } from '../util/distance';
 import { parseSvg } from '../util/svg';
 import { BBox } from './bbox';
 import { cubicSegmentIntersections, segmentIntersection } from './intersection';
-import { bezier2DDistance, bezier2DExtrema, evaluateBezier } from './util/bezier';
+import { bezier2DDistanceSquared, bezier2DExtrema, evaluateBezier } from './util/bezier';
 
 enum Command {
     Move,
@@ -531,7 +531,7 @@ export class ExtendedPath2D {
                     const cp2y = params[pi++];
                     cx = params[pi++];
                     cy = params[pi++];
-                    best = bezier2DDistance(cp0x, cp0y, cp1x, cp1y, cp2x, cp2y, cx, cy, x, y) ** 2;
+                    best = bezier2DDistanceSquared(cp0x, cp0y, cp1x, cp1y, cp2x, cp2y, cx, cy, x, y, undefined, best);
                     break;
                 case Command.ClosePath:
                     best = lineDistanceSquared(x, y, cx, cy, sx, sy, best);

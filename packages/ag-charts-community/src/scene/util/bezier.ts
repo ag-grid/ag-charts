@@ -113,24 +113,27 @@ export function bezier2DExtrema(
 
 interface BezierCandidate {
     points: readonly [Point, Point, Point, Point];
-    distance: number;
-    minDistance: number;
+    distanceSquared: number;
+    minDistanceSquared: number;
+    maxDistanceSquared: number;
 }
 
 function bezierCandidate(points: readonly [Point, Point, Point, Point], x: number, y: number): BezierCandidate {
     const midX = evaluateBezier(points[0].x, points[1].x, points[2].x, points[3].x, 0.5);
     const midY = evaluateBezier(points[0].y, points[1].y, points[2].y, points[3].y, 0.5);
-    const distance = Math.hypot(midX - x, midY - y);
-    const minDistance = Math.min(
-        Math.hypot(points[0].x - x, points[0].y - y),
-        Math.hypot(points[1].x - x, points[1].y - y),
-        Math.hypot(points[2].x - x, points[2].y - y),
-        Math.hypot(points[3].x - x, points[3].y - y)
-    );
-    return { points, distance, minDistance };
+    const distanceSquared = (midX - x) ** 2 + (midY - y) ** 2;
+
+    const d0 = (points[0].x - x) ** 2 + (points[0].y - y) ** 2;
+    const d1 = (points[1].x - x) ** 2 + (points[1].y - y) ** 2;
+    const d2 = (points[2].x - x) ** 2 + (points[2].y - y) ** 2;
+    const d3 = (points[3].x - x) ** 2 + (points[3].y - y) ** 2;
+    const minDistanceSquared = Math.min(d0, d1, d2, d3);
+    const maxDistanceSquared = Math.max(d0, d1, d2, d3);
+
+    return { points, distanceSquared, minDistanceSquared, maxDistanceSquared };
 }
 
-export function bezier2DDistance(
+export function bezier2DDistanceSquared(
     cp0x: number,
     cp0y: number,
     cp1x: number,
@@ -141,7 +144,8 @@ export function bezier2DDistance(
     cp3y: number,
     x: number,
     y: number,
-    precision = 1
+    precision = 1,
+    best = Infinity
 ) {
     const points0 = [
         { x: cp0x, y: cp0y },
@@ -154,17 +158,21 @@ export function bezier2DDistance(
         next: null,
     };
 
-    let bestResult: { distance: number; minDistance: number } | undefined;
+    let bestResult: { distanceSquared: number; minDistanceSquared: number } | undefined;
 
     while (queue != null) {
-        const { points, distance, minDistance } = queue.value;
+        const { points, distanceSquared, minDistanceSquared, maxDistanceSquared } = queue.value;
         queue = queue.next;
 
-        if (bestResult == null || distance < bestResult.distance) {
-            bestResult = { distance, minDistance };
+        if (maxDistanceSquared >= best) {
+            continue;
         }
 
-        if (bestResult != null && bestResult.distance - minDistance <= precision) {
+        if (bestResult == null || distanceSquared < bestResult.distanceSquared) {
+            bestResult = { distanceSquared, minDistanceSquared };
+        }
+
+        if (bestResult != null && bestResult.distanceSquared - minDistanceSquared <= precision) {
             continue;
         }
 
@@ -187,7 +195,7 @@ export function bezier2DDistance(
         queue = insertListItemsSorted(queue, newCandidates, bezierCandidateCmp);
     }
 
-    return bestResult?.distance ?? Infinity;
+    return Math.min(best, bestResult?.distanceSquared ?? Infinity);
 }
 
-const bezierCandidateCmp = (a: BezierCandidate, b: BezierCandidate) => b.minDistance - a.minDistance;
+const bezierCandidateCmp = (a: BezierCandidate, b: BezierCandidate) => b.minDistanceSquared - a.minDistanceSquared;
