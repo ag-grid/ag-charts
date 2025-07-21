@@ -22,6 +22,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
             strokeWidth: 2,
         },
         label: {
+            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
             enabled: false,
             placement: 'outside',
             padding: { $isUserOption: ['./spacing', 0, 10] }, // compatibility with old `padding` property (now named `spacing`).

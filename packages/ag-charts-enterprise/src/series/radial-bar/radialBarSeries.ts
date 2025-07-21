@@ -37,6 +37,7 @@ const {
     applyShapeStyle,
     getShapeStyle,
     updateLabelNode,
+    mergeDefaults,
 } = _ModuleSupport;
 
 class RadialBarSeriesNodeEvent<
@@ -71,8 +72,6 @@ interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly reversed: boolean;
     readonly index: number;
 }
-
-type ItemStyle = Required<AgRadialSeriesStyle>;
 
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     RadialBarNodeDatum,
@@ -375,53 +374,44 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         this.animationState.transition('update');
     }
 
-    private getItemBaseStyle(isHighlight: boolean, datum?: RadialBarNodeDatum): ItemStyle {
-        const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
-
-        return getShapeStyle(
-            {
-                fill: highlightStyle?.fill ?? properties.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-                stroke: highlightStyle?.stroke ?? properties.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-                lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-                cornerRadius: highlightStyle?.cornerRadius ?? properties.cornerRadius,
-                opacity: highlightStyle.opacity ?? 1,
-            },
-            this.defaultShapeStyle,
-            properties.fillPatternDefaults,
-            properties.fillImageDefaults
-        );
-    }
-
-    protected getItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted: boolean) {
+    protected getItemStyle(
+        { datumIndex, datum }: Partial<RadialBarNodeDatum>,
+        isHighlight: boolean
+    ): Required<AgRadialSeriesStyle> {
         const { id: seriesId, properties } = this;
-        const { angleKey, radiusKey, itemStyler } = properties;
+        const { angleKey, radiusKey, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } =
+            properties;
 
-        let overrides: AgRadialSeriesStyle | undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
+        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
-        if (itemStyler != null) {
-            overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-                return this.callWithContext(itemStyler, {
-                    seriesId,
-                    datum,
-                    highlighted,
-                    angleKey,
-                    radiusKey,
-                    ...format,
-                });
-            });
+        if (itemStyler != null && datumIndex != null) {
+            const overrides = this.cachedDatumCallback(
+                createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
+                () => {
+                    return this.callWithContext(itemStyler, {
+                        seriesId,
+                        datum,
+                        highlighted: isHighlight,
+                        angleKey,
+                        radiusKey,
+                        ...style,
+                    });
+                }
+            );
+
+            if (overrides) {
+                style = getShapeStyle(
+                    mergeDefaults(overrides, style),
+                    fillGradientDefaults,
+                    fillPatternDefaults,
+                    fillImageDefaults
+                );
+            }
         }
 
-        return getShapeStyle(
-            overrides,
-            this.defaultShapeStyle,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
+        return style;
     }
 
     protected updateSectorSelection(
@@ -443,22 +433,20 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
-                const { datumIndex } = nodeDatum;
                 const datum = readDatum(nodeDatum);
                 if (datum == null) return;
 
-                const style = this.getItemBaseStyle(isHighlight, nodeDatum);
-                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, style, isHighlight);
+                const style = this.getItemStyle(nodeDatum, isHighlight);
 
-                const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
+                const cornerRadius = style.cornerRadius;
 
-                const fill = overrides?.fill ?? style.fill;
+                const fill = style.fill;
                 const fillParams: _ModuleSupport.GradientParams | undefined =
                     _ModuleSupport.isGradientFill(fill) && fill.bounds !== 'item'
                         ? { centerX: 0, centerY: 0 }
                         : undefined;
 
-                applyShapeStyle(node, style, overrides, fillBBox, fillParams);
+                applyShapeStyle(node, style, fillBBox, fillParams);
 
                 node.lineJoin = 'round';
                 node.inset = node.stroke != null ? node.strokeWidth / 2 : 0;
@@ -533,8 +521,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         if (radiusValue == null) return;
 
-        const format = this.getItemBaseStyle(false);
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format, false));
+        const format = this.getItemStyle({ datumIndex, datum }, false);
 
         return this.formatTooltipWithContext(
             tooltip,

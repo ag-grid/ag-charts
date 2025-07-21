@@ -16,7 +16,7 @@ const options: AgChartOptions = {
             calloutLabelKey: 'asset',
             sectorLabelKey: 'amount',
             sectorLabel: {
-                color: 'white',
+                color: 'black',
                 fontWeight: 'bold',
                 formatter: ({ value }) => `$${(value / 1000).toFixed(0)}K`,
             },

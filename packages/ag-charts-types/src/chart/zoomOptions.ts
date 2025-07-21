@@ -109,6 +109,12 @@ export interface AgZoomOptions {
      */
     enableAxisDragging?: boolean;
     /**
+     * Set to `true` to enable scrolling an axis to zoom series attached to that axis.
+     *
+     * Default: `false`
+     */
+    enableAxisScrolling?: boolean;
+    /**
      * Set to `true` to enable double-clicking to reset the chart to fully zoomed out.
      *
      * Default: `true`

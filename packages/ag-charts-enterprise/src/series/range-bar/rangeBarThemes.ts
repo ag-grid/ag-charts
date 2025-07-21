@@ -13,6 +13,7 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<
         fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         label: {
+            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },

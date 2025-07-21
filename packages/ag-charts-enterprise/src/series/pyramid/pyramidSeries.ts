@@ -23,6 +23,7 @@ const {
     Text,
     PointerEvents,
     applyShapeStyle,
+    mergeDefaults,
     fromToMotion,
     seriesLabelFadeInAnimation,
     getShapeStyle,
@@ -52,9 +53,6 @@ interface PyramidNodeDataContext
     stageLabelData: PyramidNodeLabelDatum[] | undefined;
     bounds: _ModuleSupport.BBox;
 }
-
-type ItemStyle = Pick<AgPyramidSeriesStyle, 'fill' | 'stroke'> &
-    Required<Omit<AgPyramidSeriesStyle, 'fill' | 'stroke'>>;
 
 type PyramidAnimationState = 'empty' | 'ready';
 type PyramidAnimationEvent = {
@@ -473,72 +471,44 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return opts.datumSelection.update(opts.nodeData);
     }
 
-    private getItemBaseStyle(isHighlight: boolean, datum?: PyramidNodeDatum): ItemStyle {
-        const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
-
-        return getShapeStyle(
-            {
-                fill: highlightStyle?.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-                stroke: highlightStyle?.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-                lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-                opacity: highlightStyle?.opacity ?? 1,
-            },
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
-    }
-
-    protected getItemStyleOverrides(
-        datumId: string,
-        datum: any,
-        datumIndex: number,
-        format: ItemStyle,
-        highlighted: boolean
-    ) {
+    protected getItemStyle(
+        { datumIndex, datum }: Partial<PyramidNodeDatum>,
+        isHighlight: boolean
+    ): Required<AgPyramidSeriesStyle> {
         const { id: seriesId, properties } = this;
-        const { fills, strokes, stageKey, valueKey, itemStyler } = properties;
+        const { stageKey, valueKey, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } =
+            properties;
 
-        const fill = format.fill ?? fills[datumIndex % fills.length];
-        const stroke = format.stroke ?? strokes[datumIndex % strokes.length];
-        const overrides: Partial<ItemStyle> = {};
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(datumIndex));
+        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
-        if (!highlighted) {
-            overrides.fill = fill;
-            overrides.stroke = stroke;
-        }
-
-        if (itemStyler != null) {
-            const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+        if (itemStyler != null && datumIndex != null) {
+            const overrides = this.cachedDatumCallback(
+                createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         stageKey,
                         valueKey,
-                        highlighted,
-                        fill,
-                        stroke,
-                        ...format,
+                        highlighted: isHighlight,
+                        ...style,
                     });
                 }
             );
 
-            Object.assign(overrides, itemStyle);
+            if (overrides) {
+                style = getShapeStyle(
+                    mergeDefaults(overrides, style),
+                    fillGradientDefaults,
+                    fillPatternDefaults,
+                    fillImageDefaults
+                );
+            }
         }
 
-        return getShapeStyle(
-            overrides,
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
+        return style;
     }
 
     private updateDatumNodes(opts: {
@@ -555,12 +525,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             : undefined;
 
         datumSelection.each((connector, nodeDatum) => {
-            const { datumIndex, datum } = nodeDatum;
+            const style = this.getItemStyle(nodeDatum, isHighlight);
 
-            const style = this.getItemBaseStyle(isHighlight, nodeDatum);
-            const overrides = this.getItemStyleOverrides(String(datumIndex), datum, datumIndex, style, isHighlight);
-
-            applyShapeStyle(connector, style, overrides, fillBBox);
+            applyShapeStyle(connector, style, fillBBox);
 
             applyPyramidDatum(connector, nodeDatum);
 
@@ -650,8 +617,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             { datum, value: yValue, stageKey, valueKey }
         );
 
-        const format = this.getItemBaseStyle(false) as any as Required<ItemStyle>;
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, datumIndex, format, false));
+        const format = this.getItemStyle({ datumIndex, datum }, false);
 
         return this.formatTooltipWithContext(
             tooltip,

@@ -19,6 +19,7 @@ function itemTheme(
         stroke: { $palette: `${key}.stroke` },
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         label: {
+            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
             enabled: false,
             fontStyle: undefined,
             fontWeight: { $ref: 'fontWeight' as const },

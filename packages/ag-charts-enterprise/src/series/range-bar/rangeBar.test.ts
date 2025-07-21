@@ -728,13 +728,15 @@ describe('RangeBarSeries', () => {
             );
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
-        describe('spacing backward compatibility', () => {
+        describe('padding backward compatibility', () => {
             test('inside', async () => {
                 await testCase({ placement: 'inside', padding: 30 }, 'AG-8290-range-bar-label-spacing-inside');
             });
             test('outside', async () => {
                 await testCase({ placement: 'outside', padding: 30 }, 'AG-8290-range-bar-label-spacing-outside');
             });
+        });
+        describe('spacing backward compatibility', () => {
             test('inside', async () => {
                 await testCase({ placement: 'inside', spacing: 30 }, 'AG-8290-range-bar-label-spacing-inside');
             });

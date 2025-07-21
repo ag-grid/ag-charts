@@ -33,6 +33,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
             fillImageDefaults: applyMapPalette(_ModuleSupport.FILL_IMAGE_DEFAULTS),
             fillOpacity: 0.5,
             label: {
+                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                 enabled: false,
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },

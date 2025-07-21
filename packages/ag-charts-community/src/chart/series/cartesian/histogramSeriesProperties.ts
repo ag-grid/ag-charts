@@ -1,7 +1,8 @@
-import type { InternalAgColorType } from 'ag-charts-core';
+import type { InternalAgColorType, RequireOptional } from 'ag-charts-core';
 import type {
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
+    AgHistogramSeriesStyle,
     AgHistogramSeriesTooltipRendererParams,
 } from 'ag-charts-types';
 
@@ -102,4 +103,19 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgHistogramSeriesTooltipRendererParams<HistogramNodeDatum>>();
+
+    getStyle(): RequireOptional<AgHistogramSeriesStyle> & { opacity: number } {
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = this;
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            opacity: 1,
+        };
+    }
 }

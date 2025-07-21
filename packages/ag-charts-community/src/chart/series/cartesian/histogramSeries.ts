@@ -1,8 +1,9 @@
-import { isDate, isNumber } from 'ag-charts-core';
+import { type RequireOptional, isDate, isNumber } from 'ag-charts-core';
 import type {
     AgHistogramBinDatum,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
+    AgHistogramSeriesStyle,
 } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -16,6 +17,7 @@ import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { findMinMax } from '../../../util/number';
+import { mergeDefaults } from '../../../util/object';
 import { createTicks, tickStep } from '../../../util/ticks';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
@@ -404,22 +406,12 @@ export class HistogramSeries extends CartesianSeries<
         return datumSelection.update(nodeData, undefined, (datum: HistogramNodeDatum) => datum.domain.join('_'));
     }
 
-    private getItemBaseStyle(isHighlight: boolean, datum?: HistogramNodeDatum) {
+    private getItemStyle(isHighlight: boolean, datum?: HistogramNodeDatum): RequireOptional<AgHistogramSeriesStyle> {
         const { properties } = this;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
         return getShapeStyle(
-            {
-                fill: highlightStyle?.fill ?? properties.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-                stroke: highlightStyle?.stroke ?? properties.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-                lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-                cornerRadius: highlightStyle?.cornerRadius ?? properties.cornerRadius,
-                opacity: highlightStyle?.opacity ?? 1,
-            },
+            mergeDefaults(highlightStyle, properties.getStyle()),
             properties.fillGradientDefaults,
             properties.fillPatternDefaults,
             properties.fillImageDefaults
@@ -436,13 +428,13 @@ export class HistogramSeries extends CartesianSeries<
         const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
-            const style = this.getItemBaseStyle(isHighlight, datum);
+            const style = this.getItemStyle(isHighlight, datum);
 
-            const { cornerRadius } = style;
+            const { cornerRadius = 0 } = style;
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            applyShapeStyle(rect, style, undefined, fillBBox);
+            applyShapeStyle(rect, style, fillBBox);
             rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
             rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
@@ -580,7 +572,7 @@ export class HistogramSeries extends CartesianSeries<
                 yName,
                 xRange: [rangeMin, rangeMax] satisfies [number, number],
                 frequency,
-                ...this.getItemBaseStyle(false),
+                ...this.getItemStyle(false),
             }
         );
     }

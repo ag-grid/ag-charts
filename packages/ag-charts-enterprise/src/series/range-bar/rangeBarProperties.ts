@@ -96,4 +96,19 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<unknown>>();
+
+    getStyle(): Required<AgRangeBarSeriesStyle> & { opacity: number } {
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = this;
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            opacity: 1,
+        };
+    }
 }

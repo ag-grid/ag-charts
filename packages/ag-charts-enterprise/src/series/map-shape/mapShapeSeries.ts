@@ -36,12 +36,11 @@ const {
     applyShapeStyle,
     getShapeStyle,
     getLabelStyles,
+    mergeDefaults,
 } = _ModuleSupport;
 
 interface MapShapeNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {}
-
-type ItemStyle = Required<AgMapShapeSeriesStyle>;
 
 const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
@@ -467,70 +466,53 @@ export class MapShapeSeries
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
 
-    private getItemBaseStyle(isHighlight: boolean, datum?: MapShapeNodeDatum): ItemStyle {
-        const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
+    protected getItemStyle(
+        { datumIndex, datum, colorValue }: Partial<MapShapeNodeDatum>,
+        isHighlight: boolean
+    ): Required<AgMapShapeSeriesStyle> {
+        const { id: seriesId, properties, colorScale } = this;
+        const { colorRange, itemStyler } = properties;
 
-        return getShapeStyle(
-            {
-                fill: highlightStyle?.fill ?? properties.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-                stroke: highlightStyle?.stroke ?? properties.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-                lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-                opacity: highlightStyle?.opacity ?? 1,
-            },
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
+
+        if (colorValue != null) {
+            baseStyle.fill = this.isColorScaleValid()
+                ? colorScale.convert(colorValue)
+                : colorRange?.[0] ?? baseStyle.fill;
+        }
+
+        let style = getShapeStyle(
+            baseStyle,
             this.properties.fillGradientDefaults,
             this.properties.fillPatternDefaults,
             this.properties.fillImageDefaults
         );
-    }
 
-    protected getItemStyleOverrides(
-        datumId: string,
-        datum: any,
-        colorValue: number | undefined,
-        format: ItemStyle,
-        highlighted: boolean
-    ) {
-        const { id: seriesId, properties, colorScale } = this;
-        const { colorRange, itemStyler } = properties;
-
-        let overrides: Partial<ItemStyle> | undefined;
-
-        if (!highlighted && colorValue != null) {
-            overrides ??= {};
-            overrides.fill = this.isColorScaleValid()
-                ? colorScale.convert(colorValue)
-                : colorRange?.[0] ?? properties.fill;
-        }
-
-        if (itemStyler != null) {
-            const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+        if (itemStyler != null && datumIndex != null) {
+            const overrides = this.cachedDatumCallback(
+                createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
-                        highlighted,
-                        ...format,
-                        ...overrides,
+                        highlighted: isHighlight,
+                        ...style,
                     });
                 }
             );
 
-            overrides ??= {};
-            Object.assign(overrides, itemStyle);
+            if (overrides) {
+                style = getShapeStyle(
+                    mergeDefaults(overrides, style),
+                    this.properties.fillGradientDefaults,
+                    this.properties.fillPatternDefaults,
+                    this.properties.fillImageDefaults
+                );
+            }
         }
 
-        return getShapeStyle(
-            overrides,
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
+        return style;
     }
 
     private updateDatumNodes(opts: {
@@ -542,20 +524,19 @@ export class MapShapeSeries
         const fillBBox = getTopologyShapeFillBBox(this.scale);
 
         datumSelection.each((geoGeometry, nodeDatum) => {
-            const { datum, datumIndex, colorValue, projectedGeometry } = nodeDatum;
+            const { projectedGeometry } = nodeDatum;
             if (projectedGeometry == null) {
                 geoGeometry.visible = false;
                 geoGeometry.projectedGeometry = undefined;
                 return;
             }
 
-            const style = this.getItemBaseStyle(isHighlight, nodeDatum);
-            const overrides = this.getItemStyleOverrides(String(datumIndex), datum, colorValue, style, isHighlight);
+            const style = this.getItemStyle(nodeDatum, isHighlight);
 
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
 
-            applyShapeStyle(geoGeometry, style, overrides, fillBBox);
+            applyShapeStyle(geoGeometry, style, fillBBox);
         });
     }
 
@@ -756,8 +737,7 @@ export class MapShapeSeries
             data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? String(colorValue) });
         }
 
-        const format = this.getItemBaseStyle(false);
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, colorValue, format, false));
+        const format = this.getItemStyle({ datum, datumIndex, colorValue }, false);
 
         return this.formatTooltipWithContext(
             tooltip,

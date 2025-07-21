@@ -16,6 +16,7 @@ export const NIGHTINGALE_SERIES_THEME: _ModuleSupport.SeriesModule<'nightingale'
         fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         strokeWidth: 1,
         label: {
+            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },

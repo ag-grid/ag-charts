@@ -10,6 +10,7 @@ import {
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
     multiSeriesHighlightStyle,
 } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
@@ -69,6 +70,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
                 fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             },
             label: {
+                ...LABEL_BOXING_DEFAULTS,
                 enabled: false,
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },

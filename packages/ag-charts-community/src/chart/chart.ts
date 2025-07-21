@@ -1160,19 +1160,23 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     private readonly seriesGroupingChanged = (event: TypedEvent) => {
         if (!(event instanceof SeriesGroupingChangedEvent)) return;
-        const { series, seriesGrouping, oldGrouping } = event;
+        const { series, seriesGrouping } = event;
 
         // Short-circuit if series isn't already attached to the scene-graph yet.
         if (series.contentGroup.isRoot()) return;
 
-        this.seriesLayerManager.changeGroup({
+        const seriesContentNode = this.seriesLayerManager.changeGroup({
             internalId: series.internalId,
             type: series.type,
             contentGroup: series.contentGroup,
+            bringToFront: () => series.bringToFront(),
             renderToOffscreenCanvas: () => series.renderToOffscreenCanvas(),
             seriesGrouping,
-            oldGrouping,
         });
+
+        if (seriesContentNode != null) {
+            series.attachSeries(seriesContentNode, this.seriesRoot, this.annotationRoot);
+        }
     };
 
     async waitForUpdate(timeoutMs?: number, failOnTimeout?: boolean): Promise<void> {

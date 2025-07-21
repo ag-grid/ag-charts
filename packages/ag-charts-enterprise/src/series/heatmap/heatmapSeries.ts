@@ -25,6 +25,7 @@ const {
     Rect,
     PointerEvents,
     applyShapeStyle,
+    mergeDefaults,
     formatValue,
     addHitTestersToQuadtree,
     findQuadtreeMatch,
@@ -111,7 +112,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             pathsPerSeries: [],
-            hasMarkers: false,
         });
     }
 
@@ -348,55 +348,35 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return datumSelection.update(data);
     }
 
-    private getItemBaseStyle(isHighlight: boolean, datum?: HeatmapNodeDatum): ItemStyle {
-        const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
-        return {
-            fill: highlightStyle?.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? 1,
-            stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            opacity: highlightStyle.opacity ?? 1,
-        };
-    }
-
-    protected getItemStyleOverrides(
-        datumId: string,
-        datum: any,
-        colorValue: number | undefined,
-        format: ItemStyle,
-        highlighted: boolean
-    ) {
+    protected getItemStyle({ datumIndex, datum, colorValue }: Partial<HeatmapNodeDatum>, isHighlight: boolean) {
         const { id: seriesId, properties } = this;
-        const { xKey, yKey, itemStyler } = properties;
+        const { xKey, yKey, itemStyler, stroke, strokeWidth, strokeOpacity } = properties;
 
-        const fill =
-            this.isColorScaleValid() && colorValue != null ? this.colorScale.convert(colorValue) : 'transparent';
-        let overrides: Partial<ItemStyle> | undefined = format.fill == null ? { fill } : undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, {
+            fill: this.isColorScaleValid() && colorValue != null ? this.colorScale.convert(colorValue) : 'transparent',
+            fillOpacity: 1,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            opacity: 1,
+        });
 
-        if (itemStyler != null) {
-            overrides ??= {};
-
-            const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
-                () => {
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        xKey,
-                        yKey,
-                        highlighted,
-                        ...format,
-                        fill,
-                    });
-                }
-            );
-
-            Object.assign(overrides, itemStyle);
+        let overrides;
+        if (itemStyler != null && datumIndex != null) {
+            overrides = this.cachedDatumCallback(createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'), () => {
+                return this.callWithContext(itemStyler, {
+                    seriesId,
+                    datum,
+                    xKey,
+                    yKey,
+                    highlighted: isHighlight,
+                    ...baseStyle,
+                });
+            });
         }
 
-        return overrides;
+        return overrides ? mergeDefaults(overrides, baseStyle) : baseStyle;
     }
 
     protected override updateDatumNodes(opts: {
@@ -411,10 +391,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const crisp = !isZoomed;
 
         opts.datumSelection.each((rect, nodeDatum) => {
-            const { datumIndex, colorValue, datum, point, width, height } = nodeDatum;
-            const style = this.getItemBaseStyle(isHighlight, nodeDatum);
+            const { point, width, height } = nodeDatum;
 
-            const overrides = this.getItemStyleOverrides(String(datumIndex), datum, colorValue, style, isHighlight);
+            const style = this.getItemStyle(nodeDatum, isHighlight);
 
             rect.crisp = crisp;
             rect.x = Math.floor(point.x - width / 2);
@@ -422,7 +401,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             rect.width = Math.ceil(width);
             rect.height = Math.ceil(height);
 
-            applyShapeStyle(rect, style, overrides);
+            applyShapeStyle(rect, style);
         });
     }
 
@@ -507,9 +486,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             }
         );
 
-        const format = this.getItemBaseStyle(false);
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, colorValue, format, false));
-
+        const format = this.getItemStyle({ datumIndex, datum, colorValue }, false);
         if (format.fill != null) {
             fill = format.fill;
         }

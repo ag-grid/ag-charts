@@ -1,11 +1,11 @@
-import { type AgOhlcSeriesItemOptions, type AgOhlcSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgOhlcSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { OhlcNode } from './ohlcNode';
 import { OhlcSeriesBase } from './ohlcSeriesBase';
 import type { OhlcNodeDatum } from './ohlcSeriesBase';
 import { OhlcSeriesProperties } from './ohlcSeriesProperties';
 
-const { createDatumId, applyShapeStyle } = _ModuleSupport;
+const { applyShapeStyle } = _ModuleSupport;
 
 export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, OhlcSeriesProperties> {
     static readonly className = 'ohlc';
@@ -24,51 +24,13 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
         datumSelection: _ModuleSupport.Selection<OhlcNode, OhlcNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { id: seriesId, properties } = this;
-        const { xKey, highKey, lowKey, openKey, closeKey, item, itemStyler } = properties;
+        const { item } = this.properties;
         const { up, down } = item;
-        const {
-            stroke: upStroke,
-            strokeWidth: upStrokeWidth,
-            strokeOpacity: upStrokeOpacity,
-            lineDash: upLineDash,
-            lineDashOffset: upLineDashOffset,
-        } = up;
-        const {
-            stroke: downStroke,
-            strokeWidth: downStrokeWidth,
-            strokeOpacity: downStrokeOpacity,
-            lineDash: downLineDash,
-            lineDashOffset: downLineDashOffset,
-        } = down;
+        const { strokeWidth: upStrokeWidth } = up;
+        const { strokeWidth: downStrokeWidth } = down;
 
         datumSelection.each((node, datum) => {
             const { isRising, centerX, width, y, height, yOpen, yClose, crisp } = datum;
-
-            let style: AgOhlcSeriesItemOptions | undefined;
-            if (itemStyler != null) {
-                const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = isRising ? up : down;
-                style = this.cachedDatumCallback(
-                    createDatumId(this.getDatumId(datum), isHighlight ? 'highlight' : 'node'),
-                    () =>
-                        this.callWithContext(itemStyler, {
-                            seriesId,
-                            itemId: datum.itemId,
-                            xKey,
-                            highKey,
-                            lowKey,
-                            openKey,
-                            closeKey,
-                            datum: datum.datum,
-                            strokeOpacity,
-                            stroke,
-                            strokeWidth,
-                            lineDash,
-                            lineDashOffset,
-                            highlighted: isHighlight,
-                        })
-                );
-            }
 
             node.centerX = centerX;
             node.width = width;
@@ -78,26 +40,11 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
             node.yClose = yClose;
             node.crisp = crisp;
 
-            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
-
-            applyShapeStyle(node, {
-                stroke: highlightStyle?.stroke ?? style?.stroke ?? (isRising ? upStroke : downStroke),
-                strokeWidth:
-                    highlightStyle?.strokeWidth ?? style?.strokeWidth ?? (isRising ? upStrokeWidth : downStrokeWidth),
-                strokeOpacity:
-                    highlightStyle?.strokeOpacity ??
-                    style?.strokeOpacity ??
-                    (isRising ? upStrokeOpacity : downStrokeOpacity),
-                lineDash: highlightStyle?.lineDash ?? style?.lineDash ?? (isRising ? upLineDash : downLineDash),
-                lineDashOffset:
-                    highlightStyle?.lineDashOffset ??
-                    style?.lineDashOffset ??
-                    (isRising ? upLineDashOffset : downLineDashOffset),
-                opacity: highlightStyle?.opacity ?? 1,
-            });
+            const style = this.getItemStyle(datum, isHighlight);
+            applyShapeStyle(node, style);
 
             // Ignore highlight style
-            node.strokeAlignment = (style?.strokeWidth ?? (isRising ? upStrokeWidth : downStrokeWidth)) / 2;
+            node.strokeAlignment = (isRising ? upStrokeWidth : downStrokeWidth) / 2;
         });
     }
 

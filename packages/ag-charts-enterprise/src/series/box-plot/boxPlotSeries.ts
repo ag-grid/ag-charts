@@ -354,8 +354,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (xValue == null) return;
 
-        const format = this.getItemBaseStyle(false);
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format, false));
+        const format = this.getItemStyle({ datumIndex, datum }, false);
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [
             {
@@ -439,38 +438,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return opts.datumSelection.update(data);
     }
 
-    private getItemBaseStyle(isHighlight: boolean): Required<AgBoxPlotSeriesStyle> {
-        const { properties } = this;
-        const { cornerRadius, cap, whisker, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
-        const highlightStyle = this.getHighlightStyle(isHighlight);
-        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
-
-        return getShapeStyle(
-            {
-                fill: highlightStyle?.fill ?? properties.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-                stroke: highlightStyle?.stroke ?? properties.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
-                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-                lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
-                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-                cornerRadius: highlightStyle?.cornerRadius ?? cornerRadius,
-                cap,
-                whisker,
-                opacity: highlightStyle?.opacity ?? 1,
-            },
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults
-        );
-    }
-
-    private getItemStyleOverrides(
-        datumId: string,
-        datum: any,
-        format: Required<AgBoxPlotSeriesStyle>,
-        highlighted: boolean
-    ) {
+    private getItemStyle(
+        { datumIndex, datum }: Partial<BoxPlotNodeDatum>,
+        isHighlight: boolean
+    ): Required<AgBoxPlotSeriesStyle> {
         const { id: seriesId, properties } = this;
 
         const {
@@ -486,24 +457,44 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             itemStyler,
         } = properties;
 
-        if (itemStyler == null) return;
+        const highlightStyle = this.getHighlightStyle(isHighlight);
+        let style = getShapeStyle(
+            mergeDefaults(highlightStyle, properties.getStyle()),
+            fillGradientDefaults,
+            fillPatternDefaults,
+            fillImageDefaults
+        );
 
-        const overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return this.callWithContext(itemStyler, {
-                seriesId,
-                datum,
-                xKey,
-                minKey,
-                q1Key,
-                medianKey,
-                q3Key,
-                maxKey,
-                highlighted,
-                ...format,
-            });
-        });
+        if (itemStyler != null && datumIndex != null) {
+            const overrides = this.cachedDatumCallback(
+                createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
+                () => {
+                    return this.callWithContext(itemStyler, {
+                        seriesId,
+                        datum,
+                        xKey,
+                        minKey,
+                        q1Key,
+                        medianKey,
+                        q3Key,
+                        maxKey,
+                        highlighted: isHighlight,
+                        ...style,
+                    });
+                }
+            );
 
-        return getShapeStyle(overrides, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+            if (overrides) {
+                style = getShapeStyle(
+                    mergeDefaults(overrides, style),
+                    fillGradientDefaults,
+                    fillPatternDefaults,
+                    fillImageDefaults
+                );
+            }
+        }
+
+        return style;
     }
 
     protected override updateDatumNodes({

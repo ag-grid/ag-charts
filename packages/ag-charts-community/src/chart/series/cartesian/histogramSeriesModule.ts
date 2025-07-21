@@ -9,6 +9,7 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
     multiSeriesHighlightStyle,
 } from '../../themes/util';
 import { HistogramSeries } from './histogramSeries';
@@ -46,6 +47,7 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
             lineDash: [0],
             lineDashOffset: 0,
             label: {
+                ...LABEL_BOXING_DEFAULTS,
                 enabled: false,
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },

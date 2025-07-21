@@ -1,4 +1,9 @@
-import { type AgChartLegendPosition, type AgGradientLegendScaleOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgChartLegendPosition,
+    type AgGradientLegendOptions,
+    type AgGradientLegendScaleOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import { CleanupRegistry, createId } from 'ag-charts-core';
 
 import { AxisTicks } from './axisTicks';
@@ -14,6 +19,7 @@ const {
     Marker,
     TranslatableGroup,
     BBox,
+    expandLegendPosition,
 } = _ModuleSupport;
 
 class GradientBar extends BaseProperties {
@@ -24,8 +30,13 @@ class GradientBar extends BaseProperties {
     preferredLength = 100;
 }
 
-class GradientLegendScale implements Omit<AgGradientLegendScaleOptions, 'label'> {
-    constructor(protected axisTicks: AxisTicks) {}
+class GradientLegendScale
+    extends _ModuleSupport.BaseProperties<AgGradientLegendScaleOptions>
+    implements Omit<AgGradientLegendScaleOptions, 'label'>
+{
+    constructor(protected axisTicks: AxisTicks) {
+        super();
+    }
 
     @ProxyProperty('axisTicks.label')
     label!: _ModuleSupport.AxisLabel;
@@ -37,7 +48,7 @@ class GradientLegendScale implements Omit<AgGradientLegendScaleOptions, 'label'>
     padding?: AxisTicks['padding'];
 }
 
-export class GradientLegend {
+export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLegendOptions> {
     static readonly className = 'GradientLegend';
 
     readonly id = createId(this);
@@ -59,16 +70,14 @@ export class GradientLegend {
     position: AgChartLegendPosition = 'bottom';
 
     @Property
-    floating: boolean = false;
-
-    @Property
     reverseOrder: boolean = false;
 
     @Property
     readonly gradient = new GradientBar();
 
     private isVertical(): boolean {
-        return this.position.startsWith('right') || this.position.startsWith('left');
+        const { placement } = expandLegendPosition(this.position);
+        return placement.startsWith('right') || placement.startsWith('left');
     }
 
     /**
@@ -77,11 +86,13 @@ export class GradientLegend {
     @Property
     spacing = 20;
 
+    @Property
     scale: GradientLegendScale;
 
     data: _ModuleSupport.GradientLegendDatum[] = [];
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
+        super();
         this.highlightManager = ctx.highlightManager;
 
         this.axisTicks = new AxisTicks(ctx, this);
@@ -182,11 +193,12 @@ export class GradientLegend {
     }
 
     private updateAxis(data: _ModuleSupport.GradientLegendDatum) {
-        const { position, axisTicks, gradient, scale, gradientRect } = this;
+        const { axisTicks, gradient, scale, gradientRect } = this;
+        const { placement } = expandLegendPosition(this.position);
         const vertical = this.isVertical();
         const positiveAxis = this.reverseOrder !== vertical;
 
-        axisTicks.position = position;
+        axisTicks.placement = placement;
         const offset = gradient.thickness + (scale.padding ?? 0);
         axisTicks.translationX = vertical ? offset : 0;
         axisTicks.translationY = vertical ? 0 : offset;
@@ -241,8 +253,9 @@ export class GradientLegend {
 
         let { x: left, y: top } = shrinkRect;
         const { width, height } = axisBox;
+        const { placement, floating } = expandLegendPosition(this.position);
 
-        switch (this.position) {
+        switch (placement) {
             case 'left':
                 top += shrinkRect.height / 2 - height / 2;
                 break;
@@ -274,11 +287,11 @@ export class GradientLegend {
             case 'top-left':
                 break;
             default:
-                unreachable(this.position);
+                unreachable(placement);
         }
 
-        if (!this.floating) {
-            switch (this.position) {
+        if (!floating) {
+            switch (placement) {
                 case 'left':
                 case 'left-top':
                 case 'left-bottom':
@@ -300,7 +313,7 @@ export class GradientLegend {
                     shrinkRect.shrink(height + this.spacing, 'bottom');
                     break;
                 default:
-                    unreachable(this.position);
+                    unreachable(placement);
             }
         }
 

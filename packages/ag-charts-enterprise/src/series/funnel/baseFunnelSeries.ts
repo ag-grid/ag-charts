@@ -515,7 +515,6 @@ export abstract class BaseFunnelSeries<
                     lineDash,
                     lineDashOffset,
                 },
-                undefined,
                 fillBBox
             );
         });

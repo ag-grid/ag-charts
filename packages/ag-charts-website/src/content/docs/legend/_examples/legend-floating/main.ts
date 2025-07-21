@@ -44,8 +44,10 @@ const options: AgCartesianChartOptions = {
         },
     ],
     legend: {
-        position: 'right-top',
-        floating: true,
+        position: {
+            placement: 'right-top',
+            floating: true,
+        },
         spacing: 30,
     },
 };

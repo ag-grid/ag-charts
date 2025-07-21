@@ -57,6 +57,22 @@ class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
 
     @Property
     itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<unknown>, AgChordSeriesLinkStyle>;
+
+    getStyle(fills: InternalAgColorType[], strokes: string[], index: number): Required<AgChordSeriesLinkStyle> {
+        const { fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset, tension } = this;
+        const fill = this.fill ?? fills[index % fills.length];
+        const stroke = this.stroke ?? strokes[index % fills.length];
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            tension,
+        };
+    }
 }
 
 class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
@@ -89,6 +105,21 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
 
     @Property
     itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<unknown>, AgChordSeriesNodeStyle>;
+
+    getStyle(fills: InternalAgColorType[], strokes: string[], index: number): Required<AgChordSeriesNodeStyle> {
+        const { fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
+        const fill = this.fill ?? fills[index % fills.length];
+        const stroke = this.stroke ?? strokes[index % fills.length];
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        };
+    }
 }
 
 export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions> {

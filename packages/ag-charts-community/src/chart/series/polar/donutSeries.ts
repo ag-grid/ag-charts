@@ -1019,7 +1019,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             }
 
             const fillParams = this.getFillParams(format.fill, innerRadius, outerRadius);
-            applyShapeStyle(sector, format, undefined, fillBBox, fillParams);
+            applyShapeStyle(sector, format, fillBBox, fillParams);
 
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;

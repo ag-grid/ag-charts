@@ -55,6 +55,8 @@ const {
     getColorStops,
     findRangeExtent,
     tickFormat,
+    mergeDefaults,
+    applyShapeStyle,
 } = _ModuleSupport;
 
 interface TargetLabel {
@@ -932,7 +934,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { ctx, properties } = this;
         const { bar } = properties;
         const { fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = bar;
-        const strokeWidth = this.getStrokeWidth(bar.strokeWidth);
+        const strokeWidth = bar.strokeWidth;
         const animationDisabled = ctx.animationManager.isSkipped();
         const fillBBox = this.getShapeFillBBox();
         datumSelection.each((rect, datum) => {
@@ -1056,16 +1058,20 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
             const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
 
+            const style = mergeDefaults(highlightStyle, {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+                opacity: 1,
+            });
+            applyShapeStyle(target, style);
+
             target.size = size;
             target.shape = shape === 'line' ? lineMarker : shape;
-            target.fill = highlightStyle?.fill ?? fill;
-            target.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
-            target.stroke = highlightStyle?.stroke ?? stroke;
-            target.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
-            target.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
-            target.lineDash = highlightStyle?.lineDash ?? lineDash;
-            target.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
-            target.opacity = highlightStyle?.opacity ?? 1;
             target.translationX = x;
             target.translationY = y;
             target.rotation = rotation;
