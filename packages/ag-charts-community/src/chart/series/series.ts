@@ -153,8 +153,7 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
 
     constructor(
         public series: Series<unknown, any, object, any>,
-        public seriesGrouping: SeriesGrouping | undefined,
-        public oldGrouping: SeriesGrouping | undefined
+        public seriesGrouping: SeriesGrouping | undefined
     ) {}
 }
 
@@ -229,7 +228,7 @@ export abstract class Series<
             this.onSeriesGroupingChange(oldVal, newVal);
         },
     })
-    seriesGrouping?: SeriesGrouping = undefined;
+    seriesGrouping: SeriesGrouping | undefined = undefined;
 
     protected readonly NodeEvent: INodeEventConstructor<TDatum, any> = SeriesNodeEvent;
 
@@ -350,7 +349,7 @@ export abstract class Series<
             this.ctx.seriesStateManager.registerSeries({ internalId, type, visible, seriesGrouping: next });
         }
 
-        this.fireEvent(new SeriesGroupingChangedEvent(this, next, prev));
+        this.fireEvent(new SeriesGroupingChangedEvent(this, next));
     }
 
     getBandScalePadding() {
@@ -398,14 +397,14 @@ export abstract class Series<
     declarationOrder: number = -1;
     private _broughtToFront = false;
     setSeriesIndex(index: number, forceUpdate = false) {
-        const bringToFront =
-            this.properties.highlight.bringToFront &&
-            this.isSeriesHighlighted(this.ctx.highlightManager.getActiveHighlight());
+        const bringToFront = this.bringToFront();
         if (!forceUpdate && index === this.declarationOrder && bringToFront === this._broughtToFront) return false;
 
         this.declarationOrder = index;
         this._broughtToFront = bringToFront;
         this.setZIndex(bringToFront ? Number.MAX_VALUE : index);
+
+        this.fireEvent(new SeriesGroupingChangedEvent(this, this.seriesGrouping));
 
         return true;
     }
@@ -641,6 +640,13 @@ export abstract class Series<
             !isEmptyObject(highlightedSeries) ||
             !isEmptyObject(unhighlightedItem) ||
             !isEmptyObject(unhighlightedSeries);
+    }
+
+    public bringToFront() {
+        return (
+            this.properties.highlight.bringToFront &&
+            this.isSeriesHighlighted(this.ctx.highlightManager.getActiveHighlight())
+        );
     }
 
     protected isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, _legendItemValues?: string[]) {
