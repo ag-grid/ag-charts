@@ -34,13 +34,11 @@ export interface AgGradientLegendScaleOptions<TContext = ContextDefault> {
 export interface AgGradientLegendOptions<TContext = ContextDefault> {
     /** Whether to show the gradient legend. By default, the chart displays a gradient legend for series using a `colorKey`. */
     enabled?: boolean;
-    /** Where the legend should show in relation to the chart. */
-    position?: AgChartLegendPosition;
-    /** Whether the legend is floating. Floating legend on drawn above the series-area of the series.
+    /** Positioning options for legend.
      *
-     * Default: `false`
+     * Default: `'bottom'`
      */
-    floating?: boolean;
+    position?: AgChartLegendPosition;
     /** Gradient bar configuration. */
     gradient?: AgGradientLegendBarOptions;
     /** The spacing in pixels to use outside the legend. */

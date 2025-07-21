@@ -828,8 +828,10 @@ describe('Legend', () => {
                     { type: 'bar', xKey: 'ticker', yKey: '2022' },
                 ],
                 legend: {
-                    position: 'right-top',
-                    floating: true,
+                    position: {
+                        placement: 'right-top',
+                        floating: true,
+                    },
                 },
             });
             chart = deproxy(AgCharts.create(options));

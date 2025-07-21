@@ -21,8 +21,10 @@ const options: AgChartOptions = {
     ],
     gradientLegend: {
         enabled: true,
-        floating: true,
-        position: 'left-bottom',
+        position: {
+            placement: 'left-bottom',
+            floating: true,
+        },
         gradient: {
             preferredLength: 200,
             thickness: 2,

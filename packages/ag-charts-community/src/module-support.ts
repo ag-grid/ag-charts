@@ -128,6 +128,7 @@ export { TimeAxisParentLevel, minimumTimeAxisDatumGranularity } from './chart/ax
 export * from './chart/chartAxis';
 export * from './chart/crossline/crossLine';
 export * from './chart/crossline/crossLineLabelPosition';
+export * from './chart/legend/legendUtil';
 export * from './chart/legend/legendDatum';
 export * from './chart/legend/legendSymbol';
 export * from './chart/tooltip/tooltip';

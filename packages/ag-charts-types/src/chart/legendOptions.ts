@@ -14,7 +14,7 @@ import type {
     Ratio,
 } from './types';
 
-export type AgChartLegendPosition =
+export type AgChartLegendPlacement =
     | 'top'
     | 'top-right'
     | 'top-left'
@@ -27,6 +27,22 @@ export type AgChartLegendPosition =
     | 'left'
     | 'left-top'
     | 'left-bottom';
+
+export interface AgChartLegendPositionOptions {
+    /** Where the legend should show in relation to the chart.
+     *
+     * Default: `'bottom'`
+     */
+    placement?: AgChartLegendPlacement;
+    /** Whether the legend is floating. Floating legend on drawn above the series-area of the series.
+     *
+     * Default: `false`
+     */
+    floating?: boolean;
+}
+
+export type AgChartLegendPosition = AgChartLegendPlacement | AgChartLegendPositionOptions;
+
 export type AgChartLegendOrientation = 'horizontal' | 'vertical';
 
 export interface AgChartLegendMarkerOptions {
@@ -124,15 +140,13 @@ export interface AgChartLegendListeners<TContext = ContextDefault> {
 export interface AgChartLegendOptions<TContext = ContextDefault> {
     /** Whether to show the legend. By default, the chart displays a legend when there is more than one series present. */
     enabled?: boolean;
-    /** Where the legend should show in relation to the chart. */
+    /** Positioning options for legend.
+     *
+     * Default: `'bottom'`
+     */
     position?: AgChartLegendPosition;
     /** How the legend items should be arranged. */
     orientation?: AgChartLegendOrientation;
-    /** Whether the legend is floating. Floating legend on drawn above the series-area of the series.
-     *
-     * Default: `false`
-     */
-    floating?: boolean;
     /** Used to constrain the width of the legend. */
     maxWidth?: PixelSize;
     /** Used to constrain the height of the legend. */

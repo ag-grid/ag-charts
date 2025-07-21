@@ -3,6 +3,14 @@
     position: absolute;
 }
 
+.ag-charts-proxy-legend-toolbar {
+    pointer-events: auto;
+}
+
+.ag-charts-proxy-legend-toolbar > div[role='listitem'] {
+    pointer-events: none;
+}
+
 .ag-charts-proxy-elem {
     -webkit-appearance: none;
     appearance: none;
