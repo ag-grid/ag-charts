@@ -29,6 +29,7 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
             },
             highlight: _ModuleSupport.singleSeriesHighlightStyle(),
             label: {
+                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: { $ref: 'fontWeight' },

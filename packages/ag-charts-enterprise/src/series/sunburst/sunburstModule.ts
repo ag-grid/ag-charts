@@ -26,6 +26,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
             label: {
+                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
                 minimumFontSize: { $rem: 9 / BASE_FONT_SIZE },
@@ -36,6 +37,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
                 spacing: 2,
             },
             secondaryLabel: {
+                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $rem: FONT_SIZE_RATIO.SMALLEST },
                 minimumFontSize: { $rem: 7 / BASE_FONT_SIZE },

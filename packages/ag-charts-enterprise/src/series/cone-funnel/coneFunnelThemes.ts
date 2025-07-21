@@ -27,6 +27,7 @@ export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'
         fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         label: {
+            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },

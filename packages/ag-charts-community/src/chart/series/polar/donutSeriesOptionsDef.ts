@@ -3,6 +3,7 @@ import {
     arrayOfDefs,
     constant,
     fontOptionsDef,
+    labelBoxOptionsDef,
     number,
     positiveNumber,
     ratio,
@@ -24,6 +25,7 @@ export const donutSeriesThemeableOptionsDef: OptionsDefs<AgDonutSeriesThemeableO
     innerLabels: {
         spacing: positiveNumber,
         ...fontOptionsDef,
+        ...labelBoxOptionsDef,
     },
 };
 
@@ -36,6 +38,7 @@ export const donutSeriesOptionsDef: OptionsDefs<AgDonutSeriesOptions> = {
             text: required(string),
             spacing: positiveNumber,
             ...fontOptionsDef,
+            ...labelBoxOptionsDef,
         },
         'inner label options array'
     ),

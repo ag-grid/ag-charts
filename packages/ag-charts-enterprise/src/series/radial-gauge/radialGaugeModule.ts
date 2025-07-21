@@ -74,6 +74,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 spacing: 10,
             },
             label: {
+                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                 enabled: true,
                 fontWeight: { $ref: 'fontWeight' },
                 fontSize: 56,
@@ -82,6 +83,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 color: { $ref: 'textColor' },
             },
             secondaryLabel: {
+                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
                 enabled: true,
                 fontWeight: { $ref: 'fontWeight' },
                 fontSize: { $rem: FONT_SIZE_RATIO.LARGE },

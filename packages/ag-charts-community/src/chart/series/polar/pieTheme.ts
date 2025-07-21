@@ -1,7 +1,7 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
 import { FONT_SIZE_RATIO } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { SAFE_FILLS_OPERATION, multiSeriesHighlightStyle } from '../../themes/util';
+import { LABEL_BOXING_DEFAULTS, SAFE_FILLS_OPERATION, multiSeriesHighlightStyle } from '../../themes/util';
 
 export const pieTheme: ExtensibleTheme<'pie'> = {
     series: {
@@ -14,6 +14,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
             spacing: 5,
         },
         calloutLabel: {
+            ...LABEL_BOXING_DEFAULTS,
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
@@ -23,6 +24,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
             minAngle: 0.001,
         },
         sectorLabel: {
+            ...LABEL_BOXING_DEFAULTS,
             enabled: true,
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $ref: 'fontSize' },

@@ -14,6 +14,7 @@ export const RADIAL_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-bar'>[
         fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         label: {
+            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },

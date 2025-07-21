@@ -502,7 +502,7 @@ describe('WaterfallSeries', () => {
             );
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
-        describe('spacing backward compatibility', () => {
+        describe('padding backward compatibility', () => {
             test('inside-start', async () => {
                 await testCase(
                     { placement: 'inside-start', padding: 30 },
@@ -524,6 +524,8 @@ describe('WaterfallSeries', () => {
                     'AG-8290-waterfall-label-spacing-outside-end'
                 );
             });
+        });
+        describe('spacing backward compatibility', () => {
             test('inside-start', async () => {
                 await testCase(
                     { placement: 'inside-start', spacing: 30 },
