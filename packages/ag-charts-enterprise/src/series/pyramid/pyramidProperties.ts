@@ -94,4 +94,18 @@ export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> 
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgPyramidSeriesTooltipRendererParams<unknown>>();
+
+    getStyle(index: number = 0): Required<AgPyramidSeriesStyle> & { opacity: number } {
+        const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
+        return {
+            fill: fills[index % fills.length],
+            fillOpacity,
+            stroke: strokes[index % strokes.length],
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            opacity: 1,
+        };
+    }
 }

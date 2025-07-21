@@ -183,4 +183,30 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
         super();
         this.highlightStyle.deprecated = false;
     }
+
+    getStyle(
+        isLink: boolean,
+        fills: InternalAgColorType[],
+        strokes: string[],
+        index: number
+    ): Required<AgSankeySeriesLinkStyle> | Required<AgSankeySeriesNodeStyle> {
+        const {
+            fillOpacity,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            fill = fills[index % fills.length],
+            stroke = strokes[index % fills.length],
+        } = isLink ? this.link : this.node;
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        };
+    }
 }

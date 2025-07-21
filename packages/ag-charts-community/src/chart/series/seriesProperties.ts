@@ -46,16 +46,16 @@ type HighlightOptions<TOpts extends object> = Partial<TOpts & HighlightMixins>;
 
 export class SeriesItemHighlightStyle extends BaseProperties {
     @Property
-    fill?: string = 'rgba(255,255,255, 0.33)';
+    fill?: string;
 
     @Property
     fillOpacity?: number;
 
     @Property
-    stroke?: string = `rgba(0, 0, 0, 0.4)`;
+    stroke?: string;
 
     @Property
-    strokeWidth?: number = 2;
+    strokeWidth?: number;
 
     @Property
     strokeOpacity?: number;

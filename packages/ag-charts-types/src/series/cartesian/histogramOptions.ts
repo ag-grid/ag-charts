@@ -33,17 +33,18 @@ export interface AgHistogramBinDatum<TDatum> {
     domain: [number, number];
 }
 
+export interface AgHistogramSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Apply rounded corners to each bar. */
+    cornerRadius?: PixelSize;
+}
+
 export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
-        FillOptions,
-        StrokeOptions,
-        LineDashOptions {
+        AgHistogramSeriesStyle {
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on bars. */
     label?: AgChartLabelOptions<TDatum, AgHistogramSeriesLabelFormatterParams<TDatum>, TContext>;
-    /** Apply rounded corners to each bar. */
-    cornerRadius?: PixelSize;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Configuration for highlighting when a series or legend item is hovered over. */

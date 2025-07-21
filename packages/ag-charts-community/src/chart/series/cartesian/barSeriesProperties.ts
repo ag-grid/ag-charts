@@ -97,4 +97,19 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
 
     @Property
     sparklineMode: boolean = false;
+
+    getStyle(): Required<AgBarSeriesStyle> & { opacity: number } {
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = this;
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            opacity: 1,
+        };
+    }
 }

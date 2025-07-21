@@ -140,4 +140,32 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
 
         return properties;
     }
+
+    getStyle(): Required<AgBoxPlotSeriesStyle> & { opacity: number } {
+        const {
+            fill,
+            fillOpacity,
+            strokeWidth,
+            strokeOpacity,
+            stroke,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            cap,
+            whisker,
+        } = this;
+        return {
+            fill,
+            fillOpacity,
+            strokeWidth,
+            strokeOpacity,
+            stroke,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            cap,
+            whisker,
+            opacity: 1,
+        };
+    }
 }

@@ -99,6 +99,12 @@ export abstract class OhlcSeriesBaseProperties<
 
     abstract itemStyler?: Styler<AgOhlcSeriesItemStylerParams<unknown>, AgOhlcSeriesItemOptions> &
         Styler<AgCandlestickSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;
+
+    abstract getStyle(
+        itemId: 'up' | 'down'
+    ):
+        | (Required<AgOhlcSeriesItemOptions> & { opacity: number })
+        | (Required<AgCandlestickSeriesItemOptions> & { opacity: number });
 }
 
 export class OhlcSeriesProperties extends OhlcSeriesBaseProperties<AgOhlcSeriesOptions> {
@@ -110,4 +116,16 @@ export class OhlcSeriesProperties extends OhlcSeriesBaseProperties<AgOhlcSeriesO
 
     @Property
     itemStyler?: Styler<AgOhlcSeriesItemStylerParams<unknown>, AgOhlcSeriesItemOptions>;
+
+    getStyle(itemId: 'up' | 'down'): Required<AgOhlcSeriesItemOptions> & { opacity: number } {
+        const { strokeWidth, strokeOpacity, stroke, lineDash, lineDashOffset } = this.item[itemId];
+        return {
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            opacity: 1,
+        };
+    }
 }

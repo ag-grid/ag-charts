@@ -395,7 +395,7 @@ export class MapLineSeries extends TopologySeries<
 
         return {
             stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
+            strokeWidth: highlightStyle?.strokeWidth ?? properties.strokeWidth,
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,

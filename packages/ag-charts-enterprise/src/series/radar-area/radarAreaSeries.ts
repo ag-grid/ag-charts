@@ -69,7 +69,6 @@ export class RadarAreaSeries extends RadarSeries {
                     fillOpacity: seriesFillOpacity,
                     stroke: undefined,
                 },
-                undefined,
                 this.getShapeFillBBox()
             );
 
@@ -138,7 +137,6 @@ export class RadarAreaSeries extends RadarSeries {
                     lineDash: this.properties.lineDash,
                     lineDashOffset: this.properties.lineDashOffset,
                 },
-                undefined,
                 fillBBox
             );
 

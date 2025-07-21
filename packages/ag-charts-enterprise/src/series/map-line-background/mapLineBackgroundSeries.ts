@@ -182,7 +182,7 @@ export class MapLineBackgroundSeries
         const { properties } = this;
         const { datumSelection } = opts;
         const { stroke, strokeOpacity, lineDash, lineDashOffset } = properties;
-        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
+        const strokeWidth = properties.strokeWidth;
 
         datumSelection.each((geoGeometry, datum) => {
             const { projectedGeometry } = datum;

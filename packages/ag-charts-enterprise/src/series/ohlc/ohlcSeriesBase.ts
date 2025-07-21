@@ -6,7 +6,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger, type RequireOptional } from 'ag-charts-core';
+import { Logger } from 'ag-charts-core';
 
 import {
     CLOSE,
@@ -35,6 +35,7 @@ const {
     BandScale,
     getShapeStyle,
     processedDataIsAnimatable,
+    mergeDefaults,
 } = _ModuleSupport;
 
 export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
@@ -421,60 +422,56 @@ export abstract class OhlcSeriesBase<
         return labelSelection.update(labelData);
     }
 
-    protected getItemBaseStyle(
-        itemId: 'up' | 'down',
-        highlighted: boolean
-    ): RequireOptional<FillOptions & StrokeOptions & LineDashOptions> {
-        const { properties } = this;
-        const item = properties.item[itemId];
-        const highlightStyle = this.getHighlightStyle(highlighted);
-        const shapeStyle = {
-            fill: highlightStyle?.fill ?? item.fill,
-            fillOpacity: highlightStyle?.fillOpacity ?? item.fillOpacity,
-            stroke: highlightStyle?.stroke ?? item.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? item.strokeWidth,
-            strokeOpacity: highlightStyle?.strokeOpacity ?? item.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? item.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
-        };
-        return item.fillGradientDefaults && item.fillPatternDefaults && item.fillImageDefaults
-            ? getShapeStyle(shapeStyle, item.fillGradientDefaults, item.fillPatternDefaults, item.fillImageDefaults)
-            : shapeStyle;
-    }
-
-    protected getItemStyleOverrides(
-        datumId: string,
-        datum: any,
-        itemId: 'up' | 'down',
-        format: RequireOptional<FillOptions & StrokeOptions & LineDashOptions>,
-        highlighted: boolean
-    ) {
+    protected getItemStyle({ datumIndex, itemId = 'up', datum, xValue }: Partial<OhlcNodeDatum>, isHighlight: boolean) {
         const { id: seriesId, properties } = this;
         const item = properties.item[itemId];
 
         const { itemStyler } = properties;
 
-        if (itemStyler == null) return;
+        const highlightStyle: FillOptions & StrokeOptions & LineDashOptions & { opacity?: number } =
+            this.getHighlightStyle(isHighlight);
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemId));
 
-        const { xKey, openKey, closeKey, highKey, lowKey } = properties;
-        const overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return this.callWithContext(itemStyler, {
-                seriesId,
-                datum,
-                itemId,
-                xKey,
-                openKey,
-                closeKey,
-                highKey,
-                lowKey,
-                highlighted,
-                ...format,
-            });
-        });
+        let style =
+            item.fillGradientDefaults && item.fillPatternDefaults && item.fillImageDefaults
+                ? getShapeStyle(baseStyle, item.fillGradientDefaults, item.fillPatternDefaults, item.fillImageDefaults)
+                : baseStyle;
 
-        return item.fillGradientDefaults && item.fillPatternDefaults && item.fillImageDefaults
-            ? getShapeStyle(overrides, item.fillGradientDefaults, item.fillPatternDefaults, item.fillImageDefaults)
-            : overrides;
+        if (itemStyler != null && datumIndex != null) {
+            const { xKey, openKey, closeKey, highKey, lowKey } = properties;
+
+            const overrides = this.cachedDatumCallback(
+                createDatumId(createDatumId(xValue), isHighlight ? 'highlight' : 'node'),
+                () => {
+                    return this.callWithContext(itemStyler, {
+                        seriesId,
+                        datum,
+                        itemId,
+                        xKey,
+                        openKey,
+                        closeKey,
+                        highKey,
+                        lowKey,
+                        highlighted: isHighlight,
+                        ...style,
+                    });
+                }
+            );
+
+            if (overrides) {
+                style =
+                    item.fillGradientDefaults && item.fillPatternDefaults && item.fillImageDefaults
+                        ? getShapeStyle(
+                              mergeDefaults(overrides, style),
+                              item.fillGradientDefaults,
+                              item.fillPatternDefaults,
+                              item.fillImageDefaults
+                          )
+                        : mergeDefaults(overrides, style);
+            }
+        }
+
+        return style;
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
@@ -511,8 +508,7 @@ export abstract class OhlcSeriesBase<
         const itemId = closeValue >= openValue ? 'up' : 'down';
         const item = this.properties.item[itemId];
 
-        const format = this.getItemBaseStyle(itemId, false);
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, itemId, format, false));
+        const format = this.getItemStyle({ datumIndex, datum, itemId }, false);
 
         let marker = {
             fill: item.fill ?? item.stroke,
@@ -577,10 +573,6 @@ export abstract class OhlcSeriesBase<
                 ...format,
             } as const
         );
-    }
-
-    protected getDatumId(datum: OhlcNodeDatum) {
-        return createDatumId(datum.xValue);
     }
 
     override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {

@@ -82,4 +82,19 @@ export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeries
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgRadialSeriesTooltipRendererParams<any>>();
+
+    getStyle(): Required<AgRadialSeriesStyle> & { opacity: number } {
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = this;
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            opacity: 1,
+        };
+    }
 }
