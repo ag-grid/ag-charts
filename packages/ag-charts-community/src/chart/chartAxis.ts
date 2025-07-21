@@ -3,6 +3,7 @@ import type {
     AgAxisLabelStylerParams,
     AgBaseAxisLabelStyleOptions,
     AgCartesianAxisPosition,
+    Padding as AgPadding,
     AgTimeIntervalUnit,
     FontOptions,
     Formatter,
@@ -158,6 +159,7 @@ export interface ChartAxisLabel extends FontOptions {
     minSpacing?: number;
     mirrored: boolean;
     spacing: number;
+    padding?: AgPadding;
     parallel: boolean;
     rotation?: number;
     truncate?: boolean;

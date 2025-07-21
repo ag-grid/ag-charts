@@ -11,6 +11,7 @@ import type {
     FontWeight,
     Formatter,
     Padding,
+    PaddingOptions,
     Styler,
 } from 'ag-charts-types';
 
@@ -121,6 +122,17 @@ export class Label<TParams = never, TDatum = any>
         }
 
         return result != null ? String(result) : undefined;
+    }
+}
+
+function expandPadding(padding: Padding | undefined): Required<PaddingOptions> {
+    if (padding == null) {
+        return { bottom: 0, left: 0, right: 0, top: 0 };
+    } else if (typeof padding === 'number') {
+        return { bottom: padding, left: padding, right: padding, top: padding };
+    } else {
+        const { bottom = 0, left = 0, right = 0, top = 0 } = padding satisfies PaddingOptions;
+        return { bottom, left, right, top };
     }
 }
 
@@ -255,12 +267,16 @@ export function timeIntervalMaxLabelSize(
         }
     }
 
+    const padding = expandPadding(label.padding);
+    const xPadding = padding.left + padding.right;
+    const yPadding = padding.top + padding.bottom;
     if (primaryLabelFormatter != null && hierarchyRange != null) {
         for (const date of hierarchyRange) {
             const text = primaryLabelFormatter(date);
             const { width, height } = textMeasurer.measureLines(text);
-            maxWidth = Math.max(maxWidth, width);
-            maxHeight = Math.max(maxHeight, height);
+
+            maxWidth = Math.max(maxWidth, width + xPadding);
+            maxHeight = Math.max(maxHeight, height + yPadding);
         }
     }
 
