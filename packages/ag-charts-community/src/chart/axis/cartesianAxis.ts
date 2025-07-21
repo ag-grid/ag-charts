@@ -6,6 +6,7 @@ import type { ModuleContext } from '../../module/moduleContext';
 import { type FromToDiff, fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
 import { ContinuousScale } from '../../scale/continuousScale';
+import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
@@ -257,7 +258,10 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         }
 
         const { range, reverse, defaultTickMinSpacing } = this;
-        const removeOverflowLabels = this.label.avoidCollisions && this.horizontal && ContinuousScale.is(this.scale);
+        const removeOverflowLabels =
+            this.label.avoidCollisions &&
+            this.horizontal &&
+            (ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale));
         const tickGenerationResult = this.tickGenerator.generateTicks({
             domain,
             range,
