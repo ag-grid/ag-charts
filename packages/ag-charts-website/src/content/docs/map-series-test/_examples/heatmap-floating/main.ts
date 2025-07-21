@@ -21,7 +21,7 @@ const options: AgChartOptions = {
     ],
     gradientLegend: {
         position: {
-            placement: "left-bottom",
+            placement: 'left-bottom',
             floating: true,
             xOffset: 300,
             yOffset: -30,
@@ -34,7 +34,7 @@ const options: AgChartOptions = {
             padding: 30,
             label: {
                 fontSize: 10,
-                formatter: (p) => p.value + "%",
+                formatter: (p) => p.value + '%',
             },
         },
     },
