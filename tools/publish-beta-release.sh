@@ -8,7 +8,7 @@ node ./tools/readme/sync-readme.js
 git commit -a -m "Package bump prep for ${NEW_VERSION}"
 git tag latest-beta-version -f
 
-read -p "Ready to push to ${BRANCH}? " -n 1 -r
+read -p "Ready to push to latest? " -n 1 -r
 if [[ $REPLY =~ ^[Yy]$ ]] ; then
     git push origin latest
     git push -f origin latest-beta-version
