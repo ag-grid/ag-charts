@@ -7,8 +7,9 @@ import { SeriesZIndexMap } from './seriesZIndexMap';
 
 interface SeriesConfig {
     internalId: string;
-    seriesGrouping?: SeriesGrouping;
+    seriesGrouping: SeriesGrouping | undefined;
     contentGroup: Group;
+    bringToFront(): boolean;
     renderToOffscreenCanvas(): boolean;
     type: string;
 }
@@ -24,7 +25,10 @@ const SERIES_THRESHOLD_FOR_AGGRESSIVE_LAYER_REDUCTION = 30;
 
 export class SeriesLayerManager {
     private readonly groups = new Map<string, Map<string | number, LayerState>>();
-    private readonly series = new Map<string, { layerState: LayerState; seriesConfig: SeriesConfig }>();
+    private readonly series = new Map<
+        string,
+        { layerState: LayerState; seriesConfig: SeriesConfig; bringToFront: boolean }
+    >();
 
     private expectedSeriesCount = 1;
     private mode: 'normal' | 'aggressive-grouping' = 'normal';
@@ -35,9 +39,20 @@ export class SeriesLayerManager {
         this.expectedSeriesCount = count;
     }
 
+    private getGroupIndex(seriesConfig: SeriesConfig) {
+        const { internalId, seriesGrouping } = seriesConfig;
+        return seriesGrouping?.groupIndex ?? internalId;
+    }
+
+    private getGroupType(seriesConfig: SeriesConfig, bringToFront: boolean) {
+        return bringToFront ? 'top' : seriesConfig.type;
+    }
+
     public requestGroup(seriesConfig: SeriesConfig) {
-        const { internalId, type, contentGroup: seriesContentGroup, seriesGrouping } = seriesConfig;
-        const { groupIndex = internalId } = seriesGrouping ?? {};
+        const { internalId, contentGroup: seriesContentGroup } = seriesConfig;
+        const bringToFront = seriesConfig.bringToFront();
+        const type = this.getGroupType(seriesConfig, bringToFront);
+        const groupIndex = this.getGroupIndex(seriesConfig);
 
         const seriesInfo = this.series.get(internalId);
         if (seriesInfo != null) {
@@ -78,39 +93,45 @@ export class SeriesLayerManager {
             group.set(lookupIndex, groupInfo);
         }
 
-        this.series.set(internalId, { layerState: groupInfo, seriesConfig });
+        this.series.set(internalId, { layerState: groupInfo, seriesConfig, bringToFront });
 
         groupInfo.seriesIds.push(internalId);
         groupInfo.group.appendChild(seriesContentGroup);
+
         return groupInfo.group;
     }
 
-    public changeGroup(seriesConfig: SeriesConfig & { oldGrouping?: SeriesGrouping }) {
-        const { internalId, seriesGrouping, type, contentGroup, oldGrouping } = seriesConfig;
-        const { groupIndex = internalId } = seriesGrouping ?? {};
+    public changeGroup(seriesConfig: SeriesConfig) {
+        const { internalId, contentGroup } = seriesConfig;
+        const bringToFront = seriesConfig.bringToFront();
+        const type = this.getGroupType(seriesConfig, bringToFront);
 
-        if (this.groups.get(type)?.get(groupIndex)?.seriesIds.includes(internalId)) {
+        const oldGroup = this.series.get(internalId);
+        const oldType = oldGroup ? this.getGroupType(oldGroup.seriesConfig, oldGroup.bringToFront) : undefined;
+
+        const groupIndex = this.getGroupIndex(seriesConfig);
+        const lookupIndex = this.lookupIdx(groupIndex);
+
+        const groupInfo = this.groups.get(type)?.get(lookupIndex);
+
+        if (oldType === type && groupInfo?.seriesIds.includes(internalId) === true) {
             // Already in the right group, nothing to do.
             return;
         }
 
         if (this.series.has(internalId)) {
-            this.releaseGroup({
-                internalId,
-                seriesGrouping: oldGrouping,
-                type,
-                contentGroup,
-            });
+            this._releaseGroup({ internalId, contentGroup, type: oldType! });
         }
-        this.requestGroup(seriesConfig);
+        return this.requestGroup(seriesConfig);
     }
 
-    public releaseGroup(seriesConfig: {
-        internalId: string;
-        seriesGrouping?: SeriesGrouping;
-        contentGroup: Group;
-        type: string;
-    }) {
+    public releaseGroup(seriesConfig: SeriesConfig) {
+        const { internalId, contentGroup } = seriesConfig;
+        const type = this.getGroupType(seriesConfig, seriesConfig.bringToFront());
+        this._releaseGroup({ internalId, contentGroup, type });
+    }
+
+    private _releaseGroup(seriesConfig: { internalId: string; contentGroup: Group; type: string }) {
         const { internalId, contentGroup, type } = seriesConfig;
 
         if (!this.series.has(internalId)) {
@@ -165,7 +186,7 @@ export class SeriesLayerManager {
 
         if (typeof groupIndex === 'string') {
             groupIndex = Number(groupIndex.split('-').at(-1));
-            if (!groupIndex) {
+            if (!Number.isFinite(groupIndex)) {
                 return 0;
             }
         }
