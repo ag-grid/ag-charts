@@ -71,11 +71,5 @@ ignore:
                   Only used for testing
               expires: 2025-09-21T12:00:00.000Z
               created: 2025-07-15T11:28:00.000Z
-    SNYK-JS-FOLLOWREDIRECTS-6141137:
-        - 'karma@6.4.2 > http-proxy@1.18.1 > follow-redirects@1.15.3':
-              reason: >-
-                  Only used for testing
-              expires: 2025-09-21T12:00:00.000Z
-              created: 2025-07-15T11:28:00.000Z
 
 patch: {}
