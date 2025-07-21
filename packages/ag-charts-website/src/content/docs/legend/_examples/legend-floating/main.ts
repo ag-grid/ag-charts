@@ -47,8 +47,11 @@ const options: AgCartesianChartOptions = {
         position: {
             placement: 'right-top',
             floating: true,
+            xOffset: -50,
+            yOffset: 25,
         },
-        spacing: 30,
+        border: {},
+        fill: 'beige',
     },
 };
 

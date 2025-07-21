@@ -20,19 +20,21 @@ const options: AgChartOptions = {
         },
     ],
     gradientLegend: {
-        enabled: true,
         position: {
-            placement: 'left-bottom',
+            placement: "left-bottom",
             floating: true,
+            xOffset: 300,
+            yOffset: -30,
         },
         gradient: {
-            preferredLength: 200,
-            thickness: 2,
+            preferredLength: 150,
+            thickness: 4,
         },
         scale: {
+            padding: 30,
             label: {
                 fontSize: 10,
-                formatter: (p) => p.value + '%',
+                formatter: (p) => p.value + "%",
             },
         },
     },
