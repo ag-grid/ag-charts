@@ -105,4 +105,18 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgMapShapeSeriesTooltipRendererParams<any>>();
+
+    getStyle(): Required<AgMapShapeSeriesStyle> & { opacity: number } {
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            opacity: 1,
+        };
+    }
 }

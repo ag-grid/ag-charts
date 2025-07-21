@@ -236,6 +236,29 @@ export class ChartTheme {
                     spacing: 11,
                     color: { $ref: 'textColor' },
                     avoidCollisions: true,
+                    cornerRadius: 4,
+                    border: {
+                        strokeWidth: 1,
+                        stroke: {
+                            $if: [
+                                { $isUserOption: ['../border', true, false] },
+                                { $foregroundOpacity: 0.08 },
+                                undefined,
+                            ],
+                        },
+                    },
+                    padding: {
+                        $if: [
+                            {
+                                $or: [
+                                    { $isUserOption: ['./border', true, false] },
+                                    { $isUserOption: ['./fill', true, false] },
+                                ],
+                            },
+                            { left: 12, right: 12, top: 8, bottom: 8 },
+                            undefined,
+                        ],
+                    },
                 },
                 line: {
                     enabled: true,
@@ -375,18 +398,27 @@ export class ChartTheme {
                 },
                 position: CARTESIAN_POSITION.BOTTOM,
                 orientation: {
-                    $switch: [
-                        { $path: './position' },
+                    $if: [
+                        {
+                            $or: [
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT_TOP] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT_BOTTOM] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT_TOP] },
+                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT_BOTTOM] },
+                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT] },
+                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT_TOP] },
+                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT_BOTTOM] },
+                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT] },
+                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT_TOP] },
+                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT_BOTTOM] },
+                            ],
+                        },
+                        'vertical',
                         'horizontal',
-                        [CARTESIAN_POSITION.LEFT, 'vertical'],
-                        [CARTESIAN_POSITION.LEFT_TOP, 'vertical'],
-                        [CARTESIAN_POSITION.LEFT_BOTTOM, 'vertical'],
-                        [CARTESIAN_POSITION.RIGHT, 'vertical'],
-                        [CARTESIAN_POSITION.RIGHT_TOP, 'vertical'],
-                        [CARTESIAN_POSITION.RIGHT_BOTTOM, 'vertical'],
                     ],
                 },
-                floating: false,
                 border: {
                     enabled: false,
                     stroke: { $foregroundBackgroundMix: 0.25 },

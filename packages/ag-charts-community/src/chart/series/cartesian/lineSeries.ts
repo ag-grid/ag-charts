@@ -12,7 +12,6 @@ import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import type { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
@@ -36,11 +35,10 @@ import {
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
-import type { Marker } from '../../marker/marker';
+import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { getShapeStyle } from '../shapeUtil';
 import { datumStylerProperties } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
@@ -70,12 +68,12 @@ import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClip
 
 const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
 
-type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
+type LineAnimationData = CartesianAnimationData<Marker, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
 
 type SpanPoints = Array<LineSpanPointDatum[] | { skip: number }>;
 
 export class LineSeries extends CartesianSeries<
-    Group,
+    Marker,
     AgLineSeriesOptions,
     LineSeriesProperties,
     LineNodeDatum,
@@ -99,17 +97,16 @@ export class LineSeries extends CartesianSeries<
             propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             propertyNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             categoryKey: 'xValue',
-            hasMarkers: true,
             pickModes: [
                 SeriesNodePickMode.AXIS_ALIGNED,
                 SeriesNodePickMode.NEAREST_NODE,
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
-            markerSelectionGarbageCollection: false,
+            datumSelectionGarbageCollection: false,
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
-                marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
+                datum: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
             clipFocusBox: false,
         });
@@ -459,109 +456,50 @@ export class LineSeries extends CartesianSeries<
         updateClipPath(this, lineNode);
     }
 
-    private getMarkerItemBaseStyle(highlighted: boolean): RequireOptional<AgSeriesMarkerStyle> {
-        const { properties } = this;
-
-        const { marker } = properties;
-        const highlightStyle = this.getHighlightStyle(highlighted);
-        return getShapeStyle(
-            {
-                size: marker.size,
-                shape: marker.shape,
-                fill: highlightStyle?.fill ?? marker.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
-                stroke: highlightStyle?.stroke ?? marker.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
-                strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
-                lineDash: highlightStyle?.lineDash ?? marker.lineDash,
-                lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
-                opacity: highlightStyle?.opacity ?? 1,
-            },
-            marker.fillGradientDefaults,
-            marker.fillPatternDefaults,
-            marker.fillImageDefaults
-        );
-    }
-
-    private getMarkerItemStyleOverrides(
-        datumId: string,
-        datum: any,
-        xValue: any,
-        yValue: any,
-        format: RequireOptional<AgSeriesMarkerStyle>,
-        highlighted: boolean
-    ) {
-        const { id: seriesId, properties } = this;
-
-        const { xKey, yKey, marker } = properties;
-        const { itemStyler } = marker;
-
-        if (itemStyler == null) return;
-
-        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
-            const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-            return this.callWithContext(itemStyler, {
-                seriesId,
-                ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
-                datum,
-                highlighted,
-                ...format,
-            });
-        });
-    }
-
-    protected override updateMarkerSelection(opts: {
+    protected override updateDatumSelection(opts: {
         nodeData: LineNodeDatum[];
-        markerSelection: Selection<Marker, LineNodeDatum>;
-        markerGroup?: Group;
+        datumSelection: Selection<Marker, LineNodeDatum>;
     }) {
         let { nodeData } = opts;
-        const { markerSelection } = opts;
+        const { datumSelection } = opts;
         const markersEnabled = this.properties.marker.enabled || this.contextNodeData?.crossFiltering === true;
         nodeData = markersEnabled ? nodeData : [];
 
         if (this.properties.marker.isDirty()) {
-            markerSelection.clear();
-            markerSelection.cleanup();
+            datumSelection.clear();
+            datumSelection.cleanup();
         }
 
-        return markerSelection.update(nodeData, undefined, (datum) => createDatumId(datum.xValue));
+        return datumSelection.update(nodeData, undefined, (datum) => createDatumId(datum.xValue));
     }
 
-    protected override updateMarkerNodes(opts: {
-        markerSelection: Selection<Marker, LineNodeDatum>;
+    protected override updateDatumNodes(opts: {
+        datumSelection: Selection<Marker, LineNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight } = opts;
-        const { xKey, yKey, stroke, strokeWidth, strokeOpacity, marker } = this.properties;
+        const { datumSelection, isHighlight } = opts;
+        const { xKey, yKey, marker, stroke, strokeWidth, strokeOpacity } = this.properties;
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
         const fillBBox = this.getShapeFillBBox();
-        const markerStyle = marker.getStyle();
 
-        markerSelection.each((node, datum) => {
+        datumSelection.each((node, datum) => {
             const { xValue, yValue } = datum;
-            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
-            const baseStyle = mergeDefaults(highlightStyle, markerStyle, {
+
+            const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
+
+            const style = this.getMarkerStyle(marker, datum, params, isHighlight, undefined, {
                 stroke,
                 strokeWidth,
                 strokeOpacity,
             });
 
-            this.updateMarkerStyle(
-                marker,
-                node,
-                datum.datum,
-                datum.point,
-                datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
-                isHighlight,
-                baseStyle,
-                fillBBox,
-                { applyTranslation, selected: datum.selected }
-            );
+            this.applyMarkerStyle(style, node, datum.point, fillBBox, {
+                applyTranslation,
+                selected: datum.selected,
+            });
         });
 
         if (!isHighlight) {
@@ -614,11 +552,16 @@ export class LineSeries extends CartesianSeries<
 
         if (xValue == null) return;
 
-        const format = this.getMarkerItemBaseStyle(false);
-        Object.assign(
-            format,
-            this.getMarkerItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format, false)
-        );
+        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
+
+        const format = this.getMarkerStyle(
+            this.properties.marker,
+            { datumIndex, datum },
+            params,
+            false
+        ) as RequireOptional<AgSeriesMarkerStyle>;
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -651,10 +594,19 @@ export class LineSeries extends CartesianSeries<
         const color0 = 'rgba(0, 0, 0, 0)';
         const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.properties;
 
-        const markerStyle = this.getMarkerStyle(marker, undefined, undefined, false, undefined, {
-            fill: marker.fill ?? color0,
-            stroke: marker.stroke ?? stroke ?? color0,
-        });
+        const markerStyle = this.getMarkerStyle(
+            marker,
+            {},
+            undefined,
+            false,
+            {
+                size: marker.size,
+                fill: marker.fill ?? color0,
+                stroke: marker.stroke ?? stroke ?? color0,
+            },
+            undefined,
+            false
+        );
 
         return {
             marker: {
@@ -714,13 +666,13 @@ export class LineSeries extends CartesianSeries<
     }
 
     protected override animateEmptyUpdateReady(animationData: LineAnimationData) {
-        const { markerSelection, labelSelection, annotationSelections, contextData, paths } = animationData;
+        const { datumSelection, labelSelection, annotationSelections, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
 
         this.updateLinePaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, ...paths);
-        resetMotion([markerSelection], resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelection);
+        resetMotion([datumSelection], resetMarkerPositionFn);
+        markerSwipeScaleInAnimation(this, animationManager, datumSelection);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
         seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
     }
@@ -735,7 +687,7 @@ export class LineSeries extends CartesianSeries<
     protected override animateWaitingUpdateReady(animationData: LineAnimationData) {
         const { animationManager } = this.ctx;
         const {
-            markerSelection: markerSelections,
+            datumSelection,
             labelSelection: labelSelections,
             annotationSelections,
             contextData,
@@ -746,7 +698,7 @@ export class LineSeries extends CartesianSeries<
 
         if (contextData.visible === false && previousContextData?.visible === false) return;
 
-        this.resetMarkerAnimation(animationData);
+        this.resetDatumAnimation(animationData);
         this.resetLabelAnimation(animationData);
 
         const update = () => {
@@ -762,7 +714,7 @@ export class LineSeries extends CartesianSeries<
             // Added series to existing chart case - fade in series.
             update();
 
-            markerFadeInAnimation(this, animationManager, 'added', markerSelections);
+            markerFadeInAnimation(this, animationManager, 'added', datumSelection);
             pathFadeInAnimation(this, 'path_properties', animationManager, 'add', path);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
             seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
@@ -798,7 +750,7 @@ export class LineSeries extends CartesianSeries<
         }
 
         if (fns.hasMotion) {
-            markerFadeInAnimation(this, animationManager, undefined, markerSelections);
+            markerFadeInAnimation(this, animationManager, undefined, datumSelection);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
             seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
         }
@@ -813,7 +765,7 @@ export class LineSeries extends CartesianSeries<
     }
 
     protected nodeFactory() {
-        return new Group();
+        return new Marker();
     }
 
     public getFormattedMarkerStyle(datum: LineNodeDatum) {
@@ -823,7 +775,7 @@ export class LineSeries extends CartesianSeries<
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
         return this.getMarkerStyle(
             this.properties.marker,
-            datum.datum,
+            datum,
             datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
             true
         );

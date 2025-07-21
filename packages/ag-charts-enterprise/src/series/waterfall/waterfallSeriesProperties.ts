@@ -1,6 +1,7 @@
 import type {
     AgTooltipRendererResult,
     AgWaterfallSeriesItemStylerParams,
+    AgWaterfallSeriesItemType,
     AgWaterfallSeriesLabelFormatterParams,
     AgWaterfallSeriesLabelPlacement,
     AgWaterfallSeriesOptions,
@@ -154,4 +155,20 @@ export class WaterfallSeriesProperties extends AbstractBarSeriesProperties<AgWat
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
+
+    getStyle(itemId: AgWaterfallSeriesItemType): Required<AgWaterfallSeriesStyle> & { opacity: number } {
+        const { fillOpacity, strokeWidth, strokeOpacity, fill, stroke, lineDash, lineDashOffset, cornerRadius } =
+            this.item[itemId === 'subtotal' ? 'total' : itemId];
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+            opacity: 1,
+        };
+    }
 }

@@ -16,6 +16,7 @@ import { TextWrapper } from '../../util/textWrapper';
 import { createDatumId } from '../data/processors';
 import { LabelBorder } from '../label';
 import type { LabelNodeDatum } from './axis';
+import type { GridLineStyleTickDatum } from './cartesianAxis';
 import { CategoryAxis } from './categoryAxis';
 import { type TreeLayout, treeLayout } from './tree';
 
@@ -438,7 +439,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const p1 = gridPadding;
         const p2 = direction * gridLength - gridPadding;
 
-        const ticks = tickScale
+        const ticks: GridLineStyleTickDatum[] = tickScale
             .ticks({
                 nice: false,
                 interval: undefined,
@@ -447,23 +448,20 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 maxTickCount: Infinity,
             })
             .ticks.map((t, index) => ({
+                index,
                 tickId: createDatumId(t, index),
-                offset: Math.round(tickScale.convert(t)),
+                translation: Math.round(tickScale.convert(t)),
             }));
 
         this.gridLineGroupSelection.update(
-            gridLine.enabled && gridLength
-                ? ticks.map(({ tickId, offset }, index) => {
-                      const [x1, x2, y1, y2] = horizontal ? [offset, offset, p1, p2] : [p1, p2, offset, offset];
-                      const { style, width: strokeWidth } = gridLine;
-                      const { stroke, lineDash } = style[index % style.length] ?? {};
-                      return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
-                  })
-                : []
+            gridLine.enabled && gridLength ? this.calculateGridLines(ticks, p1, p2) : []
+        );
+        this.gridFillGroupSelection.update(
+            gridLine.enabled && gridLength ? this.calculateGridFills(ticks, p1, p2) : []
         );
         this.tickLineGroupSelection.update(
             tick.enabled
-                ? ticks.map(({ tickId, offset }, index) => {
+                ? ticks.map(({ tickId, translation: offset }, index) => {
                       const {
                           tickSize = this.getTickSize(),
                           tickStroke: stroke = tick.stroke,
@@ -498,7 +496,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
      * The length of the grid. The grid is only visible in case of a non-zero value.
      */
     override onGridVisibilityChange() {
-        this.gridLineGroupSelection.clear();
+        super.onGridVisibilityChange();
         this.tickLabelGroupSelection.clear();
     }
 

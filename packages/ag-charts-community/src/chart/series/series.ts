@@ -153,8 +153,7 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
 
     constructor(
         public series: Series<unknown, any, object, any>,
-        public seriesGrouping: SeriesGrouping | undefined,
-        public oldGrouping: SeriesGrouping | undefined
+        public seriesGrouping: SeriesGrouping | undefined
     ) {}
 }
 
@@ -218,7 +217,7 @@ export abstract class Series<
     pickModes: SeriesNodePickMode[];
     usesPlacedLabels: boolean = false;
 
-    protected hasHighlightChange: boolean = false;
+    protected hasChangesOnHighlight: boolean = false;
 
     get pickModeAxis(): 'main' | 'main-category' | undefined {
         return 'main';
@@ -229,7 +228,7 @@ export abstract class Series<
             this.onSeriesGroupingChange(oldVal, newVal);
         },
     })
-    seriesGrouping?: SeriesGrouping = undefined;
+    seriesGrouping: SeriesGrouping | undefined = undefined;
 
     protected readonly NodeEvent: INodeEventConstructor<TDatum, any> = SeriesNodeEvent;
 
@@ -350,7 +349,7 @@ export abstract class Series<
             this.ctx.seriesStateManager.registerSeries({ internalId, type, visible, seriesGrouping: next });
         }
 
-        this.fireEvent(new SeriesGroupingChangedEvent(this, next, prev));
+        this.fireEvent(new SeriesGroupingChangedEvent(this, next));
     }
 
     getBandScalePadding() {
@@ -398,14 +397,14 @@ export abstract class Series<
     declarationOrder: number = -1;
     private _broughtToFront = false;
     setSeriesIndex(index: number, forceUpdate = false) {
-        const bringToFront =
-            this.properties.highlight.bringToFront &&
-            this.isSeriesHighlighted(this.ctx.highlightManager.getActiveHighlight());
+        const bringToFront = this.bringToFront();
         if (!forceUpdate && index === this.declarationOrder && bringToFront === this._broughtToFront) return false;
 
         this.declarationOrder = index;
         this._broughtToFront = bringToFront;
         this.setZIndex(bringToFront ? Number.MAX_VALUE : index);
+
+        this.fireEvent(new SeriesGroupingChangedEvent(this, this.seriesGrouping));
 
         return true;
     }
@@ -582,16 +581,6 @@ export abstract class Series<
         return opacity;
     }
 
-    protected getStrokeWidth(defaultStrokeWidth: number): number {
-        if (!this.properties.highlight.enabled) {
-            // No change in styling for highlight cases.
-            return defaultStrokeWidth;
-        }
-
-        const { strokeWidth = defaultStrokeWidth } = this.getHighlightStyle();
-        return strokeWidth;
-    }
-
     protected getHighlightState(
         datum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
@@ -631,16 +620,23 @@ export abstract class Series<
         this.setSeriesIndex(this.declarationOrder);
 
         if (currentHighlightState === previousHighlightState) {
-            this.hasHighlightChange = false;
+            this.hasChangesOnHighlight = false;
             return;
         }
 
         const { highlightedSeries, unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
 
-        this.hasHighlightChange =
+        this.hasChangesOnHighlight =
             !isEmptyObject(highlightedSeries) ||
             !isEmptyObject(unhighlightedItem) ||
             !isEmptyObject(unhighlightedSeries);
+    }
+
+    public bringToFront() {
+        return (
+            this.properties.highlight.bringToFront &&
+            this.isSeriesHighlighted(this.ctx.highlightManager.getActiveHighlight())
+        );
     }
 
     protected isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, _legendItemValues?: string[]) {
@@ -987,28 +983,28 @@ export abstract class Series<
             fillPatternDefaults: RequiredInternalAgPatternColor;
             fillImageDefaults: RequiredInternalAgImageFill;
         },
-        datum?: any,
+        { datumIndex, datum, point }: Partial<TDatum>,
         params?: TParams,
-        highlighted = false,
-        size = marker.size ?? 0,
-        defaultStyle?: AgSeriesMarkerStyle
+        isHighlight = false,
+        defaultOverrideStyle: AgSeriesMarkerStyle & { size: number } = { size: point?.size ?? marker.size ?? 0 },
+        inheritedStyle?: AgSeriesMarkerStyle,
+        checkForHighlight: boolean = true
     ) {
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = marker;
-        const defaultSize = { size };
 
-        let markerStyle = getShapeStyle(
-            mergeDefaults(defaultSize, defaultStyle, marker.getStyle()),
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults
-        );
+        const highlightStyle: AgSeriesMarkerStyle | undefined = checkForHighlight
+            ? this.getHighlightStyle(isHighlight, datumIndex)
+            : undefined;
+        const baseStyle = mergeDefaults(highlightStyle, defaultOverrideStyle, marker.getStyle(), inheritedStyle);
+
+        let markerStyle = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
         if (itemStyler && params) {
             const style = this.cachedCallWithContext(itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
                 ...params,
-                highlighted,
+                highlighted: isHighlight,
                 datum,
             });
             markerStyle = getShapeStyle(
@@ -1022,26 +1018,17 @@ export abstract class Series<
         return markerStyle;
     }
 
-    protected updateMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams & { context?: never }> & {
-            fillGradientDefaults: RequiredInternalAgGradientColor;
-            fillPatternDefaults: RequiredInternalAgPatternColor;
-            fillImageDefaults: RequiredInternalAgImageFill;
-        },
+    protected applyMarkerStyle(
+        style: AgSeriesMarkerStyle,
         markerNode: Marker,
-        datum: any,
         point: { x: number; y: number; size?: number; focusSize?: number } | undefined,
-        params: TParams & { context?: never },
-        highlighted: boolean,
-        defaultStyle: AgSeriesMarkerStyle,
         fillBBox?: ShapeFillBBox,
         { applyTranslation = true, selected = true } = {}
     ) {
-        const activeStyle = this.getMarkerStyle(marker, datum, params, highlighted, point?.size, defaultStyle);
-        const { shape, size } = activeStyle;
+        const { shape, size = 0 } = style;
         const visible = this.visible && size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
 
-        applyShapeStyle(markerNode, activeStyle, undefined, fillBBox);
+        applyShapeStyle(markerNode, style, fillBBox);
 
         if (applyTranslation) {
             markerNode.setProperties({
@@ -1063,7 +1050,7 @@ export abstract class Series<
         }
 
         // Only for custom marker shapes
-        if (typeof marker.shape === 'function' && !markerNode.dirtyPath) {
+        if (typeof shape === 'function' && !markerNode.dirtyPath) {
             markerNode.path.clear(true);
             markerNode.updatePath();
             markerNode.checkPathDirty();
@@ -1073,7 +1060,7 @@ export abstract class Series<
             if (point != null && bb.isFinite()) {
                 const center = bb.computeCenter();
                 const [dx, dy] = (['x', 'y'] as const).map(
-                    (key) => (activeStyle.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
+                    (key) => (style.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
                 );
                 point.focusSize = Math.max(bb.width + dx, bb.height + dy);
             }

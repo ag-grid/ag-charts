@@ -25,6 +25,16 @@ import {
     waitForChartStability,
 } from '../test/utils';
 
+const EXAMPLE_GRID_LINE = {
+    width: 2,
+    style: [
+        { fill: 'red', fillOpacity: 0.1, stroke: 'red' },
+        { fill: 'blue', fillOpacity: 0.1, stroke: 'blue' },
+        { fill: 'green', fillOpacity: 0.1, stroke: 'green' },
+        { fill: 'yellow', fillOpacity: 0.1, stroke: 'yellow' },
+    ],
+};
+
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
         ...opts,
@@ -67,6 +77,21 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
     return {
         ...opts,
         axes: opts.axes?.map((axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
+    };
+}
+
+function applyGridLineStyle<T extends AgCartesianChartOptions>(opts: T): T {
+    return {
+        ...opts,
+        axes:
+            opts.axes?.map((axis) =>
+                axis.type === 'grouped-category'
+                    ? {
+                          ...axis,
+                          gridLine: EXAMPLE_GRID_LINE,
+                      }
+                    : axis
+            ) ?? undefined,
     };
 }
 
@@ -125,6 +150,14 @@ const EXAMPLES: Record<string, TestCase> = {
         assertions: cartesianChartAssertions({
             axisTypes: ['grouped-category', 'number'],
             seriesTypes: repeat('bar', 21),
+        }),
+        compare: ['grouped-category'],
+    },
+    GROUPED_CATEGORY_AXIS_FILLS: {
+        options: applyGridLineStyle(axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE),
+        assertions: cartesianChartAssertions({
+            axisTypes: ['grouped-category', 'number'],
+            seriesTypes: ['bar'],
         }),
         compare: ['grouped-category'],
     },

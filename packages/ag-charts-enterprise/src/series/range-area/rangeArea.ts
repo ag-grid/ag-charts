@@ -1,10 +1,7 @@
 import {
-    type AgMarkerShape,
     type AgRangeAreaSeriesLabelFormatterParams,
     type AgRangeAreaSeriesOptions,
-    type FillOptions,
-    type LineDashOptions,
-    type StrokeOptions,
+    type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
@@ -40,10 +37,9 @@ const {
     fromToMotion,
     pathMotion,
     extent,
-    createDatumId,
     applyShapeFillBBox,
     PointerEvents,
-    Group,
+    Marker,
     BBox,
     findMinMax,
     getShapeStyle,
@@ -72,12 +68,8 @@ interface RangeAreaSpanPointDatum {
     low: _ModuleSupport.LineSpanPointDatum;
 }
 
-type ItemStyle = Required<
-    FillOptions & StrokeOptions & LineDashOptions & { shape: AgMarkerShape; size: number; opacity: number }
->;
-
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
-    _ModuleSupport.Group,
+    _ModuleSupport.Marker,
     AgRangeAreaSeriesOptions,
     RangeAreaProperties,
     RangeAreaMarkerDatum,
@@ -96,7 +88,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            hasMarkers: true,
             pathsPerSeries: ['fill', 'stroke'],
             pickModes: [_ModuleSupport.SeriesNodePickMode.AXIS_ALIGNED],
             propertyKeys: {
@@ -111,7 +102,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
-                marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
+                datum: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
             clipFocusBox: false,
         });
@@ -468,7 +459,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 strokeWidth,
                 opacity,
             },
-            undefined,
             fillBBox
         );
 
@@ -519,69 +509,31 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         stroke.markDirty('RangeArea');
     }
 
-    protected override updateMarkerSelection(opts: {
+    protected override updateDatumSelection(opts: {
         nodeData: RangeAreaMarkerDatum[];
-        markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
     }) {
-        const { nodeData, markerSelection } = opts;
+        const { nodeData, datumSelection } = opts;
         if (this.properties.marker.isDirty()) {
-            markerSelection.clear();
-            markerSelection.cleanup();
+            datumSelection.clear();
+            datumSelection.cleanup();
         }
-        return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
+        return datumSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
-    private getMarkerItemBaseStyle(isHighlight: boolean, datum?: RangeAreaMarkerDatum): ItemStyle {
-        const { properties } = this;
-        const { marker } = properties;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
-        return {
-            shape: marker.shape,
-            size: marker.size,
-            fill: highlightStyle?.fill ?? marker.fill!,
-            fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
-            stroke: highlightStyle?.stroke ?? marker.stroke!,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(marker.strokeWidth),
-            strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? marker.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
-            opacity: highlightStyle.opacity ?? 1,
-        };
-    }
-
-    protected getMarkerItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted: boolean) {
-        const { id: seriesId, properties } = this;
-        const { xKey, yHighKey, yLowKey, marker } = properties;
-        const { itemStyler } = marker;
-
-        if (itemStyler == null) return;
-
-        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return this.callWithContext(itemStyler, {
-                seriesId,
-                datum,
-                xKey,
-                yHighKey,
-                yLowKey,
-                highlighted,
-                ...format,
-            });
-        });
-    }
-
-    protected override updateMarkerNodes(opts: {
-        markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
+    protected override updateDatumNodes(opts: {
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
-        const { markerSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight } = opts;
         const { xKey, yLowKey, yHighKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity } =
             this.properties;
-
         const fillBBox = this.getShapeFillBBox();
-        const markerStyle = marker.getStyle();
 
-        markerSelection.each((node, datum) => {
-            const baseStyle = mergeDefaults(this.getHighlightStyle(isHighlight, datum?.datumIndex), markerStyle, {
+        datumSelection.each((node, datum) => {
+            const params = { xKey, yHighKey, yLowKey };
+
+            const style = this.getMarkerStyle(marker, datum, params, isHighlight, undefined, {
                 fill,
                 fillOpacity,
                 stroke,
@@ -589,16 +541,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 strokeOpacity,
             });
 
-            this.updateMarkerStyle(
-                marker,
-                node,
-                datum.datum,
-                datum.point,
-                { xKey, yHighKey, yLowKey },
-                isHighlight,
-                baseStyle,
-                fillBBox
-            );
+            this.applyMarkerStyle(style, node, datum.point, fillBBox);
         });
 
         if (!isHighlight) {
@@ -669,8 +612,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         if (xValue == null) return;
 
-        const format = this.getMarkerItemBaseStyle(false);
-        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format, false));
+        const format = this.getMarkerStyle(
+            this.properties.marker,
+            { datumIndex, datum },
+            { xKey, yLowKey, yHighKey },
+            false
+        ) as RequireOptional<AgSeriesMarkerStyle>;
 
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
         return this.formatTooltipWithContext(
@@ -758,30 +705,30 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     override onDataChange() {}
 
     protected nodeFactory() {
-        return new Group();
+        return new Marker();
     }
 
     override animateEmptyUpdateReady(
         animationData: _ModuleSupport.CartesianAnimationData<
-            _ModuleSupport.Group,
+            _ModuleSupport.Marker,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext
         >
     ) {
-        const { markerSelection, labelSelection, contextData, paths } = animationData;
+        const { datumSelection, labelSelection, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
 
         this.updateAreaPaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, ...paths);
-        resetMotion([markerSelection], resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, markerSelection);
+        resetMotion([datumSelection], resetMarkerPositionFn);
+        markerSwipeScaleInAnimation(this, animationManager, datumSelection);
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
     }
 
     protected override animateReadyResize(
         animationData: _ModuleSupport.CartesianAnimationData<
-            _ModuleSupport.Group,
+            _ModuleSupport.Marker,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext
@@ -795,20 +742,20 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     override animateWaitingUpdateReady(
         animationData: _ModuleSupport.CartesianAnimationData<
-            _ModuleSupport.Group,
+            _ModuleSupport.Marker,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext
         >
     ) {
         const { animationManager } = this.ctx;
-        const { markerSelection, labelSelection, contextData, paths, previousContextData } = animationData;
+        const { datumSelection, labelSelection, contextData, paths, previousContextData } = animationData;
         const [fill, stroke] = paths;
 
         // Handling initially hidden series case gracefully.
         if (fill == null && stroke == null) return;
 
-        this.resetMarkerAnimation(animationData);
+        this.resetDatumAnimation(animationData);
         this.resetLabelAnimation(animationData);
 
         const update = () => {
@@ -824,7 +771,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             // Added series to existing chart case - fade in series.
             update();
 
-            markerFadeInAnimation(this, animationManager, 'added', markerSelection);
+            markerFadeInAnimation(this, animationManager, 'added', datumSelection);
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
             pathFadeInAnimation(this, 'stroke_path_properties', animationManager, 'add', stroke);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
@@ -857,7 +804,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         }
 
         if (fns.hasMotion) {
-            markerFadeInAnimation(this, animationManager, undefined, markerSelection);
+            markerFadeInAnimation(this, animationManager, undefined, datumSelection);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
         }
 
@@ -877,7 +824,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {
         const { xKey, yLowKey, yHighKey } = this.properties;
-        return this.getMarkerStyle(this.properties.marker, datum.datum, { xKey, yLowKey, yHighKey }, true);
+        return this.getMarkerStyle(this.properties.marker, datum, { xKey, yLowKey, yHighKey }, true);
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {

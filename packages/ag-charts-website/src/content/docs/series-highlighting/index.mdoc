@@ -14,6 +14,22 @@ In the above example:
 
 By default, only item highlighting is activated. The above example has custom configuration applied, as detailed below.
 
+## Bring to Front
+
+The `bringToFront` property is used to render the highlighted series on top of all other series.
+
+{% chartExampleRunner title="Front to Front" name="bring-to-front" type="generated" /%}
+
+```js
+highlight: {
+    bringToFront: true,
+}
+```
+
+In this configuration:
+
+-   The `bringToFront` property is set to `true`, which will render highlighted series top of all other series.
+
 ## Customisation
 
 {% chartExampleRunner title="Column Series with Custom Highlight Style" name="basic-column" type="generated" /%}

@@ -57,6 +57,8 @@ const {
     Marker,
     getColorStops,
     tickFormat,
+    applyShapeStyle,
+    mergeDefaults,
 } = _ModuleSupport;
 
 interface TargetLabel {
@@ -914,7 +916,7 @@ export class RadialGaugeSeries
         const { bar, segmentation } = properties;
         const sectorSpacing = segmentation.spacing ?? 0;
         const { fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = bar;
-        const strokeWidth = this.getStrokeWidth(bar.strokeWidth);
+        const strokeWidth = bar.strokeWidth;
         const animationDisabled = ctx.animationManager.isSkipped();
 
         const fillBBox = this.getShapeFillBBox();
@@ -1086,16 +1088,20 @@ export class RadialGaugeSeries
 
             const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
 
-            target.shape = shape === 'line' ? lineMarker : shape;
+            const style = mergeDefaults(highlightStyle, {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+                opacity: 1,
+            });
+            applyShapeStyle(target, style);
+
             target.size = size;
-            target.fill = highlightStyle?.fill ?? fill;
-            target.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
-            target.stroke = highlightStyle?.stroke ?? stroke;
-            target.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
-            target.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
-            target.lineDash = highlightStyle?.lineDash ?? lineDash;
-            target.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
-            target.opacity = highlightStyle?.opacity ?? 1;
+            target.shape = shape === 'line' ? lineMarker : shape;
             target.translationX = centerX + radius * Math.cos(angle);
             target.translationY = centerY + radius * Math.sin(angle);
             target.rotation = angle + rotation;

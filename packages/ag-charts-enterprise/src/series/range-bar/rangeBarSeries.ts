@@ -1,5 +1,4 @@
 import {
-    type AgRangeBarHighlightStyleOptions,
     type AgRangeBarSeriesLabelFormatterParams,
     type AgRangeBarSeriesOptions,
     type AgRangeBarSeriesStyle,
@@ -44,6 +43,7 @@ const {
     AGGREGATION_INDEX_X_MIN,
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
+    mergeDefaults,
 } = _ModuleSupport;
 
 type Bounds = {
@@ -496,58 +496,46 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemBaseStyle(
-        isHighlight: boolean,
-        datum?: RangeBarNodeDatum
-    ): Required<AgRangeBarHighlightStyleOptions> {
-        const { properties } = this;
-        const { cornerRadius, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
-
-        return getShapeStyle(
-            {
-                fill: highlightStyle?.fill ?? properties.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
-                stroke: highlightStyle?.stroke ?? properties.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
-                strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-                lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
-                lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-                cornerRadius: highlightStyle?.cornerRadius ?? cornerRadius,
-                opacity: highlightStyle?.opacity ?? 1,
-            },
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults
-        );
-    }
-
-    private getItemStyleOverrides(
-        datumId: string,
-        datum: any,
-        format: Required<AgRangeBarSeriesStyle>,
-        highlighted: boolean
-    ) {
+    private getItemStyle(
+        { datumIndex, datum }: Partial<RangeBarNodeDatum>,
+        isHighlight: boolean
+    ): Required<AgRangeBarSeriesStyle> {
         const { id: seriesId, properties } = this;
 
         const { xKey, yHighKey, yLowKey, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } =
             properties;
 
-        if (itemStyler == null) return;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
+        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
-        const overrides = this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
-            return this.callWithContext(itemStyler, {
-                seriesId,
-                datum,
-                xKey,
-                yHighKey,
-                yLowKey,
-                highlighted,
-                ...format,
-            });
-        });
+        if (itemStyler != null && datumIndex != null) {
+            const overrides = this.cachedDatumCallback(
+                createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
+                () => {
+                    return this.callWithContext(itemStyler, {
+                        seriesId,
+                        datum,
+                        xKey,
+                        yHighKey,
+                        yLowKey,
+                        highlighted: isHighlight,
+                        ...style,
+                    });
+                }
+            );
 
-        return getShapeStyle(overrides, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+            if (overrides) {
+                style = getShapeStyle(
+                    mergeDefaults(overrides, style),
+                    fillGradientDefaults,
+                    fillPatternDefaults,
+                    fillImageDefaults
+                );
+            }
+        }
+
+        return style;
     }
 
     protected override updateDatumNodes(opts: {
@@ -561,13 +549,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
-            const style = this.getItemBaseStyle(isHighlight, datum);
+            const style = this.getItemStyle(datum, isHighlight);
 
-            const overrides = this.getItemStyleOverrides(String(datum.datumIndex), datum.datum, style, isHighlight);
+            applyShapeStyle(rect, style, fillBBox);
 
-            applyShapeStyle(rect, style, overrides, fillBBox);
-
-            rect.cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
+            rect.cornerRadius = style.cornerRadius;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
             rect.crisp = datum.crisp;
@@ -627,9 +613,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (xValue == null) return;
 
-        const format = this.getItemBaseStyle(false);
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format, false));
-
+        const format = this.getItemStyle({ datum, datumIndex }, false);
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
         return this.formatTooltipWithContext(
             tooltip,

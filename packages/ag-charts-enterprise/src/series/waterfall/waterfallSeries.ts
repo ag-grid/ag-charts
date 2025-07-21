@@ -1,4 +1,4 @@
-import type { AgWaterfallSeriesItemType, AgWaterfallSeriesOptions } from 'ag-charts-community';
+import type { AgWaterfallSeriesItemType, AgWaterfallSeriesOptions, AgWaterfallSeriesStyle } from 'ag-charts-community';
 import { type AgWaterfallSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
 
@@ -31,6 +31,7 @@ const {
     motion,
     applyShapeStyle,
     getShapeStyle,
+    mergeDefaults,
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
@@ -529,56 +530,45 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private getItemStyle(
-        datumId: string,
-        datum: any,
-        itemId: AgWaterfallSeriesItemType,
-        isHighlight: boolean,
-        nodeDatum?: WaterfallNodeDatum
-    ) {
+        { datumIndex = 0, datum, itemId = 'total' }: Partial<WaterfallNodeDatum>,
+        isHighlight: boolean
+    ): Required<AgWaterfallSeriesStyle> {
         const { id: seriesId, properties } = this;
         const item = properties.item[itemId === 'subtotal' ? 'total' : itemId];
-        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex);
-        const highlightStyleItem = highlightStyle.item?.[itemId === 'subtotal' ? 'total' : itemId];
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemId));
 
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = item;
         const { xKey, yKey } = properties;
 
-        const format = getShapeStyle(
-            {
-                fill: highlightStyle?.fill ?? item.fill,
-                fillOpacity: highlightStyle?.fillOpacity ?? item.fillOpacity,
-                stroke: highlightStyle?.stroke ?? item.stroke,
-                strokeWidth: highlightStyle?.strokeWidth ?? item.strokeWidth,
-                strokeOpacity: highlightStyle?.strokeOpacity ?? item.strokeOpacity,
-                lineDash: highlightStyle?.lineDash ?? item.lineDash ?? [],
-                lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
-                cornerRadius: highlightStyleItem?.cornerRadius ?? item.cornerRadius,
-                opacity: highlightStyle?.opacity ?? 1,
-            },
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults
-        );
+        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
         if (itemStyler != null) {
-            let itemStyle = this.cachedDatumCallback(createDatumId(datumId, isHighlight ? 'highlight' : 'node'), () => {
-                return this.callWithContext(itemStyler, {
-                    seriesId,
-                    itemId,
-                    datum,
-                    xKey,
-                    yKey,
-                    highlighted: isHighlight,
-                    ...format,
-                });
-            });
-
-            itemStyle = getShapeStyle(itemStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
-
-            Object.assign(format, itemStyle);
+            const overrides = this.cachedDatumCallback(
+                createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
+                () => {
+                    return this.callWithContext(itemStyler, {
+                        seriesId,
+                        itemId,
+                        datum,
+                        xKey,
+                        yKey,
+                        highlighted: isHighlight,
+                        ...style,
+                    });
+                }
+            );
+            if (overrides) {
+                style = getShapeStyle(
+                    mergeDefaults(overrides, style),
+                    fillGradientDefaults,
+                    fillPatternDefaults,
+                    fillImageDefaults
+                );
+            }
         }
 
-        return format;
+        return style;
     }
 
     protected override updateDatumNodes(opts: {
@@ -591,11 +581,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
-            const seriesItemType = datum.itemId;
+            const style = this.getItemStyle(datum, isHighlight);
 
-            const style = this.getItemStyle(String(datum.datumIndex), datum.datum, seriesItemType, isHighlight, datum);
-
-            applyShapeStyle(rect, style, undefined, fillBBox);
+            applyShapeStyle(rect, style, fillBBox);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
@@ -678,7 +666,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             total = yValue;
         }
 
-        const format = this.getItemStyle(String(datumIndex), datum, seriesItemType, false);
+        const format = this.getItemStyle({ datumIndex, datum, itemId: seriesItemType }, false);
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -934,7 +922,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         lineNode.setProperties({
             fill: undefined,
             stroke,
-            strokeWidth: this.getStrokeWidth(strokeWidth),
+            strokeWidth,
             strokeOpacity,
             lineDash,
             lineDashOffset,

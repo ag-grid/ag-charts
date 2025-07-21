@@ -26,7 +26,6 @@ import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import { Marker } from '../../marker/marker';
 import {
     DataModelSeries,
     type DataModelSeriesConstructorOpts,
@@ -56,17 +55,14 @@ type CartesianSeriesOpts<
 > = {
     pathsPerSeries: string[];
     pathsZIndexSubOrderOffset: number[];
-    hasMarkers: boolean;
     propertyKeys: SeriesDirectionKeysMapping<TProps>;
     propertyNames: SeriesDirectionKeysMapping<TProps>;
     datumSelectionGarbageCollection: boolean;
-    markerSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
     animationResetFns?: {
         path?: (path: Path<TDatum>) => Partial<Path<TDatum>>;
         datum?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
         label?: (node: Text, datum: TLabel) => AnimationValue & Partial<Text>;
-        marker?: (node: Marker, datum: TDatum) => AnimationValue & Partial<Marker>;
     };
 };
 
@@ -108,7 +104,6 @@ type CartesianAnimationEvent<
     update: CartesianAnimationData<TNode, TDatum, TLabel, TContext>;
     updateData: undefined;
     highlight: Selection<TNode, TDatum>;
-    highlightMarkers: Selection<Marker, TDatum>;
     resize: CartesianAnimationData<TNode, TDatum, TLabel, TContext>;
     clear: CartesianAnimationData<TNode, TDatum, TLabel, TContext>;
     reset: undefined;
@@ -123,7 +118,6 @@ export interface CartesianAnimationData<
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > {
     datumSelection: Selection<TNode, TDatum>;
-    markerSelection: Selection<Marker, TDatum>;
     labelSelection: Selection<Text, TLabel>;
     annotationSelections: Selection<NodeWithOpacity, TDatum>[];
     contextData: TContext;
@@ -173,21 +167,15 @@ export abstract class CartesianSeries<
 
     private readonly paths: Path[];
     protected readonly dataNodeGroup = this.contentGroup.appendChild(
-        new Group({ name: `${this.id}-series-dataNodes`, zIndex: 0 })
-    );
-    protected readonly markerGroup = this.contentGroup.appendChild(
-        new Group({ name: `${this.id}-series-markers`, zIndex: 1 })
+        new Group({ name: `${this.id}-series-dataNodes`, zIndex: 1 })
     );
     override readonly labelGroup = this.contentGroup.appendChild(
         new TranslatableGroup({ name: `${this.id}-series-labels` })
     );
     private datumSelection: Selection<TNode, TDatum>;
-    private markerSelection: Selection<Marker, TDatum>;
     protected labelSelection: Selection<Text, TLabel> = Selection.select(this.labelGroup, Text);
 
-    private highlightSelection = Selection.select(this.highlightGroup, () =>
-        this.opts.hasMarkers ? new Marker() : this.nodeFactory()
-    ) as Selection<TNode, TDatum>;
+    private highlightSelection = Selection.select(this.highlightGroup, () => this.nodeFactory());
 
     public annotationSelections: Set<Selection<NodeWithOpacity, TDatum>> = new Set();
 
@@ -203,10 +191,8 @@ export abstract class CartesianSeries<
 
     protected constructor({
         pathsPerSeries = ['path'],
-        hasMarkers = false,
         pathsZIndexSubOrderOffset = [],
         datumSelectionGarbageCollection = true,
-        markerSelectionGarbageCollection = true,
         animationAlwaysUpdateSelections = false,
         animationResetFns,
         propertyKeys,
@@ -226,14 +212,12 @@ export abstract class CartesianSeries<
 
         this.opts = {
             pathsPerSeries,
-            hasMarkers,
             pathsZIndexSubOrderOffset,
             propertyKeys,
             propertyNames,
             animationResetFns,
             animationAlwaysUpdateSelections,
             datumSelectionGarbageCollection,
-            markerSelectionGarbageCollection,
         };
 
         this.paths = pathsPerSeries.map((path) => {
@@ -245,7 +229,6 @@ export abstract class CartesianSeries<
             () => this.nodeFactory(),
             datumSelectionGarbageCollection
         );
-        this.markerSelection = Selection.select(this.markerGroup, Marker, markerSelectionGarbageCollection);
 
         this.animationState = new StateMachine<
             CartesianAnimationState,
@@ -266,7 +249,6 @@ export abstract class CartesianSeries<
                     updateData: 'waiting',
                     clear: 'clearing',
                     highlight: (data) => this.animateReadyHighlight(data),
-                    highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
                     resize: (data) => this.animateReadyResize(data),
                     reset: 'empty',
                     skip: 'ready',
@@ -307,7 +289,7 @@ export abstract class CartesianSeries<
     override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {
         super.attachSeries(seriesContentNode, seriesNode, annotationNode);
 
-        this.attachPaths(this.paths, seriesNode, annotationNode);
+        this.attachPaths(this.paths);
     }
 
     override detachSeries(
@@ -317,20 +299,20 @@ export abstract class CartesianSeries<
     ): void {
         super.detachSeries(seriesContentNode, seriesNode, annotationNode);
 
-        this.detachPaths(this.paths, seriesNode, annotationNode);
+        this.detachPaths(this.paths);
     }
 
     override updatedDomains(): void {
         this.animationState.transition('updateData');
     }
 
-    protected attachPaths(paths: Path[], _seriesNode: Node, _annotationNode: Node | undefined) {
+    protected attachPaths(paths: Path[]) {
         for (const path of paths) {
             this.contentGroup.appendChild(path);
         }
     }
 
-    protected detachPaths(paths: Path[], _seriesNode: Node, _annotationNode: Node | undefined) {
+    protected detachPaths(paths: Path[]) {
         for (const path of paths) {
             this.contentGroup.removeChild(path);
         }
@@ -373,27 +355,26 @@ export abstract class CartesianSeries<
     }
 
     protected strokewidthChange() {
-        // TODO: might need to check marker.strokeWidth
+        const unhighlightedStrokeWidth = ('strokeWidth' in this.properties && this.properties.strokeWidth) ?? 0;
+        const highlightedSeriesStrokeWidth =
+            this.properties.highlight.highlightedSeries.strokeWidth ?? unhighlightedStrokeWidth;
+        const highlightedItemStrokeWidth =
+            this.properties.highlight.highlightedItem?.strokeWidth ?? unhighlightedStrokeWidth;
         return (
-            'strokeWidth' in this.properties &&
-            this.properties.strokeWidth != null &&
-            this.properties.strokeWidth >
-                (this.properties.highlight.highlightedItem?.strokeWidth ?? this.properties.strokeWidth)
+            unhighlightedStrokeWidth > highlightedItemStrokeWidth ||
+            highlightedSeriesStrokeWidth > highlightedItemStrokeWidth
         );
     }
 
     update({ seriesRect }: { seriesRect?: BBox }) {
         const { _contextNodeData: previousContextData } = this;
 
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
-
         const resize = this.checkResize(seriesRect);
-        this.updateHighlightSelection(seriesHighlighted);
+        const itemHighlighted = this.updateHighlightSelection();
 
         this.contentGroup.batchedUpdate(() => {
             const dataChanged = this.updateSelections();
-            this.updateNodes(seriesHighlighted, resize || dataChanged);
+            this.updateNodes(itemHighlighted, resize || dataChanged);
         });
 
         const animationData = this.getAnimationData(seriesRect, previousContextData);
@@ -436,23 +417,18 @@ export abstract class CartesianSeries<
         return nodeDataRefresh;
     }
 
-    private updateSeriesSelections(seriesHighlighted?: boolean) {
-        const { datumSelection, labelSelection, markerSelection, paths } = this;
+    private updateSeriesSelections() {
+        const { datumSelection, labelSelection, paths } = this;
         const contextData = this._contextNodeData;
         if (!contextData) return;
 
         const { nodeData, labelData, itemId } = contextData;
 
-        this.updatePaths({ seriesHighlighted, itemId, contextData, paths });
+        this.updatePaths({ itemId, contextData, paths });
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
         this.labelGroup.batchedUpdate(() => {
             this.labelSelection = this.updateLabelSelection({ labelData, labelSelection }) ?? labelSelection;
         });
-        if (this.opts.hasMarkers) {
-            this.markerGroup.batchedUpdate(() => {
-                this.markerSelection = this.updateMarkerSelection({ nodeData, markerSelection });
-            });
-        }
     }
 
     protected abstract nodeFactory(): TNode;
@@ -478,67 +454,43 @@ export abstract class CartesianSeries<
         };
     }
 
-    protected updateNodes(seriesHighlighted: boolean, nodeRefresh: boolean) {
-        const {
-            highlightSelection,
-            opts: { hasMarkers },
-        } = this;
+    protected updateNodes(itemHighlighted: boolean, nodeRefresh: boolean) {
+        const { highlightSelection, datumSelection } = this;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const visible = this.visible && this._contextNodeData != null;
         this.contentGroup.visible = animationEnabled || visible;
-        this.highlightGroup.visible = (animationEnabled || visible) && seriesHighlighted;
 
-        if (hasMarkers) {
-            this.markerGroup.batchedUpdate(() => {
-                this.updateMarkerNodes({
-                    markerSelection: highlightSelection as any,
-                    isHighlight: true,
-                });
-                this.animationState.transition('highlightMarkers', highlightSelection as any);
-            });
-        } else {
-            this.updateDatumNodes({
-                datumSelection: highlightSelection,
-                isHighlight: true,
-            });
-            this.animationState.transition('highlight', highlightSelection);
-        }
+        this.highlightGroup.visible = (animationEnabled || visible) && itemHighlighted;
+        this.updateDatumNodes({
+            datumSelection: highlightSelection,
+            isHighlight: true,
+        });
+        this.animationState.transition('highlight', highlightSelection);
 
-        const { dataNodeGroup, markerGroup, datumSelection, labelSelection, markerSelection, paths, labelGroup } = this;
+        const { dataNodeGroup, labelSelection, paths, labelGroup } = this;
         const { itemId } = this.contextNodeData ?? {};
 
-        dataNodeGroup.visible = animationEnabled || visible;
-        labelGroup.visible = visible;
-
-        if (hasMarkers) {
-            markerGroup.visible = visible;
-        }
-
         this.updatePathNodes({
-            seriesHighlighted,
             itemId,
             paths,
             visible: visible,
             animationEnabled,
         });
 
+        dataNodeGroup.visible = animationEnabled || visible;
+        labelGroup.visible = visible;
         if (!dataNodeGroup.visible) {
             return;
         }
 
-        const hasChangesOnHighlight = this.strokewidthChange() || this.hasHighlightChange;
+        const redrawAll = this.strokewidthChange() || this.hasChangesOnHighlight;
 
-        if (nodeRefresh || hasChangesOnHighlight) {
+        if (nodeRefresh || redrawAll) {
             this.updateDatumNodes({ datumSelection, isHighlight: false });
             if (!this.usesPlacedLabels) {
                 this.labelGroup.batchedUpdate(() => {
                     this.updateLabelNodes({ labelSelection });
-                });
-            }
-            if (hasMarkers) {
-                this.markerGroup.batchedUpdate(() => {
-                    this.updateMarkerNodes({ markerSelection, isHighlight: false });
                 });
             }
         }
@@ -555,23 +507,24 @@ export abstract class CartesianSeries<
         return highlightedItem ? [highlightedItem] : undefined;
     }
 
-    protected updateHighlightSelection(seriesHighlighted: boolean) {
+    protected updateHighlightSelection(): boolean {
         const { highlightSelection, _contextNodeData: contextNodeData } = this;
-        if (!contextNodeData) return;
+        if (!contextNodeData) return false;
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
         const item = seriesHighlighted && highlightedDatum?.datum ? (highlightedDatum as TDatum) : undefined;
 
-        let highlightItems: TDatum[] | undefined;
-        if (item != null) {
-            const { nodeData } = contextNodeData;
-            highlightItems = this.getHighlightData(nodeData, item);
-        }
+        if (item == null) return false;
 
+        const { nodeData } = contextNodeData;
+        const highlightItems = this.getHighlightData(nodeData, item);
         this.highlightSelection = this.updateHighlightSelectionItem({
             items: highlightItems,
             highlightSelection,
         });
+
+        return true;
     }
 
     protected markQuadtreeDirty() {
@@ -608,16 +561,9 @@ export abstract class CartesianSeries<
         }
 
         const { x, y } = point;
-        const {
-            opts: { hasMarkers },
-        } = this;
 
-        const { dataNodeGroup, markerGroup } = this;
-        let matches = dataNodeGroup.pickNodes(x, y).filter((match) => match.datum.missing !== true);
-
-        if (matches.length === 0 && hasMarkers) {
-            matches = markerGroup?.pickNodes(x, y).filter((match) => match.datum.missing !== true);
-        }
+        const { dataNodeGroup } = this;
+        const matches = dataNodeGroup.pickNodes(x, y).filter((match) => match.datum.missing !== true);
 
         if (matches.length !== 0) {
             const datums = matches.map((match) => match.datum);
@@ -1004,22 +950,13 @@ export abstract class CartesianSeries<
         items?: TDatum[];
         highlightSelection: Selection<TNode, TDatum>;
     }): Selection<TNode, TDatum> {
-        const {
-            opts: { hasMarkers },
-        } = this;
-
         const { items, highlightSelection } = opts;
         const nodeData = items ?? [];
 
-        if (hasMarkers) {
-            const markerSelection = highlightSelection as any;
-            return this.updateMarkerSelection({ nodeData, markerSelection }) as any;
-        } else {
-            return this.updateDatumSelection({
-                nodeData,
-                datumSelection: highlightSelection,
-            });
-        }
+        return this.updateDatumSelection({
+            nodeData,
+            datumSelection: highlightSelection,
+        });
     }
 
     protected updateHighlightSelectionLabel(opts: {
@@ -1043,29 +980,12 @@ export abstract class CartesianSeries<
         // Override point for sub-classes.
     }
 
-    protected updateMarkerSelection(opts: {
-        nodeData: TDatum[];
-        markerSelection: Selection<Marker, TDatum>;
-    }): Selection<Marker, TDatum> {
-        // Override point for sub-classes.
-        return opts.markerSelection;
-    }
-    protected updateMarkerNodes(_opts: { markerSelection: Selection<Marker, TDatum>; isHighlight: boolean }): void {
-        // Override point for sub-classes.
-    }
-
-    protected updatePaths(opts: {
-        seriesHighlighted?: boolean;
-        itemId?: string;
-        contextData: TContext;
-        paths: Path[];
-    }): void {
+    protected updatePaths(opts: { itemId?: string; contextData: TContext; paths: Path[] }): void {
         // Override point for sub-classes.
         opts.paths.forEach((p) => (p.visible = false));
     }
 
     protected updatePathNodes(opts: {
-        seriesHighlighted?: boolean;
         itemId?: string;
         paths: Path[];
         visible: boolean;
@@ -1103,14 +1023,6 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected resetMarkerAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        const { marker } = this.opts?.animationResetFns ?? {};
-
-        if (marker && this.opts.hasMarkers) {
-            resetMotion([data.markerSelection], marker);
-        }
-    }
-
     protected resetAllAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         // Stop any running animations by prefix convention.
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
@@ -1118,7 +1030,6 @@ export abstract class CartesianSeries<
         this.resetPathAnimation(data);
         this.resetDatumAnimation(data);
         this.resetLabelAnimation(data);
-        this.resetMarkerAnimation(data);
 
         if (data.contextData?.animationValid === false) {
             this.ctx.animationManager.skipCurrentBatch();
@@ -1142,13 +1053,6 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected animateReadyHighlightMarkers(data: Selection<Marker, TDatum>) {
-        const { marker } = this.opts?.animationResetFns ?? {};
-        if (marker) {
-            resetMotion([data], marker);
-        }
-    }
-
     protected animateReadyResize(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         this.resetAllAnimation(data);
     }
@@ -1164,7 +1068,6 @@ export abstract class CartesianSeries<
 
         const animationData: CartesianAnimationData<TNode, TDatum, TLabel, TContext> = {
             datumSelection: this.datumSelection,
-            markerSelection: this.markerSelection,
             labelSelection: this.labelSelection,
             annotationSelections: [...this.annotationSelections],
             contextData,

@@ -54,6 +54,8 @@ interface GeneratedTicks {
     spacing: number;
 }
 
+export type GridLineStyleTickDatum = Pick<TickDatum, 'index' | 'tickId' | 'translation'>;
+
 export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any, number, any>, D = any> extends Axis<
     S,
     D,
@@ -292,16 +294,16 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return { ticks: rawTicks, rawTickCount, tickDomain, niceDomain, fractionDigits, timeInterval, bbox, layout };
     }
 
-    protected calculateGridLines(ticks: TickDatum[], p1: number, p2: number) {
+    protected calculateGridLines(ticks: GridLineStyleTickDatum[], p1: number, p2: number) {
         return ticks.map((tick, index) => this.calculateGridLine(tick, index, p1, p2, ticks));
     }
 
     protected calculateGridLine(
-        { index: tickIndex, tickId, translation: offset }: Pick<TickDatum, 'index' | 'tickId' | 'translation'>,
+        { index: tickIndex, tickId, translation: offset }: GridLineStyleTickDatum,
         _index: number,
         p1: number,
         p2: number,
-        _ticks: TickDatum[]
+        _ticks: GridLineStyleTickDatum[]
     ): AxisLineDatum {
         const { gridLine, horizontal } = this;
 
@@ -312,7 +314,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
     }
 
-    protected calculateGridFills(ticks: TickDatum[], p1: number, p2: number) {
+    protected calculateGridFills(ticks: GridLineStyleTickDatum[], p1: number, p2: number) {
         const { range } = this;
 
         const gridFills: AxisFillDatum[] = [];
@@ -339,12 +341,12 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected calculateGridFill(
-        { tickId, translation }: Pick<TickDatum, 'tickId' | 'translation'>,
+        { tickId, translation }: Pick<GridLineStyleTickDatum, 'tickId' | 'translation'>,
         index: number,
         gridFillIndex: number,
         p1: number,
         p2: number,
-        ticks: TickDatum[]
+        ticks: GridLineStyleTickDatum[]
     ): AxisFillDatum {
         const { gridLine, horizontal, range } = this;
 

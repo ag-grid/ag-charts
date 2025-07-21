@@ -147,6 +147,10 @@ class TreemapSeriesHighlightStyle extends HighlightStyle {
 
     @Property
     readonly tile = new TreemapSeriesTileHighlightStyle();
+
+    getStyle(isLeaf: boolean) {
+        return isLeaf ? this.tile : this.group;
+    }
 }
 
 export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemapSeriesOptions> {
@@ -181,4 +185,27 @@ export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemap
     // We haven't decided how to expose this yet, but we need to have this property, so it can change between light and dark themes
     @Property
     undocumentedGroupStrokes: string[] = [];
+
+    getStyle(
+        isLeaf: boolean,
+        fills: InternalAgColorType[],
+        strokes: string[],
+        index: number
+    ): Required<AgTreemapSeriesStyle> & { opacity: number } {
+        const {
+            fillOpacity,
+            strokeWidth,
+            strokeOpacity,
+            fill = isLeaf ? fills[index % fills.length] : fills[Math.min(index, fills.length)],
+            stroke = isLeaf ? strokes[index % fills.length] : strokes[Math.min(index, strokes.length)],
+        } = isLeaf ? this.tile : this.group;
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            opacity: 1,
+        };
+    }
 }
