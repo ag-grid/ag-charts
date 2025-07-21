@@ -68,7 +68,7 @@ const highlightExamples = [
     'default-highlight-single-series',
     'default-highlight-single-series-markers',
     'large-scale',
-    'large-scale-multi-series',
+    // 'large-scale-multi-series',
     'default-highlight-single-series-pattern-fill',
     'custom-highlight-single-series-pattern-fill',
     'custom-highlight-single-series-item-styler',
