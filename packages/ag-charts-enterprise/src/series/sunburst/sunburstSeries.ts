@@ -159,7 +159,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex.join(':'), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, rootIndex);
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
