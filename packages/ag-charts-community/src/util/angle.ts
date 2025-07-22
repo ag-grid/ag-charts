@@ -47,7 +47,8 @@ export function isBetweenAngles(targetAngle: number, startAngle: number, endAngl
     } else if (a0 > a1) {
         return a0 <= t || t <= a1; // clockwise with wrapping
     } else {
-        return true; // input angles of a 360-spin
+        // input angles equal or of a 360-spin
+        return startAngle !== endAngle;
     }
 }
 
