@@ -211,6 +211,8 @@ export interface AgAxisGridStyle {
     fillOpacity?: Ratio;
     /** The colour of the grid line. */
     stroke?: CssColor;
+    /** The width of the grid line in pixels. */
+    strokeWidth?: PixelSize;
     /** Defines how the grid lines are rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. For example, `[6, 3]` means dashes with a length of `6` pixels with gaps between of `3` pixels. */
     lineDash?: PixelSize[];
 }

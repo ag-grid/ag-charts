@@ -273,10 +273,23 @@ export class ChartTheme {
                 },
                 gridLine: {
                     enabled: true,
+                    width: 1,
                     style: {
                         $apply: [
-                            { fillOpacity: 1, stroke: { $ref: 'gridLineColor' }, lineDash: [] },
-                            [{ fillOpacity: 1, stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
+                            {
+                                fillOpacity: 1,
+                                stroke: { $ref: 'gridLineColor' },
+                                strokeWidth: { $path: '../../width' },
+                                lineDash: [],
+                            },
+                            [
+                                {
+                                    fillOpacity: 1,
+                                    stroke: { $ref: 'gridLineColor' },
+                                    strokeWidth: { $path: '../../width' },
+                                    lineDash: [],
+                                },
+                            ],
                         ],
                     },
                 },
