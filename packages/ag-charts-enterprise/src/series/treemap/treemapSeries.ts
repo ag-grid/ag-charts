@@ -377,16 +377,16 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                             Array.isArray(activeHighlight.datumIndex) &&
                             activeHighlight.datumIndex?.join(':') === datumIndexString
                         ) {
-                            highlightState = 'item-highlighted';
+                            highlightState = 'highlighted-item';
                         } else {
-                            highlightState = 'series-highlighted';
+                            highlightState = 'highlighted-series';
                         }
                     } else if (activeHighlight) {
                         // Something else is highlighted
                         if (activeHighlight.series === this) {
-                            highlightState = 'item-unhighlighted';
+                            highlightState = 'unhighlighted-item';
                         } else {
-                            highlightState = 'series-unhighlighted';
+                            highlightState = 'unhighlighted-series';
                         }
                     } else {
                         highlightState = 'none';

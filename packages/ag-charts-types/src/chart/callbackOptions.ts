@@ -19,10 +19,10 @@ export interface SeriesCallbackParams {
 }
 
 export type HighlightState =
-    | 'item-highlighted'
-    | 'item-unhighlighted'
-    | 'series-highlighted'
-    | 'series-unhighlighted'
+    | 'highlighted-item'
+    | 'unhighlighted-item'
+    | 'highlighted-series'
+    | 'unhighlighted-series'
     | 'none';
 
 export interface DatumCallbackParams<TDatum> {

@@ -1,6 +1,6 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-community';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Label Highlight State Styling Demo',
@@ -26,25 +26,25 @@ const options: AgChartOptions = {
                 size: 10,
                 itemStyler: ({ highlightState }) => {
                     switch (highlightState) {
-                        case 'item-highlighted':
+                        case 'highlighted-item':
                             return {
                                 fill: 'red',
                                 stroke: 'red',
                                 strokeWidth: 2,
                                 size: 15,
                             };
-                        case 'item-unhighlighted':
+                        case 'unhighlighted-item':
                             return {
                                 fillOpacity: 0.3,
                                 strokeOpacity: 0.3,
                                 size: 8,
                             };
-                        case 'series-highlighted':
+                        case 'highlighted-series':
                             return {
                                 strokeWidth: 2,
                                 size: 12,
                             };
-                        case 'series-unhighlighted':
+                        case 'unhighlighted-series':
                             return {
                                 fillOpacity: 0.2,
                                 strokeOpacity: 0.2,
@@ -55,25 +55,26 @@ const options: AgChartOptions = {
             },
             label: {
                 enabled: true,
+                // @ts-expect-error - itemStyler is implemented but not public
                 itemStyler: ({ highlightState }) => {
                     switch (highlightState) {
-                        case 'item-highlighted':
+                        case 'highlighted-item':
                             return {
                                 color: 'red',
                                 fontWeight: 'bold',
                                 fontSize: 14,
                             };
-                        case 'item-unhighlighted':
+                        case 'unhighlighted-item':
                             return {
                                 color: 'gray',
                                 fontSize: 10,
                             };
-                        case 'series-highlighted':
+                        case 'highlighted-series':
                             return {
                                 fontWeight: 'bold',
                                 fontSize: 12,
                             };
-                        case 'series-unhighlighted':
+                        case 'unhighlighted-series':
                             return {
                                 color: 'lightgray',
                                 fontSize: 8,
@@ -92,25 +93,25 @@ const options: AgChartOptions = {
                 size: 10,
                 itemStyler: ({ highlightState }) => {
                     switch (highlightState) {
-                        case 'item-highlighted':
+                        case 'highlighted-item':
                             return {
                                 fill: 'orange',
                                 stroke: 'orange',
                                 strokeWidth: 2,
                                 size: 15,
                             };
-                        case 'item-unhighlighted':
+                        case 'unhighlighted-item':
                             return {
                                 fillOpacity: 0.3,
                                 strokeOpacity: 0.3,
                                 size: 8,
                             };
-                        case 'series-highlighted':
+                        case 'highlighted-series':
                             return {
                                 strokeWidth: 2,
                                 size: 12,
                             };
-                        case 'series-unhighlighted':
+                        case 'unhighlighted-series':
                             return {
                                 fillOpacity: 0.2,
                                 strokeOpacity: 0.2,
@@ -121,25 +122,26 @@ const options: AgChartOptions = {
             },
             label: {
                 enabled: true,
+                // @ts-expect-error - itemStyler is implemented but not public
                 itemStyler: ({ highlightState }) => {
                     switch (highlightState) {
-                        case 'item-highlighted':
+                        case 'highlighted-item':
                             return {
                                 color: 'orange',
                                 fontWeight: 'bold',
                                 fontSize: 14,
                             };
-                        case 'item-unhighlighted':
+                        case 'unhighlighted-item':
                             return {
                                 color: 'gray',
                                 fontSize: 10,
                             };
-                        case 'series-highlighted':
+                        case 'highlighted-series':
                             return {
                                 fontWeight: 'bold',
                                 fontSize: 12,
                             };
-                        case 'series-unhighlighted':
+                        case 'unhighlighted-series':
                             return {
                                 color: 'lightgray',
                                 fontSize: 8,

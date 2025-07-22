@@ -388,7 +388,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
                         this.properties,
                         this.cartesianSeries,
                         highlighted,
-                        highlighted ? 'item-highlighted' : 'item-unhighlighted'
+                        highlighted ? 'highlighted-item' : 'unhighlighted-item'
                     );
                 break;
             }

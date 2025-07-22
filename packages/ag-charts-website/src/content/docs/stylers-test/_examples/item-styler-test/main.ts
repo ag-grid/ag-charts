@@ -63,10 +63,10 @@ const mapLineTopology = getMapLineTopology();
 const mapMarkerTopology = getMapMarkerTopology();
 
 const validHighlightStates = [
-    'item-highlighted',
-    'item-unhighlighted',
-    'series-highlighted',
-    'series-unhighlighted',
+    'highlighted-item',
+    'unhighlighted-item',
+    'highlighted-series',
+    'unhighlighted-series',
     'none',
 ];
 
@@ -80,10 +80,10 @@ function createItemStyler(type: string) {
                 hasValidHighlightState: false,
                 hasInvalidHighlightState: false,
                 unseenStates: new Set<string>([
-                    'item-highlighted',
-                    'item-unhighlighted',
-                    'series-highlighted',
-                    'series-unhighlighted',
+                    'highlighted-item',
+                    'unhighlighted-item',
+                    'highlighted-series',
+                    'unhighlighted-series',
                     'none',
                 ]),
                 chartType: currentChartType,
@@ -1120,10 +1120,10 @@ function resetStatus() {
                 hasValidHighlightState: false,
                 hasInvalidHighlightState: false,
                 unseenStates: new Set<string>([
-                    'item-highlighted',
-                    'item-unhighlighted',
-                    'series-highlighted',
-                    'series-unhighlighted',
+                    'highlighted-item',
+                    'unhighlighted-item',
+                    'highlighted-series',
+                    'unhighlighted-series',
                     'none',
                 ]),
                 chartType: currentChartType,
@@ -1235,10 +1235,10 @@ function updateStatusIndicators() {
     if (!statusContainer || !matrixContainer) return;
 
     const allValidHighlightStates = [
-        'item-highlighted',
-        'item-unhighlighted',
-        'series-highlighted',
-        'series-unhighlighted',
+        'highlighted-item',
+        'unhighlighted-item',
+        'highlighted-series',
+        'unhighlighted-series',
         'none',
     ];
 

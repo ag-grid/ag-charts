@@ -620,13 +620,13 @@ export abstract class Series<
 
         switch (state) {
             case HighlightState.Item:
-                return 'item-highlighted';
+                return 'highlighted-item';
             case HighlightState.OtherItem:
-                return 'item-unhighlighted';
+                return 'unhighlighted-item';
             case HighlightState.Series:
-                return 'series-highlighted';
+                return 'highlighted-series';
             case HighlightState.OtherSeries:
-                return 'series-unhighlighted';
+                return 'unhighlighted-series';
             case HighlightState.None:
             default:
                 return 'none';

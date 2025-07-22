@@ -24,7 +24,7 @@ const options: AgChartOptions = {
             itemStyler: (params) => {
                 // The new highlightState parameter provides more granular control
                 switch (params.highlightState) {
-                    case 'item-highlighted':
+                    case 'highlighted-item':
                         // This specific bar is highlighted - make it bright and bold
                         return {
                             fill: '#ffd700', // Gold color
@@ -33,7 +33,7 @@ const options: AgChartOptions = {
                             strokeWidth: 4,
                             strokeOpacity: 1,
                         };
-                    case 'item-unhighlighted':
+                    case 'unhighlighted-item':
                         // Another bar in this series is highlighted - fade this one
                         return {
                             fill: '#5470c6',
@@ -42,7 +42,7 @@ const options: AgChartOptions = {
                             strokeOpacity: 0.1,
                             strokeWidth: 1,
                         };
-                    case 'series-highlighted':
+                    case 'highlighted-series':
                         // The entire series is highlighted (via legend) - make it prominent
                         return {
                             fill: '#7d9adb', // Lighter shade
@@ -51,7 +51,7 @@ const options: AgChartOptions = {
                             strokeWidth: 2,
                             strokeOpacity: 1,
                         };
-                    case 'series-unhighlighted':
+                    case 'unhighlighted-series':
                         // Another series is highlighted - significantly fade this series
                         return {
                             fill: '#5470c6',
@@ -76,7 +76,7 @@ const options: AgChartOptions = {
             itemStyler: (params) => {
                 // Similar styling logic for the second series
                 switch (params.highlightState) {
-                    case 'item-highlighted':
+                    case 'highlighted-item':
                         // This specific bar is highlighted - make it bright and bold
                         return {
                             fill: '#ffd700', // Gold color
@@ -85,7 +85,7 @@ const options: AgChartOptions = {
                             strokeWidth: 4,
                             strokeOpacity: 1,
                         };
-                    case 'item-unhighlighted':
+                    case 'unhighlighted-item':
                         // Another bar in this series is highlighted - fade this one
                         return {
                             fill: '#91cc75',
@@ -94,7 +94,7 @@ const options: AgChartOptions = {
                             strokeOpacity: 0.1,
                             strokeWidth: 1,
                         };
-                    case 'series-highlighted':
+                    case 'highlighted-series':
                         // The entire series is highlighted (via legend) - make it prominent
                         return {
                             fill: '#a7d698', // Lighter shade
@@ -103,7 +103,7 @@ const options: AgChartOptions = {
                             strokeWidth: 2,
                             strokeOpacity: 1,
                         };
-                    case 'series-unhighlighted':
+                    case 'unhighlighted-series':
                         // Another series is highlighted - significantly fade this series
                         return {
                             fill: '#91cc75',
