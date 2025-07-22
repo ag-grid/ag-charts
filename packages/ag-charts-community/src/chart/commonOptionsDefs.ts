@@ -621,15 +621,18 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     ...lineDashOptionsDef,
 };
 
-export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
+type UndocumentedAgChartLabelOptions = { itemStyler?: unknown };
+export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any> & UndocumentedAgChartLabelOptions> = {
     enabled: boolean,
     formatter: callback,
     format: numberFormatValidator,
-    itemStyler: callbackDefs<AgChartLabelStyleOptions>({
-        enabled: boolean,
-        ...labelBoxOptionsDef,
-        ...fontOptionsDef,
-    }),
+    itemStyler: undocumented(
+        callbackDefs<AgChartLabelStyleOptions>({
+            enabled: boolean,
+            ...labelBoxOptionsDef,
+            ...fontOptionsDef,
+        })
+    ),
     ...labelBoxOptionsDef,
     ...fontOptionsDef,
 };

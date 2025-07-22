@@ -7,7 +7,6 @@ import type {
     AgAxisContinuousIntervalOptions,
     AgAxisLabelStylerParams,
     AgBaseAxisLabelOptions,
-    AgBaseAxisLabelStyleOptions,
     AgBaseAxisOptions,
     AgBaseContinuousAxisOptions,
     AgContinuousAxisOptions,
@@ -18,7 +17,6 @@ import type {
     AgTimeIntervalUnit,
 } from './axisOptions';
 import type { AgBandHighlightOptions } from './bandHighlightOptions';
-import type { Styler } from './callbackOptions';
 import type { AgBaseThemeableChartOptions } from './chartOptions';
 import type {
     AgBaseCrossLineLabelOptions,
@@ -97,10 +95,7 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> exte
 }
 
 export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault>
-    extends Omit<AgBaseAxisLabelOptions<TContext>, 'itemStyler'> {
-    /** Function used to style axis labels. */
-    itemStyler?: Styler<AgGroupedCategoryAxisLabelStylerParams<TContext>, AgBaseAxisLabelStyleOptions>;
-}
+    extends AgBaseAxisLabelOptions<TContext> {}
 
 export interface AgGroupedCategoryAxisLabelStylerParams<TContext = ContextDefault>
     extends AgAxisLabelStylerParams<TContext> {

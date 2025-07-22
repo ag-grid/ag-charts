@@ -130,18 +130,21 @@ export const cartesianCrossLineOptionsDefs: OptionsDefs<AgCartesianCrossLineOpti
     },
 };
 
-export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
+type UndocumentedAgBaseAxisLabelOptions = { itemStyler?: unknown };
+export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions & UndocumentedAgBaseAxisLabelOptions> = {
     enabled: boolean,
     rotation: number,
     avoidCollisions: boolean,
     minSpacing: positiveNumber,
     spacing: positiveNumber,
     formatter: callback,
-    itemStyler: callbackDefs<AgBaseAxisLabelStyleOptions>({
-        ...fontOptionsDef,
-        ...labelBoxOptionsDef,
-        spacing: number,
-    }),
+    itemStyler: undocumented(
+        callbackDefs<AgBaseAxisLabelStyleOptions>({
+            ...fontOptionsDef,
+            ...labelBoxOptionsDef,
+            spacing: number,
+        })
+    ),
     ...fontOptionsDef,
     ...labelBoxOptionsDef,
 };
@@ -182,7 +185,7 @@ export const commonAxisIntervalOptionsDefs: OptionsDefs<AgAxisBaseIntervalOption
     minSpacing: positiveNumber,
 };
 
-export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>> = {
+export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions<AgBaseAxisLabelOptions, unknown>, 'type'>> = {
     reverse: boolean,
     gridLine: {
         enabled: boolean,

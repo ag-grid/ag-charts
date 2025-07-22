@@ -29,28 +29,6 @@ const options: AgCartesianChartOptions<DataType> = {
             xKey: 'month',
             yKey: 'value',
             label: {
-                itemStyler: (params: AgChartLabelStylerParams<DataType, unknown>) => {
-                    if (params.datum.month === 'Sep') {
-                        return {
-                            border: {
-                                stroke: 'red',
-                                strokeWidth: 6,
-                                strokeOpacity: 1,
-                            },
-                            padding: 15,
-                            fontWeight: 'bold',
-                            fill: {
-                                type: 'gradient',
-                                colorStops: [
-                                    { color: '#70C1FF', stop: 0.1 },
-                                    { color: '#FFD86F', stop: 0.3 },
-                                    { color: '#FF9A60', stop: 0.5 },
-                                    { color: '#D16BA5' },
-                                ],
-                            },
-                        };
-                    }
-                },
                 enabled: true,
                 cornerRadius: 8,
                 fill: 'rgba(252, 255, 197)',
