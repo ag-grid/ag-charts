@@ -95,7 +95,7 @@ function extendPath(path: string, key: string | number) {
 }
 
 export class ValidationError {
-    private altPath?: string;
+    protected altPath?: string;
 
     constructor(
         public readonly type: ErrorType | `${ErrorType}`,
@@ -138,7 +138,7 @@ export class UnknownError extends ValidationError {
     }
 
     override getPrefix(): string {
-        return `Unknown option \`${extendPath(this.path, this.key)}\``;
+        return `Unknown option \`${extendPath(this.altPath ?? this.path, this.key)}\``;
     }
 
     getPostfix() {
