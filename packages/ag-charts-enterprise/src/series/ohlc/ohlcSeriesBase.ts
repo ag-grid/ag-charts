@@ -310,6 +310,7 @@ export abstract class OhlcSeriesBase<
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         if (dataAggregationFilter == null) {
+            const invalidData = processedData.invalidData?.get(this.id);
             let [start, end] = visibleRangeIndices(1, rawData.length, xAxis.range, (index) => {
                 const xOffset = applyWidthOffset ? 0 : -effectiveBarWidth / 2;
                 const x = xPosition(index) + xOffset;
@@ -322,6 +323,8 @@ export abstract class OhlcSeriesBase<
             }
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
+                if (invalidData?.[datumIndex] === true) continue;
+
                 const xValue = xValues[datumIndex];
                 if (xValue == null) continue;
 
