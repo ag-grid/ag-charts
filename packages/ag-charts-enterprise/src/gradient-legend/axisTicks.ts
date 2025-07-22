@@ -89,16 +89,11 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
             case 'right':
             case 'right-top':
             case 'right-bottom':
-                textBaseline = 'middle';
-                textAlign = 'left';
-                label.mirrored = true;
-                label.parallel = false;
-                break;
             case 'left':
             case 'left-top':
             case 'left-bottom':
                 textBaseline = 'middle';
-                textAlign = 'right';
+                textAlign = 'left';
                 label.mirrored = true;
                 label.parallel = false;
                 break;
