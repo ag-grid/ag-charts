@@ -253,7 +253,7 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
 
         let { x: left, y: top } = shrinkRect;
         const { width, height } = axisBox;
-        const { placement, floating } = expandLegendPosition(this.position);
+        const { placement, floating, xOffset, yOffset } = expandLegendPosition(this.position);
 
         switch (placement) {
             case 'left':
@@ -317,6 +317,8 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
             }
         }
 
+        left += xOffset;
+        top += yOffset;
         return { top, left };
     }
 
