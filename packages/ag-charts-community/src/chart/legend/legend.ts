@@ -1182,9 +1182,8 @@ export class Legend extends BaseProperties {
 
         const { placement, floating, xOffset, yOffset } = expandLegendPosition(this.position);
         // When legend in floating, the X/Y translation is relative to the entire canvas & layoutBox doesn't shrink
-        const layoutBox = floating ? new BBox(0, 0, ctx.width, ctx.height) : ctx.layoutBox;
-        const { x, y, width, height } = layoutBox;
-        const [legendWidth, legendHeight] = this.calculateLegendDimensions(layoutBox);
+        const { x = 0, y = 0, width = ctx.width, height = ctx.height } = floating ? {} : ctx.layoutBox;
+        const [legendWidth, legendHeight] = this.calculateLegendDimensions(width, height);
 
         const { oldPages } = this.calcLayout(legendWidth, legendHeight);
         const legendBBox = this.computePagedBBox();
@@ -1239,39 +1238,39 @@ export class Legend extends BaseProperties {
                     unreachable(placement);
             }
 
-            if (!floating) {
-                let shrinkAmount: number;
-                let shrinkDirection: NonNullable<Parameters<(typeof layoutBox)['shrink']>[1]>;
-                switch (placement) {
-                    case 'top':
-                    case 'top-right':
-                    case 'top-left':
-                        shrinkAmount = legendBBox.height + legendSpacing;
-                        shrinkDirection = 'top';
-                        break;
-                    case 'bottom':
-                    case 'bottom-right':
-                    case 'bottom-left':
-                        shrinkAmount = legendBBox.height + legendSpacing;
-                        shrinkDirection = 'bottom';
-                        break;
-                    case 'left':
-                    case 'left-top':
-                    case 'left-bottom':
-                        shrinkAmount = legendBBox.width + legendSpacing;
-                        shrinkDirection = 'left';
-                        break;
-                    case 'right':
-                    case 'right-top':
-                    case 'right-bottom':
-                        shrinkAmount = legendBBox.width + legendSpacing;
-                        shrinkDirection = 'right';
-                        break;
-                    default:
-                        unreachable(placement);
-                }
-                layoutBox.shrink(shrinkAmount, shrinkDirection);
+            let shrinkAmount: number;
+            let shrinkDirection: NonNullable<Parameters<(typeof ctx.layoutBox)['shrink']>[1]>;
+            const shrinkWidth = floating ? 0 : legendBBox.width;
+            const shrinkHeight = floating ? 0 : legendBBox.height;
+            switch (placement) {
+                case 'top':
+                case 'top-right':
+                case 'top-left':
+                    shrinkAmount = shrinkHeight + legendSpacing;
+                    shrinkDirection = 'top';
+                    break;
+                case 'bottom':
+                case 'bottom-right':
+                case 'bottom-left':
+                    shrinkAmount = shrinkHeight + legendSpacing;
+                    shrinkDirection = 'bottom';
+                    break;
+                case 'left':
+                case 'left-top':
+                case 'left-bottom':
+                    shrinkAmount = shrinkWidth + legendSpacing;
+                    shrinkDirection = 'left';
+                    break;
+                case 'right':
+                case 'right-top':
+                case 'right-bottom':
+                    shrinkAmount = shrinkWidth + legendSpacing;
+                    shrinkDirection = 'right';
+                    break;
+                default:
+                    unreachable(placement);
             }
+            ctx.layoutBox.shrink(shrinkAmount, shrinkDirection);
 
             translationX += xOffset;
             translationY += yOffset;
@@ -1313,8 +1312,7 @@ export class Legend extends BaseProperties {
         });
     }
 
-    private calculateLegendDimensions(shrinkRect: BBox): [number, number] {
-        const { width, height } = shrinkRect;
+    private calculateLegendDimensions(width: number, height: number): [number, number] {
         const { placement } = expandLegendPosition(this.position);
 
         const aspectRatio = width / height;
