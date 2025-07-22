@@ -1181,7 +1181,8 @@ export class Legend extends BaseProperties {
         if (!this.enabled || !this.data.length) return;
 
         const { placement, floating, xOffset, yOffset } = expandLegendPosition(this.position);
-        const { layoutBox } = ctx;
+        // When legend in floating, the X/Y translation is relative to the entire canvas & layoutBox doesn't shrink
+        const layoutBox = floating ? new BBox(0, 0, ctx.width, ctx.height) : ctx.layoutBox;
         const { x, y, width, height } = layoutBox;
         const [legendWidth, legendHeight] = this.calculateLegendDimensions(layoutBox);
 
