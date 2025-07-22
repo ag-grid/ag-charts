@@ -237,4 +237,8 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
             dataDiff
         );
     }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
+    }
 }

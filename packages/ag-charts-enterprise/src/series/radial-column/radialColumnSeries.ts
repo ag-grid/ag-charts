@@ -63,4 +63,8 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.Ra
         const { columnWidthRatio = 0.5, maxColumnWidthRatio = 0.5 } = this.properties;
         return getRadialColumnWidth(startAngle, endAngle, this.radius, columnWidthRatio, maxColumnWidthRatio);
     }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
+    }
 }

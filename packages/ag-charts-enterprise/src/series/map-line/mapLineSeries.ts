@@ -436,7 +436,7 @@ export class MapLineSeries extends TopologySeries<
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                     const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datumIndex);
-                    
+
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
@@ -762,5 +762,9 @@ export class MapLineSeries extends TopologySeries<
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         const geometry = findFocusedGeoGeometry(this, opts);
         return geometry ? Transformable.toCanvas(this.contentGroup, geometry.getBBox()) : undefined;
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
     }
 }

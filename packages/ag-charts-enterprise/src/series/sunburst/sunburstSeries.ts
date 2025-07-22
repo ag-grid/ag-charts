@@ -636,4 +636,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     protected override computeFocusBounds(node: _ModuleSupport.Sector): _ModuleSupport.Path | undefined {
         return node;
     }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
+    }
 }

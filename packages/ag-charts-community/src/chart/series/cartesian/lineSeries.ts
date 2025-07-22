@@ -800,4 +800,8 @@ export class LineSeries extends CartesianSeries<
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
     }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
+    }
 }

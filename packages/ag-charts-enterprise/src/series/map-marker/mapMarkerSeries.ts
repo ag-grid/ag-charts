@@ -620,7 +620,7 @@ export class MapMarkerSeries
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                     const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-                    
+
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
@@ -931,5 +931,9 @@ export class MapMarkerSeries
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
     }
 }

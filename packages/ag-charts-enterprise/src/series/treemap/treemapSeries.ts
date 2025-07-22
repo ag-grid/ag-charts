@@ -864,4 +864,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     protected computeFocusBounds(node: _ModuleSupport.Group): _ModuleSupport.BBox | undefined {
         return Transformable.toCanvas(this.contentGroup, node.getBBox());
     }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
+    }
 }

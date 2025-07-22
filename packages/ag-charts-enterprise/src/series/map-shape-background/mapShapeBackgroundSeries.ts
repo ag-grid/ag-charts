@@ -223,4 +223,8 @@ export class MapShapeBackgroundSeries
     protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return undefined;
     }
+
+    protected override hasItemStylers(): boolean {
+        return false;
+    }
 }

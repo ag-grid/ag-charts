@@ -548,11 +548,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightState = this.getHighlightStateString(
-                        activeHighlight,
-                        isHighlight,
-                        datumIndex
-                    );
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
 
                     return this.callWithContext(itemStyler, {
                         seriesId,
@@ -948,5 +944,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]);
+    }
+
+    protected override hasItemStylers(): boolean {
+        const { positive, negative, total } = this.properties.item;
+        return positive.itemStyler != null || negative.itemStyler != null || total.itemStyler != null;
     }
 }

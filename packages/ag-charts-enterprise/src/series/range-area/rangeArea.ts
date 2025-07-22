@@ -842,4 +842,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     protected override isDatumEnabled(nodeData: RangeAreaMarkerDatum[], datumIndex: number): boolean {
         return datumIndex % 2 === 0 && super.isDatumEnabled(nodeData, datumIndex);
     }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
+    }
 }

@@ -237,50 +237,98 @@ export function getSankeyData(): TSankeyLink[] {
 
 export function getOhlcData(): TOhlcData[] {
     return [
-        { 
-            date: new Date('2023-01-01'), 
-            open: 100, high: 110, low: 95, close: 105,
-            open2: 90, high2: 100, low2: 85, close2: 95
+        {
+            date: new Date('2023-01-01'),
+            open: 100,
+            high: 110,
+            low: 95,
+            close: 105,
+            open2: 90,
+            high2: 100,
+            low2: 85,
+            close2: 95,
         },
-        { 
-            date: new Date('2023-02-01'), 
-            open: 105, high: 115, low: 100, close: 110,
-            open2: 95, high2: 105, low2: 90, close2: 100
+        {
+            date: new Date('2023-02-01'),
+            open: 105,
+            high: 115,
+            low: 100,
+            close: 110,
+            open2: 95,
+            high2: 105,
+            low2: 90,
+            close2: 100,
         },
-        { 
-            date: new Date('2023-03-01'), 
-            open: 110, high: 120, low: 105, close: 115,
-            open2: 100, high2: 110, low2: 95, close2: 105
+        {
+            date: new Date('2023-03-01'),
+            open: 110,
+            high: 120,
+            low: 105,
+            close: 115,
+            open2: 100,
+            high2: 110,
+            low2: 95,
+            close2: 105,
         },
-        { 
-            date: new Date('2023-04-01'), 
-            open: 115, high: 125, low: 110, close: 120,
-            open2: 105, high2: 115, low2: 100, close2: 110
+        {
+            date: new Date('2023-04-01'),
+            open: 115,
+            high: 125,
+            low: 110,
+            close: 120,
+            open2: 105,
+            high2: 115,
+            low2: 100,
+            close2: 110,
         },
     ];
 }
 
 export function getCandlestickData(): TCandlestickData[] {
     return [
-        { 
-            date: new Date('2023-01-01'), 
-            open: 100, high: 110, low: 95, close: 105,
-            open2: 90, high2: 100, low2: 85, close2: 95
+        {
+            date: new Date('2023-01-01'),
+            open: 100,
+            high: 110,
+            low: 95,
+            close: 105,
+            open2: 90,
+            high2: 100,
+            low2: 85,
+            close2: 95,
         },
-        { 
-            date: new Date('2023-02-01'), 
-            open: 105, high: 115, low: 100, close: 110,
-            open2: 95, high2: 105, low2: 90, close2: 100
+        {
+            date: new Date('2023-02-01'),
+            open: 105,
+            high: 115,
+            low: 100,
+            close: 110,
+            open2: 95,
+            high2: 105,
+            low2: 90,
+            close2: 100,
         },
-        { 
-            date: new Date('2023-03-01'), 
-            open: 110, high: 120, low: 105, close: 115,
-            open2: 100, high2: 110, low2: 95, close2: 105
+        {
+            date: new Date('2023-03-01'),
+            open: 110,
+            high: 120,
+            low: 105,
+            close: 115,
+            open2: 100,
+            high2: 110,
+            low2: 95,
+            close2: 105,
         },
-        { 
-            date: new Date('2023-04-01'), 
-            open: 115, high: 125, low: 110, close: 120,
-            open2: 105, high2: 115, low2: 100, close2: 110
+        {
+            date: new Date('2023-04-01'),
+            open: 115,
+            high: 125,
+            low: 110,
+            close: 120,
+            open2: 105,
+            high2: 115,
+            low2: 100,
+            close2: 110,
         },
     ];
 }

@@ -474,7 +474,15 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             const isHighlight = false; // Labels are not highlighted in radial bar series
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
-            updateLabelNode(this, node, this.properties, this.properties.label, datum.label, isHighlight, highlightState);
+            updateLabelNode(
+                this,
+                node,
+                this.properties,
+                this.properties.label,
+                datum.label,
+                isHighlight,
+                highlightState
+            );
             node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
         });
     }
@@ -634,5 +642,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     protected getStackId() {
         const groupIndex = this.seriesGrouping?.groupIndex ?? this.id;
         return `radialBar-stack-${groupIndex}-xValues`;
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
     }
 }

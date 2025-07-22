@@ -1315,7 +1315,14 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const isHighlight = false; // Labels are not highlighted in donut series
             const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
-            const style = getLabelStyles<TParams>(this, datum, this.properties, calloutLabel, isHighlight, highlightState);
+            const style = getLabelStyles<TParams>(
+                this,
+                datum,
+                this.properties,
+                calloutLabel,
+                isHighlight,
+                highlightState
+            );
 
             const labelRadius = outerRadius + calloutLine.length + calloutLabel.offset;
             const x = datum.midCos * labelRadius;
@@ -1472,7 +1479,14 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                 const isHighlight = false; // Labels are not highlighted in donut series
                 const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
-                const style = getLabelStyles<TParams>(this, datum, properties, properties.sectorLabel, isHighlight, highlightState);
+                const style = getLabelStyles<TParams>(
+                    this,
+                    datum,
+                    properties,
+                    properties.sectorLabel,
+                    isHighlight,
+                    highlightState
+                );
                 const labelRadius = innerRadius * (1 - positionRatio) + outerRadius * positionRatio + positionOffset;
 
                 text.fill = style.color;
@@ -1848,5 +1862,10 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
     getDatumId(datumIndex: number) {
         return `${datumIndex}`;
+    }
+
+    protected override hasItemStylers(): boolean {
+        const { itemStyler, calloutLabel, sectorLabel } = this.properties;
+        return (itemStyler ?? calloutLabel.itemStyler ?? sectorLabel.itemStyler) != null;
     }
 }

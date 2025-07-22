@@ -679,4 +679,8 @@ export class HistogramSeries extends CartesianSeries<
     protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
         return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]);
     }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.label.itemStyler != null;
+    }
 }

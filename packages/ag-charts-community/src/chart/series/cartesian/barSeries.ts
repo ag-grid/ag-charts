@@ -677,7 +677,7 @@ export class BarSeries extends AbstractBarSeries<
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                     const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-                    
+
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
@@ -921,5 +921,9 @@ export class BarSeries extends AbstractBarSeries<
     protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
         const datumBox = this.contextNodeData?.nodeData[datumIndex].clipBBox;
         return computeBarFocusBounds(this, datumBox);
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
     }
 }

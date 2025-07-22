@@ -683,27 +683,7 @@ export abstract class Series<
         return this.properties.highlight.getStyle(highlightState);
     }
 
-    protected hasItemStylers(): boolean {
-        const props = this.properties as any;
-
-        return (
-            // Check if the series itself has an itemStyler
-            props.itemStyler != null ||
-            // Check if the series has a marker with an itemStyler
-            props.marker?.itemStyler != null ||
-            // Check for label itemStylers
-            props.label?.itemStyler != null ||
-            // Check for pie/donut specific label itemStylers
-            props.calloutLabel?.itemStyler != null ||
-            props.sectorLabel?.itemStyler != null ||
-            // Check for errorBar itemStyler
-            props.errorBar?.itemStyler != null ||
-            // Check for tree map specific label itemStylers
-            props.tile?.label?.itemStyler != null ||
-            props.tile?.secondaryLabel?.itemStyler != null ||
-            props.group?.label?.itemStyler != null
-        );
-    }
+    protected abstract hasItemStylers(): boolean;
 
     protected getModuleTooltipParams() {
         return this.moduleMap

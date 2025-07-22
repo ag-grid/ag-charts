@@ -435,7 +435,7 @@ export class SankeySeries extends FlowProportionSeries<
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                     const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-                    
+
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
@@ -540,7 +540,7 @@ export class SankeySeries extends FlowProportionSeries<
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                     const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-                    
+
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
@@ -674,5 +674,9 @@ export class SankeySeries extends FlowProportionSeries<
             return Transformable.toCanvas(this.contentGroup, bbox);
         }
         return node;
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.node.itemStyler != null || this.properties.link.itemStyler != null;
     }
 }

@@ -147,4 +147,8 @@ export class CandlestickSeries extends OhlcSeriesBase<
             },
         ];
     }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
+    }
 }

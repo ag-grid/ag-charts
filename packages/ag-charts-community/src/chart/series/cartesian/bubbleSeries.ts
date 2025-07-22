@@ -723,4 +723,9 @@ export class BubbleSeries extends CartesianSeries<
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
     }
+
+    protected override hasItemStylers(): boolean {
+        const { itemStyler, marker, label } = this.properties;
+        return !!(itemStyler ?? marker.itemStyler ?? label.itemStyler);
+    }
 }

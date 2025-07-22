@@ -359,7 +359,15 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 type TParam = AgRadarSeriesLabelFormatterParams;
                 const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                 const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
-                updateLabelNode<TParam, TDatum>(this, node, this.properties, this.properties.label, datum.label, isHighlight, highlightState);
+                updateLabelNode<TParam, TDatum>(
+                    this,
+                    node,
+                    this.properties,
+                    this.properties.label,
+                    datum.label,
+                    isHighlight,
+                    highlightState
+                );
             }
         });
     }
@@ -716,5 +724,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
+    }
+
+    protected override hasItemStylers(): boolean {
+        return false;
     }
 }

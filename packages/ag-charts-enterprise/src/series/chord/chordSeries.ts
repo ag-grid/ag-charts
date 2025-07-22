@@ -629,4 +629,8 @@ export class ChordSeries extends FlowProportionSeries<
     ): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
         return node;
     }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.node.itemStyler != null || this.properties.link.itemStyler != null;
+    }
 }
