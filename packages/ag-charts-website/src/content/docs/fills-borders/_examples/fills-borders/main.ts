@@ -53,17 +53,6 @@ const options: AgChartOptions<DataType> = {
                     stroke: '#dddddd',
                     strokeWidth: 1,
                 },
-                itemStyler: (params) => {
-                    if (params.datum.name !== 'Donovan') return;
-                    return {
-                        color: 'white',
-                        fontWeight: 'bold',
-                        fill: '#5090dc',
-                        border: {
-                            stroke: '#2b5c95',
-                        },
-                    };
-                },
             },
         },
         {
@@ -86,17 +75,6 @@ const options: AgChartOptions<DataType> = {
                 border: {
                     stroke: '#dddddd',
                     strokeWidth: 1,
-                },
-                itemStyler: (params) => {
-                    if (params.datum.name !== 'Luna') return;
-                    return {
-                        color: '#ffffff',
-                        fontWeight: 'bold',
-                        fill: '#ffa03a',
-                        border: {
-                            stroke: '#cc6f10',
-                        },
-                    };
                 },
             },
         },
