@@ -33,5 +33,6 @@ export const HEATMAP_SERIES_THEME: _ModuleSupport.SeriesModule<'heatmap'>['theme
     },
     gradientLegend: {
         enabled: true,
+        ..._ModuleSupport.LEGEND_CONTAINER_THEME,
     },
 };

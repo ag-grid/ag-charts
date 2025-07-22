@@ -390,6 +390,11 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         position: legendPositionValidator,
         spacing: positiveNumber,
         reverseOrder: boolean,
+        border: borderOptionsDef,
+        cornerRadius: number,
+        padding: padding,
+        fill: color,
+        fillOpacity: ratio,
         gradient: {
             preferredLength: positiveNumber,
             thickness: positiveNumber,

@@ -62,6 +62,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
         },
         gradientLegend: {
             enabled: true,
+            ..._ModuleSupport.LEGEND_CONTAINER_THEME,
         },
     },
 };

@@ -60,7 +60,7 @@ import {
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
 } from './symbols';
-import { getSequentialColors } from './util';
+import { LEGEND_CONTAINER_THEME, getSequentialColors } from './util';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = 'white';
@@ -378,6 +378,7 @@ export class ChartTheme {
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
             },
             legend: {
+                ...LEGEND_CONTAINER_THEME,
                 enabled: {
                     $and: [
                         { $greaterThan: [{ $size: [{ $path: '/series' }] }, 1] },
@@ -418,17 +419,6 @@ export class ChartTheme {
                         'vertical',
                         'horizontal',
                     ],
-                },
-                border: {
-                    enabled: false,
-                    stroke: { $foregroundBackgroundMix: 0.25 },
-                    strokeOpacity: 1,
-                    strokeWidth: 1,
-                },
-                cornerRadius: { $ref: 'borderRadius' },
-                fillOpacity: 1,
-                padding: {
-                    $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, { $isUserOption: ['./fill', 5, 0] }],
                 },
                 spacing: 30,
                 listeners: {},

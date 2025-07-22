@@ -108,4 +108,22 @@ describe('GradientLegend', () => {
             await testPosition('left-bottom');
         });
     });
+
+    it('should render fill and border as expected', async () => {
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            gradientLegend: {
+                ...EXAMPLE_OPTIONS.gradientLegend,
+                position: 'bottom',
+                border: { stroke: 'green', strokeWidth: 10 },
+                fill: 'red',
+                fillOpacity: 0.2,
+                cornerRadius: 14,
+                padding: 50,
+            },
+        };
+        prepareEnterpriseTestOptions(options);
+        chart = AgCharts.create(options);
+        await compare();
+    });
 });
