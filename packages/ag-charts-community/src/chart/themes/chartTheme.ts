@@ -327,7 +327,7 @@ export class ChartTheme {
                     strokeOpacity: 1,
                     strokeWidth: 1,
                 },
-                cornerRadius: { $ref: 'borderRadius' },
+                cornerRadius: 4,
                 padding: { $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, 0] },
             },
             keyboard: { enabled: true },
