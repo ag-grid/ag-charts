@@ -564,6 +564,7 @@ export class BarSeries extends AbstractBarSeries<
                 handleDatum(datumIndex, x, width, yStart, yEnd, yRange);
             }
         } else if (dataAggregationFilter == null) {
+            const invalidData = processedData.invalidData?.get(this.id);
             const width = barWidth;
             let [start, end] = this.visibleRangeIndices('xValue', xAxis.range);
             // @todo(AG-13575) Remove this if block
@@ -573,6 +574,8 @@ export class BarSeries extends AbstractBarSeries<
             }
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
+                if (invalidData?.[datumIndex] === true) continue;
+
                 const x = xPosition(datumIndex);
                 const yEnd = Number(yRawValues[datumIndex]);
 
