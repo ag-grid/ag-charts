@@ -8,6 +8,7 @@ import type {
     FontOptions,
     Formatter,
     FormatterParams,
+    PaddingOptions,
     Styler,
     TextWrap,
 } from 'ag-charts-types';
@@ -152,6 +153,7 @@ export interface ChartAxisLabel extends FontOptions {
     autoRotate?: boolean;
     autoRotateAngle?: number;
     avoidCollisions: boolean;
+    border: { enabled: boolean; stroke?: string };
     enabled: boolean;
     format?: string | Record<string, string>;
     formatter?: Formatter<AgAxisLabelFormatterParams>;

@@ -340,7 +340,7 @@ export class BubbleSeries extends CartesianSeries<
         const rawData = processedData.dataSources.get(this.id);
         if (rawData == null) return;
 
-        const padding = expandLabelPadding(label.padding);
+        const padding = expandLabelPadding(label);
         const handleDatum = (datumIndex: number, count: number, dilation: number) => {
             const datum = rawData[datumIndex];
             const xDatum = xDataValues[datumIndex];

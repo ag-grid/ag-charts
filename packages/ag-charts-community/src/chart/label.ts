@@ -125,7 +125,11 @@ export class Label<TParams = never, TDatum = any>
     }
 }
 
-export function expandLabelPadding(padding: Padding | undefined): Required<PaddingOptions> {
+type LabelBoxingMixin = { border: { enabled: boolean; stroke?: string }; fill?: string; padding?: Padding };
+export function expandLabelPadding(label: LabelBoxingMixin | undefined): Required<PaddingOptions> {
+    const hasBoxing = label && (label.fill != null || (label.border.enabled && label.border.stroke != null));
+    const padding = hasBoxing ? label?.padding : null;
+
     if (padding == null) {
         return { bottom: 0, left: 0, right: 0, top: 0 };
     } else if (typeof padding === 'number') {
@@ -249,7 +253,7 @@ export function timeIntervalMaxLabelSize(
     let maxWidth = 0;
     let maxHeight = 0;
     if (labelFormatter != null) {
-        const padding = expandLabelPadding(label.padding);
+        const padding = expandLabelPadding(label);
         const xPadding = padding.left + padding.right;
         const yPadding = padding.top + padding.bottom;
         let l0: Date;
@@ -271,7 +275,7 @@ export function timeIntervalMaxLabelSize(
     }
 
     if (primaryLabelFormatter != null && hierarchyRange != null) {
-        const padding = expandLabelPadding(primaryLabel?.padding);
+        const padding = expandLabelPadding(primaryLabel);
         const xPadding = padding.left + padding.right;
         const yPadding = padding.top + padding.bottom;
         for (const date of hierarchyRange) {
@@ -296,7 +300,7 @@ export function createLabelData(
     textMeasurer: TextMeasurer,
     label: ChartAxisLabel
 ) {
-    const padding = expandLabelPadding(label.padding);
+    const padding = expandLabelPadding(label);
     const xPadding = padding.left + padding.right;
     const yPadding = padding.top + padding.bottom;
     const labelData: PlacedLabelDatum[] = [];
