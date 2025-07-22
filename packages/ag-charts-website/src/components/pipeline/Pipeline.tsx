@@ -65,9 +65,9 @@ const COLUMN_DEFS = [
                 const latestFixVersion = fixVersionsArr.length - 1;
                 const fixVersion = fixVersionsArr[latestFixVersion];
                 if (fixVersion.toUpperCase() === 'NEXT') {
-                    return `Scheduled for ${fixVersion}`;
+                    return 'Scheduled';
                 } else {
-                    return gridToChartVersion(fixVersion);
+                    return `Scheduled for ${gridToChartVersion(fixVersion)}`;
                 }
             }
             return 'Backlog';
