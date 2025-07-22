@@ -58,6 +58,7 @@ const COLUMN_DEFS = [
     {
         field: 'status',
         width: 135,
+        minWidth: 180,
         valueGetter: (params) => {
             const fixVersionsArr = params.data.versions;
             const hasFixVersion = fixVersionsArr.length > 0;
