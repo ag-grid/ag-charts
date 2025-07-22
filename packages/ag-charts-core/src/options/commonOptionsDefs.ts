@@ -306,7 +306,7 @@ export const borderOptionsDef: OptionsDefs<BorderOptions> = {
 };
 
 export const labelBoxOptionsDef: OptionsDefs<LabelBoxOptions> = {
-    border: { ...strokeOptionsDef },
+    border: { ...borderOptionsDef },
     cornerRadius: number,
     padding,
     ...fillOptionsDef,

@@ -40,6 +40,7 @@ export interface TextBoxingProperties {
     fill?: ShapeColor;
     fillOpacity?: Opacity;
     border?: {
+        enabled?: boolean;
         stroke?: ShapeColor;
         strokeWidth?: PixelSize;
         strokeOpacity?: Opacity;
@@ -400,11 +401,12 @@ export class Text<D = any> extends Shape<D> {
 
     setBoxing(props: TextBoxingProperties) {
         if (props.fill != null || props.border?.stroke != null) {
+            const stroke = props.border?.enabled ? props.border?.stroke : undefined;
             this.boxing ??= new Rect();
             this.boxing.fill = props.fill;
             this.boxing.fillOpacity = props.fillOpacity ?? 1;
             this.boxing.cornerRadius = props.cornerRadius ?? 0;
-            this.boxing.stroke = props.border?.stroke;
+            this.boxing.stroke = stroke;
             this.boxing.strokeWidth = props.border?.strokeWidth ?? 0;
             this.boxing.strokeOpacity = props.border?.strokeOpacity ?? 1;
             this.boxPadding = props.padding ?? 0;

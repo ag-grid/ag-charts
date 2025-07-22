@@ -144,7 +144,7 @@ export interface StrokeOptions {
  */
 export interface LabelBoxOptions extends FillOptions {
     /** Stroke options for the box border. */
-    border?: StrokeOptions;
+    border?: BorderOptions;
     /** Apply rounded corners to the label box. */
     cornerRadius?: PixelSize;
     /** Distance between the label text and the border. */

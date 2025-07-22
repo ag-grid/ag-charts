@@ -248,6 +248,11 @@ const ITEM_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
 export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     padding: 8,
     cornerRadius: 4,
+    border: {
+        enabled: { $isUserOption: ['../border', true, false] },
+        strokeWidth: 1,
+        stroke: { $foregroundOpacity: 0.08 },
+    },
 };
 
 export function multiSeriesHighlightStyle(
