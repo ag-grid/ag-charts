@@ -31,7 +31,6 @@ import type {
 } from 'ag-charts-types';
 
 import {
-    bandTimeAxisIntervalOptionsDefs,
     cartesianAxisBandHighlightOptions,
     cartesianAxisCrosshairOptions,
     cartesianAxisLabelOptionsDefs,
@@ -41,6 +40,7 @@ import {
     cartesianTimeAxisParentLevel,
     commonAxisIntervalOptionsDefs,
     continuousAxisOptions,
+    discreteTimeAxisIntervalOptionsDefs,
     timeInterval,
     timeIntervalUnit,
 } from '../chart/axesOptionsDefs';
@@ -143,7 +143,7 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     bandHighlight: cartesianAxisBandHighlightOptions,
     min: and(or(number, date), lessThan('max')),
     max: and(or(number, date), greaterThan('min')),
-    interval: bandTimeAxisIntervalOptionsDefs,
+    interval: discreteTimeAxisIntervalOptionsDefs,
 };
 
 export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions> = {
