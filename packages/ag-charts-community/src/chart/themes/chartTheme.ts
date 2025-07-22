@@ -415,7 +415,7 @@ export class ChartTheme {
                         'horizontal',
                     ],
                 },
-                spacing: 30,
+                spacing: { $if: [{ $path: './position/floating' }, 0, 30] },
                 listeners: {},
                 toggleSeries: true,
                 item: {
