@@ -160,7 +160,7 @@ export interface AgAxisCategoryIntervalOptions extends AgAxisBaseIntervalOptions
     placement?: AgAxisIntervalPlacement;
 }
 
-export interface AgAxisBandTimeIntervalOptions
+export interface AgAxisDiscreteTimeIntervalOptions
     extends AgAxisContinuousIntervalOptions<AgTimeInterval | AgTimeIntervalUnit | number> {
     placement?: AgAxisIntervalPlacement;
 }
@@ -248,7 +248,7 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
     /** The size of each band. */
     unit?: AgTimeInterval | AgTimeIntervalUnit;
     /** Configuration for the axis ticks interval. */
-    interval?: AgAxisBandTimeIntervalOptions;
+    interval?: AgAxisDiscreteTimeIntervalOptions;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
     /** The padding on the outside i.e. left and right of the first and last category. In association with `paddingInner`, this value can be between 0 and 1. */
@@ -269,7 +269,7 @@ export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** Configuration for the axis ticks interval. */
-    interval?: AgAxisBandTimeIntervalOptions;
+    interval?: AgAxisDiscreteTimeIntervalOptions;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
     /** The padding on the outside i.e. left and right of the first and last category. In association with `paddingInner`, this value can be between 0 and 1. */

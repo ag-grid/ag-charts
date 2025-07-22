@@ -34,8 +34,8 @@ import {
     union,
 } from 'ag-charts-core';
 import type {
-    AgAxisBandTimeIntervalOptions,
     AgAxisBaseIntervalOptions,
+    AgAxisDiscreteTimeIntervalOptions,
     AgAxisGridStyle,
     AgBandHighlightOptions,
     AgBaseAxisLabelOptions,
@@ -326,7 +326,7 @@ export function continuousAxisOptions(
     };
 }
 
-export const bandTimeAxisIntervalOptionsDefs: OptionsDefs<AgAxisBandTimeIntervalOptions> = {
+export const discreteTimeAxisIntervalOptionsDefs: OptionsDefs<AgAxisDiscreteTimeIntervalOptions> = {
     step: or(positiveNumberNonZero, timeIntervalUnit, timeInterval),
     values: arrayOf(or(number, date)),
     minSpacing: and(positiveNumber, lessThan('maxSpacing')),
