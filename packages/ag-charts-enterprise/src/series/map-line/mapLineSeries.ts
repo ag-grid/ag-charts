@@ -354,6 +354,7 @@ export class MapLineSeries extends TopologySeries<
         this.updateSelections();
 
         this.contentGroup.visible = this.visible;
+        this.labelGroup.visible = this.visible;
 
         let highlightedDatum: MapLineNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
 
