@@ -8,7 +8,6 @@ import type {
     FontOptions,
     Formatter,
     FormatterParams,
-    PaddingOptions,
     Styler,
     TextWrap,
 } from 'ag-charts-types';
