@@ -1,5 +1,5 @@
 import type { LabelBoxOptions } from '../series/cartesian/commonOptions';
-import type { Formatter } from './callbackOptions';
+import type { Formatter, Styler } from './callbackOptions';
 import type {
     ContextDefault,
     CssColor,
@@ -178,6 +178,8 @@ export interface AgBaseAxisLabelOptions<TContext = ContextDefault> extends AgBas
     minSpacing?: PixelSize;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
     formatter?: Formatter<AgAxisLabelFormatterParams<TContext>>;
+    /** Function used to style axis labels. */
+    itemStyler?: Styler<AgAxisLabelStylerParams<TContext>, AgBaseAxisLabelStyleOptions>;
 }
 
 export interface AgNumericAxisFormattableLabelOptions<TContext = ContextDefault>
