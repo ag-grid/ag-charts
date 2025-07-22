@@ -70,7 +70,7 @@ this should be an array consisting of `number`, `Date`, or `String` values.
 
 ## Min / Max Spacing
 
-The `interval.minSpacing` and `interval.maxSpacing` options defining the approximate minimum and maximum pixel gaps that
+The `interval.minSpacing` and `interval.maxSpacing` options define the approximate minimum and maximum pixel gaps that
 should exist between values. You can provide one or both options as needed.
 
 An appropriate number of items will be generated to meet the specified `interval.minSpacing` and `interval.maxSpacing`
@@ -100,6 +100,18 @@ When `minSpacing` and `maxSpacing` are very close in value, the actual spacing m
 This is because the specified constraints may result in non-standard intervals rather than round intervals such as 1x, 2x, 5x, and 10x.
 To avoid this, set `maxSpacing` to be 2-3 times larger than `minSpacing`.
 {% /note %}
+
+## Placement
+
+For category axes, the `interval.placement` option allows you to specify the placement of ticks, grid lines and fills.
+
+{% chartExampleRunner title="Placement" name="axis-placement" type="generated" /%}
+
+In the example above:
+
+-   The `placement` defaults to `between`.
+-   When the `placement` is set to `on`, the ticks align with the category on the axis.
+-   When the `placement` is set to `between`, the ticks are spaced between each category.
 
 ## Next Up
 
