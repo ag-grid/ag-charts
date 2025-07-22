@@ -238,14 +238,9 @@ export class ChartTheme {
                     avoidCollisions: true,
                     cornerRadius: 4,
                     border: {
+                        enabled: { $isUserOption: ['../border', true, false] },
                         strokeWidth: 1,
-                        stroke: {
-                            $if: [
-                                { $isUserOption: ['../border', true, false] },
-                                { $foregroundOpacity: 0.08 },
-                                undefined,
-                            ],
-                        },
+                        stroke: { $foregroundOpacity: 0.08 },
                     },
                     padding: {
                         $if: [
