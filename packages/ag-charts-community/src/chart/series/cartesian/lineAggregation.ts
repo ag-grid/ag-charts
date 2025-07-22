@@ -1,4 +1,4 @@
-import type { Scale } from '../../../scale/scale';
+import type { ScaleType } from '../../../scale/scale';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
@@ -46,7 +46,7 @@ function aggregationContainsIndex(
 }
 
 export function aggregateLineData(
-    scale: Scale<unknown, number>,
+    scale: ScaleType,
     xValues: any[],
     yValues: any[],
     domain: any[]

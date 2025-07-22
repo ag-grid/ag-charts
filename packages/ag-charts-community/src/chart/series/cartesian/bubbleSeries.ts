@@ -247,7 +247,17 @@ export class BubbleSeries extends CartesianSeries<
         const yDomain = dataModel.getDomain(this, `yValue`, 'value', processedData);
         const sizeDomain = sizeKey ? sizeScale.domain : [0, 0];
 
-        return aggregateBubbleData(xScale, yScale, xValues, yValues, sizeValues, xDomain, yDomain, sizeDomain);
+        // Not used in mini chart - no memoization needed
+        return aggregateBubbleData(
+            xScale.type,
+            yScale.type,
+            xValues,
+            yValues,
+            sizeValues,
+            xDomain,
+            yDomain,
+            sizeDomain
+        );
     }
 
     private aggregationOptions(

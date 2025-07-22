@@ -19,6 +19,7 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/extent';
+import { simpleMemorize2 } from '../../../util/memo';
 import { mergeDefaults } from '../../../util/object';
 import { isContinuous } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
@@ -81,6 +82,8 @@ type AreaAnimationData = CartesianAnimationData<
     LabelSelectionDatum,
     AreaSeriesNodeDataContext
 >;
+
+const memoizedAggregateLineData = simpleMemorize2(aggregateLineData);
 
 export class AreaSeries extends CartesianSeries<
     Marker,
@@ -349,7 +352,7 @@ export class AreaSeries extends CartesianSeries<
         const yValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
         const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
 
-        return aggregateLineData(scale, xValues, yValues, domain);
+        return memoizedAggregateLineData(scale.type, xValues, yValues, domain);
     }
 
     override createNodeData() {

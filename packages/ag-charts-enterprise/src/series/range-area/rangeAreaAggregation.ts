@@ -53,8 +53,8 @@ function aggregationContainsBottomIndex(
     return datumIndex === indexData[aggIndex + AGGREGATION_INDEX_Y_MIN];
 }
 
-export function aggregateData(
-    scale: _ModuleSupport.Scale<unknown, number>,
+export function aggregateRangeAreaData(
+    scale: _ModuleSupport.ScaleType,
     xValues: any[],
     highValues: any[],
     lowValues: any[],

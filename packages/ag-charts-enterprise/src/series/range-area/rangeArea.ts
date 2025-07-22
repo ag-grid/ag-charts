@@ -6,7 +6,7 @@ import {
 } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
 
-import { type RangeAreaSeriesDataAggregationFilter, aggregateData } from './rangeAreaAggregation';
+import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { type RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
 import { type RangeAreaContext, type RangeAreaLabelDatum, prepareRangeAreaPathAnimation } from './rangeAreaUtil';
 
@@ -46,7 +46,10 @@ const {
     getShapeFill,
     applyShapeStyle,
     processedDataIsAnimatable,
+    simpleMemorize2,
 } = _ModuleSupport;
+
+const memoizedAggregateRangeAreaData = simpleMemorize2(aggregateRangeAreaData);
 
 class RangeAreaSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -154,7 +157,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return aggregateData(xAxis.scale, xValues, yHighValues, yLowValues, domain);
+        return memoizedAggregateRangeAreaData(xAxis.scale.type, xValues, yHighValues, yLowValues, domain);
     }
 
     override xCoordinateRange(xValue: any): [number, number] {

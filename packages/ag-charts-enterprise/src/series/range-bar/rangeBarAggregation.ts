@@ -11,7 +11,7 @@ export interface RangeBarSeriesDataAggregationFilter {
 }
 
 export function aggregateRangeBarData(
-    scale: _ModuleSupport.Scale<unknown, number>,
+    scale: _ModuleSupport.ScaleType,
     xValues: any[],
     highValues: any[],
     lowValues: any[],

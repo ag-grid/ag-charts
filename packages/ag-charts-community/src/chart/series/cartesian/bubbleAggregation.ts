@@ -1,6 +1,6 @@
 import { clamp } from 'ag-charts-core';
 
-import type { Scale } from '../../../scale/scale';
+import type { ScaleType } from '../../../scale/scale';
 import { aggregationDomain, aggregationXRatioForXValue } from '../aggregation';
 
 const SIZE_QUANTIZATION = 3;
@@ -167,8 +167,8 @@ function aggregateQuad(
 }
 
 export function aggregateBubbleData(
-    xScale: Scale<unknown, number>,
-    yScale: Scale<unknown, number>,
+    xScale: ScaleType,
+    yScale: ScaleType,
     xValues: any[],
     yValues: any[],
     sizeValues: any[] | undefined,

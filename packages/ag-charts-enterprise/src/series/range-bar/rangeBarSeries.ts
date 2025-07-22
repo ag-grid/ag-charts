@@ -44,7 +44,10 @@ const {
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
     mergeDefaults,
+    simpleMemorize2,
 } = _ModuleSupport;
+
+const memoizedAggregateRangeBarData = simpleMemorize2(aggregateRangeBarData);
 
 type Bounds = {
     x: number;
@@ -194,7 +197,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return aggregateRangeBarData(xAxis.scale, xValues, yHighValues, yLowValues, domain);
+        return memoizedAggregateRangeBarData(xAxis.scale.type, xValues, yHighValues, yLowValues, domain);
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {

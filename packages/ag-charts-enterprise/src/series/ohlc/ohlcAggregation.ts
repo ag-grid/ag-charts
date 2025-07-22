@@ -26,7 +26,7 @@ export interface OhlcSeriesDataAggregationFilter {
 }
 
 export function aggregateOhlcData(
-    scale: _ModuleSupport.Scale<unknown, number>,
+    scale: _ModuleSupport.ScaleType,
     xValues: any[],
     highValues: any[],
     lowValues: any[],
