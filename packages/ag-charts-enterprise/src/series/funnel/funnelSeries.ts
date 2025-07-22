@@ -151,13 +151,16 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         );
 
         if (itemStyler != null) {
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         highlighted: isHighlight,
+                        highlightState,
                         stageKey,
                         valueKey,
                         ...style,

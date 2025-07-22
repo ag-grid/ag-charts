@@ -307,7 +307,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private updateNode(node: ErrorBarNode, datum: ErrorBarNodeDatum, _index: number) {
         node.datum = datum;
-        node.update(this.getDefaultStyle(), this.properties, this.cartesianSeries, false);
+        node.update(this.getDefaultStyle(), this.properties, this.cartesianSeries, false, 'none');
         node.updateBBoxes();
     }
 
@@ -381,7 +381,15 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         // data points with error bars).
         for (let i = 0; i < nodeData.length; i++) {
             if (highlightChange === nodeData[i]) {
-                this.selection.at(i)?.update(style, this.properties, this.cartesianSeries, highlighted);
+                this.selection
+                    .at(i)
+                    ?.update(
+                        style,
+                        this.properties,
+                        this.cartesianSeries,
+                        highlighted,
+                        highlighted ? 'item-highlighted' : 'item-unhighlighted'
+                    );
                 break;
             }
         }

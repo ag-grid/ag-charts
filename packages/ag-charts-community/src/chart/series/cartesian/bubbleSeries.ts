@@ -525,13 +525,24 @@ export class BubbleSeries extends CartesianSeries<
         this.updateLabelNodes({ labelSelection: this.labelSelection });
     }
 
-    protected updateLabelNodes(opts: { labelSelection: Selection<Text, BubbleScatterNodeDatum> }) {
+    protected updateLabelNodes(opts: {
+        labelSelection: Selection<Text, BubbleScatterNodeDatum>;
+        isHighlight?: boolean;
+    }) {
+        const { isHighlight = false } = opts;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+
         opts.labelSelection.each((text, datum) => {
+            const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
+            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datum.datumIndex);
+
             const style = getLabelStyles<AgBubbleSeriesLabelFormatterParams>(
                 this,
                 datum,
                 this.properties,
-                this.properties.label
+                this.properties.label,
+                highlighted,
+                highlightState
             );
             text.text = datum.label.text;
             text.fill = style.color;
@@ -543,7 +554,7 @@ export class BubbleSeries extends CartesianSeries<
             text.fontFamily = style.fontFamily;
             text.textAlign = 'left';
             text.textBaseline = 'top';
-            text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
+            text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
             text.setBoxing(style);
         });
     }

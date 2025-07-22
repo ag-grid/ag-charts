@@ -1,0 +1,142 @@
+.main-container {
+    display: flex;
+    gap: 20px;
+    height: 100%;
+}
+
+.left-panel {
+    flex: 1 1 70%;
+    min-width: 0;
+}
+
+.right-panel {
+    flex: 1 1 30%;
+    min-width: 300px;
+    overflow-y: auto;
+    max-height: 100vh;
+}
+
+#myChart {
+    width: 100%;
+    height: 500px;
+    margin-top: 20px;
+}
+
+.example-controls {
+    margin-bottom: 10px;
+}
+
+.controls-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.controls-row button {
+    flex: 0 1 auto;
+}
+
+.status-section {
+    margin: 0 0 20px 0;
+    padding: 15px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.status-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+    font-family: inherit;
+    font-size: 16px;
+}
+
+.status-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.status-item {
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    white-space: nowrap;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.status-legend {
+    margin: 0 0 20px 0;
+    padding: 15px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.status-legend h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+    font-family: inherit;
+    font-size: 16px;
+}
+
+.legend-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-family: inherit;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.status-matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 12px;
+}
+
+.status-matrix-table th,
+.status-matrix-table td {
+    border: 1px solid #ddd;
+    padding: 6px;
+    text-align: center;
+}
+
+.status-matrix-table th {
+    background: #e0e0e0;
+    font-weight: bold;
+    font-size: 11px;
+    font-family: inherit;
+}
+
+.status-matrix-table .state-name {
+    text-align: left;
+    font-weight: 500;
+    background: #f0f0f0;
+    font-size: 11px;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.matrix-cell {
+    width: 24px;
+    height: 24px;
+}

@@ -862,11 +862,24 @@ export class AreaSeries extends CartesianSeries<
         return labelSelection.update(labelData);
     }
 
-    protected updateLabelNodes(opts: { labelSelection: Selection<Text, LabelSelectionDatum> }) {
+    protected updateLabelNodes(opts: { labelSelection: Selection<Text, LabelSelectionDatum>; isHighlight?: boolean }) {
+        const { isHighlight = false } = opts;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+
         opts.labelSelection.each((text, datum) => {
             const { x, y, labelText } = datum;
 
-            const style = getLabelStyles(this, datum, this.properties, this.properties.label);
+            const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
+            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datum.datumIndex);
+
+            const style = getLabelStyles(
+                this,
+                datum,
+                this.properties,
+                this.properties.label,
+                highlighted,
+                highlightState
+            );
             const { enabled: labelEnabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (labelText && labelEnabled && this.visible) {
                 text.fontStyle = fontStyle;
@@ -879,7 +892,7 @@ export class AreaSeries extends CartesianSeries<
                 text.x = x;
                 text.y = y - 10;
                 text.fill = color;
-                text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
+                text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
                 text.visible = true;
                 text.setBoxing(style);
             } else {

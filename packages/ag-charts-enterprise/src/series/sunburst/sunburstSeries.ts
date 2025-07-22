@@ -155,14 +155,17 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
         if (itemStyler != null && depth != null && datumIndex != null) {
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex.join(':'), isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, rootIndex);
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         depth,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                     });
                 }

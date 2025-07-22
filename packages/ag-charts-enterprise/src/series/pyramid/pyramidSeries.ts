@@ -484,15 +484,18 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
         if (itemStyler != null && datumIndex != null) {
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         stageKey,
                         valueKey,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                     });
                 }

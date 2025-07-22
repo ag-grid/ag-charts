@@ -53,6 +53,67 @@ In this configuration:
 
 Please use the [Options Reference](/options) to learn more about Stylers, the inputs they receive and the attributes that can be customised.
 
+## Highlight States
+
+The `itemStyler` callback receives a `highlightState` parameter that provides more granular control over styling based on the current highlight state of the item.
+
+{% chartExampleRunner title="Item Styler Highlight States" name="item-styler-highlight-states" type="generated" /%}
+
+```js
+series: [
+    {
+        type: 'bar',
+        xKey: 'category',
+        yKey: 'value',
+        itemStyler: (params) => {
+            // The new highlightState parameter provides more granular control
+            switch (params.highlightState) {
+                case 'item-highlighted':
+                    // This specific bar is highlighted
+                    return {
+                        fill: '#ff6b6b',
+                        fillOpacity: 1,
+                        stroke: '#c92a2a',
+                        strokeWidth: 2,
+                    };
+                case 'item-unhighlighted':
+                    // Another bar is highlighted, this one is not
+                    return {
+                        fillOpacity: 0.3,
+                        strokeOpacity: 0.3,
+                    };
+                case 'series-highlighted':
+                    // The series is highlighted (e.g., via legend hover)
+                    return {
+                        fillOpacity: 0.8,
+                        strokeWidth: 2,
+                    };
+                case 'series-unhighlighted':
+                    // Another series is highlighted
+                    return {
+                        fillOpacity: 0.2,
+                        strokeOpacity: 0.2,
+                    };
+                case 'none':
+                default:
+                    // No highlighting active
+                    return undefined;
+            }
+        },
+    },
+];
+```
+
+The `highlightState` parameter can have the following values:
+
+-   `'item-highlighted'`: The specific item is highlighted
+-   `'item-unhighlighted'`: Another item is highlighted, but not this one
+-   `'series-highlighted'`: The series containing this item is highlighted
+-   `'series-unhighlighted'`: Another series is highlighted, but not this one
+-   `'none'`: No highlighting is currently active
+
+This parameter works alongside the existing `highlighted` boolean for backward compatibility, providing more detailed information about the highlight context.
+
 <!--
 ## Series Stylers
 

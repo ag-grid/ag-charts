@@ -597,11 +597,18 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         );
 
         if (itemStyler) {
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+            const highlightState = this.getHighlightStateString(
+                activeHighlight,
+                scope === 'highlight',
+                nodeDatum.datumIndex
+            );
             const formatStyles = this.cachedDatumCallback(createDatumId(nodeDatum.datumIndex, scope), () =>
                 this.callWithContext(itemStyler, {
                     datum,
                     seriesId,
                     highlighted: scope === 'highlight',
+                    highlightState,
                     ...styles,
                     xKey,
                     minKey,

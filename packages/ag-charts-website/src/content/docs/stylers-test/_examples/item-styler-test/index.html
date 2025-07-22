@@ -1,0 +1,74 @@
+<div class="main-container">
+    <div class="left-panel">
+        <div class="example-controls">
+            <div class="controls-row">
+                <button onclick="showBarLineArea()">Bar + Line + Area</button>
+                <button onclick="showScatterBubble()">Scatter + Bubble</button>
+                <button onclick="showPieDonut()">Pie + Donut</button>
+                <button onclick="showTreemap()">Treemap</button>
+                <button onclick="showOtherSeries()">Range Series</button>
+            </div>
+            <div class="controls-row">
+                <button onclick="showRadarLine()">Radar Line</button>
+                <button onclick="showRadarArea()">Radar Area</button>
+                <button onclick="showRadialBar()">Radial Bar</button>
+                <button onclick="showRadialColumn()">Radial Column</button>
+                <button onclick="showNightingale()">Nightingale</button>
+            </div>
+            <div class="controls-row">
+                <button onclick="showHistogram()">Histogram</button>
+                <button onclick="showBoxPlot()">Box Plot</button>
+                <button onclick="showHeatmap()">Heatmap</button>
+                <button onclick="showWaterfall()">Waterfall</button>
+                <button onclick="showFunnel()">Funnel</button>
+                <button onclick="showSankey()">Sankey</button>
+            </div>
+            <div class="controls-row">
+                <button onclick="showOhlc()">OHLC</button>
+                <button onclick="showCandlestick()">Candlestick</button>
+                <button onclick="showPyramid()">Pyramid</button>
+                <button onclick="showChord()">Chord</button>
+                <button onclick="showSunburst()">Sunburst</button>
+                <button onclick="showMap()">Map</button>
+            </div>
+            <div class="controls-row">
+                <button onclick="clearConsole()">Clear Console</button>
+                <button onclick="resetStatus()">Reset Status</button>
+            </div>
+        </div>
+
+        <div id="myChart"></div>
+    </div>
+
+    <div class="right-panel">
+        <div id="statusIndicators" class="status-section">
+            <!-- Status indicators will be populated here -->
+        </div>
+
+        <div class="status-legend">
+            <h3>Status Legend</h3>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #999"></div>
+                    <span>Not used</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f44336"></div>
+                    <span>Invalid</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffd700"></div>
+                    <span>Partial</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4caf50"></div>
+                    <span>Valid</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="statusMatrix" class="status-section">
+            <!-- Matrix will be populated here -->
+        </div>
+    </div>
+</div>

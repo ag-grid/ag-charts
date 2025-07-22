@@ -19,6 +19,7 @@ import type {
     FormatterParams,
     FormatterPropertyType,
     ISeriesMarker,
+    HighlightState as PublicHighlightState,
 } from 'ag-charts-types';
 
 import type {
@@ -601,12 +602,35 @@ export abstract class Series<
                 return HighlightState.Series;
             }
             if (itemHighlighted) {
-                return HighlightState.Series; // TODO: should be HighlightState.Item but we do that in the highlight layer
+                return HighlightState.Item;
             }
             return HighlightState.OtherItem;
         }
 
         return HighlightState.OtherSeries;
+    }
+
+    protected getHighlightStateString(
+        datum: HighlightNodeDatum | undefined,
+        isHighlight?: boolean,
+        datumIndex?: TDatumIndex,
+        legendItemValues?: string[]
+    ): PublicHighlightState {
+        const state = this.getHighlightState(datum, isHighlight, datumIndex, legendItemValues);
+
+        switch (state) {
+            case HighlightState.Item:
+                return 'item-highlighted';
+            case HighlightState.OtherItem:
+                return 'item-unhighlighted';
+            case HighlightState.Series:
+                return 'series-highlighted';
+            case HighlightState.OtherSeries:
+                return 'series-unhighlighted';
+            case HighlightState.None:
+            default:
+                return 'none';
+        }
     }
 
     protected onChangeHighlight(event: HighlightChangeEvent) {
@@ -626,7 +650,11 @@ export abstract class Series<
 
         const { highlightedSeries, unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
 
+        // Check if there are any itemStylers that might need to react to highlight changes
+        const hasItemStylers = this.hasItemStylers();
+
         this.hasChangesOnHighlight =
+            hasItemStylers ||
             !isEmptyObject(highlightedSeries) ||
             !isEmptyObject(unhighlightedItem) ||
             !isEmptyObject(unhighlightedSeries);
@@ -653,6 +681,28 @@ export abstract class Series<
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
         return this.properties.highlight.getStyle(highlightState);
+    }
+
+    protected hasItemStylers(): boolean {
+        const props = this.properties as any;
+
+        return (
+            // Check if the series itself has an itemStyler
+            props.itemStyler != null ||
+            // Check if the series has a marker with an itemStyler
+            props.marker?.itemStyler != null ||
+            // Check for label itemStylers
+            props.label?.itemStyler != null ||
+            // Check for pie/donut specific label itemStylers
+            props.calloutLabel?.itemStyler != null ||
+            props.sectorLabel?.itemStyler != null ||
+            // Check for errorBar itemStyler
+            props.errorBar?.itemStyler != null ||
+            // Check for tree map specific label itemStylers
+            props.tile?.label?.itemStyler != null ||
+            props.tile?.secondaryLabel?.itemStyler != null ||
+            props.group?.label?.itemStyler != null
+        );
     }
 
     protected getModuleTooltipParams() {
@@ -1000,11 +1050,15 @@ export abstract class Series<
         let markerStyle = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
         if (itemStyler && params) {
+            const highlight = this.ctx.highlightManager?.getActiveHighlight();
+            const highlightState = this.getHighlightStateString(highlight, isHighlight);
+
             const style = this.cachedCallWithContext(itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
                 ...params,
                 highlighted: isHighlight,
+                highlightState,
                 datum,
             });
             markerStyle = getShapeStyle(

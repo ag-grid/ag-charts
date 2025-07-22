@@ -490,7 +490,7 @@ export abstract class CartesianSeries<
             this.updateDatumNodes({ datumSelection, isHighlight: false });
             if (!this.usesPlacedLabels) {
                 this.labelGroup.batchedUpdate(() => {
-                    this.updateLabelNodes({ labelSelection });
+                    this.updateLabelNodes({ labelSelection, isHighlight: false });
                 });
             }
         }
@@ -1086,7 +1086,7 @@ export abstract class CartesianSeries<
         return opts.labelSelection;
     }
 
-    protected abstract updateLabelNodes(opts: { labelSelection: Selection<Text, TLabel> }): void;
+    protected abstract updateLabelNodes(opts: { labelSelection: Selection<Text, TLabel>; isHighlight?: boolean }): void;
 
     protected abstract isLabelEnabled(): boolean;
 

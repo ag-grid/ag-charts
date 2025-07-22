@@ -1,0 +1,1311 @@
+// @ag-skip-fws
+import {
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgCharts,
+    AgHierarchyChartOptions,
+    AgPolarChartOptions,
+} from 'ag-charts-enterprise';
+
+import {
+    getBoxPlotData,
+    getCandlestickData,
+    getCartesianData,
+    getChordData,
+    getFunnelData,
+    getHeatmapData,
+    getMapData,
+    getMapLineTopology,
+    getMapMarkerTopology,
+    getMapTopology,
+    getOhlcData,
+    getPieData,
+    getPyramidData,
+    getSankeyData,
+    getSunburstData,
+    getTreemapData,
+    getWaterfallData,
+} from './data';
+
+// Track itemStyler usage and highlightState validity
+const itemStylerStatus: Record<
+    string,
+    {
+        used: boolean;
+        hasValidHighlightState: boolean;
+        hasInvalidHighlightState: boolean;
+        unseenStates: Set<string>;
+        chartType?: string;
+    }
+> = {};
+
+// Track current chart type
+let currentChartType: string = 'initial';
+
+// Load data from data.ts
+const cartesianData = getCartesianData();
+const waterfallData = getWaterfallData();
+const pieData = getPieData();
+const treemapData = getTreemapData();
+const boxPlotData = getBoxPlotData();
+const heatmapData = getHeatmapData();
+const funnelData = getFunnelData();
+const sankeyData = getSankeyData();
+const ohlcData = getOhlcData();
+const candlestickData = getCandlestickData();
+const pyramidData = getPyramidData();
+const chordData = getChordData();
+const sunburstData = getSunburstData();
+const mapData = getMapData();
+const mapTopology = getMapTopology();
+const mapLineTopology = getMapLineTopology();
+const mapMarkerTopology = getMapMarkerTopology();
+
+const validHighlightStates = [
+    'item-highlighted',
+    'item-unhighlighted',
+    'series-highlighted',
+    'series-unhighlighted',
+    'none',
+];
+
+// Helper function to create a logging itemStyler
+function createItemStyler(type: string) {
+    return (params: any) => {
+        // Initialize or update status for this styler
+        if (!itemStylerStatus[type]) {
+            itemStylerStatus[type] = {
+                used: false,
+                hasValidHighlightState: false,
+                hasInvalidHighlightState: false,
+                unseenStates: new Set<string>([
+                    'item-highlighted',
+                    'item-unhighlighted',
+                    'series-highlighted',
+                    'series-unhighlighted',
+                    'none',
+                ]),
+                chartType: currentChartType,
+            };
+        }
+
+        const status = itemStylerStatus[type];
+        status.used = true;
+        status.chartType = currentChartType;
+
+        // Check highlightState validity
+        const hasValidHighlightState = validHighlightStates.includes(params.highlightState);
+
+        if (hasValidHighlightState) {
+            status.hasValidHighlightState = true;
+            status.unseenStates.delete(params.highlightState);
+        } else {
+            status.hasInvalidHighlightState = true;
+        }
+
+        console.log(`[${type} itemStyler]`, {
+            highlightState: params.highlightState,
+            highlighted: params.highlighted,
+            seriesId: params.seriesId,
+            datum: params.datum,
+            ...params,
+        });
+
+        updateStatusIndicators();
+        return undefined;
+    };
+}
+
+const barLineAreaOptions: AgCartesianChartOptions = {
+    series: [
+        {
+            type: 'bar',
+            xKey: 'category',
+            yKey: 'value1',
+            yName: 'Bar Series',
+            itemStyler: createItemStyler('bar'),
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('bar-label'),
+            },
+            errorBar: {
+                yLowerKey: 'value1',
+                yUpperKey: 'value2',
+                itemStyler: createItemStyler('bar-errorBar'),
+            },
+        },
+        {
+            type: 'line',
+            xKey: 'category',
+            yKey: 'value2',
+            yName: 'Line Series',
+            // Note: Line series does not support itemStyler for the line itself
+            marker: {
+                enabled: true,
+                itemStyler: createItemStyler('line-marker'),
+            },
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('line-label'),
+            },
+            errorBar: {
+                yLowerKey: 'value1',
+                yUpperKey: 'value2',
+                itemStyler: createItemStyler('line-errorBar'),
+            },
+        },
+        {
+            type: 'area',
+            xKey: 'category',
+            yKey: 'value1',
+            yName: 'Area Series',
+            visible: false,
+            // Note: Area series does not support itemStyler for the area itself
+            marker: {
+                enabled: true,
+                itemStyler: createItemStyler('area-marker'),
+            },
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('area-label'),
+            },
+        },
+    ],
+    axes: [
+        { type: 'category', position: 'bottom' },
+        { type: 'number', position: 'left' },
+    ],
+};
+
+const scatterBubbleOptions: AgCartesianChartOptions = {
+    series: [
+        {
+            type: 'scatter',
+            xKey: 'value1',
+            yKey: 'value2',
+            yName: 'Scatter Series 1',
+            itemStyler: createItemStyler('scatter1'),
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('scatter1-label'),
+            },
+            errorBar: {
+                xLowerKey: 'value1',
+                xUpperKey: 'size',
+                yLowerKey: 'value2',
+                yUpperKey: 'size',
+                itemStyler: createItemStyler('scatter1-errorBar'),
+            },
+        },
+        {
+            type: 'scatter',
+            xKey: 'value2',
+            yKey: 'value1',
+            yName: 'Scatter Series 2',
+            itemStyler: createItemStyler('scatter2'),
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('scatter2-label'),
+            },
+        },
+        {
+            type: 'bubble',
+            xKey: 'value1',
+            yKey: 'value2',
+            sizeKey: 'size',
+            yName: 'Bubble Series',
+            itemStyler: createItemStyler('bubble'),
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('bubble-label'),
+            },
+        },
+    ],
+    axes: [
+        { type: 'number', position: 'bottom' },
+        { type: 'number', position: 'left' },
+    ],
+};
+
+const pieDonutOptions: AgPolarChartOptions = {
+    series: [
+        {
+            type: 'pie',
+            angleKey: 'value',
+            calloutLabelKey: 'label',
+            sectorLabelKey: 'value',
+            legendItemKey: 'label',
+            outerRadiusRatio: 0.5,
+            itemStyler: createItemStyler('pie'),
+            calloutLabel: {
+                enabled: true,
+                itemStyler: createItemStyler('pie-calloutLabel'),
+            },
+            sectorLabel: {
+                enabled: true,
+                itemStyler: createItemStyler('pie-sectorLabel'),
+            },
+        },
+        {
+            type: 'donut',
+            angleKey: 'value2',
+            calloutLabelKey: 'label',
+            sectorLabelKey: 'value2',
+            legendItemKey: 'label',
+            itemStyler: createItemStyler('donut'),
+            calloutLabel: {
+                enabled: true,
+                itemStyler: createItemStyler('donut-calloutLabel'),
+            },
+            sectorLabel: {
+                enabled: true,
+                itemStyler: createItemStyler('donut-sectorLabel'),
+            },
+        },
+    ],
+};
+
+// Radar Line options
+const radarLineOptions: AgPolarChartOptions = {
+    series: [
+        {
+            type: 'radar-line',
+            angleKey: 'label',
+            radiusKey: 'value',
+            radiusName: 'Radar Line 1',
+            marker: {
+                enabled: true,
+                itemStyler: createItemStyler('radarLine1-marker'),
+            },
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('radarLine1-label'),
+            },
+        },
+        {
+            type: 'radar-line',
+            angleKey: 'label',
+            radiusKey: 'value2',
+            radiusName: 'Radar Line 2',
+            marker: {
+                enabled: true,
+                itemStyler: createItemStyler('radarLine2-marker'),
+            },
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('radarLine2-label'),
+            },
+        },
+    ],
+};
+
+// Radar Area options
+const radarAreaOptions: AgPolarChartOptions = {
+    series: [
+        {
+            type: 'radar-area',
+            angleKey: 'label',
+            radiusKey: 'value',
+            radiusName: 'Radar Area 1',
+            marker: {
+                enabled: true,
+                itemStyler: createItemStyler('radarArea1-marker'),
+            },
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('radarArea1-label'),
+            },
+        },
+        {
+            type: 'radar-area',
+            angleKey: 'label',
+            radiusKey: 'value2',
+            radiusName: 'Radar Area 2',
+            marker: {
+                enabled: true,
+                itemStyler: createItemStyler('radarArea2-marker'),
+            },
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('radarArea2-label'),
+            },
+        },
+    ],
+};
+
+// Radial Bar options
+const radialBarOptions: AgPolarChartOptions = {
+    series: [
+        {
+            type: 'radial-bar',
+            radiusKey: 'label',
+            angleKey: 'value',
+            angleName: 'Radial Bar 1',
+            itemStyler: createItemStyler('radialBar1'),
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('radialBar1-label'),
+            },
+        },
+        {
+            type: 'radial-bar',
+            radiusKey: 'label',
+            angleKey: 'value2',
+            angleName: 'Radial Bar 2',
+            itemStyler: createItemStyler('radialBar2'),
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('radialBar2-label'),
+            },
+        },
+    ],
+};
+
+// Radial Column options
+const radialColumnOptions: AgPolarChartOptions = {
+    series: [
+        {
+            type: 'radial-column',
+            angleKey: 'label',
+            radiusKey: 'value',
+            radiusName: 'Radial Column 1',
+            itemStyler: createItemStyler('radialColumn1'),
+            label: {
+                enabled: true,
+                formatter: ({ value }) => `${value}`,
+                itemStyler: createItemStyler('radialColumn1-label'),
+            },
+        },
+        {
+            type: 'radial-column',
+            angleKey: 'label',
+            radiusKey: 'value2',
+            radiusName: 'Radial Column 2',
+            itemStyler: createItemStyler('radialColumn2'),
+            label: {
+                enabled: true,
+                formatter: ({ value }) => `${value}`,
+                itemStyler: createItemStyler('radialColumn2-label'),
+            },
+        },
+    ],
+};
+
+// Nightingale options
+const nightingaleOptions: AgPolarChartOptions = {
+    series: [
+        {
+            type: 'nightingale',
+            angleKey: 'label',
+            radiusKey: 'value',
+            radiusName: 'Nightingale 1',
+            itemStyler: createItemStyler('nightingale1'),
+            label: {
+                enabled: true,
+                formatter: ({ value }) => `${value}`,
+                itemStyler: createItemStyler('nightingale1-label'),
+            },
+        },
+        {
+            type: 'nightingale',
+            angleKey: 'label',
+            radiusKey: 'value2',
+            radiusName: 'Nightingale 2',
+            itemStyler: createItemStyler('nightingale2'),
+            label: {
+                enabled: true,
+                formatter: ({ value }) => `${value}`,
+                itemStyler: createItemStyler('nightingale2-label'),
+            },
+        },
+    ],
+};
+
+const treemapOptions: AgHierarchyChartOptions = {
+    series: [
+        {
+            type: 'treemap',
+            labelKey: 'name',
+            sizeKey: 'size',
+            itemStyler: createItemStyler('treemap'),
+            tile: {
+                label: {
+                    enabled: true,
+                    itemStyler: createItemStyler('treemap-tile-label'),
+                },
+                secondaryLabel: {
+                    enabled: true,
+                    itemStyler: createItemStyler('treemap-tile-secondaryLabel'),
+                },
+            },
+            group: {
+                label: {
+                    enabled: true,
+                    itemStyler: createItemStyler('treemap-group-label'),
+                },
+            },
+        },
+    ],
+};
+
+const histogramOptions: AgCartesianChartOptions = {
+    series: [
+        {
+            type: 'histogram',
+            xKey: 'value1',
+            yName: 'Histogram',
+            // Note: Histogram series does not support itemStyler
+        },
+    ],
+    axes: [
+        { type: 'number', position: 'bottom' },
+        { type: 'number', position: 'left' },
+    ],
+};
+
+const boxPlotOptions: AgCartesianChartOptions = {
+    series: [
+        {
+            type: 'box-plot',
+            xKey: 'category',
+            minKey: 'min',
+            q1Key: 'q1',
+            medianKey: 'median',
+            q3Key: 'q3',
+            maxKey: 'max',
+            yName: 'Box Plot 1',
+            itemStyler: createItemStyler('boxPlot1'),
+        },
+        {
+            type: 'box-plot',
+            xKey: 'category',
+            minKey: 'min2',
+            q1Key: 'q1_2',
+            medianKey: 'median2',
+            q3Key: 'q3_2',
+            maxKey: 'max2',
+            yName: 'Box Plot 2',
+            itemStyler: createItemStyler('boxPlot2'),
+        },
+    ],
+    axes: [
+        { type: 'category', position: 'bottom' },
+        { type: 'number', position: 'left' },
+    ],
+};
+
+const heatmapOptions: AgCartesianChartOptions = {
+    series: [
+        {
+            type: 'heatmap',
+            xKey: 'x',
+            yKey: 'y',
+            colorKey: 'value',
+            yName: 'Heatmap 1',
+            itemStyler: createItemStyler('heatmap1'),
+        },
+        {
+            type: 'heatmap',
+            xKey: 'x',
+            yKey: 'y',
+            colorKey: 'value2',
+            yName: 'Heatmap 2',
+            itemStyler: createItemStyler('heatmap2'),
+        },
+    ],
+    axes: [
+        { type: 'category', position: 'bottom' },
+        { type: 'category', position: 'left' },
+    ],
+};
+
+const rangeSeriesOptions: AgCartesianChartOptions = {
+    series: [
+        {
+            type: 'range-bar',
+            xKey: 'category',
+            yLowKey: 'value1',
+            yHighKey: 'value2',
+            yName: 'Range Bar 1',
+            itemStyler: createItemStyler('rangeBar1'),
+        },
+        {
+            type: 'range-bar',
+            xKey: 'category',
+            yLowKey: 'min',
+            yHighKey: 'max',
+            yName: 'Range Bar 2',
+            itemStyler: createItemStyler('rangeBar2'),
+        },
+        {
+            type: 'range-area',
+            xKey: 'category',
+            yLowKey: 'value1',
+            yHighKey: 'value2',
+            yName: 'Range Area 1',
+            marker: {
+                enabled: true,
+                itemStyler: createItemStyler('rangeArea1-marker'),
+            },
+        },
+        {
+            type: 'range-area',
+            xKey: 'category',
+            yLowKey: 'min',
+            yHighKey: 'max',
+            yName: 'Range Area 2',
+            marker: {
+                enabled: true,
+                itemStyler: createItemStyler('rangeArea2-marker'),
+            },
+        },
+    ],
+    axes: [
+        { type: 'category', position: 'bottom' },
+        { type: 'number', position: 'left' },
+    ],
+};
+
+const waterfallOptions: AgCartesianChartOptions = {
+    series: [
+        {
+            type: 'waterfall',
+            xKey: 'category',
+            yKey: 'value',
+            yName: 'Waterfall 1',
+            totals: [
+                {
+                    totalType: 'total',
+                    index: 3,
+                    axisLabel: 'Total 1',
+                },
+            ],
+            item: {
+                positive: {
+                    itemStyler: createItemStyler('waterfall1-positive'),
+                },
+                negative: {
+                    itemStyler: createItemStyler('waterfall1-negative'),
+                },
+                total: {
+                    itemStyler: createItemStyler('waterfall1-total'),
+                },
+            },
+        },
+        {
+            type: 'waterfall',
+            xKey: 'category',
+            yKey: 'value2',
+            yName: 'Waterfall 2',
+            totals: [
+                {
+                    totalType: 'total',
+                    index: 3,
+                    axisLabel: 'Total 2',
+                },
+            ],
+            item: {
+                positive: {
+                    itemStyler: createItemStyler('waterfall2-positive'),
+                },
+                negative: {
+                    itemStyler: createItemStyler('waterfall2-negative'),
+                },
+                total: {
+                    itemStyler: createItemStyler('waterfall2-total'),
+                },
+            },
+        },
+    ],
+    axes: [
+        { type: 'category', position: 'bottom' },
+        { type: 'number', position: 'left' },
+    ],
+};
+
+const funnelOptions: AgChartOptions = {
+    series: [
+        {
+            type: 'funnel',
+            stageKey: 'category',
+            valueKey: 'value',
+            itemStyler: createItemStyler('funnel'),
+        },
+    ],
+};
+
+const sankeyOptions: AgChartOptions = {
+    series: [
+        {
+            type: 'sankey',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'value',
+            link: {
+                itemStyler: createItemStyler('sankey-link'),
+            },
+            node: {
+                itemStyler: createItemStyler('sankey-node'),
+            },
+        },
+    ],
+};
+
+const ohlcOptions: AgCartesianChartOptions = {
+    series: [
+        {
+            type: 'ohlc',
+            xKey: 'date',
+            openKey: 'open',
+            highKey: 'high',
+            lowKey: 'low',
+            closeKey: 'close',
+            yName: 'OHLC',
+            itemStyler: createItemStyler('ohlc'),
+        },
+    ],
+    axes: [
+        { type: 'time', position: 'bottom' },
+        { type: 'number', position: 'left' },
+    ],
+};
+
+const candlestickOptions: AgCartesianChartOptions = {
+    series: [
+        {
+            type: 'candlestick',
+            xKey: 'date',
+            openKey: 'open',
+            highKey: 'high',
+            lowKey: 'low',
+            closeKey: 'close',
+            yName: 'Candlestick',
+            itemStyler: createItemStyler('candlestick'),
+        },
+    ],
+    axes: [
+        { type: 'time', position: 'bottom' },
+        { type: 'number', position: 'left' },
+    ],
+};
+
+const pyramidOptions: AgChartOptions = {
+    series: [
+        {
+            type: 'pyramid',
+            stageKey: 'category',
+            valueKey: 'value',
+            itemStyler: createItemStyler('pyramid'),
+        },
+    ],
+};
+
+const chordOptions: AgChartOptions = {
+    series: [
+        {
+            type: 'chord',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'value',
+            link: {
+                itemStyler: createItemStyler('chord-link'),
+            },
+            node: {
+                itemStyler: createItemStyler('chord-node'),
+            },
+        },
+    ],
+};
+
+const sunburstOptions: AgHierarchyChartOptions = {
+    series: [
+        {
+            type: 'sunburst',
+            labelKey: 'name',
+            sizeKey: 'value',
+            itemStyler: createItemStyler('sunburst'),
+        },
+    ],
+};
+
+const mapOptions: AgChartOptions = {
+    topology: mapTopology,
+    series: [
+        {
+            type: 'map-shape-background',
+            topology: mapTopology,
+            fill: '#f0f0f0',
+            stroke: '#d0d0d0',
+            strokeWidth: 1,
+        },
+        {
+            type: 'map-shape',
+            topology: mapTopology,
+            data: mapData,
+            idKey: 'name',
+            colorKey: 'value',
+            title: 'Map Shape 1',
+            itemStyler: createItemStyler('mapShape1'),
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('mapShape1-label'),
+            },
+        },
+        {
+            type: 'map-shape',
+            topology: mapTopology,
+            data: mapData,
+            idKey: 'name',
+            colorKey: 'value2',
+            title: 'Map Shape 2',
+            itemStyler: createItemStyler('mapShape2'),
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('mapShape2-label'),
+            },
+        },
+        {
+            type: 'map-marker',
+            topology: mapMarkerTopology,
+            data: mapData,
+            idKey: 'name',
+            sizeKey: 'value',
+            title: 'Map Marker 1',
+            itemStyler: createItemStyler('mapMarker1'),
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('mapMarker1-label'),
+            },
+        },
+        {
+            type: 'map-marker',
+            topology: mapMarkerTopology,
+            data: mapData,
+            idKey: 'name',
+            sizeKey: 'value2',
+            title: 'Map Marker 2',
+            itemStyler: createItemStyler('mapMarker2'),
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('mapMarker2-label'),
+            },
+        },
+        {
+            type: 'map-line',
+            topology: mapLineTopology,
+            data: [
+                { name: 'Trade Route North', value: 100, value2: 80 },
+                { name: 'Trade Route South', value: 80, value2: 90 },
+                { name: 'Mountain Pass', value: 60, value2: 70 },
+            ],
+            idKey: 'name',
+            sizeKey: 'value',
+            title: 'Map Line 1',
+            itemStyler: createItemStyler('mapLine1'),
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('mapLine1-label'),
+            },
+        },
+        {
+            type: 'map-line',
+            topology: mapLineTopology,
+            data: [
+                { name: 'Trade Route North', value: 100, value2: 80 },
+                { name: 'Trade Route South', value: 80, value2: 90 },
+                { name: 'Mountain Pass', value: 60, value2: 70 },
+            ],
+            idKey: 'name',
+            sizeKey: 'value2',
+            title: 'Map Line 2',
+            itemStyler: createItemStyler('mapLine2'),
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('mapLine2-label'),
+            },
+        },
+    ],
+};
+
+let chart: any;
+
+function createChart(newOptions: AgChartOptions, chartType: string) {
+    if (chart) {
+        chart.destroy();
+    }
+    currentChartType = chartType;
+    chart = AgCharts.create(newOptions);
+    setTimeout(updateStatusIndicators, 100);
+}
+
+function showBarLineArea() {
+    const options: AgCartesianChartOptions = {
+        container: document.getElementById('myChart'),
+        data: cartesianData,
+        animation: { enabled: false },
+        ...barLineAreaOptions,
+    };
+    createChart(options, 'Bar + Line + Area');
+}
+
+function showScatterBubble() {
+    const options: AgCartesianChartOptions = {
+        container: document.getElementById('myChart'),
+        data: cartesianData,
+        animation: { enabled: false },
+        ...scatterBubbleOptions,
+    };
+    createChart(options, 'Scatter + Bubble');
+}
+
+function showPieDonut() {
+    const options: AgPolarChartOptions = {
+        container: document.getElementById('myChart'),
+        data: pieData,
+        animation: { enabled: false },
+        ...pieDonutOptions,
+    };
+    createChart(options, 'Pie + Donut');
+}
+
+function showTreemap() {
+    const options: AgHierarchyChartOptions = {
+        container: document.getElementById('myChart'),
+        data: [treemapData],
+        animation: { enabled: false },
+        ...treemapOptions,
+    };
+    createChart(options, 'Treemap');
+}
+
+function showOtherSeries() {
+    // Show the range series which are compatible together
+    const options: AgCartesianChartOptions = {
+        container: document.getElementById('myChart'),
+        data: cartesianData,
+        animation: { enabled: false },
+        ...rangeSeriesOptions,
+    };
+    createChart(options, 'Range Series');
+}
+
+function showHistogram() {
+    const options: AgCartesianChartOptions = {
+        container: document.getElementById('myChart'),
+        data: cartesianData,
+        animation: { enabled: false },
+        ...histogramOptions,
+    };
+    createChart(options, 'Histogram');
+}
+
+function showBoxPlot() {
+    const options: AgCartesianChartOptions = {
+        container: document.getElementById('myChart'),
+        data: boxPlotData,
+        animation: { enabled: false },
+        ...boxPlotOptions,
+    };
+    createChart(options, 'Box Plot');
+}
+
+function showHeatmap() {
+    const options: AgCartesianChartOptions = {
+        container: document.getElementById('myChart'),
+        data: heatmapData,
+        animation: { enabled: false },
+        ...heatmapOptions,
+    };
+    createChart(options, 'Heatmap');
+}
+
+function showWaterfall() {
+    const options: AgCartesianChartOptions = {
+        container: document.getElementById('myChart'),
+        data: waterfallData,
+        animation: { enabled: false },
+        ...waterfallOptions,
+    };
+    createChart(options, 'Waterfall');
+}
+
+function showRadarLine() {
+    const options: AgPolarChartOptions = {
+        container: document.getElementById('myChart'),
+        data: pieData,
+        animation: { enabled: false },
+        ...radarLineOptions,
+    };
+    createChart(options, 'Radar Line');
+}
+
+function showRadarArea() {
+    const options: AgPolarChartOptions = {
+        container: document.getElementById('myChart'),
+        data: pieData,
+        animation: { enabled: false },
+        ...radarAreaOptions,
+    };
+    createChart(options, 'Radar Area');
+}
+
+function showRadialBar() {
+    const options: AgPolarChartOptions = {
+        container: document.getElementById('myChart'),
+        data: pieData,
+        animation: { enabled: false },
+        ...radialBarOptions,
+    };
+    createChart(options, 'Radial Bar');
+}
+
+function showRadialColumn() {
+    const options: AgPolarChartOptions = {
+        container: document.getElementById('myChart'),
+        data: pieData,
+        animation: { enabled: false },
+        ...radialColumnOptions,
+    };
+    createChart(options, 'Radial Column');
+}
+
+function showNightingale() {
+    const options: AgPolarChartOptions = {
+        container: document.getElementById('myChart'),
+        data: pieData,
+        animation: { enabled: false },
+        ...nightingaleOptions,
+    };
+    createChart(options, 'Nightingale');
+}
+
+function showFunnel() {
+    const options: AgChartOptions = {
+        container: document.getElementById('myChart'),
+        data: funnelData,
+        animation: { enabled: false },
+        ...funnelOptions,
+    };
+    createChart(options, 'Funnel');
+}
+
+function showSankey() {
+    const options: AgChartOptions = {
+        container: document.getElementById('myChart'),
+        data: sankeyData,
+        animation: { enabled: false },
+        ...sankeyOptions,
+    };
+    createChart(options, 'Sankey');
+}
+
+function showOhlc() {
+    const options: AgCartesianChartOptions = {
+        container: document.getElementById('myChart'),
+        data: ohlcData,
+        animation: { enabled: false },
+        ...ohlcOptions,
+    };
+    createChart(options, 'OHLC');
+}
+
+function showCandlestick() {
+    const options: AgCartesianChartOptions = {
+        container: document.getElementById('myChart'),
+        data: candlestickData,
+        animation: { enabled: false },
+        ...candlestickOptions,
+    };
+    createChart(options, 'Candlestick');
+}
+
+function showPyramid() {
+    const options: AgChartOptions = {
+        container: document.getElementById('myChart'),
+        data: pyramidData,
+        animation: { enabled: false },
+        ...pyramidOptions,
+    };
+    createChart(options, 'Pyramid');
+}
+
+function showChord() {
+    const options: AgChartOptions = {
+        container: document.getElementById('myChart'),
+        data: chordData,
+        animation: { enabled: false },
+        ...chordOptions,
+    };
+    createChart(options, 'Chord');
+}
+
+function showSunburst() {
+    const options: AgHierarchyChartOptions = {
+        container: document.getElementById('myChart'),
+        data: [sunburstData],
+        animation: { enabled: false },
+        ...sunburstOptions,
+    };
+    createChart(options, 'Sunburst');
+}
+
+function showMap() {
+    const options: AgChartOptions = {
+        container: document.getElementById('myChart'),
+        animation: { enabled: false },
+        ...mapOptions,
+    };
+    createChart(options, 'Map');
+}
+
+function clearConsole() {
+    console.clear();
+    console.log('Console cleared. Hover over chart elements to see itemStyler logs.');
+}
+
+function resetStatus() {
+    // Only reset statuses for the current chart
+    Object.keys(itemStylerStatus).forEach((key) => {
+        if (itemStylerStatus[key].chartType === currentChartType) {
+            itemStylerStatus[key] = {
+                used: false,
+                hasValidHighlightState: false,
+                hasInvalidHighlightState: false,
+                unseenStates: new Set<string>([
+                    'item-highlighted',
+                    'item-unhighlighted',
+                    'series-highlighted',
+                    'series-unhighlighted',
+                    'none',
+                ]),
+                chartType: currentChartType,
+            };
+        }
+    });
+    updateStatusIndicators();
+    console.log('Status indicators reset. Interact with the chart to update them.');
+}
+
+(window as any).showBarLineArea = showBarLineArea;
+(window as any).showScatterBubble = showScatterBubble;
+(window as any).showPieDonut = showPieDonut;
+(window as any).showTreemap = showTreemap;
+(window as any).showOtherSeries = showOtherSeries;
+(window as any).showRadarLine = showRadarLine;
+(window as any).showRadarArea = showRadarArea;
+(window as any).showRadialBar = showRadialBar;
+(window as any).showRadialColumn = showRadialColumn;
+(window as any).showNightingale = showNightingale;
+(window as any).showHistogram = showHistogram;
+(window as any).showBoxPlot = showBoxPlot;
+(window as any).showHeatmap = showHeatmap;
+(window as any).showWaterfall = showWaterfall;
+(window as any).showFunnel = showFunnel;
+(window as any).showSankey = showSankey;
+(window as any).showOhlc = showOhlc;
+(window as any).showCandlestick = showCandlestick;
+(window as any).showPyramid = showPyramid;
+(window as any).showChord = showChord;
+(window as any).showSunburst = showSunburst;
+(window as any).showMap = showMap;
+(window as any).clearConsole = clearConsole;
+(window as any).resetStatus = resetStatus;
+
+// Set the chart type BEFORE defining options so itemStylers are properly tagged
+currentChartType = 'Bar + Line + Area';
+
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    data: cartesianData,
+    animation: { enabled: false },
+    series: [
+        {
+            type: 'area',
+            xKey: 'category',
+            yKey: 'value1',
+            yName: 'Area Series',
+            marker: {
+                enabled: true,
+                itemStyler: createItemStyler('area-marker'),
+            },
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('area-label'),
+            },
+        },
+        {
+            type: 'bar',
+            xKey: 'category',
+            yKey: 'value1',
+            yName: 'Bar Series',
+            itemStyler: createItemStyler('bar'),
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('bar-label'),
+            },
+            errorBar: {
+                yLowerKey: 'value1',
+                yUpperKey: 'value2',
+                itemStyler: createItemStyler('bar-errorBar'),
+            },
+        },
+        {
+            type: 'line',
+            xKey: 'category',
+            yKey: 'value2',
+            yName: 'Line Series',
+            marker: {
+                enabled: true,
+                itemStyler: createItemStyler('line-marker'),
+            },
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('line-label'),
+            },
+            errorBar: {
+                yLowerKey: 'value1',
+                yUpperKey: 'value2',
+                itemStyler: createItemStyler('line-errorBar'),
+            },
+        },
+    ],
+    axes: [
+        { type: 'category', position: 'bottom' },
+        { type: 'number', position: 'left' },
+    ],
+};
+
+chart = AgCharts.create(options);
+setTimeout(updateStatusIndicators, 100);
+
+function updateStatusIndicators() {
+    const statusContainer = document.getElementById('statusIndicators');
+    const matrixContainer = document.getElementById('statusMatrix');
+    if (!statusContainer || !matrixContainer) return;
+
+    const allValidHighlightStates = [
+        'item-highlighted',
+        'item-unhighlighted',
+        'series-highlighted',
+        'series-unhighlighted',
+        'none',
+    ];
+
+    // Create configuration groups - only for current chart
+    const configGroups: Record<string, string[]> = {};
+    const currentChartKeys = Object.keys(itemStylerStatus).filter((key) => {
+        const status = itemStylerStatus[key];
+        return status && status.used && status.chartType === currentChartType;
+    });
+
+    currentChartKeys.forEach((key) => {
+        const parts = key.split('-');
+        const seriesType = parts[0];
+        const configType = parts.length > 1 ? parts[parts.length - 1] : 'item';
+
+        if (!configGroups[configType]) {
+            configGroups[configType] = [];
+        }
+        if (!configGroups[configType].includes(seriesType)) {
+            configGroups[configType].push(seriesType);
+        }
+    });
+
+    // Create status indicators HTML
+    const statusHtml = `
+        <h3>Current Chart: ${currentChartType}</h3>
+        <div class="status-items">
+            ${Object.entries(itemStylerStatus)
+                .filter(([_, status]) => status && status.used && status.chartType === currentChartType)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([name, status]) => {
+                    let color = '#999';
+                    let statusText = 'Not used';
+                    let tooltip = '';
+
+                    if (status.used) {
+                        if (status.hasInvalidHighlightState) {
+                            color = '#f44336';
+                            statusText = 'Invalid ✗';
+                            tooltip = 'Received invalid highlightState values';
+                        } else if (status.hasValidHighlightState) {
+                            const unseenCount = status.unseenStates.size;
+                            const totalCount = allValidHighlightStates.length;
+
+                            if (unseenCount === 0) {
+                                color = '#4caf50';
+                                statusText = 'Valid ✓';
+                                tooltip = `All ${totalCount} states seen`;
+                            } else {
+                                color = '#ffd700';
+                                statusText = `Partial (${totalCount - unseenCount}/${totalCount})`;
+                                const seenSt = allValidHighlightStates.filter((s) => !status.unseenStates.has(s));
+                                tooltip = `Missing: ${Array.from(status.unseenStates).join(', ')}\nSeen: ${seenSt.join(', ')}`;
+                            }
+                        }
+                    }
+
+                    return `<div class="status-item" style="background: ${color}; color: ${color === '#ffd700' ? 'black' : 'white'};" title="${tooltip}">
+                        ${name}: ${statusText}
+                    </div>`;
+                })
+                .join('')}
+        </div>
+    `;
+
+    // Create matrix HTML
+    const matrixHtml = `
+        <h3>State vs Configuration Matrix</h3>
+        <table class="status-matrix-table">
+            <thead>
+                <tr>
+                    <th>State / Config</th>
+                    ${Object.keys(configGroups)
+                        .sort()
+                        .map((config) => `<th>${config}</th>`)
+                        .join('')}
+                </tr>
+            </thead>
+            <tbody>
+                ${allValidHighlightStates
+                    .map((state) => {
+                        return `<tr>
+                        <td class="state-name">${state}</td>
+                        ${Object.keys(configGroups)
+                            .sort()
+                            .map((config) => {
+                                const hasState = configGroups[config].some((seriesType) => {
+                                    const key = config === 'item' ? seriesType : `${seriesType}-${config}`;
+                                    const status = itemStylerStatus[key];
+                                    return status && status.used && !status.unseenStates.has(state);
+                                });
+
+                                const color = hasState ? '#4caf50' : '#999';
+                                const tooltip = hasState ? 'State seen' : 'State not seen';
+
+                                return `<td class="matrix-cell" style="background: ${color};" title="${tooltip}"></td>`;
+                            })
+                            .join('')}
+                    </tr>`;
+                    })
+                    .join('')}
+            </tbody>
+        </table>
+    `;
+
+    statusContainer.innerHTML = statusHtml;
+    matrixContainer.innerHTML = matrixHtml;
+}
+
+console.log('ItemStyler Test Page Ready!');
+console.log('Hover over chart elements or legend items to trigger itemStyler callbacks.');
+console.log('Check the browser console for logged parameters.');
+console.log('');
+console.log('To see all highlightState values:');
+console.log('- none: Default state when nothing is highlighted');
+console.log('- item-highlighted: Hover over a specific data point');
+console.log('- item-unhighlighted: Other items when one is hovered');
+console.log('- series-highlighted: Click on a legend item to highlight a series');
+console.log('- series-unhighlighted: Other series when one is highlighted');
+
+setTimeout(updateStatusIndicators, 100);

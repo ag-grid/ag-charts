@@ -1,5 +1,6 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { HighlightState } from 'ag-charts-types';
 
 const { nearestSquared, nearestSquaredInContainer, partialAssign, mergeDefaults, BBox } = _ModuleSupport;
 type NearestResult<T> = _ModuleSupport.NearestResult<T>;
@@ -81,10 +82,16 @@ export class ErrorBarNode extends _ModuleSupport.Group {
         return Math.min(desiredLength, lengthMax);
     }
 
-    private getItemStylerParams(options: FormatOptions, style: AgErrorBarThemeableOptions, highlighted: boolean) {
+    private getItemStylerParams(
+        options: FormatOptions,
+        style: AgErrorBarThemeableOptions,
+        highlighted: boolean,
+        highlightState: HighlightState
+    ) {
         const { datum } = this;
         if (datum == null || options.itemStyler == null) return;
         const { xLowerKey, xUpperKey, yLowerKey, yUpperKey } = options;
+
         return {
             ...(style as Required<AgErrorBarThemeableOptions>),
             datum: datum.datum,
@@ -96,6 +103,7 @@ export class ErrorBarNode extends _ModuleSupport.Group {
             yLowerKey,
             yUpperKey,
             highlighted,
+            highlightState,
         };
     }
 
@@ -103,11 +111,12 @@ export class ErrorBarNode extends _ModuleSupport.Group {
         style: AgErrorBarThemeableOptions,
         options: FormatOptions,
         caller: Caller,
-        highlighted: boolean
+        highlighted: boolean,
+        highlightState: HighlightState
     ) {
         let { cap: capsStyle, ...whiskerStyle } = style;
 
-        const params = this.getItemStylerParams(options, style, highlighted);
+        const params = this.getItemStylerParams(options, style, highlighted, highlightState);
         if (params != null && options.itemStyler != null) {
             type F = NonNullable<typeof options.itemStyler>;
             type I = Parameters<F>[0];
@@ -130,11 +139,18 @@ export class ErrorBarNode extends _ModuleSupport.Group {
         );
     }
 
-    update(style: AgErrorBarThemeableOptions, formatters: FormatOptions, caller: Caller, highlighted: boolean) {
+    update(
+        style: AgErrorBarThemeableOptions,
+        formatters: FormatOptions,
+        caller: Caller,
+        highlighted: boolean,
+        highlightState: HighlightState
+    ) {
         if (this.datum === undefined) {
             return;
         }
-        const { whiskerStyle, capsStyle } = this.formatStyles(style, formatters, caller, highlighted);
+
+        const { whiskerStyle, capsStyle } = this.formatStyles(style, formatters, caller, highlighted, highlightState);
         const { xBar, yBar, capDefaults } = this.datum;
 
         const whisker = this.whiskerPath;

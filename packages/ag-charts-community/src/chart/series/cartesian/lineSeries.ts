@@ -517,9 +517,22 @@ export class LineSeries extends CartesianSeries<
         return opts.labelSelection.update(this.isLabelEnabled() ? opts.labelData : []);
     }
 
-    protected updateLabelNodes(opts: { labelSelection: Selection<Text, LineNodeDatum> }) {
+    protected updateLabelNodes(opts: { labelSelection: Selection<Text, LineNodeDatum>; isHighlight?: boolean }) {
+        const { isHighlight = false } = opts;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+
         opts.labelSelection.each((text, datum) => {
-            const style = getLabelStyles(this, datum, this.properties, this.properties.label);
+            const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
+            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datum.datumIndex);
+
+            const style = getLabelStyles(
+                this,
+                datum,
+                this.properties,
+                this.properties.label,
+                highlighted,
+                highlightState
+            );
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && datum?.labelText) {
                 text.fontStyle = fontStyle;
@@ -533,7 +546,7 @@ export class LineSeries extends CartesianSeries<
                 text.y = datum.point.y - 10;
                 text.fill = color;
                 text.visible = true;
-                text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
+                text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
                 text.setBoxing(style);
             } else {
                 text.visible = false;
