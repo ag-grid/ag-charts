@@ -433,10 +433,14 @@ export class SankeySeries extends FlowProportionSeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex.index, 'link', isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                         size,
                         label,
@@ -534,10 +538,14 @@ export class SankeySeries extends FlowProportionSeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex.index, 'link', isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                     });
                 }

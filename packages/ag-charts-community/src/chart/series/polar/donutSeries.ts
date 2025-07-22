@@ -1312,7 +1312,10 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 return;
             }
             type TParams = AgDonutSeriesLabelFormatterParams;
-            const style = getLabelStyles<TParams>(this, datum, this.properties, calloutLabel);
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+            const isHighlight = false; // Labels are not highlighted in donut series
+            const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
+            const style = getLabelStyles<TParams>(this, datum, this.properties, calloutLabel, isHighlight, highlightState);
 
             const labelRadius = outerRadius + calloutLine.length + calloutLabel.offset;
             const x = datum.midCos * labelRadius;
@@ -1466,7 +1469,10 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             let isTextVisible = false;
             if (datum.sectorLabel && outerRadius !== 0) {
                 type TParams = AgDonutSeriesLabelFormatterParams;
-                const style = getLabelStyles<TParams>(this, datum, properties, properties.sectorLabel);
+                const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+                const isHighlight = false; // Labels are not highlighted in donut series
+                const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
+                const style = getLabelStyles<TParams>(this, datum, properties, properties.sectorLabel, isHighlight, highlightState);
                 const labelRadius = innerRadius * (1 - positionRatio) + outerRadius * positionRatio + positionOffset;
 
                 text.fill = style.color;

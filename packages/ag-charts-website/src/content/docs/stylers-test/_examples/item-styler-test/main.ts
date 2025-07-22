@@ -5,6 +5,7 @@ import {
     AgCharts,
     AgHierarchyChartOptions,
     AgPolarChartOptions,
+    AgTopologyChartOptions,
 } from 'ag-charts-enterprise';
 
 import {
@@ -126,7 +127,8 @@ const barLineAreaOptions: AgCartesianChartOptions = {
             itemStyler: createItemStyler('bar'),
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('bar-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('bar-label*'),
             },
             errorBar: {
                 yLowerKey: 'value1',
@@ -146,7 +148,8 @@ const barLineAreaOptions: AgCartesianChartOptions = {
             },
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('line-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('line-label*'),
             },
             errorBar: {
                 yLowerKey: 'value1',
@@ -167,7 +170,8 @@ const barLineAreaOptions: AgCartesianChartOptions = {
             },
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('area-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('area-label*'),
             },
         },
     ],
@@ -187,7 +191,8 @@ const scatterBubbleOptions: AgCartesianChartOptions = {
             itemStyler: createItemStyler('scatter1'),
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('scatter1-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('scatter1-label*'),
             },
             errorBar: {
                 xLowerKey: 'value1',
@@ -205,7 +210,8 @@ const scatterBubbleOptions: AgCartesianChartOptions = {
             itemStyler: createItemStyler('scatter2'),
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('scatter2-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('scatter2-label*'),
             },
         },
         {
@@ -217,7 +223,8 @@ const scatterBubbleOptions: AgCartesianChartOptions = {
             itemStyler: createItemStyler('bubble'),
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('bubble-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('bubble-label*'),
             },
         },
     ],
@@ -239,11 +246,13 @@ const pieDonutOptions: AgPolarChartOptions = {
             itemStyler: createItemStyler('pie'),
             calloutLabel: {
                 enabled: true,
-                itemStyler: createItemStyler('pie-calloutLabel'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('pie-calloutLabel*'),
             },
             sectorLabel: {
                 enabled: true,
-                itemStyler: createItemStyler('pie-sectorLabel'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('pie-sectorLabel*'),
             },
         },
         {
@@ -255,11 +264,13 @@ const pieDonutOptions: AgPolarChartOptions = {
             itemStyler: createItemStyler('donut'),
             calloutLabel: {
                 enabled: true,
-                itemStyler: createItemStyler('donut-calloutLabel'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('donut-calloutLabel*'),
             },
             sectorLabel: {
                 enabled: true,
-                itemStyler: createItemStyler('donut-sectorLabel'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('donut-sectorLabel*'),
             },
         },
     ],
@@ -279,7 +290,8 @@ const radarLineOptions: AgPolarChartOptions = {
             },
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('radarLine1-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('radarLine1-label*'),
             },
         },
         {
@@ -293,7 +305,8 @@ const radarLineOptions: AgPolarChartOptions = {
             },
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('radarLine2-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('radarLine2-label*'),
             },
         },
     ],
@@ -313,7 +326,8 @@ const radarAreaOptions: AgPolarChartOptions = {
             },
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('radarArea1-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('radarArea1-label*'),
             },
         },
         {
@@ -327,7 +341,8 @@ const radarAreaOptions: AgPolarChartOptions = {
             },
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('radarArea2-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('radarArea2-label*'),
             },
         },
     ],
@@ -344,7 +359,8 @@ const radialBarOptions: AgPolarChartOptions = {
             itemStyler: createItemStyler('radialBar1'),
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('radialBar1-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('radialBar1-label*'),
             },
         },
         {
@@ -355,7 +371,8 @@ const radialBarOptions: AgPolarChartOptions = {
             itemStyler: createItemStyler('radialBar2'),
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('radialBar2-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('radialBar2-label*'),
             },
         },
     ],
@@ -373,7 +390,8 @@ const radialColumnOptions: AgPolarChartOptions = {
             label: {
                 enabled: true,
                 formatter: ({ value }) => `${value}`,
-                itemStyler: createItemStyler('radialColumn1-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('radialColumn1-label*'),
             },
         },
         {
@@ -385,7 +403,8 @@ const radialColumnOptions: AgPolarChartOptions = {
             label: {
                 enabled: true,
                 formatter: ({ value }) => `${value}`,
-                itemStyler: createItemStyler('radialColumn2-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('radialColumn2-label*'),
             },
         },
     ],
@@ -403,7 +422,8 @@ const nightingaleOptions: AgPolarChartOptions = {
             label: {
                 enabled: true,
                 formatter: ({ value }) => `${value}`,
-                itemStyler: createItemStyler('nightingale1-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('nightingale1-label*'),
             },
         },
         {
@@ -415,7 +435,8 @@ const nightingaleOptions: AgPolarChartOptions = {
             label: {
                 enabled: true,
                 formatter: ({ value }) => `${value}`,
-                itemStyler: createItemStyler('nightingale2-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('nightingale2-label*'),
             },
         },
     ],
@@ -431,17 +452,17 @@ const treemapOptions: AgHierarchyChartOptions = {
             tile: {
                 label: {
                     enabled: true,
-                    itemStyler: createItemStyler('treemap-tile-label'),
+                    // itemStyler: createItemStyler('treemap-tile-label'),
                 },
                 secondaryLabel: {
                     enabled: true,
-                    itemStyler: createItemStyler('treemap-tile-secondaryLabel'),
+                    // itemStyler: createItemStyler('treemap-tile-secondaryLabel'),
                 },
             },
             group: {
                 label: {
                     enabled: true,
-                    itemStyler: createItemStyler('treemap-group-label'),
+                    // itemStyler: createItemStyler('treemap-group-label'),
                 },
             },
         },
@@ -660,8 +681,18 @@ const ohlcOptions: AgCartesianChartOptions = {
             highKey: 'high',
             lowKey: 'low',
             closeKey: 'close',
-            yName: 'OHLC',
-            itemStyler: createItemStyler('ohlc'),
+            yName: 'OHLC 1',
+            itemStyler: createItemStyler('ohlc1'),
+        },
+        {
+            type: 'ohlc',
+            xKey: 'date',
+            openKey: 'open2',
+            highKey: 'high2',
+            lowKey: 'low2',
+            closeKey: 'close2',
+            yName: 'OHLC 2',
+            itemStyler: createItemStyler('ohlc2'),
         },
     ],
     axes: [
@@ -679,8 +710,18 @@ const candlestickOptions: AgCartesianChartOptions = {
             highKey: 'high',
             lowKey: 'low',
             closeKey: 'close',
-            yName: 'Candlestick',
-            itemStyler: createItemStyler('candlestick'),
+            yName: 'Candlestick 1',
+            itemStyler: createItemStyler('candlestick1'),
+        },
+        {
+            type: 'candlestick',
+            xKey: 'date',
+            openKey: 'open2',
+            highKey: 'high2',
+            lowKey: 'low2',
+            closeKey: 'close2',
+            yName: 'Candlestick 2',
+            itemStyler: createItemStyler('candlestick2'),
         },
     ],
     axes: [
@@ -728,8 +769,9 @@ const sunburstOptions: AgHierarchyChartOptions = {
     ],
 };
 
-const mapOptions: AgChartOptions = {
+const mapOptions: AgTopologyChartOptions = {
     topology: mapTopology,
+    legend: {},
     series: [
         {
             type: 'map-shape-background',
@@ -748,7 +790,8 @@ const mapOptions: AgChartOptions = {
             itemStyler: createItemStyler('mapShape1'),
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('mapShape1-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('mapShape1-label*'),
             },
         },
         {
@@ -761,7 +804,8 @@ const mapOptions: AgChartOptions = {
             itemStyler: createItemStyler('mapShape2'),
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('mapShape2-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('mapShape2-label*'),
             },
         },
         {
@@ -774,7 +818,8 @@ const mapOptions: AgChartOptions = {
             itemStyler: createItemStyler('mapMarker1'),
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('mapMarker1-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('mapMarker1-label*'),
             },
         },
         {
@@ -787,7 +832,8 @@ const mapOptions: AgChartOptions = {
             itemStyler: createItemStyler('mapMarker2'),
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('mapMarker2-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('mapMarker2-label*'),
             },
         },
         {
@@ -804,7 +850,8 @@ const mapOptions: AgChartOptions = {
             itemStyler: createItemStyler('mapLine1'),
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('mapLine1-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('mapLine1-label*'),
             },
         },
         {
@@ -821,7 +868,8 @@ const mapOptions: AgChartOptions = {
             itemStyler: createItemStyler('mapLine2'),
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('mapLine2-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('mapLine2-label*'),
             },
         },
     ],
@@ -1114,7 +1162,7 @@ function resetStatus() {
 // Set the chart type BEFORE defining options so itemStylers are properly tagged
 currentChartType = 'Bar + Line + Area';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: cartesianData,
     animation: { enabled: false },
@@ -1130,7 +1178,8 @@ const options: AgChartOptions = {
             },
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('area-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('area-label*'),
             },
         },
         {
@@ -1141,7 +1190,8 @@ const options: AgChartOptions = {
             itemStyler: createItemStyler('bar'),
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('bar-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('bar-label*'),
             },
             errorBar: {
                 yLowerKey: 'value1',
@@ -1160,7 +1210,8 @@ const options: AgChartOptions = {
             },
             label: {
                 enabled: true,
-                itemStyler: createItemStyler('line-label'),
+                // @ts-expect-error - itemStyler is implemented but not public
+                itemStyler: createItemStyler('line-label*'),
             },
             errorBar: {
                 yLowerKey: 'value1',

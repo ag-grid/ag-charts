@@ -10,6 +10,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import { type InternalAgColorType, type RequireOptional, isNumberEqual } from 'ag-charts-core';
+import type { HighlightState } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
@@ -342,7 +343,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         isLeaf: boolean,
         isHighlight: boolean
     ) {
-        const { id: seriesId, properties, colorScale } = this;
+        const { id: seriesId, properties, colorScale, ctx } = this;
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
         const rootIndex = datumIndex?.[0] ?? 0;
 
@@ -360,14 +361,43 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
         if (itemStyler != null && datumIndex != null) {
+            const datumIndexString = datumIndex.join(':');
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex.join(':'), isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const activeHighlight = ctx.highlightManager?.getActiveHighlight();
+                    let highlightState: HighlightState;
+
+                    if (isHighlight) {
+                        // This node is highlighted
+                        if (
+                            datumIndex &&
+                            activeHighlight &&
+                            'datumIndex' in activeHighlight &&
+                            Array.isArray(activeHighlight.datumIndex) &&
+                            activeHighlight.datumIndex?.join(':') === datumIndexString
+                        ) {
+                            highlightState = 'item-highlighted';
+                        } else {
+                            highlightState = 'series-highlighted';
+                        }
+                    } else if (activeHighlight) {
+                        // Something else is highlighted
+                        if (activeHighlight.series === this) {
+                            highlightState = 'item-unhighlighted';
+                        } else {
+                            highlightState = 'series-unhighlighted';
+                        }
+                    } else {
+                        highlightState = 'none';
+                    }
+
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         depth,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                     });
                 }
@@ -706,7 +736,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 sizeKey: this.properties.sizeKey,
                 sizeName: this.properties.sizeName ?? this.properties.sizeKey,
             };
-            const style = getLabelStyles(this, node, params, labelProps);
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, node.datumIndex);
+            const style = getLabelStyles(this, node, params, labelProps, highlighted, highlightState);
             text.text = label.text;
             text.fontSize = label.fontSize;
             text.lineHeight = label.lineHeight;

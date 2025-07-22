@@ -469,6 +469,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
@@ -479,6 +481,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                         q3Key,
                         maxKey,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                     });
                 }

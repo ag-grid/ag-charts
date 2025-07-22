@@ -602,7 +602,7 @@ export abstract class Series<
                 return HighlightState.Series;
             }
             if (itemHighlighted) {
-                return HighlightState.Item;
+                return HighlightState.Series; // TODO: should be HighlightState.Item but we do that in the highlight layer
             }
             return HighlightState.OtherItem;
         }
@@ -1051,7 +1051,7 @@ export abstract class Series<
 
         if (itemStyler && params) {
             const highlight = this.ctx.highlightManager?.getActiveHighlight();
-            const highlightState = this.getHighlightStateString(highlight, isHighlight);
+            const highlightState = this.getHighlightStateString(highlight, isHighlight, datumIndex);
 
             const style = this.cachedCallWithContext(itemStyler, {
                 seriesId: this.id,

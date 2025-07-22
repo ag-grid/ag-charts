@@ -24,7 +24,7 @@ class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
     label: LabelLayout | undefined = undefined;
     secondaryLabel: LabelLayout | undefined = undefined;
     contentHeight: number = 0;
-    bbox: _ModuleSupport.BBox | undefined = undefined;
+    bbox: _ModuleSupport.BBox | undefined = undefined; // cspell:ignore bbox
     startAngle: number = 0;
     endAngle: number = 0;
 }

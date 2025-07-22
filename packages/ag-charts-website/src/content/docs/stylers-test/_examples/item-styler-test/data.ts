@@ -63,6 +63,10 @@ export interface TOhlcData {
     high: number;
     low: number;
     close: number;
+    open2: number;
+    high2: number;
+    low2: number;
+    close2: number;
 }
 
 export interface TCandlestickData extends TOhlcData {}
@@ -233,19 +237,51 @@ export function getSankeyData(): TSankeyLink[] {
 
 export function getOhlcData(): TOhlcData[] {
     return [
-        { date: new Date('2023-01-01'), open: 100, high: 110, low: 95, close: 105 },
-        { date: new Date('2023-02-01'), open: 105, high: 115, low: 100, close: 110 },
-        { date: new Date('2023-03-01'), open: 110, high: 120, low: 105, close: 115 },
-        { date: new Date('2023-04-01'), open: 115, high: 125, low: 110, close: 120 },
+        { 
+            date: new Date('2023-01-01'), 
+            open: 100, high: 110, low: 95, close: 105,
+            open2: 90, high2: 100, low2: 85, close2: 95
+        },
+        { 
+            date: new Date('2023-02-01'), 
+            open: 105, high: 115, low: 100, close: 110,
+            open2: 95, high2: 105, low2: 90, close2: 100
+        },
+        { 
+            date: new Date('2023-03-01'), 
+            open: 110, high: 120, low: 105, close: 115,
+            open2: 100, high2: 110, low2: 95, close2: 105
+        },
+        { 
+            date: new Date('2023-04-01'), 
+            open: 115, high: 125, low: 110, close: 120,
+            open2: 105, high2: 115, low2: 100, close2: 110
+        },
     ];
 }
 
 export function getCandlestickData(): TCandlestickData[] {
     return [
-        { date: new Date('2023-01-01'), open: 100, high: 110, low: 95, close: 105 },
-        { date: new Date('2023-02-01'), open: 105, high: 115, low: 100, close: 110 },
-        { date: new Date('2023-03-01'), open: 110, high: 120, low: 105, close: 115 },
-        { date: new Date('2023-04-01'), open: 115, high: 125, low: 110, close: 120 },
+        { 
+            date: new Date('2023-01-01'), 
+            open: 100, high: 110, low: 95, close: 105,
+            open2: 90, high2: 100, low2: 85, close2: 95
+        },
+        { 
+            date: new Date('2023-02-01'), 
+            open: 105, high: 115, low: 100, close: 110,
+            open2: 95, high2: 105, low2: 90, close2: 100
+        },
+        { 
+            date: new Date('2023-03-01'), 
+            open: 110, high: 120, low: 105, close: 115,
+            open2: 100, high2: 110, low2: 95, close2: 105
+        },
+        { 
+            date: new Date('2023-04-01'), 
+            open: 115, high: 125, low: 110, close: 120,
+            open2: 105, high2: 115, low2: 100, close2: 110
+        },
     ];
 }
 
@@ -317,15 +353,16 @@ export function getMapTopology() {
                     type: 'Polygon',
                     coordinates: [
                         [
-                            [10, 20],
-                            [25, 15],
-                            [35, 25],
-                            [40, 35],
-                            [35, 45],
-                            [25, 50],
-                            [15, 45],
-                            [10, 35],
-                            [10, 20],
+                            [-20, 45],
+                            [-15, 40],
+                            [-10, 42],
+                            [-5, 38],
+                            [0, 40],
+                            [5, 45],
+                            [0, 50],
+                            [-10, 52],
+                            [-15, 48],
+                            [-20, 45],
                         ],
                     ],
                 },
@@ -338,16 +375,15 @@ export function getMapTopology() {
                     type: 'Polygon',
                     coordinates: [
                         [
-                            [50, 10],
-                            [75, 15],
-                            [85, 25],
-                            [90, 35],
-                            [85, 50],
-                            [75, 55],
-                            [60, 50],
-                            [50, 40],
-                            [45, 25],
-                            [50, 10],
+                            [10, 35],
+                            [20, 30],
+                            [30, 32],
+                            [35, 38],
+                            [32, 45],
+                            [25, 48],
+                            [18, 46],
+                            [12, 42],
+                            [10, 35],
                         ],
                     ],
                 },
@@ -360,16 +396,15 @@ export function getMapTopology() {
                     type: 'Polygon',
                     coordinates: [
                         [
-                            [15, 60],
-                            [35, 55],
-                            [45, 65],
-                            [50, 75],
-                            [45, 85],
-                            [35, 90],
-                            [25, 85],
-                            [15, 75],
-                            [10, 65],
-                            [15, 60],
+                            [-15, 20],
+                            [-5, 18],
+                            [5, 22],
+                            [8, 28],
+                            [5, 35],
+                            [-5, 38],
+                            [-12, 35],
+                            [-18, 28],
+                            [-15, 20],
                         ],
                     ],
                 },
@@ -382,15 +417,15 @@ export function getMapTopology() {
                     type: 'Polygon',
                     coordinates: [
                         [
-                            [60, 65],
-                            [80, 60],
-                            [90, 70],
-                            [85, 80],
-                            [75, 90],
-                            [65, 85],
-                            [60, 75],
-                            [55, 70],
-                            [60, 65],
+                            [15, 15],
+                            [25, 12],
+                            [35, 18],
+                            [38, 25],
+                            [35, 30],
+                            [28, 28],
+                            [20, 25],
+                            [15, 20],
+                            [15, 15],
                         ],
                     ],
                 },
@@ -403,15 +438,15 @@ export function getMapTopology() {
                     type: 'Polygon',
                     coordinates: [
                         [
-                            [95, 20],
-                            [105, 15],
-                            [115, 20],
-                            [120, 30],
-                            [115, 40],
-                            [105, 45],
-                            [95, 40],
-                            [90, 30],
-                            [95, 20],
+                            [45, 40],
+                            [52, 38],
+                            [58, 42],
+                            [60, 48],
+                            [58, 54],
+                            [52, 56],
+                            [46, 54],
+                            [42, 48],
+                            [45, 40],
                         ],
                     ],
                 },
@@ -431,9 +466,10 @@ export function getMapLineTopology() {
                 geometry: {
                     type: 'LineString',
                     coordinates: [
-                        [25, 35],
-                        [65, 25],
-                        [105, 30],
+                        [-10, 45],
+                        [10, 40],
+                        [25, 38],
+                        [50, 45],
                     ],
                 },
                 properties: { name: 'Trade Route North' },
@@ -444,8 +480,10 @@ export function getMapLineTopology() {
                 geometry: {
                     type: 'LineString',
                     coordinates: [
-                        [25, 75],
-                        [75, 75],
+                        [-10, 25],
+                        [0, 28],
+                        [15, 25],
+                        [25, 22],
                     ],
                 },
                 properties: { name: 'Trade Route South' },
@@ -456,8 +494,10 @@ export function getMapLineTopology() {
                 geometry: {
                     type: 'LineString',
                     coordinates: [
-                        [35, 40],
-                        [35, 70],
+                        [0, 35],
+                        [5, 30],
+                        [10, 25],
+                        [15, 20],
                     ],
                 },
                 properties: { name: 'Mountain Pass' },
@@ -475,7 +515,7 @@ export function getMapMarkerTopology() {
                 type: 'Feature',
                 geometry: {
                     type: 'Point',
-                    coordinates: [25, 30],
+                    coordinates: [-10, 46],
                 },
                 properties: { name: 'Northland' },
                 id: 'Northland',
@@ -484,7 +524,7 @@ export function getMapMarkerTopology() {
                 type: 'Feature',
                 geometry: {
                     type: 'Point',
-                    coordinates: [70, 30],
+                    coordinates: [22, 40],
                 },
                 properties: { name: 'Eastland' },
                 id: 'Eastland',
@@ -493,7 +533,7 @@ export function getMapMarkerTopology() {
                 type: 'Feature',
                 geometry: {
                     type: 'Point',
-                    coordinates: [30, 75],
+                    coordinates: [-5, 28],
                 },
                 properties: { name: 'Southland' },
                 id: 'Southland',
@@ -502,7 +542,7 @@ export function getMapMarkerTopology() {
                 type: 'Feature',
                 geometry: {
                     type: 'Point',
-                    coordinates: [70, 75],
+                    coordinates: [25, 22],
                 },
                 properties: { name: 'Westland' },
                 id: 'Westland',
@@ -511,7 +551,7 @@ export function getMapMarkerTopology() {
                 type: 'Feature',
                 geometry: {
                     type: 'Point',
-                    coordinates: [105, 30],
+                    coordinates: [50, 47],
                 },
                 properties: { name: 'Island State' },
                 id: 'Island State',
