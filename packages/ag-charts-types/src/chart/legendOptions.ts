@@ -39,6 +39,16 @@ export interface AgChartLegendPositionOptions {
      * Default: `false`
      */
     floating?: boolean;
+    /** X-translation offset for the legend.
+     *
+     * Default: `0`
+     */
+    xOffset?: PixelSize;
+    /** Y-translation offset for the legend.
+     *
+     * Default: `0`
+     */
+    yOffset?: PixelSize;
 }
 
 export type AgChartLegendPosition = AgChartLegendPlacement | AgChartLegendPositionOptions;

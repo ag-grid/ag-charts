@@ -91,6 +91,8 @@ const legendPlacementLiterals: readonly AgChartLegendPlacement[] = [
 const legendPositionOptionsDef: OptionsDefs<AgChartLegendPositionOptions> = {
     floating: boolean,
     placement: union(...legendPlacementLiterals),
+    xOffset: number,
+    yOffset: number,
 };
 
 const legendPositionValidator: Validator = attachDescription(
@@ -388,6 +390,11 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         position: legendPositionValidator,
         spacing: positiveNumber,
         reverseOrder: boolean,
+        border: borderOptionsDef,
+        cornerRadius: number,
+        padding: padding,
+        fill: color,
+        fillOpacity: ratio,
         gradient: {
             preferredLength: positiveNumber,
             thickness: positiveNumber,
@@ -619,15 +626,18 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     ...lineDashOptionsDef,
 };
 
-export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
+type UndocumentedAgChartLabelOptions = { itemStyler?: unknown };
+export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any> & UndocumentedAgChartLabelOptions> = {
     enabled: boolean,
     formatter: callback,
     format: numberFormatValidator,
-    itemStyler: callbackDefs<AgChartLabelStyleOptions>({
-        enabled: boolean,
-        ...labelBoxOptionsDef,
-        ...fontOptionsDef,
-    }),
+    itemStyler: undocumented(
+        callbackDefs<AgChartLabelStyleOptions>({
+            enabled: boolean,
+            ...labelBoxOptionsDef,
+            ...fontOptionsDef,
+        })
+    ),
     ...labelBoxOptionsDef,
     ...fontOptionsDef,
 };

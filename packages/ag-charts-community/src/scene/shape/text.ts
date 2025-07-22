@@ -314,6 +314,7 @@ export class Text<D = any> extends Shape<D> {
             const textBBox = Text.computeBBox(this.lines, this.x, this.y, opts);
             if (textBBox.width !== 0 && textBBox.height !== 0) {
                 const { x, y, width, height } = textBBox.grow(this.boxPadding);
+                this.boxing.opacity = this.opacity;
                 this.boxing.x = x;
                 this.boxing.y = y;
                 this.boxing.width = width;

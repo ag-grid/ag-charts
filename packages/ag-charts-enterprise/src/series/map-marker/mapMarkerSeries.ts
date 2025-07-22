@@ -507,6 +507,7 @@ export class MapMarkerSeries
         this.updateSelections();
 
         this.contentGroup.visible = this.visible;
+        this.labelGroup.visible = this.visible;
 
         let highlightedDatum: MapMarkerNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
         const { legendItemName } = this.properties;

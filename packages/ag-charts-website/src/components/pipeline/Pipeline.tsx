@@ -58,6 +58,7 @@ const COLUMN_DEFS = [
     {
         field: 'status',
         width: 135,
+        minWidth: 180,
         valueGetter: (params) => {
             const fixVersionsArr = params.data.versions;
             const hasFixVersion = fixVersionsArr.length > 0;
@@ -67,7 +68,7 @@ const COLUMN_DEFS = [
                 if (fixVersion.toUpperCase() === 'NEXT') {
                     return 'Scheduled';
                 } else {
-                    return gridToChartVersion(fixVersion);
+                    return `Scheduled for ${gridToChartVersion(fixVersion)}`;
                 }
             }
             return 'Backlog';

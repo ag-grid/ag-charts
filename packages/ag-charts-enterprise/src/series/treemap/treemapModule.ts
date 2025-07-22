@@ -100,6 +100,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
         },
         gradientLegend: {
             enabled: true,
+            ..._ModuleSupport.LEGEND_CONTAINER_THEME,
         },
     },
 };

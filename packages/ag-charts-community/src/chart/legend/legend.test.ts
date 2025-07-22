@@ -831,6 +831,8 @@ describe('Legend', () => {
                     position: {
                         placement: 'right-top',
                         floating: true,
+                        xOffset: -50,
+                        yOffset: 120,
                     },
                 },
             });

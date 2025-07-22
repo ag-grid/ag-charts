@@ -18,6 +18,7 @@ import type {
     FontWeight,
     Formatter,
     Padding,
+    PixelSize,
 } from 'ag-charts-types';
 
 import type { HighlightNodeDatum, LegendChangeEvent } from '../../core/eventsHub';
@@ -296,6 +297,12 @@ export class Legend extends BaseProperties {
      */
     @Property
     spacing = 20;
+
+    @Property
+    xOffset?: PixelSize;
+
+    @Property
+    yOffset?: PixelSize;
 
     private readonly cleanup = new CleanupRegistry();
 
@@ -1173,8 +1180,9 @@ export class Legend extends BaseProperties {
     private positionLegendScene(ctx: LayoutContext) {
         if (!this.enabled || !this.data.length) return;
 
-        const { placement, floating } = expandLegendPosition(this.position);
-        const { layoutBox } = ctx;
+        const { placement, floating, xOffset, yOffset } = expandLegendPosition(this.position);
+        // When legend in floating, the X/Y translation is relative to the entire canvas & layoutBox doesn't shrink
+        const layoutBox = floating ? new BBox(0, 0, ctx.width, ctx.height) : ctx.layoutBox;
         const { x, y, width, height } = layoutBox;
         const [legendWidth, legendHeight] = this.calculateLegendDimensions(layoutBox);
 
@@ -1231,32 +1239,7 @@ export class Legend extends BaseProperties {
                     unreachable(placement);
             }
 
-            if (floating) {
-                switch (placement) {
-                    case 'top':
-                    case 'top-right':
-                    case 'top-left':
-                        translationY += legendSpacing;
-                        break;
-                    case 'bottom':
-                    case 'bottom-right':
-                    case 'bottom-left':
-                        translationY -= legendSpacing;
-                        break;
-                    case 'left':
-                    case 'left-top':
-                    case 'left-bottom':
-                        translationX += legendSpacing;
-                        break;
-                    case 'right':
-                    case 'right-top':
-                    case 'right-bottom':
-                        translationX -= legendSpacing;
-                        break;
-                    default:
-                        unreachable(placement);
-                }
-            } else {
+            if (!floating) {
                 let shrinkAmount: number;
                 let shrinkDirection: NonNullable<Parameters<(typeof layoutBox)['shrink']>[1]>;
                 switch (placement) {
@@ -1289,6 +1272,9 @@ export class Legend extends BaseProperties {
                 }
                 layoutBox.shrink(shrinkAmount, shrinkDirection);
             }
+
+            translationX += xOffset;
+            translationY += yOffset;
 
             // Round off for pixel grid alignment to work properly.
             this.group.translationX = Math.floor(x + translationX - legendBBox.x);

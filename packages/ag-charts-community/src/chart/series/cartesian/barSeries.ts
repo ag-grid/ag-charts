@@ -17,6 +17,7 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { BarShape } from '../../../scene/shape/barShape';
 import type { Text } from '../../../scene/shape/text';
+import { simpleMemorize2 } from '../../../util/memo';
 import { mergeDefaults } from '../../../util/object';
 import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -94,6 +95,8 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
 }
 
 type BarAnimationData = AbstractBarSeriesAnimationData<BarShape, BarNodeDatum>;
+
+const memoizedAggregateBarData = simpleMemorize2(aggregateBarData);
 
 export class BarSeries extends AbstractBarSeries<
     BarShape<BarNodeDatum>,
@@ -300,7 +303,7 @@ export class BarSeries extends AbstractBarSeries<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return aggregateBarData(xAxis.scale, xValues, yValues, domain);
+        return memoizedAggregateBarData(xAxis.scale.type, xValues, yValues, domain);
     }
 
     createNodeData() {

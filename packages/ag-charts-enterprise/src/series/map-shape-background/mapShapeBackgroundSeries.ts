@@ -162,6 +162,7 @@ export class MapShapeBackgroundSeries
         this.updateSelections();
 
         this.contentGroup.visible = this.visible;
+        this.labelGroup.visible = this.visible;
 
         const { nodeData = [] } = this.contextNodeData ?? {};
 

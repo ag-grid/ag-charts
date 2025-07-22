@@ -280,3 +280,17 @@ export function singleSeriesHighlightStyle(
         },
     };
 }
+
+export const LEGEND_CONTAINER_THEME: any = {
+    border: {
+        enabled: false,
+        stroke: { $foregroundBackgroundMix: 0.25 },
+        strokeOpacity: 1,
+        strokeWidth: 1,
+    },
+    cornerRadius: { $ref: 'borderRadius' },
+    fillOpacity: 1,
+    padding: {
+        $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, { $isUserOption: ['./fill', 5, 0] }],
+    },
+};

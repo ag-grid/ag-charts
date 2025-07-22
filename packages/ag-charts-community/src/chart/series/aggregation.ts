@@ -1,6 +1,4 @@
-import { ContinuousScale } from '../../scale/continuousScale';
-import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import type { Scale } from '../../scale/scale';
+import type { ScaleType } from '../../scale/scale';
 
 export const AGGREGATION_INDEX_X_MIN = 0;
 export const AGGREGATION_INDEX_X_MAX = 1;
@@ -16,17 +14,27 @@ export function aggregationRangeFittingPoints(data: any[]) {
     return (2 ** power) | 0;
 }
 
-export function aggregationDomain(scale: Scale<unknown, number>, domain: any[]): [number, number] {
-    if (!(ContinuousScale.is(scale) || DiscreteTimeScale.is(scale))) return [NaN, NaN];
-
-    let min = Infinity;
-    let max = -Infinity;
-    for (const d of domain) {
-        const value = Number(d);
-        min = Math.min(min, value);
-        max = Math.max(max, value);
+export function aggregationDomain(scale: ScaleType, domain: any[]): [number, number] {
+    switch (scale) {
+        case 'category':
+            return [NaN, NaN];
+        case 'number':
+        case 'time':
+        case 'ordinal-time':
+        case 'unit-time':
+            let min = Infinity;
+            let max = -Infinity;
+            for (const d of domain) {
+                const value = Number(d);
+                min = Math.min(min, value);
+                max = Math.max(max, value);
+            }
+            return [min, max];
+        case 'color':
+        case 'log':
+        case 'mercator':
+            return [0, 0];
     }
-    return [min, max];
 }
 
 export function aggregationXRatioForDatumIndex(datumIndex: any, domainCount: number) {

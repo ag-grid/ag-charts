@@ -577,8 +577,6 @@ export abstract class Axis<
                 initialPrimaryTickCount,
                 tickLayout: unzoomedTickLayout,
             };
-
-            this.unzoomedTickLayoutCache = unzoomedTickLayoutCache;
         } else {
             unzoomedTickLayout = unzoomedTickLayoutCache.tickLayout;
         }

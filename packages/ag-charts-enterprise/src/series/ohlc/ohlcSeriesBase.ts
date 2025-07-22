@@ -36,7 +36,10 @@ const {
     getShapeStyle,
     processedDataIsAnimatable,
     mergeDefaults,
+    simpleMemorize2,
 } = _ModuleSupport;
+
+const memoizedAggregateOhlcData = simpleMemorize2(aggregateOhlcData);
 
 export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
     readonly itemId: AgOhlcSeriesItemType;
@@ -174,7 +177,7 @@ export abstract class OhlcSeriesBase<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return aggregateOhlcData(xAxis.scale, xValues, highValues, lowValues, domain);
+        return memoizedAggregateOhlcData(xAxis.scale.type, xValues, highValues, lowValues, domain);
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
