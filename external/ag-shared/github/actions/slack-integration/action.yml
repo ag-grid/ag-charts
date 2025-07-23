@@ -8,8 +8,8 @@ inputs:
         options:
             - grid
             - charts
-    SLACK_WEBHOOK:
-        description: 'Slack webhook URL for sending messages'
+    SLACK_BOT_OAUTH_TOKEN:
+        description: 'Slack OAuth token for sending messages'
         required: true
     SLACK_CHANNEL:
         description: 'Slack channel to send messages'
@@ -66,9 +66,9 @@ runs:
               } >> $GITHUB_ENV
 
         - name: Create Slack Message
-          env:
-              SLACK_WEBHOOK: ${{ inputs.SLACK_WEBHOOK }}
-              SLACK_MESSAGE_BLOCKS: ${{ env.SLACK_MESSAGE_BLOCKS }}
           shell: bash
+          env:
+              SLACK_BOT_OAUTH_TOKEN: ${{ inputs.SLACK_BOT_OAUTH_TOKEN }}
+              SLACK_MESSAGE_BLOCKS: ${{ env.SLACK_MESSAGE_BLOCKS }}
           run: |
-              curl -X POST -H 'Content-type: application/json' $SLACK_WEBHOOK --data "$SLACK_MESSAGE_BLOCKS"
+              node ./external/ag-shared/scripts/slack/send-slack-message-command.mjs

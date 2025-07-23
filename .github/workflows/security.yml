@@ -143,7 +143,7 @@ jobs:
               with:
                   AG_LIBRARY: ${{ env.AG_LIBRARY }}
                   CTRF_REPORT_FILE: ${{ env.REPORT_FILE }}
-                  SLACK_WEBHOOK: ${{ secrets.CI_GATE_WEBHOOK }}
+                  SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
                   SLACK_CHANNEL: '#ci-chart-gate'
                   PREV_COMMIT_SHA: ${{ env.PREV_COMMIT_SHA }}
                   CURRENT_COMMIT_SHA: ${{ github.sha }}
