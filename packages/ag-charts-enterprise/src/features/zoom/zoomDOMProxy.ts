@@ -4,11 +4,19 @@ import { type BaseStyleTypeMap, boxEmpty } from 'ag-charts-core';
 const { ChartAxisDirection } = _ModuleSupport;
 
 type AxesHandlers = {
-    onAxisDragStart: (id: string, direction: _ModuleSupport.ChartAxisDirection) => void;
-    onAxisDragMove: (event: _Widget.DragWidgetEvent<'drag-move'>) => void;
+    onAxisDragStart: (direction: _ModuleSupport.ChartAxisDirection) => void;
+    onAxisDragMove: (
+        id: string,
+        direction: _ModuleSupport.ChartAxisDirection,
+        event: _Widget.DragWidgetEvent<'drag-move'>
+    ) => void;
     onAxisDragEnd: () => void;
     onAxisDoubleClick: (id: string, direction: _ModuleSupport.ChartAxisDirection) => void;
-    onAxisWheel: (direction: _ModuleSupport.ChartAxisDirection, event: _ModuleSupport.WheelWidgetEvent) => void;
+    onAxisWheel: (
+        id: string,
+        direction: _ModuleSupport.ChartAxisDirection,
+        event: _ModuleSupport.WheelWidgetEvent
+    ) => void;
 };
 
 type ProxyAxis = {
@@ -27,11 +35,11 @@ export class ZoomDOMProxy {
         this.axes.forEach((a) => a.div.destroy());
     }
 
-    update(enableAxisDragging: boolean, ctx: _ModuleSupport.ModuleContext) {
-        this.axes.forEach((ax) => ax.div.setHidden(!enableAxisDragging));
-        if (!enableAxisDragging) return;
+    update(enableAxisDragging: boolean, enableAxisScrolling: boolean, ctx: _ModuleSupport.ModuleContext) {
+        this.axes.forEach((ax) => ax.div.setHidden(!enableAxisDragging && !enableAxisScrolling));
+        if (!enableAxisDragging && !enableAxisScrolling) return;
 
-        const { X, Y } = _ModuleSupport.ChartAxisDirection;
+        const { X, Y } = ChartAxisDirection;
         const axesCtx = [...ctx.axisManager.getAxisContext(X), ...ctx.axisManager.getAxisContext(Y)];
         const { removed, added } = this.diffAxisIds(axesCtx);
 
@@ -92,12 +100,12 @@ export class ZoomDOMProxy {
             if (e.device === 'touch') {
                 e.sourceEvent.preventDefault();
             }
-            handlers.onAxisDragStart(axisId, direction);
+            handlers.onAxisDragStart(direction);
         });
-        div.addListener('drag-move', (ev) => handlers.onAxisDragMove(ev));
+        div.addListener('drag-move', (event) => handlers.onAxisDragMove(axisId, direction, event));
         div.addListener('drag-end', handlers.onAxisDragEnd);
         div.addListener('dblclick', () => handlers.onAxisDoubleClick(axisId, direction));
-        div.addListener('wheel', (event) => handlers.onAxisWheel(direction, event));
+        div.addListener('wheel', (event) => handlers.onAxisWheel(axisId, direction, event));
         return { axisId, div, direction };
     }
 

@@ -585,6 +585,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
             applyShapeStyle(rect, style, fillBBox);
 
+            rect.cornerRadius = style.cornerRadius ?? 0;
+
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
             rect.crisp = datum.crisp;
