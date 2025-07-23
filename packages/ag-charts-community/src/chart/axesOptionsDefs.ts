@@ -193,8 +193,9 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions<AgBaseAxi
         style: arrayOfDefs<AgAxisGridStyle>(
             {
                 fill: color,
-                fillOpacity: number,
+                fillOpacity: positiveNumber,
                 stroke: or(color, themeOperator),
+                strokeWidth: positiveNumber,
                 lineDash: arrayOf(positiveNumber),
             },
             'a grid-line style object array'

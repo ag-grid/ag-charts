@@ -12,7 +12,10 @@ export class AxisGridLine {
     @Property
     style: AgAxisGridStyle[] = [
         {
+            fill: undefined,
+            fillOpacity: 1,
             stroke: undefined,
+            strokeWidth: undefined,
             lineDash: [],
         },
     ];

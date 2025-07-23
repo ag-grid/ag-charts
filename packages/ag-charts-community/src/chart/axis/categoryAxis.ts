@@ -95,8 +95,8 @@ export class CategoryAxis<
         const [x1, y1, x2, y2] = horizontal
             ? [offset, Math.max(p1, p2), offset, Math.min(p1, p2)]
             : [Math.min(p1, p2), offset, Math.max(p1, p2), offset];
-        const { style, width: strokeWidth } = gridLine;
-        const { stroke, lineDash } = style[tickIndex % style.length] ?? {};
+        const { style } = gridLine;
+        const { stroke, strokeWidth = 0, lineDash } = style[tickIndex % style.length] ?? {};
 
         return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
     }
