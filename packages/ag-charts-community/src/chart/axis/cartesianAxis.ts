@@ -319,23 +319,19 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected calculateGridFills(ticks: GridLineStyleTickDatum[], p1: number, p2: number) {
-        const { range } = this;
+        const { horizontal, range } = this;
 
         const gridFills: AxisFillDatum[] = [];
         if (ticks.length == 0) return gridFills;
-        let gridFillIndexOffset = 0;
-        // Inject an additional grid fill between the start and the first tick
-        if (ticks[0].translation !== Math.floor(range[0])) {
-            const tick = { tickId: `before:${ticks[0].tickId}`, translation: range[0] };
-            gridFills.push(this.calculateGridFill(tick, -1, ticks[0].index, p1, p2, ticks));
-            gridFillIndexOffset = 1;
+
+        const firstFillOffCanvas =
+            (!horizontal && ticks[0].translation < range[0]) || (horizontal && ticks[0].translation > range[0]);
+        if (firstFillOffCanvas) {
+            const injectedTick = { tickId: `before:${ticks[0].tickId}`, translation: range[0] };
+            gridFills.push(this.calculateGridFill(injectedTick, -1, ticks[0].index - 1, p1, p2, ticks));
         }
 
-        gridFills.push(
-            ...ticks.map((tick, index) =>
-                this.calculateGridFill(tick, index, tick.index + gridFillIndexOffset, p1, p2, ticks)
-            )
-        );
+        gridFills.push(...ticks.map((tick, index) => this.calculateGridFill(tick, index, tick.index, p1, p2, ticks)));
 
         return gridFills;
     }
