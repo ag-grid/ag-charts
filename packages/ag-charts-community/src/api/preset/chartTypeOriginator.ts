@@ -23,7 +23,7 @@ export class ChartTypeOriginator implements MementoOriginator<ChartTypeMemento> 
 
     public createMemento() {
         let chartType = (this.chartService.publicApi?.getOptions() as AgFinancialChartOptions)?.chartType;
-        if (chartType == null) chartType = 'candlestick';
+        chartType ??= 'candlestick';
         return chartType;
     }
 

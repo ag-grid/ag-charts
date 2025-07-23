@@ -292,10 +292,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     getDefaultGradientFillBBox(): BBox {
-        if (this.cachedDefaultGradientFillBBox == null) {
-            this.cachedDefaultGradientFillBBox = Object.freeze(this.computeDefaultGradientFillBBox()) as BBox;
-        }
-
+        this.cachedDefaultGradientFillBBox ??= Object.freeze(this.computeDefaultGradientFillBBox()) as BBox;
         return this.cachedDefaultGradientFillBBox;
     }
 
