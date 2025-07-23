@@ -171,7 +171,9 @@ export interface AgChartLegendOptions<TContext = ContextDefault> {
     fillOpacity?: Ratio;
     /** The padding between the border and legend items. */
     padding?: Padding;
-    /** The spacing in pixels to use outside the legend. */
+    /** The spacing in pixels to use outside the legend. Note: This only applies when `floating: false`.
+     *
+     * Default: `30` */
     spacing?: PixelSize;
     /** Configuration for the legend items that consist of a marker and a label. */
     item?: AgChartLegendItemOptions;
