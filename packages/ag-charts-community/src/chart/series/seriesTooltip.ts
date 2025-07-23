@@ -8,8 +8,7 @@ import type {
 } from 'ag-charts-types';
 
 import { callWithContext } from '../../util/callbackCache';
-import { BaseProperties } from '../../util/properties';
-import { Property } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
 import { type TooltipContent, TooltipPosition, type TooltipStructuredContent } from '../tooltip/tooltip';
 
 type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;

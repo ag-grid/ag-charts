@@ -21,7 +21,7 @@ export function aggregationDomain(scale: ScaleType, domain: any[]): [number, num
         case 'number':
         case 'time':
         case 'ordinal-time':
-        case 'unit-time':
+        case 'unit-time': {
             let min = Infinity;
             let max = -Infinity;
             for (const d of domain) {
@@ -30,6 +30,7 @@ export function aggregationDomain(scale: ScaleType, domain: any[]): [number, num
                 max = Math.max(max, value);
             }
             return [min, max];
+        }
         case 'color':
         case 'log':
         case 'mercator':

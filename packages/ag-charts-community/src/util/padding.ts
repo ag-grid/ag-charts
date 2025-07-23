@@ -1,5 +1,4 @@
-import { BaseProperties } from './properties';
-import { Property } from './properties';
+import { BaseProperties, Property } from './properties';
 
 export class Padding extends BaseProperties {
     @Property

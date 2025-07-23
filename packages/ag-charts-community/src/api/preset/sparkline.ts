@@ -238,7 +238,7 @@ function axisPreset(opts: AgSparklineAxisOptions | undefined): AgCartesianAxisOp
             });
         }
         case 'category':
-        default:
+        default: {
             const { paddingInner, paddingOuter, reverse } = opts ?? {};
             return pickProps<Pick<AgCategoryAxisOptions, 'type' | 'reverse' | 'paddingInner' | 'paddingOuter'>>(
                 { ...opts, type: 'category' },
@@ -249,6 +249,7 @@ function axisPreset(opts: AgSparklineAxisOptions | undefined): AgCartesianAxisOp
                     paddingOuter,
                 }
             );
+        }
     }
 }
 

@@ -70,12 +70,13 @@ function getOperationTargetVertex(graph: OptionsGraphInterface, vertex: VertexIn
     const operation = getOperation(graph.getVertexValue(valueVertex));
 
     switch (operation?.operation) {
-        case LocationOperation.Path:
+        case LocationOperation.Path: {
             const [relativePath] = operation.values;
             const pathArray = graph.getPathArray(vertex);
             const path = resolvePath(pathArray, relativePath);
             if (path === UNRESOLVABLE_PATH) return;
             return graph.findVertexAtPath(path);
+        }
 
         case TransformOperation.Value:
             return vertex;

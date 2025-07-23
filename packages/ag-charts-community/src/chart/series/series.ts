@@ -968,7 +968,7 @@ export abstract class Series<
         switch (property) {
             case 'y':
             case 'color':
-            case 'size':
+            case 'size': {
                 const fractionDigits = undefined;
                 return format({
                     type: 'number',
@@ -983,6 +983,7 @@ export abstract class Series<
                     boundSeries,
                     fractionDigits,
                 });
+            }
 
             case 'x':
             case 'radius':

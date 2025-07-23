@@ -269,12 +269,10 @@ export function gauge(
 ): AgGaugeChartOptions {
     switch (opts.type) {
         case 'radial-gauge':
-            const radialGaugeOpts = applyThemeDefaults(opts, presetTheme as any);
-            return radialGaugeOptions(radialGaugeOpts);
+            return radialGaugeOptions(applyThemeDefaults(opts, presetTheme as any));
 
         case 'linear-gauge':
-            const linearGaugeOpts = applyThemeDefaults(opts, presetTheme as any);
-            return linearGaugeOptions(linearGaugeOpts);
+            return linearGaugeOptions(applyThemeDefaults(opts, presetTheme as any));
 
         default:
             return {};

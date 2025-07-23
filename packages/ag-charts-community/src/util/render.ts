@@ -70,11 +70,9 @@ function buildScheduler(scheduleFn: (cb: () => void, delayMs?: number) => void, 
                 return;
             }
 
-            if (awaitingPromise == null) {
-                awaitingPromise = new Promise((resolve) => {
-                    awaitingDone = resolve;
-                });
-            }
+            awaitingPromise ??= new Promise((resolve) => {
+                awaitingDone = resolve;
+            });
 
             while (busy()) {
                 await awaitingPromise;

@@ -4,8 +4,7 @@ import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionR
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import { type Bounds, type Placement, calculatePlacement } from '../../util/placement';
-import { BaseProperties } from '../../util/properties';
-import { Property } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
 import { SizeMonitor } from '../../util/sizeMonitor';
 import { SpringAnimation } from './springAnimation';
 import {

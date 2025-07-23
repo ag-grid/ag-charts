@@ -122,9 +122,7 @@ export class CrossLineScene extends AnnotationScene {
         axisContext: AnnotationAxisContext,
         coords: _ModuleSupport.Vec4
     ) {
-        if (!this.axisLabel) {
-            this.axisLabel = this.createAxisLabel(axisContext);
-        }
+        this.axisLabel ??= this.createAxisLabel(axisContext);
 
         const { axisLabel, seriesRect } = this;
         const { direction, position } = axisContext;

@@ -1,7 +1,6 @@
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
-import { BaseProperties } from '../../util/properties';
-import { Property } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
 import { Overlay } from './overlay';
 
 export class ChartOverlays extends BaseProperties {

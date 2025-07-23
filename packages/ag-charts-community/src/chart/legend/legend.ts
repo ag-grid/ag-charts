@@ -1,9 +1,10 @@
 import type {
+    AnyFn,
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
-import { type AnyFn, CleanupRegistry, Logger, clamp, createId } from 'ag-charts-core';
+import { CleanupRegistry, Logger, clamp, createId } from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
