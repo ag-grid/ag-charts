@@ -1,3 +1,4 @@
+import { isArray } from 'ag-charts-core';
 import type { TextAlign } from 'ag-charts-types';
 
 import type { LayoutCompleteEvent } from '../core/eventsHub';
@@ -22,17 +23,16 @@ export class ChartCaptions {
         const maxHeight = ctx.layoutBox.height / 10; // Limit to 10% of layout initial height
 
         if (title.enabled) {
-            const { spacing } = title;
             this.positionCaption('top', title, ctx.layoutBox, maxHeight);
-            this.shrinkLayoutByCaption('top', title, ctx.layoutBox, spacing);
+            this.shrinkLayoutByCaption('top', title, ctx.layoutBox);
         }
         if (subtitle.enabled) {
             this.positionCaption('top', subtitle, ctx.layoutBox, maxHeight);
-            this.shrinkLayoutByCaption('top', subtitle, ctx.layoutBox, subtitle.spacing);
+            this.shrinkLayoutByCaption('top', subtitle, ctx.layoutBox);
         }
         if (footnote.enabled) {
             this.positionCaption('bottom', footnote, ctx.layoutBox, maxHeight);
-            this.shrinkLayoutByCaption('bottom', footnote, ctx.layoutBox, footnote.spacing);
+            this.shrinkLayoutByCaption('bottom', footnote, ctx.layoutBox);
         }
     }
 
@@ -69,9 +69,14 @@ export class ChartCaptions {
         caption.computeTextWrap(layoutBox.width, containerHeight);
     }
 
-    private shrinkLayoutByCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox, spacing: number = 0) {
+    private shrinkLayoutByCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox) {
         if (caption.layoutStyle === 'block') {
-            const bbox = caption.node.getTextMeasureBBox();
+            const bbox = caption.node.getBBox();
+            const { spacing = 0 } = caption;
+            if (vAlign === 'bottom' && isArray(caption.text)) {
+                caption.node.y -= bbox.height;
+                bbox.y -= bbox.height;
+            }
             layoutBox.shrink(
                 vAlign === 'top'
                     ? Math.ceil(bbox.y - layoutBox.y + bbox.height + spacing)
