@@ -323,22 +323,18 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         const gridFills: AxisFillDatum[] = [];
         if (ticks.length == 0) return gridFills;
-
-        let gridFillIndex = ticks[0].index;
-
+        let gridFillIndexOffset = 0;
         // Inject an additional grid fill between the start and the first tick
         if (ticks[0].translation !== Math.floor(range[0])) {
             const tick = { tickId: `before:${ticks[0].tickId}`, translation: range[0] };
-            gridFills.push(this.calculateGridFill(tick, -1, gridFillIndex, p1, p2, ticks));
-            gridFillIndex++;
+            gridFills.push(this.calculateGridFill(tick, -1, ticks[0].index, p1, p2, ticks));
+            gridFillIndexOffset = 1;
         }
 
         gridFills.push(
-            ...ticks.map((tick, index) => {
-                const gridFill = this.calculateGridFill(tick, index, gridFillIndex, p1, p2, ticks);
-                gridFillIndex++;
-                return gridFill;
-            })
+            ...ticks.map((tick, index) =>
+                this.calculateGridFill(tick, index, tick.index + gridFillIndexOffset, p1, p2, ticks)
+            )
         );
 
         return gridFills;

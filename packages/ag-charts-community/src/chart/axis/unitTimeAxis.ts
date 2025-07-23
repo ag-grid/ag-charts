@@ -16,11 +16,11 @@ import { labelSpecifier } from '../label';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
-import { CategoryAxis } from './categoryAxis';
+import { DiscreteTimeAxis } from './discreteTimeAxis';
 import { TimeAxisParentLevel, calculateDefaultUnit, normaliseTimeDataDomain } from './timeAxis';
 import { deriveTimeSpecifier } from './timeFormatUtil';
 
-export class UnitTimeAxis extends CategoryAxis<UnitTimeScale> {
+export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
     static override readonly className = 'UnitTimeAxis' as const;
     static override readonly type = 'unit-time' as const;
 

@@ -84,14 +84,14 @@ export class CategoryAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisLineDatum {
-        const { gridLine, horizontal, interval, range } = this;
+        const { gridLine, horizontal, interval, scale } = this;
 
         if (interval.placement !== 'between') {
             return super.calculateGridLine({ index: tickIndex, tickId, translation }, index, p1, p2, ticks);
         }
 
-        const prevTick = ticks[index - 1];
-        const offset = prevTick ? translation - (translation - prevTick.translation) / 2 : range[0];
+        const halfStep = translation < scale.step ? Math.floor(scale.step / 2) : scale.step / 2;
+        const offset = translation - halfStep;
         const [x1, y1, x2, y2] = horizontal
             ? [offset, Math.max(p1, p2), offset, Math.min(p1, p2)]
             : [Math.min(p1, p2), offset, Math.max(p1, p2), offset];
@@ -102,10 +102,23 @@ export class CategoryAxis<
     }
 
     protected override calculateGridFills(ticks: GridLineStyleTickDatum[], p1: number, p2: number): AxisFillDatum[] {
+        const { range, scale } = this;
+
         if (this.interval.placement !== 'between') {
             return super.calculateGridFills(ticks, p1, p2);
         }
-        return ticks.map((tick, index) => this.calculateGridFill(tick, index, tick.index, p1, p2, ticks));
+
+        const gridFills: AxisFillDatum[] = [];
+        if (ticks.length == 0) return gridFills;
+
+        if (ticks[0].translation > range[0] + scale.step / 2) {
+            const tick = { tickId: `before:${ticks[0].tickId}`, translation: ticks[0].translation - scale.step };
+            gridFills.push(this.calculateGridFill(tick, -1, ticks[0].index - 1, p1, p2, ticks));
+        }
+
+        gridFills.push(...ticks.map((tick, index) => this.calculateGridFill(tick, index, tick.index, p1, p2, ticks)));
+
+        return gridFills;
     }
 
     protected override calculateGridFill(
@@ -116,16 +129,14 @@ export class CategoryAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisFillDatum {
-        const { gridLine, horizontal, interval, range } = this;
+        const { gridLine, horizontal, interval, scale } = this;
 
         if (interval.placement !== 'between') {
             return super.calculateGridFill({ tickId, translation }, index, gridFillIndex, p1, p2, ticks);
         }
 
-        const prevTick = ticks[index - 1];
-        const nextTick = ticks[index + 1];
-        const startOffset = prevTick ? translation - (translation - prevTick.translation) / 2 : range[0];
-        const endOffset = nextTick ? translation + (nextTick.translation - translation) / 2 : range[1];
+        const startOffset = translation - scale.step / 2;
+        const endOffset = translation + scale.step / 2;
 
         const [x1, y1, x2, y2] = horizontal
             ? [startOffset, Math.max(p1, p2), endOffset, Math.min(p1, p2)]
@@ -158,7 +169,7 @@ export class CategoryAxis<
         direction: number,
         ticks: TickDatum[]
     ): AxisLineDatum {
-        const { horizontal, interval, primaryTick, range, tick } = this;
+        const { horizontal, interval, primaryTick, scale, tick } = this;
 
         if (interval.placement !== 'between') {
             return super.calculateTickLine({ primary, tickId, translation }, index, direction, ticks);
@@ -166,8 +177,8 @@ export class CategoryAxis<
 
         const datumTick = primary && primaryTick?.enabled ? primaryTick : tick;
         const h = -direction * this.getTickSize(datumTick);
-        const prevTick = ticks[index - 1];
-        const offset = prevTick ? translation - (translation - prevTick.translation) / 2 : range[0];
+        const halfStep = translation < scale.step ? Math.floor(scale.step / 2) : scale.step / 2;
+        const offset = translation - halfStep;
         const [x1, y1, x2, y2] = horizontal ? [offset, 0, offset, h] : [0, offset, h, offset];
         const { stroke, width: strokeWidth } = datumTick;
         const lineDash = undefined;
