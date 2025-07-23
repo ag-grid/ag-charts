@@ -1192,9 +1192,13 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             .filter((d) => d.midSin >= 0 && d.calloutLabel?.textAlign === 'center')
             .sort((a, b) => a.midCos - b.midCos);
 
+        const params = { angleKey: this.properties.angleKey };
         const getTextBBox = (datum: (typeof data)[number]) => {
             const label = datum.calloutLabel;
             if (label == null) return BBox.zero.clone();
+
+            type TParams = AgDonutSeriesLabelFormatterParams;
+            const style = getLabelStyles<TParams>(this, datum, params, calloutLabel);
 
             const labelRadius = datum.outerRadius + calloutLine.length + offset;
             const x = datum.midCos * labelRadius;
@@ -1208,7 +1212,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 y,
                 { font: this.properties.calloutLabel, textAlign, textBaseline },
                 false
-            );
+            ).grow(style.padding ?? {});
         };
 
         const avoidNeighbourYCollision = (
@@ -1396,23 +1400,27 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             }
         }
 
+        type TParams = AgDonutSeriesLabelFormatterParams;
+        const params: TParams = { angleKey: this.properties.angleKey };
         this.calloutNodeData.forEach((datum) => {
             const label = datum.calloutLabel;
             if (!label || datum.outerRadius === 0) {
                 return null;
             }
 
+            const style = getLabelStyles<TParams>(this, datum, params, calloutLabel);
             const labelRadius = datum.outerRadius + calloutLength + offset;
             const x = datum.midCos * labelRadius;
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
             text.text = label.text;
             text.x = x;
             text.y = y;
-            text.setFont(this.properties.calloutLabel);
+            text.setFont(style);
             text.setAlign({
                 textAlign: label.collisionTextAlign ?? label.textAlign,
                 textBaseline: label.textBaseline,
             });
+            text.setBoxing(style);
             const box = text.getBBox(false);
             label.box = box;
 
