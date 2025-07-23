@@ -16,6 +16,7 @@ env:
     REPORT_FILE: report.json
     PREV_COMMIT_SHA_FILE: ./commit-sha.txt
     REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+    AG_LIBRARY: charts
 
 jobs:
     code-dependency-scan:
@@ -140,6 +141,7 @@ jobs:
               continue-on-error: true
               uses: ./external/ag-shared/github/actions/slack-integration
               with:
+                  AG_LIBRARY: ${{ env.AG_LIBRARY }}
                   CTRF_REPORT_FILE: ${{ env.REPORT_FILE }}
                   SLACK_WEBHOOK: ${{ secrets.CI_GATE_WEBHOOK }}
                   SLACK_CHANNEL: '#ci-chart-gate'
