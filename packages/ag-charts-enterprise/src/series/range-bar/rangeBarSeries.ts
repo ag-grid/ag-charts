@@ -381,6 +381,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 handleDatum(midDatumIndex, 0, x, width, yLow, yHigh, false);
             }
         } else if (processedData.type === 'ungrouped') {
+            const invalidData = processedData.invalidData?.get(this.id);
             let [start, end] = this.visibleRangeIndices('xValue', xAxis.range);
             // @todo(AG-13575) Remove this if block
             if (processedData.input.count < 1e3) {
@@ -389,6 +390,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             }
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
+                if (invalidData?.[datumIndex] === true) continue;
+
                 const x = xPosition(datumIndex);
                 const width = effectiveBarWidth;
                 const yLow = yLowValues[datumIndex];

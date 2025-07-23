@@ -1,0 +1,32 @@
+---
+title: 'Fills & Borders'
+---
+
+This section describes how to change the fills and borders of various parts of the chart.
+
+{% chartExampleRunner title="Fills & Borders" name="fills-borders" type="generated" /%}
+
+In the example above:
+
+-   A border is drawn around the series area with a corner radius and no padding.
+-   A border, fill and corner radius are applied to the legend, with padding between the border and items as a single number.
+-   A border, fill and corner radius are applied to the series data labels with padding defined for each of the top, right, bottom and left.
+
+## Fills
+
+See [Series Fills](./fills) for details on customising the fills for each series.
+
+## Padding
+
+The padding can be provided as either a single number of an object with values for `top`, `right`, `bottom` and `left`.
+
+## API Reference
+
+{% tabs %}
+{% tabItem id="AgSeriesAreaOptions" label="Series Area"  %}
+{% apiReference id="AgSeriesAreaOptions" exclude=["clip"] /%}
+{% /tabItem %}
+{% tabItem id="LabelBoxOptions" label="Label Box"  %}
+{% apiReference id="LabelBoxOptions" /%}
+{% /tabItem %}
+{% /tabs %}

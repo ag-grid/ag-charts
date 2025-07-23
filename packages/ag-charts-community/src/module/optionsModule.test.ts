@@ -480,6 +480,11 @@ describe('ChartOptions', () => {
       },
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "white",
       "cornerRadius": 4,
       "enabled": false,
@@ -574,6 +579,11 @@ describe('ChartOptions', () => {
       },
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "white",
       "cornerRadius": 4,
       "enabled": false,
@@ -668,6 +678,11 @@ describe('ChartOptions', () => {
       },
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "white",
       "cornerRadius": 4,
       "enabled": false,
@@ -762,6 +777,11 @@ describe('ChartOptions', () => {
       },
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "white",
       "cornerRadius": 4,
       "enabled": false,
@@ -820,6 +840,11 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "#181d1f",
       "cornerRadius": 4,
       "enabled": false,
@@ -906,6 +931,11 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "#181d1f",
       "cornerRadius": 4,
       "enabled": false,
@@ -1039,6 +1069,11 @@ describe('ChartOptions', () => {
       },
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "white",
       "cornerRadius": 4,
       "enabled": false,
@@ -1133,6 +1168,11 @@ describe('ChartOptions', () => {
       },
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "white",
       "cornerRadius": 4,
       "enabled": false,
@@ -1227,6 +1267,11 @@ describe('ChartOptions', () => {
       },
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "white",
       "cornerRadius": 4,
       "enabled": false,
@@ -1321,6 +1366,11 @@ describe('ChartOptions', () => {
       },
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "white",
       "cornerRadius": 4,
       "enabled": false,
@@ -1379,6 +1429,11 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "#181d1f",
       "cornerRadius": 4,
       "enabled": false,
@@ -1465,6 +1520,11 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "#181d1f",
       "cornerRadius": 4,
       "enabled": false,
@@ -1598,6 +1658,11 @@ describe('ChartOptions', () => {
       },
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "white",
       "cornerRadius": 4,
       "enabled": false,
@@ -1692,6 +1757,11 @@ describe('ChartOptions', () => {
       },
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "white",
       "cornerRadius": 4,
       "enabled": false,
@@ -1786,6 +1856,11 @@ describe('ChartOptions', () => {
       },
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "white",
       "cornerRadius": 4,
       "enabled": false,
@@ -1880,6 +1955,11 @@ describe('ChartOptions', () => {
       },
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "white",
       "cornerRadius": 4,
       "enabled": false,
@@ -1938,6 +2018,11 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "#181d1f",
       "cornerRadius": 4,
       "enabled": false,
@@ -2024,6 +2109,11 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(24, 29, 31, 0.08)",
+        "strokeWidth": 1,
+      },
       "color": "#181d1f",
       "cornerRadius": 4,
       "enabled": false,

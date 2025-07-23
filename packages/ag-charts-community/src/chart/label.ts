@@ -34,6 +34,9 @@ interface FormatterCache {
 
 export class LabelBorder {
     @Property
+    enabled: boolean = true;
+
+    @Property
     stroke?: string;
 
     @Property

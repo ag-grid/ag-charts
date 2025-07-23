@@ -21,7 +21,6 @@ import type {
 } from 'ag-charts-types';
 
 import {
-    bandTimeAxisIntervalOptionsDefs,
     cartesianAxisBandHighlightOptions,
     cartesianAxisCrosshairOptions,
     cartesianAxisOptionsDefs,
@@ -32,6 +31,7 @@ import {
     commonCrossLineLabelOptionsDefs,
     commonCrossLineOptionsDefs,
     continuousAxisOptions,
+    discreteTimeAxisIntervalOptionsDefs,
 } from './axesOptionsDefs';
 import { numberFormatValidator, textOrSegments } from './commonOptionsDefs';
 
@@ -43,7 +43,7 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
     groupPaddingInner: ratio,
     label: cartesianTimeAxisLabel,
     parentLevel: cartesianTimeAxisParentLevel,
-    interval: bandTimeAxisIntervalOptionsDefs,
+    interval: discreteTimeAxisIntervalOptionsDefs,
     crosshair: cartesianAxisCrosshairOptions(true, true),
     bandHighlight: cartesianAxisBandHighlightOptions,
 };

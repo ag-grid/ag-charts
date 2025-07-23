@@ -49,6 +49,7 @@ NodeList [
       >
         <svg
           height="12"
+          overflow="visible"
           viewBox="0 0 12 12"
           width="12"
         >

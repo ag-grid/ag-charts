@@ -154,11 +154,6 @@
                         },
                         {
                             "type": "item",
-                            "title": "Series Labels",
-                            "path": "labels"
-                        },
-                        {
-                            "type": "item",
                             "title": "Annotations",
                             "path": "annotations",
                             "isEnterprise": true
@@ -250,6 +245,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Fills & Borders",
+                            "path": "fills-borders"
+                        },
+                        {
+                            "type": "item",
                             "title": "Fonts",
                             "path": "fonts"
                         },
@@ -262,11 +262,6 @@
                             "type": "item",
                             "title": "Overlays",
                             "path": "overlays"
-                        },
-                        {
-                            "type": "item",
-                            "title": "Series Area",
-                            "path": "series-area"
                         },
                         {
                             "type": "item",
