@@ -32,12 +32,33 @@ gridLine: {
 },
 ```
 
-The `gridLine.style` property takes an array of objects containing two properties:
+The `gridLine.style` property takes an array of objects containing the properties:
 
 -   `stroke` - The colour of the line.
+-   `strokeWidth` - The width of the line.
 -   `lineDash` - How the line stroke is rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. If the array is empty, the grid lines will be solid without any dashes.
+-   `fill` - The colour of the fill between grid lines.
+-   `fillOpacity` - The opacity of the fill between grid lines.
 
 Each object in the `gridLine.style` array is applied to the each grid line sequentially, looping around if necessary. This allows alternating styles across multiple grid lines, or styling each individual grid line separately.
+
+## Alternating Grid Fills
+
+An alternating grid fill pattern can be achieved using the `fill` and `fillOpacity` properties of each object within the `gridLine.style` array.
+
+{% chartExampleRunner title="Axis Grid Fills" name="axis-grid-fills" type="generated" /%}
+
+```js
+gridLine: {
+    style: [
+        {
+            fill: 'black',
+            fillOpacity: 0.05
+        },
+        {},
+    ],
+},
+```
 
 {% note %}
 The interval and position of grid lines is controlled by the [Axis Interval](./axes-intervals/) options.
