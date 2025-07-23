@@ -723,6 +723,9 @@ describe('BarSeries', () => {
 
     describe('AG-15448', () => {
         const DATA1 = [
+            { year: '2016', visitors: 46636720, status: 1 },
+            { year: '2017', visitors: 48772922, status: 1 },
+            { year: '2018', visitors: 50800193, status: 1 },
             { year: '2019', visitors: 48023342, status: 2 },
             { year: '2022', visitors: 49441678, status: 2 }, // This overlaps with the DATA2 dataset and can render in the wrong color.
             { year: '2023', visitors: 50368190, status: 1 },
@@ -734,16 +737,20 @@ describe('BarSeries', () => {
             { year: '2022', visitors: 48772982, status: 2 },
         ];
 
-        const EXAMPLE_OPTIONS: AgCartesianChartOptions = {
+        const EXAMPLE_OPTIONS: AgCartesianChartOptions<
+            { year: string; visitors: number; status: number },
+            { colors: Record<number, string> }
+        > = {
+            context: { colors: { 1: 'orange', 2: 'green' } },
             data: DATA1,
             series: [
                 {
                     type: 'bar',
                     xKey: 'year',
                     yKey: 'visitors',
-                    label: { formatter: ({ datum }) => (datum.status === 1 ? 'orange' : 'green') },
-                    itemStyler: ({ datum }) => ({
-                        fill: datum.status === 1 ? 'orange' : 'green',
+                    label: { formatter: ({ datum, context }) => context?.colors[datum.status] ?? 'none' },
+                    itemStyler: ({ datum, context }) => ({
+                        fill: context?.colors[datum.status] ?? 'none',
                     }),
                 },
             ],
@@ -753,7 +760,8 @@ describe('BarSeries', () => {
             const options = { ...EXAMPLE_OPTIONS };
             prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = AgCharts.create(options) as AgChartInstance;
+            await waitForChartStability(chart);
             await chart.updateDelta({ data: DATA2 });
             await compare();
         });
