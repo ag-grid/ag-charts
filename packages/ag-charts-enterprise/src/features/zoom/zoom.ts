@@ -434,12 +434,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             axisDragger,
             dragState,
             enabled,
+            enableAxisDragging,
             seriesRect,
             shouldFlipXY,
             ctx: { interactionManager, tooltipManager, updateService, zoomManager },
         } = this;
 
-        if (!enabled || !seriesRect) return;
+        if (!enabled || !enableAxisDragging || !seriesRect) return;
 
         interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
         if (event.device === 'touch') {
@@ -470,13 +471,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             dragState,
             domProxy,
             enabled,
+            enableAxisDragging,
             ctx: { domManager, interactionManager, tooltipManager },
         } = this;
 
         interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
 
         // Stop single clicks from triggering drag end and resetting the zoom
-        if (!enabled || dragState === DragState.None) return;
+        if (!enabled || !enableAxisDragging || dragState === DragState.None) return;
 
         this.dragState = DragState.None;
 
