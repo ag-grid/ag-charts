@@ -341,7 +341,12 @@ export const fontOptionsDef: OptionsDefs<FontOptions> = {
 };
 
 export const paddingOptions = optionsDefs<PaddingOptions>(
-    { top: number, right: number, bottom: number, left: number },
+    {
+        top: positiveNumber,
+        right: positiveNumber,
+        bottom: positiveNumber,
+        left: positiveNumber,
+    },
     'padding object'
 );
 export const padding = or(number, paddingOptions);

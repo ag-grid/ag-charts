@@ -278,7 +278,7 @@ export class CartesianChart extends Chart {
 
             const { primaryTickCount, bbox } = axis.calculateLayout(
                 axis.nice ? primaryTickCounts[direction] : undefined,
-                { sizeLimit: axisWidth - axis.label.spacing, padding: this.padding }
+                { sizeLimit: axisWidth - axis.label.spacing, padding: this.paddingInternal }
             );
 
             primaryTickCounts[direction] ??= primaryTickCount;

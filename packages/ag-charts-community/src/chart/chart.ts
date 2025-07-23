@@ -26,6 +26,7 @@ import type {
     AgMiniChartSeriesOptions,
     AgPolarAxisOptions,
     FormatterConfiguration,
+    Padding as PaddingOption,
     SeriesOptionsTypes,
     SeriesType,
     TextOrSegments,
@@ -207,8 +208,18 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
     private readonly chartCaptions = new ChartCaptions();
 
+    @ActionOnSet<Chart>({
+        changeValue(newValue) {
+            if (typeof newValue === 'number') {
+                this.paddingInternal = new Padding(newValue, newValue, newValue, newValue);
+            } else {
+                this.paddingInternal = new Padding(newValue.top, newValue.right, newValue.bottom, newValue.left);
+            }
+        },
+    })
     @Property
-    readonly padding = new Padding(20);
+    readonly padding!: PaddingOption;
+    paddingInternal!: Padding;
 
     get seriesAreaBoundingBox() {
         return this.seriesAreaManager.bbox;
@@ -362,7 +373,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
         this.cleanup.register(
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
-                e.layoutBox.shrink(this.padding.toJson());
+                e.layoutBox.shrink(this.paddingInternal.toJson());
                 this.chartCaptions.positionCaptions(e);
             }),
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
@@ -1178,7 +1189,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this.ctx.seriesLabelLayoutManager.updateLabels(
             this.series.filter((s) => s.visible && s.usesPlacedLabels),
-            this.padding,
+            this.paddingInternal,
             this.seriesRect
         );
     }

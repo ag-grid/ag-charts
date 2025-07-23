@@ -206,8 +206,8 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
      * Default: `300`
      */
     minWidth?: PixelSize;
-    /** Configuration for the padding of the chart. */
-    padding?: AgChartPaddingOptions;
+    /** Configuration for the padding shown around the chart. */
+    padding?: Padding;
     /** Configuration relating to the series area. */
     seriesArea?: AgSeriesAreaOptions;
     /** Configuration for the background shown behind the chart. */

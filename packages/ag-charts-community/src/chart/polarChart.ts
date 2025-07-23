@@ -3,7 +3,6 @@ import { iterate } from 'ag-charts-core';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
-import { Padding } from '../util/padding';
 import { PolarAxis } from './axis/polarAxis';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
@@ -16,8 +15,6 @@ import { ZIndexMap } from './zIndexMap';
 export class PolarChart extends Chart {
     static readonly className = 'PolarChart';
     static readonly type = 'polar' as const;
-
-    override padding = new Padding(40);
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);
