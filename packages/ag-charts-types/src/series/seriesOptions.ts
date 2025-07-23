@@ -27,7 +27,10 @@ export interface AgMultiSeriesHighlightOptions<
     highlightedSeries?: SeriesHighlightStyleOptions;
     /** Options for the un-highlighted series when there is an active highlight. */
     unhighlightedSeries?: SeriesHighlightStyleOptions;
-    /** Show this series in front when highlighted. */
+    /** Show this series in front when highlighted.
+     *
+     * Default: `false`
+     */
     bringToFront?: boolean;
 }
 

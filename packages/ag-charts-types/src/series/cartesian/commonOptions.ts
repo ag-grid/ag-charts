@@ -196,7 +196,7 @@ export interface BorderOptions extends Toggleable, StrokeOptions {}
  * Represents toggleable options for chart elements.
  */
 export interface Toggleable {
-    /** Determines whether the associated elements should be displayed on the chart. */
+    /** Whether the associated elements and properties should be used in the chart. */
     enabled?: boolean;
 }
 
