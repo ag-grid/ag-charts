@@ -29,8 +29,12 @@ export function normalisedExtentWithMetadata(
     let clipped = false;
 
     if (d.length > 2) {
-        d = extent(d) ?? [NaN, NaN];
+        d = extent(d) ?? [];
     }
+    if (d.length < 2 && min == null && max == null) {
+        return { extent: [], clipped: false };
+    }
+
     if (min != null) {
         clipped ||= min > d[0];
         d = [min, d[1]];
