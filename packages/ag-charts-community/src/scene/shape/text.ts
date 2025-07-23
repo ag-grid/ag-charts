@@ -259,8 +259,22 @@ export class Text<D = any> extends Shape<D> {
 
         if (isArray(this.text)) {
             this.generateTextMap();
+            const { width } = this.richText!.getBBox();
+
+            let translateX = 0;
+            switch (this.textAlign) {
+                case 'left':
+                case 'start':
+                    translateX = width / 2;
+                    break;
+
+                case 'right':
+                case 'end':
+                    translateX = width / -2;
+            }
+
             ctx.save();
-            ctx.translate(0, this.y);
+            ctx.translate(translateX, 0);
             this.richText!.render(renderCtx);
             ctx.restore();
         } else {
