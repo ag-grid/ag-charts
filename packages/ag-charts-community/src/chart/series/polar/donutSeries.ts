@@ -38,6 +38,7 @@ import {
     rangedValueProperty,
     valueProperty,
 } from '../../data/processors';
+import { expandLabelPadding } from '../../label';
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -1199,6 +1200,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
             type TParams = AgDonutSeriesLabelFormatterParams;
             const style = getLabelStyles<TParams>(this, datum, params, calloutLabel);
+            const padding = expandLabelPadding(style);
 
             const labelRadius = datum.outerRadius + calloutLine.length + offset;
             const x = datum.midCos * labelRadius;
@@ -1212,7 +1214,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 y,
                 { font: this.properties.calloutLabel, textAlign, textBaseline },
                 false
-            ).grow(style.padding ?? {});
+            ).grow(padding);
         };
 
         const avoidNeighbourYCollision = (
