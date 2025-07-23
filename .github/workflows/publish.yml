@@ -47,7 +47,7 @@ jobs:
               id: yarn_install
               run: yarn install --ci
 
-           - name: Calculate Next Beta Version
+            - name: Calculate Next Beta Version
               id: next_version
               run: |
                   NEW_VERSION=$(node ./tools/calculate-next-version.js)
