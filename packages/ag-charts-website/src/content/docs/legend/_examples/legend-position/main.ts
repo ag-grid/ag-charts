@@ -1,8 +1,13 @@
-import { AgCartesianChartOptions, AgChartLegendPosition, AgCharts } from 'ag-charts-community';
+import {
+    AgCartesianChartOptions,
+    AgChartLegendPlacement,
+    AgChartLegendPositionOptions,
+    AgCharts,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions & { legend: { position: AgChartLegendPositionOptions } } = {
     container: document.getElementById('myChart'),
 
     data: getData(),
@@ -40,14 +45,16 @@ const options: AgCartesianChartOptions = {
         },
     ],
     legend: {
-        position: 'right',
+        position: {
+            placement: 'right',
+        },
     },
 };
 
 const chart = AgCharts.create(options);
 
-function updateLegendPosition(value: AgChartLegendPosition) {
-    options.legend!.position = value;
+function updateLegendPlacement(value: AgChartLegendPlacement) {
+    options.legend!.position!.placement = value;
     chart.update(options);
 }
 

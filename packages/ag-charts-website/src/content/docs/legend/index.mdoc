@@ -13,13 +13,15 @@ By default, a Legend is displayed below all charts containing more than one seri
 
 ## Layout
 
-### Position
+### Placement
 
-The default position of a Legend is below the chart. However, this can be changed with the `position` property.
+The default placement of a Legend is below the chart. However, this can be changed with the `position.placement` property.
 
 ```js
 legend: {
-    position: 'bottom', // 'top', 'right', 'left', 'top-right', 'right-top' ...,
+    position: {
+        placement: 'bottom', // 'top', 'right', 'left', 'top-right', 'right-top' ...,
+    },
 }
 ```
 
