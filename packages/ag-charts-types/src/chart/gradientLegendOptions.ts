@@ -1,17 +1,8 @@
-import type { BorderOptions, Padding } from '../series/cartesian/commonOptions';
+import type { BorderOptions, FillOptions, Padding } from '../series/cartesian/commonOptions';
 import type { AgAxisContinuousIntervalOptions, AgAxisLabelFormatterParams } from './axisOptions';
 import type { Formatter } from './callbackOptions';
 import type { AgChartLegendPosition } from './legendOptions';
-import type {
-    ContextDefault,
-    CssColor,
-    FontFamilyFull,
-    FontSize,
-    FontStyle,
-    FontWeight,
-    PixelSize,
-    Ratio,
-} from './types';
+import type { ContextDefault, CssColor, FontFamilyFull, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
 export interface AgGradientLegendLabelOptions<TContext = ContextDefault> {
     /** The font style to use for the labels. */
@@ -41,7 +32,7 @@ export interface AgGradientLegendScaleOptions<TContext = ContextDefault> {
     interval?: AgAxisContinuousIntervalOptions<number>;
 }
 
-export interface AgGradientLegendOptions<TContext = ContextDefault> {
+export interface AgGradientLegendOptions<TContext = ContextDefault> extends FillOptions {
     /** Whether to show the gradient legend. By default, the chart displays a gradient legend for series using a `colorKey`. */
     enabled?: boolean;
     /** Positioning options for legend.
@@ -65,10 +56,6 @@ export interface AgGradientLegendOptions<TContext = ContextDefault> {
     border?: BorderOptions;
     /** The corner radius of the legend. */
     cornerRadius?: PixelSize;
-    /** The colour of the legend fill. */
-    fill?: CssColor;
-    /** The opacity of the fill colour. */
-    fillOpacity?: Ratio;
     /** The padding between the border and legend items. */
     padding?: Padding;
 }
