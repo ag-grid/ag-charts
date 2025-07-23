@@ -21,6 +21,7 @@ import type {
     LabelBoxOptions,
     LineDashOptions,
     PaddingOptions,
+    PaddingSideOptions,
     StrokeOptions,
 } from 'ag-charts-types';
 
@@ -349,7 +350,15 @@ export const paddingOptions = optionsDefs<PaddingOptions>(
     },
     'padding object'
 );
+export const paddingSideOptions = optionsDefs<PaddingSideOptions>(
+    {
+        x: positiveNumber,
+        y: positiveNumber,
+    },
+    'padding object'
+);
 export const padding = or(number, paddingOptions);
+export const paddingSide = or(number, paddingSideOptions);
 
 export const borderOptionsDef: OptionsDefs<BorderOptions> = {
     enabled: boolean,

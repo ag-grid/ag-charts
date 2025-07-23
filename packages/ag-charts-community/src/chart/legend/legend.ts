@@ -29,6 +29,7 @@ import type {
     FontWeight,
     Formatter,
     Padding,
+    PaddingSide,
     PixelSize,
 } from 'ag-charts-types';
 
@@ -43,6 +44,7 @@ import { Transformable } from '../../scene/transformable';
 import { isImageFill, isPatternFill } from '../../scene/util/fill';
 import { Border } from '../../util/border';
 import { callWithContext } from '../../util/callbackCache';
+import { Deprecated } from '../../util/deprecation';
 import { deepClone } from '../../util/json';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties, Property } from '../../util/properties';
@@ -132,14 +134,19 @@ class LegendItem extends BaseProperties {
      * padding between legend items.
      */
     @Property
-    paddingX: number = 16;
+    @Deprecated('Use [padding] instead.')
+    paddingX?: number = undefined;
     /**
      * The legend uses grid layout for its items, occupying as few columns as possible when positioned to left or right,
      * and as few rows as possible when positioned to top or bottom. This config specifies the amount of vertical
      * padding between legend items.
      */
     @Property
-    paddingY: number = 8;
+    @Deprecated('Use [padding] instead.')
+    paddingY?: number = undefined;
+
+    @Property
+    padding: PaddingSide = 0;
 
     @Property
     showSeriesStroke: boolean = false;
@@ -428,8 +435,6 @@ export class Legend extends BaseProperties {
      */
     private calcLayout(width: number, height: number) {
         const {
-            paddingX,
-            paddingY,
             label,
             maxWidth,
             label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily },
@@ -487,7 +492,8 @@ export class Legend extends BaseProperties {
         const { pages, maxPageHeight, maxPageWidth } = this.updatePagination(bboxes, width, height);
         const oldPages = this.pages;
         this.pages = pages;
-        this.maxPageSize = [maxPageWidth - paddingX, maxPageHeight - paddingY];
+
+        this.maxPageSize = [maxPageWidth - this.getItemPaddingX(), maxPageHeight - this.getItemPaddingY()];
 
         const pageNumber = this.pagination.currentPage;
         const page = this.pages[pageNumber];
@@ -567,9 +573,9 @@ export class Legend extends BaseProperties {
         markerWidth: number,
         anyLineEnabled: boolean
     ): number {
-        const { marker: itemMarker, paddingX } = this.item;
+        const { marker: itemMarker } = this.item;
         const { symbol } = datum;
-        let paddedSymbolWidth = paddingX;
+        let paddedSymbolWidth = this.getItemPaddingX();
 
         const { markerEnabled, isCustomMarker } = this.calcSymbolsEnabled(symbol);
 
@@ -670,10 +676,9 @@ export class Legend extends BaseProperties {
         const newCurrentPage = pages.findIndex((p) => p.endIndex >= trackingIndex);
         this.pagination.currentPage = clamp(0, newCurrentPage, pages.length - 1);
 
-        const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.item;
         const paginationComponentPadding = 8;
-        const legendItemsWidth = maxPageWidth - itemPaddingX;
-        const legendItemsHeight = maxPageHeight - itemPaddingY;
+        const legendItemsWidth = maxPageWidth - this.getItemPaddingX();
+        const legendItemsHeight = maxPageHeight - this.getItemPaddingY();
 
         let paginationX = 0;
         let paginationY = -paginationBBox.y - this.item.marker.size / 2;
@@ -704,7 +709,8 @@ export class Legend extends BaseProperties {
     }
 
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
-        const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.item;
+        const itemPaddingX = this.getItemPaddingX();
+        const itemPaddingY = this.getItemPaddingY();
 
         const vertPositions: readonly AgChartLegendPosition[] = [
             'left',
@@ -772,11 +778,7 @@ export class Legend extends BaseProperties {
     }
 
     private updatePositions(pageNumber: number = 0) {
-        const {
-            item: { paddingY },
-            itemSelection,
-            pages,
-        } = this;
+        const { itemSelection, pages } = this;
 
         if (pages.length < 1 || !pages[pageNumber]) {
             return;
@@ -792,7 +794,7 @@ export class Legend extends BaseProperties {
         const rowCount = columns[0].indices.length;
         const horizontal = this.getOrientation() === 'horizontal';
 
-        const itemHeight = columns[0].bboxes[0].height + paddingY;
+        const itemHeight = columns[0].bboxes[0].height + this.getItemPaddingY();
 
         const rowSumColumnWidths: number[] = [];
 
@@ -944,6 +946,16 @@ export class Legend extends BaseProperties {
             fillPatternDefaults,
             fillImageDefaults
         );
+    }
+
+    private getItemPaddingX() {
+        const { padding } = this.item;
+        return typeof padding === 'number' ? padding : padding.x ?? 0;
+    }
+
+    private getItemPaddingY() {
+        const { padding } = this.item;
+        return typeof padding === 'number' ? padding : padding.y ?? 0;
     }
 
     private computePagedBBox(): BBox {

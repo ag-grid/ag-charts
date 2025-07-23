@@ -178,6 +178,7 @@ export interface FontOptions {
 }
 
 export type Padding = PixelSize | PaddingOptions;
+export type PaddingSide = PixelSize | PaddingSideOptions;
 
 export interface PaddingOptions {
     /** The number of pixels of padding at the top. */
@@ -188,6 +189,13 @@ export interface PaddingOptions {
     bottom?: PixelSize;
     /** The number of pixels of padding at the left. */
     left?: PixelSize;
+}
+
+export interface PaddingSideOptions {
+    /** The number of pixels of padding at the top. */
+    x?: PixelSize;
+    /** The number of pixels of padding at the right. */
+    y?: PixelSize;
 }
 
 export interface BorderOptions extends Toggleable, StrokeOptions {}

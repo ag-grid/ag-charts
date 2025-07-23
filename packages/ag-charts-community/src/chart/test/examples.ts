@@ -4310,7 +4310,7 @@ export const TRUNCATED_LEGEND_ITEMS: AgCartesianChartOptions = {
     legend: {
         position: 'left',
         item: {
-            paddingY: 15,
+            padding: { y: 15 },
             maxWidth: 100,
         },
     },

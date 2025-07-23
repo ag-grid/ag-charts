@@ -220,7 +220,7 @@ const options: AgChartOptions = {
   ],
   legend: {
     item: {
-      paddingY: 15,
+      padding: { y: 15 },
     },
     spacing: 30,
   },

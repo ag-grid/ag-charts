@@ -412,8 +412,10 @@ export class ChartTheme {
                 listeners: {},
                 toggleSeries: true,
                 item: {
-                    paddingX: 16,
-                    paddingY: 8,
+                    padding: {
+                        x: { $path: ['./paddingX', 16] },
+                        y: { $path: ['./paddingY', 8] },
+                    },
                     marker: { size: 15, padding: 8 },
                     showSeriesStroke: true,
                     label: {

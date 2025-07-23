@@ -78,7 +78,7 @@ describe('AgChart', () => {
             ],
             legend: {
                 item: {
-                    paddingY: 16,
+                    padding: { y: 16 },
                 },
             },
         });
@@ -134,10 +134,7 @@ describe('AgChart', () => {
         expect(chart.width).toBe(500);
         expect(chart.height).toBe(500);
         expect(chart.data.data.length).toBe(4);
-        expect(chart.padding.top).toBe(30);
-        expect(chart.padding.right).toBe(40);
-        expect(chart.padding.bottom).toBe(50);
-        expect(chart.padding.left).toBe(60);
+        expect(chart.padding).toEqual({ top: 30, right: 40, bottom: 50, left: 60 });
         expect(chart.title?.enabled).toBe(theme.config.line.title.enabled);
         expect(chart.title?.text).toBe(theme.config.line.title.text);
 
@@ -173,7 +170,7 @@ describe('AgChart', () => {
             ],
             legend: {
                 item: {
-                    paddingY: 16,
+                    padding: { y: 16 },
                 },
             },
         });

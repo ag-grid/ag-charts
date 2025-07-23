@@ -8,6 +8,7 @@ import {
     fontOptionsDef,
     number,
     padding,
+    paddingSide,
     positiveNumber,
     ratio,
     strokeOptionsDef,
@@ -58,6 +59,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions> = {
             maxWidth: positiveNumber,
             paddingX: positiveNumber,
             paddingY: positiveNumber,
+            padding: paddingSide,
             showSeriesStroke: boolean,
         },
         pagination: {

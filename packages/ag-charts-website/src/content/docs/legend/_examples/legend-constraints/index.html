@@ -1,6 +1,6 @@
 <div class="example-controls">
     <div class="controls-row">
-        <label for="xPaddingLabel"><code>item.paddingX:</code></label>
+        <label for="xPaddingLabel"><code>item.padding.x:</code></label>
         <input
             type="range"
             id="xPaddingLabel"
@@ -11,7 +11,7 @@
             onchange="updateLegendItemPaddingX(event)"
         />
         <span id="xPaddingValue" class="gap-right">32</span>
-        <label for="yPaddingLabel"><code>item.paddingY:</code></label>
+        <label for="yPaddingLabel"><code>item.padding.y:</code></label>
         <input
             type="range"
             id="yPaddingLabel"
@@ -31,8 +31,8 @@
             min="0"
             max="30"
             value="8"
-            oninput="updateLegendItemSpacing(event)"
-            onchange="updateLegendItemSpacing(event)"
+            oninput="updateLegendMarkerPadding(event)"
+            onchange="updateLegendMarkerPadding(event)"
         />
         <span id="markerPaddingValue">8</span>
     </div>

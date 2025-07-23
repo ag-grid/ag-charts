@@ -1,4 +1,4 @@
-import type { AgColorType, BorderOptions, FillOptions, Padding } from '../series/cartesian/commonOptions';
+import type { AgColorType, BorderOptions, FillOptions, Padding, PaddingSide } from '../series/cartesian/commonOptions';
 import type { Formatter } from './callbackOptions';
 import type { AgPreventableEvent } from './eventOptions';
 import type {
@@ -115,6 +115,8 @@ export interface AgChartLegendItemOptions<TContext = ContextDefault> {
     paddingX?: PixelSize;
     /** The vertical spacing in pixels to use between legend items. */
     paddingY?: PixelSize;
+    /** The padding in pixels to use between legend items. */
+    padding?: PaddingSide;
     /** Set to `false` to hide the legend line line representing the stroke styling of line and area series.
      *  If enabled, legend marker will be hidden if series markers are disabled. */
     showSeriesStroke?: boolean;

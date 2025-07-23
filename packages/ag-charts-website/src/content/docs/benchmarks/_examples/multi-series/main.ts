@@ -243,7 +243,7 @@ const options: AgCartesianChartOptions = {
     legend: {
         position: 'bottom',
         item: {
-            paddingY: 15,
+            padding: { y: 15 },
         },
         spacing: 30,
     },

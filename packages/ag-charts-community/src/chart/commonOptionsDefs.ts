@@ -34,6 +34,7 @@ import {
     optionsDefs,
     or,
     padding,
+    paddingSide,
     positiveNumber,
     ratio,
     required,
@@ -351,6 +352,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             maxWidth: positiveNumber,
             paddingX: positiveNumber,
             paddingY: positiveNumber,
+            padding: paddingSide,
             showSeriesStroke: boolean,
         },
         pagination: {

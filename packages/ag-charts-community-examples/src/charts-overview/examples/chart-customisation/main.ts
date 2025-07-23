@@ -114,7 +114,7 @@ const options: AgChartOptions = {
     ],
     legend: {
         item: {
-            paddingX: 40,
+            padding: { x: 40 },
             marker: {
                 strokeWidth: 0,
                 padding: 10,
