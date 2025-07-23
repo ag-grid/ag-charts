@@ -1,8 +1,14 @@
 import { Logger, clamp, countFractionDigits, createNumberFormatter, parseNumberFormat } from 'ag-charts-core';
 import type { AgTimeInterval } from 'ag-charts-types';
 
-import { durationMonth, durationWeek, intervalHierarchy, intervalMilliseconds, intervalStep } from './time';
-import { durationYear } from './time';
+import {
+    durationMonth,
+    durationWeek,
+    durationYear,
+    intervalHierarchy,
+    intervalMilliseconds,
+    intervalStep,
+} from './time';
 
 interface TickInterval {
     duration: number;

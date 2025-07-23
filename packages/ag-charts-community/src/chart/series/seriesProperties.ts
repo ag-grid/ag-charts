@@ -19,8 +19,7 @@ import type {
 } from 'ag-charts-types';
 
 import { mergeDefaults } from '../../util/object';
-import { BaseProperties } from '../../util/properties';
-import { Property } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
 import type { SeriesTooltip } from './seriesTooltip';
 
 export enum HighlightState {

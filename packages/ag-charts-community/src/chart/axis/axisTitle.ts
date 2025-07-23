@@ -7,8 +7,7 @@ import type {
     TextWrap,
 } from 'ag-charts-types';
 
-import { BaseProperties } from '../../util/properties';
-import { Property } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
 import { Caption } from '../caption';
 import { FONT_SIZE } from '../themes/constants';
 

@@ -4,8 +4,7 @@ import type { AgChartLegendOrientation, AgMarkerShape, FontStyle, FontWeight } f
 import { Group, TranslatableGroup } from '../../scene/group';
 import { Text } from '../../scene/shape/text';
 import { type RotatableType, Transformable } from '../../scene/transformable';
-import { BaseProperties } from '../../util/properties';
-import { Property } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
 import { ActionOnSet } from '../../util/proxy';
 import { ChartUpdateType } from '../chartUpdateType';
 import { Marker } from '../marker/marker';

@@ -1,5 +1,10 @@
-import type { AgWaterfallSeriesItemType, AgWaterfallSeriesOptions, AgWaterfallSeriesStyle } from 'ag-charts-community';
-import { type AgWaterfallSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
+import type {
+    AgWaterfallSeriesItemType,
+    AgWaterfallSeriesLabelFormatterParams,
+    AgWaterfallSeriesOptions,
+    AgWaterfallSeriesStyle,
+} from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
