@@ -20,6 +20,7 @@ import {
     positiveNumber,
     ratio,
     required,
+    string,
     strokeOptionsDef,
     undocumented,
     union,
@@ -41,7 +42,6 @@ import {
     commonSeriesThemeableOptionsDefs,
     numberFormatValidator,
     seriesLabelOptionsDefs,
-    textOrSegments,
     tooltipOptionsDefs,
 } from '../../chart/commonOptionsDefs';
 import { without } from '../../util/object';
@@ -57,7 +57,7 @@ export const fillsOptionsDef: OptionsDefs<FillsOptions> = {
 
 export const linearGaugeTargetOptionsDef: OptionsDefs<AgLinearGaugeTarget> = {
     value: required(number),
-    text: textOrSegments,
+    text: string,
     shape: or(
         union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle', 'line'),
         callback
@@ -73,7 +73,7 @@ export const linearGaugeTargetOptionsDef: OptionsDefs<AgLinearGaugeTarget> = {
 
 export const radialGaugeTargetOptionsDef: OptionsDefs<AgRadialGaugeTarget> = {
     value: required(number),
-    text: textOrSegments,
+    text: string,
     shape: or(
         union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle', 'line'),
         callback
@@ -116,7 +116,7 @@ export const linearGaugeSeriesThemeableOptionsDef: OptionsDefs<AgLinearGaugeThem
     },
     label: {
         ...autoSizedLabelOptionsDefs,
-        text: textOrSegments,
+        text: string,
         spacing: positiveNumber,
         avoidCollisions: boolean,
         placement: union(
@@ -241,12 +241,12 @@ export const radialGaugeSeriesThemeableOptionsDef: OptionsDefs<AgRadialGaugeThem
         ...lineDashOptionsDef,
     },
     label: {
-        text: textOrSegments,
+        text: string,
         spacing: positiveNumber,
         ...autoSizedLabelOptionsDefs,
     },
     secondaryLabel: {
-        text: textOrSegments,
+        text: string,
         ...autoSizedLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,

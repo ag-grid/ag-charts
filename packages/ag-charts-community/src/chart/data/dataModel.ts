@@ -39,6 +39,7 @@ interface CommonMetadata<D> {
     scopes: Set<ScopeId>;
     dataSources: Map<ScopeId, unknown[]>;
     invalidKeys: Map<ScopeId, boolean[]> | undefined;
+    invalidKeyCount: Map<ScopeId, number> | undefined;
     invalidData: Map<ScopeId, boolean[]> | undefined;
     keys: Map<ScopeId, unknown[]>[];
     columns: any[][];
@@ -751,7 +752,11 @@ export class DataModel<
 
         const { keys: keyDefs, values: valueDefs } = this;
 
-        const { invalidData, invalidKeys, allKeyMappings } = this.extractKeys(keyDefs, sources, processValue);
+        const { invalidData, invalidKeys, invalidKeyCount, allKeyMappings } = this.extractKeys(
+            keyDefs,
+            sources,
+            processValue
+        );
 
         const { columns, columnScopes, partialValidDataCount, maxDataLength } = this.extractValues(
             invalidData,
@@ -781,6 +786,7 @@ export class DataModel<
             columns,
             columnScopes,
             invalidKeys,
+            invalidKeyCount,
             invalidData,
             domain: {
                 keys: keyDefs.map(propertyDomain),
@@ -811,6 +817,7 @@ export class DataModel<
     ) {
         const invalidKeys = new Map<ScopeId, boolean[]>();
         const invalidData = new Map<ScopeId, boolean[]>();
+        const invalidKeyCount = new Map<ScopeId, number>();
         const allKeys = new Map<(typeof keyDefs)[number], Map<ScopeId, unknown[]>>();
 
         let keyDefKeys: Map<ScopeId, unknown[]>;
@@ -846,6 +853,7 @@ export class DataModel<
 
                 let invalidScopeKeys;
                 let invalidScopeData;
+                let missingKeys = 0;
                 for (let datumIndex = 0; datumIndex < data.length; datumIndex++) {
                     if (data[datumIndex] == null || typeof data[datumIndex] !== 'object') continue;
 
@@ -861,6 +869,7 @@ export class DataModel<
                     invalidScopeKeys ??= createArray(data.length, false);
                     invalidScopeData ??= createArray(data.length, false);
 
+                    missingKeys += 1;
                     invalidScopeKeys[datumIndex] = true;
                     invalidScopeData[datumIndex] = true;
                 }
@@ -868,10 +877,11 @@ export class DataModel<
                 if (invalidScopeKeys && invalidScopeData) {
                     invalidKeys.set(scope, invalidScopeKeys);
                     invalidData.set(scope, invalidScopeData);
+                    invalidKeyCount.set(scope, missingKeys);
                 }
             }
         }
-        return { invalidData, invalidKeys, allKeyMappings: allKeys };
+        return { invalidData, invalidKeys, invalidKeyCount, allKeyMappings: allKeys };
     }
 
     private readonly markScopeDatumInvalid = function (
@@ -892,7 +902,7 @@ export class DataModel<
         invalidData: Map<ScopeId, boolean[]>,
         valueDefs: InternalDatumPropertyDefinition<K>[],
         sources: Map<string, unknown[]>,
-        invalidKeys: Map<ScopeId, boolean[]>,
+        scopeInvalidKeys: Map<ScopeId, boolean[]>,
         processValue: (
             def: InternalDatumPropertyDefinition<K>,
             datum: any,
@@ -916,11 +926,12 @@ export class DataModel<
             const columnScope = first(def.scopes);
             const columnSource = sources.get(columnScope) as unknown[];
             const column = new Array<unknown>();
+            const invalidKeys = scopeInvalidKeys.get(columnScope);
             for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
                 if (columnSource[datumIndex] == null || typeof columnSource[datumIndex] !== 'object') continue;
 
                 const valueDatum = columnSource[datumIndex];
-                const invalidKey = invalidKeys.get(columnScope)?.[datumIndex];
+                const invalidKey = invalidKeys != null ? invalidKeys[datumIndex] : false;
 
                 const result = processValue(def, valueDatum, datumIndex, def.scopes);
                 let value = result.value;

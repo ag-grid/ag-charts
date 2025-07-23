@@ -157,6 +157,35 @@ describe('WaterfallSeries', () => {
         await compare();
     });
 
+    it(`should render a waterfall chart with corner radius`, async () => {
+        const options: AgChartOptions = {
+            theme: {
+                overrides: {
+                    waterfall: {
+                        series: {
+                            item: {
+                                positive: {
+                                    cornerRadius: 10,
+                                },
+                                negative: {
+                                    cornerRadius: 10,
+                                },
+                                total: {
+                                    cornerRadius: 10,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            ...WATERFALL_COLUMN_OPTIONS,
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should render a waterfall chart with a time x-axis`, async () => {
         const options: AgChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,
