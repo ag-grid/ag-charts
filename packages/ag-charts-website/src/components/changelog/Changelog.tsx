@@ -22,6 +22,19 @@ export function useLocation() {
     return location;
 }
 
+const compareSemver = (a: any, b: any) => {
+    // versions are in the format 'x.y.z', so we need to compare them as numbers
+    const [aMajor, aMinor, aPatch] = a.split('.').map((num: string) => parseInt(num, 10));
+    const [bMajor, bMinor, bPatch] = b.split('.').map((num: string) => parseInt(num, 10));
+    if (aMajor !== bMajor) {
+        return bMajor - aMajor; // Sort by major version descending
+    } else if (aMinor !== bMinor) {
+        return bMinor - aMinor; // Sort by minor version descending
+    } else {
+        return bPatch - aPatch;
+    }
+};
+
 const gridToChartVersion = (gridVersion: string) => {
     const versionParts = gridVersion.split('.');
 
@@ -333,13 +346,9 @@ export const Changelog = () => {
                     return gridToChartVersion(version);
                 },
                 filterParams: {
-                    comparator: (a: any, b: any) => {
-                        const valA = parseInt(a);
-                        const valB = parseInt(b);
-                        if (valA === valB) return 0;
-                        return valA > valB ? -1 : 1;
-                    },
+                    comparator: compareSemver,
                 },
+                comparator: compareSemver,
             },
             {
                 field: 'issueType',
