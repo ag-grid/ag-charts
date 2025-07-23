@@ -19,7 +19,7 @@ The default position of a Legend is below the chart. However, this can be change
 
 ```js
 legend: {
-    position: 'bottom', // 'top', 'right', 'left',
+    position: 'bottom', // 'top', 'right', 'left', 'top-right', 'right-top' ...,
 }
 ```
 
@@ -27,8 +27,8 @@ Notice that when you change the legend position in the example above:
 
 -   The size and position of the chart changes to accommodate the Legend within the container.
 -   The default `orientation` of the Legend changes.
-    -   A `vertical` orientation - with the items arranged in columns - is used when the Legend is positioned to `right` or `left`.
-    -   A `horizontal` orientation - with the items arranged in rows - is used when the Legend is positioned to `top` or `bottom`.
+    -   A `vertical` orientation - with the items arranged in columns - is used when the Legend is positioned to the side of the chart.
+    -   A `horizontal` orientation - with the items arranged in rows - is used when the Legend is positioned to above or below the chart.
 
 ### Size
 
@@ -57,10 +57,12 @@ legend: {
 
 ### Floating
 
-By default, the Legend reduces the amount of space availabe in the [Layout](./layout) of
-other parts of the chart, such as the series-area.
+By default, the Legend is placed next to the series area, affecting the [Layout](./layout) of
+other parts of the chart.
 
 The Legend can be drawn above the series-area using the `floating: true` property.
+
+This will display the Legend above the data and all other chart elements.
 
 {% chartExampleRunner title="Floating Legend" name="legend-floating" type="generated" /%}
 
@@ -69,8 +71,9 @@ legend: {
     position: {
         placement: 'right-top',
         floating: true,
+        xOffset: -50,
+        yOffset: 25,
     },
-    spacing: 30,
 }
 ```
 

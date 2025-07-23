@@ -2,23 +2,54 @@
 title: 'Fills & Borders'
 ---
 
-This section describes how to change the fills and borders of various parts of the chart.
+This section describes how to change the fills and borders of chart elements.
 
 {% chartExampleRunner title="Fills & Borders" name="fills-borders" type="generated" /%}
 
-In the example above:
+In the above example:
 
--   A border is drawn around the series area with a corner radius and no padding.
--   A border, fill and corner radius are applied to the legend, with padding between the border and items as a single number.
--   A border, fill and corner radius are applied to the series data labels with padding defined for each of the top, right, bottom and left.
+-   A black border is drawn around the series area with a corner radius and no padding.
+-   A border, fill and corner radius are applied to the [Legend](./legend), with padding between the border and items provided as a single number.
+-   A border, fill and corner radius are applied to the series labels and [axis labels](./axes-labels) with padding defined for each of the top, right, bottom and left.
 
 ## Fills
 
-See [Series Fills](./fills) for details on customising the fills for each series.
+```js
+label: {
+    color: '#333333', //font colour
+    fill: '#e0e0e0', // fill colour
+    fillOpacity: 0.8,
+}
+```
+
+See [Series Fills](./fills) for details of the available fills types, including [patterns](./fills/#patterns) and [gradients](/fills/#gradients).
+
+## Borders
+
+```js
+border: {
+    enabled: true,
+    stroke: '#FCA441',
+    strokeWidth: 2,
+},
+```
 
 ## Padding
 
-The padding can be provided as either a single number of an object with values for `top`, `right`, `bottom` and `left`.
+Padding can be defined as a single number to be applied to all sides of the element, or as an object with values for `top`, `right`, `bottom` and `left`.
+
+```js
+padding: 4; //padding of 4px on all sides
+```
+
+```js
+padding: {
+    top: 4,
+    right: 6,
+    bottom: 2,
+    left: 6
+},
+```
 
 ## API Reference
 
@@ -28,5 +59,11 @@ The padding can be provided as either a single number of an object with values f
 {% /tabItem %}
 {% tabItem id="LabelBoxOptions" label="Label Box"  %}
 {% apiReference id="LabelBoxOptions" /%}
+{% /tabItem %}
+{% tabItem id="AgChartLegendOptions" label="Legend"  %}
+{% apiReference id="AgChartLegendOptions" include=["border", "cornerRadius", "padding", "fill", "fillOpacity"] /%}
+{% /tabItem %}
+{% tabItem id="AgGradientLegendOptions" label="Gradient Legend"  %}
+{% apiReference id="AgGradientLegendOptions" include=["border", "cornerRadius", "padding", "fill", "fillOpacity"] /%}
 {% /tabItem %}
 {% /tabs %}

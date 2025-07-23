@@ -20,6 +20,7 @@ const options: AgChartOptions<DataType> = {
         padding: 0,
     },
     legend: {
+        position: { placement: 'top-right', floating: true, xOffset: -20, yOffset: 15 },
         fill: '#f6f6f6',
         border: {
             stroke: '#dddddd',
@@ -45,13 +46,12 @@ const options: AgChartOptions<DataType> = {
             labelKey: 'name',
             labelName: 'Name',
             label: {
-                cornerRadius: 2,
-                color: '#333333',
-                fill: '#f6f6f6',
+                cornerRadius: 4,
+                fill: '#badaff',
                 padding: { top: 4, right: 6, bottom: 2, left: 6 },
                 border: {
-                    stroke: '#dddddd',
-                    strokeWidth: 1,
+                    stroke: '#73A6E3',
+                    strokeWidth: 2,
                 },
             },
         },
@@ -68,13 +68,12 @@ const options: AgChartOptions<DataType> = {
             labelKey: 'name',
             labelName: 'Name',
             label: {
-                cornerRadius: 2,
-                color: '#333333',
-                fill: '#f6f6f6',
+                cornerRadius: 4,
+                fill: '#fcc992',
                 padding: { top: 4, right: 6, bottom: 2, left: 6 },
                 border: {
-                    stroke: '#dddddd',
-                    strokeWidth: 1,
+                    stroke: '#FCA441',
+                    strokeWidth: 2,
                 },
             },
         },
