@@ -10,7 +10,6 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import { type InternalAgColorType, type RequireOptional, isNumberEqual } from 'ag-charts-core';
-import type { HighlightState } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
@@ -361,36 +360,11 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
         if (itemStyler != null && datumIndex != null) {
-            const datumIndexString = datumIndex.join(':');
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex.join(':'), isHighlight ? 'highlight' : 'node'),
                 () => {
                     const activeHighlight = ctx.highlightManager?.getActiveHighlight();
-                    let highlightState: HighlightState;
-
-                    if (isHighlight) {
-                        // This node is highlighted
-                        if (
-                            datumIndex &&
-                            activeHighlight &&
-                            'datumIndex' in activeHighlight &&
-                            Array.isArray(activeHighlight.datumIndex) &&
-                            activeHighlight.datumIndex?.join(':') === datumIndexString
-                        ) {
-                            highlightState = 'highlighted-item';
-                        } else {
-                            highlightState = 'highlighted-series';
-                        }
-                    } else if (activeHighlight) {
-                        // Something else is highlighted
-                        if (activeHighlight.series === this) {
-                            highlightState = 'unhighlighted-item';
-                        } else {
-                            highlightState = 'unhighlighted-series';
-                        }
-                    } else {
-                        highlightState = 'none';
-                    }
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
 
                     return this.callWithContext(itemStyler, {
                         seriesId,

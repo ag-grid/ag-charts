@@ -725,8 +725,4 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
     }
-
-    protected override hasItemStylers(): boolean {
-        return false;
-    }
 }
