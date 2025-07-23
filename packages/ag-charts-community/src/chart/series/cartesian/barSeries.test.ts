@@ -720,4 +720,42 @@ describe('BarSeries', () => {
             });
         });
     });
+
+    describe('AG-15448', () => {
+        const DATA1 = [
+            { year: '2019', visitors: 48023342, status: 2 },
+            { year: '2022', visitors: 49441678, status: 2 }, // This overlaps with the DATA2 dataset and can render in the wrong color.
+            { year: '2023', visitors: 50368190, status: 1 },
+        ];
+
+        const DATA2 = [
+            { year: '2020', visitors: 48772922, status: 2 },
+            { year: '2021', visitors: 47155093, status: 1 },
+            { year: '2022', visitors: 48772982, status: 2 },
+        ];
+
+        const EXAMPLE_OPTIONS: AgCartesianChartOptions = {
+            data: DATA1,
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'year',
+                    yKey: 'visitors',
+                    label: { formatter: ({ datum }) => (datum.status === 1 ? 'orange' : 'green') },
+                    itemStyler: ({ datum }) => ({
+                        fill: datum.status === 1 ? 'orange' : 'green',
+                    }),
+                },
+            ],
+        };
+
+        it('should render updated data in the itemStyler specified colors', async () => {
+            const options = { ...EXAMPLE_OPTIONS };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await chart.updateDelta({ data: DATA2 });
+            await compare();
+        });
+    });
 });
