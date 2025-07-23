@@ -292,7 +292,6 @@ export const Changelog = () => {
         [filterBreakingChanges]
     );
 
-
     const COLUMN_DEFS = useMemo(
         () => [
             {
@@ -347,9 +346,9 @@ export const Changelog = () => {
                     return gridToChartVersion(version);
                 },
                 filterParams: {
-                    comparator: compareSemver
+                    comparator: compareSemver,
                 },
-                comparator: compareSemver
+                comparator: compareSemver,
             },
             {
                 field: 'issueType',
