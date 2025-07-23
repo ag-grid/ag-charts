@@ -110,6 +110,7 @@ exports[`DataModel empty data set processing should generated the expected resul
     "count": 0,
   },
   "invalidData": Map {},
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
     Map {
@@ -371,6 +372,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
     "count": 20,
   },
   "invalidData": Map {},
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
     Map {
@@ -691,6 +693,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
     "count": 20,
   },
   "invalidData": Map {},
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
     Map {
@@ -987,6 +990,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
     "count": 20,
   },
   "invalidData": Map {},
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
     Map {
@@ -1364,6 +1368,7 @@ exports[`DataModel grouped processing - grouped example should generated the exp
     "count": 7,
   },
   "invalidData": Map {},
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
     Map {
@@ -2220,6 +2225,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     "count": 12,
   },
   "invalidData": Map {},
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
     Map {
@@ -2698,6 +2704,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     "count": 5,
   },
   "invalidData": Map {},
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
     Map {
@@ -3204,6 +3211,7 @@ exports[`DataModel grouped processing - stacked example should generated the exp
     "count": 8,
   },
   "invalidData": Map {},
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
     Map {
@@ -3713,6 +3721,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     "count": 8,
   },
   "invalidData": Map {},
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
     Map {
@@ -4180,6 +4189,7 @@ exports[`DataModel grouped processing - stacked with accumulation example should
     "count": 8,
   },
   "invalidData": Map {},
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
     Map {
@@ -4721,6 +4731,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       false,
     ],
   },
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
     Map {
@@ -5029,6 +5040,7 @@ exports[`DataModel missing and invalid data processing should generated the expe
       false,
     ],
   },
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
     Map {
@@ -5165,6 +5177,7 @@ exports[`DataModel repeated property processing should generated the expected re
     "count": 5,
   },
   "invalidData": Map {},
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [],
   "partialValidDataCount": 0,
@@ -5331,6 +5344,7 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
     "count": 8,
   },
   "invalidData": Map {},
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [],
   "partialValidDataCount": 0,
@@ -5795,6 +5809,7 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
     "count": 52,
   },
   "invalidData": Map {},
+  "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
     Map {

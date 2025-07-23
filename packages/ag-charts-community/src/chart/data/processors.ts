@@ -381,23 +381,22 @@ export function animationValidation(valueKeyIds?: string[]): ProcessorOutputProp
 
             const { keys: keysDefs, values: valuesDef } = result.defs;
             const {
-                input: { count },
+                input,
                 domain: { keys: domainKeys, values: domainValues },
                 keys,
                 columns,
+                invalidKeyCount,
             } = result;
 
             let validation = ANIMATION_VALIDATION_UNIQUE_KEYS | ANIMATION_VALIDATION_ORDERED_KEYS;
 
-            if (count !== 0) {
+            if (input.count !== 0) {
                 for (let i = 0; validation !== 0 && i < keysDefs.length; i++) {
                     for (const scope of keysDefs[i].scopes) {
-                        validation &= animationValidationProcessKey(
-                            count,
-                            keysDefs[i],
-                            domainKeys[i],
-                            keys[i].get(scope)!
-                        );
+                        const column = keys[i].get(scope)!;
+                        const missingKeys = invalidKeyCount?.get(scope) ?? 0;
+                        const count = column.length - missingKeys;
+                        validation &= animationValidationProcessKey(count, keysDefs[i], domainKeys[i], column);
                     }
                 }
 
@@ -406,7 +405,12 @@ export function animationValidation(valueKeyIds?: string[]): ProcessorOutputProp
 
                     if (!valueKeyIds?.includes(value.id as string)) continue;
 
-                    validation &= animationValidationProcessKey(count, value, domainValues[i], columns[i]);
+                    validation &= animationValidationProcessKey(
+                        0 /* Count not used */,
+                        value,
+                        domainValues[i],
+                        columns[i]
+                    );
                 }
             }
 
