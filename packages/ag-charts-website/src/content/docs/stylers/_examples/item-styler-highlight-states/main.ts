@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgBarSeriesItemStylerParams, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -21,7 +21,7 @@ const options: AgChartOptions = {
             yKey: 'series1',
             yName: 'Product A',
             fill: '#5470c6',
-            itemStyler: (params) => {
+            itemStyler: (params: AgBarSeriesItemStylerParams<unknown, unknown>) => {
                 // The new highlightState parameter provides more granular control
                 switch (params.highlightState) {
                     case 'highlighted-item':
@@ -73,7 +73,7 @@ const options: AgChartOptions = {
             yKey: 'series2',
             yName: 'Product B',
             fill: '#91cc75',
-            itemStyler: (params) => {
+            itemStyler: (params: AgBarSeriesItemStylerParams<unknown, unknown>) => {
                 // Similar styling logic for the second series
                 switch (params.highlightState) {
                     case 'highlighted-item':
