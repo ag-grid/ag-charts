@@ -210,4 +210,8 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgCo
             lineDashOffset,
         };
     }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.label.itemStyler != null;
+    }
 }

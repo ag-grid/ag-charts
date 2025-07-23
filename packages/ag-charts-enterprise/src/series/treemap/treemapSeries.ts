@@ -342,7 +342,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         isLeaf: boolean,
         isHighlight: boolean
     ) {
-        const { id: seriesId, properties, colorScale } = this;
+        const { id: seriesId, properties, colorScale, ctx } = this;
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
         const rootIndex = datumIndex?.[0] ?? 0;
 
@@ -363,11 +363,15 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex.join(':'), isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const activeHighlight = ctx.highlightManager?.getActiveHighlight();
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         depth,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                     });
                 }
@@ -706,7 +710,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 sizeKey: this.properties.sizeKey,
                 sizeName: this.properties.sizeName ?? this.properties.sizeKey,
             };
-            const style = getLabelStyles(this, node, params, labelProps);
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, node.datumIndex);
+            const style = getLabelStyles(this, node, params, labelProps, highlighted, highlightState);
             text.text = label.text;
             text.fontSize = label.fontSize;
             text.lineHeight = label.lineHeight;
@@ -831,5 +837,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
     protected computeFocusBounds(node: _ModuleSupport.Group): _ModuleSupport.BBox | undefined {
         return Transformable.toCanvas(this.contentGroup, node.getBBox());
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
     }
 }

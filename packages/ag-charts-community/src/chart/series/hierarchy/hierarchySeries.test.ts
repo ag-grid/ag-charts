@@ -46,6 +46,10 @@ class ExampleHierarchySeries extends HierarchySeries<Group, object, ExampleHiera
     override computeFocusBounds(_node: never): never {
         throw new Error('Method not implemented.');
     }
+
+    override hasItemStylers(): boolean {
+        return false;
+    }
 }
 
 describe('HierarchySeries', () => {

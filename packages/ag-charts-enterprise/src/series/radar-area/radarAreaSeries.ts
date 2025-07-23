@@ -111,6 +111,10 @@ export class RadarAreaSeries extends RadarSeries {
         return points.concat(...zeroLinePoints);
     }
 
+    protected override hasItemStylers(): boolean {
+        return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
+    }
+
     protected override resetPaths() {
         super.resetPaths();
         const areaNode = this.getAreaNode();

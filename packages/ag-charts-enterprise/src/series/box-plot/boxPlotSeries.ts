@@ -469,6 +469,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
@@ -479,6 +481,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                         q3Key,
                         maxKey,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                     });
                 }
@@ -597,11 +600,18 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         );
 
         if (itemStyler) {
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+            const highlightState = this.getHighlightStateString(
+                activeHighlight,
+                scope === 'highlight',
+                nodeDatum.datumIndex
+            );
             const formatStyles = this.cachedDatumCallback(createDatumId(nodeDatum.datumIndex, scope), () =>
                 this.callWithContext(itemStyler, {
                     datum,
                     seriesId,
                     highlighted: scope === 'highlight',
+                    highlightState,
                     ...styles,
                     xKey,
                     minKey,
@@ -627,5 +637,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex].focusRect);
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
     }
 }

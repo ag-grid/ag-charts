@@ -675,6 +675,9 @@ export class BarSeries extends AbstractBarSeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
@@ -682,6 +685,7 @@ export class BarSeries extends AbstractBarSeries<
                         xValue,
                         yValue,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                     });
                 }
@@ -742,7 +746,8 @@ export class BarSeries extends AbstractBarSeries<
         });
     }
 
-    protected updateLabelNodes(opts: { labelSelection: Selection<Text, BarNodeDatum> }) {
+    protected updateLabelNodes(opts: { labelSelection: Selection<Text, BarNodeDatum>; isHighlight?: boolean }) {
+        const { isHighlight = false } = opts;
         const params: RequireOptional<AgBarSeriesLabelFormatterParams> = {
             xKey: this.properties.xKey,
             xName: this.properties.xName ?? this.properties.xKey,
@@ -751,8 +756,10 @@ export class BarSeries extends AbstractBarSeries<
             legendItemName: this.properties.legendItemName ?? this.properties.xName ?? this.properties.xKey,
         };
         opts.labelSelection.each((textNode, datum) => {
-            textNode.fillOpacity = this.getHighlightStyle(false, datum?.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum.label);
+            textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum?.datumIndex).opacity ?? 1;
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+            const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
+            updateLabelNode(this, textNode, params, this.properties.label, datum.label, isHighlight, highlightState);
         });
     }
 
@@ -914,5 +921,9 @@ export class BarSeries extends AbstractBarSeries<
     protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
         const datumBox = this.contextNodeData?.nodeData[datumIndex].clipBBox;
         return computeBarFocusBounds(this, datumBox);
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
     }
 }

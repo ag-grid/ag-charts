@@ -1,5 +1,5 @@
 import type { AnyFn, IsAny, RequireOptional } from 'ag-charts-core';
-import type { AgChartLabelStyleOptions, AgChartLabelStylerParams, PixelSize } from 'ag-charts-types';
+import type { AgChartLabelStyleOptions, AgChartLabelStylerParams, HighlightState, PixelSize } from 'ag-charts-types';
 
 import type { Point } from '../scene/point';
 import type { Text } from '../scene/shape/text';
@@ -31,7 +31,9 @@ export function getLabelStyles<TParams>(
     series: SeriesLike,
     nodeDatum: { datum?: unknown } | undefined,
     params: TParams,
-    label: Label<TParams>
+    label: Label<TParams>,
+    highlighted?: boolean,
+    highlightState?: HighlightState
 ): AgChartLabelStyleOptions & { fontSize: number } {
     if (label.itemStyler) {
         const styleParams: RequireOptional<Omit<AgChartLabelStylerParams<unknown, unknown>, 'context'>> & {
@@ -51,6 +53,8 @@ export function getLabelStyles<TParams>(
             itemId: undefined,
             seriesId: series.id,
             padding: label.padding,
+            highlighted,
+            highlightState,
         };
         return mergeDefaults(series.callWithContext(label.itemStyler, { ...params, ...styleParams }), styleParams);
     }
@@ -64,7 +68,9 @@ export function updateLabelNode<TParams, D extends LabelDatum>(
     textNode: IsAny<D> extends false ? Text : never,
     params: IsAny<D> extends false ? TParams : never,
     label: IsAny<D> extends false ? Label<TParams, unknown> : never,
-    labelDatum: D | undefined
+    labelDatum: D | undefined,
+    highlighted?: boolean,
+    highlightState?: HighlightState
 ): void;
 
 export function updateLabelNode<TParams>(
@@ -72,10 +78,12 @@ export function updateLabelNode<TParams>(
     textNode: Text,
     params: TParams,
     label: Label<TParams, unknown>,
-    labelDatum: LabelDatum | undefined
+    labelDatum: LabelDatum | undefined,
+    highlighted?: boolean,
+    highlightState?: HighlightState
 ) {
     if (label.enabled && labelDatum) {
-        const style = getLabelStyles<TParams>(series, labelDatum, params, label);
+        const style = getLabelStyles<TParams>(series, labelDatum, params, label, highlighted, highlightState);
         textNode.visible = true;
         textNode.x = labelDatum.x;
         textNode.y = labelDatum.y;

@@ -365,12 +365,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         let overrides;
         if (itemStyler != null && datumIndex != null) {
             overrides = this.cachedDatumCallback(createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'), () => {
+                const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+                const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+
                 return this.callWithContext(itemStyler, {
                     seriesId,
                     datum,
                     xKey,
                     yKey,
                     highlighted: isHighlight,
+                    highlightState,
                     ...baseStyle,
                 });
             });
@@ -572,5 +576,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         point: _ModuleSupport.Point
     ): _ModuleSupport.SeriesNodePickMatch | undefined {
         return findQuadtreeMatch(this, point);
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
     }
 }

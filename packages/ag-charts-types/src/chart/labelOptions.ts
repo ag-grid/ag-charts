@@ -1,12 +1,17 @@
 import type { FontOptions, LabelBoxOptions, Toggleable } from '../series/cartesian/commonOptions';
-import type { AgChartCallbackParams, Formatter } from './callbackOptions';
+import type { AgChartCallbackParams, Formatter, HighlightState } from './callbackOptions';
 import type { ContextDefault, FontSize, OverflowStrategy, PixelSize, TextWrap } from './types';
 
 export interface AgChartLabelStyleOptions extends Toggleable, FontOptions, LabelBoxOptions {}
 
 export interface AgChartLabelStylerParams<TDatum, TContext>
     extends AgChartCallbackParams<TDatum, TContext>,
-        AgChartLabelStyleOptions {}
+        AgChartLabelStyleOptions {
+    /** Indicates whether the element is highlighted. */
+    highlighted?: boolean;
+    /** The specific highlight state of the element. */
+    highlightState?: HighlightState;
+}
 
 /**
  * Represents the configuration options for labels in an AgCharts.

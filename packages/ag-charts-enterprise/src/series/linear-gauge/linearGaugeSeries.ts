@@ -1366,4 +1366,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     datumIndexForCategoryValue(_categoryValue: any): LinearGaugeNodeDatumIndex | undefined {
         return;
     }
+
+    protected override hasItemStylers(): boolean {
+        return false;
+    }
 }

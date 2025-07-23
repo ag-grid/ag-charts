@@ -410,7 +410,8 @@ export class MapLineSeries extends TopologySeries<
         colorValue: number | undefined,
         sizeValue: number | undefined,
         format: ItemStyle,
-        highlighted: boolean
+        highlighted: boolean,
+        datumIndex?: number
     ) {
         const { id: seriesId, properties, colorScale, sizeScale } = this;
         const { colorRange, itemStyler } = properties;
@@ -433,10 +434,14 @@ export class MapLineSeries extends TopologySeries<
             const itemStyle = this.cachedDatumCallback(
                 createDatumId(datumId, highlighted ? 'highlight' : 'node'),
                 () => {
+                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+                    const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datumIndex);
+
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         highlighted,
+                        highlightState,
                         ...format,
                         ...overrides,
                     });
@@ -471,7 +476,8 @@ export class MapLineSeries extends TopologySeries<
                 colorValue,
                 sizeValue,
                 format,
-                isHighlight
+                isHighlight,
+                datumIndex
             );
 
             geoGeometry.visible = true;
@@ -725,7 +731,7 @@ export class MapLineSeries extends TopologySeries<
         const format = this.getItemBaseStyle(false);
         Object.assign(
             format,
-            this.getItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format, false)
+            this.getItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format, false, datumIndex)
         );
 
         return this.formatTooltipWithContext(
@@ -756,5 +762,9 @@ export class MapLineSeries extends TopologySeries<
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         const geometry = findFocusedGeoGeometry(this, opts);
         return geometry ? Transformable.toCanvas(this.contentGroup, geometry.getBBox()) : undefined;
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
     }
 }

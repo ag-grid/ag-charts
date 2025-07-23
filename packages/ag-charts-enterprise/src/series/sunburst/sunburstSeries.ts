@@ -24,7 +24,7 @@ class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
     label: LabelLayout | undefined = undefined;
     secondaryLabel: LabelLayout | undefined = undefined;
     contentHeight: number = 0;
-    bbox: _ModuleSupport.BBox | undefined = undefined;
+    bbox: _ModuleSupport.BBox | undefined = undefined; // cspell:ignore bbox
     startAngle: number = 0;
     endAngle: number = 0;
 }
@@ -155,14 +155,17 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
         if (itemStyler != null && depth != null && datumIndex != null) {
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex.join(':'), isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         depth,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                     });
                 }
@@ -632,5 +635,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     protected override computeFocusBounds(node: _ModuleSupport.Sector): _ModuleSupport.Path | undefined {
         return node;
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
     }
 }
