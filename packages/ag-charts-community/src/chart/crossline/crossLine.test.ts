@@ -289,4 +289,116 @@ describe('CrossLine', () => {
             }
         );
     });
+
+    describe('discrete time axis alignment', () => {
+        it('should align crossLines values correctly', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { date: new Date(2024, 0, 1), value: 10 },
+                    { date: new Date(2024, 0, 8), value: 10 },
+                    { date: new Date(2024, 0, 15), value: 10 },
+                    { date: new Date(2024, 0, 22), value: 10 },
+                    { date: new Date(2024, 0, 29), value: 10 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'date',
+                        yKey: 'value',
+                        xName: 'Date',
+                        yName: 'Value',
+                    },
+                ],
+                axes: [
+                    {
+                        type: 'unit-time',
+                        position: 'bottom',
+                        crossLines: [
+                            // Centered over first item
+                            {
+                                type: 'line',
+                                value: new Date(2024, 0, 1),
+                                label: { text: '1st' },
+                            },
+                            // Single line
+                            {
+                                type: 'line',
+                                value: new Date(2024, 0, 5),
+                                label: { text: '5th' },
+                            },
+                            // Range over last item
+                            {
+                                type: 'line',
+                                value: new Date(2024, 0, 8),
+                                label: { text: '8th' },
+                            },
+                        ],
+                    },
+                    {
+                        type: 'number',
+                        position: 'left',
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should align crossLines ranges correctly', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { date: new Date(2024, 0, 1), value: 10 },
+                    { date: new Date(2024, 0, 8), value: 10 },
+                    { date: new Date(2024, 0, 15), value: 10 },
+                    { date: new Date(2024, 0, 22), value: 10 },
+                    { date: new Date(2024, 0, 29), value: 10 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'date',
+                        yKey: 'value',
+                        xName: 'Date',
+                        yName: 'Value',
+                    },
+                ],
+                axes: [
+                    {
+                        type: 'unit-time',
+                        position: 'bottom',
+                        crossLines: [
+                            // Range over first item
+                            {
+                                type: 'range',
+                                range: [new Date(2024, 0, 1), new Date(2024, 0, 4)],
+                                label: { text: '1st-4th' },
+                            },
+                            // Single line
+                            {
+                                type: 'range',
+                                range: [new Date(2024, 0, 10), new Date(2024, 0, 11)],
+                                label: { text: '10th-11th' },
+                            },
+                            // Range over last item
+                            {
+                                type: 'range',
+                                range: [new Date(2024, 0, 20), new Date(2024, 0, 22)],
+                                label: { text: '20th-22nd' },
+                            },
+                        ],
+                    },
+                    {
+                        type: 'number',
+                        position: 'left',
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });

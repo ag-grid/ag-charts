@@ -23,7 +23,6 @@ import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
 import { type CartesianAxisDirection, ChartAxisDirection } from '../chartAxisDirection';
-import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
 
 export interface DefinedZoomState {
@@ -600,10 +599,19 @@ export class ZoomManager extends BaseManager {
 
         const { start, end } = range;
 
-        const [startAlignment = ScaleAlignment.Leading, endAlignment = ScaleAlignment.Trailing] = rangeAlignment(
-            start,
-            end
-        );
+        const startValue = start?.valueOf();
+        const endValue = end?.valueOf();
+
+        let startAlignment: ScaleAlignment;
+        let endAlignment: ScaleAlignment;
+        if (typeof startValue === 'number' && typeof endValue === 'number') {
+            startAlignment = startValue <= endValue ? ScaleAlignment.Leading : ScaleAlignment.Trailing;
+            endAlignment = startValue <= endValue ? ScaleAlignment.Trailing : ScaleAlignment.Leading;
+        } else {
+            startAlignment = ScaleAlignment.Leading;
+            endAlignment = ScaleAlignment.Trailing;
+        }
+
         let r0 = range.start == null ? d0 : scale.convert(range.start, { alignment: startAlignment });
         let r1 =
             range.end == null ? d1 : scale.convert(range.end, { alignment: endAlignment }) + (scale.bandwidth ?? 0);

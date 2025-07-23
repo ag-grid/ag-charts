@@ -8,7 +8,7 @@ import type {
 } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
-import { type Scale } from '../../scale/scale';
+import { type Scale, ScaleAlignment } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { PointerEvents } from '../../scene/node';
@@ -17,7 +17,6 @@ import { TransformableText } from '../../scene/shape/text';
 import { toRadians } from '../../util/angle';
 import { clampArray, findMinMax } from '../../util/number';
 import { BaseProperties, Property } from '../../util/properties';
-import { rangeAlignment } from '../rangeAlignment';
 import { FONT_SIZE } from '../themes/constants';
 import { type CrossLine, type CrossLineType, validateCrossLineValue } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
@@ -258,7 +257,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         const bandwidth = scale.bandwidth ?? 0;
         const step = scale.step ?? 0;
-        const rangePadding = scale instanceof BandScale ? (step - bandwidth) / 2 : 0;
+        const rangePadding = BandScale.is(scale) ? (step - bandwidth) / 2 : 0;
 
         let [clippedRange0, clippedRange1] = findMinMax(clippedRange);
         clippedRange0 -= bandwidth;
@@ -269,10 +268,15 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         let clampedYStart: number;
         let clampedYEnd: number;
         if (type === 'line') {
-            const offset = bandwidth / 2;
+            const aligned =
+                Math.abs(
+                    scale.convert(value as any, { alignment: ScaleAlignment.Leading }) -
+                        scale.convert(value as any, { alignment: ScaleAlignment.Trailing })
+                ) < 1e-6;
+            const offset = aligned ? bandwidth / 2 : bandwidth + (step - bandwidth) / 2;
             yStart = scale.convert(value as any) + offset;
             yEnd = NaN;
-            clampedYStart = scale.convert(value as any, { clamp: true }) + offset;
+            clampedYStart = scale.convert(value as any) + offset;
             clampedYEnd = NaN;
 
             if (clampedYStart >= clippedRange1 || clampedYStart <= clippedRange0) {
@@ -280,14 +284,22 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             }
         } else if (range) {
             const [r0, r1] = range;
-            const [startAlignment, endAlignment] = rangeAlignment(r0, r1);
+            const r0Value = r0?.valueOf();
+            const r1Value = r1?.valueOf();
+
+            let startAlignment: ScaleAlignment | undefined;
+            let endAlignment: ScaleAlignment | undefined;
+            if (BandScale.is(scale) && typeof r0Value === 'number' && typeof r1Value === 'number') {
+                startAlignment = r0Value <= r1Value ? ScaleAlignment.Trailing : ScaleAlignment.Leading;
+                endAlignment = r0Value <= r1Value ? ScaleAlignment.Leading : ScaleAlignment.Trailing;
+            }
 
             yStart = scale.convert(r0 as any, { alignment: startAlignment });
             yEnd = scale.convert(r1 as any, { alignment: endAlignment });
-            clampedYStart = scale.convert(r0 as any, { clamp: true, alignment: startAlignment });
-            clampedYEnd = scale.convert(r1 as any, { clamp: true, alignment: endAlignment });
+            clampedYStart = scale.convert(r0 as any, { alignment: startAlignment, clamp: true });
+            clampedYEnd = scale.convert(r1 as any, { alignment: endAlignment, clamp: true });
 
-            if (clampedYStart > clampedYEnd) {
+            if (startAlignment == null && endAlignment == null && clampedYStart > clampedYEnd) {
                 [clampedYStart, clampedYEnd] = [clampedYEnd, clampedYStart];
                 [yStart, yEnd] = [yEnd, yStart];
             }
