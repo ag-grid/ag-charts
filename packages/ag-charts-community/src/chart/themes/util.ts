@@ -293,7 +293,7 @@ export const LEGEND_CONTAINER_THEME: any = {
         strokeOpacity: 1,
         strokeWidth: 1,
     },
-    cornerRadius: { $ref: 'borderRadius' },
+    cornerRadius: 4,
     fillOpacity: 1,
     padding: {
         $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, { $isUserOption: ['./fill', 5, 0] }],

@@ -244,12 +244,7 @@ export class ChartTheme {
                     },
                     padding: {
                         $if: [
-                            {
-                                $or: [
-                                    { $isUserOption: ['./border', true, false] },
-                                    { $isUserOption: ['./fill', true, false] },
-                                ],
-                            },
+                            { $eq: [{ $path: './border/enabled' }, true] },
                             { left: 12, right: 12, top: 8, bottom: 8 },
                             undefined,
                         ],
@@ -345,7 +340,7 @@ export class ChartTheme {
                     strokeOpacity: 1,
                     strokeWidth: 1,
                 },
-                cornerRadius: { $ref: 'borderRadius' },
+                cornerRadius: 4,
                 padding: { $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, 0] },
             },
             keyboard: { enabled: true },
