@@ -2,11 +2,18 @@ name: Security
 
 on:
     workflow_dispatch:
+        inputs:
+            notify:
+                description: 'Notify Slack channel'
+                type: boolean
+                default: false
+                required: true
     schedule:
         - cron: '0 0 * * *' # Run daily at midnight UTC
 
 env:
     OUTPUT_DIR: test-results/
+    REPORT_FILE: report.json
     PREV_COMMIT_SHA_FILE: ./commit-sha.txt
     REPO_URL: ${{ github.server_url }}/${{ github.repository }}
 
@@ -27,6 +34,7 @@ jobs:
                   snyk_token: ${{ secrets.SNYK_TOKEN }}
                   remote_repo_url: ${{env.REPO_URL}}
                   output_dir: ${{ env.OUTPUT_DIR }}
+                  report_file: ${{ env.REPORT_FILE }}
 
             - name: Persist scan results
               if: always()
@@ -50,6 +58,7 @@ jobs:
               with:
                   snyk_token: ${{ secrets.SNYK_TOKEN }}
                   output_dir: ${{ env.OUTPUT_DIR }}
+                  report_file: ${{ env.REPORT_FILE }}
 
             - name: Persist scan results
               if: always()
@@ -78,15 +87,15 @@ jobs:
                   script: |
                       const fs = require('fs');
                       const path = require('path');
-                      // read all json files nested under ${{ env.OUTPUT_DIR }}/**/*.json 
+                      // read all json files nested under ${{ env.OUTPUT_DIR }}/**/${{ env.REPORT_FILE }} 
                       const files = fs.readdirSync('${{ env.OUTPUT_DIR }}', { withFileTypes: true })
                         .flatMap(dir => {
                           if (dir.isDirectory()) {
                             return fs.readdirSync(path.join('${{ env.OUTPUT_DIR }}', dir.name))
-                              .filter(file => file.endsWith('.json'))
+                              .filter(file => file === '${{ env.REPORT_FILE }}')
                               .map(file => path.join('${{ env.OUTPUT_DIR }}', dir.name, file));
                           } 
-                          if (dir.isFile() && dir.name.endsWith('.json')) {
+                          if (dir.isFile() && dir.name === '${{ env.REPORT_FILE }}') {
                             return [path.join('${{ env.OUTPUT_DIR }}', dir.name)];
                           }
                           return [];
@@ -101,8 +110,7 @@ jobs:
                           }
                       }
 
-                      fs.mkdirSync(path.dirname(path.join('.', '${{ env.CTRF_FILE }}')), { recursive: true });
-                      fs.writeFileSync(path.join('.', '${{ env.CTRF_FILE }}'), JSON.stringify(report));
+                      fs.writeFileSync('${{ env.REPORT_FILE }}', JSON.stringify(report));
 
             - name: Get previous run commit SHA
               id: prev-commit-sha
@@ -132,7 +140,7 @@ jobs:
               continue-on-error: true
               uses: ./external/ag-shared/github/actions/slack-integration
               with:
-                  CTRF_REPORT_FILE: ${{ env.CTRF_FILE }}
+                  CTRF_REPORT_FILE: ${{ env.REPORT_FILE }}
                   SLACK_WEBHOOK: ${{ secrets.CI_GATE_WEBHOOK }}
                   SLACK_CHANNEL: '#ci-chart-gate'
                   PREV_COMMIT_SHA: ${{ env.PREV_COMMIT_SHA }}
@@ -146,7 +154,7 @@ jobs:
             #   with:
             #       JIRA_API_AUTH: ${{ secrets.JIRA_API_AUTH }}
             #       JIRA_SUMMARY: "[NR] CI/CD workflow '${{ github.workflow }}' is failing."
-            #       CTRF_REPORT_FILE: ${{ env.CTRF_FILE }}
+            #       CTRF_REPORT_FILE: ${{ env.REPORT_FILE }}
             #       IS_SUCCESS: ${{ needs.code-dependency-scan.result != 'failure' && needs.sast-code-scan.result != 'failure' }}
             #       PREV_COMMIT_SHA: ${{ env.PREV_COMMIT_SHA }}
             #       CURRENT_COMMIT_SHA: ${{ github.sha }}
