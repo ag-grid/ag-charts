@@ -141,6 +141,7 @@ nx e2e ag-charts-website
 ## Development Server Notes
 
 -   Normally the Astro dev server is running on port 4600 (HTTPS) and you can just use it.
+    -   If using the puppeteer MCP tool, use `https://host.docker.internal:4600` as the host rather than `https://localhost:4600`.
 -   If you need to run the dev server, use `nx dev` to start it.
     -   This includes an incremental watch and build of all packages and website.
 -   Note that example paths are mapped from repo paths:
