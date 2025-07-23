@@ -89,7 +89,7 @@ crosshair: {
 
 ### Label Format
 
-The `crosshair.label.format` property can be used to format the crosshair label.
+The `crosshair.label.formatter` or `crosshair.label.format` properties can be used to format the crosshair label.
 
 If a format string is not provided, the `axis.label.formatter` function or `axis.label.format` string will be used.
 
@@ -102,6 +102,8 @@ In this example:
 -   Clicking 'Remove formats' will remove both the axis and crosshair label formats, with both showing the default format.
 -   Clicking 'Set axis.label.format' will add a format to the axis label. Both the axis and crosshair labels will use this format, unless a crosshair label format has been added.
 -   Clicking 'Set crosshair.label.format' will add a format to the crosshair label. The crosshair labels will use this format, and the axis labels will be unaffected.
+
+See [Formatters Inheritance and Precedence](./formatters/#inheritance-and-precedence) for more details on how formatters are inherited and precedence rules.
 
 ### Default Label Renderer
 
