@@ -536,4 +536,17 @@ describe('Axis Examples', () => {
             });
         }
     });
+
+    describe('empty data', () => {
+        it.each(['number', 'time', 'unit-time'] as const)(`should render empty %s axis`, async (axisType) => {
+            chart = await createChart({
+                data: [],
+                axes: [
+                    { type: 'number', position: 'left' },
+                    { type: axisType, position: 'bottom', min: 1 },
+                ],
+            });
+            await compare();
+        });
+    });
 });
