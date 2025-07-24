@@ -1,0 +1,44 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <label for="spacingLabel"><code>spacing:</code></label>
+        <input
+            type="range"
+            id="spacingLabel"
+            min="0"
+            max="75"
+            value="20"
+            oninput="updateLegendSpacing(event)"
+            onchange="updateLegendSpacing(event)"
+        />
+        <span id="spacingValue" class="gap-right">20</span>
+    </div>
+
+    <div class="controls-row">
+        <label for="xOffsetLabel"><code>xOffset:</code></label>
+        <input
+            type="range"
+            id="xOffsetLabel"
+            min="-100"
+            max="100"
+            value="0"
+            oninput="updateLegendXOffset(event)"
+            onchange="updateLegendXOffset(event)"
+        />
+        <span id="xOffsetValue">0</span>
+    </div>
+
+    <div class="controls-row">
+        <label for="yOffsetLabel"><code>yOffset:</code></label>
+        <input
+            type="range"
+            id="yOffsetLabel"
+            min="-150"
+            max="150"
+            value="0"
+            oninput="updateLegendYOffset(event)"
+            onchange="updateLegendYOffset(event)"
+        />
+        <span id="yOffsetValue">0</span>
+    </div>
+</div>
+<div id="myChart" class="chart"></div>
