@@ -1599,7 +1599,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             radiusName,
             tooltip,
         } = properties;
-        const title = this.properties.title.text;
+        const title = this.properties.title.node.getPlainText();
 
         if (!dataModel || !processedData) return;
 

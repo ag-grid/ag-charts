@@ -57,7 +57,7 @@ export class Text<D = any> extends Shape<D> {
 
     private static readonly defaultFontSize = 10;
 
-    private richText?: Group<Text>;
+    private richText?: Group;
     private textMap?: Map<Text, BoxBounds>;
 
     @SceneChangeDetection()
@@ -191,14 +191,19 @@ export class Text<D = any> extends Shape<D> {
         return super.getBBox();
     }
 
+    getPlainText(): string {
+        if (isArray(this.text)) {
+            return this.text.map((segment) => segment.text).join('');
+        }
+        return this.text ?? '';
+    }
+
     getTextMeasureBBox() {
         return this.computeBBox();
     }
 
     isPointInPath(x: number, y: number): boolean {
-        const bbox = this.getBBox();
-
-        return bbox ? bbox.containsPoint(x, y) : false;
+        return this.getBBox()?.containsPoint(x, y) ?? false;
     }
 
     getStyle(): Omit<TextSegment, 'text'> & { fontSize: number } {
@@ -227,7 +232,7 @@ export class Text<D = any> extends Shape<D> {
 
         let index = 0;
         let totalWidth = 0;
-        let offsetY = this.y;
+        let offsetY = 0;
         const mainStyle = this.getStyle();
 
         for (const textNode of this.richText!.children() as Iterable<Text>) {
@@ -238,7 +243,10 @@ export class Text<D = any> extends Shape<D> {
             textNode.setProperties(mergeDefaults(textSegment, mainStyle));
             const textBBox = textNode.getBBox();
             this.textMap.set(textNode, textBBox);
-            offsetY = Math.max(offsetY, textNode.lineHeight ?? TextUtils.getLineHeight(textNode.fontSize));
+            offsetY = Math.max(
+                offsetY,
+                textBBox.y + textBBox.height / 2 + (textNode.lineHeight ?? TextUtils.getLineHeight(textNode.fontSize))
+            );
             totalWidth += textBBox.x + textBBox.width;
         }
         let offsetX = this.x - totalWidth / 2;
@@ -274,7 +282,7 @@ export class Text<D = any> extends Shape<D> {
             }
 
             ctx.save();
-            ctx.translate(translateX, 0);
+            ctx.translate(translateX, this.y);
             this.richText!.render(renderCtx);
             ctx.restore();
         } else {
@@ -305,7 +313,6 @@ export class Text<D = any> extends Shape<D> {
         }
 
         const { ctx } = renderCtx;
-        const { globalAlpha } = ctx;
         const font = TextUtils.toFontString(this);
         // Try to avoid this assignment, which typically always incurs a font switch cost.
         if (ctx.font !== font) {
@@ -313,10 +320,6 @@ export class Text<D = any> extends Shape<D> {
         }
 
         const { fontSize, lineHeight = TextUtils.getLineHeight(fontSize), textAlign, textBaseline } = this;
-
-        const lines = this.lines.length;
-        const lineOriginY =
-            textBaseline === 'alphabetic' ? 0 : -TextUtils.getVerticalModifier(textBaseline) * lineHeight * (lines - 1);
 
         ctx.textAlign = textAlign;
         ctx.textBaseline = textBaseline;
@@ -339,40 +342,16 @@ export class Text<D = any> extends Shape<D> {
             }
         }
 
-        if (fill) {
-            this.applyFillAndAlpha(ctx);
-            this.applyShadow(ctx);
-            this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.fillText(line, x, y));
+        this.fillStroke(ctx);
+    }
 
-            ctx.globalAlpha = globalAlpha;
-        }
-
-        if (stroke && strokeWidth) {
-            this.applyStrokeAndAlpha(ctx);
-            ctx.lineWidth = strokeWidth;
-
-            const { lineDash, lineDashOffset, lineCap, lineJoin } = this;
-
-            if (lineDash) {
-                ctx.setLineDash(lineDash as number[]);
-            }
-
-            if (lineDashOffset) {
-                ctx.lineDashOffset = lineDashOffset;
-            }
-
-            if (lineCap) {
-                ctx.lineCap = lineCap;
-            }
-
-            if (lineJoin) {
-                ctx.lineJoin = lineJoin;
-            }
-
-            this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.strokeText(line, x, y));
-
-            ctx.globalAlpha = globalAlpha;
-        }
+    protected override executeFill(ctx: CanvasRenderingContext2D) {
+        const { fontSize, lineHeight = TextUtils.getLineHeight(fontSize), textBaseline, lines } = this;
+        const lineOriginY =
+            textBaseline === 'alphabetic'
+                ? 0
+                : TextUtils.getVerticalModifier(textBaseline) * lineHeight * (1 - lines.length);
+        this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.fillText(line, x, y));
     }
 
     protected override executeStroke(ctx: CanvasRenderingContext2D) {
@@ -380,7 +359,7 @@ export class Text<D = any> extends Shape<D> {
         const lineOriginY =
             textBaseline === 'alphabetic'
                 ? 0
-                : -TextUtils.getVerticalModifier(textBaseline) * lineHeight * (lines.length - 1);
+                : TextUtils.getVerticalModifier(textBaseline) * lineHeight * (1 - lines.length);
         this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.strokeText(line, x, y));
     }
 
