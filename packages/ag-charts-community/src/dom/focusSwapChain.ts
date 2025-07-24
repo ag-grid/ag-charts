@@ -49,12 +49,15 @@ export class FocusSwapChain {
     constructor(
         private label1: StrictHTMLElement,
         private label2: StrictHTMLElement,
-        announcerRole: BaseAttributeTypeMap['role']
+        announcerRole: BaseAttributeTypeMap['role'],
+        initialAltText: string
     ) {
         setAttribute(this.label1, 'id', createElementId());
         setAttribute(this.label2, 'id', createElementId());
         setElementStyle(this.label1, 'display', 'none');
         setElementStyle(this.label2, 'display', 'none');
+        this.label1.textContent = initialAltText;
+        this.label2.textContent = initialAltText;
 
         this.activeAnnouncer = this.createAnnouncer(announcerRole);
         this.inactiveAnnouncer = this.createAnnouncer(announcerRole);
