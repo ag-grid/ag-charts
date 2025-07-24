@@ -374,27 +374,28 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         this.animationState.transition('update');
     }
 
-    protected getItemStyle(
-        { datumIndex, datum }: Partial<RadialBarNodeDatum>,
-        isHighlight: boolean
-    ): Required<AgRadialSeriesStyle> {
+    protected getItemStyle(nodeDatum: RadialBarNodeDatum, isHighlight: boolean): Required<AgRadialSeriesStyle> {
         const { id: seriesId, properties } = this;
         const { angleKey, radiusKey, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } =
             properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
-        if (itemStyler != null && datumIndex != null) {
+        if (itemStyler != null && nodeDatum != null) {
             const overrides = this.cachedDatumCallback(
-                createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
+                createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    const highlightState = this.getHighlightStateString(
+                        activeHighlight,
+                        isHighlight,
+                        nodeDatum.datumIndex
+                    );
                     return this.callWithContext(itemStyler, {
                         seriesId,
-                        datum,
+                        datum: nodeDatum.datum,
                         highlighted: isHighlight,
                         highlightState,
                         angleKey,
@@ -526,8 +527,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const { angleKey, angleName, radiusKey, radiusName, tooltip } = properties;
         const angleAxis = axes[ChartAxisDirection.Angle];
         const radiusAxis = axes[ChartAxisDirection.Radius];
+        const nodeDatum = this.nodeData?.[datumIndex];
 
-        if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
+        if (!dataModel || !processedData || !angleAxis || !radiusAxis || !nodeDatum) return;
 
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const radiusValue = dataModel.resolveKeysById(this, `radiusValue`, processedData)[datumIndex];
@@ -535,7 +537,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         if (radiusValue == null) return;
 
-        const format = this.getItemStyle({ datumIndex, datum }, false);
+        const format = this.getItemStyle(nodeDatum, false);
 
         return this.formatTooltipWithContext(
             tooltip,

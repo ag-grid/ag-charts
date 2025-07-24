@@ -745,4 +745,51 @@ describe('RangeBarSeries', () => {
             });
         });
     });
+
+    describe('AG-15448', () => {
+        const DATA1 = [
+            { month: 'Jan', tempLow: 5, tempHigh: 15, status: 1 },
+            { month: 'Feb', tempLow: 7, tempHigh: 18, status: 1 },
+            { month: 'Mar', tempLow: 10, tempHigh: 22, status: 1 },
+            { month: 'Apr', tempLow: 12, tempHigh: 25, status: 2 },
+            { month: 'Jul', tempLow: 20, tempHigh: 30, status: 2 }, // This overlaps with the DATA2 dataset and can render in the wrong color.
+            { month: 'Aug', tempLow: 18, tempHigh: 28, status: 1 },
+        ];
+
+        const DATA2 = [
+            { month: 'May', tempLow: 15, tempHigh: 27, status: 2 },
+            { month: 'Jun', tempLow: 18, tempHigh: 29, status: 1 },
+            { month: 'Jul', tempLow: 20, tempHigh: 30, status: 2 },
+        ];
+
+        const EXAMPLE_OPTIONS: AgCartesianChartOptions<
+            { month: string; tempLow: number; tempHigh: number; status: number },
+            { colors: Record<number, string> }
+        > = {
+            context: { colors: { 1: 'orange', 2: 'green' } },
+            data: DATA1,
+            series: [
+                {
+                    type: 'range-bar',
+                    xKey: 'month',
+                    yLowKey: 'tempLow',
+                    yHighKey: 'tempHigh',
+                    label: { formatter: ({ datum, context }) => context?.colors[datum.status] ?? 'none' },
+                    itemStyler: ({ datum, context }) => ({
+                        fill: context?.colors[datum.status] ?? 'none',
+                    }),
+                },
+            ],
+        };
+
+        it('should render updated data in the itemStyler specified colors', async () => {
+            const options = { ...EXAMPLE_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            await chart.updateDelta({ data: DATA2 });
+            await compare();
+        });
+    });
 });
