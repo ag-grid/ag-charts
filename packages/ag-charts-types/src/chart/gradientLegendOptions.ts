@@ -51,7 +51,9 @@ export interface AgGradientLegendOptions<TContext = ContextDefault> {
     position?: AgChartLegendPosition;
     /** Gradient bar configuration. */
     gradient?: AgGradientLegendBarOptions;
-    /** The spacing in pixels to use outside the legend. Note: This only applies when `floating: false`.
+    /** The spacing in pixels to use outside the legend.
+     *
+     * __Note:__ This only applies when `floating: false`.
      *
      * Default: `20` */
     spacing?: PixelSize;

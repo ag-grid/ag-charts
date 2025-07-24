@@ -209,8 +209,7 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     background?: AgChartBackground;
     /** Configuration for the title shown at the top of the chart. */
     title?: AgChartCaptionOptions;
-    /** Configuration for the subtitle shown beneath the chart title.
-     * __Note:__ A subtitle will only be shown if a title is also present. */
+    /** Configuration for the subtitle shown beneath the chart title. */
     subtitle?: AgChartSubtitleOptions;
     /** Configuration for the footnote shown at the bottom of the chart. */
     footnote?: AgChartFooterOptions;
