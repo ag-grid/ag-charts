@@ -28,23 +28,23 @@ export function normalisedExtentWithMetadata(
 ): { extent: number[]; clipped: boolean } {
     let clipped = false;
 
-    if (d.length > 2) {
-        d = extent(d) ?? [];
-    }
-    if (d.length < 2 && min == null && max == null) {
-        return { extent: [], clipped: false };
+    const de = extent(d);
+    if (de == null) {
+        return { extent: min != null && max != null && min <= max ? [min, max] : [], clipped: false };
     }
 
+    let [d0, d1] = de;
+
     if (min != null) {
-        clipped ||= min > d[0];
-        d = [min, d[1]];
+        clipped ||= min > d0;
+        d0 = min;
     }
     if (max != null) {
-        clipped ||= max < d[1];
-        d = [d[0], max];
+        clipped ||= max < d1;
+        d1 = max;
     }
-    if (d[0] > d[1]) {
-        d = [];
+    if (d0 > d1) {
+        return { extent: [], clipped: false };
     }
-    return { extent: d, clipped };
+    return { extent: [d0, d1], clipped };
 }

@@ -13,13 +13,15 @@ By default, a Legend is displayed below all charts containing more than one seri
 
 ## Layout
 
-### Position
+### Placement
 
-The default position of a Legend is below the chart. However, this can be changed with the `position` property.
+The default placement of a Legend is below the chart. However, this can be changed with the `position.placement` property.
 
 ```js
 legend: {
-    position: 'bottom', // 'top', 'right', 'left', 'top-right', 'right-top' ...,
+    position: {
+        placement: 'bottom', // 'top', 'right', 'left', 'top-right', 'right-top' ...,
+    },
 }
 ```
 
@@ -29,6 +31,21 @@ Notice that when you change the legend position in the example above:
 -   The default `orientation` of the Legend changes.
     -   A `vertical` orientation - with the items arranged in columns - is used when the Legend is positioned to the side of the chart.
     -   A `horizontal` orientation - with the items arranged in rows - is used when the Legend is positioned to above or below the chart.
+
+### Spacing / Offset
+
+It is possible to manual adjust the spacing and X & Y translation of the Legend.
+
+{% chartExampleRunner title="Legend Spacing / Offset" name="legend-spacing-offsets" type="generated" /%}
+
+In this example:
+
+-   The `spacing` value adjusts the spacing between the Series Area and Legend.
+
+    -   This shrinks the overall size of the Series Area
+
+-   The `xOffset` and `yOffset` values move the Legend relative to its natural position. This leaves
+    -   This leaves the overall size of the Series Area unchanged.
 
 ### Size
 
@@ -72,7 +89,7 @@ legend: {
         placement: 'right-top',
         floating: true,
         xOffset: -50,
-        yOffset: 25,
+        yOffset: 75,
     },
 }
 ```

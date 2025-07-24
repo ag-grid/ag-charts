@@ -405,4 +405,50 @@ describe('RadialBarSeries', () => {
         chart = AgCharts.create(options);
         await compare();
     });
+
+    describe('AG-15448', () => {
+        const DATA1 = [
+            { quarter: `Q1'22`, revenue: 4.35, status: 1 },
+            { quarter: `Q2'22`, revenue: 4.28, status: 1 },
+            { quarter: `Q3'22`, revenue: 4.14, status: 1 },
+            { quarter: `Q4'22`, revenue: 3.48, status: 2 },
+            { quarter: `Q3'23`, revenue: 3.14, status: 2 }, // This overlaps with the DATA2 dataset and can render in the wrong color.
+            { quarter: `Q4'23`, revenue: 2.48, status: 1 },
+        ];
+
+        const DATA2 = [
+            { quarter: `Q1'23`, revenue: 3.35, status: 2 },
+            { quarter: `Q2'23`, revenue: 3.28, status: 1 },
+            { quarter: `Q3'23`, revenue: 3.14, status: 2 },
+        ];
+
+        const TEST_OPTIONS: AgChartOptions<
+            { quarter: string; revenue: number; status: number },
+            { colors: Record<number, string> }
+        > = {
+            context: { colors: { 1: 'orange', 2: 'green' } },
+            data: DATA1,
+            series: [
+                {
+                    type: 'radial-bar',
+                    radiusKey: 'quarter',
+                    angleKey: 'revenue',
+                    label: { formatter: ({ datum, context }) => context?.colors[datum.status] ?? 'none' },
+                    itemStyler: ({ datum, context }) => ({
+                        fill: context?.colors[datum.status] ?? 'none',
+                    }),
+                },
+            ],
+        };
+
+        it('should render updated data in the itemStyler specified colors', async () => {
+            const options = { ...TEST_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            await chart.updateDelta({ data: DATA2 });
+            await compare();
+        });
+    });
 });

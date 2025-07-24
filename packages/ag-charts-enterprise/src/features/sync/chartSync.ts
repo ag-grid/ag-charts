@@ -10,6 +10,8 @@ const {
     CartesianAxis,
     ChartAxisDirection,
     ContinuousScale,
+    TimeScale,
+    UnitTimeScale,
     ChartUpdateType,
     ObserveChanges,
     TooltipManager,
@@ -41,6 +43,17 @@ function syncedDirections(axes: 'x' | 'y' | 'xy' = 'x') {
             return [ChartAxisDirection.Y];
         case 'xy':
             return [ChartAxisDirection.X, ChartAxisDirection.Y];
+    }
+}
+
+function domainChanged(scale: _ModuleSupport.Scale<unknown, unknown>, a: unknown[], b: unknown[]) {
+    if (TimeScale.is(scale) || UnitTimeScale.is(scale)) {
+        return !arraysEqual(
+            a.map((x) => x?.valueOf()),
+            b.map((x) => x?.valueOf())
+        );
+    } else {
+        return !arraysEqual(a, b);
     }
 }
 
@@ -420,7 +433,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         }
         directionDomains.dirty = false;
 
-        if (!arraysEqual(previousDerived, directionDomains.derived)) {
+        if (domainChanged(axis.scale, previousDerived, directionDomains.derived)) {
             debug(axis.id, 'updated', axis.keys, { before: previousDerived, after: directionDomains.derived });
             this.updateSiblings();
         }
@@ -464,7 +477,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             newDerived = findMinMax(newDerived as number[]);
         }
 
-        if (updated && !arraysEqual(previousDerived, newDerived)) {
+        if (updated && domainChanged(axis.scale, previousDerived, newDerived)) {
             debug(axis.id, 'updated', axis.keys, { before: previousDerived, after: newDerived });
             this.updateSiblings();
         }

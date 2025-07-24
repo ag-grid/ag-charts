@@ -1,5 +1,5 @@
 import { createId, isArray } from 'ag-charts-core';
-import type { FontStyle, FontWeight, TextAlign, TextWrap } from 'ag-charts-types';
+import type { FontStyle, FontWeight, TextAlign, TextSegment, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
@@ -29,7 +29,7 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     @Property
     @ProxyPropertyOnWrite('node')
-    text?: string;
+    text?: string | TextSegment[];
 
     @Property
     @ProxyPropertyOnWrite('node')
@@ -103,7 +103,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             if (bbox) {
                 const { id: domManagerId } = this;
                 this.proxyText ??= proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
-                this.proxyText.textContent = this.text;
+                this.proxyText.textContent = this.node.getPlainText();
                 this.proxyText.setBounds(bbox);
                 this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev));
                 this.proxyText.addListener('mouseleave', (ev) => this.handleMouseLeave(moduleCtx, ev));
@@ -120,7 +120,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             const canvasX = event.sourceEvent.offsetX + x;
             const canvasY = event.sourceEvent.offsetY + y;
             moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, showArrow: false }, [
-                { type: 'structured', title: this.text },
+                { type: 'structured', title: this.node.getPlainText() },
             ]);
         }
     }

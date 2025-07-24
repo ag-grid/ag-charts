@@ -1,5 +1,5 @@
 import type { AgInitialStateOptions } from '../api/initialStateOptions';
-import type { BorderOptions, Padding, PaddingOptions } from '../series/cartesian/commonOptions';
+import type { BorderOptions, Padding, PaddingOptions, TextSegment } from '../series/cartesian/commonOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { Renderer } from './callbackOptions';
@@ -85,7 +85,7 @@ export interface AgChartCaptionOptions {
     /** Whether the text should be shown. */
     enabled?: boolean;
     /** The text to display. */
-    text?: string;
+    text?: string | TextSegment[];
     /** Horizontal position of the text. */
     textAlign?: TextAlign;
     /** The font style to use for the text. */

@@ -337,39 +337,39 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         return undefined;
     }
 
-    private getItemStyle(
-        { datumIndex, datum, depth = -1, colorValue }: Partial<TreemapNode>,
-        isLeaf: boolean,
-        isHighlight: boolean
-    ) {
+    private getItemStyle(nodeDatum: TreemapNode, isLeaf: boolean, isHighlight: boolean) {
         const { id: seriesId, properties, colorScale, ctx } = this;
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
-        const rootIndex = datumIndex?.[0] ?? 0;
+        const rootIndex = nodeDatum.datumIndex?.[0] ?? 0;
 
         const fills = isLeaf ? properties.fills : properties.undocumentedGroupFills;
         const strokes = isLeaf ? properties.strokes : properties.undocumentedGroupStrokes;
-        const index = isLeaf ? rootIndex : depth;
+        const index = isLeaf ? rootIndex : nodeDatum.depth ?? -1;
 
         const highlightStyle = isHighlight ? properties.highlightStyle.getStyle(isLeaf) : undefined;
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(isLeaf, fills, strokes, index));
 
-        if (!isHighlight && isLeaf && colorValue != null) {
-            baseStyle.fill = colorScale.convert(colorValue);
+        if (!isHighlight && isLeaf && nodeDatum.colorValue != null) {
+            baseStyle.fill = colorScale.convert(nodeDatum.colorValue);
         }
 
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
-        if (itemStyler != null && datumIndex != null) {
+        if (itemStyler != null && nodeDatum != null) {
             const overrides = this.cachedDatumCallback(
-                createDatumId(datumIndex.join(':'), isHighlight ? 'highlight' : 'node'),
+                createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
                     const activeHighlight = ctx.highlightManager?.getActiveHighlight();
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    const highlightState = this.getHighlightStateString(
+                        activeHighlight,
+                        isHighlight,
+                        nodeDatum.datumIndex
+                    );
 
                     return this.callWithContext(itemStyler, {
                         seriesId,
-                        datum,
-                        depth,
+                        datum: nodeDatum.datum,
+                        depth: nodeDatum.depth ?? -1,
                         highlighted: isHighlight,
                         highlightState,
                         ...style,
@@ -782,7 +782,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         }
 
         const format: Required<ItemStyle> = this.getItemStyle(
-            { datumIndex, datum, depth, colorValue: datumColor },
+            { ...nodeDatum, colorValue: datumColor ?? nodeDatum.colorValue } as TreemapNode,
             isLeaf,
             false
         );
