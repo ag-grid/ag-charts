@@ -29,8 +29,9 @@ const options: AgCartesianChartOptions = {
             gridLine: {
                 style: [
                     {
-                        fill: 'black',
-                        fillOpacity: 0.05,
+                        fill: '#999',
+                        fillOpacity: 0.1,
+                        strokeWidth: 0,
                     },
                     {},
                 ],

@@ -41,7 +41,7 @@ export interface AgWaterfallSeriesLabelOptions<TDatum, TParams, TContext = Conte
     extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Where to render series labels relative to the bars. */
     placement?: AgWaterfallSeriesLabelPlacement;
-    /** Padding in pixels between the label and the edge of the bar. */
+    /** Spacing in pixels between the label and the edge of the bar. */
     spacing?: PixelSize;
 }
 

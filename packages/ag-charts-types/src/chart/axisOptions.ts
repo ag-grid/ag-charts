@@ -142,7 +142,7 @@ export interface AgBaseAxisLabelStyleOptions extends LabelBoxOptions {
     fontSize?: FontSize;
     /** The font family to use for the labels */
     fontFamily?: FontFamilyFull;
-    /** Padding in pixels between the axis label and the tick. */
+    /** Spacing in pixels between the axis label and the tick. */
     spacing?: PixelSize;
     /** The colour to use for the labels */
     color?: CssColor;

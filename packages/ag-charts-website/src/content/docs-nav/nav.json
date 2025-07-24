@@ -107,7 +107,7 @@
                         },
                         {
                             "type": "item",
-                            "title": "Grid Lines",
+                            "title": "Grid Lines & Band Shading",
                             "path": "axes-grid-lines"
                         },
                         {
