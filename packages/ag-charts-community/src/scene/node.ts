@@ -37,6 +37,7 @@ export interface NodeOptions {
     tag?: number;
     zIndex?: ZIndex;
     debugDirty?: boolean;
+    scene?: IScene;
 }
 
 export type NodeWithOpacity = Node & { opacity: number };
@@ -144,6 +145,7 @@ export abstract class Node<TDatum = unknown> {
         this.name = options?.name;
         this.tag = options?.tag ?? NaN;
         this.zIndex = options?.zIndex ?? 0;
+        this.scene = options?.scene;
 
         if (options?.debugDirty ?? Node._debugEnabled) {
             this._debugDirtyProperties = new Map([['__first__', []]]);
