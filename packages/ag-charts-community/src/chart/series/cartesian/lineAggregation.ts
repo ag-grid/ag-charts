@@ -70,7 +70,13 @@ export function aggregateLineData(
 
     while (indices.length > MAX_POINTS && maxRange > 64) {
         ({ maxRange } = compactAggregationIndices(indexData, valueData, maxRange, { inPlace: true }));
-        indices = indices.filter(aggregationContainsIndex.bind(null, xValues, d0, d1, indexData, maxRange));
+        const nextIndices = [];
+        for (const datumIndex of indices) {
+            if (aggregationContainsIndex(xValues, d0, d1, indexData, maxRange, datumIndex)) {
+                nextIndices.push(datumIndex);
+            }
+        }
+        indices = nextIndices;
 
         filters.push({ maxRange, indices });
     }
