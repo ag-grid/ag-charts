@@ -395,7 +395,7 @@ export class Text<D = any> extends Shape<D> {
     setBoxing(props: TextBoxingProperties) {
         if (props.fill != null || props.border?.stroke != null) {
             const stroke = props.border?.enabled ? props.border?.stroke : undefined;
-            this.boxing ??= new Rect();
+            this.boxing ??= new Rect({ scene: this.scene });
             this.boxing.fill = props.fill;
             this.boxing.fillOpacity = props.fillOpacity ?? 1;
             this.boxing.cornerRadius = props.cornerRadius ?? 0;
