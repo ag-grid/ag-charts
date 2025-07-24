@@ -388,7 +388,6 @@ export class AreaSeries extends CartesianSeries<
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
         const yRawValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
-        const yEndValues = stacked ? dataModel.resolveColumnById(this, `yValueEnd`, processedData) : yRawValues;
         const yCumulativeValues = stacked
             ? dataModel.resolveColumnById(this, `yValueCumulative`, processedData)
             : yRawValues;
@@ -449,7 +448,6 @@ export class AreaSeries extends CartesianSeries<
             const seriesDatum = rawData[datumIndex];
             const yDatum = yRawValues[datumIndex];
             const yValueCumulative = yCumulativeValues[datumIndex];
-            const yValueEnd = yEndValues[datumIndex];
 
             const validPoint = Number.isFinite(yDatum);
 
@@ -468,7 +466,7 @@ export class AreaSeries extends CartesianSeries<
                     datum: seriesDatum,
                     datumIndex,
                     midPoint: { x: point.x, y: point.y },
-                    cumulativeValue: yValueEnd,
+                    cumulativeValue: yValueCumulative,
                     yValue: yDatum,
                     xValue: xDatum,
                     yKey,
