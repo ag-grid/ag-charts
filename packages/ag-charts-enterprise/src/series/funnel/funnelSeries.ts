@@ -134,7 +134,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
             datumIndex,
             series: this,
             visible,
-            style: this.getItemStyle(datum, datumIndex, false),
+            style: this.getItemStyle({ datum }, datumIndex, false),
         };
     }
 
