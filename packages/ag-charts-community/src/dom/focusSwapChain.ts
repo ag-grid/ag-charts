@@ -65,7 +65,7 @@ export class FocusSwapChain {
 
         this.label2.insertAdjacentElement('afterend', this.activeAnnouncer);
         this.label2.insertAdjacentElement('afterend', this.inactiveAnnouncer);
-        this.swap('');
+        this.swap(initialAltText);
     }
 
     destroy() {
