@@ -127,7 +127,7 @@ export class Label<TParams = never, TDatum = any>
 
 type LabelBoxingMixin = { border?: { enabled?: boolean; stroke?: string }; fill?: unknown; padding?: Padding };
 export function expandLabelPadding(label: LabelBoxingMixin | undefined): Required<PaddingOptions> {
-    const { enabled: borderEnabled = false, stroke: borderStroke = undefined } = label?.border ?? {};
+    const { enabled: borderEnabled = false, stroke: borderStroke } = label?.border ?? {};
     const hasBoxing = label?.fill != null || (borderEnabled && borderStroke != null);
     const padding = hasBoxing ? label?.padding : null;
 
