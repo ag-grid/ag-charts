@@ -79,7 +79,7 @@ export class Overlay extends BaseProperties {
                     const el = createElement('span', {
                         color: segment.color,
                         fontSize: `${segment.fontSize}px`,
-                        fontFamily: segment.fontFamily,
+                        fontFamily: segment.fontFamily ?? 'inherit',
                         fontWeight: String(segment.fontWeight),
                         fontStyle: segment.fontStyle,
                     });
