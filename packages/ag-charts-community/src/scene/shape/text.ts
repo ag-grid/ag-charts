@@ -172,13 +172,15 @@ export class Text<D = any> extends Shape<D> {
             return bbox;
         }
         const { x, y, lines, textBaseline, textAlign, lineHeight } = this;
-        return Text.computeBBox(
+        const measuredTextBounds = Text.computeBBox(
             lines,
             x,
             y,
             { font: this, textBaseline, textAlign, lineHeight },
             useGlyphIndependentMeasurements
         );
+        if (this.boxing != null) measuredTextBounds.grow(this.boxPadding);
+        return measuredTextBounds;
     }
 
     override getBBox(useGlyphIndependentMeasurements: boolean = true): BBox {
@@ -393,8 +395,8 @@ export class Text<D = any> extends Shape<D> {
     }
 
     setBoxing(props: TextBoxingProperties) {
-        if (props.fill != null || props.border?.stroke != null) {
-            const stroke = props.border?.enabled ? props.border?.stroke : undefined;
+        const stroke = props.border?.enabled ? props.border?.stroke : undefined;
+        if (props.fill != null || stroke != null) {
             this.boxing ??= new Rect({ scene: this.scene });
             this.boxing.fill = props.fill;
             this.boxing.fillOpacity = props.fillOpacity ?? 1;

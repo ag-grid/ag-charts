@@ -11,6 +11,7 @@ import type {
     FontWeight,
     Formatter,
     Padding,
+    PaddingOptions,
     Styler,
 } from 'ag-charts-types';
 
@@ -121,6 +122,22 @@ export class Label<TParams = never, TDatum = any>
         }
 
         return result != null ? String(result) : undefined;
+    }
+}
+
+type LabelBoxingMixin = { border?: { enabled?: boolean; stroke?: string }; fill?: unknown; padding?: Padding };
+export function expandLabelPadding(label: LabelBoxingMixin | undefined): Required<PaddingOptions> {
+    const { enabled: borderEnabled = false, stroke: borderStroke } = label?.border ?? {};
+    const hasBoxing = label?.fill != null || (borderEnabled && borderStroke != null);
+    const padding = hasBoxing ? label?.padding : null;
+
+    if (padding == null) {
+        return { bottom: 0, left: 0, right: 0, top: 0 };
+    } else if (typeof padding === 'number') {
+        return { bottom: padding, left: padding, right: padding, top: padding };
+    } else {
+        const { bottom = 0, left = 0, right = 0, top = 0 } = padding satisfies PaddingOptions;
+        return { bottom, left, right, top };
     }
 }
 
@@ -237,6 +254,9 @@ export function timeIntervalMaxLabelSize(
     let maxWidth = 0;
     let maxHeight = 0;
     if (labelFormatter != null) {
+        const padding = expandLabelPadding(label);
+        const xPadding = padding.left + padding.right;
+        const yPadding = padding.top + padding.bottom;
         let l0: Date;
         let l1: Date;
         if (hierarchyRange != null && hierarchyRange.length > 1) {
@@ -250,17 +270,21 @@ export function timeIntervalMaxLabelSize(
         for (const date of labelRange) {
             const text = labelFormatter(date);
             const { width, height } = textMeasurer.measureLines(text);
-            maxWidth = Math.max(maxWidth, width);
-            maxHeight = Math.max(maxHeight, height);
+            maxWidth = Math.max(maxWidth, width + xPadding);
+            maxHeight = Math.max(maxHeight, height + yPadding);
         }
     }
 
     if (primaryLabelFormatter != null && hierarchyRange != null) {
+        const padding = expandLabelPadding(primaryLabel);
+        const xPadding = padding.left + padding.right;
+        const yPadding = padding.top + padding.bottom;
         for (const date of hierarchyRange) {
             const text = primaryLabelFormatter(date);
             const { width, height } = textMeasurer.measureLines(text);
-            maxWidth = Math.max(maxWidth, width);
-            maxHeight = Math.max(maxHeight, height);
+
+            maxWidth = Math.max(maxWidth, width + xPadding);
+            maxHeight = Math.max(maxHeight, height + yPadding);
         }
     }
 
@@ -274,15 +298,21 @@ export function createLabelData(
     tickData: { tickLabel: string | undefined; translation: number }[],
     labelX: number,
     labelMatrix: Matrix,
-    textMeasurer: TextMeasurer
+    textMeasurer: TextMeasurer,
+    label: ChartAxisLabel
 ) {
+    const padding = expandLabelPadding(label);
+    const xPadding = padding.left + padding.right;
+    const yPadding = padding.top + padding.bottom;
     const labelData: PlacedLabelDatum[] = [];
 
     for (const { tickLabel: text, translation } of tickData) {
         if (!text) continue;
 
         const { x, y } = labelMatrix.transformBBox(new BBox(labelX, translation, 0, 0));
-        const { width, height } = textMeasurer.measureLines(text);
+        const metrics = textMeasurer.measureLines(text);
+        const width = metrics.width + xPadding;
+        const height = metrics.height + yPadding;
         labelData.push({
             point: { x, y },
             label: { text, width, height },

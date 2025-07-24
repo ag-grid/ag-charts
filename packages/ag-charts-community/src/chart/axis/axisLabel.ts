@@ -8,6 +8,7 @@ import type {
     FontWeight,
     Formatter,
     FormatterParams,
+    Padding,
     Styler,
     TextWrap,
 } from 'ag-charts-types';
@@ -122,7 +123,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     }
 
     @Property
-    padding?: number;
+    padding?: Padding;
 
     /**
      * Labels are rendered perpendicular to the axis line by default.

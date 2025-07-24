@@ -26,6 +26,7 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, valueProperty } from '../../data/processors';
+import { expandLabelPadding } from '../../label';
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -339,6 +340,7 @@ export class BubbleSeries extends CartesianSeries<
         const rawData = processedData.dataSources.get(this.id);
         if (rawData == null) return;
 
+        const padding = expandLabelPadding(label);
         const handleDatum = (datumIndex: number, count: number, dilation: number) => {
             const datum = rawData[datumIndex];
             const xDatum = xDataValues[datumIndex];
@@ -384,6 +386,8 @@ export class BubbleSeries extends CartesianSeries<
                     { value: labelTextValue, datum, xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName }
                 );
                 const size = textMeasurer.measureText(String(labelText));
+                size.width += padding.left + padding.right;
+                size.height += padding.bottom + padding.top;
 
                 nodeLabel = { text: labelText, ...size };
             } else {
