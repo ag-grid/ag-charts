@@ -139,31 +139,35 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.labelSelection.update(descendants, updateLabelGroup, (node) => this.getDatumId(node));
     }
 
-    private getItemStyle({ datumIndex, datum, depth, colorValue }: Partial<SunburstNode>, isHighlight: boolean) {
+    private getItemStyle(nodeDatum: SunburstNode, isHighlight: boolean) {
         const { id: seriesId, properties, colorScale } = this;
 
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
-        const rootIndex = datumIndex?.[0] ?? 0;
+        const rootIndex = nodeDatum.datumIndex?.[0] ?? 0;
 
         const highlightStyle = isHighlight ? properties.highlightStyle : undefined;
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(rootIndex));
 
-        if (colorValue != null) {
-            baseStyle.fill = colorScale.convert(colorValue);
+        if (nodeDatum.colorValue != null) {
+            baseStyle.fill = colorScale.convert(nodeDatum.colorValue);
         }
 
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
-        if (itemStyler != null && depth != null && datumIndex != null) {
+        if (itemStyler != null && nodeDatum != null) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
-                createDatumId(datumIndex.join(':'), isHighlight ? 'highlight' : 'node'),
+                createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    const highlightState = this.getHighlightStateString(
+                        activeHighlight,
+                        isHighlight,
+                        nodeDatum.datumIndex
+                    );
                     return this.callWithContext(itemStyler, {
                         seriesId,
-                        datum,
-                        depth,
+                        datum: nodeDatum.datum,
+                        depth: nodeDatum.depth ?? 0,
                         highlighted: isHighlight,
                         highlightState,
                         ...style,
@@ -558,7 +562,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             data.push({ label: colorName, fallbackLabel: colorKey!, value: datumColor });
         }
 
-        const format = this.getItemStyle({ datumIndex, datum, depth, colorValue: datumColor }, false);
+        const format = this.getItemStyle(
+            { ...nodeDatum, colorValue: datumColor ?? nodeDatum.colorValue } as SunburstNode,
+            false
+        );
 
         const color = format.fill as InternalAgColorType;
 
