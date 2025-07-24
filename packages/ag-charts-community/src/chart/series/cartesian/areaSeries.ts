@@ -846,7 +846,7 @@ export class AreaSeries extends CartesianSeries<
                     x: point.x,
                     y: point.y,
                     labelText,
-                    style, // TODO: remove?
+                    style,
                 });
             }
         };

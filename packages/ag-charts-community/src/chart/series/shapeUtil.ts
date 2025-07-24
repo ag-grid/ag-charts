@@ -49,7 +49,7 @@ export function getShapeFill(
             bounds: fill.bounds ?? defaultGradient.bounds,
             rotation: fill.rotation ?? defaultGradient.rotation,
             reverse: fill.reverse ?? defaultGradient.reverse,
-            colorSpace: fill.colorSpace ?? 'rgb',
+            colorSpace: fill.colorSpace ?? defaultGradient.colorSpace,
         };
     }
 

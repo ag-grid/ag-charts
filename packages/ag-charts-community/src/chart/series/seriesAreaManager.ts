@@ -881,7 +881,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const datum = tooltipMatch?.datum ?? pick.matches[0].datum;
 
-        this.chart.ctx.highlightManager.updateHighlight(this.id, datum); // FIXME
+        this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
         this.hoverDevice = 'pointer';
     }
 
