@@ -67,3 +67,4 @@ vitest.config.*.timestamp*
 .mcp.json
 CLAUDE.md
 todos.md
+.tmp

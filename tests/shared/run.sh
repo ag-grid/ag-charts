@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eu
+set -eux
 
 editor=false
 mode=docker
@@ -81,7 +81,8 @@ else
     repo_dir=$(git rev-parse --show-toplevel)
     project_dir=$(readlink -f $(dirname $0))
     project_script=$(basename $0)
-    project=$(mktemp -d)
+    mkdir -p $(pwd)/.tmp
+    project=$(mktemp -d -p $(pwd)/.tmp)
 
     cp -R ${project_dir}/../shared/* $project/
     cp -R ${project_dir}/* $project/
@@ -136,6 +137,7 @@ else
     echo ">>> npm i ../ag-charts*.tgz"
     npm i ../ag-charts-types.tgz ../ag-charts-locale.tgz ../ag-charts-community.tgz ../ag-charts-core.tgz ../ag-charts-enterprise.tgz ../ag-charts-${fw}.tgz @playwright/test@${playwright_version}
 fi
+git config --global --add safe.directory $(pwd)
 git add .
 git commit -m "Initial commit"
 
