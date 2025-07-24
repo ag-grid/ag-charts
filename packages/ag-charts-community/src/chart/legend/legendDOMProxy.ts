@@ -66,7 +66,6 @@ export class LegendDOMProxy {
             domManagerId: `${idPrefix}-pagination`,
             classList: ['ag-charts-proxy-legend-pagination'],
             ariaLabel: { id: 'ariaLabelLegendPagination' },
-            ariaOrientation: 'horizontal',
         });
         this.itemDescription = createElement('p');
         this.itemDescription.style.display = 'none';
