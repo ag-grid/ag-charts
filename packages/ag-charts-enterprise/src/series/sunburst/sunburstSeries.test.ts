@@ -500,4 +500,46 @@ describe('SunburstSeries', () => {
             await compare();
         });
     });
+
+    describe('AG-15448', () => {
+        const DATA1 = [
+            { type: 'Fruits', category: 'Citrus', item: 'Orange', count: 10, status: 1 },
+            { type: 'Fruits', category: 'Citrus', item: 'Lemon', count: 8, status: 1 },
+            { type: 'Fruits', category: 'Berries', item: 'Strawberry', count: 15, status: 1 },
+            { type: 'Fruits', category: 'Berries', item: 'Blueberry', count: 12, status: 2 },
+            { type: 'Vegetables', category: 'Leafy', item: 'Spinach', count: 7, status: 2 }, // This overlaps with the DATA2 dataset and can render in the wrong color.
+            { type: 'Vegetables', category: 'Root', item: 'Carrot', count: 9, status: 1 },
+        ];
+
+        const DATA2 = [
+            { type: 'Vegetables', category: 'Leafy', item: 'Lettuce (green)', count: 6, status: 2 },
+            { type: 'Vegetables', category: 'Leafy', item: 'Spinach (green)', count: 7, status: 2 },
+            { type: 'Dairy', category: 'Cheese', item: 'Cheddar (orange)', count: 5, status: 1 },
+        ];
+
+        const EXAMPLE_OPTIONS: AgChartOptions = {
+            context: { colors: { 1: 'orange', 2: 'green' } },
+            data: DATA1,
+            series: [
+                {
+                    type: 'sunburst',
+                    labelKey: 'item',
+                    sizeKey: 'count',
+                    itemStyler: ({ datum, context }: any) => ({
+                        fill: context?.colors[datum.status] ?? 'none',
+                    }),
+                },
+            ],
+        };
+
+        it('should render updated data in the itemStyler specified colors', async () => {
+            const options = { ...EXAMPLE_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            await chart.updateDelta({ data: DATA2 });
+            await compare();
+        });
+    });
 });
