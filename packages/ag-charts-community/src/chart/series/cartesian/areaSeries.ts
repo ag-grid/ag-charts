@@ -796,7 +796,7 @@ export class AreaSeries extends CartesianSeries<
                 marker,
                 { datumIndex, datum: seriesDatum, point },
                 params,
-                false,
+                { isHighlight: false },
                 undefined,
                 {
                     stroke,
