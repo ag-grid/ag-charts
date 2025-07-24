@@ -201,11 +201,12 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private createMenuItems(menuWidget: _Widget.MenuWidget, expandedItems: ContextMenuItem[]) {
         for (const item of expandedItems) {
             switch (item.type) {
-                case 'separator':
+                case 'separator': {
                     const sep = menuWidget.addSeparator();
                     sep.classList.add(`${DEFAULT_CONTEXT_MENU_CLASS}__divider`);
                     break;
-                case 'action':
+                }
+                case 'action': {
                     if (item.items.length === 0) {
                         const btn = new _Widget.MenuItemWidget();
                         this.initButtonElement(btn, item);
@@ -219,6 +220,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                         this.createMenuItems(subMenu, item.items);
                     }
                     break;
+                }
                 default:
                     throw new Error('unhandled case');
             }

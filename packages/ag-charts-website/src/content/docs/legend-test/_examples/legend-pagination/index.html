@@ -1,10 +1,20 @@
 <div class="example-controls">
     <div class="controls-row">
-        Legend Position:
-        <button onclick="updateLegendPosition('right')"><code>'right'</code></button>
-        <button onclick="updateLegendPosition('bottom')"><code>'bottom'</code></button>
-        <button onclick="updateLegendPosition('left')"><code>'left'</code></button>
-        <button onclick="updateLegendPosition('top')"><code>'top'</code></button>
+        <label for="legend-position">Legend Position:</label>
+        <select id="legend-position" onchange="updateLegendPosition(this.value)">
+            <option value="right">right</option>
+            <option value="right-top">right-top</option>
+            <option value="right-bottom">right-bottom</option>
+            <option value="left">left</option>
+            <option value="left-top">left-top</option>
+            <option value="left-bottom">left-bottom</option>
+            <option value="top">top</option>
+            <option value="top-right">top-right</option>
+            <option value="top-left">top-left</option>
+            <option value="bottom">bottom</option>
+            <option value="bottom-right">bottom-right</option>
+            <option value="bottom-left">bottom-left</option>
+        </select>
     </div>
 </div>
 <div id="myChart"></div>

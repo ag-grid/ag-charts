@@ -16,9 +16,11 @@ By default, only item highlighting is activated. The above example has custom co
 
 ## Bring to Front
 
-The `bringToFront` property is used to render the highlighted series on top of all other series.
+Bringing the highlighted series to the front makes it stand out, especially when multiple series overlap.
 
 {% chartExampleRunner title="Front to Front" name="bring-to-front" type="generated" /%}
+
+The `bringToFront` property is disabled by default, and can be enabled in the `highlight` options.
 
 ```js
 highlight: {
@@ -26,9 +28,9 @@ highlight: {
 }
 ```
 
-In this configuration:
+In the above example:
 
--   The `bringToFront` property is set to `true`, which will render highlighted series top of all other series.
+-   Hovering any series in the chart or legend will render it above all the other series.
 
 ## Customisation
 

@@ -312,10 +312,7 @@ export abstract class Node<TDatum = unknown> {
     }
 
     getBBox(): BBox {
-        if (this.cachedBBox == null) {
-            this.cachedBBox = Object.freeze(this.computeBBox()) as BBox;
-        }
-
+        this.cachedBBox ??= Object.freeze(this.computeBBox()) as BBox;
         return this.cachedBBox;
     }
 

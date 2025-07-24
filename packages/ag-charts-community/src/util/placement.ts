@@ -44,13 +44,13 @@ export function calculatePlacement(
     // If width and height still undetermined, derive them from natural size.
     if (width == null) {
         if (height == null) {
-            width = naturalWidth;
             height = naturalHeight;
+            width = naturalWidth;
         } else {
             width = Math.ceil((naturalWidth * height) / naturalHeight);
         }
-    } else if (height == null) {
-        height = Math.ceil((naturalHeight * width) / naturalWidth);
+    } else {
+        height ??= Math.ceil((naturalHeight * width) / naturalWidth);
     }
 
     if (left == null) {

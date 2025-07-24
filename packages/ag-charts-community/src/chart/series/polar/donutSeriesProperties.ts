@@ -9,8 +9,7 @@ import type {
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
-import { BaseProperties, PropertiesArray } from '../../../util/properties';
-import { Property } from '../../../util/properties';
+import { BaseProperties, PropertiesArray, Property } from '../../../util/properties';
 import { Caption } from '../../caption';
 import { Label } from '../../label';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';

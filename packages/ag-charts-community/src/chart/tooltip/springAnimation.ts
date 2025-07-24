@@ -54,9 +54,7 @@ export class SpringAnimation {
         this.y1 = y;
         this.t0 = Date.now();
 
-        if (this.animationFrameHandle == null) {
-            this.animationFrameHandle = requestAnimationFrame(this.onFrame.bind(this));
-        }
+        this.animationFrameHandle ??= requestAnimationFrame(this.onFrame.bind(this));
     }
 
     private onFrame() {

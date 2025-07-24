@@ -60,7 +60,7 @@ const rangeValidator = (axis?: ChartAxisLike) =>
     attachDescription((value, { options }) => {
         if (!ContinuousScale.is(axis?.scale) && !DiscreteTimeScale.is(axis?.scale)) return true;
         if (value == null || options.end == null) return true;
-        return value <= options.end;
+        return value < options.end;
     }, `to be less than end`);
 
 /**

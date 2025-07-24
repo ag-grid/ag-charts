@@ -652,7 +652,11 @@ export class BarSeries extends AbstractBarSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemStyle(nodeDatum: Partial<BarNodeDatum>, isHighlight: boolean): Required<AgBarSeriesStyle> {
+    private getItemStyle(
+        nodeDatum: Partial<BarNodeDatum>,
+        nodeDatumId: string,
+        isHighlight: boolean
+    ): Required<AgBarSeriesStyle> {
         const { id: seriesId, properties } = this;
 
         const { xKey, yKey, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
@@ -667,13 +671,13 @@ export class BarSeries extends AbstractBarSeries<
             fillImageDefaults
         );
 
-        if (itemStyler && nodeDatum != null && datumIndex != null) {
+        if (itemStyler && nodeDatum != null && nodeDatumId != null) {
             const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
                 xDomain: this.getSeriesDomain(ChartAxisDirection.X),
                 yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
             }))!;
             const overrides = this.cachedDatumCallback(
-                createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
+                createDatumId(nodeDatumId, isHighlight ? 'highlight' : 'node'),
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                     const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -715,7 +719,7 @@ export class BarSeries extends AbstractBarSeries<
         const direction = this.getBarDirection();
 
         opts.datumSelection.each((rect, datum) => {
-            const style = this.getItemStyle(datum, opts.isHighlight);
+            const style = this.getItemStyle(datum, this.getDatumId(datum), opts.isHighlight);
             applyShapeStyle(rect, style, fillBBox);
 
             const cornerRadius = style.cornerRadius ?? 0;
@@ -778,7 +782,11 @@ export class BarSeries extends AbstractBarSeries<
         const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
 
         if (xValue == null) return;
-        const format = this.getItemStyle({ datumIndex, datum, xValue, yValue }, false);
+        const format = this.getItemStyle(
+            { datumIndex, datum, xValue, yValue },
+            this.getDatumId({ xValue, phantom: false }),
+            false
+        );
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -910,7 +918,7 @@ export class BarSeries extends AbstractBarSeries<
         }
     }
 
-    private getDatumId(datum: BarNodeDatum) {
+    private getDatumId(datum: Pick<BarNodeDatum, 'xValue' | 'phantom'>) {
         return createDatumId(datum.xValue, datum.phantom);
     }
 

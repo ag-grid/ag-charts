@@ -1,8 +1,7 @@
 import type { DeepRequired } from 'ag-charts-core';
 import type { AgTouchOptions } from 'ag-charts-types';
 
-import { BaseProperties } from '../util/properties';
-import { Property } from '../util/properties';
+import { BaseProperties, Property } from '../util/properties';
 
 type OptionsImp = DeepRequired<AgTouchOptions>;
 

@@ -107,7 +107,7 @@ export default [
         },
     },
     {
-        files: ['**/*.{js,ts,tsx}'],
+        files: ['**/*.{js,ts,tsx,mjs}'],
         plugins: {
             aglint: {
                 rules: {

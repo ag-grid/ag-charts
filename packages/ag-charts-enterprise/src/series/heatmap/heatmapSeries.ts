@@ -1,4 +1,5 @@
 import type {
+    AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesOptions,
     AgHeatmapSeriesStyle,
     FontStyle,
@@ -6,7 +7,7 @@ import type {
     TextAlign,
     VerticalAlign,
 } from 'ag-charts-community';
-import { type AgHeatmapSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import { type InternalAgColorType, Logger } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
