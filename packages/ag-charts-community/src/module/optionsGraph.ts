@@ -917,9 +917,13 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         //     }
         // }
 
-        this.resolveVertexInEdgePriority(vertex, object, pathArray, prune);
+        const resolvedVertexOnEdge = this.resolveVertexInEdgePriority(vertex, object, pathArray, prune);
         this.resolveVertexAutoEnable(vertex, object, pathArray);
-        this.resolveVertexChildren(vertex, object, prune);
+
+        // Do not resolve the children if the user has provided a plain value or empty object to this vertex
+        if (resolvedVertexOnEdge !== USER_OPTIONS_EDGE) {
+            this.resolveVertexChildren(vertex, object, prune);
+        }
     }
 
     private resolveVertexInEdgePriority(
@@ -957,7 +961,10 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
                 // const safeValue = isObject(value) ? deepClone(value) : value;
                 setPathSafe(object, pathArray, value);
             }
-            break;
+
+            const isEmptyObject = value && typeof value === 'object' && Object.keys(value).length === 0;
+            if (isEmptyObject) return;
+            return edgeValue;
         }
     }
 

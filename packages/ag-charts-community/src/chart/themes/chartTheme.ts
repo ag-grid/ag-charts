@@ -313,6 +313,7 @@ export class ChartTheme {
             minWidth: 300,
             background: { visible: true, fill: { $ref: 'chartBackgroundColor' } },
             padding: {
+                // Default each side to allow the user to override them individually
                 top: { $ref: 'chartPadding' },
                 right: { $ref: 'chartPadding' },
                 bottom: { $ref: 'chartPadding' },

@@ -208,18 +208,16 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
     private readonly chartCaptions = new ChartCaptions();
 
-    @ActionOnSet<Chart>({
-        changeValue(newValue) {
-            if (typeof newValue === 'number') {
-                this.paddingInternal = new Padding(newValue, newValue, newValue, newValue);
-            } else {
-                this.paddingInternal = new Padding(newValue.top, newValue.right, newValue.bottom, newValue.left);
-            }
-        },
-    })
     @Property
     readonly padding!: PaddingOption;
-    paddingInternal!: Padding;
+    get paddingInternal(): Padding {
+        const padding = this.padding;
+        if (typeof padding === 'number') {
+            return new Padding(padding, padding, padding, padding);
+        } else {
+            return new Padding(padding.top, padding.right, padding.bottom, padding.left);
+        }
+    }
 
     get seriesAreaBoundingBox() {
         return this.seriesAreaManager.bbox;

@@ -41,9 +41,8 @@ describe('Integrated Charts Examples', () => {
     describe('Changing Chart Type', () => {
         let index = 0;
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
-            index++;
-
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
+                index++;
                 const startingOptions: AgChartOptions = EXAMPLES[Object.keys(EXAMPLES)[index - 1]]?.options ?? {};
                 prepareEnterpriseTestOptions(startingOptions);
 
@@ -63,6 +62,26 @@ describe('Integrated Charts Examples', () => {
         const examples = [EXAMPLES.PIE_BASIC, EXAMPLES.RADAR_LINE_BASIC];
 
         it('should switch between charts with and without axes', async () => {
+            const options: AgChartOptions = { ...examples.at(-1)?.options };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            for (let i = 0; i < 2; i++) {
+                for (const example of examples) {
+                    const updatedOptions = prepareEnterpriseTestOptions({ ...example.options });
+                    await chart.update(updatedOptions);
+                    await compare();
+                }
+            }
+        });
+    });
+
+    describe('Switching between charts with different theme overrides', () => {
+        const examples = [EXAMPLES.RADAR_LINE_BASIC, EXAMPLES.CROSSFILTER_PIE_FILTERED];
+
+        it('should switch between charts with different theme overrides', async () => {
             const options: AgChartOptions = { ...examples.at(-1)?.options };
             prepareEnterpriseTestOptions(options);
 
