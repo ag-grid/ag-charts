@@ -68,17 +68,17 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setAxisDragging(mode: 'zoom' | 'pan' | 'off') {
-    if (mode === 'off') {
-        options.zoom!.enableAxisDragging = false;
-    } else {
-        options.zoom!.enableAxisDragging = true;
-        options.zoom!.axisDraggingMode = mode;
-    }
+function setAxisDragging(mode: 'zoom' | 'pan') {
+    options.zoom!.axisDraggingMode = mode;
     chart.update(options);
 }
 
-function setAxisScrolling(enabled: 'on' | 'off') {
+function enableAxisDragging(enabled: 'on' | 'off') {
+    options.zoom!.enableAxisDragging = enabled === 'on';
+    chart.update(options);
+}
+
+function enableAxisScrolling(enabled: 'on' | 'off') {
     options.zoom!.enableAxisScrolling = enabled === 'on';
     chart.update(options);
 }
