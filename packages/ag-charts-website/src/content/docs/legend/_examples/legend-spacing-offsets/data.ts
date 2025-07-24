@@ -1,6 +1,6 @@
 // Source: https://www.gov.uk/government/statistics/renewable-sources-of-energy-chapter-6-digest-of-united-kingdom-energy-statistics-dukes
 export function getData() {
-    const data = [
+    const data: { year: Date; assets: number; liabilities: number; netWorth?: number }[] = [
         { year: new Date(1990, 1, 1), assets: 520, liabilities: -310 },
         { year: new Date(1991, 1, 1), assets: 547, liabilities: -325 },
         { year: new Date(1992, 1, 1), assets: 565, liabilities: -335 },
@@ -38,6 +38,6 @@ export function getData() {
         { year: new Date(2024, 1, 1), assets: 1243, liabilities: -778 },
         { year: new Date(2025, 1, 1), assets: 1270, liabilities: -792 },
     ];
-    data.forEach((d: (typeof data)[number] & { netWorth: number }) => (d.netWorth = d.assets + d.liabilities));
+    data.forEach((d) => (d.netWorth = d.assets + d.liabilities));
     return data;
 }
