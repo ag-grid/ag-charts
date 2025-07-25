@@ -103,15 +103,17 @@ To avoid this, set `maxSpacing` to be 2-3 times larger than `minSpacing`.
 
 ## Placement
 
-For category axes, the `interval.placement` option allows you to specify the placement of ticks, grid lines and fills.
+The ticks and grid lines are positioned on each category by default.
+
+To place them between the categories for [Category](./axes-types/#category), [Unit Time](./axes-time/#unit-time) and [Ordinal Time](./axes-time/#ordinal-time) axes, use the `interval.placement: 'between'` option.
 
 {% chartExampleRunner title="Placement" name="axis-placement" type="generated" /%}
 
 In the example above:
 
--   The `placement` defaults to `between`.
--   When the `placement` is set to `on`, the ticks align with the category on the axis.
--   When the `placement` is set to `between`, the ticks are spaced between each category.
+-   The chart is using [Alternating Band Shading](./axes-grid-lines/#alternating-band-shading).
+-   When the `placement` is set to `on`, the ticks and grid lines are positioned above the label on each category.
+-   When the `placement` is set to `between`, the ticks and grid lines are positioned between the labels of each category.
 
 ## Next Up
 

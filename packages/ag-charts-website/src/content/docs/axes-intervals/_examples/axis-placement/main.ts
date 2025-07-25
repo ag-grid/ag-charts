@@ -19,7 +19,8 @@ const options: AgCartesianChartOptions = {
             type: 'category',
             position: 'bottom',
             title: {
-                text: 'Operating System',
+                text: "placement: 'between'",
+                fontSize: 15,
             },
             interval: {
                 placement: 'between',
@@ -46,5 +47,6 @@ const chart = AgCharts.create(options);
 
 function setPlacement(placement: 'on' | 'between') {
     (options.axes![0] as AgCategoryAxisOptions).interval!.placement = placement;
+    (options.axes![0] as AgCategoryAxisOptions).title!.text = `placement: '${placement}'`;
     chart.update(options);
 }
