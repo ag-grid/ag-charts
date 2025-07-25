@@ -48,7 +48,7 @@ export interface AgSeriesAreaOptions {
     clip?: boolean;
     /** The corner radius of the series area. */
     cornerRadius?: number;
-    /** Configuration for the padding around the series area. */
+    /** Configuration for the padding inside the series area. */
     padding?: Padding;
 }
 
@@ -201,7 +201,7 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
      * Default: `300`
      */
     minWidth?: PixelSize;
-    /** Configuration for the padding shown around the chart. */
+    /** Configuration for the padding of the chart. */
     padding?: AgChartPaddingOptions;
     /** Configuration relating to the series area. */
     seriesArea?: AgSeriesAreaOptions;

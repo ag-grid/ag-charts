@@ -5,7 +5,7 @@
         "highlights": [
             {
                 "text": "Alternating Band Shading",
-                "path": "./axes-grid-lines"
+                "path": "./axes-grid-lines/#alternating-band-shading"
             },
             {
                 "text": "Extra Axis Zooming Interactions",
@@ -16,11 +16,11 @@
                 "path": "./axes-labels"
             },
             {
-                "text": "Floating Legend",
+                "text": "Floating Legend Position",
                 "path": "./legend/#floating"
             },
             {
-                "text": "Fills and Borders",
+                "text": "Label and Legend Fills and Borders",
                 "path": "./fills-borders"
             },
             {

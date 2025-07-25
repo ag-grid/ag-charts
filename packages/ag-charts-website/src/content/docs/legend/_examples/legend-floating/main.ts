@@ -50,7 +50,9 @@ const options: AgCartesianChartOptions = {
             xOffset: -50,
             yOffset: 75,
         },
-        border: {},
+        border: {
+            enabled: true,
+        },
         fill: 'beige',
     },
 };

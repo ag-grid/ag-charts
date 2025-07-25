@@ -42,9 +42,9 @@ The `gridLine.style` property takes an array of objects containing styling prope
 
 Each object in the `gridLine.style` array is applied to the each grid line sequentially, looping around if necessary. This allows alternating styles across multiple grid lines, or styling each individual grid line separately.
 
-## Alternating Grid Fills
+## Alternating Band Shading
 
-An alternating grid fill pattern can be achieved using the `fill` and `fillOpacity` properties of each object within the `gridLine.style` array.
+Alternating band shading can be achieved using the `fill` and `fillOpacity` properties of the objects in the `gridLine.style` array.
 
 {% chartExampleRunner title="Axis Grid Fills" name="axis-grid-fills" type="generated" /%}
 
@@ -52,10 +52,11 @@ An alternating grid fill pattern can be achieved using the `fill` and `fillOpaci
 gridLine: {
     style: [
         {
-            fill: 'black',
-            fillOpacity: 0.05
+            fill: '#999',
+            fillOpacity: 0.1,
+            strokeWidth: 0, //don't show lines around the bands
         },
-        {},
+        {}, //empty object for an unshaded band
     ],
 },
 ```

@@ -27,7 +27,7 @@ export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = Conte
     extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Where to render series labels relative to the area. */
     placement?: AgRangeAreaSeriesLabelPlacement;
-    /** Padding in pixels between the label and the edge of the marker. */
+    /** Spacing in pixels between the label and the edge of the marker. */
     spacing?: PixelSize;
 }
 

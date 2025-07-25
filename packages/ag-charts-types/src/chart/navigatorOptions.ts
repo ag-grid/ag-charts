@@ -57,7 +57,7 @@ export interface AgNavigatorMiniChartLabelOptions<TContext = ContextDefault> {
     fontSize?: FontSize;
     /** The font family to use for the labels. */
     fontFamily?: FontFamilyFull;
-    /** Padding in pixels between the axis labels and the Mini Chart. */
+    /** Spacing in pixels between the axis labels and the Mini Chart. */
     spacing?: PixelSize;
     /** The colour to use for the labels. */
     color?: CssColor;

@@ -15,22 +15,21 @@ const options: AgChartOptions<DataType> = {
     seriesArea: {
         border: {
             stroke: '#333333',
+            strokeWidth: 2,
         },
         cornerRadius: 4,
         padding: 0,
     },
     legend: {
         position: { placement: 'top-right', floating: true, xOffset: -20, yOffset: 15 },
-        fill: '#f6f6f6',
+        fill: '##999',
+        fillOpacity: 0.15,
         border: {
-            stroke: '#dddddd',
+            enabled: true,
+            stroke: '##999',
+            strokeOpacity: 0.5,
         },
         padding: 10,
-        item: {
-            label: {
-                color: '#333333',
-            },
-        },
     },
     series: [
         {
@@ -48,11 +47,13 @@ const options: AgChartOptions<DataType> = {
             label: {
                 cornerRadius: 4,
                 fill: '#badaff',
-                padding: { top: 4, right: 6, bottom: 2, left: 6 },
+                padding: { top: 4, right: 6, bottom: 0, left: 6 },
                 border: {
-                    stroke: '#73A6E3',
-                    strokeWidth: 2,
+                    enabled: true,
+                    stroke: '#2c79d5',
+                    strokeWidth: 1,
                 },
+                color: '#333',
             },
         },
         {
@@ -70,11 +71,13 @@ const options: AgChartOptions<DataType> = {
             label: {
                 cornerRadius: 4,
                 fill: '#fcc992',
-                padding: { top: 4, right: 6, bottom: 2, left: 6 },
+                padding: { top: 4, right: 6, bottom: 0, left: 6 },
                 border: {
-                    stroke: '#FCA441',
-                    strokeWidth: 2,
+                    enabled: true,
+                    stroke: '#ea7e04',
+                    strokeWidth: 1,
                 },
+                color: '#333',
             },
         },
     ],
@@ -86,10 +89,10 @@ const options: AgChartOptions<DataType> = {
                 text: 'Height',
             },
             label: {
-                color: '#333333',
-                fill: '#e0e0e0',
+                fill: '##999',
+                fillOpacity: 0.2,
                 cornerRadius: 16,
-                padding: { top: 4, right: 6, bottom: 2, left: 6 },
+                padding: { top: 6, right: 8, bottom: 2, left: 8 },
                 formatter: (params) => {
                     return params.value + 'cm';
                 },
@@ -102,10 +105,10 @@ const options: AgChartOptions<DataType> = {
                 text: 'Weight',
             },
             label: {
-                color: '#333333',
-                fill: '#e0e0e0',
+                fill: '#999',
+                fillOpacity: 0.2,
                 cornerRadius: 16,
-                padding: { top: 4, right: 6, bottom: 4, left: 6 },
+                padding: { top: 6, right: 8, bottom: 4, left: 8 },
                 formatter: (params) => {
                     return params.value + 'kg';
                 },
