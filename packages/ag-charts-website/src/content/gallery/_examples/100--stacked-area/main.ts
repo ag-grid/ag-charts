@@ -9,9 +9,13 @@ const options: AgChartOptions = {
     data: getData(),
     title: {
         text: 'UK Energy Sources',
+        fontSize: 20,
+        fontFamily: 'Inter, system-ui, sans-serif',
     },
     footnote: {
         text: 'Source: Department for Business, Energy & Industrial Strategy',
+        fontSize: 12,
+        fontStyle: 'italic',
     },
     series: [
         {
@@ -105,15 +109,30 @@ const options: AgChartOptions = {
                 format: '#{p}',
             },
             title: {
-                text: 'Normalized Percentage Energy',
+                text: 'Percentage of Total Energy',
+                fontSize: 14,
             },
         },
     ],
     legend: {
         position: 'top',
     },
-    formatter: {
-        y: '#{.1f} Mtoe',
+    formatter: (params) => {
+        const { value, type } = params;
+
+        if (type === 'number' && params.property === 'y') {
+            return `${value.toFixed(1)} Mtoe`;
+        }
+
+        if (type === 'date') {
+            const date = value as Date;
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                year: 'numeric',
+            });
+        }
+
+        return String(value);
     },
 };
 

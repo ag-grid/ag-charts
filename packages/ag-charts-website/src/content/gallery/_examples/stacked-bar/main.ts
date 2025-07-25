@@ -1,36 +1,45 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 const numFormatter = new Intl.NumberFormat('en-US');
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        overrides: {
-            bar: {
-                series: {
-                    stroke: 'transparent',
-                    strokeWidth: 2,
-                    cornerRadius: 6,
-                    fillOpacity: 0.8,
-                    label: {
-                        enabled: true,
-                    },
-                },
-            },
-        },
-    },
+    theme: 'ag-default',
     title: {
         text: 'Station Entries',
-        fontSize: 18,
+        fontSize: 20,
     },
     subtitle: {
         text: 'Victoria Line (2023)',
+        fontSize: 14,
     },
     footnote: {
         text: 'Source: Transport for London',
+        fontSize: 12,
+        fontStyle: 'italic',
+    },
+    legend: {
+        position: {
+            placement: 'top-right',
+            floating: true,
+            xOffset: -30,
+        },
+        maxWidth: 500,
+        border: {
+            enabled: true,
+            strokeWidth: 1,
+        },
+        cornerRadius: 8,
+        padding: 16,
+        item: {
+            label: { fontSize: 14 },
+            marker: { size: 16 },
+            paddingX: 16,
+            paddingY: 8,
+        },
     },
     series: [
         {
@@ -78,20 +87,58 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            paddingInner: 0,
-            paddingOuter: 0,
+            paddingInner: 0.1,
+            paddingOuter: 0.1,
+            title: {
+                text: 'Station',
+                fontSize: 14,
+            },
+            label: {
+                fontSize: 12,
+            },
+            bandHighlight: {
+                enabled: true,
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
         },
         {
             type: 'number',
             position: 'left',
-            gridLine: {
-                enabled: false,
+            title: {
+                text: 'Percentage of Daily Entries',
+                fontSize: 14,
             },
             label: {
-                enabled: false,
+                enabled: true,
+                fontSize: 12,
+                formatter: (params) => `${params.value}%`,
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
             crosshair: {
-                enabled: false,
+                enabled: true,
+                label: {
+                    enabled: true,
+                },
             },
         },
     ],
@@ -100,9 +147,14 @@ const options: AgChartOptions = {
             if (params.source === 'axis-label') {
                 return (params.value as string).replace(' ', '\n');
             }
+            return String(params.value);
         },
         y(params) {
-            return numFormatter.format(params.value as number);
+            const value = params.value as number;
+            if (params.source === 'tooltip') {
+                return `${value.toFixed(1)}%`;
+            }
+            return numFormatter.format(value);
         },
     },
 };

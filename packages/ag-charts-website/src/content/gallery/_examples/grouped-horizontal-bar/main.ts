@@ -7,9 +7,31 @@ const options: AgChartOptions = {
     data: getData(),
     title: {
         text: 'Changes in Prison Population',
+        fontSize: 20,
+        fontFamily: 'Inter, system-ui, sans-serif',
     },
     footnote: {
-        text: 'Source: Ministry of Justice, HM Prison Service, and HM’s Prison and Probation Service',
+        text: "Source: Ministry of Justice, HM Prison Service, and HM's Prison and Probation Service",
+        fontSize: 12,
+        fontStyle: 'italic',
+    },
+    legend: {
+        position: {
+            placement: 'right-top',
+            floating: true,
+        },
+        border: {
+            enabled: true,
+            strokeWidth: 1,
+        },
+        cornerRadius: 20,
+        padding: 16,
+        item: {
+            label: { fontSize: 14 },
+            marker: { size: 16 },
+            paddingX: 16,
+            paddingY: 8,
+        },
     },
     series: [
         {
@@ -19,6 +41,7 @@ const options: AgChartOptions = {
             yKey: 'menDelta',
             yName: 'Male',
             cornerRadius: 20,
+            strokeWidth: 1,
             label: {
                 enabled: true,
             },
@@ -30,6 +53,7 @@ const options: AgChartOptions = {
             yKey: 'womenDelta',
             yName: 'Female',
             cornerRadius: 20,
+            strokeWidth: 1,
             label: {
                 enabled: true,
             },
@@ -46,6 +70,9 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             paddingInner: 0.2,
+            bandHighlight: {
+                enabled: true,
+            },
             crossLines: [
                 {
                     type: 'line',
@@ -116,11 +143,31 @@ const options: AgChartOptions = {
             nice: false,
             min: -300,
             max: 500,
+            title: {
+                text: 'Change in Population',
+                fontSize: 14,
+            },
             label: {
-                enabled: false,
+                enabled: true,
+                fontSize: 12,
+                formatter: (params: { value: number }) => `${params.value > 0 ? '+' : ''}${params.value}`,
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
         },
     ],
+    formatter: {
+        y: (params) => `${Number(params.value) > 0 ? '+' : ''}${params.value}`,
+    },
 };
 
 AgCharts.create(options);
