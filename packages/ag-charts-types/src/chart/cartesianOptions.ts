@@ -88,8 +88,6 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> exte
     wrapping?: TextWrap;
     /**
      * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
-     *
-     * @experimental
      */
     truncate?: boolean;
 }
@@ -141,8 +139,6 @@ export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault>
     wrapping?: TextWrap;
     /**
      * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
-     *
-     * @experimental
      */
     truncate?: boolean;
 }
