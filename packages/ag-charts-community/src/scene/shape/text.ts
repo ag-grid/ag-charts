@@ -412,14 +412,7 @@ export class Text<D = any> extends Shape<D> {
     }
 
     getBoxingProperties(): TextBoxingProperties {
-        const {
-            fill = undefined,
-            fillOpacity = undefined,
-            cornerRadius = undefined,
-            stroke = undefined,
-            strokeWidth = undefined,
-            strokeOpacity = undefined,
-        } = this.boxing ?? {};
+        const { fill, fillOpacity, cornerRadius, stroke, strokeWidth, strokeOpacity } = this.boxing ?? {};
 
         return {
             border: { stroke, strokeWidth, strokeOpacity },

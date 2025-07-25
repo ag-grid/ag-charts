@@ -9,6 +9,7 @@ import {
     positiveNumber,
     ratio,
     required,
+    string,
     union,
 } from 'ag-charts-core';
 import type {
@@ -33,7 +34,7 @@ import {
     continuousAxisOptions,
     discreteTimeAxisIntervalOptionsDefs,
 } from './axesOptionsDefs';
-import { numberFormatValidator, textOrSegments } from './commonOptionsDefs';
+import { numberFormatValidator } from './commonOptionsDefs';
 
 export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
@@ -102,7 +103,7 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
     ),
     title: {
         enabled: boolean,
-        text: textOrSegments,
+        text: string,
         spacing: positiveNumber,
         formatter: callback,
         ...fontOptionsDef,
@@ -134,7 +135,7 @@ export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOpti
     ),
     title: {
         enabled: boolean,
-        text: textOrSegments,
+        text: string,
         spacing: positiveNumber,
         formatter: callback,
         ...fontOptionsDef,

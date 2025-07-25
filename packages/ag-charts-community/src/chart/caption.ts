@@ -115,7 +115,7 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     private handleMouseMove(moduleCtx: ModuleContext, event?: MouseWidgetEvent<'mousemove'>) {
-        if (event != null && this.enabled && this.node.visible && this.truncated) {
+        if (event != null && this.enabled && this.truncated) {
             const { x, y } = Transformable.toCanvas(this.node);
             const canvasX = event.sourceEvent.offsetX + x;
             const canvasY = event.sourceEvent.offsetY + y;
