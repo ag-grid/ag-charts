@@ -10,7 +10,6 @@ const options: AgChartOptions = {
     title: {
         text: 'UK Energy Sources',
         fontSize: 20,
-        fontFamily: 'Inter, system-ui, sans-serif',
     },
     footnote: {
         text: 'Source: Department for Business, Energy & Industrial Strategy',

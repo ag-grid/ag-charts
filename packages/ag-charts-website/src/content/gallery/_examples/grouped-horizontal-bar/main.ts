@@ -8,7 +8,6 @@ const options: AgChartOptions = {
     title: {
         text: 'Changes in Prison Population',
         fontSize: 20,
-        fontFamily: 'Inter, system-ui, sans-serif',
     },
     footnote: {
         text: "Source: Ministry of Justice, HM Prison Service, and HM's Prison and Probation Service",

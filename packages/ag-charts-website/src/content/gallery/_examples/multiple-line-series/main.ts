@@ -35,7 +35,6 @@ const options: AgChartOptions<DataType> = {
     title: {
         text: 'Time With Others On A Saturday',
         fontSize: 20,
-        fontFamily: 'Inter, system-ui, sans-serif',
     },
     subtitle: {
         text: 'Average hours spent per day socialising on the weekend',

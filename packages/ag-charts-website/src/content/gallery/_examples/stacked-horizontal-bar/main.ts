@@ -38,7 +38,6 @@ const options: AgChartOptions<DataType> = {
     title: {
         text: 'Football Players Performance Analysis',
         fontSize: 20,
-        fontFamily: 'Inter, system-ui, sans-serif',
         spacing: 30,
     },
     footnote: {

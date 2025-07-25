@@ -143,7 +143,6 @@ await puppeteer_navigate({
     title: {
         text: 'Professional Chart Title',
         fontSize: 20,
-        fontFamily: 'Inter, system-ui, sans-serif',
         // Don't set color - let theme handle it
     },
     footnote: {
@@ -727,7 +726,6 @@ await puppeteer_navigate({
     ```typescript
     theme: {
         params: {
-            fontFamily: 'Inter, system-ui, sans-serif',
             fontSize: 14,
             fontWeight: 'normal',
             foregroundColor: '#333333',

@@ -44,7 +44,6 @@ const options: AgCartesianChartOptions<DataType> = {
     title: {
         text: 'UK Road Fuel Prices 2019',
         fontSize: 20,
-        fontFamily: 'Inter, system-ui, sans-serif',
     },
     footnote: {
         text: 'Source: Department for Business, Energy & Industrial Strategy',
@@ -113,6 +112,9 @@ const options: AgCartesianChartOptions<DataType> = {
             bandHighlight: {
                 enabled: true,
             },
+            crosshair: {
+                enabled: false,
+            },
         },
         {
             position: 'left',
@@ -120,7 +122,6 @@ const options: AgCartesianChartOptions<DataType> = {
             title: {
                 text: 'Price (pence per litre)',
                 fontSize: 14,
-                fontFamily: 'Inter, system-ui, sans-serif',
             },
             label: {
                 fontSize: 12,
@@ -139,15 +140,7 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    tooltip: {
-        position: {
-            anchorTo: 'pointer',
-            placement: ['right', 'left', 'top', 'bottom'],
-            xOffset: 10,
-            yOffset: -10,
-        },
-        wrapping: 'hyphenate',
-    },
+    tooltip: {},
 };
 
 AgCharts.create(options);
