@@ -102,7 +102,7 @@ export class CategoryAxis<
     }
 
     protected override calculateGridFills(ticks: GridLineStyleTickDatum[], p1: number, p2: number): AxisFillDatum[] {
-        const { range, scale } = this;
+        const { horizontal, range, scale } = this;
 
         if (this.interval.placement !== 'between') {
             return super.calculateGridFills(ticks, p1, p2);
@@ -111,12 +111,23 @@ export class CategoryAxis<
         const gridFills: AxisFillDatum[] = [];
         if (ticks.length == 0) return gridFills;
 
-        if (ticks[0].translation > range[0] + scale.step / 2) {
-            const tick = { tickId: `before:${ticks[0].tickId}`, translation: ticks[0].translation - scale.step };
-            gridFills.push(this.calculateGridFill(tick, -1, ticks[0].index - 1, p1, p2, ticks));
+        const firstTick = ticks[0];
+        const firstFillOffCanvas = firstTick.translation > range[0] + scale.step / 2;
+
+        const lastTick = ticks[ticks.length - 1];
+        const lastFillOffCanvas = horizontal && lastTick.translation < range[1] - scale.step / 2;
+
+        if (firstFillOffCanvas) {
+            const tick = { tickId: `before:${firstTick.tickId}`, translation: firstTick.translation - scale.step };
+            gridFills.push(this.calculateGridFill(tick, -1, firstTick.index - 1, p1, p2, ticks));
         }
 
         gridFills.push(...ticks.map((tick, index) => this.calculateGridFill(tick, index, tick.index, p1, p2, ticks)));
+
+        if (lastFillOffCanvas) {
+            const tick = { tickId: `after:${lastTick.tickId}`, translation: lastTick.translation + scale.step };
+            gridFills.push(this.calculateGridFill(tick, ticks.length, lastTick.index + 1, p1, p2, ticks));
+        }
 
         return gridFills;
     }

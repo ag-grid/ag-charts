@@ -319,19 +319,28 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected calculateGridFills(ticks: GridLineStyleTickDatum[], p1: number, p2: number) {
-        const { horizontal, range } = this;
+        const { horizontal, range, type } = this;
 
         const gridFills: AxisFillDatum[] = [];
         if (ticks.length == 0) return gridFills;
 
+        let gridFillIndexOffset = 0;
+        const isVerticalUnitTime = !horizontal && type === 'unit-time';
         const firstFillOffCanvas =
-            (!horizontal && ticks[0].translation < range[0]) || (horizontal && ticks[0].translation > range[0]);
+            (isVerticalUnitTime && ticks[0].translation < range[0]) ||
+            (!isVerticalUnitTime && ticks[0].translation > range[0]);
+
         if (firstFillOffCanvas) {
             const injectedTick = { tickId: `before:${ticks[0].tickId}`, translation: range[0] };
-            gridFills.push(this.calculateGridFill(injectedTick, -1, ticks[0].index - 1, p1, p2, ticks));
+            gridFills.push(this.calculateGridFill(injectedTick, -1, ticks[0].index, p1, p2, ticks));
+            gridFillIndexOffset = 1;
         }
 
-        gridFills.push(...ticks.map((tick, index) => this.calculateGridFill(tick, index, tick.index, p1, p2, ticks)));
+        gridFills.push(
+            ...ticks.map((tick, index) =>
+                this.calculateGridFill(tick, index, tick.index + gridFillIndexOffset, p1, p2, ticks)
+            )
+        );
 
         return gridFills;
     }
