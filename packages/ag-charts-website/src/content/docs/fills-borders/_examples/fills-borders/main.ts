@@ -14,19 +14,20 @@ const options: AgChartOptions<DataType> = {
     },
     seriesArea: {
         border: {
-            stroke: '#333333',
-            strokeWidth: 2,
+            stroke: '#999',
+            strokeOpacity: 0.75,
+            strokeWidth: 3,
         },
-        cornerRadius: 4,
+        cornerRadius: 8,
         padding: 0,
     },
     legend: {
         position: { placement: 'top-right', floating: true, xOffset: -20, yOffset: 15 },
-        fill: '##999',
+        fill: '#999',
         fillOpacity: 0.15,
         border: {
             enabled: true,
-            stroke: '##999',
+            stroke: '#999',
             strokeOpacity: 0.5,
         },
         padding: 10,
@@ -89,7 +90,7 @@ const options: AgChartOptions<DataType> = {
                 text: 'Height',
             },
             label: {
-                fill: '##999',
+                fill: '#999',
                 fillOpacity: 0.2,
                 cornerRadius: 16,
                 padding: { top: 6, right: 8, bottom: 2, left: 8 },
