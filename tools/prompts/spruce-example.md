@@ -1,5 +1,13 @@
 # Spruce Up Gallery Example
 
+**⚠️ CRITICAL: DARK MODE COMPATIBILITY IS MANDATORY ⚠️**
+
+**ALL GALLERY EXAMPLES ARE DISPLAYED IN BOTH LIGHT AND DARK MODES**
+
+**NEVER HARDCODE COLORS. ALWAYS USE THEME PALETTES. THIS IS NON-NEGOTIABLE.**
+
+---
+
 You are tasked with improving the visual appeal of an AG Charts gallery example to better showcase our feature set while maintaining readability and visual consistency.
 
 **Context**: AG Charts offers extensive styling, interaction, and data presentation capabilities across both Community (MIT) and Enterprise (commercial) versions. The goal is to demonstrate these capabilities through polished, production-ready gallery examples that users would be proud to implement.
@@ -8,88 +16,889 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
 
 **Usage**: Specify the example path relative to the repository root (e.g., `packages/ag-charts-website/src/content/gallery/_examples/simple-bar`). The command will analyze the current example and propose specific enhancements based on the chart type and data context.
 
+## 🚨 MANDATORY DARK MODE RULES - ENFORCE WITHOUT EXCEPTION
+
+1. **REMOVE ALL COLOR PROPERTIES** - Delete every `color:`, `fill:`, `stroke:`, `backgroundColor:`
+2. **NO HEX CODES** - Never use `#ffffff`, `#333333`, etc.
+3. **NO RGB/RGBA** - Never use `rgb()`, `rgba()`, `hsl()`, etc.
+4. **NO COLOR NAMES** - Never use `'white'`, `'black'`, `'blue'`, etc. in color properties
+5. **THEME PALETTES ONLY** - Colors must come from the theme's built-in palette
+
+**THIS IS THE #1 PRIORITY - DARK MODE COMPATIBILITY OVERRIDES ALL OTHER CONCERNS**
+
 ## Instructions
 
 1. **Analyze the current example**:
 
+    - **FIRST PRIORITY: Check for hardcoded colors and REMOVE THEM ALL**
     - Examine the chart configuration and data structure
     - Identify the current visual features being used
     - Take a screenshot of the current rendered chart using the Puppeteer tools
     - Assess the visual hierarchy, readability, and overall appeal
+    - **FLAG ANY COLOR PROPERTIES AS CRITICAL ISSUES TO FIX**
 
-2. **Feature Analysis**:
+2. **Feature Analysis & Implementation Guide**:
 
     - Review what AG Charts features are currently utilized
-    - Identify potential features that could enhance the example from these comprehensive categories:
+    - Identify potential enhancements from these prioritized categories with implementation details:
 
-    **A. Visual Styling & Appearance**
+    ## Quick Win Features (High Impact, Low Effort)
 
-    - **Themes**: Built-in themes (ag-default, ag-material, ag-financial, ag-polychroma, ag-vivid, ag-sheets, with dark variants) or custom theme overrides
-    - **Fills**: Solid colors, linear gradients, patterns (lines, shapes), image fills with scaling options
-    - **Background**: Chart background colors, gradients, or images with positioning options
-    - **Fonts**: Typography customization (fontFamily, fontSize, fontStyle, fontWeight)
-    - **Borders**: Chart and element border styling with stroke options
+    **🎨 Professional Themes** - _Apply: 5 minutes, Impact: Immediate_
 
-    **B. Series Enhancement**
+    ```typescript
+    theme: 'ag-material',        // Clean, Material Design aesthetic
+    theme: 'ag-polychroma',      // Modern, balanced color palette
+    ```
 
-    - **Markers**: Built-in shapes (circle, square, triangle, etc.) or custom callback functions with full fill support
-    - **Series Fills**: Apply advanced fill types (gradients, patterns, images) to data series
-    - **Series Highlighting**: Interactive highlighting effects on hover/selection
-    - **Error Bars**: Data uncertainty visualization (Enterprise feature)
-    - **Series Markers**: Enhanced marker customization with size, fill, and stroke options
+    📖 _See: `packages/ag-charts-website/src/content/docs/themes/`_
 
-    **C. Axis Configuration**
+    **📝 Typography Enhancement** - _Apply: 5 minutes, Impact: High_
 
-    - **Axis Types**: Number, log, category, time, ordinal-time, unit-time, grouped-category axes
-    - **Axis Labels**: Custom formatting, rotation, positioning, and styling
-    - **Grid Lines**: Customizable grid appearance with styling options
-    - **Grid Bands**: Grid bands with custom styling options
-    - **Cross Lines**: Reference lines with labels and custom styling
-    - **Secondary Axes**: Multiple axis configuration for complex data relationships
-    - **Time Axes**: Specialized time-based axis formatting and intervals
-    - **Axis Domain**: Custom min/max ranges and nice domain calculation
+    ```typescript
+    title: {
+        text: 'Professional Chart Title',
+        fontSize: 20,
+        fontFamily: 'Inter, system-ui, sans-serif',
+        // Don't set color - let theme handle it
+    },
+    footnote: {
+        text: 'Source: Company Data, 2024',
+        fontSize: 12,
+        fontStyle: 'italic',
+        // Don't set color - let theme handle it
+    }
+    ```
 
-    **D. Data Presentation & Formatting**
+    **🏷️ Axis Label Formatting** - _Apply: 5 minutes, Impact: High_
 
-    - **Formatters**: Global and property-specific formatters (axes, tooltips, series labels)
-        - Time formatting with Python strftime specification
-        - Number formatting with currency, percentage, scientific notation
-        - Context-aware formatting based on source (axes-label, tooltip, etc.)
-    - **Legend**: Positioning, styling, and interaction customization
-    - **Tooltips**: Multiple display modes (single, shared, compact) with custom positioning, HTML rendering, and interaction support
+    ```typescript
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+            label: {
+                formatter: (params) => `$${params.value.toLocaleString()}`, // Currency
+            },
+        },
+        {
+            type: 'time',
+            position: 'bottom',
+            label: {
+                formatter: (params) =>
+                    params.value.toLocaleDateString('en-US', {
+                        month: 'short',
+                        year: 'numeric',
+                    }), // Time: "Jan 2024"
+            },
+        },
+    ];
+    ```
 
-    **E. Interactive Features**
+    ## Advanced Visual Features (Medium Effort, High Impact)
 
-    - **Animation**: Series entrance animations, data update transitions, legend interaction animations (Enterprise)
-    - **Zoom**: Chart navigation with pan and zoom controls (Enterprise)
-    - **Cross-hairs & Band Highlight**: Mouse tracking indicators and category highlighting (Enterprise)
-    - **Context Menu**: Customizable right-click menus (Enterprise)
-    - **Navigator**: Chart overview and navigation component (Enterprise)
-    - **Touch**: Touch interaction support for mobile devices
-    - **Synchronization**: Multi-chart coordination and interaction (Enterprise)
+    **🎯 Legend Customization** - _Apply: 10 minutes, Impact: High_
 
-    **F. Advanced Data Elements**
+    ```typescript
+    legend: {
+        position: { placement: 'right', floating: true },
+        item: {
+            label: { fontSize: 14 },  // Don't set color - theme handles it
+            marker: { size: 16, shape: 'diamond' },
+            paddingX: 16, paddingY: 8,
+        },
+        spacing: 20,
+    }
+    ```
 
-    - **Annotations**: Chart annotations with drawing tools and custom positioning (Enterprise)
-    - **Overlays**: Custom overlay components and positioning
-    - **Background Image**: Chart background images with fit and positioning options (Enterprise)
+    📖 _See: `packages/ag-charts-website/src/content/docs/legend/`_
 
-    **G. Layout & Positioning**
+    **📊 Series Styling** - _Apply: 8 minutes, Impact: Medium_
 
-    - **Layout**: Chart sizing, positioning, and responsive behavior
-    - **Title/Subtitle/Footnote**: Chart captions with custom styling and positioning
-    - **Padding & Margins**: Precise control over chart spacing and positioning
+    ```typescript
+    // Bar series with rounded corners - colors from theme palette
+    series: [
+        {
+            cornerRadius: 4, // Modern rounded corners
+            // Don't set fill/stroke - use theme palette colors
+            strokeWidth: 1,
+            label: {
+                enabled: true,
+                // Don't set color - theme handles contrast
+                formatter: (params) => `${params.value}%`,
+            },
+        },
+    ];
+    ```
 
-    **H. Accessibility & Localization**
+    **🎨 Theme-Based Color Management** - _Apply: 12 minutes, Impact: High_
 
-    - **Accessibility**: Screen reader support and keyboard navigation
-    - **Localization**: Multi-language support with 40+ built-in locales
-    - **Color Accessibility**: Pattern fills and high contrast options for colorblind users
+    ```typescript
+    // PREFERRED: Use built-in themes that handle dark mode automatically
+    theme: 'ag-material',        // Material Design colors
+    theme: 'ag-polychroma',      // Vibrant, balanced palette
+    theme: 'ag-financial',       // Conservative business colors
+    
+    // ONLY if custom palette is absolutely required:
+    theme: {
+        palette: {
+            // Use semantic color names that adapt to mode
+            fills: ['blue', 'green', 'orange', 'red', 'purple'],
+            strokes: ['darkblue', 'darkgreen', 'darkorange', 'darkred', 'darkpurple'],
+        },
+        // DON'T set specific foreground/background colors
+        // Let the theme handle mode switching
+    }
+    ```
+
+    ## Professional Polish Features (Higher Effort, High Impact)
+
+    **🎪 Advanced Tooltips** - _Apply: 15 minutes, Impact: Medium_
+
+    ```typescript
+    tooltip: {
+        position: {
+            anchorTo: 'pointer',
+            placement: ['right', 'left', 'top', 'bottom'],
+            xOffset: 10, yOffset: -10,
+        },
+        wrapping: 'hyphenate',
+    }
+    ```
+
+    **📏 Axis Enhancement** - _Apply: 10 minutes, Impact: Medium_
+
+    ```typescript
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+            title: { text: 'Revenue ($M)', fontSize: 14 },  // Don't set color
+            label: {
+                fontSize: 12,
+                // Don't set color - theme handles it
+                formatter: (params) => `$${params.value}M`,
+            },
+            gridLine: { style: [{ lineDash: [2, 3] }] },  // Don't set stroke color
+            tick: { width: 1 },  // Don't set stroke color
+        },
+    ];
+    ```
+
+    **🎬 Subtle Animation** - _Apply: 3 minutes, Impact: Medium_ _(Enterprise)_
+
+    ```typescript
+    animation: { enabled: true, duration: 800 }
+    ```
+
+    ## Enterprise-Specific Features _(Require Enterprise License)_
+
+    **🎯 Crosshairs & Highlighting** - _Apply: 8 minutes, Impact: Medium_
+
+    ```typescript
+    axes: [
+        {
+            crosshair: {
+                enabled: true,
+                label: { enabled: true },
+            },
+        },
+    ];
+    ```
+
+    **🔍 Zoom & Pan** - _Apply: 5 minutes, Impact: Low_
+
+    ```typescript
+    zoom: { enabled: true, enableAxisDragging: true }
+    ```
+
+    ## Feature Selection Priority Guide
+
+    **For Most Examples, Apply in This Order:**
+
+    1. **Professional theme** (`ag-material` or `ag-polychroma`)
+    2. **Title & footnote** (proper typography and attribution)
+    3. **Axis formatting** (appropriate number/date formats)
+    4. **Legend positioning** (floating right or professional placement)
+    5. **Series styling** (rounded corners, appropriate stroke widths)
+
+    **For Financial/Business Charts:**
+
+    1. Use `ag-financial` theme (handles conservative colors automatically)
+    2. Currency/percentage formatters
+    3. Professional typography (Inter, system fonts)
+    4. Minimize decorative elements
+    5. Clear data sourcing and footnotes
+
+    **For Technical/Data Charts:**
+
+    1. Use `ag-polychroma` theme (vibrant but balanced)
+    2. Precise axis labeling with units
+    3. Grid lines for reference
+    4. Technical tooltips with full precision
+    5. Clear data attribution
+
+    ## Formatter/Format Best Practices
+
+    **Preserve Existing Root-Level Formatters:**
+
+    - If an example already has a root-level `formatter` configuration, avoid removing it
+    - Instead, enhance and refine it to handle different cases better
+    - Root-level formatters provide consistency across all chart elements
+
+    **Example - Enhancing Existing Root Formatter:**
+
+    ```typescript
+    // If example already has this:
+    formatter: (params) => {
+        return params.value.toLocaleString();
+    };
+
+    // Enhance it instead of removing:
+    formatter: (params) => {
+        const { value, type } = params;
+
+        if (type === 'number') {
+            // Add abbreviations for large numbers
+            if (Math.abs(value) >= 1e6) return `${(value / 1e6).toFixed(1)}M`;
+            if (Math.abs(value) >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
+            return value.toLocaleString();
+        }
+
+        return String(value);
+    };
+    ```
+
+    **Prefer Root-Level Format Configuration:**
+
+    ```typescript
+    // Good - consistent formatting across all chart elements
+    formatter: (params) => {
+        const { value, property, type } = params;
+
+        if (type === 'number') {
+            if (property === 'y') return `$${value.toLocaleString()}`;
+            if (property === 'x') return value.toFixed(1);
+            return value.toLocaleString();
+        }
+
+        if (type === 'date') {
+            const date = value as Date;
+            return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        }
+
+        return String(value);
+    }
+
+    // Or use property-specific formatters
+    formatter: {
+        y: (params) => `$${params.value.toLocaleString()}`,
+        x: (params) => params.value.toFixed(1),
+        label: (params) => `${params.value}%`,
+    }
+
+    // Less ideal - scattered formatters
+    axes: [{
+        label: { formatter: (params) => `$${params.value.toFixed(2)}` }
+    }],
+    tooltip: {
+        renderer: (params) => `$${params.datum.value.toFixed(2)}`
+    }
+    ```
+
+    **Significant Figures Guidelines:**
+
+    - Use 3-4 significant figures for most business data
+    - Avoid redundant precision (e.g., "$1,234.5678" → "$1,235")
+    - Match precision to data context:
+        - Financial: 2 decimal places for currency
+        - Percentages: 1 decimal place typically sufficient
+        - Scientific: Match the measurement precision
+
+    **Example - Appropriate Precision:**
+
+    ```typescript
+    // Good - appropriate precision based on context
+    formatter: (params) => {
+        const { value, type, property } = params;
+
+        if (type === 'number') {
+            // Currency values - 2 decimals
+            if (property === 'y' && params.source === 'axis-label') {
+                return `$${value.toFixed(2)}`;
+            }
+
+            // Percentages - 1 decimal
+            if (property === 'size' || property === 'angle') {
+                return `${(value * 100).toFixed(1)}%`;
+            }
+
+            // General numbers - 1 decimal or locale formatting
+            if (Math.abs(value) >= 1000) {
+                return value.toLocaleString(undefined, { maximumFractionDigits: 1 });
+            }
+
+            return value.toFixed(1);
+        }
+
+        return String(value);
+    };
+
+    // Avoid - too many decimals
+    label: {
+        formatter: (params) => params.value.toFixed(6);
+    } // Unnecessary precision
+    ```
+
+    ## Dark/Light Mode Color Considerations
+
+    **Examples are displayed in both dark and light modes**, so avoid all hardcoded colors:
+
+    **Theme-First Approach:**
+
+    ```typescript
+    // BEST - Let themes handle all colors
+    theme: 'ag-material',          // ✅ Handles dark/light automatically
+    series: [{ type: 'bar' }],     // ✅ Uses theme palette
+    
+    // ONLY when absolutely necessary - use semantic colors
+    theme: {
+        palette: {
+            // Use color names that browsers can adapt
+            fills: ['blue', 'green', 'orange', 'red'],
+            strokes: ['darkblue', 'darkgreen', 'darkorange', 'darkred'],
+        }
+    }
+    ```
+
+    **Safe Color Strategies:**
+
+    1. **Remove all color properties** - Let themes handle everything
+    2. **Use built-in themes** - They're professionally designed for both modes
+    3. **Trust theme defaults** - They ensure proper contrast automatically
+    4. **Use opacity for effects** - `fillOpacity`, `strokeOpacity` instead of lighter colors
+    5. **Theme parameters only** - When needed: `foregroundColor`, `backgroundColor`
+
+    ## Critical: Avoid Hardcoded Colors for Dark Mode Compatibility
+
+    **NEVER set explicit colors in examples** - They break dark mode switching:
+
+    **❌ BAD - Hardcoded colors break in dark mode:**
+    ```typescript
+    // These all interfere with theme switching
+    title: { color: '#2c3e50' }                    // ❌ Fixed color
+    label: { color: '#6c757d' }                    // ❌ Won't adapt
+    series: [{ fill: '#4285f4' }]                  // ❌ Same in both modes
+    innerLabels: [{ color: '#333' }]              // ❌ Invisible in dark mode
+    ```
+
+    **✅ GOOD - Theme-aware approaches:**
+    ```typescript
+    // Option 1: Rely on theme defaults (PREFERRED)
+    title: { text: 'Chart Title' }                 // ✅ Uses theme colors
+    label: { fontSize: 12 }                        // ✅ Color from theme
+    
+    // Option 2: Use theme parameters when needed
+    label: { color: 'foregroundColor' }            // ✅ Adapts to mode
+    
+    // Option 3: Let series colors come from theme palette
+    series: [{ type: 'bar' }]                      // ✅ Uses theme fills
+    ```
+
+    **Color Guidelines:**
+    1. **Remove all color properties** from examples unless absolutely necessary
+    2. **Trust the themes** - They handle color adaptation automatically
+    3. **Use theme parameters** (`foregroundColor`, `backgroundColor`) if you must set colors
+    4. **Series colors** should come from theme palettes, not hardcoded values
+    5. **Backgrounds** should use theme colors or be omitted entirely
+
+    **Theme Palette Usage (when customization is needed):**
+    ```typescript
+    // Only customize palette when specific colors are required
+    theme: {
+        palette: {
+            // These will be automatically adjusted for dark mode
+            fills: ['blue', 'green', 'orange'],    // ✅ Theme handles adaptation
+        }
+    }
+    
+    // NEVER do this:
+    series: [
+        { fill: '#4285f4' },                       // ❌ Hardcoded
+        { fill: '#34a853' },                       // ❌ Won't adapt
+    ]
+    ```
+
+    ## Recently Added Features _(Most Recent)_
+
+    These are the newest AG Charts capabilities that can replace existing manual implementations in gallery examples:
+
+    **🔧 Global Font Theme Settings** - _Apply: 3 minutes, Impact: High_ _(New Dec 2024)_
+
+    ```typescript
+    theme: {
+        params: {
+            fontFamily: 'Inter, system-ui, sans-serif',
+            fontSize: 14,
+            fontWeight: 'normal',
+            foregroundColor: '#333333',
+        }
+    }
+    // Sets consistent typography across all chart elements
+    ```
+
+    _Replaces: Individual font settings on each chart element_
+
+    **🎯 Enhanced Marker Styling** - _Apply: 4 minutes, Impact: Medium_ _(New Dec 2024)_
+
+    ```typescript
+    series: [
+        {
+            marker: {
+                lineDash: [4, 2], // Dashed marker borders
+                lineDashOffset: 2,
+                // Don't set stroke - use theme colors
+                strokeWidth: 2,
+            },
+        },
+    ];
+    ```
+
+    _Replaces: Simple solid marker borders and custom marker implementations_
+
+    **📊 Zoom Aspect Ratio Control** - _Apply: 6 minutes, Impact: Medium_ _(Enterprise, New Dec 2024)_
+
+    ```typescript
+    zoom: {
+        enabled: true,
+        enableSelecting: true,
+        keepAspectRatio: true,          // Maintain chart proportions during zoom selection
+    }
+    ```
+
+    _Replaces: Manual aspect ratio calculations in zoom implementations_
+
+    **🔍 Enhanced Series Visibility Events** - _Apply: 5 minutes, Impact: Low_ _(New Dec 2024)_
+
+    ```typescript
+    listeners: {
+        seriesVisibilityChange: (event) => {
+            const { itemId, legendItemName, visible } = event;
+            console.log(`${legendItemName} (${itemId}) is now ${visible ? 'visible' : 'hidden'}`);
+        };
+    }
+    ```
+
+    _Replaces: Manual series state tracking and visibility detection_
+
+    **⚡ Field Dot Notation Control** - _Apply: 2 minutes, Impact: Medium_ _(New Nov 2024)_
+
+    ```typescript
+    data: getData(),
+    suppressFieldDotNotation: true,     // Improves performance for complex nested data
+    ```
+
+    _Replaces: Manual data flattening and performance optimization workarounds_
+
+    ## Previously Added Features _(Past 10 Months)_
+
+    **🔄 Donut Series Inner Labels** - _Apply: 8 minutes, Impact: High_ _(New Aug 2024)_
+
+    ```typescript
+    // Replace manual center text with native inner labels
+    innerLabels: [
+        {
+            text: 'Total Sales',
+            fontSize: 16,
+            fontWeight: 'bold',
+            // Don't set color - theme handles contrast
+        },
+        {
+            text: '$1.2M',
+            fontSize: 24,
+            fontWeight: 'bold',
+            // Don't set color - theme handles contrast
+        },
+    ];
+    ```
+
+    _Replaces: Manual HTML overlays or canvas text drawing_
+
+    **🎯 Enhanced Legend Positioning** - _Apply: 5 minutes, Impact: High_ _(New Jul 2024)_
+
+    ```typescript
+    legend: {
+        position: {
+            placement: 'top-right',    // 'top-left', 'bottom-left', 'bottom-right', 'left', 'right', 'top', 'bottom'
+            floating: true,
+            xOffset: -20, yOffset: 20,
+        }
+    }
+    ```
+
+    _Replaces: Complex CSS positioning and manual legend placement_
+
+    **🎨 Advanced Grid Line Styling** - _Apply: 6 minutes, Impact: Medium_ _(New Jun 2024)_
+
+    ```typescript
+    gridLine: {
+        style: [
+            {
+                // Don't set stroke - theme handles grid colors
+                strokeWidth: 1,
+                lineDash: [2, 4],
+                // Don't set fill - theme handles band colors
+                fillOpacity: 0.5,
+            },
+        ];
+    }
+    ```
+
+    _Replaces: Manual background bands and custom grid implementations_
+
+    **📏 Spacing vs Padding Standardization** - _Apply: 3 minutes, Impact: Medium_ _(New May 2024)_
+
+    ```typescript
+    // Context-specific usage of spacing and padding
+    legend: {
+        spacing: 16,        // Between legend and chart
+        padding: 12,        // Internal legend padding
+    }
+    ```
+
+    _Replaces: Inconsistent padding properties across components_
+
+    **🔧 Enhanced Tooltip Positioning** - _Apply: 8 minutes, Impact: High_ _(New Apr 2024)_
+
+    ```typescript
+    tooltip: {
+        position: {
+            anchorTo: 'pointer',            // 'node', 'cursor', 'pointer'
+            placement: ['top', 'bottom'],   // Fallback order
+            xOffset: 10, yOffset: -10,
+            constraints: 'never-flip',      // 'flip-on-overflow'
+        },
+        wrapping: 'hyphenate',             // 'normal', 'break-word', 'anywhere'
+    }
+    ```
+
+    _Replaces: Manual tooltip positioning calculations and HTML-based tooltips_
+
+    ## High-Impact Missing Features
+
+    These significant AG Charts capabilities are often overlooked but provide substantial visual and functional improvements:
+
+    **🗺️ Geographic Visualizations** - _Apply: 15 minutes, Impact: Very High_ _(Enterprise)_
+
+    ```typescript
+    // Map Shape Series - Perfect for enterprise revenue/sales by region
+    series: [
+        {
+            type: 'map-shape',
+            topology: worldMapData,
+            idKey: 'country',
+            colorKey: 'revenue',
+            colorRange: ['lightblue', 'darkblue'],  // Semantic colors adapt to theme
+            label: {
+                enabled: true,
+                // Don't set color - theme handles label contrast
+                fontSize: 12,
+            },
+        },
+    ];
+    ```
+
+    _Replaces: Manual SVG overlays, third-party mapping libraries_
+
+    **📈 Financial Chart Presets** - _Apply: 10 minutes, Impact: Very High_ _(Enterprise)_
+
+    ```typescript
+    // Use dedicated financial chart API (not AgCharts.create)
+    import { AgCharts } from 'ag-charts-enterprise';
+
+    const chart = AgCharts.createFinancialChart({
+        container: document.getElementById('myChart'),
+        data: stockData,
+        chartType: 'candlestick', // hollow-candlestick, ohlc, line
+        navigator: true, // Built-in mini-chart navigation
+        rangeButtons: true, // 1D, 5D, 1M, 3M, 6M, 1Y, ALL
+        statusBar: true, // OHLC values display
+        volume: true, // Automatic volume chart below
+    });
+    ```
+
+    _Replaces: Complex multi-series financial chart configurations_
+
+    **📊 Advanced Flow Diagrams** - _Apply: 12 minutes, Impact: High_ _(Enterprise)_
+
+    ```typescript
+    // Sankey diagrams - Perfect for business process flows
+    series: [
+        {
+            type: 'sankey',
+            fromKey: 'source',
+            toKey: 'target',
+            sizeKey: 'value',
+            node: {
+                width: 15,
+                spacing: 10,
+                alignment: 'justify',
+            },
+            link: {
+                // Don't set fill/stroke - theme handles flow colors
+                fillOpacity: 0.3,
+            },
+        },
+    ];
+    ```
+
+    _Replaces: D3.js custom implementations, third-party flow libraries_
+
+    **📍 Interactive Annotations** - _Apply: 20 minutes, Impact: High_ _(Enterprise)_
+
+    ```typescript
+    annotations: {
+        enabled: true,
+        toolbar: {
+            enabled: true,
+            buttons: ['line', 'horizontal-line', 'text', 'fibonacci-retracement']
+        },
+        line: {
+            // Don't set stroke - theme handles annotation colors
+            strokeWidth: 2,
+            text: {
+                position: 'top',
+                alignment: 'center',
+            }
+        }
+    }
+    ```
+
+    _Replaces: Manual line drawing, overlay HTML elements, canvas annotations_
+
+    **🧭 Navigator with Mini-Charts** - _Apply: 8 minutes, Impact: High_ _(Enterprise)_
+
+    ```typescript
+    navigator: {
+        enabled: true,
+        height: 60,
+        miniChart: {
+            enabled: true,
+            series: [{
+                type: 'area',
+                // Don't set fill/stroke - theme handles navigator colors
+                fillOpacity: 0.2,
+            }],
+        },
+        mask: {
+            // Don't set fill - theme handles mask colors
+            fillOpacity: 0.3,
+        }
+    }
+    ```
+
+    _Replaces: Custom mini-chart implementations and manual navigation controls_
+
+    **📏 Professional Error Bars** - _Apply: 6 minutes, Impact: Medium_
+
+    ```typescript
+    series: [
+        {
+            type: 'line',
+            errorBar: {
+                visible: true,
+                yLowerKey: 'errorLow',
+                yUpperKey: 'errorHigh',
+                // Don't set stroke - theme handles error bar colors
+                strokeWidth: 1,
+                cap: {
+                    length: 6,
+                    lengthRatio: 0.5,
+                },
+            },
+        },
+    ];
+    ```
+
+    _Replaces: Manual error range implementations and custom uncertainty indicators_
+
+    **🔄 Multi-Chart Synchronization** - _Apply: 7 minutes, Impact: Medium_ _(Enterprise)_
+
+    ```typescript
+    sync: {
+        enabled: true,
+        groupId: 'dashboard-charts',
+        axes: 'x',                   // Sync x-axis across multiple charts
+        nodeInteraction: true,       // Sync hover states
+        zoom: true,                  // Sync zoom/pan actions
+    }
+    ```
+
+    _Replaces: Manual event coordination between multiple chart instances_
+
+    **📊 Advanced Gauge Charts** - _Apply: 10 minutes, Impact: Medium_ _(Enterprise)_
+
+    ```typescript
+    // Use dedicated gauge API (not AgCharts.create)
+    import { AgCharts } from 'ag-charts-enterprise';
+
+    const chart = AgCharts.createGauge({
+        container: document.getElementById('myChart'),
+        type: 'radial-gauge',
+        value: 75,
+        min: 0,
+        max: 100,
+        bands: [
+            { from: 0, to: 50 },  // Theme assigns appropriate band colors
+            { from: 50, to: 80 },
+            { from: 80, to: 100 },
+        ],
+    });
+    ```
+
+    _Replaces: Custom circular progress indicators and manual KPI visualizations_
+
+    **🎭 Pattern & Gradient Enhancements** - _Apply: 10 minutes, Impact: Medium_ _(New Mar 2024)_
+
+    ```typescript
+    fill: {
+        type: 'pattern',
+        pattern: 'forward-slanted-lines',   // New stock patterns
+        // Don't set fill/backgroundFill - theme handles pattern colors
+        scale: 1.5,
+        rotation: 45,
+    }
+    ```
+
+    _Replaces: Custom SVG pattern definitions and manual pattern creation_
+
+    **📊 Crosshair Label Enhancements** - _Apply: 7 minutes, Impact: Medium_ _(Enterprise, New Feb 2024)_
+
+    ```typescript
+    crosshair: {
+        label: {
+            enabled: true,
+            xOffset: 5, yOffset: -5,
+            renderer: (params) => ({
+                text: `${params.value}`,
+                // Don't set color/backgroundColor - theme handles crosshair styling
+                opacity: 0.9,
+            })
+        }
+    }
+    ```
+
+    _Replaces: Manual crosshair label positioning and custom hover indicators_
+
+    ## Historic Feature Additions _(2023 Community Package Era)_
+
+    These established features can replace older manual implementations found in legacy gallery examples:
+
+    **🎬 Series Load Animations** - _Apply: 5 minutes, Impact: High_ _(New May 2023)_
+
+    ```typescript
+    animation: {
+        enabled: true,
+        duration: 1200,     // Animation duration in milliseconds
+    }
+    // Works across all series types with different entrance effects
+    ```
+
+    _Replaces: Static chart loading and manual animation implementations_
+
+    **📏 Axis Title Formatting** - _Apply: 8 minutes, Impact: Medium_ _(New May 2023)_
+
+    ```typescript
+    axes: [
+        {
+            title: {
+                formatter: (params) => {
+                    const { defaultValue, boundSeries, domain } = params;
+                    return `${defaultValue} (${boundSeries.length} series)`;
+                },
+            },
+        },
+    ];
+    ```
+
+    _Replaces: Static axis titles and manual title generation logic_
+
+    **📐 Axis Label Styling** - _Apply: 4 minutes, Impact: Medium_ _(New Apr 2023)_
+
+    ```typescript
+    axes: [
+        {
+            label: {
+                fontSize: 12, // Consistent label sizing
+                rotation: 0, // Keep horizontal when possible
+                fontFamily: 'Arial, sans-serif',
+                // Don't set color - theme handles label colors
+            },
+        },
+    ];
+    ```
+
+    _Replaces: Inconsistent axis label styling and manual rotation logic_
+
+    **📊 Series Area Padding** - _Apply: 3 minutes, Impact: Medium_ _(New Feb 2023)_
+
+    ```typescript
+    seriesAreaPadding: {
+        top: 20,
+        right: 20,
+        bottom: 20,
+        left: 20,
+    }
+    // Provides breathing room around the chart data area
+    ```
+
+    _Replaces: Manual margin calculations and CSS-based spacing_
+
+    **🎯 Node Click Range Enhancement** - _Apply: 6 minutes, Impact: Medium_ _(New Feb 2023)_
+
+    ```typescript
+    series: [
+        {
+            nodeClickRange: 'nearest', // 'exact', 'nearest'
+            nodeClickRangeParams: {
+                distance: 15, // Pixel tolerance for clicks
+            },
+        },
+    ];
+    ```
+
+    _Replaces: Complex hit-testing logic and manual click area calculations_
+
+    **🖱️ Node Double Click Handlers** - _Apply: 7 minutes, Impact: Low_ _(New Mar 2023)_
+
+    ```typescript
+    series: [
+        {
+            listeners: {
+                nodeDoubleClick: (event) => {
+                    console.log('Double clicked:', event.datum);
+                    // Custom double-click behavior
+                },
+            },
+        },
+    ];
+    ```
+
+    _Replaces: Manual double-click detection and timing logic_
+
+    ## Documentation References
+
+    - **Themes**: `packages/ag-charts-website/src/content/docs/themes/`
+    - **Formatters**: `packages/ag-charts-website/src/content/docs/formatters/`
+    - **Typography**: `packages/ag-charts-website/src/content/docs/fonts/`
+    - **Colors**: `packages/ag-charts-website/src/content/docs/fills/`
+    - **Types Reference**: `packages/ag-charts-types/src/` (source of truth)
 
 3. **Propose targeted improvements**:
 
     - Select 3-5 most appropriate enhancements for this specific use case
     - **Check for outdated patterns**: Some examples may use complex workarounds that simulate features we didn't have originally - look for built-in AG Charts options that can replace these
+        - _Common replacements_: Manual tooltip positioning → `tooltip.position`, custom color cycling → theme palettes, manual formatting → built-in formatters
     - Prioritize improvements that:
         - Enhance visual appeal without overwhelming the chart
         - Improve data readability and comprehension
@@ -101,6 +910,14 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
 
 4. **Implementation considerations**:
 
+    - **API Entrypoints**: Most features use `AgCharts.create(options)`, but some require specialized APIs:
+        - **Financial Charts**: Use `AgCharts.createFinancialChart()` for price-volume presets
+        - **Gauge Charts**: Use `AgCharts.createGauge()` for radial/linear gauges
+        - **Standard Charts**: Use `AgCharts.create()` for all other chart types
+    - **Enterprise Features**: Require `import { AgCharts } from 'ag-charts-enterprise'` and valid license:
+        - Map visualizations, Financial presets, Gauge charts, Annotations, Navigator, Crosshairs, Zoom & Pan, Multi-chart sync, Error bars
+    - **Community Features**: Available with `import { AgCharts } from 'ag-charts-community'`:
+        - All themes, basic styling, standard series types, legends, tooltips, basic animations
     - **API Contract Compliance**: The local `packages/ag-charts-types/` package is the source of truth for our options API - all configurations MUST adhere to these TypeScript interfaces
     - **Type Safety**: Examples must be fully type-safe - NEVER use `any` type. Use proper TypeScript types from `ag-charts-types` or `unknown` for truly unknown values
         - **Type Error Resolution**: If facing confusing TypeScript errors with `AgChartOptions`, try narrowing to more specific types like `AgCartesianChartOptions`, `AgPolarChartOptions`, `AgHierarchyChartOptions`, or `AgTopologyChartOptions` rather than trying to interpret complex union type errors
@@ -119,8 +936,10 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
 5. **Apply improvements**:
     - Implement the selected enhancements
     - Test the changes by taking a new screenshot using the development server (typically running on `https://host.docker.internal:4600`)
+        - When using Puppeteer tools, use `allowDangerous: true` due to self-signed certificates
     - Ensure the example still loads correctly and functions as expected
     - Verify the example works across different viewport sizes if responsive features are added
+    - **Validate the example**: Run `nx validate-examples` to ensure compliance with AG Charts standards
 
 ## Guidelines
 
@@ -142,3 +961,97 @@ Provide:
 5. Brief summary of changes made and their benefits
 
 Remember: The goal is to create visually appealing examples that effectively demonstrate AG Charts capabilities while remaining practical and user-friendly.
+
+## Maintaining This Prompt
+
+This prompt should be updated regularly to reflect new AG Charts capabilities and ensure examples showcase the latest features:
+
+### **Quarterly Updates (Every 3 months)**
+
+1. **Analyze Recent Commits**: Review git history for new features
+
+    ```bash
+    # In repository root, analyze recent ag-charts-types changes
+    git log --format="%h %ad %s" --date=short --since="3 months ago" -- "packages/ag-charts-types/" | head -30
+
+    # Look for feature additions in community package
+    git log --format="%h %ad %s" --date=short --since="3 months ago" -- "packages/ag-charts-community/" | grep -E "(add|Add|new|New)" | head -20
+    ```
+
+2. **Feature Discovery Process**:
+
+    - Examine new TypeScript interfaces in `packages/ag-charts-types/src/`
+    - Focus on options that enhance visual appeal or replace manual implementations
+    - Check for new series types, styling options, or interaction features
+    - Identify Enterprise vs Community feature classification
+
+3. **Validation Requirements**:
+    - **API Contract Compliance**: Verify all examples against actual TypeScript interfaces
+    - **API Entrypoint Accuracy**: Ensure correct usage of `AgCharts.create()` vs specialized APIs
+    - **Enterprise Licensing**: Clearly mark features requiring commercial license
+    - **Working Code**: Test examples work as documented
+
+### **Feature Addition Template**
+
+When adding new features, use this format:
+
+````typescript
+**🎯 Feature Name** - *Apply: X minutes, Impact: High/Medium/Low* *(New MMM YYYY)* *(Enterprise if applicable)*
+```typescript
+// Clear, working example with proper API usage
+const chart = AgCharts.create({
+    // Realistic configuration
+    series: [{
+        // Feature-specific properties with comments
+    }]
+});
+````
+
+_Replaces: What manual implementations this native feature can replace_
+
+```
+
+### **Section Organization Rules**
+
+1. **Most Recent** (0-6 months): Latest cutting-edge features
+2. **Previously Added** (6-12 months): Established recent features
+3. **Historic** (1-2 years): Well-established foundational features
+4. **High-Impact Missing**: Overlooked but valuable existing features
+
+### **Review Checklist**
+
+Before updating the prompt:
+
+- [ ] **API Accuracy**: All examples validated against `packages/ag-charts-types/src/` interfaces
+- [ ] **Correct Entrypoints**: Proper API calls specified (`AgCharts.create()` vs specialized)
+- [ ] **Enterprise Classification**: Clear licensing requirements documented
+- [ ] **Implementation Times**: Realistic estimates (5-20 minutes for most features)
+- [ ] **Impact Ratings**: Based on visual enhancement and ease of implementation
+- [ ] **Replacement Value**: Clear description of what manual code this replaces
+- [ ] **Professional Focus**: Features appropriate for enterprise/finance customers
+- [ ] **TypeScript Safety**: Examples use proper typing, never `any`
+
+### **Common Update Patterns**
+
+**New Chart Types**: Add to "High-Impact Missing Features" with full implementation example
+**Styling Enhancements**: Add to "Recently Added" with before/after context
+**API Changes**: Update existing examples and add deprecation warnings if needed
+**Enterprise Features**: Ensure proper license requirements and import statements
+
+### **Sources for Feature Discovery**
+
+1. **Git History**: Primary source for chronological feature additions
+2. **TypeScript Interfaces**: `packages/ag-charts-types/src/` for API contract validation
+3. **Documentation**: `packages/ag-charts-website/src/content/docs/` for implementation patterns
+4. **Example Generation**: `nx generate-examples` output for real-world usage patterns
+5. **Community Feedback**: Gallery example issues and feature requests
+
+### **Maintenance Schedule**
+
+- **Monthly**: Quick scan of recent commits for major feature additions
+- **Quarterly**: Full analysis and prompt updates with new feature sections
+- **Semi-annually**: Complete validation of all examples against latest API contracts
+- **Annually**: Major reorganization and cleanup of outdated features
+
+This maintenance approach ensures the prompt remains current with AG Charts capabilities while providing accurate, working examples that showcase the full potential of the library for professional chart development.
+```
