@@ -65,7 +65,7 @@ export interface AgChartOverlayOptions<TContext = ContextDefault> {
      */
     enabled?: boolean;
     /** Text to render in the overlay. */
-    text?: string;
+    text?: string | TextSegment[];
     /** A function for generating HTML element or string for overlay content. */
     renderer?: Renderer<AgChartOverlayRendererParams<TContext>, HTMLElement>;
 }

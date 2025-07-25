@@ -205,7 +205,7 @@ export interface Visible {
     visible?: boolean;
 }
 
-export interface TextSegment extends FillOptions, StrokeOptions, FontOptions {
+export interface TextSegment extends FontOptions {
+    /** A segment of text. */
     text: string;
-    lineHeight?: number;
 }
