@@ -1,4 +1,14 @@
-export function getData() {
+export type DataType = {
+    age: number;
+    timeSpentAlone: number;
+    timeSpentWithFriends: number;
+    timeSpentWithChildren: number;
+    timeSpentWithFamily: number;
+    timeSpentWithPartner: number;
+    timeSpentWithCoworkers: number;
+};
+
+export function getData(): DataType[] {
     return [
         {
             age: 15,
