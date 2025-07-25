@@ -1,13 +1,5 @@
 # Spruce Up Gallery Example
 
-**⚠️ CRITICAL: DARK MODE COMPATIBILITY IS MANDATORY ⚠️**
-
-**ALL GALLERY EXAMPLES ARE DISPLAYED IN BOTH LIGHT AND DARK MODES**
-
-**NEVER HARDCODE COLORS. ALWAYS USE THEME PALETTES. THIS IS NON-NEGOTIABLE.**
-
----
-
 You are tasked with improving the visual appeal of an AG Charts gallery example to better showcase our feature set while maintaining readability and visual consistency.
 
 **Context**: AG Charts offers extensive styling, interaction, and data presentation capabilities across both Community (MIT) and Enterprise (commercial) versions. The goal is to demonstrate these capabilities through polished, production-ready gallery examples that users would be proud to implement.
@@ -26,20 +18,53 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
 
 **THIS IS THE #1 PRIORITY - DARK MODE COMPATIBILITY OVERRIDES ALL OTHER CONCERNS**
 
+## 🔍 MANDATORY VISUAL ANALYSIS REQUIREMENT
+
+**You MUST use Puppeteer to visually analyze each example before making any changes:**
+
+1. **Navigate to the example**: Use Puppeteer to visit `https://host.docker.internal:4600/charts/gallery/examples/{exampleName}`
+2. **Take screenshots**: Capture the current visual state of the chart
+3. **Analyze visually**: Base your improvements on what you see, not just code inspection
+4. **Verify changes**: After modifications, take another screenshot to confirm improvements
+
+**⛔ CRITICAL: STOP AND FAIL IF SCREENSHOTS CANNOT BE TAKEN**
+
+-   If Puppeteer fails to navigate to the example: **STOP IMMEDIATELY**
+-   If screenshots cannot be captured: **STOP IMMEDIATELY**
+-   Do NOT proceed with code-only analysis
+-   Report the error and explain that visual analysis is required
+
+**Puppeteer Configuration** (REQUIRED):
+
+```javascript
+await puppeteer_navigate({
+    url: `https://host.docker.internal:4600/charts/gallery/examples/${exampleName}`,
+    allowDangerous: true, // Required for self-signed certificate
+    launchOptions: {
+        headless: true,
+        args: ['--ignore-certificate-errors'],
+    },
+});
+```
+
 ## Instructions
 
 1. **Analyze the current example**:
 
-    - **FIRST PRIORITY: Check for hardcoded colors and REMOVE THEM ALL**
+    - **MANDATORY: Use Puppeteer to take a screenshot of the current example**
+    - **⛔ IF SCREENSHOT FAILS: STOP IMMEDIATELY - Do not continue without visual analysis**
     - Examine the chart configuration and data structure
     - Identify the current visual features being used
-    - Take a screenshot of the current rendered chart using the Puppeteer tools
-    - Assess the visual hierarchy, readability, and overall appeal
-    - **FLAG ANY COLOR PROPERTIES AS CRITICAL ISSUES TO FIX**
+    - Assess the visual hierarchy, readability, and overall appeal based on the screenshot
 
 2. **Feature Analysis & Implementation Guide**:
 
     - Review what AG Charts features are currently utilized
+    - **IMPORTANT: Do NOT change the chart type, series types, or data structure**
+        - Keep the existing chart type (e.g., if it's a horizontal bar chart, keep it horizontal bar)
+        - Keep the existing series types (e.g., if using 'bar' series, don't change to 'line' or other types)
+        - Keep the existing data structure and keys - you may enhance the data values but not the shape
+        - Focus on visual enhancements and features that work with the existing chart configuration
     - Identify potential enhancements from these prioritized categories with implementation details:
 
     ## Quick Win Features (High Impact, Low Effort)
@@ -47,11 +72,70 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
     **🎨 Professional Themes** - _Apply: 5 minutes, Impact: Immediate_
 
     ```typescript
+    theme: 'ag-default',         // Clean default theme, used if unspecified
     theme: 'ag-material',        // Clean, Material Design aesthetic
     theme: 'ag-polychroma',      // Modern, balanced color palette
     ```
 
+    STRONGLY RECOMMENDED TO USE THE `ag-default` THEME.
+
     📖 _See: `packages/ag-charts-website/src/content/docs/themes/`_
+
+    **🌈 Axis Bands & Grid Fills** - _Apply: 6 minutes, Impact: VERY HIGH_ ⭐ **STRONGLY RECOMMENDED**
+
+    ```typescript
+    // Add visual depth with alternating background bands
+    axes: [
+        {
+            type: 'number',
+            position: 'left',
+            gridLine: {
+                style: [
+                    {
+                        // Don't set stroke/fill colors - theme handles them
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        // Alternating bands - theme provides appropriate colors
+                        strokeWidth: 0, // No grid line
+                    },
+                ],
+            },
+        },
+    ];
+    ```
+
+    **Why this matters:**
+
+    - Creates visual rhythm and improves data readability
+    - Helps users track values across the chart
+    - Adds professional polish without being distracting
+    - Works perfectly with dark/light mode themes
+
+    **✨ Axis Band Highlighting** - _Apply: 4 minutes, Impact: HIGH_ ⭐ **RECOMMENDED**
+
+    ```typescript
+    // Add interactive hover highlighting to axis bands
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+            bandHighlight: {
+                enabled: true,
+                // Don't set fill - theme provides appropriate highlight color
+            },
+        },
+    ];
+    ```
+
+    **Visual Benefits:**
+
+    - Provides instant visual feedback on hover
+    - Helps users focus on specific data points
+    - Creates a more interactive, engaging experience
+    - Particularly effective for bar/column charts with category axes
+    - Works seamlessly with axis bands for layered visual depth
 
     **📝 Typography Enhancement** - _Apply: 5 minutes, Impact: High_
 
@@ -97,19 +181,49 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
 
     ## Advanced Visual Features (Medium Effort, High Impact)
 
-    **🎯 Legend Customization** - _Apply: 10 minutes, Impact: High_
+    **🎯 Floating Legend with Border** - _Apply: 10 minutes, Impact: VERY HIGH_ ⭐ **STRONGLY RECOMMENDED FOR MULTI-SERIES**
+
+    **NOTE: ONLY USE THIS IF THE FLOATING LEGEND DOES NOT OBSCURE THE SERIES DATA SIGNIFICANTLY.**
+
+    Take visual screenshots with Puppeteer to confirm that the legend does not obscure the series data significantly.
 
     ```typescript
+    // For charts with multiple series, floating legends provide better space utilization
     legend: {
-        position: { placement: 'right', floating: true },
+        position: {
+            placement: 'right',  // Common placements: 'right', 'top', 'bottom'
+            floating: true       // RECOMMENDED: Overlay on chart area
+        },
+        border: {
+            enabled: true,
+            // Don't set stroke color - theme provides appropriate contrast
+            strokeWidth: 1,
+        },
+        cornerRadius: 8,         // Modern rounded corners
+        padding: 16,             // Comfortable internal spacing
         item: {
             label: { fontSize: 14 },  // Don't set color - theme handles it
-            marker: { size: 16, shape: 'diamond' },
-            paddingX: 16, paddingY: 8,
+            marker: { size: 16 },
+            paddingX: 16,
+            paddingY: 8,
         },
-        spacing: 20,
     }
     ```
+
+    **Why Floating Legends Are Essential for Multi-Series Charts:**
+
+    - Maximizes data visualization area
+    - Creates a polished, modern appearance
+    - Prevents legend from pushing chart content
+    - Border provides visual separation from data
+    - Works perfectly with all themes
+
+    **Placement Guidelines:**
+
+    - **Right floating**: Best for time series and continuous data
+    - **Top floating**: Ideal when horizontal space is limited
+    - **Bottom floating**: Good for category comparisons
+    - **Corner positions** ('top-right', 'bottom-left'): Great for sparse data areas
 
     📖 _See: `packages/ag-charts-website/src/content/docs/legend/`_
 
@@ -138,7 +252,7 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
     theme: 'ag-material',        // Material Design colors
     theme: 'ag-polychroma',      // Vibrant, balanced palette
     theme: 'ag-financial',       // Conservative business colors
-    
+
     // ONLY if custom palette is absolutely required:
     theme: {
         palette: {
@@ -166,21 +280,58 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
     }
     ```
 
-    **📏 Axis Enhancement** - _Apply: 10 minutes, Impact: Medium_
+    **🔗 Shared Tooltips for Multi-Series** - _Apply: 2 minutes, Impact: HIGH_ ⭐ **STRONGLY RECOMMENDED FOR MULTI-SERIES**
+
+    ```typescript
+    // For charts with multiple series, shared tooltips provide better data comparison
+    tooltip: {
+        enabled: true,
+        mode: 'shared',    // Shows all series values at the same x-position
+    }
+    ```
+
+    **Why Shared Tooltips Are Essential for Multi-Series Charts:**
+
+    - Shows all series values at once for easy comparison
+    - Reduces mouse movement needed to see all data points
+    - Provides immediate context across all series
+    - Particularly effective for time series and stacked charts
+    - Professional appearance for dashboards and reports
+
+    **Best Used With:**
+
+    - Line charts with multiple series
+    - Area charts comparing trends
+    - Stacked bar/column charts
+    - Any chart where x-axis alignment matters
+
+    **📏 Axis Enhancement** - _Apply: 10 minutes, Impact: HIGH_
 
     ```typescript
     axes: [
         {
             type: 'number',
             position: 'left',
-            title: { text: 'Revenue ($M)', fontSize: 14 },  // Don't set color
+            title: { text: 'Revenue ($M)', fontSize: 14 }, // Don't set color
             label: {
                 fontSize: 12,
                 // Don't set color - theme handles it
                 formatter: (params) => `$${params.value}M`,
             },
-            gridLine: { style: [{ lineDash: [2, 3] }] },  // Don't set stroke color
-            tick: { width: 1 },  // Don't set stroke color
+            gridLine: { style: [{ lineDash: [2, 3] }] }, // Don't set stroke color
+            tick: { width: 1 }, // Don't set stroke color
+        },
+        {
+            type: 'category',
+            position: 'bottom',
+            bandHighlight: {
+                enabled: true,
+                // Don't set fill - theme provides the color
+            },
+            label: {
+                rotation: 45, // Angle labels if needed
+                fontSize: 12,
+            },
         },
     ];
     ```
@@ -216,27 +367,152 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
 
     **For Most Examples, Apply in This Order:**
 
-    1. **Professional theme** (`ag-material` or `ag-polychroma`)
-    2. **Title & footnote** (proper typography and attribution)
-    3. **Axis formatting** (appropriate number/date formats)
-    4. **Legend positioning** (floating right or professional placement)
-    5. **Series styling** (rounded corners, appropriate stroke widths)
+    1. **Professional theme** (`ag-default`, `ag-material` or `ag-polychroma`)
+    2. **Axis bands & grid fills** ⭐ (visual depth and readability)
+    3. **Floating legend with border** ⭐ (for multi-series charts)
+    4. **Shared tooltips** ⭐ (for multi-series charts - `mode: 'shared'`)
+    5. **Title & footnote** (proper typography and attribution)
+    6. **Axis formatting** (appropriate number/date formats)
+    7. **Series styling** (rounded corners, appropriate stroke widths)
+    8. **Tooltip enhancements** (position, formatting, wrapping)
 
     **For Financial/Business Charts:**
 
     1. Use `ag-financial` theme (handles conservative colors automatically)
-    2. Currency/percentage formatters
-    3. Professional typography (Inter, system fonts)
-    4. Minimize decorative elements
-    5. Clear data sourcing and footnotes
+    2. **Axis bands** ⭐ (essential for tracking financial trends)
+    3. Currency/percentage formatters
+    4. Professional typography (Inter, system fonts)
+    5. Minimize decorative elements
+    6. Clear data sourcing and footnotes
 
     **For Technical/Data Charts:**
 
     1. Use `ag-polychroma` theme (vibrant but balanced)
-    2. Precise axis labeling with units
-    3. Grid lines for reference
-    4. Technical tooltips with full precision
-    5. Clear data attribution
+    2. **Grid fills with bands** ⭐ (critical for data analysis)
+    3. Precise axis labeling with units
+    4. Grid lines for reference
+    5. Technical tooltips with full precision
+    6. Clear data attribution
+
+    ## Theme Overrides Best Practices
+
+    **Use `theme.overrides` for Repeated Configuration:**
+
+    When multiple series or axes share identical configuration, use `theme.overrides` to avoid repetition and improve maintainability:
+
+    ```typescript
+    // GOOD - Using theme.overrides for shared series config
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    cornerRadius: 4,
+                    strokeWidth: 1,
+                    label: {
+                        enabled: true,
+                    },
+                },
+            },
+        },
+    },
+    series: [
+        { type: 'bar', xKey: 'x', yKey: 'y1', yName: 'Series 1' },
+        { type: 'bar', xKey: 'x', yKey: 'y2', yName: 'Series 2' },
+        // Series automatically inherit cornerRadius, strokeWidth, and label config
+    ]
+
+    // AVOID - Repeating config across every series
+    series: [
+        {
+            type: 'bar',
+            xKey: 'x',
+            yKey: 'y1',
+            cornerRadius: 4,  // ❌ Repeated
+            strokeWidth: 1,   // ❌ Repeated
+            label: { enabled: true }  // ❌ Repeated
+        },
+        {
+            type: 'bar',
+            xKey: 'x',
+            yKey: 'y2',
+            cornerRadius: 4,  // ❌ Repeated
+            strokeWidth: 1,   // ❌ Repeated
+            label: { enabled: true }  // ❌ Repeated
+        },
+    ]
+    ```
+
+    **Common Use Cases for Theme Overrides:**
+
+    1. **Series Styling** - When all series share visual properties:
+
+    ```typescript
+    theme: {
+        overrides: {
+            bar: { series: { cornerRadius: 4, strokeWidth: 1 } },
+            line: { series: { strokeWidth: 2, marker: { enabled: true, size: 6 } } },
+            area: { series: { fillOpacity: 0.7, strokeWidth: 2 } },
+        },
+    }
+    ```
+
+    2. **Axis Configuration** - When axes share common settings:
+
+    ```typescript
+    theme: {
+        overrides: {
+            category: {
+                axis: {
+                    bandHighlight: { enabled: true },
+                    label: { fontSize: 12 },
+                },
+            },
+            number: {
+                axis: {
+                    label: { fontSize: 11 },
+                    gridLine: {
+                        style: [
+                            { strokeWidth: 1, lineDash: [2, 2] },
+                            { strokeWidth: 0 }, // Bands
+                        ],
+                    },
+                },
+            },
+        },
+    }
+    ```
+
+    3. **Complex Shared Behaviors** - Functions that apply to all series:
+
+    ```typescript
+    theme: {
+        overrides: {
+            bar: {
+                series: {
+                    itemStyler: ({ datum, yKey }) => ({
+                        fillOpacity: calculateOpacity(datum[yKey]),
+                    }),
+                    label: {
+                        formatter: ({ value }) => formatValue(value),
+                    },
+                },
+            },
+        },
+    }
+    ```
+
+    **When to Use Theme Overrides:**
+
+    - ✅ When 3+ series/axes share identical configuration
+    - ✅ For consistent visual styling across chart elements
+    - ✅ To centralize formatter/styler functions
+    - ✅ To make examples more maintainable and readable
+
+    **When NOT to Use Theme Overrides:**
+
+    - ❌ For series-specific data bindings (xKey, yKey, yName)
+    - ❌ When only 1-2 elements share config (not worth the indirection)
+    - ❌ For one-off custom behaviors specific to a single series
 
     ## Formatter/Format Best Practices
 
@@ -360,7 +636,7 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
     // BEST - Let themes handle all colors
     theme: 'ag-material',          // ✅ Handles dark/light automatically
     series: [{ type: 'bar' }],     // ✅ Uses theme palette
-    
+
     // ONLY when absolutely necessary - use semantic colors
     theme: {
         palette: {
@@ -376,36 +652,48 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
     1. **Remove all color properties** - Let themes handle everything
     2. **Use built-in themes** - They're professionally designed for both modes
     3. **Trust theme defaults** - They ensure proper contrast automatically
-    4. **Use opacity for effects** - `fillOpacity`, `strokeOpacity` instead of lighter colors
-    5. **Theme parameters only** - When needed: `foregroundColor`, `backgroundColor`
+    4. **Theme parameters only** - When needed: `foregroundColor`, `backgroundColor`
 
     ## Critical: Avoid Hardcoded Colors for Dark Mode Compatibility
 
     **NEVER set explicit colors in examples** - They break dark mode switching:
 
     **❌ BAD - Hardcoded colors break in dark mode:**
+
     ```typescript
     // These all interfere with theme switching
-    title: { color: '#2c3e50' }                    // ❌ Fixed color
-    label: { color: '#6c757d' }                    // ❌ Won't adapt
-    series: [{ fill: '#4285f4' }]                  // ❌ Same in both modes
-    innerLabels: [{ color: '#333' }]              // ❌ Invisible in dark mode
+    title: {
+        color: '#2c3e50';
+    } // ❌ Fixed color
+    label: {
+        color: '#6c757d';
+    } // ❌ Won't adapt
+    series: [{ fill: '#4285f4' }]; // ❌ Same in both modes
+    innerLabels: [{ color: '#333' }]; // ❌ Invisible in dark mode
     ```
 
     **✅ GOOD - Theme-aware approaches:**
+
     ```typescript
     // Option 1: Rely on theme defaults (PREFERRED)
-    title: { text: 'Chart Title' }                 // ✅ Uses theme colors
-    label: { fontSize: 12 }                        // ✅ Color from theme
-    
+    title: {
+        text: 'Chart Title';
+    } // ✅ Uses theme colors
+    label: {
+        fontSize: 12;
+    } // ✅ Color from theme
+
     // Option 2: Use theme parameters when needed
-    label: { color: 'foregroundColor' }            // ✅ Adapts to mode
-    
+    label: {
+        color: 'foregroundColor';
+    } // ✅ Adapts to mode
+
     // Option 3: Let series colors come from theme palette
-    series: [{ type: 'bar' }]                      // ✅ Uses theme fills
+    series: [{ type: 'bar' }]; // ✅ Uses theme fills
     ```
 
     **Color Guidelines:**
+
     1. **Remove all color properties** from examples unless absolutely necessary
     2. **Trust the themes** - They handle color adaptation automatically
     3. **Use theme parameters** (`foregroundColor`, `backgroundColor`) if you must set colors
@@ -413,6 +701,7 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
     5. **Backgrounds** should use theme colors or be omitted entirely
 
     **Theme Palette Usage (when customization is needed):**
+
     ```typescript
     // Only customize palette when specific colors are required
     theme: {
@@ -421,7 +710,7 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
             fills: ['blue', 'green', 'orange'],    // ✅ Theme handles adaptation
         }
     }
-    
+
     // NEVER do this:
     series: [
         { fill: '#4285f4' },                       // ❌ Hardcoded
@@ -524,37 +813,111 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
 
     _Replaces: Manual HTML overlays or canvas text drawing_
 
-    **🎯 Enhanced Legend Positioning** - _Apply: 5 minutes, Impact: High_ _(New Jul 2024)_
+    **🎯 Enhanced Legend Positioning Strategy** - _Apply: 5 minutes, Impact: VERY HIGH_ _(New Jul 2024)_ ⭐
 
     ```typescript
+    // DECISION GUIDE FOR LEGEND POSITIONING:
+
+    // For MULTI-SERIES charts (ALWAYS use floating with border):
     legend: {
         position: {
-            placement: 'top-right',    // 'top-left', 'bottom-left', 'bottom-right', 'left', 'right', 'top', 'bottom'
+            placement: 'top-right',        // Best default for multi-series
+            floating: true,            // MANDATORY for multi-series
+            xOffset: -20,              // Fine-tune position if needed
+        },
+        border: {
+            enabled: true,             // ALWAYS add border for floating
+            strokeWidth: 1,
+        },
+        cornerRadius: 8,
+        padding: 12,
+    }
+
+    // For SINGLE-SERIES (floating optional):
+    legend: {
+        position: 'bottom',            // Clean, simple approach
+        // OR for space-saving:
+        position: {
+            placement: 'top-right',
             floating: true,
             xOffset: -20, yOffset: 20,
-        }
+        },
+        border: floating ? { enabled: true, strokeWidth: 1 } : undefined,
     }
     ```
+
+    **Floating Legend Rules:**
+
+    - ✅ **ALWAYS float legends for 2+ series charts**
+    - ✅ **ALWAYS add borders to floating legends**
+    - ✅ **Right placement** is usually best for readability
+    - ✅ **Corner placements** work well with sparse data areas
+    - ❌ **Avoid left placement** unless absolutely necessary
 
     _Replaces: Complex CSS positioning and manual legend placement_
 
-    **🎨 Advanced Grid Line Styling** - _Apply: 6 minutes, Impact: Medium_ _(New Jun 2024)_
+    **🎨 Advanced Grid Line Styling** - _Apply: 6 minutes, Impact: HIGH_ _(New Jun 2024)_ ⭐ **RECOMMENDED**
 
     ```typescript
+    // Professional alternating bands - STRONGLY consider using this!
     gridLine: {
         style: [
             {
-                // Don't set stroke - theme handles grid colors
+                // Primary grid lines
                 strokeWidth: 1,
-                lineDash: [2, 4],
-                // Don't set fill - theme handles band colors
-                fillOpacity: 0.5,
+                lineDash: [3, 3],
+                // Don't set stroke - theme handles grid colors
+            },
+            {
+                // Alternating background bands for visual clarity
+                strokeWidth: 0, // No line, just fill
+                // Don't set fill - theme provides appropriate band colors
             },
         ];
     }
+
+    // Even more sophisticated with multiple styles:
+    gridLine: {
+        style: [
+            { strokeWidth: 2 }, // Major grid lines (every 5th)
+            { strokeWidth: 0 }, // Subtle bands
+            { strokeWidth: 1, lineDash: [2, 2] }, // Minor grid lines
+        ];
+    }
+
+    // BEST PRACTICE: Combine with bandHighlight for maximum impact
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+            gridLine: {
+                style: [
+                    { strokeWidth: 1, lineDash: [2, 2] },
+                    { strokeWidth: 0 }, // Background bands
+                ],
+            },
+            bandHighlight: {
+                enabled: true,
+            },
+        },
+    ];
     ```
 
     _Replaces: Manual background bands and custom grid implementations_
+
+    **Visual Impact:** Axis bands dramatically improve chart readability by:
+
+    - Creating visual lanes that guide the eye
+    - Making it easier to estimate values between grid lines
+    - Adding depth without cluttering the data
+    - Working seamlessly with all themes and dark mode
+
+    **Combined with bandHighlight:** Creates a layered visual experience where:
+
+    - Static bands provide consistent visual structure
+    - Hover highlighting adds interactive feedback
+    - Users can easily track and compare values
+    - Professional appearance suitable for dashboards
 
     **📏 Spacing vs Padding Standardization** - _Apply: 3 minutes, Impact: Medium_ _(New May 2024)_
 
@@ -598,7 +961,7 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
             topology: worldMapData,
             idKey: 'country',
             colorKey: 'revenue',
-            colorRange: ['lightblue', 'darkblue'],  // Semantic colors adapt to theme
+            colorRange: ['lightblue', 'darkblue'], // Semantic colors adapt to theme
             label: {
                 enabled: true,
                 // Don't set color - theme handles label contrast
@@ -646,7 +1009,6 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
             },
             link: {
                 // Don't set fill/stroke - theme handles flow colors
-                fillOpacity: 0.3,
             },
         },
     ];
@@ -687,12 +1049,10 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
             series: [{
                 type: 'area',
                 // Don't set fill/stroke - theme handles navigator colors
-                fillOpacity: 0.2,
             }],
         },
         mask: {
             // Don't set fill - theme handles mask colors
-            fillOpacity: 0.3,
         }
     }
     ```
@@ -749,7 +1109,7 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
         min: 0,
         max: 100,
         bands: [
-            { from: 0, to: 50 },  // Theme assigns appropriate band colors
+            { from: 0, to: 50 }, // Theme assigns appropriate band colors
             { from: 50, to: 80 },
             { from: 80, to: 100 },
         ],
@@ -910,6 +1270,7 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
 
 4. **Implementation considerations**:
 
+    - **Use `theme.overrides` for Shared Configuration**: When multiple series or axes share identical settings, centralize them in theme overrides rather than repeating across each element. This improves maintainability and reduces code duplication
     - **API Entrypoints**: Most features use `AgCharts.create(options)`, but some require specialized APIs:
         - **Financial Charts**: Use `AgCharts.createFinancialChart()` for price-volume presets
         - **Gauge Charts**: Use `AgCharts.createGauge()` for radial/linear gauges
@@ -934,9 +1295,11 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
     - Don't over-engineer - choose features that add genuine value
 
 5. **Apply improvements**:
+    - **BEFORE CHANGES: Take a screenshot with Puppeteer to document the current state**
     - Implement the selected enhancements
-    - Test the changes by taking a new screenshot using the development server (typically running on `https://host.docker.internal:4600`)
-        - When using Puppeteer tools, use `allowDangerous: true` due to self-signed certificates
+    - **AFTER CHANGES: Take a new screenshot with Puppeteer to verify improvements**
+    - Test the changes using the development server at `https://host.docker.internal:4600`
+        - **MANDATORY**: Use Puppeteer with `allowDangerous: true` for self-signed certificates
     - Ensure the example still loads correctly and functions as expected
     - Verify the example works across different viewport sizes if responsive features are added
     - **Validate the example**: Run `nx validate-examples` to ensure compliance with AG Charts standards
@@ -954,11 +1317,16 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
 
 Provide:
 
-1. Analysis of current state with screenshot
-2. List of proposed improvements with rationale
-3. Implementation of selected enhancements
-4. Before/after comparison screenshots
-5. Brief summary of changes made and their benefits
+1. **Visual Analysis**: Screenshot of current state taken with Puppeteer
+2. **Proposed Improvements**: List of enhancements with rationale based on visual analysis
+3. **Implementation**: Apply selected enhancements to the code
+4. **Visual Verification**: Before/after screenshots taken with Puppeteer
+5. **Summary**: Brief description of changes and their visual impact
+    - Links to localhost URLs for review
+    - Links to staging URLs for comparison
+    - Links to production URLs for comparison
+
+**Note**: All visual analysis MUST be done using Puppeteer. Do not make assumptions about the chart's appearance based solely on code.
 
 Remember: The goal is to create visually appealing examples that effectively demonstrate AG Charts capabilities while remaining practical and user-friendly.
 
