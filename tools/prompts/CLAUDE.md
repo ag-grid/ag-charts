@@ -138,6 +138,15 @@ nx e2e ag-charts-website
 -   AG Charts architecture docs can be found at https://docs.ag-grid.com/architecture/charts/ag-charts-overview
     -   This provides an overview of the important aspects of the ag-charts codebase, as well as links to deeper dives into specific aspects. Use this as a reference if you need help navigating the code.
 
+## Production URLs
+
+-   The production base URLs for the Astro site is https://www.ag-grid.com/
+
+## Staging URLs
+
+-   The staging base URLs for the Astro site is https://charts-staging.ag-grid.com/
+    -   NOTE: That the `/charts` path prefix is not used for paths on the staging site.
+
 ## Development Server Notes
 
 -   Normally the Astro dev server is running on port 4600 (HTTPS) and you can just use it.
