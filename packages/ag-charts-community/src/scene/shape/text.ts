@@ -411,13 +411,16 @@ export class Text<D = any> extends Shape<D> {
     getBoxingProperties(): TextBoxingProperties {
         const { fill, fillOpacity, cornerRadius, stroke, strokeWidth, strokeOpacity } = this.boxing ?? {};
 
+        type Contraints = RequireOptional<TextBoxingProperties> & {
+            border: RequireOptional<TextBoxingProperties['border']>;
+        };
         return {
-            border: { stroke, strokeWidth, strokeOpacity },
+            border: { enabled: stroke != null, stroke, strokeWidth, strokeOpacity },
             cornerRadius,
             fill,
             fillOpacity,
             padding: this.boxPadding,
-        } satisfies RequireOptional<TextBoxingProperties>;
+        } satisfies Contraints;
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
