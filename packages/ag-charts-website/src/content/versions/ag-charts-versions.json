@@ -13,7 +13,7 @@
             },
             {
                 "text": "Axis Label Truncation",
-                "path": "./axes-labels"
+                "path": "./axes-labels/#truncation"
             },
             {
                 "text": "Floating Legend Position",
