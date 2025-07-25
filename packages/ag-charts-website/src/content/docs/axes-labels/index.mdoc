@@ -14,10 +14,10 @@ AG Charts has a number of methods to avoid axis label collisions, which occur wh
 In this example:
 
 -   Use the grab handle in the bottom right of the example to resize the chart. Observe how the labels behave with the different options applied.
--   The first group of buttons allows enabling and disabling collision avoidance altogether.
--   The second group of buttons allows changing the length of the labels. This more easily shows the [wrapping](#wrapping) and [skipping](#skipping) behaviour.
--   The [Rotation](#rotation) and [Wrapping](#wrapping) controls enable exploration of their behaviour with all the available options.
--   If enabled, labels try [wrapping](#wrapping), then [rotation](#rotation), and finally [skipping](#skipping) if needed.
+-   The first dropdown allows enabling and disabling collision avoidance altogether.
+-   The second dropdown buttons allows changing the length of the labels. This more easily shows the [wrapping](#wrapping) and [skipping](#skipping) behaviour.
+-   The [Rotation](#rotation), [Wrapping](#wrapping) and [Truncation](#truncation) controls enable exploration of their behaviour with all the available options.
+-   If enabled, labels try [wrapping](#wrapping), then [truncation](#truncation), [rotation](#rotation), and finally [skipping](#skipping) if needed.
 
 Collision avoidance is enabled by default, to disable set `label.avoidCollisions` to false.
 
@@ -50,12 +50,12 @@ Wrapping behaviour is set with the `label.wrapping` property:
 
 This defaults to `on-space` for Category Axes, and to `never` on all other axes types.
 
-### Truncate
+### Truncation
 
 Set `truncate: true` on a label to truncate the label’s text when there isn't enough space to display it fully.
-This ensures labels remain readable without reducing the number of ticks.
+This ensures as much as possible of each label remains readable without reducing the number of ticks.
 
-When truncation occurs, hovering over the truncated text will display a tooltip with the full, original string.
+When truncation occurs, hovering over the truncated text will display a tooltip with the full label text.
 
 {%note%}
 Truncation takes precedence over auto-rotation. When truncation is enabled, auto-rotation will not apply.

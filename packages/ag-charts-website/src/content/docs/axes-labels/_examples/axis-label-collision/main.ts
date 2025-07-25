@@ -42,97 +42,77 @@ function reset() {
     delete categoryAxis.label!.rotation;
     delete categoryAxis.label!.autoRotate;
     delete categoryAxis.label!.avoidCollisions;
+    delete categoryAxis.label!.truncate;
     delete numberAxis.label!.rotation;
     delete numberAxis.label!.autoRotate;
     delete numberAxis.label!.avoidCollisions;
+    delete numberAxis.label!.truncate;
 
     (options.series![0] as AgBarSeriesOptions).xKey = 'year';
     chart.update(options);
 }
 
-function disableRotation() {
+function rotationChange(e) {
     const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
     const numberAxis = options.axes![1] as AgNumberAxisOptions;
 
     delete categoryAxis.label!.rotation;
     delete numberAxis.label!.rotation;
-    categoryAxis.label!.autoRotate = false;
-    numberAxis.label!.autoRotate = false;
 
+    const value = e.target.value;
+
+    switch (value) {
+        case 'auto':
+            categoryAxis.label!.autoRotate = true;
+            numberAxis.label!.autoRotate = true;
+            break;
+        case 'fixed':
+            categoryAxis.label!.rotation = 45;
+            numberAxis.label!.rotation = 45;
+            categoryAxis.label!.autoRotate = false;
+            numberAxis.label!.autoRotate = false;
+            break;
+        case 'disabled':
+            categoryAxis.label!.autoRotate = false;
+            numberAxis.label!.autoRotate = false;
+            break;
+    }
     chart.update(options);
 }
 
-function fixedRotation() {
-    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
-    const numberAxis = options.axes![1] as AgNumberAxisOptions;
-
-    categoryAxis.label!.rotation = 45;
-    numberAxis.label!.rotation = 45;
-    categoryAxis.label!.autoRotate = false;
-    numberAxis.label!.autoRotate = false;
-
+function labelChange(e) {
+    const value = e.target.value;
+    (options.series![0] as AgBarSeriesOptions).xKey = value;
     chart.update(options);
 }
 
-function autoRotation() {
+function truncationChange(e) {
     const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
     const numberAxis = options.axes![1] as AgNumberAxisOptions;
 
     delete categoryAxis.label!.rotation;
     delete numberAxis.label!.rotation;
-    categoryAxis.label!.autoRotate = true;
-    numberAxis.label!.autoRotate = true;
 
+    const value = e.target.value;
+    const enabled = value === 'enabled';
+
+    categoryAxis.label!.truncate = enabled;
+    numberAxis.label!.truncate = enabled;
     chart.update(options);
 }
 
-function shortLabels() {
-    (options.series![0] as AgBarSeriesOptions).xKey = 'year';
-    chart.update(options);
-}
-
-function longLabels() {
-    (options.series![0] as AgBarSeriesOptions).xKey = 'sportStar';
-    chart.update(options);
-}
-
-function enableTruncate() {
+function avoidanceChange(e) {
     const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
     const numberAxis = options.axes![1] as AgNumberAxisOptions;
 
-    categoryAxis.label!.truncate = true;
-    numberAxis.label!.truncate = true;
+    delete categoryAxis.label!.rotation;
+    delete numberAxis.label!.rotation;
 
-    chart.update(options);
-}
+    const value = e.target.value;
+    const enabled = value === 'enabled';
 
-function disableTruncate() {
-    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
-    const numberAxis = options.axes![1] as AgNumberAxisOptions;
-
-    categoryAxis.label!.truncate = false;
-    numberAxis.label!.truncate = false;
-
-    chart.update(options);
-}
-
-function noCollisionDetection() {
-    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
-    const numberAxis = options.axes![1] as AgNumberAxisOptions;
-
-    categoryAxis.label!.avoidCollisions = false;
-    numberAxis.label!.avoidCollisions = false;
-
-    chart.update(options);
-}
-
-function autoCollisionDetection() {
-    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
-    const numberAxis = options.axes![1] as AgNumberAxisOptions;
-
-    categoryAxis.label!.avoidCollisions = true;
-    numberAxis.label!.avoidCollisions = true;
-
+    categoryAxis.label!.avoidCollisions = enabled;
+    numberAxis.label!.avoidCollisions = enabled;
     chart.update(options);
 }
 
