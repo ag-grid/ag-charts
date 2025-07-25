@@ -23,6 +23,7 @@ import { StateMachine } from '../../../util/stateMachine';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
+import { UnitTimeAxis } from '../../axis/unitTimeAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -641,7 +642,9 @@ export abstract class CartesianSeries<
         const yAxis = axes[ChartAxisDirection.Y];
 
         // Prefer to start search with any available category axis.
-        const directions = [xAxis, yAxis].filter(CategoryAxis.is).map((a) => a.direction);
+        const directions = [xAxis, yAxis]
+            .filter((a): a is CategoryAxis | UnitTimeAxis => CategoryAxis.is(a) || UnitTimeAxis.is(a))
+            .map((a) => a.direction);
         if (requireCategoryAxis && directions.length === 0) return;
 
         // Default to X-axis unless we found a suitable category axis.
