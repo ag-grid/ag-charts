@@ -27,6 +27,7 @@ import type { ChartLayout } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
+import type { AxisLabel } from './axisLabel';
 import { AxisTickGenerator, type TickGenerationResult } from './axisTickGenerator';
 import {
     type AxisFillDatum,
@@ -632,6 +633,27 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         };
     }
 
+    private getLabelBorderOffset(label: AxisLabel): number {
+        if (label.padding == null) return 0;
+        if (typeof label.padding === 'number') return label.padding;
+
+        function unreachable(a: never): never {
+            return a;
+        }
+        switch (this.position) {
+            case 'top':
+                return label.padding.bottom ?? 0;
+            case 'right':
+                return label.padding.left ?? 0;
+            case 'bottom':
+                return label.padding.top ?? 0;
+            case 'left':
+                return label.padding.right ?? 0;
+            default:
+                unreachable(this.position);
+        }
+    }
+
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
         const { tickId, tickLabel: text = '', translation, primary, textUntruncated } = datum;
@@ -640,7 +662,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = scale;
         const sideFlag = this.label.getSideFlag();
-        const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + seriesAreaPadding);
+        const borderOffset = -this.getLabelBorderOffset(label);
+        const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + seriesAreaPadding) + borderOffset;
         const visible = text !== '';
 
         const x = horizontal ? translation : labelOffset;
