@@ -208,7 +208,11 @@ export class ChartTheme {
                     label: {
                         // TODO: { $merge: [{ $path: '../../label' }, { fontWeight: 'bold' }]}
                         enabled: { $path: '../../label/enabled' },
-                        border: { $path: '../../label/border' },
+                        border: {
+                            enabled: { $isUserOption: ['../border', true, false] },
+                            strokeWidth: 1,
+                            stroke: { $foregroundOpacity: 0.08 },
+                        },
                         fill: { $path: '../../label/fill' },
                         fontSize: { $path: '../../label/fontSize' },
                         fontFamily: { $path: '../../label/fontFamily' },
