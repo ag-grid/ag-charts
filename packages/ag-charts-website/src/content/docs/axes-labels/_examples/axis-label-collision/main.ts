@@ -96,6 +96,26 @@ function longLabels() {
     chart.update(options);
 }
 
+function enableTruncate() {
+    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
+    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+
+    categoryAxis.label!.truncate = true;
+    numberAxis.label!.truncate = true;
+
+    chart.update(options);
+}
+
+function disableTruncate() {
+    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
+    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+
+    categoryAxis.label!.truncate = false;
+    numberAxis.label!.truncate = false;
+
+    chart.update(options);
+}
+
 function noCollisionDetection() {
     const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
     const numberAxis = options.axes![1] as AgNumberAxisOptions;

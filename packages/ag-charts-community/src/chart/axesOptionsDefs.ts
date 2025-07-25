@@ -153,7 +153,7 @@ export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabel
     autoRotate: boolean,
     autoRotateAngle: number,
     wrapping: union('never', 'always', 'hyphenate', 'on-space'),
-    truncate: undocumented(boolean),
+    truncate: boolean,
     ...commonAxisLabelOptionsDefs,
 };
 

@@ -6,11 +6,15 @@
             <button onclick="autoCollisionDetection()">On (default)</button>
         </div>
         <div class="gap-left">
-            Values:
-            <button onclick="shortLabels()">Short labels</button>
-            <button onclick="longLabels()">Long labels</button>
+            Labels:
+            <button onclick="shortLabels()">Short</button>
+            <button onclick="longLabels()">Long</button>
         </div>
-        <button class="push-right" onclick="reset()">Reset</button>
+        <div class="gap-left">
+            Truncate:
+            <button onclick="disableTruncate()">Off (default)</button>
+            <button onclick="enableTruncate()">On</button>
+        </div>
     </div>
     <div class="controls-row">
         <div>
@@ -28,6 +32,7 @@
                 <option value="never">never</option>
             </select>
         </div>
+        <button class="push-right" onclick="reset()">Reset</button>
     </div>
 </div>
 <div class="resizable-container">
