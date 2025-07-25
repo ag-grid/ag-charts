@@ -4,7 +4,7 @@ import * as locales from './main';
 
 const { AG_CHARTS_LOCALE_EN_US } = locales;
 const enKeys = Object.keys(AG_CHARTS_LOCALE_EN_US).sort((a, b) => a.localeCompare(b));
-const formatters = ['number', 'percent', 'date', 'time', 'datetime'];
+const formatters = ['number', 'percent', 'date', 'time', 'datetime', 'percent0to2dp'];
 const formatterRegExp = /\[([^\]]*)\]/g;
 const variableRegExp = /(\$\{\w+\})/g;
 
