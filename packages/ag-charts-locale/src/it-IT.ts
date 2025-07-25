@@ -27,7 +27,7 @@ export const AG_CHARTS_LOCALE_IT_IT: Record<string, string> = {
     ariaLabelColorPicker: 'Selettore colore',
     ariaLabelColorPickerAlpha: 'Trasparenza',
     ariaLabelColorPickerHue: 'Tonalità',
-    ariaLabelColorPickerMultiColor: '{\'Multi Color\':\'Multicolore\'}',
+    ariaLabelColorPickerMultiColor: "{'Multi Color':'Multicolore'}",
     ariaLabelColorPickerPalette: 'Tavolozza',
     ariaLabelFinancialCharts: 'Grafici finanziari',
     ariaLabelLegend: 'Legenda',
@@ -169,5 +169,5 @@ export const AG_CHARTS_LOCALE_IT_IT: Record<string, string> = {
     toolbarZoomReset: 'Reimposta lo zoom',
     toolbarZoomZoomIn: 'Ingrandisci',
     toolbarZoomZoomOut: 'Riduci lo zoom',
-    tooltipPaginationStatus: '${index}[number] di ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] di ${count}[number]',
 };

@@ -169,5 +169,5 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     toolbarZoomReset: 'إعادة تعيين التكبير',
     toolbarZoomZoomIn: 'تكبير',
     toolbarZoomZoomOut: 'تصغير',
-    tooltipPaginationStatus: '${index}[number] من ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] من ${count}[number]',
 };

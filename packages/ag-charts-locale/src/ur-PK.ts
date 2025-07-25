@@ -44,7 +44,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaLabelSettingsTabBar: 'ترتیبات',
     ariaLabelZoomToolbar: 'زوم',
     ariaRoleDescription: '2D سلائیڈر',
-    ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]\' کا رنگ پیلی',
+    ariaValueColorPalette: "s ${s}[percent0to2dp], v ${v}[percent0to2dp]' کا رنگ پیلی",
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] سے ${max}[percent0to2dp]',
     contextMenuDownload: 'ڈاؤن لوڈ کریں',
@@ -169,5 +169,5 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     toolbarZoomReset: 'زوم ری سیٹ کریں',
     toolbarZoomZoomIn: 'زوم ان',
     toolbarZoomZoomOut: 'زوم آؤٹ',
-    tooltipPaginationStatus: '${index}[number] میں سے ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] میں سے ${count}[number]',
 };

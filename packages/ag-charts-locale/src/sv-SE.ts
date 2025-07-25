@@ -169,5 +169,5 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     toolbarZoomReset: 'Återställ zoom',
     toolbarZoomZoomIn: 'Zooma in',
     toolbarZoomZoomOut: 'Zooma ut',
-    tooltipPaginationStatus: '${index}[number] av ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] av ${count}[number]',
 };

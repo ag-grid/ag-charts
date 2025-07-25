@@ -169,5 +169,5 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     toolbarZoomReset: 'Obnoviť priblíženie',
     toolbarZoomZoomIn: 'Priblížiť',
     toolbarZoomZoomOut: 'Oddialiť',
-    tooltipPaginationStatus: '${index}[number] z ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] z ${count}[number]',
 };

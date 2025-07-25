@@ -169,5 +169,5 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     toolbarZoomReset: 'Resetiraj povećanje',
     toolbarZoomZoomIn: 'Povećaj',
     toolbarZoomZoomOut: 'Umanji',
-    tooltipPaginationStatus: '${index}[number] od ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] od ${count}[number]',
 };

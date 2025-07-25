@@ -169,5 +169,5 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     toolbarZoomReset: 'Obnovit zoom',
     toolbarZoomZoomIn: 'Přiblížit',
     toolbarZoomZoomOut: 'Oddálit',
-    tooltipPaginationStatus: '${index}[number] z ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] z ${count}[number]',
 };

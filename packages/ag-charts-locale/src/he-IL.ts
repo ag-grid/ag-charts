@@ -169,5 +169,5 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     toolbarZoomReset: 'אפס זום',
     toolbarZoomZoomIn: 'התקרב',
     toolbarZoomZoomOut: 'התרחק',
-    tooltipPaginationStatus: '${index}[number] מתוך ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] מתוך ${count}[number]',
 };

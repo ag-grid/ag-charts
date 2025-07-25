@@ -169,5 +169,5 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     toolbarZoomReset: 'Zoom resetten',
     toolbarZoomZoomIn: 'Inzoomen',
     toolbarZoomZoomOut: 'Uitzoomen',
-    tooltipPaginationStatus: '${index}[number] van ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] van ${count}[number]',
 };

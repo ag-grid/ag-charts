@@ -169,5 +169,5 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     toolbarZoomReset: 'Đặt lại thu phóng',
     toolbarZoomZoomIn: 'Thu nhỏ',
     toolbarZoomZoomOut: 'Thu nhỏ',
-    tooltipPaginationStatus: '${index}[number] trong số ${count}[number]'
+    tooltipPaginationStatus: '${index}[number] trong số ${count}[number]',
 };
