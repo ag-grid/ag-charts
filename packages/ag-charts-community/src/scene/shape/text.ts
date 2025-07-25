@@ -1,4 +1,4 @@
-import { type BoxBounds, type RequireOptional, createSvgElement, isArray, isString } from 'ag-charts-core';
+import { type BoxBounds, type RequireOptional, createSvgElement, isArray, isString, toPlainText } from 'ag-charts-core';
 import type {
     FontFamily,
     FontSize,
@@ -193,11 +193,8 @@ export class Text<D = any> extends Shape<D> {
         return super.getBBox();
     }
 
-    getPlainText(): string {
-        if (isArray(this.text)) {
-            return this.text.map((segment) => segment.text).join('');
-        }
-        return this.text ?? '';
+    getPlainText() {
+        return toPlainText(this.text);
     }
 
     getTextMeasureBBox() {
