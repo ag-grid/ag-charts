@@ -212,7 +212,7 @@ export class ChartTheme {
                             enabled: {
                                 $or: [
                                     { $isUserOption: ['../border', true, false] },
-                                    { $path: '../../../label/border/enabled' }
+                                    { $path: '../../../label/border/enabled' },
                                 ],
                             },
                             strokeWidth: { $path: '../../../label/border/strokeWidth' },
