@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaLabelRangesToolbar: 'Εύρη',
     ariaLabelSettingsTabBar: 'Ρυθμίσεις',
     ariaLabelZoomToolbar: 'Ζουμ',
-    ariaRoleDescription: '2D ρυθμιστικό',
+    ariaRoleDescription2DSlider: '2D ρυθμιστικό',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] έως ${max}[percent0to2dp]',

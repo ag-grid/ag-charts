@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     ariaLabelRangesToolbar: 'Rozsahy',
     ariaLabelSettingsTabBar: 'Nastavenia',
     ariaLabelZoomToolbar: 'Priblížiť',
-    ariaRoleDescription: '2D posuvník',
+    ariaRoleDescription2DSlider: '2D posuvník',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] až ${max}[percent0to2dp]',

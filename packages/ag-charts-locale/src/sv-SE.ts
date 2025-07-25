@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     ariaLabelRangesToolbar: 'Områden',
     ariaLabelSettingsTabBar: 'Inställningar',
     ariaLabelZoomToolbar: 'Zooma',
-    ariaRoleDescription: '2D-skjutreglage',
+    ariaRoleDescription2DSlider: '2D-skjutreglage',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] till ${max}[percent0to2dp]',

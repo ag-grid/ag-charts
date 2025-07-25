@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_PL_PL: Record<string, string> = {
     ariaLabelRangesToolbar: 'Zakresy',
     ariaLabelSettingsTabBar: 'Ustawienia',
     ariaLabelZoomToolbar: 'Powiększenie',
-    ariaRoleDescription: 'Suwak 2D',
+    ariaRoleDescription2DSlider: 'Suwak 2D',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'j ${v}[percent0to2dp], n ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] do ${max}[percent0to2dp]',

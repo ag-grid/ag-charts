@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaLabelRangesToolbar: '범위',
     ariaLabelSettingsTabBar: '설정',
     ariaLabelZoomToolbar: '확대',
-    ariaRoleDescription: '2D 슬라이더',
+    ariaRoleDescription2DSlider: '2D 슬라이더',
     ariaValueColorPalette: '의 s ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp]에서 ${max}[percent0to2dp]',

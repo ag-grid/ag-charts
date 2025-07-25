@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     ariaLabelRangesToolbar: '范围',
     ariaLabelSettingsTabBar: '设置',
     ariaLabelZoomToolbar: '缩放',
-    ariaRoleDescription: '2D 滑块',
+    ariaRoleDescription2DSlider: '2D 滑块',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: '“v ${v}[percent0to2dp], s ${s}[percent0to2dp]”',
     ariaValuePanRange: '${min}[percent0to2dp] 到 ${max}[percent0to2dp]',

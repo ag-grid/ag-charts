@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaLabelRangesToolbar: 'טווחים',
     ariaLabelSettingsTabBar: 'הגדרות',
     ariaLabelZoomToolbar: 'זום',
-    ariaRoleDescription: 'מחוון דו-ממדי',
+    ariaRoleDescription2DSlider: 'מחוון דו-ממדי',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'ע ${v}[percent0to2dp], ר ${s}[percent0to2dp]',
     ariaValuePanRange: 'מ-${min}[percent0to2dp] עד ${max}[percent0to2dp]',

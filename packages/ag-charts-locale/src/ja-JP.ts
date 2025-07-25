@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaLabelRangesToolbar: '範囲',
     ariaLabelSettingsTabBar: '設定',
     ariaLabelZoomToolbar: 'ズーム',
-    ariaRoleDescription: '2Dスライダー',
+    ariaRoleDescription2DSlider: '2Dスライダー',
     ariaValueColorPalette: '色相 ${s}[percent0to2dp], 彩度 ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp]、s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] から ${max}[percent0to2dp] まで',

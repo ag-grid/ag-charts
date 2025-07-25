@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     ariaLabelRangesToolbar: 'Діапазони',
     ariaLabelSettingsTabBar: 'Налаштування',
     ariaLabelZoomToolbar: 'Масштаб',
-    ariaRoleDescription: 'Двовимірний повзунок',
+    ariaRoleDescription2DSlider: 'Двовимірний повзунок',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] до ${max}[percent0to2dp]',

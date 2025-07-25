@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     ariaLabelRangesToolbar: 'Rasponi',
     ariaLabelSettingsTabBar: 'Postavke',
     ariaLabelZoomToolbar: 'Zum',
-    ariaRoleDescription: '2D klizač',
+    ariaRoleDescription2DSlider: '2D klizač',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] do ${max}[percent0to2dp]',

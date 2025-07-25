@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaLabelRangesToolbar: 'محدوده‌ها',
     ariaLabelSettingsTabBar: 'تنظیمات',
     ariaLabelZoomToolbar: 'بزرگنمایی',
-    ariaRoleDescription: 'اسلایدر ۲ بعدی',
+    ariaRoleDescription2DSlider: 'اسلایدر ۲ بعدی',
     ariaValueColorPalette: 's ${s}[percent0to2dp]، v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'وَر ${v}[percent0to2dp]، سَطه ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] تا ${max}[percent0to2dp]',

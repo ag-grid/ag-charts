@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     ariaLabelRangesToolbar: 'Bereiken',
     ariaLabelSettingsTabBar: 'Instellingen',
     ariaLabelZoomToolbar: 'Zoom',
-    ariaRoleDescription: '2D schuifregelaar',
+    ariaRoleDescription2DSlider: '2D schuifregelaar',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] tot ${max}[percent0to2dp]',

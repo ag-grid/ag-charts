@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaLabelRangesToolbar: 'Intervale',
     ariaLabelSettingsTabBar: 'Setări',
     ariaLabelZoomToolbar: 'Zoomare',
-    ariaRoleDescription: 'Cursor 2D',
+    ariaRoleDescription2DSlider: 'Cursor 2D',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] până la ${max}[percent0to2dp]',

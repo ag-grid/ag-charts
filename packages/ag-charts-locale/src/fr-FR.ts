@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     ariaLabelRangesToolbar: 'Plages',
     ariaLabelSettingsTabBar: 'Paramètres',
     ariaLabelZoomToolbar: 'Zoom',
-    ariaRoleDescription: 'Curseur 2D',
+    ariaRoleDescription2DSlider: 'Curseur 2D',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] à ${max}[percent0to2dp]',

@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaLabelRangesToolbar: 'حدود',
     ariaLabelSettingsTabBar: 'ترتیبات',
     ariaLabelZoomToolbar: 'زوم',
-    ariaRoleDescription: '2D سلائیڈر',
+    ariaRoleDescription2DSlider: '2D سلائیڈر',
     ariaValueColorPalette: "s ${s}[percent0to2dp], v ${v}[percent0to2dp]' کا رنگ پیلی",
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] سے ${max}[percent0to2dp]',

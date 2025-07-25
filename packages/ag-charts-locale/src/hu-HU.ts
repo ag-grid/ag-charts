@@ -44,7 +44,7 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaLabelRangesToolbar: 'Tartományok',
     ariaLabelSettingsTabBar: 'Beállítások',
     ariaLabelZoomToolbar: 'Nagyítás',
-    ariaRoleDescription: '2D csúszka',
+    ariaRoleDescription2DSlider: '2D csúszka',
     ariaValueColorPalette: 'sz ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'f ${v}[percent0to2dp], t ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] tól ${max}[percent0to2dp] ig',

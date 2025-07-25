@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaLabelRangesToolbar: 'Phạm vi',
     ariaLabelSettingsTabBar: 'Cài đặt',
     ariaLabelZoomToolbar: 'Thu phóng',
-    ariaRoleDescription: 'Thanh trượt 2D',
+    ariaRoleDescription2DSlider: 'Thanh trượt 2D',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] đến ${max}[percent0to2dp]',

@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaLabelRangesToolbar: 'Områder',
     ariaLabelSettingsTabBar: 'Indstillinger',
     ariaLabelZoomToolbar: 'Zoom',
-    ariaRoleDescription: '2D skyder',
+    ariaRoleDescription2DSlider: '2D skyder',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] til ${max}[percent0to2dp]',

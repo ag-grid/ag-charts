@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaLabelRangesToolbar: 'النطاقات',
     ariaLabelSettingsTabBar: 'الإعدادات',
     ariaLabelZoomToolbar: 'تكبير',
-    ariaRoleDescription: 'منزلق ثنائي الأبعاد',
+    ariaRoleDescription2DSlider: 'منزلق ثنائي الأبعاد',
     ariaValueColorPalette: 's ${s}[percent0to2dp]، v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'ع ${v}[percent0to2dp]، ت ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] إلى ${max}[percent0to2dp]',

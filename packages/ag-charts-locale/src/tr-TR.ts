@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaLabelRangesToolbar: 'Aralıklar',
     ariaLabelSettingsTabBar: 'Ayarlar',
     ariaLabelZoomToolbar: 'Yakınlaştır',
-    ariaRoleDescription: '2D kaydırıcı',
+    ariaRoleDescription2DSlider: '2D kaydırıcı',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] ile ${max}[percent0to2dp] arası',

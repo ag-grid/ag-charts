@@ -76,7 +76,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         };
 
         this.i18nUpdater = () => {
-            paletteInput.ariaRoleDescription = localeManager.t('ariaRoleDescription');
+            paletteInput.ariaRoleDescription = localeManager.t('ariaRoleDescription2DSlider');
             paletteInput.ariaLabel = localeManager.t('ariaLabelColorPickerPalette');
             hueInput.ariaLabel = localeManager.t('ariaLabelColorPickerHue');
             multiColorButton.ariaLabel = localeManager.t('ariaLabelColorPickerMultiColor');

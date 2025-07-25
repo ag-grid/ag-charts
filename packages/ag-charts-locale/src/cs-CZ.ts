@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     ariaLabelRangesToolbar: 'Rozsahy',
     ariaLabelSettingsTabBar: 'Nastavení',
     ariaLabelZoomToolbar: 'Přiblížit',
-    ariaRoleDescription: 'dvojrozměrný jezdec',
+    ariaRoleDescription2DSlider: 'dvojrozměrný jezdec',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] až ${max}[percent0to2dp]',

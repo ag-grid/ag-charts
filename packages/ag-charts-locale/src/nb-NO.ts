@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     ariaLabelRangesToolbar: 'Områder',
     ariaLabelSettingsTabBar: 'Innstillinger',
     ariaLabelZoomToolbar: 'Zoom',
-    ariaRoleDescription: '2D skyveknapp',
+    ariaRoleDescription2DSlider: '2D skyveknapp',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] til ${max}[percent0to2dp]',

@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_IT_IT: Record<string, string> = {
     ariaLabelRangesToolbar: 'Intervalli',
     ariaLabelSettingsTabBar: 'Impostazioni',
     ariaLabelZoomToolbar: 'Zoom',
-    ariaRoleDescription: 'cursore 2D',
+    ariaRoleDescription2DSlider: 'cursore 2D',
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'v ${v}[percent0to2dp], s ${s}[percent0to2dp]',
     ariaValuePanRange: 'da ${min}[percent0to2dp] a ${max}[percent0to2dp]',

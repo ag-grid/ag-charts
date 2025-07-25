@@ -43,7 +43,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaLabelRangesToolbar: 'Обхвати',
     ariaLabelSettingsTabBar: 'Настройки',
     ariaLabelZoomToolbar: 'Мащабиране',
-    ariaRoleDescription: '2D плъзгач',
+    ariaRoleDescription2DSlider: '2D плъзгач',
     ariaValueColorPalette: 'с ${s}[percent0to2dp], в ${v}[percent0to2dp]',
     ariaValueColorPaletteFirstV: 'в ${v}[percent0to2dp], н ${s}[percent0to2dp]',
     ariaValuePanRange: '${min}[percent0to2dp] до ${max}[percent0to2dp]',
