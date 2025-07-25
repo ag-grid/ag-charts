@@ -286,8 +286,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         const { position, gridPadding, gridLength } = this;
         const direction = position === 'bottom' || position === 'right' ? -1 : 1;
-        const p1 = gridPadding;
-        const p2 = direction * gridLength - gridPadding;
+        const p1 = direction * gridPadding;
+        const p2 = direction * (gridLength + gridPadding);
 
         const gridLines = this.calculateGridLines(ticks, p1, p2);
         const gridFills = this.calculateGridFills(ticks, p1, p2);
