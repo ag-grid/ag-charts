@@ -126,6 +126,7 @@ export * from './chart/axis/polarAxis';
 export * from './chart/axis/categoryAxis';
 export * from './chart/axis/groupedCategoryAxis';
 export * from './chart/axis/cartesianAxis';
+export * from './chart/axis/discreteTimeAxis';
 export { TimeAxisParentLevel, minimumTimeAxisDatumGranularity } from './chart/axis/timeAxis';
 export * from './chart/chartAxis';
 export * from './chart/crossline/crossLine';

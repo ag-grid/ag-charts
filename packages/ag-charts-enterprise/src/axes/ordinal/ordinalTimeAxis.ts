@@ -20,7 +20,7 @@ const {
     intervalMilliseconds,
 } = _ModuleSupport;
 
-export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.OrdinalTimeScale> {
+export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<_ModuleSupport.OrdinalTimeScale> {
     static override readonly className = 'OrdinalTimeAxis' as const;
     static override readonly type = 'ordinal-time' as const;
 
