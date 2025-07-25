@@ -26,6 +26,7 @@ import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartLayout } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
+import { expandLabelPadding } from '../label';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
 import type { AxisLabel } from './axisLabel';
 import { AxisTickGenerator, type TickGenerationResult } from './axisTickGenerator';
@@ -634,21 +635,20 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     private getLabelBorderOffset(label: AxisLabel): number {
-        if (label.padding == null) return 0;
-        if (typeof label.padding === 'number') return label.padding;
+        const padding = expandLabelPadding(label);
 
         function unreachable(a: never): never {
             return a;
         }
         switch (this.position) {
             case 'top':
-                return label.padding.bottom ?? 0;
+                return padding.bottom;
             case 'right':
-                return label.padding.left ?? 0;
+                return padding.left;
             case 'bottom':
-                return label.padding.top ?? 0;
+                return padding.top;
             case 'left':
-                return label.padding.right ?? 0;
+                return padding.right;
             default:
                 unreachable(this.position);
         }
