@@ -32,6 +32,12 @@ const rewriteAstroGeneratedContent = (body: string) => {
     return html.toString();
 };
 
+const removeAbsolutePaths = (body: string) => {
+    if (!env.DEV) return body;
+
+    return body.replaceAll(env.PUBLIC_SITE_URL + '/', '/');
+};
+
 const BINARY_EXTENSIONS = ['png', 'webp', 'jpeg', 'jpg'];
 
 async function formatContents(body: any) {
@@ -79,6 +85,19 @@ function isBinary(path: string) {
 
 export const onRequest = defineMiddleware(async (context, next) => {
     const response = await next();
+
+    const useRelativePaths = context.url.hostname.startsWith('host.internal.docker');
+    if (useRelativePaths) {
+        // We should use relative paths for the gallery examples in dev.
+        if (isHtml(context.url.pathname)) {
+            const body = removeAbsolutePaths(await response.text());
+            return new Response(body, {
+                status: 200,
+                headers: response.headers,
+            });
+        }
+        return response;
+    }
 
     if (getIsDev() && basename(context.url.pathname) === 'contents.json') {
         const body = await response.json();
