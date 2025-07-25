@@ -103,7 +103,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             if (bbox) {
                 const { id: domManagerId } = this;
                 this.proxyText ??= proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
-                this.proxyText.textContent = this.text ? toPlainText(this.text) : '';
+                this.proxyText.textContent = toPlainText(this.text);
                 this.proxyText.setBounds(bbox);
                 this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev));
                 this.proxyText.addListener('mouseleave', (ev) => this.handleMouseLeave(moduleCtx, ev));
@@ -120,7 +120,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             const canvasX = event.sourceEvent.offsetX + x;
             const canvasY = event.sourceEvent.offsetY + y;
             moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, showArrow: false }, [
-                { type: 'structured', title: this.text ? toPlainText(this.text) : '' },
+                { type: 'structured', title: toPlainText(this.text) },
             ]);
         }
     }

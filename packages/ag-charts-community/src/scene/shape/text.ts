@@ -194,7 +194,7 @@ export class Text<D = any> extends Shape<D> {
     }
 
     getPlainText() {
-        return this.text ? toPlainText(this.text) : '';
+        return toPlainText(this.text);
     }
 
     getTextMeasureBBox() {

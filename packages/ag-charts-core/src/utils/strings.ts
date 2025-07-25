@@ -123,7 +123,7 @@ export function kebabCase(a: string) {
 // characters.
 const KEBAB_CASE_REGEX = /[A-Z]+(?![a-z])|[A-Z]/g;
 
-export function toPlainText(text: string | { text: string }[]) {
+export function toPlainText(text?: string | { text: string }[]) {
     if (isArray(text)) {
         return text.map((segment) => segment.text).join('');
     }
