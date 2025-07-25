@@ -79,9 +79,19 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Property
     public enabled = false;
 
+    @ActionOnSet<Zoom>({
+        changeValue(newValue) {
+            this.updateAxisCursor({ enableAxisDragging: newValue });
+        },
+    })
     @Property
     public enableAxisDragging = true;
 
+    @ActionOnSet<Zoom>({
+        changeValue(newValue) {
+            this.updateAxisCursor({ enableAxisScrolling: newValue });
+        },
+    })
     @Property
     public enableAxisScrolling = false;
 
@@ -136,8 +146,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     @ActionOnSet<Zoom>({
         changeValue(newValue) {
-            if (!this.domProxy) return;
-            this.domProxy.setAxisCursor(newValue === 'pan' ? 'grab' : undefined);
+            this.updateAxisCursor({ axisDraggingMode: newValue });
         },
     })
     @Property
@@ -804,6 +813,24 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         zoomManager.updateAxisZoom('zoom', axisId, axisZoom);
         return true;
+    }
+
+    private updateAxisCursor(
+        opts: Partial<Pick<Zoom, 'enableAxisDragging' | 'enableAxisScrolling' | 'axisDraggingMode'>>
+    ) {
+        if (!this.domProxy) return;
+        const {
+            enableAxisDragging = this.enableAxisDragging,
+            enableAxisScrolling = this.enableAxisScrolling,
+            axisDraggingMode = this.axisDraggingMode,
+        } = opts;
+        if (enableAxisDragging) {
+            this.domProxy.setAxisCursor(axisDraggingMode === 'pan' ? 'grab' : undefined);
+        } else if (enableAxisScrolling) {
+            this.domProxy.setAxisCursor('default');
+        } else {
+            this.domProxy.setAxisCursor(undefined);
+        }
     }
 
     private toggleAxisDraggingCursors() {
