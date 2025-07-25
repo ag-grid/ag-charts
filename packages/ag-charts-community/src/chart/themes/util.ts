@@ -248,6 +248,18 @@ const ITEM_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
 export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     padding: 8,
     cornerRadius: 4,
+    fill: {
+        $if: [
+            {
+                $and: [
+                    { $eq: [{ $path: './fill/type' }, 'image'] },
+                    { $isUserOption: ['./fill/backgroundFill', false, true] },
+                ],
+            },
+            { backgroundFill: 'transparent' } as any,
+            undefined,
+        ],
+    },
     border: {
         enabled: { $isUserOption: ['../border', true, false] },
         strokeWidth: 1,
