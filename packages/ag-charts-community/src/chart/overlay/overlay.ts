@@ -74,7 +74,7 @@ export class Overlay extends BaseProperties {
                 fontWeight: 'var(--ag-charts-font-weight)',
             });
             if (isArray(this.text)) {
-                const segments = createElement('div');
+                const container = createElement('div');
                 for (const segment of this.text) {
                     const el = createElement('span', {
                         color: segment.color,
@@ -83,10 +83,10 @@ export class Overlay extends BaseProperties {
                         fontWeight: String(segment.fontWeight),
                         fontStyle: segment.fontStyle,
                     });
-                    el.innerHTML = segment.text;
-                    segments.appendChild(el);
+                    el.innerText = segment.text;
+                    container.appendChild(el);
                 }
-                content.appendChild(segments);
+                content.appendChild(container);
             } else {
                 content.innerText = this.getText(localeManager);
             }

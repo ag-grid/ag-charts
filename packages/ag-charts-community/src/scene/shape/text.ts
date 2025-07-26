@@ -205,20 +205,6 @@ export class Text<D = any> extends Shape<D> {
         return this.getBBox()?.containsPoint(x, y) ?? false;
     }
 
-    getStyle(): Omit<TextSegment, 'text'> & { fontSize: number } {
-        return {
-            fontSize: this.fontSize,
-            fontFamily: this.fontFamily,
-            fontStyle: this.fontStyle,
-            fontWeight: this.fontWeight,
-            fill: this.fill,
-            fillOpacity: this.fillOpacity,
-            stroke: this.stroke as string,
-            strokeWidth: this.strokeWidth,
-            strokeOpacity: this.strokeOpacity,
-        };
-    }
-
     override setScene(scene?: IScene) {
         this.richText?.setScene(scene);
         super.setScene(scene);
@@ -232,14 +218,19 @@ export class Text<D = any> extends Shape<D> {
         let index = 0;
         let totalWidth = 0;
         let offsetY = 0;
-        const mainStyle = this.getStyle();
+        const mainStyle = {
+            fill: this.fill,
+            fontSize: this.fontSize,
+            fontFamily: this.fontFamily,
+            fontStyle: this.fontStyle,
+            fontWeight: this.fontWeight,
+        };
 
         for (const textNode of this.richText!.children() as Iterable<Text>) {
             const { color, ...textSegment } = this.text[index++];
-            textSegment.fill = color;
             textNode.x = 0;
             textNode.y = 0;
-            textNode.setProperties(mergeDefaults(textSegment, mainStyle));
+            textNode.setProperties(mergeDefaults({ fill: color }, textSegment, mainStyle));
             const textBBox = textNode.getBBox();
             this.textMap.set(textNode, textBBox);
             offsetY = Math.max(

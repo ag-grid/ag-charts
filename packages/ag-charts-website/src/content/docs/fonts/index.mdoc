@@ -43,3 +43,22 @@ In the above example:
 -   The subtitle uses the Google font `DM Serif Text` with a fallback to `monospace`.
 -   The left axis uses the local system font `Helvetica` with a fallback to `Arial` then `san-serif`.
 -   The bottom axis uses the Google font `Orbitron`.
+
+## Multi-Style Text Elements
+
+When styling `title`, `subtitle`, `footnote`, and other overlay types, you can use the `text` property to specify a string with multiple styles.
+This is done by passing an array of objects, where each object contains a `text` property.
+Each object represents a text segment, and different font styles can be applied to each segment.
+
+```js
+{
+    title: {
+        text: [
+            { text: 'Hello ', fontWeight: 'bold' },
+            { text: 'World', fontStyle: 'italic' },
+        ],
+    }
+}
+```
+
+{% chartExampleRunner title="Multi-Style Text" name="text-segments" type="generated" /%}

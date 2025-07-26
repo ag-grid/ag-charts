@@ -144,10 +144,7 @@ export const textOrSegments = or(
     arrayOfDefs<TextSegment>(
         {
             text: required(string),
-            lineHeight: positiveNumber,
             ...fontOptionsDef,
-            ...fillOptionsDef,
-            ...strokeOptionsDef,
         },
         'text segments array'
     )
