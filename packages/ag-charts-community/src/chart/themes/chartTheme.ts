@@ -455,6 +455,7 @@ export class ChartTheme {
                     highlightStyle: { fill: { $ref: 'foregroundColor' } },
                     label: { color: { $ref: 'textColor' } },
                 },
+                fill: { $ref: 'chartBackgroundColor' },
             },
             tooltip: {
                 enabled: true,
