@@ -63,10 +63,6 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         super(moduleCtx, new TimeScale());
     }
 
-    override isCategoryLike(): boolean {
-        return false;
-    }
-
     override get primaryLabel(): AxisLabel | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
     }

@@ -20,6 +20,7 @@ import { Debug } from '../../../util/debug';
 import { findMinMax } from '../../../util/number';
 import { Property } from '../../../util/properties';
 import { StateMachine } from '../../../util/stateMachine';
+import { CategoryAxis } from '../../axis/categoryAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
@@ -638,10 +639,9 @@ export abstract class CartesianSeries<
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
-        if (xAxis == null || yAxis == null) return;
 
         // Prefer to start search with any available category axis.
-        const directions = [xAxis, yAxis].filter((axis) => axis.isCategoryLike()).map((a) => a.direction);
+        const directions = [xAxis, yAxis].filter(CategoryAxis.is).map((a) => a.direction);
         if (requireCategoryAxis && directions.length === 0) return;
 
         // Default to X-axis unless we found a suitable category axis.
