@@ -46,7 +46,7 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
     }
 
     constructor(moduleCtx: ModuleContext) {
-        super(moduleCtx, new UnitTimeScale());
+        super(moduleCtx, new UnitTimeScale(), false);
     }
 
     private defaultUnit: AgTimeInterval | AgTimeIntervalUnit | undefined = undefined;

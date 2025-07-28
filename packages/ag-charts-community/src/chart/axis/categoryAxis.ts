@@ -21,10 +21,14 @@ export class CategoryAxis<
     static readonly className: string = 'CategoryAxis';
     static readonly type: 'category' | 'grouped-category' | 'unit-time' | 'ordinal-time' = 'category';
 
-    constructor(moduleCtx: ModuleContext, scale = new CategoryScale<string | object>() as S) {
+    constructor(
+        moduleCtx: ModuleContext,
+        scale = new CategoryScale<string | object>() as S,
+        includeInvisibleDomains: boolean = true
+    ) {
         super(moduleCtx, scale);
 
-        this.includeInvisibleDomains = true;
+        this.includeInvisibleDomains = includeInvisibleDomains;
         // Has no effect and can speed up tick generation
         this.nice = false;
     }
