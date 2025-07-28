@@ -25,6 +25,10 @@ export class RadiusCategoryAxis extends RadiusAxis {
         super(moduleCtx, new CategoryScale());
     }
 
+    override hasDefinedDomain(): boolean {
+        return false;
+    }
+
     override normaliseDataDomain(domain: Array<string | object>) {
         return { domain, clipped: false };
     }

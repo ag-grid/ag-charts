@@ -685,10 +685,12 @@ export abstract class Axis<
         bbox?: BBox;
     };
 
+    abstract hasDefinedDomain(): boolean;
+
     protected updateCrossLines() {
-        const anySeriesActive = this.isAnySeriesActive();
+        const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
         this.crossLines.forEach((crossLine) => {
-            crossLine.update(anySeriesActive);
+            crossLine.update(crosslinesVisible);
         });
     }
 
@@ -890,8 +892,8 @@ export abstract class Axis<
         crossLine.gridLength = this.gridLength;
     }
 
-    protected isAnySeriesActive() {
-        return this.boundSeries.some((s) => this.includeInvisibleDomains || s.isEnabled());
+    protected hasVisibleSeries() {
+        return this.boundSeries.some((s) => s.isEnabled());
     }
 
     clipTickLines(x: number, y: number, width: number, height: number) {

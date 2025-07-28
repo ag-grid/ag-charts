@@ -27,6 +27,11 @@ export class RadiusNumberAxis extends RadiusAxis {
         super(moduleCtx, new LinearScale());
     }
 
+    override hasDefinedDomain(): boolean {
+        const { min, max } = this;
+        return min != null && max != null && min < max;
+    }
+
     protected prepareGridPathTickData(data: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[] {
         const { scale } = this;
         const domainTop = scale.domain[1];

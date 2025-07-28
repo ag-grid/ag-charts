@@ -24,6 +24,11 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
         super(moduleCtx, scale);
     }
 
+    override hasDefinedDomain(): boolean {
+        const { min, max } = this;
+        return min != null && max != null && min < max;
+    }
+
     override normaliseDataDomain(d: number[]) {
         const { min, max } = this;
         const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);

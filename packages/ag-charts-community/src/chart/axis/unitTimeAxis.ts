@@ -46,7 +46,12 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
     }
 
     constructor(moduleCtx: ModuleContext) {
-        super(moduleCtx, new UnitTimeScale());
+        super(moduleCtx, new UnitTimeScale(), false);
+    }
+
+    override hasDefinedDomain(): boolean {
+        const { min, max } = this;
+        return min != null && max != null && min < max;
     }
 
     override isCategoryLike(): boolean {
