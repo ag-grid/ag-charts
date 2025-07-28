@@ -73,8 +73,10 @@ export class MapShapeBackgroundSeries
         super({
             moduleCtx,
             categoryKey: undefined,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [],
         });
+
+        this.itemGroup.pointerEvents = PointerEvents.None;
     }
 
     override renderToOffscreenCanvas(): boolean {

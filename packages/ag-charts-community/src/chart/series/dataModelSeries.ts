@@ -1,4 +1,4 @@
-import { clamp } from 'ag-charts-core';
+import { type Point, clamp } from 'ag-charts-core';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import type { Scale } from '../../scale/scale';
@@ -122,6 +122,12 @@ export abstract class DataModelSeries<
         if (bounds !== undefined) {
             return { bounds, clipFocusBox, datum, datumIndex };
         }
+    }
+
+    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
+        const datums = super.pickNodesExactShape(point) as DataModelSeriesNodeDatum[];
+        datums.sort((a, b) => a.datumIndex - b.datumIndex);
+        return datums;
     }
 
     protected isDatumEnabled(nodeData: TDatum[], datumIndex: number): boolean {
