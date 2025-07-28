@@ -24,14 +24,7 @@ import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFu
 import type { DataController } from '../../data/dataController';
 import type { AggregatePropertyDefinition, DataGroup, GroupByFn, PropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import {
-    SORT_DOMAIN_GROUPS,
-    createDatumId,
-    diff,
-    keyProperty,
-    rowCountProperty,
-    valueProperty,
-} from '../../data/processors';
+import { SORT_DOMAIN_GROUPS, diff, keyProperty, rowCountProperty, valueProperty } from '../../data/processors';
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -51,7 +44,6 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { calculateDataDiff } from './diffUtil';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
@@ -77,7 +69,7 @@ export class HistogramSeries extends CartesianSeries<
             propertyNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            datumSelectionGarbageCollection: false,
+            datumSelectionGarbageCollection: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,
@@ -646,30 +638,9 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
-        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
-
-        const dataDiff = calculateDataDiff(
-            this.id,
-            data.datumSelection,
-            (datum) => createDatumId(datum.domain),
-            data.contextData,
-            data.previousContextData,
-            this.processedData
-        );
-
-        fromToMotion(
-            this.id,
-            'datums',
-            this.ctx.animationManager,
-            [data.datumSelection],
-            fns,
-            (_, datum) => createDatumId(datum.domain),
-            dataDiff
-        );
-
-        if (dataDiff?.changed) {
-            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelection);
-        }
+        // CRT-886 - skip animations due to buggy animation.
+        this.ctx.animationManager.skipCurrentBatch();
+        this.resetDatumAnimation(data);
     }
 
     protected isLabelEnabled() {
