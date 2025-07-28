@@ -63,6 +63,11 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         super(moduleCtx, new TimeScale());
     }
 
+    override hasDefinedDomain(): boolean {
+        const { min, max } = this;
+        return min != null && max != null && min < max;
+    }
+
     override get primaryLabel(): AxisLabel | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
     }
