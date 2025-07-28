@@ -10,7 +10,7 @@ import {
     MapShapeBackgroundSeriesProperties,
 } from './mapShapeBackgroundSeriesProperties';
 
-const { createDatumId, SeriesNodePickMode, Selection, Group, PointerEvents, getShapeStyle } = _ModuleSupport;
+const { createDatumId, Selection, Group, PointerEvents, getShapeStyle } = _ModuleSupport;
 
 interface MapShapeBackgroundNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}
@@ -73,8 +73,10 @@ export class MapShapeBackgroundSeries
         super({
             moduleCtx,
             categoryKey: undefined,
-            pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [],
         });
+
+        this.itemGroup.pointerEvents = PointerEvents.None;
     }
 
     override renderToOffscreenCanvas(): boolean {
