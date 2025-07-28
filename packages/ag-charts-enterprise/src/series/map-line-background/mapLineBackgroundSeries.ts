@@ -10,7 +10,7 @@ import {
     MapLineBackgroundSeriesProperties,
 } from './mapLineBackgroundSeriesProperties';
 
-const { createDatumId, SeriesNodePickMode, Group, Selection, PointerEvents } = _ModuleSupport;
+const { createDatumId, Group, Selection, PointerEvents } = _ModuleSupport;
 
 interface MapLineNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<MapLineBackgroundNodeDatum> {}
 

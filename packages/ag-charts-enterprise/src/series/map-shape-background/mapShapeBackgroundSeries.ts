@@ -10,7 +10,7 @@ import {
     MapShapeBackgroundSeriesProperties,
 } from './mapShapeBackgroundSeriesProperties';
 
-const { createDatumId, SeriesNodePickMode, Selection, Group, PointerEvents, getShapeStyle } = _ModuleSupport;
+const { createDatumId, Selection, Group, PointerEvents, getShapeStyle } = _ModuleSupport;
 
 interface MapShapeBackgroundNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}
