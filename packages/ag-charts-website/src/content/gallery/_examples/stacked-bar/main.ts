@@ -7,7 +7,16 @@ const numFormatter = new Intl.NumberFormat('en-US');
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: 'ag-default',
+    theme: {
+        baseTheme: 'ag-default',
+        overrides: {
+            bar: {
+                series: {
+                    label: { enabled: true },
+                },
+            },
+        },
+    },
     title: {
         text: 'Station Entries',
         fontSize: 20,
@@ -144,7 +153,7 @@ const options: AgCartesianChartOptions = {
         },
         y(params) {
             const value = params.value as number;
-            if (params.source === 'tooltip') {
+            if (params.source === 'crosshair') {
                 return `${value.toFixed(1)}%`;
             }
             return numFormatter.format(value);

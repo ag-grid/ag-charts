@@ -80,7 +80,8 @@ const options: AgCartesianChartOptions<DataType> = {
         y(params) {
             const value = params.value as number;
             const millions = value / 1_000_000;
-            return `${millions.toFixed(1)}M`;
+            const accuracy = ['series-label', 'axis-label'].includes(params.source) ? 0 : 1;
+            return `${millions.toFixed(accuracy)}M`;
         },
     },
     animation: {
