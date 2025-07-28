@@ -67,6 +67,7 @@ export abstract class Widget<
     protected readonly children: TChildWidget[] = [];
     protected htmlListener?: WidgetListenerHTML;
     protected internalListener?: WidgetListenerInternal;
+    public destroyListener?: () => void; // Temporary fix for RTI-2977
 
     protected abstract destructor(): void;
 
@@ -95,6 +96,8 @@ export abstract class Widget<
     }
 
     destroy(): void {
+        this.destroyListener?.();
+        this.destroyListener = undefined;
         this.parent?.removeChild(this);
         this.children.forEach((child) => {
             child.parent = undefined;

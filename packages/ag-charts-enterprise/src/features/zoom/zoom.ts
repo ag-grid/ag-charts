@@ -251,6 +251,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.ctx.zoomManager.setZoomModuleEnabled(false);
         this.buttons.destroy();
         this.destroyContextMenuActions?.();
+        this.domProxy.destroy();
     }
 
     private onEnabledChange(enabled: boolean) {
