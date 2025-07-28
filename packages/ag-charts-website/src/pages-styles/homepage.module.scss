@@ -552,7 +552,7 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
 
     // Temporary solution to hide map example titles on homepage.
     // true solution is to modify examples to not include titles.
-    $maps-title-offset: -54px;
+    $maps-title-offset: -58px;
 
     :global(.example-runner-outer) {
         margin-top: $spacing-size-2;
