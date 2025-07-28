@@ -25,21 +25,14 @@ const options: AgCartesianChartOptions = {
         position: {
             placement: 'top-right',
             floating: true,
-            xOffset: -30,
+            xOffset: -40,
         },
-        maxWidth: 500,
+        maxWidth: 300,
         border: {
             enabled: true,
             strokeWidth: 1,
         },
         cornerRadius: 8,
-        padding: 16,
-        item: {
-            label: { fontSize: 14 },
-            marker: { size: 16 },
-            paddingX: 16,
-            paddingY: 8,
-        },
     },
     series: [
         {

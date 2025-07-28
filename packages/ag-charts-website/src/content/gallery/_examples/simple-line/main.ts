@@ -61,12 +61,6 @@ const options: AgCartesianChartOptions<DataType> = {
         },
         cornerRadius: 8,
         padding: 16,
-        item: {
-            label: { fontSize: 14 },
-            marker: { size: 16 },
-            paddingX: 16,
-            paddingY: 8,
-        },
     },
     series: [
         {

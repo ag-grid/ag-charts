@@ -27,7 +27,6 @@ const options: AgCartesianChartOptions<DataType> = {
                 enabled: true,
                 placement: 'inside-center',
                 fontSize: 14,
-                fontWeight: 'bold',
             },
         },
     ],

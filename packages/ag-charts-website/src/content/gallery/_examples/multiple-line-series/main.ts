@@ -156,12 +156,6 @@ const options: AgChartOptions<DataType> = {
     },
     tooltip: {
         mode: 'shared',
-        position: {
-            anchorTo: 'chart',
-            placement: ['top-right'],
-            xOffset: 10,
-            yOffset: -10,
-        },
         wrapping: 'hyphenate',
     },
 };

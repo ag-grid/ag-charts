@@ -20,10 +20,10 @@ const options: AgChartOptions = {
     data: getData(),
     legend: {
         position: {
-            placement: 'bottom-left',
+            placement: 'top-right',
             floating: true,
-            xOffset: 50,
-            yOffset: -15,
+            xOffset: -110,
+            yOffset: 80,
         },
         maxWidth: 400,
         border: {
@@ -32,13 +32,6 @@ const options: AgChartOptions = {
         },
         fillOpacity: 1,
         cornerRadius: 8,
-        padding: 16,
-        item: {
-            label: { fontSize: 14 },
-            marker: { size: 16 },
-            paddingX: 16,
-            paddingY: 8,
-        },
     },
     series: [
         {

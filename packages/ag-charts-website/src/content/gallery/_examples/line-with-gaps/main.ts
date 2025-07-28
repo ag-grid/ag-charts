@@ -20,26 +20,7 @@ const options: AgCartesianChartOptions = {
     },
     legend: {
         position: {
-            placement: 'top-right',
-            floating: true,
-        },
-        border: {
-            enabled: true,
-            strokeWidth: 1,
-        },
-        maxWidth: 400,
-        cornerRadius: 8,
-        padding: 16,
-        item: {
-            label: {
-                fontSize: 13,
-            },
-            marker: {
-                size: 14,
-                strokeWidth: 2,
-            },
-            paddingX: 12,
-            paddingY: 6,
+            placement: 'top',
         },
     },
     tooltip: {
