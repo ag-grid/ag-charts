@@ -79,6 +79,7 @@ export interface AgNavigatorMiniChartPadding {
 export type CommonIgnoredProperties =
     | 'context'
     | 'cursor'
+    | 'highlight'
     | 'highlightStyle'
     | 'listeners'
     | 'nodeClickRange'
