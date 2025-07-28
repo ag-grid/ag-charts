@@ -323,8 +323,38 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         return this.groupNode.nearestSquared(point.x, point.y);
     }
 
-    pickNodeMainAxisFirst(point: Point): PickNodeDatumResult {
-        return this.groupNode.nearestSquared(point.x, point.y);
+    pickNodeMainAxisFirst(
+        point: Point,
+        majorDirection: _ModuleSupport.ChartAxisDirection
+    ): PickNodeDatumResult | undefined {
+        let closestDatum;
+        let closestDistance = [Infinity, Infinity];
+        const referencePoints = [point.x, point.y];
+        if (majorDirection === ChartAxisDirection.Y) {
+            referencePoints.reverse();
+        }
+        for (const child of this.groupNode.children()) {
+            const childBBox = child.getBBox();
+            const childReferencePoints = [childBBox.x + childBBox.width / 2, childBBox.y + childBBox.height / 2];
+            if (majorDirection === ChartAxisDirection.Y) {
+                childReferencePoints.reverse();
+            }
+            const childDistances = [];
+            for (let i = 0; i < referencePoints.length; i++) {
+                childDistances.push(Math.abs(referencePoints[i] - childReferencePoints[i]));
+            }
+            if (childDistances[0] < closestDistance[0] && childDistances[1] < closestDistance[1]) {
+                closestDatum = child.datum;
+                closestDistance = childDistances;
+            }
+        }
+
+        if (closestDatum) {
+            return {
+                datum: closestDatum,
+                distanceSquared: Math.pow(closestDistance[0], 2) + Math.pow(closestDistance[1], 2),
+            };
+        }
     }
 
     getTooltipParams() {
