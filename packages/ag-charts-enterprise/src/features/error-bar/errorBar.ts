@@ -343,7 +343,10 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             for (let i = 0; i < referencePoints.length; i++) {
                 childDistances.push(Math.abs(referencePoints[i] - childReferencePoints[i]));
             }
-            if (childDistances[0] < closestDistance[0] && childDistances[1] < closestDistance[1]) {
+            if (
+                childDistances[0] < closestDistance[0] ||
+                (childDistances[0] == closestDistance[0] && childDistances[1] < closestDistance[1])
+            ) {
                 closestDatum = child.datum;
                 closestDistance = childDistances;
             }
