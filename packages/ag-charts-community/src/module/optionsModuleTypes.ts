@@ -12,7 +12,7 @@ export type PickNodeDatumResult = { datum: SeriesNodeDatum<unknown>; distanceSqu
 export interface SeriesOptionInstance extends ModuleInstance {
     pickNodeExact(point: Point): PickNodeDatumResult;
     pickNodeNearest(point: Point): PickNodeDatumResult;
-    pickNodeMainAxisFirst(point: Point): PickNodeDatumResult;
+    pickNodeMainAxisFirst(point: Point, majorDirection: ChartAxisDirection): PickNodeDatumResult | undefined;
 
     getPropertyDefinitions(opts: {
         isContinuousX: boolean;

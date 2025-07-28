@@ -54,6 +54,10 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
         return min != null && max != null && min < max;
     }
 
+    override isCategoryLike(): boolean {
+        return true;
+    }
+
     private defaultUnit: AgTimeInterval | AgTimeIntervalUnit | undefined = undefined;
 
     override processData(): void {

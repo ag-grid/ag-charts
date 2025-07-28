@@ -68,6 +68,10 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         return min != null && max != null && min < max;
     }
 
+    override isCategoryLike(): boolean {
+        return false;
+    }
+
     override get primaryLabel(): AxisLabel | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
     }

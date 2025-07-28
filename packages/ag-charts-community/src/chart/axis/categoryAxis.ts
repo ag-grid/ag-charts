@@ -33,6 +33,10 @@ export class CategoryAxis<
         this.nice = false;
     }
 
+    override isCategoryLike(): boolean {
+        return true;
+    }
+
     @Property
     groupPaddingInner: number = 0.1;
 
