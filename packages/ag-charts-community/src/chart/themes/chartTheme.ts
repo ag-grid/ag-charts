@@ -457,7 +457,7 @@ export class ChartTheme {
                 },
                 fill: {
                     $if: [
-                        { $eq: [{ $path: './position/floating' }, true] },
+                        { $path: ['./position/floating', false] },
                         { $ref: 'chartBackgroundColor' },
                         'transparent',
                     ],
