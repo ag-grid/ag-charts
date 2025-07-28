@@ -190,6 +190,7 @@ export class LegendDOMProxy {
                     this.prevButton = undefined;
                 }
             }
+            this.paginationGroup.setAriaHidden(newNeedsButtons ? undefined : true);
         }
 
         if (this.prevButton && this.nextButton) {
