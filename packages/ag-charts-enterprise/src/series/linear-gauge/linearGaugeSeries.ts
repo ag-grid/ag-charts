@@ -1275,6 +1275,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 phase: params.phase ?? 'update',
                 ease: easing.easeOut,
                 onUpdate: (datum) => this.formatLabelText(datum),
+                onStop: () => this.formatLabelText({ label: labelTo }),
             });
         }
     }
