@@ -68,14 +68,12 @@ const metaDescription = `Example of a ${page.title} Chart built with AG Charts J
     .title-container {
         display: flex;
         align-items: center;
-        @media screen and (max-width: 500px) {
-            flex-direction: column;
-            align-items: start;
-            margin-bottom: $spacing-size-4;
-        }
+        flex-wrap: wrap;
+        gap: 0 $spacing-size-2;
+        padding-bottom: $spacing-size-5;
     }
+
     .chart-link-item {
-        gap: 8px;
         display: flex;
         align-items: center;
     }
@@ -84,8 +82,7 @@ const metaDescription = `Example of a ${page.title} Chart built with AG Charts J
         display: flex;
         flex-wrap: wrap;
         align-items: flex-end;
-        margin-bottom: $spacing-size-2;
-        margin-right: $spacing-size-2;
+        margin-bottom: 0;
     }
 
     .enterpriseIcon {
