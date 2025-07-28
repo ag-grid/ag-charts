@@ -54,8 +54,8 @@ const options: AgChartOptions = {
             fill: {
                 type: 'image',
                 url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="192" height="144" viewBox="0 0 64 48" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2; fill: white;"><path d="M58 10H41l-8 8h25v-8Z"/><path d="M43 30v-8H29l-8 8h22Z"/><path d="M13 38.01l4-4.01h14v8H13v-3.99Z"/><path d="M41 10l-4 4H11V6h30v4Z"/><path d="M16 26h9l8-8H16v8Z"/><path d="M6 37.988h7.012L21 30H6.008v8Z"/></svg>',
-                width: 64 * 1.5,
-                height: 48 * 1.5,
+                width: 64,
+                height: 48,
                 backgroundFill: '#004290',
             },
         },
