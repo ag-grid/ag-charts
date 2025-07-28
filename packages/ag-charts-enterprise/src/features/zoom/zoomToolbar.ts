@@ -135,6 +135,21 @@ export class ZoomToolbar extends BaseProperties {
         const { buttons, container } = this;
         const { rect } = event.series;
 
+        // CRT-906 Fix the tooltip defaults when using custom zoom toolbars
+        for (const b of buttons) {
+            if (b.tooltip == null && b.label == null) {
+                const map = {
+                    'pan-end': 'toolbarZoomPanEnd',
+                    'pan-left': 'toolbarZoomPanLeft',
+                    'pan-right': 'toolbarZoomPanRight',
+                    'pan-start': 'toolbarZoomPanStart',
+                    'zoom-in': 'toolbarZoomZoomIn',
+                    'zoom-out': 'toolbarZoomZoomOut',
+                    reset: 'toolbarZoomReset',
+                } as const;
+                b.tooltip = map[b.value];
+            }
+        }
         this.toolbar.updateButtons(buttons);
         this.toggleButtons();
 
