@@ -49,6 +49,10 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
         super(moduleCtx, new UnitTimeScale());
     }
 
+    override isCategoryLike(): boolean {
+        return true;
+    }
+
     private defaultUnit: AgTimeInterval | AgTimeIntervalUnit | undefined = undefined;
 
     override processData(): void {

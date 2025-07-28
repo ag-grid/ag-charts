@@ -273,6 +273,10 @@ export abstract class Axis<
         return undefined;
     }
 
+    isCategoryLike(): boolean {
+        return false;
+    }
+
     defaultTickMinSpacing: number = Axis.defaultTickMinSpacing;
 
     readonly translation = { x: 0, y: 0 };

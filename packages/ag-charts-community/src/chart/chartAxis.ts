@@ -116,6 +116,7 @@ export interface ChartAxis {
     processData(): void;
     update(animated?: boolean): void;
     setDomains(domain: unknown[]): void;
+    isCategoryLike(): boolean;
     boundSeries: ISeries<unknown, unknown, unknown>[];
     crossLines?: CrossLine[];
     dataDomain: { domain: any[]; clipped: boolean };
