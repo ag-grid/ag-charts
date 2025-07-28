@@ -9,6 +9,7 @@ const {
     fromToMotion,
     normalizeAngle360,
     createDatumId,
+    PointerEvents,
     Sector,
     Group,
     ScalableGroup,
@@ -104,6 +105,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.highlightSectorGroup,
         Sector
     );
+
+    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+        super(moduleCtx);
+
+        this.sectorLabelGroup.pointerEvents = PointerEvents.None;
+    }
 
     override processData() {
         super.processData();
@@ -622,7 +629,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     protected override pickNodeClosestDatum(
         point: _ModuleSupport.Point
     ): _ModuleSupport.SeriesNodePickMatch | undefined {
-        return this.pickNodeNearestDistantObject(point, this.datumSelection.selectByClass(Sector));
+        return this.pickNodeNearestDistantObject(point, this.datumSelection.nodes());
     }
 
     protected override animateEmptyUpdateReady() {
