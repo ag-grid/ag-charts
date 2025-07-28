@@ -42,7 +42,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 fontWeight: 'bold',
                 overflowStrategy: 'hide',
             },
-            highlight: applyMapPalette(_ModuleSupport.multiSeriesHighlightStyle()),
+            highlight: applyMapPalette(_ModuleSupport.multiSeriesHighlightStyle(true)),
         },
         tooltip: {
             range: 'exact',

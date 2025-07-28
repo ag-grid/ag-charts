@@ -148,7 +148,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const highlightStyle = isHighlight ? properties.highlightStyle : undefined;
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(rootIndex));
 
-        if (nodeDatum.colorValue != null) {
+        if (!isHighlight && nodeDatum.colorValue != null) {
             baseStyle.fill = colorScale.convert(nodeDatum.colorValue);
         }
 
