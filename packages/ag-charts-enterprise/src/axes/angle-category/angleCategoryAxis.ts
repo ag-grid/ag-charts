@@ -25,6 +25,10 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
         super(moduleCtx, new CategoryScale());
     }
 
+    override hasDefinedDomain(): boolean {
+        return false;
+    }
+
     protected generateAngleTicks(domain: string[]) {
         const { scale, gridLength: radius } = this;
         const { values, minSpacing } = this.interval;

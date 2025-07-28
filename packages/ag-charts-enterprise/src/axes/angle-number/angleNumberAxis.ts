@@ -27,6 +27,11 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         super(moduleCtx, new LinearAngleScale());
     }
 
+    override hasDefinedDomain(): boolean {
+        const { min, max } = this;
+        return min != null && max != null && min < max;
+    }
+
     override normaliseDataDomain(d: number[]) {
         const { min, max } = this;
         const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
