@@ -1300,6 +1300,7 @@ export class RadialGaugeSeries
                 to: { label: labelTo, secondaryLabel: secondaryLabelTo },
                 phase: params.phase ?? 'update',
                 onUpdate: (datum) => this.formatLabelText(datum),
+                onStop: () => this.formatLabelText({ label: labelTo, secondaryLabel: secondaryLabelTo }),
             });
         }
     }
