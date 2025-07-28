@@ -478,6 +478,45 @@ describe('AG-13024 API context gauges', () => {
             const options = initOptions();
             expect(options).not.toHaveProperty('context');
             chart = await createChart(options);
+            chartLabelFormatter.expect().toHaveBeenCalledTimes(4).withoutContext();
+        });
+
+        test('defined to undefined', async () => {
+            const options = initOptions();
+            options.context = undefined;
+            chart = await createChart(options);
+            chartLabelFormatter.expect().toHaveBeenCalledTimes(4).withoutContext();
+        });
+
+        test('defined to null', async () => {
+            const options = initOptions();
+            options.context = null;
+            chart = await createChart(options);
+            chartLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(null);
+        });
+
+        test('defined to object', async () => {
+            const options = initOptions();
+            options.context = rootContext;
+            chart = await createChart(options);
+            chartLabelFormatter.expect().toHaveBeenCalledTimes(4).withContext(rootContext);
+        });
+    });
+
+    describe('linear-gauge', () => {
+        function initOptions(): AgLinearGaugeOptions {
+            return {
+                type: 'linear-gauge',
+                value: 80,
+                scale: { min: 0, max: 100, label: { enabled: false } },
+                label: { formatter: chartLabelFormatter.frozen },
+            };
+        }
+
+        test('undefined', async () => {
+            const options = initOptions();
+            expect(options).not.toHaveProperty('context');
+            chart = await createChart(options);
             chartLabelFormatter.expect().toHaveBeenCalledTimes(3).withoutContext();
         });
 
@@ -500,45 +539,6 @@ describe('AG-13024 API context gauges', () => {
             options.context = rootContext;
             chart = await createChart(options);
             chartLabelFormatter.expect().toHaveBeenCalledTimes(3).withContext(rootContext);
-        });
-    });
-
-    describe('linear-gauge', () => {
-        function initOptions(): AgLinearGaugeOptions {
-            return {
-                type: 'linear-gauge',
-                value: 80,
-                scale: { min: 0, max: 100, label: { enabled: false } },
-                label: { formatter: chartLabelFormatter.frozen },
-            };
-        }
-
-        test('undefined', async () => {
-            const options = initOptions();
-            expect(options).not.toHaveProperty('context');
-            chart = await createChart(options);
-            chartLabelFormatter.expect().toHaveBeenCalledTimes(2).withoutContext();
-        });
-
-        test('defined to undefined', async () => {
-            const options = initOptions();
-            options.context = undefined;
-            chart = await createChart(options);
-            chartLabelFormatter.expect().toHaveBeenCalledTimes(2).withoutContext();
-        });
-
-        test('defined to null', async () => {
-            const options = initOptions();
-            options.context = null;
-            chart = await createChart(options);
-            chartLabelFormatter.expect().toHaveBeenCalledTimes(2).withContext(null);
-        });
-
-        test('defined to object', async () => {
-            const options = initOptions();
-            options.context = rootContext;
-            chart = await createChart(options);
-            chartLabelFormatter.expect().toHaveBeenCalledTimes(2).withContext(rootContext);
         });
     });
 });
