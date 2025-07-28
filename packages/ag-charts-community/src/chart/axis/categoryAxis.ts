@@ -42,6 +42,10 @@ export class CategoryAxis<
     @Property
     paddingOuter?: number;
 
+    override hasDefinedDomain(): boolean {
+        return false;
+    }
+
     override normaliseDataDomain(domain: Array<string | object>) {
         return { domain, clipped: false };
     }

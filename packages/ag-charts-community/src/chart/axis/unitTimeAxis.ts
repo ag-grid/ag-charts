@@ -49,6 +49,11 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
         super(moduleCtx, new UnitTimeScale(), false);
     }
 
+    override hasDefinedDomain(): boolean {
+        const { min, max } = this;
+        return min != null && max != null && min < max;
+    }
+
     private defaultUnit: AgTimeInterval | AgTimeIntervalUnit | undefined = undefined;
 
     override processData(): void {

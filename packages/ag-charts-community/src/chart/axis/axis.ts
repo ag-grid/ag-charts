@@ -681,10 +681,12 @@ export abstract class Axis<
         bbox?: BBox;
     };
 
+    abstract hasDefinedDomain(): boolean;
+
     protected updateCrossLines() {
-        const anySeriesVisible = this.hasVisibleSeries();
+        const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
         this.crossLines.forEach((crossLine) => {
-            crossLine.update(anySeriesVisible);
+            crossLine.update(crosslinesVisible);
         });
     }
 
