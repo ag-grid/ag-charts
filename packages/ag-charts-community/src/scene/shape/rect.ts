@@ -324,6 +324,13 @@ export class Rect<D = any> extends Path<D> implements DistantObject {
         path.clear(true);
         borderPath.clear(true);
 
+        if (w === 0 || h === 0) {
+            this.effectiveStrokeWidth = 0;
+            this.lastUpdatePathStrokeWidth = 0;
+            this.microPixelEffectOpacity = 0;
+            return;
+        }
+
         if (crisp) {
             if (w <= pixelSize) {
                 microPixelEffectOpacity *= w / pixelSize;
