@@ -1,4 +1,14 @@
-export function getData() {
+export type DataType = {
+    year: number;
+    crWon: number;
+    crLost: number;
+    lmWon: number;
+    lmLost: number;
+    kbWon: number;
+    kbLost: number;
+};
+
+export function getData(): DataType[] {
     return [
         {
             year: 2013,

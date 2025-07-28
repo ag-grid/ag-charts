@@ -138,7 +138,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         const image = this.imageLoader?.loadImage(this.url, node);
         const pattern = this.createCanvasImage(ctx, image, width, height);
 
-        if (pattern == null) return this.backgroundFill;
+        if (pattern == null) return;
 
         this._cache = { ctx, pattern, width, height };
 

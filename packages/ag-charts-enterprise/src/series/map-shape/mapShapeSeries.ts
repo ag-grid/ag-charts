@@ -477,7 +477,7 @@ export class MapShapeSeries
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
 
-        if (colorValue != null) {
+        if (!isHighlight && colorValue != null) {
             baseStyle.fill = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
                 : colorRange?.[0] ?? baseStyle.fill;
