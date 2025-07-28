@@ -456,11 +456,7 @@ export class ChartTheme {
                     label: { color: { $ref: 'textColor' } },
                 },
                 fill: {
-                    $if: [
-                        { $path: ['./position/floating', false] },
-                        { $ref: 'chartBackgroundColor' },
-                        'transparent',
-                    ],
+                    $if: [{ $path: ['./position/floating', false] }, { $ref: 'chartBackgroundColor' }, 'transparent'],
                 },
             },
             tooltip: {
