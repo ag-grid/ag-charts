@@ -222,7 +222,7 @@ const isHomepage = Astro.url.pathname.replaceAll('/', '') === SITE_BASE_URL.repl
             @use 'design-system' as *;
             
             html,body {
-              overflow-x: hidden;
+              overflow-x: clip;
             }
 
             html {
