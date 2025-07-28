@@ -346,7 +346,7 @@ export class HistogramSeries extends CartesianSeries<
                         total,
                         datum,
                         yKey!,
-                        'label',
+                        'y',
                         [],
                         label,
                         { value: total, datum, xKey, yKey, xName, yName }
