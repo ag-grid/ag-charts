@@ -87,7 +87,7 @@ export class TypeResolver {
         }
     }
 
-    protected resolveUnion(unionKey: TypeNode, debug?: boolean) {
+    protected resolveUnion(unionKey: TypeNode) {
         if (typeof unionKey === 'string') {
             if (unionKey.startsWith("'") && unionKey.endsWith("'")) {
                 return unionKey;
