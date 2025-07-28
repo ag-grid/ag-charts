@@ -176,6 +176,9 @@ const options: AgChartOptions<DataType> = {
     ],
     tooltip: {
         mode: 'shared',
+        position: {
+            placement: ['top', 'bottom'],
+        },
     },
     legend: {
         enabled: false,

@@ -46,7 +46,7 @@ const options: AgChartOptions<DataType> = {
         fontStyle: 'italic',
     },
     legend: {
-        enabled: false,
+        enabled: true,
     },
     series: [
         {
