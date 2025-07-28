@@ -9,6 +9,41 @@ Font options include font family, size, weight, and style.
 Each chart element has font options, including `fontFamily`, `fontSize` and `fontWeight`.
 See [API Options](/options/) for more details.
 
+## Multi-Style Text Elements
+
+The chart title, subtitle and footnote support multiple font styles within the one element.
+
+This is done by passing an array of `TextSegment` objects, where each object contains a `text` property and associated font style overrides.
+
+{% chartExampleRunner title="Multi-Style Text" name="text-segments" type="generated" /%}
+
+```js
+{
+    title: {
+        text: [
+        {
+            text: "2025",
+            fontStyle: "italic",
+        },
+        {
+            text: " Financial Growth ",
+            fontSize: 26,
+        },
+        {
+            text: "Overview",
+            color: "#ff7f0e",
+            fontFamily: "monospace",
+        },
+       ],
+    }
+}
+```
+
+In the above example:
+
+-   The `title`, `subtitle` and `footnote` use text segments to vary font options within the text.
+-   The top level font options within each element are used for all text segments, unless overridden.
+
 ## Font Theme Parameters
 
 The font options for the whole chart can be set once, by using [theme parameters](./themes/#parameters).
@@ -43,22 +78,3 @@ In the above example:
 -   The subtitle uses the Google font `DM Serif Text` with a fallback to `monospace`.
 -   The left axis uses the local system font `Helvetica` with a fallback to `Arial` then `san-serif`.
 -   The bottom axis uses the Google font `Orbitron`.
-
-## Multi-Style Text Elements
-
-When styling `title`, `subtitle`, `footnote`, and other overlay types, you can use the `text` property to specify a string with multiple styles.
-This is done by passing an array of objects, where each object contains a `text` property.
-Each object represents a text segment, and different font styles can be applied to each segment.
-
-```js
-{
-    title: {
-        text: [
-            { text: 'Hello ', fontWeight: 'bold' },
-            { text: 'World', fontStyle: 'italic' },
-        ],
-    }
-}
-```
-
-{% chartExampleRunner title="Multi-Style Text" name="text-segments" type="generated" /%}

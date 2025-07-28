@@ -31,7 +31,11 @@ const options: AgChartOptions = {
         fontWeight: 'bold',
     },
     footnote: {
-        text: [{ text: '© ' }, { text: 'BestCompany Inc.', color: '#333', fontWeight: 'bold' }, { text: ' 2005' }],
+        text: [
+            { text: 'All of this ' },
+            { text: 'data is fictitious', fontWeight: 'bold', fontSize: 15 },
+            { text: ' and for example purposes only.' },
+        ],
     },
     data: [
         { quarter: 'Q1', revenue: 500000, expenses: 450000 },
