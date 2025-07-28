@@ -89,11 +89,17 @@ export class TypeResolver {
 
     protected resolveUnion(unionKey: TypeNode) {
         if (typeof unionKey === 'string') {
-            return unionKey.match(/^'.*'$/) ? unionKey : this.resolveType(unionKey).type;
+            if (unionKey.startsWith("'") && unionKey.endsWith("'")) {
+                return unionKey;
+            }
+            const resolved = this.resolveType(unionKey);
+            if (typeof resolved === 'object') {
+                return this.resolveUnion(resolved.type);
+            }
         } else if (unionKey?.kind === 'union') {
             unionKey.type = unionKey.type.flatMap((type: string | MultiTypeNode) => {
                 const resolved = this.resolveUnion(type);
-                return typeof resolved === 'object' && resolved.kind === 'union' ? resolved.type : [resolved];
+                return typeof resolved === 'object' ? this.resolveUnion(resolved.type) : [resolved];
             });
         }
         return unionKey;

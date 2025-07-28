@@ -185,8 +185,7 @@ export class SeriesAreaManager extends BaseManager {
         datum: undefined as SeriesNodeDatum<unknown> | undefined,
     };
 
-    private cachedTooltipContent: { series: any; datumIndex: any; content: TooltipContent[] | undefined } | undefined =
-        undefined;
+    private cachedTooltipContent: { series: any; datumIndex: any; content: TooltipContent[] } | undefined = undefined;
 
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
@@ -317,7 +316,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private layoutComplete(event: LayoutCompleteEvent): void {
         this.seriesRect = event.series.rect;
-        this.hoverRect = event.series.paddedRect;
+        this.hoverRect = event.series.rect;
         this.chart.ctx.widgets.seriesWidget.setBounds(event.series.rect);
         if (this.chart.ctx.domManager.mode === 'normal') {
             this.chart.ctx.widgets.chartWidget.setBounds(event.chart);
@@ -760,25 +759,20 @@ export class SeriesAreaManager extends BaseManager {
             this.highlight.pendingHoverEvent = undefined;
             this.highlight.stashedHoverEvent = undefined;
 
-            const tooltipContent = this.getTooltipContent(focus.series, datum.datumIndex, datum);
+            const tooltipContent = this.getTooltipContent(focus.series, datum.datumIndex, datum, 'aria-label');
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-            if (tooltipContent) {
+            if (this.isTooltipEnabled(focus.series)) {
                 this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
-            } else {
-                this.chart.ctx.tooltipManager.removeTooltip(this.id);
             }
-
-            if (tooltipContent != null) {
-                this.maybeAnnouncePickedFocus(
-                    datumIndexDelta,
-                    oldDatumIndex,
-                    otherIndexDelta,
-                    oldOtherIndex,
-                    pick,
-                    tooltipContent
-                );
-            }
+            this.maybeAnnouncePickedFocus(
+                datumIndexDelta,
+                oldDatumIndex,
+                otherIndexDelta,
+                oldOtherIndex,
+                pick,
+                tooltipContent
+            );
         }
 
         return PickedFocusStatus.SUCCESS;
@@ -941,7 +935,7 @@ export class SeriesAreaManager extends BaseManager {
         canvasY: number,
         pagination?: TooltipPaginationState
     ) {
-        const tooltipContent = this.getTooltipContent(series, datumIndex, datum);
+        const tooltipContent = this.getTooltipContent(series, datumIndex, datum, 'tooltip');
         const shouldUpdateTooltip = tooltipContent != null;
         if (shouldUpdateTooltip) {
             const meta = TooltipManager.makeTooltipMeta(
@@ -1025,30 +1019,58 @@ export class SeriesAreaManager extends BaseManager {
         return result;
     }
 
+    private isTooltipEnabled(series: UnknownSeries): boolean {
+        return series.tooltipEnabled ?? this.chart.tooltip.enabled;
+    }
+
+    // Do not return undefined tooltip content if we're obtaining it to update the series-area aria-label.
+    // (CRT-869, CRT-901, CRT-871, CRT-909).
     private getTooltipContent(
         series: UnknownSeries,
         datumIndex: any,
-        datum: SeriesNodeDatum<unknown>
+        datum: SeriesNodeDatum<unknown>,
+        purpose: 'aria-label'
+    ): TooltipContent[];
+
+    private getTooltipContent(
+        series: UnknownSeries,
+        datumIndex: any,
+        datum: SeriesNodeDatum<unknown>,
+        purpose: 'tooltip'
+    ): TooltipContent[] | undefined;
+
+    private getTooltipContent(
+        series: UnknownSeries,
+        datumIndex: any,
+        datum: SeriesNodeDatum<unknown>,
+        purpose: 'aria-label' | 'tooltip'
     ): TooltipContent[] | undefined {
-        const tooltipEnabled = series.tooltipEnabled ?? this.chart.tooltip.enabled;
-        if (!tooltipEnabled) {
+        let result: TooltipContent[] | undefined;
+
+        if (purpose === 'aria-label' || this.isTooltipEnabled(series)) {
+            const { cachedTooltipContent } = this;
+            if (
+                cachedTooltipContent != null &&
+                cachedTooltipContent.series === series &&
+                cachedTooltipContent.datumIndex === datumIndex
+            ) {
+                result = cachedTooltipContent.content;
+            } else {
+                const content: TooltipContent[] = this.chart.getTooltipContent(series, datumIndex, datum);
+                this.cachedTooltipContent = { series, datumIndex, content };
+                result = content;
+            }
+            // Verify assumptions of overload #1 and #2
+            purpose satisfies 'aria-label' | 'tooltip';
+            result satisfies TooltipContent[];
+        } else {
             this.cachedTooltipContent = undefined;
-            return;
+            // Verify assumptions of overload #2
+            purpose satisfies 'tooltip';
+            result satisfies TooltipContent[] | undefined;
         }
 
-        const { cachedTooltipContent } = this;
-        if (
-            cachedTooltipContent != null &&
-            cachedTooltipContent.series === series &&
-            cachedTooltipContent.datumIndex === datumIndex
-        ) {
-            return cachedTooltipContent.content;
-        } else {
-            let content: TooltipContent[] | undefined = this.chart.getTooltipContent(series, datumIndex, datum);
-            if (content.length === 0) content = undefined;
-            this.cachedTooltipContent = { series, datumIndex, content };
-            return content;
-        }
+        return result;
     }
 }
 

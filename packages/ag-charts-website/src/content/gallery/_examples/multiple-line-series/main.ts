@@ -1,19 +1,32 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-const options: AgChartOptions = {
+const timeDurationFormatter = (time: number) => {
+    const hours = Math.floor(time / 60);
+    const minutes = Math.floor(time % 60);
+    return `${hours}h ${minutes < 10 ? '0' : ''}${minutes}m`;
+};
+
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     theme: {
         overrides: {
             line: {
                 series: {
-                    interpolation: {
-                        type: 'smooth',
-                    },
+                    interpolation: { type: 'smooth' },
                     marker: {
                         enabled: false,
+                    },
+                    strokeWidth: 2,
+                    tooltip: {
+                        renderer: ({ datum, yKey, yName, xKey }) => {
+                            return {
+                                heading: `${datum[xKey]} years`,
+                                data: [{ label: yName!, value: timeDurationFormatter(datum[yKey]) }],
+                            };
+                        },
                     },
                 },
             },
@@ -21,12 +34,19 @@ const options: AgChartOptions = {
     },
     title: {
         text: 'Time With Others On A Saturday',
+        fontSize: 20,
     },
     subtitle: {
         text: 'Average hours spent per day socialising on the weekend',
+        fontSize: 14,
     },
     footnote: {
         text: 'Source: American Time Use Survey 2022',
+        fontSize: 12,
+        fontStyle: 'italic',
+    },
+    legend: {
+        enabled: false,
     },
     series: [
         {
@@ -74,34 +94,69 @@ const options: AgChartOptions = {
     ],
     axes: [
         {
+            type: 'category',
             position: 'bottom',
-            type: 'number',
             title: {
-                text: 'Age',
+                text: 'Age (years)',
+                fontSize: 14,
             },
-            nice: false,
-            min: 15,
-            max: 85,
+            bandHighlight: {
+                enabled: true,
+            },
+            label: {
+                fontSize: 12,
+                minSpacing: 30,
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                ],
+            },
         },
         {
             position: 'left',
             type: 'number',
             title: {
-                text: 'Time',
+                text: 'Time Spent (hours)',
+                fontSize: 14,
             },
             max: 540,
             nice: false,
             interval: { values: [0, 180, 360, 540] },
+            label: {
+                fontSize: 12,
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
         },
     ],
     formatter: {
+        x(params) {
+            return `${Math.round(Number(params.value))}`;
+        },
         y(params) {
             const value = params.value as number;
             if (params.source === 'axis-label') {
                 return `${Math.floor(value / 60)}h`;
             }
-            return `${Math.floor(value / 60)}h ${String(Math.round(value % 60)).padStart(2, '0')}m`;
+            return timeDurationFormatter(value);
         },
+    },
+    tooltip: {
+        mode: 'shared',
+        wrapping: 'hyphenate',
     },
 };
 

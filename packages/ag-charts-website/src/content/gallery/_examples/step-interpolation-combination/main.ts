@@ -69,7 +69,14 @@ const options: AgCartesianChartOptions = {
         {
             type: 'grouped-category',
             position: 'bottom',
-            depthOptions: [{ label: { enabled: false } }],
+            depthOptions: [
+                { label: { enabled: false } },
+                {
+                    label: {
+                        rotation: 90,
+                    },
+                },
+            ],
         },
         {
             type: 'number',

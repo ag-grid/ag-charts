@@ -1,16 +1,23 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
 const data = getData();
-const options: AgChartOptions<DataType> = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data,
     title: {
-        text: 'Weekly Earnings',
+        text: 'Weekly Earnings by Profession',
+        fontSize: 20,
+    },
+    subtitle: {
+        text: 'UK Average Weekly Pay with Confidence Intervals',
+        fontSize: 14,
     },
     footnote: {
         text: 'Source: Office for National Statistics',
+        fontSize: 12,
+        fontStyle: 'italic',
     },
     series: [
         {
@@ -18,13 +25,20 @@ const options: AgChartOptions<DataType> = {
             direction: 'horizontal',
             xKey: 'type',
             yKey: 'earnings',
-            cornerRadius: 4,
+            yName: 'Weekly Earnings',
+            cornerRadius: 6,
+            strokeWidth: 1,
             errorBar: {
                 yLowerKey: 'earningsLower',
                 yUpperKey: 'earningsUpper',
+                cap: {
+                    length: 8,
+                },
             },
             label: {
                 enabled: true,
+                fontSize: 12,
+                formatter: (params) => `£${params.value}`,
             },
             itemStyler: ({ datum, yKey }) => ({
                 fillOpacity: getOpacity(datum, yKey, 0.4, 1),
@@ -35,18 +49,66 @@ const options: AgChartOptions<DataType> = {
         {
             type: 'category',
             position: 'left',
+            title: {
+                text: 'Profession',
+                fontSize: 14,
+            },
+            label: {
+                fontSize: 12,
+            },
+            bandHighlight: {
+                enabled: true,
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
         },
         {
             type: 'number',
             position: 'bottom',
             title: {
                 enabled: true,
-                text: '£ / Week',
+                text: 'Weekly Earnings (£)',
+                fontSize: 14,
+            },
+            label: {
+                fontSize: 12,
+                formatter: (params) => `£${params.value.toLocaleString()}`,
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
+            crosshair: {
+                enabled: true,
+                label: {
+                    enabled: true,
+                },
             },
         },
     ],
-    formatter: {
-        x: '£#{.0f}',
+    tooltip: {
+        position: {
+            anchorTo: 'pointer',
+            placement: ['right', 'left', 'top', 'bottom'],
+            xOffset: 10,
+            yOffset: -10,
+        },
     },
 };
 

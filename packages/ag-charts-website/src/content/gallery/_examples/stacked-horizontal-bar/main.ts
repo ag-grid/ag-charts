@@ -1,34 +1,49 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { DataType, getData } from './data';
 
 const data: any[] = getData();
 
-const options: AgChartOptions = {
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     theme: {
         overrides: {
             bar: {
                 series: {
                     stroke: 'transparent',
-                    strokeWidth: 2,
-                    cornerRadius: 6,
+                    strokeWidth: 1,
+                    cornerRadius: 4,
                     itemStyler: ({ datum, yKey }) => ({
-                        fillOpacity: getOpacity(Math.abs(datum[yKey]), yKey, 0.4, 1),
+                        fillOpacity: getOpacity(Math.abs(datum[yKey]), yKey, 0.5, 1),
                     }),
                     label: {
                         enabled: true,
+                    },
+                    tooltip: {
+                        enabled: true,
+                        renderer: (params: AgBarSeriesTooltipRendererParams<DataType>) => ({
+                            heading: `${params.datum.year} ${params.yName?.split(' - ')[1] ?? ''}`,
+                            data: [
+                                {
+                                    label: params.yName?.split(' - ')[0] ?? '',
+                                    value: String(Math.abs(params.datum[params.yKey as keyof DataType] as number)),
+                                },
+                            ],
+                        }),
                     },
                 },
             },
         },
     },
     title: {
-        text: 'All Games',
+        text: 'Football Players Performance Analysis',
+        fontSize: 20,
         spacing: 30,
     },
     footnote: {
-        text: 'Number of Games Won and Lost by Year',
+        text: 'Source: UEFA Champions League Statistics 2013-2023',
+        fontSize: 12,
+        fontStyle: 'italic',
     },
     data,
     series: [
@@ -37,7 +52,7 @@ const options: AgChartOptions = {
             direction: 'horizontal',
             xKey: 'year',
             yKey: 'crWon',
-            yName: 'Cristiano Ronaldo - Games Won',
+            yName: 'Cristiano Ronaldo - Wins',
             stacked: true,
         },
         {
@@ -45,7 +60,7 @@ const options: AgChartOptions = {
             direction: 'horizontal',
             xKey: 'year',
             yKey: 'lmWon',
-            yName: 'Lionel Messi - Games Won',
+            yName: 'Lionel Messi - Wins',
             stacked: true,
         },
         {
@@ -53,7 +68,7 @@ const options: AgChartOptions = {
             direction: 'horizontal',
             xKey: 'year',
             yKey: 'kbWon',
-            yName: 'Karim Benzema - Games Won',
+            yName: 'Karim Benzema - Wins',
             stacked: true,
         },
         {
@@ -61,7 +76,7 @@ const options: AgChartOptions = {
             direction: 'horizontal',
             xKey: 'year',
             yKey: 'crLost',
-            yName: 'Cristiano Ronaldo - Games Lost',
+            yName: 'Cristiano Ronaldo - Losses',
             stacked: true,
         },
         {
@@ -69,7 +84,7 @@ const options: AgChartOptions = {
             direction: 'horizontal',
             xKey: 'year',
             yKey: 'lmLost',
-            yName: 'Lionel Messi - Games Lost',
+            yName: 'Lionel Messi - Losses',
             stacked: true,
         },
         {
@@ -77,7 +92,7 @@ const options: AgChartOptions = {
             direction: 'horizontal',
             xKey: 'year',
             yKey: 'kbLost',
-            yName: 'Karim Benzema - Games Lost',
+            yName: 'Karim Benzema - Losses',
             stacked: true,
         },
     ],
@@ -85,12 +100,22 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'left',
-            interval: { values: [2013, 2023] },
+            interval: { values: [2013, 2018, 2023] },
+            title: {
+                text: 'Season',
+                fontSize: 14,
+            },
             line: {
                 enabled: false,
             },
+            bandHighlight: {
+                enabled: true,
+            },
             gridLine: {
                 enabled: true,
+            },
+            label: {
+                fontSize: 12,
             },
         },
         {
@@ -100,36 +125,58 @@ const options: AgChartOptions = {
             min: -40,
             max: 60,
             interval: { values: [0] },
+            title: {
+                text: 'Number of Games',
+                fontSize: 14,
+            },
             label: {
-                enabled: false,
+                enabled: true,
+                formatter: ({ value }) => (Math.abs(value) > 0 ? `${Math.abs(value)}` : '0'),
+                fontSize: 11,
             },
             gridLine: {
-                width: 2,
+                style: [
+                    {
+                        strokeWidth: 2,
+                        lineDash: [0],
+                    },
+                    {
+                        strokeWidth: 1,
+                        lineDash: [3, 3],
+                    },
+                ],
             },
             crossLines: [
                 {
                     type: 'range',
-                    range: [0, -30],
+                    range: [0, -40],
                     strokeWidth: 0,
                     fillOpacity: 0,
                     label: {
-                        text: 'L O S S E S',
+                        text: 'LOSSES',
                         position: 'top',
+                        fontSize: 12,
+                        fontWeight: 'bold',
                     },
                 },
                 {
                     type: 'range',
-                    range: [0, 50],
+                    range: [0, 60],
                     strokeWidth: 0,
                     fillOpacity: 0,
                     label: {
-                        text: 'W I N S',
+                        text: 'WINS',
                         position: 'top',
+                        fontSize: 12,
+                        fontWeight: 'bold',
                     },
                 },
             ],
         },
     ],
+    tooltip: {
+        mode: 'shared',
+    },
     legend: {
         enabled: false,
     },

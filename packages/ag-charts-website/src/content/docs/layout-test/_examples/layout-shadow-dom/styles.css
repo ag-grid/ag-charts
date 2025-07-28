@@ -1,5 +1,6 @@
 :root,
-body {
+body,
+#myChart {
     all: initial;
     display: block;
     overflow: hidden;

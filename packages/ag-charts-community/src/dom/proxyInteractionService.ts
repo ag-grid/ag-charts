@@ -245,6 +245,9 @@ export class ProxyInteractionService {
         } else {
             const insert = { where: params.where, query: '.ag-charts-series-area' };
             this.domManager.addChild('canvas-proxy', params.domManagerId, element.getElement(), insert);
+            element.destroyListener = () => {
+                this.domManager.removeChild('canvas-proxy', params.domManagerId);
+            };
         }
     }
 }
