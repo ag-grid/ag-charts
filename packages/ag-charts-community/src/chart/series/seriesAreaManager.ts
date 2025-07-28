@@ -762,7 +762,9 @@ export class SeriesAreaManager extends BaseManager {
             const tooltipContent = this.getTooltipContent(focus.series, datum.datumIndex, datum, 'aria-label');
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
+            if (this.isTooltipEnabled(focus.series)) {
+                this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
+            }
             this.maybeAnnouncePickedFocus(
                 datumIndexDelta,
                 oldDatumIndex,
@@ -1017,6 +1019,10 @@ export class SeriesAreaManager extends BaseManager {
         return result;
     }
 
+    private isTooltipEnabled(series: UnknownSeries): boolean {
+        return series.tooltipEnabled ?? this.chart.tooltip.enabled;
+    }
+
     // Do not return undefined tooltip content if we're obtaining it to update the series-area aria-label.
     // (CRT-869, CRT-901, CRT-871, CRT-909).
     private getTooltipContent(
@@ -1041,8 +1047,7 @@ export class SeriesAreaManager extends BaseManager {
     ): TooltipContent[] | undefined {
         let result: TooltipContent[] | undefined;
 
-        const tooltipEnabled = purpose === 'aria-label' || (series.tooltipEnabled ?? this.chart.tooltip.enabled);
-        if (tooltipEnabled) {
+        if (purpose === 'aria-label' || this.isTooltipEnabled(series)) {
             const { cachedTooltipContent } = this;
             if (
                 cachedTooltipContent != null &&
