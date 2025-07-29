@@ -41,6 +41,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaLabelColorPickerPalette: 'Palette',
     // Screen reader text for the financial charts toolbar
     ariaLabelFinancialCharts: 'Financial Charts',
+    // Screen reader text label for the gauge targets
+    ariaLabelGaugeTarget: 'Target',
+    // Screen reader text label for the gauge values
+    ariaLabelGaugeValue: 'Value',
     // Screen reader text for the legend toolbar
     ariaLabelLegend: 'Legend',
     // Screen reader text for the legend pagination button

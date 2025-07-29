@@ -1330,11 +1330,14 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
         let value: number | undefined;
         let text: string | undefined;
+        let fallbackLabel: string;
         if (datumIndex.type === NodeDataType.Node) {
             value = properties.value;
             text = properties.label.text;
+            fallbackLabel = this.ctx.localeManager.t('ariaLabelGaugeValue');
         } else {
             ({ value, text } = properties.targets[datumIndex.index]);
+            fallbackLabel = this.ctx.localeManager.t('ariaLabelGaugeTarget');
         }
 
         if (value == null) return;
@@ -1342,7 +1345,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                data: [{ label: text, fallbackLabel: 'Value', value: this.formatLabel(value) }],
+                data: [{ label: text, fallbackLabel, value: this.formatLabel(value) }],
             },
             { seriesId, title: undefined, datum: undefined, value }
         );
