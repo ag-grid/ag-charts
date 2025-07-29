@@ -1,6 +1,6 @@
-import { type Writeable, createCanvasContext } from 'ag-charts-core';
-
 import { LRUCache } from '../classes/lruCache';
+import type { Writeable } from '../interfaces/globalTypes';
+import { createCanvasContext } from './canvas';
 import { type FontOptions, LineSplitter, toFontString } from './textUtils';
 
 export interface TextBounds {
