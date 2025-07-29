@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 const glob = require('glob');
+const yargs = require('yargs');
 
 /**
  * Orchestration script for running documentation reviews on all AG Charts docs pages
@@ -58,6 +59,7 @@ const DEFAULT_OPTIONS = {
     force: false,
     verbose: false,
     dryRun: false,
+    limit: null, // No limit by default
 };
 
 // ============================================================================
@@ -414,6 +416,7 @@ class DocsReviewOrchestrator {
         this.dryRun = this.options.dryRun;
         this.resumePhase = this.options.resumePhase;
         this.force = this.options.force;
+        this.limit = this.options.limit;
 
         // Initialize state
         this.results = {
@@ -441,31 +444,38 @@ class DocsReviewOrchestrator {
                 await this.loadProgress();
             }
 
+            // 3. Apply limit to remaining pages after resume processing
+            const finalPages = this.applyLimit(pages);
+            if (finalPages.length !== pages.length) {
+                this.results.total = finalPages.length;
+                console.log(`📚 Processing ${finalPages.length} pages after limit applied`);
+            }
+
             console.log('');
 
-            // 3. Phase 1: Run planning for all pages
+            // 4. Phase 1: Run planning for all pages
             if (this.shouldRunPhase(PHASES.PLANNING)) {
                 console.log('🧠 Phase 1: Creating review plans...');
-                await this.runPlanningPhase(pages);
+                await this.runPlanningPhase(finalPages);
                 console.log('');
             } else {
                 console.log('⏩ Skipping Phase 1 (planning) as requested');
                 console.log('');
             }
 
-            // 4. Phase 2: Execute reviews in parallel batches
+            // 5. Phase 2: Execute reviews in parallel batches
             if (this.shouldRunPhase(PHASES.EXECUTION)) {
                 console.log('🔍 Phase 2: Executing reviews...');
-                await this.runExecutionPhase(pages);
+                await this.runExecutionPhase(finalPages);
                 console.log('');
             } else {
                 console.log('⏩ Skipping Phase 2 (execution) as requested');
                 console.log('');
             }
 
-            // 5. Phase 3: Generate comprehensive summary
+            // 6. Phase 3: Generate comprehensive summary
             console.log('📊 Phase 3: Generating summary report...');
-            await this.runSummaryPhase(pages);
+            await this.runSummaryPhase(finalPages);
             console.log('');
 
             // 6. Generate basic summary statistics
@@ -560,6 +570,65 @@ class DocsReviewOrchestrator {
             console.error('❌ Failed to discover documentation pages:', error);
             throw new Error(`Failed to discover documentation pages: ${error.message}`);
         }
+    }
+
+    /**
+     * Apply limit to the list of pages, considering pages that may be filtered out by resume logic
+     */
+    applyLimit(pages) {
+        if (this.limit === null || this.limit <= 0) {
+            return pages;
+        }
+
+        // If we're resuming, we want to limit the pages that would actually be processed
+        // Get the list of pages that still need work based on current resume phase
+        const remainingPages = this.getRemainingPages(pages);
+
+        // Apply limit to remaining pages
+        const limitedPages = remainingPages.slice(0, this.limit);
+
+        if (limitedPages.length < remainingPages.length) {
+            console.log(`📊 Limited to ${this.limit} pages (from ${remainingPages.length} remaining)`);
+            console.log(`🎯 Limited pages: ${limitedPages.map((p) => p.name).join(', ')}`);
+        }
+
+        // If we're limiting, we need to return the subset of original pages that matches our limited selection
+        if (limitedPages.length < pages.length) {
+            const limitedPageNames = new Set(limitedPages.map((p) => p.name));
+            return pages.filter((p) => limitedPageNames.has(p.name));
+        }
+
+        return pages;
+    }
+
+    /**
+     * Get the list of pages that still need work based on current resume phase and completed pages
+     */
+    getRemainingPages(pages) {
+        if (!this.resume) {
+            return pages;
+        }
+
+        // Filter pages based on what's already completed for the current resume phase
+        return pages.filter((page) => {
+            // Check if this page needs work based on resume phase
+            switch (this.resumePhase) {
+                case PHASES.PLANNING:
+                    // Planning phase: skip pages that already have planning completed (unless force mode)
+                    return this.force || !this.completedPages.has(`${page.name}:${PHASES.PLANNING}`);
+
+                case PHASES.EXECUTION:
+                    // Execution phase: skip pages that already have execution completed (unless force mode)
+                    return this.force || !this.completedPages.has(`${page.name}:${PHASES.EXECUTION}`);
+
+                case PHASES.SUMMARY:
+                    // Summary phase: processes all pages regardless of individual completion
+                    return true;
+
+                default:
+                    return true;
+            }
+        });
     }
 
     async loadProgress() {
@@ -768,6 +837,13 @@ ${planExists ? `Reference the existing review plan at: ${planPath}` : ''}
 ${this.skipScreenshots ? 'Skip screenshot capture for this run.' : ''}
 
 Please use the documentation review prompt from tools/prompts/docs-review.md to execute the review plan. Focus on the Phase 2 requirements: work through planned validations, document findings, and create the final report with screenshots.
+
+Note how example paths are mapped from repo paths:
+    -   \`packages/ag-charts-website/src/content/docs/${pageName}/_examples/${exampleName}/index.html\` => \`https://localhost:4600/charts/vanilla/${pageName}/examples/${exampleName}\`
+
+Note how docs paths are mapped from repo paths:
+    -   \`packages/ag-charts-website/src/content/docs/${pageName}/index.mdoc\` => \`https://localhost:4600/charts/javascript/${pageName}/\`
+
 ${buildPromptInstructions(PHASES.EXECUTION, page.name, this.dryRun)}`;
 
         return executeClaudeCommand(prompt, this.executionModel, page.name, PHASES.EXECUTION, {
@@ -992,108 +1068,92 @@ ${buildPromptInstructions(PHASES.SUMMARY, '', this.dryRun)}`;
 // ============================================================================
 
 function parseArgs() {
-    const args = process.argv.slice(2);
-    const options = {};
-
-    for (let i = 0; i < args.length; i++) {
-        const arg = args[i];
-
-        if (arg.startsWith('--batch-size=')) {
-            options.batchSize = parseInt(arg.split('=')[1]);
-        } else if (arg === '--batch-size' && i + 1 < args.length) {
-            options.batchSize = parseInt(args[i + 1]);
-            i++;
-        } else if (arg === '--skip-screenshots') {
-            options.skipScreenshots = true;
-        } else if (arg.startsWith('--planning-model=')) {
-            options.planningModel = arg.split('=')[1];
-        } else if (arg === '--planning-model' && i + 1 < args.length) {
-            options.planningModel = args[i + 1];
-            i++;
-        } else if (arg.startsWith('--execution-model=')) {
-            options.executionModel = arg.split('=')[1];
-        } else if (arg === '--execution-model' && i + 1 < args.length) {
-            options.executionModel = args[i + 1];
-            i++;
-        } else if (arg.startsWith('--summary-model=')) {
-            options.summaryModel = arg.split('=')[1];
-        } else if (arg === '--summary-model' && i + 1 < args.length) {
-            options.summaryModel = args[i + 1];
-            i++;
-        } else if (arg.startsWith('--page-glob=')) {
-            options.pageGlob = arg.split('=')[1].replace(/^['"]|['"]$/g, '');
-        } else if (arg === '--page-glob' && i + 1 < args.length) {
-            options.pageGlob = args[i + 1].replace(/^['"]|['"]$/g, '');
-            i++;
-        } else if (arg === '--resume') {
-            options.resume = true;
-        } else if (arg.startsWith('--resume-phase=')) {
-            const phase = arg.split('=')[1];
-            if (phase === 'planning' || phase === 'execution' || phase === 'summary') {
-                options.resumePhase = phase;
-                options.resume = true;
-            } else {
-                console.error(`❌ Invalid resume phase: ${phase}. Must be 'planning', 'execution', or 'summary'`);
-                process.exit(1);
-            }
-        } else if (arg === '--resume-phase' && i + 1 < args.length) {
-            const phase = args[i + 1];
-            if (phase === 'planning' || phase === 'execution' || phase === 'summary') {
-                options.resumePhase = phase;
-                options.resume = true;
-                i++;
-            } else {
-                console.error(`❌ Invalid resume phase: ${phase}. Must be 'planning', 'execution', or 'summary'`);
-                process.exit(1);
-            }
-        } else if (arg === '--clean') {
-            options.clean = true;
-        } else if (arg === '--force') {
-            options.force = true;
-        } else if (arg === '--verbose' || arg === '-v') {
-            options.verbose = true;
-        } else if (arg === '--dry-run') {
-            options.dryRun = true;
-        } else if (arg === '--help' || arg === '-h') {
-            console.log(`
-Usage: node run-docs-review.js [options]
-
-Options:
-  --batch-size <number>       Number of pages to process in parallel (default: 5)
-  --skip-screenshots          Skip screenshot capture during execution
-  --planning-model <model>    Model to use for Phase 1 planning (default: opus)
-  --execution-model <model>   Model to use for Phase 2 execution (default: sonnet)
-  --summary-model <model>     Model to use for Phase 3 summary (default: sonnet)
-  --page-glob <pattern>       Glob pattern to filter pages (e.g., 'pie-*' for pie pages)
-  --verbose, -v               Stream Claude output as it executes (instead of spinner)
-  --dry-run                   Request skeleton reports for quick testing
-  --resume                    Resume from filesystem state (checks for existing files)
-  --resume-phase <phase>      Resume from specific phase: 'planning' (default), 'execution', or 'summary'
-                              - 'execution': skips planning phase
-                              - 'summary': skips planning and execution phases
-  --force                     Force regeneration of existing files (overrides resume behavior)
-  --clean                     Clean up progress file and start fresh
-  --help, -h                  Show this help message
-
-Examples:
-  node run-docs-review.js
-  node run-docs-review.js --batch-size=3 --skip-screenshots
-  node run-docs-review.js --planning-model=opus --execution-model=sonnet --summary-model=opus
-  node run-docs-review.js --page-glob='pie-*' --batch-size=1
-  node run-docs-review.js --page-glob='pie-series' (single page)
-  node run-docs-review.js --verbose --dry-run  (quick test with output)
-  node run-docs-review.js --resume
-  node run-docs-review.js --resume-phase=execution  (skip planning, run execution only)
-  node run-docs-review.js --resume-phase=summary  (skip to summary generation)
-  node run-docs-review.js --force  (regenerate all files even if they exist)
-  node run-docs-review.js --force --page-glob='pie-*'  (force regenerate specific pages)
-  node run-docs-review.js --clean
-`);
-            process.exit(0);
-        }
-    }
-
-    return options;
+    return yargs(process.argv.slice(2))
+        .usage('Usage: $0 [options]')
+        .option('batch-size', {
+            type: 'number',
+            default: 5,
+            describe: 'Number of pages to process in parallel',
+        })
+        .option('skip-screenshots', {
+            type: 'boolean',
+            default: false,
+            describe: 'Skip screenshot capture during execution',
+        })
+        .option('planning-model', {
+            type: 'string',
+            default: 'opus',
+            describe: 'Model to use for Phase 1 planning',
+        })
+        .option('execution-model', {
+            type: 'string',
+            default: 'sonnet',
+            describe: 'Model to use for Phase 2 execution',
+        })
+        .option('summary-model', {
+            type: 'string',
+            default: 'sonnet',
+            describe: 'Model to use for Phase 3 summary',
+        })
+        .option('page-glob', {
+            type: 'string',
+            describe: "Glob pattern to filter pages (e.g., 'pie-*' for pie pages)",
+        })
+        .option('limit', {
+            type: 'number',
+            describe: 'Limit the number of pages to process',
+        })
+        .option('verbose', {
+            alias: 'v',
+            type: 'boolean',
+            default: false,
+            describe: 'Stream Claude output as it executes (instead of spinner)',
+        })
+        .option('dry-run', {
+            type: 'boolean',
+            default: false,
+            describe: 'Request skeleton reports for quick testing',
+        })
+        .option('resume', {
+            type: 'boolean',
+            default: false,
+            describe: 'Resume from filesystem state (checks for existing files)',
+        })
+        .option('resume-phase', {
+            type: 'string',
+            choices: ['planning', 'execution', 'summary'],
+            default: 'planning',
+            describe: 'Resume from specific phase',
+            implies: 'resume',
+        })
+        .option('force', {
+            type: 'boolean',
+            default: false,
+            describe: 'Force regeneration of existing files (overrides resume behavior)',
+        })
+        .option('clean', {
+            type: 'boolean',
+            default: false,
+            describe: 'Clean up progress file and start fresh',
+        })
+        .example('$0', 'Run documentation review on all pages')
+        .example('$0 --batch-size=3 --skip-screenshots', 'Use smaller batch size and skip screenshots')
+        .example(
+            '$0 --planning-model=opus --execution-model=sonnet --summary-model=opus',
+            'Use specific models for each phase'
+        )
+        .example("$0 --page-glob='pie-*' --batch-size=1", 'Process only pie-related pages')
+        .example("$0 --page-glob='pie-series'", 'Process single page')
+        .example('$0 --limit=5', 'Process only first 5 pages')
+        .example('$0 --verbose --dry-run', 'Quick test with output streaming')
+        .example('$0 --resume', 'Resume from filesystem state')
+        .example('$0 --resume-phase=execution', 'Skip planning, run execution only')
+        .example('$0 --resume-phase=summary', 'Skip to summary generation')
+        .example('$0 --force', 'Regenerate all files even if they exist')
+        .example("$0 --force --page-glob='pie-*'", 'Force regenerate specific pages')
+        .example('$0 --clean', 'Clean up and start fresh')
+        .help()
+        .alias('help', 'h').argv;
 }
 
 // ============================================================================
