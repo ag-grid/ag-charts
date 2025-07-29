@@ -5,6 +5,7 @@ const path = require('path');
 const { spawn } = require('child_process');
 const glob = require('glob');
 const yargs = require('yargs');
+const { execSync } = require('child_process');
 
 /**
  * Orchestration script for running documentation reviews on all AG Charts docs pages
@@ -60,6 +61,7 @@ const DEFAULT_OPTIONS = {
     verbose: false,
     dryRun: false,
     limit: null, // No limit by default
+    refreshDays: null, // Refresh pages modified in past N days
 };
 
 // ============================================================================
@@ -173,6 +175,41 @@ IMPORTANT: This is a DRY RUN. Create a minimal summary with just basic statistic
     const dryRunSuffix = dryRun ? dryRunInstructions[phase] || '' : '';
 
     return instructions + dryRunSuffix;
+}
+
+/**
+ * Get pages modified within the last N days using git history
+ */
+async function getModifiedPagesFromGit(days) {
+    try {
+        // Get the date N days ago in git log format
+        const sinceDate = new Date();
+        sinceDate.setDate(sinceDate.getDate() - days);
+        const sinceDateStr = sinceDate.toISOString().split('T')[0];
+
+        // Use git log to find modified files in the docs directory
+        const gitCommand = `git log --since="${sinceDateStr}" --name-only --pretty=format: -- "${PATHS.DOCS}" | grep -E "index\\.mdoc$" | sort | uniq`;
+        
+        const modifiedFiles = execSync(gitCommand, { encoding: 'utf8' })
+            .split('\n')
+            .filter(Boolean)
+            .map(file => file.trim());
+
+        // Extract page names from the file paths
+        const modifiedPageNames = new Set();
+        modifiedFiles.forEach(file => {
+            const match = file.match(/\/docs\/([^\/]+)\/index\.mdoc$/);
+            if (match) {
+                modifiedPageNames.add(match[1]);
+            }
+        });
+
+        console.log(`📝 Found ${modifiedPageNames.size} pages modified in the last ${days} days:`, Array.from(modifiedPageNames).join(', '));
+        return modifiedPageNames;
+    } catch (error) {
+        console.error('❌ Failed to get git history:', error.message);
+        throw new Error(`Failed to get modified pages from git: ${error.message}`);
+    }
 }
 
 // ============================================================================
@@ -417,6 +454,7 @@ class DocsReviewOrchestrator {
         this.resumePhase = this.options.resumePhase;
         this.force = this.options.force;
         this.limit = this.options.limit;
+        this.refreshDays = this.options.refreshDays;
 
         // Initialize state
         this.results = {
@@ -509,6 +547,10 @@ class DocsReviewOrchestrator {
             console.log(`🎯 Page filter: ${this.pageGlob}`);
         }
 
+        if (this.refreshDays) {
+            console.log(`🔄 Refresh mode: reviewing pages modified in past ${this.refreshDays} days`);
+        }
+
         if (this.resume) {
             if (this.resumePhase === PHASES.EXECUTION) {
                 console.log(`⏩ Resume phase: execution only (skipping planning)`);
@@ -563,6 +605,24 @@ class DocsReviewOrchestrator {
             if (this.pageGlob) {
                 console.log(`📚 After filtering: ${filteredFiles.length} pages matching '${this.pageGlob}'`);
                 console.log(`🎯 Filtered pages: ${filteredFiles.map((p) => p.name).join(', ')}`);
+            }
+
+            // Apply refresh-days filter if specified
+            if (this.refreshDays !== null && this.refreshDays > 0) {
+                const modifiedPages = await getModifiedPagesFromGit(this.refreshDays);
+                
+                // If refresh-days is specified, we need to:
+                // 1. Filter to only pages that were modified
+                // 2. Force regeneration of these pages
+                filteredFiles = filteredFiles.filter(page => modifiedPages.has(page.name));
+                
+                if (filteredFiles.length > 0) {
+                    console.log(`🔄 Will refresh ${filteredFiles.length} pages modified in the last ${this.refreshDays} days`);
+                    // Enable force mode for these pages
+                    this.force = true;
+                } else {
+                    console.log(`✅ No pages modified in the last ${this.refreshDays} days`);
+                }
             }
 
             return filteredFiles;
@@ -816,7 +876,7 @@ class DocsReviewOrchestrator {
 
 This is the planning phase. Create a detailed, page-specific review plan using the expensive model for sophisticated reasoning.
 
-Please use the documentation review prompt from tools/prompts/docs-review.md to create a comprehensive review plan. Focus on the Phase 1 requirements: read the documentation page, identify key validation targets, and create a structured plan with prioritized testing tasks.
+Please use the documentation review prompt from tools/prompts/commands/docs-review.md to create a comprehensive review plan. Focus on the Phase 1 requirements: read the documentation page, identify key validation targets, and create a structured plan with prioritized testing tasks.
 ${buildPromptInstructions(PHASES.PLANNING, page.name, this.dryRun)}`;
 
         return executeClaudeCommand(prompt, this.planningModel, page.name, PHASES.PLANNING, {
@@ -836,7 +896,7 @@ This is the execution phase. Execute the review plan systematically using the ch
 ${planExists ? `Reference the existing review plan at: ${planPath}` : ''}
 ${this.skipScreenshots ? 'Skip screenshot capture for this run.' : ''}
 
-Please use the documentation review prompt from tools/prompts/docs-review.md to execute the review plan. Focus on the Phase 2 requirements: work through planned validations, document findings, and create the final report with screenshots.
+Please use the documentation review prompt from tools/prompts/commands/docs-review.md to execute the review plan. Focus on the Phase 2 requirements: work through planned validations, document findings, and create the final report with screenshots.
 
 Note how example paths are mapped from repo paths:
     -   \`packages/ag-charts-website/src/content/docs/${pageName}/_examples/${exampleName}/index.html\` => \`https://localhost:4600/charts/vanilla/${pageName}/examples/${exampleName}\`
@@ -991,7 +1051,7 @@ You have ${batchSummaries.length} batch summaries to aggregate. Your task:
 
 1. Aggregate all page data from the batch summaries
 2. Identify common patterns across ALL pages
-3. Create a comprehensive markdown summary following the Phase 3 format from tools/prompts/docs-review.md
+3. Create a comprehensive markdown summary following the Phase 3 format from tools/prompts/commands/docs-review.md
 
 The summary MUST include:
 - Executive Summary with total pages, success rate, key patterns
@@ -1136,6 +1196,10 @@ function parseArgs() {
             default: false,
             describe: 'Clean up progress file and start fresh',
         })
+        .option('refresh-days', {
+            type: 'number',
+            describe: 'Refresh review plans for pages modified in the past N days (uses git history)',
+        })
         .example('$0', 'Run documentation review on all pages')
         .example('$0 --batch-size=3 --skip-screenshots', 'Use smaller batch size and skip screenshots')
         .example(
@@ -1152,6 +1216,8 @@ function parseArgs() {
         .example('$0 --force', 'Regenerate all files even if they exist')
         .example("$0 --force --page-glob='pie-*'", 'Force regenerate specific pages')
         .example('$0 --clean', 'Clean up and start fresh')
+        .example('$0 --refresh-days=7', 'Refresh review for pages modified in the last 7 days')
+        .example('$0 --refresh-days=30 --limit=10', 'Refresh up to 10 pages modified in the last month')
         .help()
         .alias('help', 'h').argv;
 }
