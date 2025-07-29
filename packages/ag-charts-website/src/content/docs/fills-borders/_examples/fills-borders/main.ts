@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts, AgChartLabelStylerParams } from 'ag-charts-community';
+import { AgChartLabelStylerParams, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './data';
 
@@ -68,14 +68,10 @@ const options: AgChartOptions<DataType> = {
                             fill: {
                                 type: 'gradient',
                                 rotation: 90,
-                                colorStops: [
-                                    { color: '#0052b1', stop: 0 },
-                                    { color: '#248aff' },
-                                ],
+                                colorStops: [{ color: '#0052b1', stop: 0 }, { color: '#248aff' }],
                             },
                         };
-                    }
-                    else if (params.datum.name.startsWith('E')) {
+                    } else if (params.datum.name.startsWith('E')) {
                         return {
                             border: {
                                 stroke: '#000',
@@ -87,10 +83,7 @@ const options: AgChartOptions<DataType> = {
                             color: '#000',
                             fill: {
                                 type: 'gradient',
-                                colorStops: [
-                                    { color: '#248aff', stop: 0 },
-                                    { color: '#badaff' },
-                                ],
+                                colorStops: [{ color: '#248aff', stop: 0 }, { color: '#badaff' }],
                             },
                         };
                     }
@@ -133,14 +126,10 @@ const options: AgChartOptions<DataType> = {
                             fill: {
                                 type: 'gradient',
                                 rotation: 90,
-                                colorStops: [
-                                    { color: '#c56600', stop: 0 },
-                                    { color: '#fb9323' },
-                                ],
+                                colorStops: [{ color: '#c56600', stop: 0 }, { color: '#fb9323' }],
                             },
                         };
-                    }
-                    else if (params.datum.name.startsWith('E')) {
+                    } else if (params.datum.name.startsWith('E')) {
                         return {
                             border: {
                                 stroke: '#000',
@@ -152,10 +141,7 @@ const options: AgChartOptions<DataType> = {
                             color: '#000',
                             fill: {
                                 type: 'gradient',
-                                colorStops: [
-                                    { color: '#fb9323', stop: 0 },
-                                    { color: '#fcc992' },
-                                ],
+                                colorStops: [{ color: '#fb9323', stop: 0 }, { color: '#fcc992' }],
                             },
                         };
                     }
