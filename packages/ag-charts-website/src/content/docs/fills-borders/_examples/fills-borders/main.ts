@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartLabelStylerParams, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './data';
 
@@ -55,6 +55,40 @@ const options: AgChartOptions<DataType> = {
                     strokeWidth: 1,
                 },
                 color: '#333',
+                itemStyler: (params: AgChartLabelStylerParams<DataType, unknown>) => {
+                    if (params.datum.name.startsWith('D')) {
+                        return {
+                            border: {
+                                stroke: '#f00',
+                                strokeWidth: 3,
+                                strokeOpacity: 1,
+                            },
+                            padding: { top: 6, right: 8, bottom: 2, left: 8 },
+                            fontWeight: 'bold',
+                            color: '#fff',
+                            fill: {
+                                type: 'gradient',
+                                rotation: 90,
+                                colorStops: [{ color: '#0052b1', stop: 0 }, { color: '#248aff' }],
+                            },
+                        };
+                    } else if (params.datum.name.startsWith('E')) {
+                        return {
+                            border: {
+                                stroke: '#000',
+                                strokeWidth: 3,
+                                strokeOpacity: 1,
+                            },
+                            padding: { top: 6, right: 8, bottom: 2, left: 8 },
+                            fontWeight: 'bold',
+                            color: '#000',
+                            fill: {
+                                type: 'gradient',
+                                colorStops: [{ color: '#248aff', stop: 0 }, { color: '#badaff' }],
+                            },
+                        };
+                    }
+                },
             },
         },
         {
@@ -79,6 +113,40 @@ const options: AgChartOptions<DataType> = {
                     strokeWidth: 1,
                 },
                 color: '#333',
+                itemStyler: (params: AgChartLabelStylerParams<DataType, unknown>) => {
+                    if (params.datum.name.startsWith('D')) {
+                        return {
+                            border: {
+                                stroke: '#f00',
+                                strokeWidth: 3,
+                                strokeOpacity: 1,
+                            },
+                            padding: { top: 6, right: 8, bottom: 2, left: 8 },
+                            fontWeight: 'bold',
+                            color: '#fff',
+                            fill: {
+                                type: 'gradient',
+                                rotation: 90,
+                                colorStops: [{ color: '#c56600', stop: 0 }, { color: '#fb9323' }],
+                            },
+                        };
+                    } else if (params.datum.name.startsWith('E')) {
+                        return {
+                            border: {
+                                stroke: '#000',
+                                strokeWidth: 3,
+                                strokeOpacity: 1,
+                            },
+                            padding: { top: 6, right: 8, bottom: 2, left: 8 },
+                            fontWeight: 'bold',
+                            color: '#000',
+                            fill: {
+                                type: 'gradient',
+                                colorStops: [{ color: '#fb9323', stop: 0 }, { color: '#fcc992' }],
+                            },
+                        };
+                    }
+                },
             },
         },
     ],
