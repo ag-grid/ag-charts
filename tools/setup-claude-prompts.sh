@@ -17,10 +17,13 @@ if [ -f "tools/prompts/CLAUDE.md" ]; then
 fi
 
 # Symlink other .md files to .claude/commands/
-for file in tools/prompts/*.md; do
-    if [ -f "$file" ] && [ "$(basename "$file")" != "CLAUDE.md" ]; then
-        ln -sf "../../$file" ".claude/commands/$(basename "$file")"
-    fi
+for file in tools/prompts/commands/*.md; do
+    ln -sf "../../$file" ".claude/commands/$(basename "$file")"
+done
+
+# Symlink other .md files to .claude/commands/
+for file in tools/prompts/agents/*.md; do
+    ln -sf "../../$file" ".claude/agents/$(basename "$file")"
 done
 
 function add_mcp() {
