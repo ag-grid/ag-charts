@@ -419,11 +419,7 @@ export class Legend extends BaseProperties {
         const itemMaxWidthPercentage = 0.8;
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
 
-        let anyLineEnabled = false;
-        this.itemSelection.each((_, datum) => {
-            const { lineEnabled, isCustomMarker } = this.calcSymbolsEnabled(datum.symbol);
-            anyLineEnabled ||= lineEnabled && !isCustomMarker;
-        });
+        const { markerWidth, anyLineEnabled } = this.calculateMarkerWidth();
 
         this.itemSelection.each((markerLabel, datum) => {
             markerLabel.fontStyle = fontStyle;
@@ -431,7 +427,6 @@ export class Legend extends BaseProperties {
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
 
-            const markerWidth = this.calculateMarkerWidth(datum);
             const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, anyLineEnabled);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
@@ -504,9 +499,8 @@ export class Legend extends BaseProperties {
 
         let customMarkerSize: number | undefined;
         const { shape } = symbol.marker;
-        const isCustomMarker = this.isCustomMarker(markerEnabled, shape);
         // Calculate the marker size of a custom marker shape:
-        if (isCustomMarker) {
+        if (this.isCustomMarker(markerEnabled, shape)) {
             const tmpShape = new Marker();
             tmpShape.shape = shape;
             tmpShape.updatePath();
@@ -515,18 +509,27 @@ export class Legend extends BaseProperties {
         }
 
         const markerLength = markerEnabled ? marker.size : 0;
-        const lineLength = lineEnabled && !isCustomMarker ? line.length ?? 25 : 0;
+        const lineLength = lineEnabled ? line.length ?? 25 : 0;
         return { markerLength, lineLength, customMarkerSize };
     }
 
-    private calculateMarkerWidth(datum: CategoryLegendDatum) {
-        const { lineEnabled, markerEnabled } = this.calcSymbolsEnabled(datum.symbol);
-        const {
-            markerLength,
-            lineLength,
-            customMarkerSize = -Infinity,
-        } = this.calcSymbolsLengths(datum.symbol, markerEnabled, lineEnabled);
-        return Math.max(markerLength, lineLength, customMarkerSize);
+    private calculateMarkerWidth() {
+        let markerWidth = 0;
+        let anyLineEnabled = false;
+        this.itemSelection.each((_, datum) => {
+            const { symbol } = datum;
+
+            const { lineEnabled, markerEnabled } = this.calcSymbolsEnabled(symbol);
+            const {
+                markerLength,
+                lineLength,
+                customMarkerSize = -Infinity,
+            } = this.calcSymbolsLengths(symbol, markerEnabled, lineEnabled);
+            markerWidth = Math.max(markerWidth, lineLength, customMarkerSize, markerLength);
+
+            anyLineEnabled ||= lineEnabled;
+        });
+        return { markerWidth, anyLineEnabled };
     }
 
     private updateMarkerLabel(
