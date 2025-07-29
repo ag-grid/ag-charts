@@ -337,6 +337,7 @@ export const Changelog = () => {
             {
                 field: 'versions',
                 headerName: 'Version',
+                sort: 'desc',
                 width: 145,
                 resizable: true,
                 filter: 'agSetColumnFilter',
@@ -348,7 +349,7 @@ export const Changelog = () => {
                 filterParams: {
                     comparator: compareSemver,
                 },
-                comparator: compareSemver,
+                comparator: (a, b) => compareSemver(b, a), // Reverse to sort by descending
             },
             {
                 field: 'issueType',
