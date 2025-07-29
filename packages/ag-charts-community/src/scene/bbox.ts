@@ -25,7 +25,7 @@ export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
     static readonly zero = Object.freeze(new BBox(0, 0, 0, 0)) as BBox;
     static readonly NaN = Object.freeze(new BBox(NaN, NaN, NaN, NaN)) as BBox;
 
-    static fromDOMRect({ x, y, width, height }: DOMRect) {
+    static fromObject({ x, y, width, height }: BoxBounds) {
         return new BBox(x, y, width, height);
     }
 

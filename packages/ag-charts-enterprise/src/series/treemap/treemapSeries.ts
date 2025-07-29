@@ -9,13 +9,12 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type InternalAgColorType, type RequireOptional, isNumberEqual } from 'ag-charts-core';
+import { type InternalAgColorType, type RequireOptional, calcLineHeight, isNumberEqual } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
 const {
-    TextUtils,
     TextWrapper,
     createDatumId,
     Rect,
@@ -611,7 +610,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 node.label = {
                     text,
                     fontSize: group.label.fontSize,
-                    lineHeight: TextUtils.getLineHeight(group.label.fontSize),
+                    lineHeight: calcLineHeight(group.label.fontSize),
                     fontStyle,
                     fontFamily,
                     fontWeight,

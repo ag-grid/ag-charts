@@ -210,7 +210,7 @@ export class MapLineSeries extends TopologySeries<
         datum: any,
         labelValue: string | undefined,
         projectedGeometry: _ModuleSupport.Geometry | undefined,
-        measurer: _ModuleSupport.CachedTextMeasurer
+        measurer: _ModuleSupport.TextMeasurer
     ): MapLineNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null) return;
 

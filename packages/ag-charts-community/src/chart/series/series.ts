@@ -2,6 +2,7 @@ import {
     type AnyFn,
     CleanupRegistry,
     EventEmitter,
+    LRUCache,
     Logger,
     type RequireOptional,
     type RequiredInternalAgGradientColor,
@@ -40,7 +41,6 @@ import type { Path } from '../../scene/shape/path';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { callWithContext } from '../../util/callbackCache';
 import { jsonDiff } from '../../util/json';
-import { LRUCache } from '../../util/lruCache';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
 import { mergeDefaults } from '../../util/object';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
@@ -697,7 +697,7 @@ export abstract class Series<
         removeThisDatum: TDatum | undefined
     ): TooltipContent | undefined;
 
-    protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
+    protected _pickNodeCache = new LRUCache<PickResult | undefined>(5);
     pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
         const { pickModes, pickModeAxis, visible, contentGroup } = this;
 

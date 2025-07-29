@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { EllipsisChar, Logger, calcLineHeight } from 'ag-charts-core';
 import type {
     AgMapShapeSeriesLabelFormatterParams,
     AgMapShapeSeriesOptions,
@@ -27,7 +27,6 @@ const {
     SeriesNodePickMode,
     valueProperty,
     CachedTextMeasurerPool,
-    TextUtils,
     ColorScale,
     Group,
     Selection,
@@ -228,7 +227,7 @@ export class MapShapeSeries
     private getLabelLayout(
         datum: any,
         labelValue: string | undefined,
-        measurer: _ModuleSupport.CachedTextMeasurer,
+        measurer: _ModuleSupport.TextMeasurer,
         geometry: _ModuleSupport.Geometry | undefined,
         previousLabelLayout: LabelLayout | undefined
     ): LabelLayout | undefined {
@@ -259,8 +258,7 @@ export class MapShapeSeries
 
         const baseSize = measurer.measureText(String(labelText));
         const numLines = labelText.split('\n').length;
-        const aspectRatio =
-            (baseSize.width + 2 * padding) / (numLines * TextUtils.getLineHeight(label.fontSize) + 2 * padding);
+        const aspectRatio = (baseSize.width + 2 * padding) / (numLines * calcLineHeight(label.fontSize) + 2 * padding);
 
         if (
             previousLabelLayout?.geometry === geometry &&
@@ -311,7 +309,7 @@ export class MapShapeSeries
 
         const [{ text, fontSize, lineHeight, width }, formattingX] = labelFormatting;
         // FIXME - formatSingleLabel should never return an ellipsis
-        if (text === TextUtils.EllipsisChar) return;
+        if (text === EllipsisChar) return;
 
         // Only shift horizontally if necessary
         const x = width < maxSizeWithoutTruncation.width ? untruncatedX : formattingX;

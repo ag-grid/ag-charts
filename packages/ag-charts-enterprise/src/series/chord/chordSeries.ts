@@ -1,5 +1,5 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
-import { Logger, type RequireOptional } from 'ag-charts-core';
+import { Logger, type RequireOptional, calcLineHeight } from 'ag-charts-core';
 import type { AgChordSeriesLabelFormatterParams, AgChordSeriesOptions } from 'ag-charts-types';
 
 import {
@@ -17,7 +17,6 @@ const {
     SeriesNodePickMode,
     CachedTextMeasurerPool,
     TextWrapper,
-    TextUtils,
     createDatumId,
     angleBetween,
     normalizeAngle360,
@@ -310,7 +309,7 @@ export class ChordSeries extends FlowProportionSeries<
         let minAngle = Infinity;
         let maxAngle = -Infinity;
         labelData = labelData.filter((label) => {
-            const labelHeight = TextUtils.getLineHeight(fontSize);
+            const labelHeight = calcLineHeight(fontSize);
             const da = Math.atan2(labelHeight / 2, label.radius);
 
             const a0 = label.angle - da;
