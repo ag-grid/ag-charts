@@ -38,7 +38,7 @@ import {
     rangedValueProperty,
     valueProperty,
 } from '../../data/processors';
-import { expandLabelPadding } from '../../label';
+import { Label, expandLabelPadding } from '../../label';
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -126,8 +126,8 @@ interface ProcessedDataValues {
 }
 
 enum DonutNodeTag {
-    Callout,
-    Label,
+    CalloutLine,
+    CalloutLabel,
 }
 
 interface PieDonutSeriesLabelFormatterParams
@@ -952,12 +952,12 @@ export class DonutSeries extends PolarSeries<
 
         calloutLabelSelection.update(this.calloutNodeData, (group) => {
             const line = new Line();
-            line.tag = DonutNodeTag.Callout;
+            line.tag = DonutNodeTag.CalloutLine;
             line.pointerEvents = PointerEvents.None;
             group.appendChild(line);
 
             const text = new Text();
-            text.tag = DonutNodeTag.Label;
+            text.tag = DonutNodeTag.CalloutLabel;
             text.pointerEvents = PointerEvents.None;
             group.appendChild(text);
         });
@@ -1072,7 +1072,7 @@ export class DonutSeries extends PolarSeries<
         const calloutColors = isStringFillArray(colors) ? colors ?? this.properties.strokes : strokes;
         const { offset } = this.properties.calloutLabel;
 
-        this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.Callout).forEach((line) => {
+        this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.CalloutLine).forEach((line) => {
             const datum = line.closestDatum() as PieDonutNodeDatum;
             const { calloutLabel: label, outerRadius, datumIndex } = datum;
 
@@ -1194,13 +1194,11 @@ export class DonutSeries extends PolarSeries<
             .filter((d) => d.midSin >= 0 && d.calloutLabel?.textAlign === 'center')
             .sort((a, b) => a.midCos - b.midCos);
 
-        const params = { angleKey: this.properties.angleKey };
         const getTextBBox = (datum: (typeof data)[number]) => {
             const label = datum.calloutLabel;
             if (label == null) return BBox.zero.clone();
 
-            type TParams = AgDonutSeriesLabelFormatterParams;
-            const style = getLabelStyles<TParams>(this, datum, params, calloutLabel);
+            const style = this.getLabelStyle(datum, calloutLabel);
             const padding = expandLabelPadding(style);
 
             const labelRadius = datum.outerRadius + calloutLine.length + offset;
@@ -1300,13 +1298,27 @@ export class DonutSeries extends PolarSeries<
         avoidXCollisions(bottomLabels);
     }
 
+    private getLabelStyle(datum: PieDonutNodeDatum, label: Label<AgDonutSeriesLabelFormatterParams>) {
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const isHighlight = false; // Labels are not highlighted in donut series
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
+        return getLabelStyles<AgDonutSeriesLabelFormatterParams>(
+            this,
+            datum,
+            this.properties,
+            label,
+            isHighlight,
+            highlightState
+        );
+    }
+
     private updateCalloutLabelNodes(seriesRect: BBox) {
         const { radiusScale } = this;
         const { calloutLabel, calloutLine } = this.properties;
 
         const tempTextNode = new Text();
 
-        this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.Label).forEach((text) => {
+        this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.CalloutLabel).forEach((text) => {
             const datum: PieDonutNodeDatum = text.closestDatum();
             const label = datum.calloutLabel;
             const radius = radiusScale.convert(datum.radius);
@@ -1316,18 +1328,8 @@ export class DonutSeries extends PolarSeries<
                 text.visible = false;
                 return;
             }
-            type TParams = AgDonutSeriesLabelFormatterParams;
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-            const isHighlight = false; // Labels are not highlighted in donut series
-            const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
-            const style = getLabelStyles<TParams>(
-                this,
-                datum,
-                this.properties,
-                calloutLabel,
-                isHighlight,
-                highlightState
-            );
+
+            const style = this.getLabelStyle(datum, calloutLabel);
 
             const labelRadius = outerRadius + calloutLine.length + calloutLabel.offset;
             const x = datum.midCos * labelRadius;
@@ -1401,15 +1403,13 @@ export class DonutSeries extends PolarSeries<
             }
         }
 
-        type TParams = AgDonutSeriesLabelFormatterParams;
-        const params: TParams = { angleKey: this.properties.angleKey };
         this.calloutNodeData.forEach((datum) => {
             const label = datum.calloutLabel;
             if (!label || datum.outerRadius === 0) {
                 return null;
             }
 
-            const style = getLabelStyles<TParams>(this, datum, params, calloutLabel);
+            const style = this.getLabelStyle(datum, calloutLabel);
             const labelRadius = datum.outerRadius + calloutLength + offset;
             const x = datum.midCos * labelRadius;
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
@@ -1484,18 +1484,7 @@ export class DonutSeries extends PolarSeries<
 
             let isTextVisible = false;
             if (datum.sectorLabel && outerRadius !== 0) {
-                type TParams = AgDonutSeriesLabelFormatterParams;
-                const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                const isHighlight = false; // Labels are not highlighted in donut series
-                const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
-                const style = getLabelStyles<TParams>(
-                    this,
-                    datum,
-                    properties,
-                    properties.sectorLabel,
-                    isHighlight,
-                    highlightState
-                );
+                const style = this.getLabelStyle(datum, properties.sectorLabel);
                 const labelRadius = innerRadius * (1 - positionRatio) + outerRadius * positionRatio + positionOffset;
 
                 text.fill = style.color;
