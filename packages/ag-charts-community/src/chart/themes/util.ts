@@ -248,6 +248,23 @@ const ITEM_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightStyleOptions> = {
 export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     padding: 8,
     cornerRadius: 4,
+    fill: {
+        $if: [
+            {
+                $and: [
+                    { $eq: [{ $path: './fill/type' }, 'image'] },
+                    { $isUserOption: ['./fill/backgroundFill', false, true] },
+                ],
+            },
+            { backgroundFill: 'transparent' } as any,
+            undefined,
+        ],
+    },
+    border: {
+        enabled: { $isUserOption: ['../border', true, false] },
+        strokeWidth: 1,
+        stroke: { $foregroundOpacity: 0.08 },
+    },
 };
 
 export function multiSeriesHighlightStyle(
@@ -288,7 +305,7 @@ export const LEGEND_CONTAINER_THEME: any = {
         strokeOpacity: 1,
         strokeWidth: 1,
     },
-    cornerRadius: { $ref: 'borderRadius' },
+    cornerRadius: 4,
     fillOpacity: 1,
     padding: {
         $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, { $isUserOption: ['./fill', 5, 0] }],

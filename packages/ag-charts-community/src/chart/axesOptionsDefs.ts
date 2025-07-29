@@ -34,8 +34,8 @@ import {
     union,
 } from 'ag-charts-core';
 import type {
-    AgAxisBandTimeIntervalOptions,
     AgAxisBaseIntervalOptions,
+    AgAxisDiscreteTimeIntervalOptions,
     AgAxisGridStyle,
     AgBandHighlightOptions,
     AgBaseAxisLabelOptions,
@@ -58,7 +58,7 @@ import type {
     AgTimeInterval,
 } from 'ag-charts-types';
 
-import { numberFormatValidator, textOrSegments } from './commonOptionsDefs';
+import { numberFormatValidator } from './commonOptionsDefs';
 
 export const timeIntervalUnit = union('millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year');
 
@@ -76,7 +76,7 @@ export const timeInterval = optionsDefs<AgTimeInterval>(timeIntervalDefs, 'a tim
 
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
     enabled: boolean,
-    text: textOrSegments,
+    text: string,
     padding: number,
     ...fontOptionsDef,
 };
@@ -150,7 +150,7 @@ export const cartesianAxisLabelOptionsDefs: OptionsDefs<AgBaseCartesianAxisLabel
     autoRotate: boolean,
     autoRotateAngle: number,
     wrapping: union('never', 'always', 'hyphenate', 'on-space'),
-    truncate: undocumented(boolean),
+    truncate: boolean,
     ...commonAxisLabelOptionsDefs,
 };
 
@@ -190,8 +190,9 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
         style: arrayOfDefs<AgAxisGridStyle>(
             {
                 fill: color,
-                fillOpacity: number,
+                fillOpacity: positiveNumber,
                 stroke: or(color, themeOperator),
+                strokeWidth: positiveNumber,
                 lineDash: arrayOf(positiveNumber),
             },
             'a grid-line style object array'
@@ -227,7 +228,7 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
     maxThicknessRatio: ratio,
     title: {
         enabled: boolean,
-        text: textOrSegments,
+        text: string,
         spacing: positiveNumber,
         formatter: callback,
         ...fontOptionsDef,
@@ -323,7 +324,7 @@ export function continuousAxisOptions(
     };
 }
 
-export const bandTimeAxisIntervalOptionsDefs: OptionsDefs<AgAxisBandTimeIntervalOptions> = {
+export const discreteTimeAxisIntervalOptionsDefs: OptionsDefs<AgAxisDiscreteTimeIntervalOptions> = {
     step: or(positiveNumberNonZero, timeIntervalUnit, timeInterval),
     values: arrayOf(or(number, date)),
     minSpacing: and(positiveNumber, lessThan('maxSpacing')),

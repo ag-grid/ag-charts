@@ -243,20 +243,27 @@ export function normaliseTimeDataDomain(d: Date[], min: Date | number | undefine
         max = new Date(max);
     }
 
-    if (d.length > 2) {
-        d = extent(d)?.map((x) => new Date(x)) ?? [];
-    }
-    if (min instanceof Date) {
-        clipped ||= min > d[0];
-        d = [min, d[1]];
-    }
-    if (max instanceof Date) {
-        clipped ||= max < d[1];
-        d = [d[0], max];
-    }
-    if (d[0] > d[1]) {
-        d = [];
+    const de = extent(d)?.map((x) => new Date(x));
+    if (de == null) {
+        return {
+            domain: min != null && max != null && min.valueOf() <= max.valueOf() ? [min, max] : [],
+            clipped: false,
+        };
     }
 
-    return { domain: d, clipped };
+    let [d0, d1] = de;
+
+    if (min instanceof Date) {
+        clipped ||= min > d0;
+        d0 = min;
+    }
+    if (max instanceof Date) {
+        clipped ||= max < d1;
+        d1 = max;
+    }
+    if (d0 > d1) {
+        return { domain: [], clipped: false };
+    }
+
+    return { domain: [d0, d1], clipped };
 }

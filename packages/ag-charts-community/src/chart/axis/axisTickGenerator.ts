@@ -235,7 +235,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         const getLabelData = ({ ticks }: TickData, iterationRotation: number) => {
             updateLabelMatrix(iterationRotation);
-            return createLabelData(ticks, labelX, labelMatrix, textMeasurer);
+            return createLabelData(ticks, labelX, labelMatrix, textMeasurer, label);
         };
 
         const getTimeLabelData = (tickData: TickData, iterationRotation: number) => {
@@ -322,10 +322,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 lastTick.translation + lastLabel.label.width / 2 > range[1] + removeOverflowThreshold
             ) {
                 lastTick.tickLabel = undefined;
-
-                const firstTick = tickData.ticks[0];
-                if (firstTick.translation === 0 && visibleRange[0] === 0 && visibleRange[1] === 1) {
-                    firstTick.tickLabel = undefined;
+                if (visibleRange[0] === 0 && visibleRange[1] === 1) {
+                    tickData.ticks[0].tickLabel = undefined;
                 }
             }
         }

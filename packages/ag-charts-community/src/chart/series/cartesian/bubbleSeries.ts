@@ -26,6 +26,7 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, valueProperty } from '../../data/processors';
+import { expandLabelPadding } from '../../label';
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -339,6 +340,7 @@ export class BubbleSeries extends CartesianSeries<
         const rawData = processedData.dataSources.get(this.id);
         if (rawData == null) return;
 
+        const padding = expandLabelPadding(label);
         const handleDatum = (datumIndex: number, count: number, dilation: number) => {
             const datum = rawData[datumIndex];
             const xDatum = xDataValues[datumIndex];
@@ -384,6 +386,8 @@ export class BubbleSeries extends CartesianSeries<
                     { value: labelTextValue, datum, xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName }
                 );
                 const size = textMeasurer.measureText(String(labelText));
+                size.width += padding.left + padding.right;
+                size.height += padding.bottom + padding.top;
 
                 nodeLabel = { text: labelText, ...size };
             } else {
@@ -525,13 +529,24 @@ export class BubbleSeries extends CartesianSeries<
         this.updateLabelNodes({ labelSelection: this.labelSelection });
     }
 
-    protected updateLabelNodes(opts: { labelSelection: Selection<Text, BubbleScatterNodeDatum> }) {
+    protected updateLabelNodes(opts: {
+        labelSelection: Selection<Text, BubbleScatterNodeDatum>;
+        isHighlight?: boolean;
+    }) {
+        const { isHighlight = false } = opts;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+
         opts.labelSelection.each((text, datum) => {
+            const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
+            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datum.datumIndex);
+
             const style = getLabelStyles<AgBubbleSeriesLabelFormatterParams>(
                 this,
                 datum,
                 this.properties,
-                this.properties.label
+                this.properties.label,
+                highlighted,
+                highlightState
             );
             text.text = datum.label.text;
             text.fill = style.color;
@@ -543,7 +558,7 @@ export class BubbleSeries extends CartesianSeries<
             text.fontFamily = style.fontFamily;
             text.textAlign = 'left';
             text.textBaseline = 'top';
-            text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
+            text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
             text.setBoxing(style);
         });
     }
@@ -711,5 +726,10 @@ export class BubbleSeries extends CartesianSeries<
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
+    }
+
+    protected override hasItemStylers(): boolean {
+        const { itemStyler, marker, label } = this.properties;
+        return !!(itemStyler ?? marker.itemStyler ?? label.itemStyler);
     }
 }

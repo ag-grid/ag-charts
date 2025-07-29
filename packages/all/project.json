@@ -250,6 +250,12 @@
         "parallel": false,
         "forwardAllArgs": true
       }
+    },
+    "snykIgnore": {
+      "command": "node ./external/ag-shared/scripts/snyk/getSnykIgnore.mjs",
+      "options": {
+        "cwd": "{workspaceRoot}"
+      }
     }
   },
   "implicitDependencies": [

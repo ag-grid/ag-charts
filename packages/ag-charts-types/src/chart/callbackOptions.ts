@@ -18,6 +18,13 @@ export interface SeriesCallbackParams {
     seriesId: string;
 }
 
+export type HighlightState =
+    | 'highlighted-item'
+    | 'unhighlighted-item'
+    | 'highlighted-series'
+    | 'unhighlighted-series'
+    | 'none';
+
 export interface DatumCallbackParams<TDatum> {
     /** The data point associated with the label. */
     datum: TDatum;
@@ -25,6 +32,8 @@ export interface DatumCallbackParams<TDatum> {
     seriesId: string;
     /** Indicates whether the element is highlighted. */
     highlighted: boolean;
+    /** The specific highlight state of the element. */
+    highlightState?: HighlightState;
 }
 
 export interface ContextCallbackParams<TContext> {

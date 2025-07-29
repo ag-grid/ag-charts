@@ -87,10 +87,11 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         }
 
         switch (type) {
-            case 'number':
+            case 'number': {
                 const options = parseNumberFormat(specifier);
                 if (options == null) return;
                 return createNumberFormatter(options);
+            }
             case 'date':
                 return buildDateFormatter(specifier) as (value: any) => string;
             case 'category':

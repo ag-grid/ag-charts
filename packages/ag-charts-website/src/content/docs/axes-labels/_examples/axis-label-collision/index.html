@@ -1,27 +1,40 @@
 <div class="example-controls">
     <div class="controls-row">
-        <div>
-            Avoid Collisions:
-            <button onclick="noCollisionDetection()">Off</button>
-            <button onclick="autoCollisionDetection()">On (default)</button>
+        <div class="gap-right">
+            <label for="avoidance-select">Avoid Collisions:</label>
+            <select id="avoidance-select" onchange="avoidanceChange(event)">
+                <option value="enabled">Enabled (default)</option>
+                <option value="disabled">Disabled</option>
+            </select>
         </div>
-        <div class="gap-left">
-            Values:
-            <button onclick="shortLabels()">Short labels</button>
-            <button onclick="longLabels()">Long labels</button>
+        <div>
+            <label for="label-select">Labels: </label>
+            <select id="label-select" onchange="labelChange(event)">
+                <option value="year">Short</option>
+                <option value="sportStar">Long</option>
+            </select>
         </div>
         <button class="push-right" onclick="reset()">Reset</button>
     </div>
     <div class="controls-row">
-        <div>
-            Rotation:
-            <button onclick="disableRotation()">No rotation</button>
-            <button onclick="fixedRotation()">Fixed rotation</button>
-            <button onclick="autoRotation()">Auto rotation (default)</button>
+        <div class="gap-right">
+            <label for="truncation-select">Truncation: </label>
+            <select id="truncation-select" onchange="truncationChange(event)">
+                <option value="disabled">Disabled (default)</option>
+                <option value="enabled">Enabled</option>
+            </select>
         </div>
-        <div class="gap-left">
-            Wrapping:
-            <select onchange="wrapChange(event)">
+        <div class="gap-right">
+            <label for="rotation-select">Rotation: </label>
+            <select id="rotation-select" onchange="rotationChange(event)">
+                <option value="auto">Auto rotation (default)</option>
+                <option value="disabled">No rotation</option>
+                <option value="fixed">Fixed rotation</option>
+            </select>
+        </div>
+        <div>
+            <label for="wrap-select">Wrapping: </label>
+            <select id="wrap-select" onchange="wrapChange(event)">
                 <option value="on-space">on-space (default)</option>
                 <option value="always">always</option>
                 <option value="hyphenate">hyphenate</option>

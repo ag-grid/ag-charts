@@ -691,4 +691,8 @@ export abstract class BaseFunnelSeries<
             })
             .filter((datum): datum is _ModuleSupport.CategoryLegendDatum => datum != null);
     }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
+    }
 }

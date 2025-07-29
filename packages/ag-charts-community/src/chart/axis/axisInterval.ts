@@ -1,5 +1,4 @@
-import { BaseProperties } from '../../util/properties';
-import { Property } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
 import type { TickInterval } from './axisTick';
 
 export class AxisInterval<S> extends BaseProperties {

@@ -12,7 +12,6 @@ import {
 } from 'ag-charts-core';
 import type { AgDonutInnerLabel, AgDonutSeriesOptions, AgDonutSeriesThemeableOptions } from 'ag-charts-types';
 
-import { textOrSegments } from '../../commonOptionsDefs';
 import { pieSeriesOptionsDef, pieSeriesThemeableOptionsDef } from './pieSeriesOptionsDef';
 
 export const donutSeriesThemeableOptionsDef: OptionsDefs<AgDonutSeriesThemeableOptions> = {
@@ -36,7 +35,7 @@ export const donutSeriesOptionsDef: OptionsDefs<AgDonutSeriesOptions> = {
     type: required(constant('donut')),
     innerLabels: arrayOfDefs<AgDonutInnerLabel>(
         {
-            text: required(textOrSegments),
+            text: required(string),
             spacing: positiveNumber,
             ...fontOptionsDef,
             ...labelBoxOptionsDef,

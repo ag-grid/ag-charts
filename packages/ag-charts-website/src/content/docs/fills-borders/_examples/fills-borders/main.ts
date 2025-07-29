@@ -2,7 +2,9 @@ import { AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './data';
 
-const options: AgChartOptions = {
+type DataType = { height: number; weight: number; age: number; name: string };
+
+const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Weight vs Height',
@@ -12,16 +14,22 @@ const options: AgChartOptions = {
     },
     seriesArea: {
         border: {
-            stroke: '#999999',
+            stroke: '#333333',
             strokeWidth: 2,
         },
         cornerRadius: 4,
-        padding: {
-            top: 5,
-            right: 5,
-            bottom: 5,
-            left: 5,
+        padding: 0,
+    },
+    legend: {
+        position: { placement: 'top-right', floating: true, xOffset: -20, yOffset: 15 },
+        fill: '##999',
+        fillOpacity: 0.15,
+        border: {
+            enabled: true,
+            stroke: '##999',
+            strokeOpacity: 0.5,
         },
+        padding: 10,
     },
     series: [
         {
@@ -34,6 +42,19 @@ const options: AgChartOptions = {
             yName: 'Weight',
             sizeKey: 'age',
             sizeName: 'Age',
+            labelKey: 'name',
+            labelName: 'Name',
+            label: {
+                cornerRadius: 4,
+                fill: '#badaff',
+                padding: { top: 4, right: 6, bottom: 0, left: 6 },
+                border: {
+                    enabled: true,
+                    stroke: '#2c79d5',
+                    strokeWidth: 1,
+                },
+                color: '#333',
+            },
         },
         {
             type: 'bubble',
@@ -45,6 +66,19 @@ const options: AgChartOptions = {
             yName: 'Weight',
             sizeKey: 'age',
             sizeName: 'Age',
+            labelKey: 'name',
+            labelName: 'Name',
+            label: {
+                cornerRadius: 4,
+                fill: '#fcc992',
+                padding: { top: 4, right: 6, bottom: 0, left: 6 },
+                border: {
+                    enabled: true,
+                    stroke: '#ea7e04',
+                    strokeWidth: 1,
+                },
+                color: '#333',
+            },
         },
     ],
     axes: [
@@ -55,6 +89,10 @@ const options: AgChartOptions = {
                 text: 'Height',
             },
             label: {
+                fill: '##999',
+                fillOpacity: 0.2,
+                cornerRadius: 16,
+                padding: { top: 6, right: 8, bottom: 2, left: 8 },
                 formatter: (params) => {
                     return params.value + 'cm';
                 },
@@ -67,6 +105,10 @@ const options: AgChartOptions = {
                 text: 'Weight',
             },
             label: {
+                fill: '#999',
+                fillOpacity: 0.2,
+                cornerRadius: 16,
+                padding: { top: 6, right: 8, bottom: 4, left: 8 },
                 formatter: (params) => {
                     return params.value + 'kg';
                 },

@@ -1,0 +1,20 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <label for="enable-dragging">Axis Dragging:</label>
+        <select id="enable-dragging" onchange="enableAxisDragging(event.target.value)" class="gap-right">
+            <option value="on">Enabled</option>
+            <option value="off">Disabled</option>
+        </select>
+        <label for="dragging-mode">Axis Dragging Mode:</label>
+        <select id="dragging-mode" onchange="setAxisDragging(event.target.value)" class="gap-right">
+            <option value="zoom">Zoom</option>
+            <option value="pan">Pan</option>
+        </select>
+        <label for="enable-scrolling">Axis Scrolling:</label>
+        <select id="enable-scrolling" onchange="enableAxisScrolling(event.target.value)">
+            <option value="on">Enabled</option>
+            <option value="off">Disabled</option>
+        </select>
+    </div>
+</div>
+<div id="myChart"></div>

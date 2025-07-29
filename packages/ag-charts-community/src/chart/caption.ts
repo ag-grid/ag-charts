@@ -1,12 +1,11 @@
-import { createId, isArray } from 'ag-charts-core';
-import type { FontStyle, FontWeight, TextAlign, TextWrap } from 'ag-charts-types';
+import { createId, isArray, toPlainText } from 'ag-charts-core';
+import type { FontStyle, FontWeight, TextAlign, TextSegment, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
 import { RotatableText } from '../scene/shape/text';
 import { Transformable } from '../scene/transformable';
-import { BaseProperties } from '../util/properties';
-import { Property } from '../util/properties';
+import { BaseProperties, Property } from '../util/properties';
 import { ProxyPropertyOnWrite } from '../util/proxy';
 import { TextUtils } from '../util/textMeasurer';
 import { TextWrapper } from '../util/textWrapper';
@@ -30,7 +29,7 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     @Property
     @ProxyPropertyOnWrite('node')
-    text?: string;
+    text?: string | TextSegment[];
 
     @Property
     @ProxyPropertyOnWrite('node')
@@ -104,7 +103,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             if (bbox) {
                 const { id: domManagerId } = this;
                 this.proxyText ??= proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
-                this.proxyText.textContent = this.text;
+                this.proxyText.textContent = toPlainText(this.text);
                 this.proxyText.setBounds(bbox);
                 this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev));
                 this.proxyText.addListener('mouseleave', (ev) => this.handleMouseLeave(moduleCtx, ev));
@@ -116,12 +115,12 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     private handleMouseMove(moduleCtx: ModuleContext, event?: MouseWidgetEvent<'mousemove'>) {
-        if (event != null && this.enabled && this.node.visible && this.truncated) {
+        if (event != null && this.enabled && this.truncated) {
             const { x, y } = Transformable.toCanvas(this.node);
             const canvasX = event.sourceEvent.offsetX + x;
             const canvasY = event.sourceEvent.offsetY + y;
             moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, showArrow: false }, [
-                { type: 'structured', title: this.text },
+                { type: 'structured', title: toPlainText(this.text) },
             ]);
         }
     }

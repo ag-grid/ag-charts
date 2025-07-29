@@ -78,6 +78,18 @@ const options: AgChartOptions = {
         { type: 'category', position: 'bottom', paddingOuter: 0 },
         { type: 'number', position: 'left' },
     ],
+    legend: {
+        fill: '#f6f6f6',
+        border: {
+            stroke: '#dddddd',
+        },
+        padding: 10,
+        item: {
+            label: {
+                color: '#333333',
+            },
+        },
+    },
 };
 
 const chart = AgCharts.create(options);

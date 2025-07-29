@@ -359,14 +359,13 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 }
             }
 
-            const { text = '' } = tempText;
+            const text = tempText.getPlainText();
             const boxing = tempText.getBoxingProperties();
-            const tickId = isArray(text) ? idGenerator(text.map((s) => s.text).join('')) : idGenerator(text);
 
             tickLabelLayout.push({
                 text,
-                tickId,
                 visible: true,
+                tickId: idGenerator(text),
                 range: this.scale.range,
                 border: boxing.border,
                 color: tempText.fill as string,

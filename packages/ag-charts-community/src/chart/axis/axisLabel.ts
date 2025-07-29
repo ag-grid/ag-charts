@@ -8,13 +8,13 @@ import type {
     FontWeight,
     Formatter,
     FormatterParams,
+    Padding,
     Styler,
     TextWrap,
 } from 'ag-charts-types';
 
 import { objectsEqual } from '../../util/object';
-import { BaseProperties } from '../../util/properties';
-import { Property } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { FormatManager } from '../formatter/formatManager';
 import { LabelBorder } from '../label';
@@ -123,7 +123,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     }
 
     @Property
-    padding?: number;
+    padding?: Padding;
 
     /**
      * Labels are rendered perpendicular to the axis line by default.

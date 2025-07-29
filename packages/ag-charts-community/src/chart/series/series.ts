@@ -19,6 +19,7 @@ import type {
     FormatterParams,
     FormatterPropertyType,
     ISeriesMarker,
+    HighlightState as PublicHighlightState,
 } from 'ag-charts-types';
 
 import type {
@@ -609,6 +610,29 @@ export abstract class Series<
         return HighlightState.OtherSeries;
     }
 
+    protected getHighlightStateString(
+        datum: HighlightNodeDatum | undefined,
+        isHighlight?: boolean,
+        datumIndex?: TDatumIndex,
+        legendItemValues?: string[]
+    ): PublicHighlightState {
+        const state = this.getHighlightState(datum, isHighlight, datumIndex, legendItemValues);
+
+        switch (state) {
+            case HighlightState.Item:
+                return 'highlighted-item';
+            case HighlightState.OtherItem:
+                return 'unhighlighted-item';
+            case HighlightState.Series:
+                return 'highlighted-series';
+            case HighlightState.OtherSeries:
+                return 'unhighlighted-series';
+            case HighlightState.None:
+            default:
+                return 'none';
+        }
+    }
+
     protected onChangeHighlight(event: HighlightChangeEvent) {
         const previousHighlightedDatum = event.previousHighlight;
         const currentHighlightedDatum = event.currentHighlight;
@@ -626,7 +650,11 @@ export abstract class Series<
 
         const { highlightedSeries, unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
 
+        // Check if there are any itemStylers that might need to react to highlight changes
+        const hasItemStylers = this.hasItemStylers();
+
         this.hasChangesOnHighlight =
+            hasItemStylers ||
             !isEmptyObject(highlightedSeries) ||
             !isEmptyObject(unhighlightedItem) ||
             !isEmptyObject(unhighlightedSeries);
@@ -654,6 +682,8 @@ export abstract class Series<
         const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
         return this.properties.highlight.getStyle(highlightState);
     }
+
+    protected abstract hasItemStylers(): boolean;
 
     protected getModuleTooltipParams() {
         return this.moduleMap
@@ -938,7 +968,7 @@ export abstract class Series<
         switch (property) {
             case 'y':
             case 'color':
-            case 'size':
+            case 'size': {
                 const fractionDigits = undefined;
                 return format({
                     type: 'number',
@@ -953,6 +983,7 @@ export abstract class Series<
                     boundSeries,
                     fractionDigits,
                 });
+            }
 
             case 'x':
             case 'radius':
@@ -1000,11 +1031,15 @@ export abstract class Series<
         let markerStyle = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
         if (itemStyler && params) {
+            const highlight = this.ctx.highlightManager?.getActiveHighlight();
+            const highlightState = this.getHighlightStateString(highlight, isHighlight, datumIndex);
+
             const style = this.cachedCallWithContext(itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
                 ...params,
                 highlighted: isHighlight,
+                highlightState,
                 datum,
             });
             markerStyle = getShapeStyle(

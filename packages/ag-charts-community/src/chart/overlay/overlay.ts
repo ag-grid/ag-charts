@@ -1,11 +1,10 @@
-import { createElement } from 'ag-charts-core';
-import type { AgChartOverlayRendererParams, DatumDefault } from 'ag-charts-types';
+import { createElement, isArray } from 'ag-charts-core';
+import type { AgChartOverlayRendererParams, DatumDefault, TextSegment } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
 import { callWithContext } from '../../util/callbackCache';
-import { BaseProperties } from '../../util/properties';
-import { Property } from '../../util/properties';
+import { BaseProperties, Property } from '../../util/properties';
 import type { AnimationManager } from '../interaction/animationManager';
 
 export const DEFAULT_OVERLAY_CLASS = 'ag-charts-overlay';
@@ -16,7 +15,7 @@ export class Overlay extends BaseProperties {
     enabled = true;
 
     @Property
-    text?: string;
+    text?: string | TextSegment[];
 
     @Property
     renderer?: (params: AgChartOverlayRendererParams<DatumDefault>) => string | HTMLElement;
@@ -32,6 +31,9 @@ export class Overlay extends BaseProperties {
     }
 
     getText(localeManager: LocaleManager) {
+        if (isArray(this.text)) {
+            return this.text.map((s) => s.text).join('');
+        }
         return localeManager.t(this.text ?? this.defaultMessageId);
     }
 
@@ -71,7 +73,23 @@ export class Overlay extends BaseProperties {
                 fontSize: 'var(--ag-charts-font-size)',
                 fontWeight: 'var(--ag-charts-font-weight)',
             });
-            content.innerText = this.getText(localeManager);
+            if (isArray(this.text)) {
+                const segments = createElement('div');
+                for (const segment of this.text) {
+                    const el = createElement('span', {
+                        color: segment.color,
+                        fontSize: `${segment.fontSize}px`,
+                        fontFamily: segment.fontFamily ?? 'inherit',
+                        fontWeight: String(segment.fontWeight),
+                        fontStyle: segment.fontStyle,
+                    });
+                    el.innerHTML = segment.text;
+                    segments.appendChild(el);
+                }
+                content.appendChild(segments);
+            } else {
+                content.innerText = this.getText(localeManager);
+            }
             this.content = content;
 
             animationManager?.animate({

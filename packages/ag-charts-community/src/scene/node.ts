@@ -37,6 +37,7 @@ export interface NodeOptions {
     tag?: number;
     zIndex?: ZIndex;
     debugDirty?: boolean;
+    scene?: IScene;
 }
 
 export type NodeWithOpacity = Node & { opacity: number };
@@ -73,6 +74,7 @@ export abstract class Node<TDatum = unknown> {
         root.setAttribute('width', String(width));
         root.setAttribute('height', String(height));
         root.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        root.setAttribute('overflow', 'visible');
 
         if (svg.defs?.length) {
             const defs = createSvgElement('defs');
@@ -143,6 +145,7 @@ export abstract class Node<TDatum = unknown> {
         this.name = options?.name;
         this.tag = options?.tag ?? NaN;
         this.zIndex = options?.zIndex ?? 0;
+        this.scene = options?.scene;
 
         if (options?.debugDirty ?? Node._debugEnabled) {
             this._debugDirtyProperties = new Map([['__first__', []]]);
@@ -311,10 +314,7 @@ export abstract class Node<TDatum = unknown> {
     }
 
     getBBox(): BBox {
-        if (this.cachedBBox == null) {
-            this.cachedBBox = Object.freeze(this.computeBBox()) as BBox;
-        }
-
+        this.cachedBBox ??= Object.freeze(this.computeBBox()) as BBox;
         return this.cachedBBox;
     }
 

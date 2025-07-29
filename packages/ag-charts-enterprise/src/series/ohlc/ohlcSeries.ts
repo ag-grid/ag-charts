@@ -105,4 +105,8 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
             },
         ];
     }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
+    }
 }

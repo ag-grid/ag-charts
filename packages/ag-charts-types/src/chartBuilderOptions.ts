@@ -162,7 +162,7 @@ export interface AgTypedChartInstance<TDatum, TContext, O extends AgChartInstanc
      *
      * @returns a `Promise` that resolves once the requested change has been rendered.
      *
-     * __NOTE:__ As each call could trigger a chart redraw, multiple calls in
+     * __Note:__ As each call could trigger a chart redraw, multiple calls in
      * quick succession could result in undesirable flickering. Callers should batch up and/or
      * debounce changes to avoid unintended partial update renderings.
      */
@@ -173,7 +173,7 @@ export interface AgTypedChartInstance<TDatum, TContext, O extends AgChartInstanc
      *
      * @returns a `Promise` that resolves once the requested change has been rendered.
      *
-     * __NOTE:__ As each call could trigger a chart redraw, each individual delta options update
+     * __Note:__ As each call could trigger a chart redraw, each individual delta options update
      * should leave the chart in a valid options state.
      *
      * Also, multiple calls in  quick succession could result in undesirable flickering. Callers

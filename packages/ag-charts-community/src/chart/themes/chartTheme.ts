@@ -208,7 +208,16 @@ export class ChartTheme {
                     label: {
                         // TODO: { $merge: [{ $path: '../../label' }, { fontWeight: 'bold' }]}
                         enabled: { $path: '../../label/enabled' },
-                        border: { $path: '../../label/border' },
+                        border: {
+                            enabled: {
+                                $or: [
+                                    { $isUserOption: ['../border', true, false] },
+                                    { $path: '../../../label/border/enabled' },
+                                ],
+                            },
+                            strokeWidth: { $path: '../../../label/border/strokeWidth' },
+                            stroke: { $path: '../../../label/border/stroke' },
+                        },
                         fill: { $path: '../../label/fill' },
                         fontSize: { $path: '../../label/fontSize' },
                         fontFamily: { $path: '../../label/fontFamily' },
@@ -238,23 +247,13 @@ export class ChartTheme {
                     avoidCollisions: true,
                     cornerRadius: 4,
                     border: {
+                        enabled: { $isUserOption: ['../border', true, false] },
                         strokeWidth: 1,
-                        stroke: {
-                            $if: [
-                                { $isUserOption: ['../border', true, false] },
-                                { $foregroundOpacity: 0.08 },
-                                undefined,
-                            ],
-                        },
+                        stroke: { $foregroundOpacity: 0.08 },
                     },
                     padding: {
                         $if: [
-                            {
-                                $or: [
-                                    { $isUserOption: ['./border', true, false] },
-                                    { $isUserOption: ['./fill', true, false] },
-                                ],
-                            },
+                            { $eq: [{ $path: './border/enabled' }, true] },
                             { left: 12, right: 12, top: 8, bottom: 8 },
                             undefined,
                         ],
@@ -273,10 +272,23 @@ export class ChartTheme {
                 },
                 gridLine: {
                     enabled: true,
+                    width: 1,
                     style: {
                         $apply: [
-                            { fillOpacity: 1, stroke: { $ref: 'gridLineColor' }, lineDash: [] },
-                            [{ fillOpacity: 1, stroke: { $ref: 'gridLineColor' }, lineDash: [] }],
+                            {
+                                fillOpacity: 1,
+                                stroke: { $ref: 'gridLineColor' },
+                                strokeWidth: { $path: '../../width' },
+                                lineDash: [],
+                            },
+                            [
+                                {
+                                    fillOpacity: 1,
+                                    stroke: { $ref: 'gridLineColor' },
+                                    strokeWidth: { $path: '../../width' },
+                                    lineDash: [],
+                                },
+                            ],
                         ],
                     },
                 },
@@ -337,7 +349,7 @@ export class ChartTheme {
                     strokeOpacity: 1,
                     strokeWidth: 1,
                 },
-                cornerRadius: { $ref: 'borderRadius' },
+                cornerRadius: 4,
                 padding: { $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, 0] },
             },
             keyboard: { enabled: true },

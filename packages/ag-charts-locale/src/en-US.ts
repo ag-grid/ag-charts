@@ -1,4 +1,6 @@
 export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
+    // Initial screen reader alt-text of the series area
+    ariaInitSeriesArea: 'interactive chart',
     // Screen reader announcement when focusing an item in the chart
     ariaAnnounceHoverDatum: '${datum}',
     // Screen reader announcement when focusing a chart
@@ -66,7 +68,7 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Screen reader text for zoom toolbar
     ariaLabelZoomToolbar: 'Zoom',
     // Aria role description for a 2D role="slider"
-    ariaRoleDescription: '2D slider',
+    ariaRoleDescription2DSlider: '2D slider',
     // Screen reader text for color picker's 2D slider palette
     ariaValueColorPalette: 's ${s}[percent0to2dp], v ${v}[percent0to2dp]',
     // Screen reader text for color picker's 2D slider palette (when arrowing up or down)

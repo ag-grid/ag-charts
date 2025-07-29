@@ -1,4 +1,4 @@
-import type { AgColorType, BorderOptions, Padding } from '../series/cartesian/commonOptions';
+import type { AgColorType, BorderOptions, FillOptions, Padding } from '../series/cartesian/commonOptions';
 import type { Formatter } from './callbackOptions';
 import type { AgPreventableEvent } from './eventOptions';
 import type {
@@ -11,7 +11,6 @@ import type {
     FontWeight,
     Opacity,
     PixelSize,
-    Ratio,
 } from './types';
 
 export type AgChartLegendPlacement =
@@ -34,7 +33,7 @@ export interface AgChartLegendPositionOptions {
      * Default: `'bottom'`
      */
     placement?: AgChartLegendPlacement;
-    /** Whether the legend is floating. Floating legend on drawn above the series-area of the series.
+    /** Whether the legend is positioned over the series area instead of outside it.
      *
      * Default: `false`
      */
@@ -147,10 +146,10 @@ export interface AgChartLegendListeners<TContext = ContextDefault> {
     legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent<TContext>) => void;
 }
 
-export interface AgChartLegendOptions<TContext = ContextDefault> {
+export interface AgChartLegendOptions<TContext = ContextDefault> extends FillOptions {
     /** Whether to show the legend. By default, the chart displays a legend when there is more than one series present. */
     enabled?: boolean;
-    /** Positioning options for legend.
+    /** Where the legend should be positioned in relation to the chart.
      *
      * Default: `'bottom'`
      */
@@ -165,13 +164,13 @@ export interface AgChartLegendOptions<TContext = ContextDefault> {
     border?: BorderOptions;
     /** The corner radius of the legend. */
     cornerRadius?: PixelSize;
-    /** The colour of the legend fill. */
-    fill?: CssColor;
-    /** The opacity of the fill colour. */
-    fillOpacity?: Ratio;
     /** The padding between the border and legend items. */
     padding?: Padding;
-    /** The spacing in pixels to use outside the legend. */
+    /** The spacing in pixels to use outside the legend.
+     *
+     * __Note:__ This only applies when `floating: false`.
+     *
+     * Default: `30` */
     spacing?: PixelSize;
     /** Configuration for the legend items that consist of a marker and a label. */
     item?: AgChartLegendItemOptions;

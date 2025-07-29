@@ -494,10 +494,14 @@ export class MapShapeSeries
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                     });
                 }
@@ -754,5 +758,9 @@ export class MapShapeSeries
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.Path | undefined {
         return findFocusedGeoGeometry(this, opts);
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
     }
 }

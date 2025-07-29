@@ -6,14 +6,12 @@ import {
 } from 'ag-charts-community';
 import type { DeepRequired } from 'ag-charts-core';
 
-import { readDatum } from '../../utils/datum';
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotGroup } from './boxPlotGroup';
 import { BoxPlotSeriesProperties } from './boxPlotSeriesProperties';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 const {
-    extractDecoratedProperties,
     fixNumericExtent,
     keyProperty,
     mergeDefaults,
@@ -27,7 +25,6 @@ const {
     ContinuousScale,
     ChartAxisDirection,
     motion,
-    isGradientFill,
     getShapeStyle,
 } = _ModuleSupport;
 
@@ -146,8 +143,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!(dataModel && processedData && xAxis && yAxis)) return;
 
-        const { xKey, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } =
-            this.properties;
+        const { xKey } = this.properties;
 
         const nodeData: BoxPlotNodeDatum[] = [];
 
@@ -242,15 +238,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 xKey,
                 bandwidth,
                 scaledValues,
-                cap,
-                whisker,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
                 midPoint,
                 focusRect,
             });
@@ -469,6 +456,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
@@ -479,6 +468,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                         q3Key,
                         maxKey,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                     });
                 }
@@ -494,6 +484,16 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             }
         }
 
+        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = style;
+
+        style.whisker = mergeDefaults(style.whisker, {
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        });
+
         return style;
     }
 
@@ -507,26 +507,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const isVertical = this.isVertical();
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
         datumSelection.each((boxPlotGroup, nodeDatum) => {
-            let activeStyles = this.getFormattedStyles(nodeDatum, isHighlight ? 'highlight' : 'node');
-
-            const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex);
-
-            activeStyles = mergeDefaults(highlightStyle, activeStyles);
-
-            const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = activeStyles;
-
-            activeStyles.whisker = mergeDefaults(activeStyles.whisker, {
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-            });
+            const style = this.getItemStyle(nodeDatum, isHighlight);
 
             const fillBBox = this.getShapeFillBBox();
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
-                activeStyles as DeepRequired<AgBoxPlotHighlightStyleOptions>,
+                style as DeepRequired<AgBoxPlotHighlightStyleOptions>,
                 isVertical,
                 isReversedValueAxis,
                 fillBBox
@@ -551,81 +537,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return new BoxPlotGroup();
     }
 
-    getFormattedStyles(nodeDatum: BoxPlotNodeDatum, scope: 'tooltip' | 'node' | 'highlight'): AgBoxPlotSeriesStyle {
-        const { id: seriesId, properties } = this;
-        const {
-            xKey,
-            minKey,
-            q1Key,
-            medianKey,
-            q3Key,
-            maxKey,
-            itemStyler,
-            cornerRadius,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-        } = properties;
-        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
-        const datum = readDatum(nodeDatum);
-        let fill;
-        let fillOpacity: number = 1;
-
-        if (isGradientFill(nodeDatum.fill)) {
-            fill = nodeDatum.fill;
-        } else {
-            fill = nodeDatum.fill;
-            fillOpacity = properties.fillOpacity;
-        }
-
-        let styles: Required<AgBoxPlotSeriesStyle> = getShapeStyle(
-            {
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                cornerRadius,
-                cap: extractDecoratedProperties(cap),
-                whisker: extractDecoratedProperties(whisker),
-            },
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults
-        );
-
-        if (itemStyler) {
-            const formatStyles = this.cachedDatumCallback(createDatumId(nodeDatum.datumIndex, scope), () =>
-                this.callWithContext(itemStyler, {
-                    datum,
-                    seriesId,
-                    highlighted: scope === 'highlight',
-                    ...styles,
-                    xKey,
-                    minKey,
-                    q1Key,
-                    medianKey,
-                    q3Key,
-                    maxKey,
-                })
-            );
-
-            if (formatStyles) {
-                styles = getShapeStyle(
-                    mergeDefaults(formatStyles, styles),
-                    fillGradientDefaults,
-                    fillPatternDefaults,
-                    fillImageDefaults
-                );
-            }
-        }
-
-        return styles;
-    }
-
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex].focusRect);
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
     }
 }

@@ -397,26 +397,30 @@ export abstract class RadialColumnSeriesBase<
 
     protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
 
-    protected getItemStyle(
-        { datumIndex, datum }: Partial<RadialColumnNodeDatum>,
-        isHighlight: boolean
-    ): Required<AgRadialSeriesStyle> {
+    protected getItemStyle(nodeDatum: RadialColumnNodeDatum, isHighlight: boolean): Required<AgRadialSeriesStyle> {
         const { id: seriesId, properties } = this;
         const { angleKey, radiusKey, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } =
             properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
-        if (itemStyler != null && datumIndex != null) {
+        if (itemStyler != null && nodeDatum != null) {
             const overrides = this.cachedDatumCallback(
-                createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
+                createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+                    const highlightState = this.getHighlightStateString(
+                        activeHighlight,
+                        isHighlight,
+                        nodeDatum.datumIndex
+                    );
                     return this.callWithContext(itemStyler, {
                         seriesId,
-                        datum,
+                        datum: nodeDatum.datum,
                         highlighted: isHighlight,
+                        highlightState,
                         angleKey,
                         radiusKey,
                         ...style,
@@ -480,8 +484,11 @@ export abstract class RadialColumnSeriesBase<
     }
 
     protected updateLabels() {
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+
         this.labelSelection.update(this.nodeData).each((node, datum) => {
-            updateLabelNode(this, node, this.properties, this.properties.label, datum.label);
+            const highlightState = this.getHighlightStateString(activeHighlight, false, datum.datumIndex);
+            updateLabelNode(this, node, this.properties, this.properties.label, datum.label, false, highlightState);
             node.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
         });
     }
@@ -514,8 +521,9 @@ export abstract class RadialColumnSeriesBase<
         const { angleKey, angleName, radiusKey, radiusName, tooltip } = properties;
         const angleAxis = axes[ChartAxisDirection.Angle];
         const radiusAxis = axes[ChartAxisDirection.Radius];
+        const nodeDatum = this.nodeData?.[datumIndex];
 
-        if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
+        if (!dataModel || !processedData || !angleAxis || !radiusAxis || !nodeDatum) return;
 
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const angleValue = dataModel.resolveKeysById(this, `angleValue`, processedData)[datumIndex];
@@ -523,7 +531,7 @@ export abstract class RadialColumnSeriesBase<
 
         if (angleValue == null) return;
 
-        const format = this.getItemStyle({ datumIndex, datum }, false);
+        const format = this.getItemStyle(nodeDatum, false);
         return this.formatTooltipWithContext(
             tooltip,
             {

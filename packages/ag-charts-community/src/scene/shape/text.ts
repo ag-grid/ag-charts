@@ -1,4 +1,4 @@
-import { type BoxBounds, type RequireOptional, createSvgElement, isArray, isString } from 'ag-charts-core';
+import { type BoxBounds, type RequireOptional, createSvgElement, isArray, isString, toPlainText } from 'ag-charts-core';
 import type {
     FontFamily,
     FontSize,
@@ -40,6 +40,7 @@ export interface TextBoxingProperties {
     fill?: ShapeColor;
     fillOpacity?: Opacity;
     border?: {
+        enabled?: boolean;
         stroke?: ShapeColor;
         strokeWidth?: PixelSize;
         strokeOpacity?: Opacity;
@@ -56,7 +57,7 @@ export class Text<D = any> extends Shape<D> {
 
     private static readonly defaultFontSize = 10;
 
-    private richText?: Group<Text>;
+    private richText?: Group;
     private textMap?: Map<Text, BoxBounds>;
 
     @SceneChangeDetection()
@@ -171,13 +172,15 @@ export class Text<D = any> extends Shape<D> {
             return bbox;
         }
         const { x, y, lines, textBaseline, textAlign, lineHeight } = this;
-        return Text.computeBBox(
+        const measuredTextBounds = Text.computeBBox(
             lines,
             x,
             y,
             { font: this, textBaseline, textAlign, lineHeight },
             useGlyphIndependentMeasurements
         );
+        if (this.boxing != null) measuredTextBounds.grow(this.boxPadding);
+        return measuredTextBounds;
     }
 
     override getBBox(useGlyphIndependentMeasurements: boolean = true): BBox {
@@ -190,14 +193,16 @@ export class Text<D = any> extends Shape<D> {
         return super.getBBox();
     }
 
+    getPlainText() {
+        return toPlainText(this.text);
+    }
+
     getTextMeasureBBox() {
         return this.computeBBox();
     }
 
     isPointInPath(x: number, y: number): boolean {
-        const bbox = this.getBBox();
-
-        return bbox ? bbox.containsPoint(x, y) : false;
+        return this.getBBox()?.containsPoint(x, y) ?? false;
     }
 
     getStyle(): Omit<TextSegment, 'text'> & { fontSize: number } {
@@ -226,7 +231,7 @@ export class Text<D = any> extends Shape<D> {
 
         let index = 0;
         let totalWidth = 0;
-        let offsetY = this.y;
+        let offsetY = 0;
         const mainStyle = this.getStyle();
 
         for (const textNode of this.richText!.children() as Iterable<Text>) {
@@ -237,7 +242,10 @@ export class Text<D = any> extends Shape<D> {
             textNode.setProperties(mergeDefaults(textSegment, mainStyle));
             const textBBox = textNode.getBBox();
             this.textMap.set(textNode, textBBox);
-            offsetY = Math.max(offsetY, textNode.lineHeight ?? TextUtils.getLineHeight(textNode.fontSize));
+            offsetY = Math.max(
+                offsetY,
+                textBBox.y + textBBox.height / 2 + (textNode.lineHeight ?? TextUtils.getLineHeight(textNode.fontSize))
+            );
             totalWidth += textBBox.x + textBBox.width;
         }
         let offsetX = this.x - totalWidth / 2;
@@ -258,8 +266,22 @@ export class Text<D = any> extends Shape<D> {
 
         if (isArray(this.text)) {
             this.generateTextMap();
+            const { width } = this.richText!.getBBox();
+
+            let translateX = 0;
+            switch (this.textAlign) {
+                case 'left':
+                case 'start':
+                    translateX = width / 2;
+                    break;
+
+                case 'right':
+                case 'end':
+                    translateX = width / -2;
+            }
+
             ctx.save();
-            ctx.translate(0, this.y);
+            ctx.translate(translateX, this.y);
             this.richText!.render(renderCtx);
             ctx.restore();
         } else {
@@ -290,7 +312,6 @@ export class Text<D = any> extends Shape<D> {
         }
 
         const { ctx } = renderCtx;
-        const { globalAlpha } = ctx;
         const font = TextUtils.toFontString(this);
         // Try to avoid this assignment, which typically always incurs a font switch cost.
         if (ctx.font !== font) {
@@ -298,10 +319,6 @@ export class Text<D = any> extends Shape<D> {
         }
 
         const { fontSize, lineHeight = TextUtils.getLineHeight(fontSize), textAlign, textBaseline } = this;
-
-        const lines = this.lines.length;
-        const lineOriginY =
-            textBaseline === 'alphabetic' ? 0 : -TextUtils.getVerticalModifier(textBaseline) * lineHeight * (lines - 1);
 
         ctx.textAlign = textAlign;
         ctx.textBaseline = textBaseline;
@@ -324,40 +341,16 @@ export class Text<D = any> extends Shape<D> {
             }
         }
 
-        if (fill) {
-            this.applyFillAndAlpha(ctx);
-            this.applyShadow(ctx);
-            this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.fillText(line, x, y));
+        this.fillStroke(ctx);
+    }
 
-            ctx.globalAlpha = globalAlpha;
-        }
-
-        if (stroke && strokeWidth) {
-            this.applyStrokeAndAlpha(ctx);
-            ctx.lineWidth = strokeWidth;
-
-            const { lineDash, lineDashOffset, lineCap, lineJoin } = this;
-
-            if (lineDash) {
-                ctx.setLineDash(lineDash as number[]);
-            }
-
-            if (lineDashOffset) {
-                ctx.lineDashOffset = lineDashOffset;
-            }
-
-            if (lineCap) {
-                ctx.lineCap = lineCap;
-            }
-
-            if (lineJoin) {
-                ctx.lineJoin = lineJoin;
-            }
-
-            this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.strokeText(line, x, y));
-
-            ctx.globalAlpha = globalAlpha;
-        }
+    protected override executeFill(ctx: CanvasRenderingContext2D) {
+        const { fontSize, lineHeight = TextUtils.getLineHeight(fontSize), textBaseline, lines } = this;
+        const lineOriginY =
+            textBaseline === 'alphabetic'
+                ? 0
+                : TextUtils.getVerticalModifier(textBaseline) * lineHeight * (1 - lines.length);
+        this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.fillText(line, x, y));
     }
 
     protected override executeStroke(ctx: CanvasRenderingContext2D) {
@@ -365,7 +358,7 @@ export class Text<D = any> extends Shape<D> {
         const lineOriginY =
             textBaseline === 'alphabetic'
                 ? 0
-                : -TextUtils.getVerticalModifier(textBaseline) * lineHeight * (lines.length - 1);
+                : TextUtils.getVerticalModifier(textBaseline) * lineHeight * (1 - lines.length);
         this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.strokeText(line, x, y));
     }
 
@@ -399,12 +392,13 @@ export class Text<D = any> extends Shape<D> {
     }
 
     setBoxing(props: TextBoxingProperties) {
-        if (props.fill != null || props.border?.stroke != null) {
-            this.boxing ??= new Rect();
+        const stroke = props.border?.enabled ? props.border?.stroke : undefined;
+        if (props.fill != null || stroke != null) {
+            this.boxing ??= new Rect({ scene: this.scene });
             this.boxing.fill = props.fill;
             this.boxing.fillOpacity = props.fillOpacity ?? 1;
             this.boxing.cornerRadius = props.cornerRadius ?? 0;
-            this.boxing.stroke = props.border?.stroke;
+            this.boxing.stroke = stroke;
             this.boxing.strokeWidth = props.border?.strokeWidth ?? 0;
             this.boxing.strokeOpacity = props.border?.strokeOpacity ?? 1;
             this.boxPadding = props.padding ?? 0;
@@ -415,22 +409,18 @@ export class Text<D = any> extends Shape<D> {
     }
 
     getBoxingProperties(): TextBoxingProperties {
-        const {
-            fill = undefined,
-            fillOpacity = undefined,
-            cornerRadius = undefined,
-            stroke = undefined,
-            strokeWidth = undefined,
-            strokeOpacity = undefined,
-        } = this.boxing ?? {};
+        const { fill, fillOpacity, cornerRadius, stroke, strokeWidth, strokeOpacity } = this.boxing ?? {};
 
+        type Contraints = RequireOptional<TextBoxingProperties> & {
+            border: RequireOptional<TextBoxingProperties['border']>;
+        };
         return {
-            border: { stroke, strokeWidth, strokeOpacity },
+            border: { enabled: stroke != null, stroke, strokeWidth, strokeOpacity },
             cornerRadius,
             fill,
             fillOpacity,
             padding: this.boxPadding,
-        } satisfies RequireOptional<TextBoxingProperties>;
+        } satisfies Contraints;
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

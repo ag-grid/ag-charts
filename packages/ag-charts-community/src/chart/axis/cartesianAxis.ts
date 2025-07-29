@@ -6,6 +6,7 @@ import type { ModuleContext } from '../../module/moduleContext';
 import { type FromToDiff, fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
 import { ContinuousScale } from '../../scale/continuousScale';
+import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
@@ -25,7 +26,9 @@ import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartLayout } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
+import { expandLabelPadding } from '../label';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
+import type { AxisLabel } from './axisLabel';
 import { AxisTickGenerator, type TickGenerationResult } from './axisTickGenerator';
 import {
     type AxisFillDatum,
@@ -257,7 +260,10 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         }
 
         const { range, reverse, defaultTickMinSpacing } = this;
-        const removeOverflowLabels = this.label.avoidCollisions && this.horizontal && ContinuousScale.is(this.scale);
+        const removeOverflowLabels =
+            this.label.avoidCollisions &&
+            this.horizontal &&
+            (ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale));
         const tickGenerationResult = this.tickGenerator.generateTicks({
             domain,
             range,
@@ -282,8 +288,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         const { position, gridPadding, gridLength } = this;
         const direction = position === 'bottom' || position === 'right' ? -1 : 1;
-        const p1 = gridPadding;
-        const p2 = direction * gridLength - gridPadding;
+        const p1 = direction * gridPadding;
+        const p2 = direction * (gridLength + gridPadding);
 
         const gridLines = this.calculateGridLines(ticks, p1, p2);
         const gridFills = this.calculateGridFills(ticks, p1, p2);
@@ -308,33 +314,34 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const { gridLine, horizontal } = this;
 
         const [x1, y1, x2, y2] = horizontal ? [offset, p1, offset, p2] : [p1, offset, p2, offset];
-        const { style, width: strokeWidth } = gridLine;
-        const { stroke, lineDash } = style[tickIndex % style.length] ?? {};
+        const { style } = gridLine;
+        const { stroke, strokeWidth = 0, lineDash } = style[tickIndex % style.length] ?? {};
 
         return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
     }
 
     protected calculateGridFills(ticks: GridLineStyleTickDatum[], p1: number, p2: number) {
-        const { range } = this;
+        const { horizontal, range, type } = this;
 
         const gridFills: AxisFillDatum[] = [];
         if (ticks.length == 0) return gridFills;
 
-        let gridFillIndex = ticks[0].index;
+        let gridFillIndexOffset = 0;
+        const isVerticalUnitTime = !horizontal && type === 'unit-time';
+        const firstFillOffCanvas =
+            (isVerticalUnitTime && ticks[0].translation < range[0]) ||
+            (!isVerticalUnitTime && ticks[0].translation > range[0]);
 
-        // Inject an additional grid fill between the start and the first tick
-        if (ticks[0].translation !== Math.floor(range[0])) {
-            const tick = { tickId: `before:${ticks[0].tickId}`, translation: range[0] };
-            gridFills.push(this.calculateGridFill(tick, -1, gridFillIndex, p1, p2, ticks));
-            gridFillIndex++;
+        if (firstFillOffCanvas) {
+            const injectedTick = { tickId: `before:${ticks[0].tickId}`, translation: range[0] };
+            gridFills.push(this.calculateGridFill(injectedTick, -1, ticks[0].index, p1, p2, ticks));
+            gridFillIndexOffset = 1;
         }
 
         gridFills.push(
-            ...ticks.map((tick, index) => {
-                const gridFill = this.calculateGridFill(tick, index, gridFillIndex, p1, p2, ticks);
-                gridFillIndex++;
-                return gridFill;
-            })
+            ...ticks.map((tick, index) =>
+                this.calculateGridFill(tick, index, tick.index + gridFillIndexOffset, p1, p2, ticks)
+            )
         );
 
         return gridFills;
@@ -627,6 +634,26 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         };
     }
 
+    private getLabelBorderOffset(label: AxisLabel): number {
+        const padding = expandLabelPadding(label);
+
+        function unreachable(a: never): never {
+            return a;
+        }
+        switch (this.position) {
+            case 'top':
+                return padding.bottom;
+            case 'right':
+                return padding.left;
+            case 'bottom':
+                return padding.top;
+            case 'left':
+                return padding.right;
+            default:
+                unreachable(this.position);
+        }
+    }
+
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
         const { tickId, tickLabel: text = '', translation, primary, textUntruncated } = datum;
@@ -635,7 +662,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = scale;
         const sideFlag = this.label.getSideFlag();
-        const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + seriesAreaPadding);
+        const borderOffset = -this.getLabelBorderOffset(label);
+        const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + seriesAreaPadding) + borderOffset;
         const visible = text !== '';
 
         const x = horizontal ? translation : labelOffset;

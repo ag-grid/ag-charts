@@ -141,6 +141,7 @@ nx e2e ag-charts-website
 ## Development Server Notes
 
 -   Normally the Astro dev server is running on port 4600 (HTTPS) and you can just use it.
+    -   If using the puppeteer MCP tool, use `https://host.docker.internal:4600` as the host rather than `https://localhost:4600`.
 -   If you need to run the dev server, use `nx dev` to start it.
     -   This includes an incremental watch and build of all packages and website.
 -   Note that example paths are mapped from repo paths:
@@ -164,10 +165,16 @@ nx e2e ag-charts-website
     <div id="myChart"></div>
     ```
 
--   Examples typically have a `data.ts` with a `getData()` function (for single data-set examples) which includes the dataset used by the example.
--   If a TData type is useful for the example, `data.ts` should also declare this.
+## Documentation Resources
+
 -   AG Charts architecture docs can be found at https://docs.ag-grid.com/architecture/charts/ag-charts-overview
     -   This provides an overview of the important aspects of the ag-charts codebase, as well as links to deeper dives into specific aspects. Use this as a reference if you need help navigating the code.
+
+## Example Documentation Guidelines
+
+-   Never add inline documentation to examples.
+-   `-test` page examples are for internal testing and don't typically need much documentation.
+-   Any other examples should be documented in the related `index.mdoc` file which should be a sibling of the enclosing parent folder `_examples`.
 
 ## Example Runner Guidelines
 
@@ -176,3 +183,17 @@ nx e2e ag-charts-website
     -   `main.ts` is automatically included at runtime.
 -   Styles for examples should be put into an adjacent `styles.css` file which will automatically be included at runtime.
     -   Styles in `external/ag-website-shared/src/components/example-runner/styles/example-controls.css` are applied automatically, and should be favoured for presenting controls in examples.
+
+## Development Server Notes
+
+-   Normally the Astro dev server is running on port 4600 (HTTPS) and you can just use it.
+-   Note that example paths are mapped from repo paths:
+    -   `packages/ag-charts-website/src/content/gallery/_examples/${exampleName}/index.html` => `/charts/gallery/examples/${exampleName}`
+    -   `packages/ag-charts-website/src/content/docs/${pageName}/_examples/${exampleName}/index.html` => `/charts/vanilla/${pageName}/examples/${exampleName}`
+-   Docs paths are mapped from repo paths:
+    -   `packages/ag-charts-website/src/content/docs/${pageName}/index.mdoc` => `/charts/javascript/${pageName}/`
+
+## Example Code Conventions
+
+-   Examples typically have a `data.ts` with a `getData()` function (for single data-set examples) which includes the dataset used by the example.
+-   If a TData type is useful for the example, `data.ts` should also declare this.

@@ -1,3 +1,5 @@
+import { isArray } from './typeGuards';
+
 /**
  * Joins an array of strings or objects into a formatted string, adding a custom conjunction before the last item.
  * Useful for creating human-readable lists from arrays with an option to limit the number of items shown.
@@ -120,3 +122,10 @@ export function kebabCase(a: string) {
 // Find sequences of uppercase characters that are not followed by a lowercase character OR standalone uppercase
 // characters.
 const KEBAB_CASE_REGEX = /[A-Z]+(?![a-z])|[A-Z]/g;
+
+export function toPlainText(text?: string | { text: string }[]) {
+    if (isArray(text)) {
+        return text.map((segment) => segment.text).join('');
+    }
+    return text ?? '';
+}

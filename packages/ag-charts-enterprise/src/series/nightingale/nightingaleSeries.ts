@@ -64,4 +64,8 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
         const axisZeroRadius = this.isRadiusAxisReversed() ? this.radius : this.getAxisInnerRadius();
         return prepareNightingaleAnimationFunctions(axisZeroRadius);
     }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
+    }
 }

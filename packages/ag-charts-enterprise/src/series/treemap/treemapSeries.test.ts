@@ -467,4 +467,46 @@ describe('TreemapSeries', () => {
         chart = deproxy(AgCharts.create(options));
         await compare();
     });
+
+    describe('AG-15448', () => {
+        const DATA1 = [
+            { type: 'Electronics', category: 'Phones', product: 'iPhone', value: 100, status: 1 },
+            { type: 'Electronics', category: 'Phones', product: 'Samsung', value: 80, status: 1 },
+            { type: 'Electronics', category: 'Laptops', product: 'MacBook', value: 150, status: 1 },
+            { type: 'Electronics', category: 'Laptops', product: 'Dell', value: 120, status: 2 },
+            { type: 'Furniture', category: 'Chairs', product: 'Office Chair', value: 70, status: 2 }, // This overlaps with the DATA2 dataset and can render in the wrong color.
+            { type: 'Furniture', category: 'Tables', product: 'Desk', value: 90, status: 1 },
+        ];
+
+        const DATA2 = [
+            { type: 'Furniture', category: 'Chairs', product: 'Office Chair (green)', value: 70, status: 2 },
+            { type: 'Furniture', category: 'Chairs', product: 'Gaming Chair (green)', value: 60, status: 2 },
+            { type: 'Appliances', category: 'Kitchen', product: 'Microwave (orange)', value: 50, status: 1 },
+        ];
+
+        const EXAMPLE_OPTIONS: AgChartOptions = {
+            context: { colors: { 1: 'orange', 2: 'green' } },
+            data: DATA1,
+            series: [
+                {
+                    type: 'treemap',
+                    labelKey: 'product',
+                    sizeKey: 'value',
+                    itemStyler: ({ datum, context }: any) => ({
+                        fill: context?.colors[datum.status] ?? 'none',
+                    }),
+                },
+            ],
+        };
+
+        it('should render updated data in the itemStyler specified colors', async () => {
+            const options = { ...EXAMPLE_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            await chart.updateDelta({ data: DATA2 });
+            await compare();
+        });
+    });
 });

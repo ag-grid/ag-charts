@@ -1,9 +1,10 @@
 import type {
+    AnyFn,
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
-import { type AnyFn, CleanupRegistry, Logger, clamp, createId } from 'ag-charts-core';
+import { CleanupRegistry, Logger, clamp, createId } from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -174,7 +175,7 @@ const fillPatternDefaults: RequiredInternalAgPatternColor = {
     backgroundFillOpacity: 1,
     stroke: 'black',
     strokeOpacity: 1,
-    strokeWidth: 0,
+    strokeWidth: 1,
     rotation: 0,
     scale: 1,
 };
@@ -577,8 +578,7 @@ export class Legend extends BaseProperties {
         this.containerNode.width = 0;
         this.containerNode.height = 0;
 
-        this.containerNode.fill = containerStyles.fill;
-        this.containerNode.fillOpacity = containerStyles.fillOpacity;
+        applyShapeStyle(this.containerNode, containerStyles);
         this.containerNode.cornerRadius = containerStyles.cornerRadius;
 
         // Shrink the desired legend size by the container, since the items layout is constrained by the inner
@@ -893,20 +893,26 @@ export class Legend extends BaseProperties {
         const { stroke, strokeOpacity, strokeWidth } = this.border;
         const { cornerRadius, fill, fillOpacity, padding } = this;
         const isPaddingNumber = typeof padding === 'number';
-        return {
-            cornerRadius,
-            fill,
-            fillOpacity,
-            padding: {
-                top: isPaddingNumber ? padding : padding.top ?? 0,
-                right: isPaddingNumber ? padding : padding.right ?? 0,
-                bottom: isPaddingNumber ? padding : padding.bottom ?? 0,
-                left: isPaddingNumber ? padding : padding.left ?? 0,
+
+        return getShapeStyle(
+            {
+                cornerRadius,
+                fill,
+                fillOpacity,
+                padding: {
+                    top: isPaddingNumber ? padding : padding.top ?? 0,
+                    right: isPaddingNumber ? padding : padding.right ?? 0,
+                    bottom: isPaddingNumber ? padding : padding.bottom ?? 0,
+                    left: isPaddingNumber ? padding : padding.left ?? 0,
+                },
+                stroke,
+                strokeOpacity,
+                strokeWidth: this.border.enabled ? strokeWidth : 0,
             },
-            stroke,
-            strokeOpacity,
-            strokeWidth: this.border.enabled ? strokeWidth : 0,
-        };
+            fillGradientDefaults,
+            fillPatternDefaults,
+            fillImageDefaults
+        );
     }
 
     private computePagedBBox(): BBox {

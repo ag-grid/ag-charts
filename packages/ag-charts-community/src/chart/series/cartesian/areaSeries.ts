@@ -388,7 +388,6 @@ export class AreaSeries extends CartesianSeries<
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
         const yRawValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
-        const yEndValues = stacked ? dataModel.resolveColumnById(this, `yValueEnd`, processedData) : yRawValues;
         const yCumulativeValues = stacked
             ? dataModel.resolveColumnById(this, `yValueCumulative`, processedData)
             : yRawValues;
@@ -449,7 +448,6 @@ export class AreaSeries extends CartesianSeries<
             const seriesDatum = rawData[datumIndex];
             const yDatum = yRawValues[datumIndex];
             const yValueCumulative = yCumulativeValues[datumIndex];
-            const yValueEnd = yEndValues[datumIndex];
 
             const validPoint = Number.isFinite(yDatum);
 
@@ -468,7 +466,7 @@ export class AreaSeries extends CartesianSeries<
                     datum: seriesDatum,
                     datumIndex,
                     midPoint: { x: point.x, y: point.y },
-                    cumulativeValue: yValueEnd,
+                    cumulativeValue: yValueCumulative,
                     yValue: yDatum,
                     xValue: xDatum,
                     yKey,
@@ -862,11 +860,24 @@ export class AreaSeries extends CartesianSeries<
         return labelSelection.update(labelData);
     }
 
-    protected updateLabelNodes(opts: { labelSelection: Selection<Text, LabelSelectionDatum> }) {
+    protected updateLabelNodes(opts: { labelSelection: Selection<Text, LabelSelectionDatum>; isHighlight?: boolean }) {
+        const { isHighlight = false } = opts;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+
         opts.labelSelection.each((text, datum) => {
             const { x, y, labelText } = datum;
 
-            const style = getLabelStyles(this, datum, this.properties, this.properties.label);
+            const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
+            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datum.datumIndex);
+
+            const style = getLabelStyles(
+                this,
+                datum,
+                this.properties,
+                this.properties.label,
+                highlighted,
+                highlightState
+            );
             const { enabled: labelEnabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (labelText && labelEnabled && this.visible) {
                 text.fontStyle = fontStyle;
@@ -879,7 +890,7 @@ export class AreaSeries extends CartesianSeries<
                 text.x = x;
                 text.y = y - 10;
                 text.fill = color;
-                text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
+                text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
                 text.visible = true;
                 text.setBoxing(style);
             } else {
@@ -1134,5 +1145,9 @@ export class AreaSeries extends CartesianSeries<
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
     }
 }

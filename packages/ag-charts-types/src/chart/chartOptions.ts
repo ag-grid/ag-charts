@@ -1,5 +1,5 @@
 import type { AgInitialStateOptions } from '../api/initialStateOptions';
-import type { BorderOptions, Padding, PaddingOptions } from '../series/cartesian/commonOptions';
+import type { BorderOptions, Padding, PaddingOptions, TextSegment } from '../series/cartesian/commonOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { Renderer } from './callbackOptions';
@@ -48,7 +48,7 @@ export interface AgSeriesAreaOptions {
     clip?: boolean;
     /** The corner radius of the series area. */
     cornerRadius?: number;
-    /** Configuration for the padding around the series area. */
+    /** Configuration for the padding inside the series area. */
     padding?: Padding;
 }
 
@@ -85,7 +85,7 @@ export interface AgChartCaptionOptions {
     /** Whether the text should be shown. */
     enabled?: boolean;
     /** The text to display. */
-    text?: string;
+    text?: string | TextSegment[];
     /** Horizontal position of the text. */
     textAlign?: TextAlign;
     /** The font style to use for the text. */
@@ -201,7 +201,7 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
      * Default: `300`
      */
     minWidth?: PixelSize;
-    /** Configuration for the padding shown around the chart. */
+    /** Configuration for the padding of the chart. */
     padding?: AgChartPaddingOptions;
     /** Configuration relating to the series area. */
     seriesArea?: AgSeriesAreaOptions;
@@ -209,8 +209,7 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     background?: AgChartBackground;
     /** Configuration for the title shown at the top of the chart. */
     title?: AgChartCaptionOptions;
-    /** Configuration for the subtitle shown beneath the chart title.
-     * __Note:__ A subtitle will only be shown if a title is also present. */
+    /** Configuration for the subtitle shown beneath the chart title. */
     subtitle?: AgChartSubtitleOptions;
     /** Configuration for the footnote shown at the bottom of the chart. */
     footnote?: AgChartFooterOptions;

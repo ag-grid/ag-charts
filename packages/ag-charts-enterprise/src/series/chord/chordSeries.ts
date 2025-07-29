@@ -397,13 +397,16 @@ export class ChordSeries extends FlowProportionSeries<
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
         if (itemStyler != null && datumIndex != null) {
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, 'node', isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                         size,
                         label,
@@ -460,7 +463,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected getLinkStyle(
         { datumIndex, datum }: Partial<ChordLinkDatum>,
-        fromNodeDatumIndex: number,
+        fromNodeDatumIndex: FlowProportionNodeDatumIndex,
         isHighlight: boolean
     ) {
         const { id: seriesId, properties } = this;
@@ -468,18 +471,28 @@ export class ChordSeries extends FlowProportionSeries<
         const { itemStyler } = properties.link;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, properties.link.getStyle(fills, strokes, fromNodeDatumIndex));
+        const baseStyle = mergeDefaults(
+            highlightStyle,
+            properties.link.getStyle(fills, strokes, fromNodeDatumIndex.index)
+        );
 
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
         if (itemStyler != null && datumIndex != null) {
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, 'link', isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const highlightState = this.getHighlightStateString(
+                        activeHighlight,
+                        isHighlight,
+                        fromNodeDatumIndex
+                    );
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                     });
                 }
@@ -510,7 +523,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         datumSelection.each((link, datum) => {
             const fromNodeDatumIndex = datum.fromNode.datumIndex;
-            const style = this.getLinkStyle(datum, fromNodeDatumIndex.index, isHighlight);
+            const style = this.getLinkStyle(datum, fromNodeDatumIndex, isHighlight);
 
             link.centerX = datum.centerX;
             link.centerY = datum.centerY;
@@ -566,7 +579,7 @@ export class ChordSeries extends FlowProportionSeries<
         let format: Required<NodeStyle>;
         if (seriesDatum.type === FlowProportionDatumType.Link) {
             const fromNodeDatumIndex = seriesDatum.fromNode.datumIndex;
-            format = this.getLinkStyle({ datumIndex, datum }, fromNodeDatumIndex.index, false);
+            format = this.getLinkStyle({ datumIndex, datum }, fromNodeDatumIndex, false);
         } else {
             const label = seriesDatum.label;
             format = this.getNodeStyle({ datumIndex, datum, size, label }, datumIndex.index, false);
@@ -615,5 +628,9 @@ export class ChordSeries extends FlowProportionSeries<
         node: _ModuleSupport.Sector | ChordLink
     ): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
         return node;
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.node.itemStyler != null || this.properties.link.itemStyler != null;
     }
 }

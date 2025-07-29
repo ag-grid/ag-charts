@@ -74,7 +74,7 @@ type ProxyMeta = {
         result: ToolbarWidget;
     };
     group: {
-        params: ContainerParams<'group'> & { readonly ariaOrientation: Direction };
+        params: ContainerParams<'group'>;
         result: GroupWidget;
     };
     list: {
@@ -147,9 +147,6 @@ export class ProxyInteractionService {
         this.domManager.addChild('canvas-proxy', params.domManagerId, div);
         div.classList.add(...params.classList, 'ag-charts-proxy-container');
         div.role = params.type;
-        if ('ariaOrientation' in params) {
-            div.ariaOrientation = params.ariaOrientation;
-        }
 
         if (checkType('toolbar', meta)) {
             meta.result.orientation = meta.params.orientation;

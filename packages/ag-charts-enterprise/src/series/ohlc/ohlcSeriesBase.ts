@@ -313,6 +313,7 @@ export abstract class OhlcSeriesBase<
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         if (dataAggregationFilter == null) {
+            const invalidData = processedData.invalidData?.get(this.id);
             let [start, end] = visibleRangeIndices(1, rawData.length, xAxis.range, (index) => {
                 const xOffset = applyWidthOffset ? 0 : -effectiveBarWidth / 2;
                 const x = xPosition(index) + xOffset;
@@ -325,6 +326,8 @@ export abstract class OhlcSeriesBase<
             }
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
+                if (invalidData?.[datumIndex] === true) continue;
+
                 const xValue = xValues[datumIndex];
                 if (xValue == null) continue;
 
@@ -443,9 +446,11 @@ export abstract class OhlcSeriesBase<
         if (itemStyler != null && datumIndex != null) {
             const { xKey, openKey, closeKey, highKey, lowKey } = properties;
 
+            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(createDatumId(xValue), isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
@@ -456,6 +461,7 @@ export abstract class OhlcSeriesBase<
                         highKey,
                         lowKey,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                     });
                 }

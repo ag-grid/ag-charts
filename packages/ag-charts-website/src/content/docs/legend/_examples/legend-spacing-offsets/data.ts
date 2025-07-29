@@ -1,0 +1,43 @@
+// Source: https://www.gov.uk/government/statistics/renewable-sources-of-energy-chapter-6-digest-of-united-kingdom-energy-statistics-dukes
+export function getData() {
+    const data: { year: Date; assets: number; liabilities: number; netWorth?: number }[] = [
+        { year: new Date(1990, 1, 1), assets: 520, liabilities: -310 },
+        { year: new Date(1991, 1, 1), assets: 547, liabilities: -325 },
+        { year: new Date(1992, 1, 1), assets: 565, liabilities: -335 },
+        { year: new Date(1993, 1, 1), assets: 590, liabilities: -342 },
+        { year: new Date(1994, 1, 1), assets: 612, liabilities: -351 },
+        { year: new Date(1995, 1, 1), assets: 603, liabilities: -362 },
+        { year: new Date(1996, 1, 1), assets: 627, liabilities: -373 },
+        { year: new Date(1997, 1, 1), assets: 659, liabilities: -387 },
+        { year: new Date(1998, 1, 1), assets: 678, liabilities: -402 },
+        { year: new Date(1999, 1, 1), assets: 701, liabilities: -419 },
+        { year: new Date(2000, 1, 1), assets: 738, liabilities: -437 },
+        { year: new Date(2001, 1, 1), assets: 715, liabilities: -455 },
+        { year: new Date(2002, 1, 1), assets: 744, liabilities: -471 },
+        { year: new Date(2003, 1, 1), assets: 777, liabilities: -486 },
+        { year: new Date(2004, 1, 1), assets: 790, liabilities: -495 },
+        { year: new Date(2005, 1, 1), assets: 812, liabilities: -506 },
+        { year: new Date(2006, 1, 1), assets: 843, liabilities: -521 },
+        { year: new Date(2007, 1, 1), assets: 870, liabilities: -534 },
+        { year: new Date(2008, 1, 1), assets: 856, liabilities: -543 },
+        { year: new Date(2009, 1, 1), assets: 872, liabilities: -559 },
+        { year: new Date(2010, 1, 1), assets: 894, liabilities: -570 },
+        { year: new Date(2011, 1, 1), assets: 920, liabilities: -583 },
+        { year: new Date(2012, 1, 1), assets: 951, liabilities: -599 },
+        { year: new Date(2013, 1, 1), assets: 973, liabilities: -614 },
+        { year: new Date(2014, 1, 1), assets: 990, liabilities: -627 },
+        { year: new Date(2015, 1, 1), assets: 1021, liabilities: -641 },
+        { year: new Date(2016, 1, 1), assets: 1056, liabilities: -658 },
+        { year: new Date(2017, 1, 1), assets: 1078, liabilities: -668 },
+        { year: new Date(2018, 1, 1), assets: 1102, liabilities: -682 },
+        { year: new Date(2019, 1, 1), assets: 1135, liabilities: -701 },
+        { year: new Date(2020, 1, 1), assets: 1172, liabilities: -720 },
+        { year: new Date(2021, 1, 1), assets: 1155, liabilities: -738 },
+        { year: new Date(2022, 1, 1), assets: 1180, liabilities: -749 },
+        { year: new Date(2023, 1, 1), assets: 1209, liabilities: -763 },
+        { year: new Date(2024, 1, 1), assets: 1243, liabilities: -778 },
+        { year: new Date(2025, 1, 1), assets: 1270, liabilities: -792 },
+    ];
+    data.forEach((d) => (d.netWorth = d.assets + d.liabilities));
+    return data;
+}

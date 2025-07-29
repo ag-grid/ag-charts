@@ -50,7 +50,7 @@ export interface AgGaugeScaleLabel<TContext> {
     fontSize?: FontSize;
     /** The font family to use for the labels */
     fontFamily?: FontFamily;
-    /** Padding in pixels between the scale label and the tick. */
+    /** Spacing in pixels between the scale label and the tick. */
     spacing?: PixelSize;
     /** The colour to use for the labels */
     color?: CssColor;

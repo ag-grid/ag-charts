@@ -1415,4 +1415,8 @@ export class RadialGaugeSeries
     datumIndexForCategoryValue(_categoryValue: any): RadialGaugeNodeDatumIndex | undefined {
         return;
     }
+
+    protected override hasItemStylers(): boolean {
+        return false;
+    }
 }

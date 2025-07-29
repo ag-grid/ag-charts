@@ -2,6 +2,7 @@ import { isNegative } from 'ag-charts-core';
 
 import type { ApplyFn, FromToMotionPropFn } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
+import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
@@ -25,6 +26,14 @@ export function checkCrisp(
 
     if (ContinuousScale.is(scale)) {
         const spacing = scale.calcBandwidth(largestDataInterval) - scale.calcBandwidth(smallestDataInterval);
+        if (spacing > 0 && spacing < 1) return false;
+    }
+    if (BandScale.is(scale)) {
+        const { bandwidth, step } = scale;
+
+        if (bandwidth > 0 && bandwidth < 1) return false;
+
+        const spacing = step - bandwidth;
         if (spacing > 0 && spacing < 1) return false;
     }
 

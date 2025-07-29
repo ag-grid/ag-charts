@@ -34,6 +34,9 @@ export function addTouchCloseListener(menu: HTMLElement, hideCallback: () => voi
 }
 
 function containsEvent(container: Element, event: Pick<MouseEvent & TouchEvent, 'target' | 'clientX' | 'clientY'>) {
+    if (event.target instanceof Element && event.target.shadowRoot != null) {
+        return true;
+    }
     return event.target instanceof Node && container.contains(event.target);
 }
 

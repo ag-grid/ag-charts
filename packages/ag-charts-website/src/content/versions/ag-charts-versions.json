@@ -1,5 +1,36 @@
 [
     {
+        "version": "12.1.0",
+        "date": "July 29th, 2025",
+        "highlights": [
+            {
+                "text": "Alternating Band Shading",
+                "path": "./axes-grid-lines/#alternating-band-shading"
+            },
+            {
+                "text": "Extra Axis Zooming Interactions",
+                "path": "./zoom/#axis-zoom-controls"
+            },
+            {
+                "text": "Axis Label Truncation",
+                "path": "./axes-labels/#truncation"
+            },
+            {
+                "text": "Floating Legend Position",
+                "path": "./legend/#floating"
+            },
+            {
+                "text": "Label and Legend Fills and Borders",
+                "path": "./fills-borders"
+            },
+            {
+                "text": "Multi Style Text Elements",
+                "path": "./fonts"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-12-1"
+    },
+    {
         "version": "12.0.2",
         "date": "July 15th, 2025"
     },

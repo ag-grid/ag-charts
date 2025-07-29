@@ -381,6 +381,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 handleDatum(midDatumIndex, 0, x, width, yLow, yHigh, false);
             }
         } else if (processedData.type === 'ungrouped') {
+            const invalidData = processedData.invalidData?.get(this.id);
             let [start, end] = this.visibleRangeIndices('xValue', xAxis.range);
             // @todo(AG-13575) Remove this if block
             if (processedData.input.count < 1e3) {
@@ -389,6 +390,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             }
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
+                if (invalidData?.[datumIndex] === true) continue;
+
                 const x = xPosition(datumIndex);
                 const width = effectiveBarWidth;
                 const yLow = yLowValues[datumIndex];
@@ -499,30 +502,30 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemStyle(
-        { datumIndex, datum }: Partial<RangeBarNodeDatum>,
-        isHighlight: boolean
-    ): Required<AgRangeBarSeriesStyle> {
+    private getItemStyle(datum: RangeBarNodeDatum, isHighlight: boolean): Required<AgRangeBarSeriesStyle> {
         const { id: seriesId, properties } = this;
 
         const { xKey, yHighKey, yLowKey, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } =
             properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
-        if (itemStyler != null && datumIndex != null) {
+        if (itemStyler != null && datum != null) {
             const overrides = this.cachedDatumCallback(
-                createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
+                createDatumId(this.getDatumId(datum), isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
                     return this.callWithContext(itemStyler, {
                         seriesId,
-                        datum,
+                        datum: datum.datum,
                         xKey,
                         yHighKey,
                         yLowKey,
                         highlighted: isHighlight,
+                        highlightState,
                         ...style,
                     });
                 }
@@ -604,8 +607,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { xKey, xName, yName, yLowKey, yHighKey, yLowName, yHighName, tooltip, legendItemName } = properties;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
+        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
 
-        if (!dataModel || !processedData || !xAxis || !yAxis) {
+        if (!dataModel || !processedData || !xAxis || !yAxis || !nodeDatum) {
             return;
         }
 
@@ -616,7 +620,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (xValue == null) return;
 
-        const format = this.getItemStyle({ datum, datumIndex }, false);
+        const format = this.getItemStyle(nodeDatum, false);
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
         return this.formatTooltipWithContext(
             tooltip,
@@ -745,5 +749,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]);
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.itemStyler != null;
     }
 }
