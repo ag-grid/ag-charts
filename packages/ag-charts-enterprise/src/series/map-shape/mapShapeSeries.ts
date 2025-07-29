@@ -446,7 +446,8 @@ export class MapShapeSeries
         const labelData = this.contextNodeData?.labelData ?? [];
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
-        this.updateDatumNodes({ datumSelection, isHighlight: false });
+        this.updateDatumStyles({ datumSelection, isHighlight: false });
+        this.updateDatumNodes({ datumSelection });
 
         this.labelSelection = this.updateLabelSelection({ labelData, labelSelection });
         this.updateLabelNodes({ labelSelection });
@@ -455,7 +456,8 @@ export class MapShapeSeries
             nodeData: highlightedDatum != null ? [highlightedDatum] : [],
             datumSelection: highlightDatumSelection,
         });
-        this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
+        this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
+        this.updateDatumNodes({ datumSelection: highlightDatumSelection });
     }
 
     private updateDatumSelection(opts: {
@@ -508,12 +510,23 @@ export class MapShapeSeries
         return style;
     }
 
-    private updateDatumNodes(opts: {
+    private updateDatumStyles({
+        datumSelection,
+        isHighlight,
+    }: {
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        datumSelection.each((_, nodeDatum) => {
+            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+        });
+    }
 
+    private updateDatumNodes({
+        datumSelection,
+    }: {
+        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum>;
+    }) {
         const fillBBox = getTopologyShapeFillBBox(this.scale);
 
         datumSelection.each((geoGeometry, nodeDatum) => {
@@ -524,12 +537,10 @@ export class MapShapeSeries
                 return;
             }
 
-            const style = this.getItemStyle(nodeDatum, isHighlight);
-
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
 
-            applyShapeStyle(geoGeometry, style, fillBBox);
+            applyShapeStyle(geoGeometry, nodeDatum.style, fillBBox);
         });
     }
 

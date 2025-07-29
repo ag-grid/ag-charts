@@ -440,23 +440,30 @@ export class HistogramSeries extends CartesianSeries<
         return mergeDefaults(highlightStyle, properties.getStyle());
     }
 
-    protected override updateDatumNodes(opts: {
+    protected override updateDatumStyles(opts: {
         datumSelection: Selection<Rect, HistogramNodeDatum>;
         isHighlight: boolean;
     }) {
         const { isHighlight } = opts;
+        opts.datumSelection.each((_rect, datum) => {
+            datum.style = this.getItemStyle(datum, isHighlight);
+        });
+    }
+
+    protected override updateDatumNodes(opts: {
+        datumSelection: Selection<Rect, HistogramNodeDatum>;
+        isHighlight: boolean;
+    }) {
         const { shadow } = this.properties;
 
         const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
-            const style = this.getItemStyle(datum, isHighlight);
-
-            const { cornerRadius = 0 } = style;
+            const { cornerRadius = 0 } = datum.style;
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            applyShapeStyle(rect, style, fillBBox);
+            applyShapeStyle(rect, datum.style, fillBBox);
             rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
             rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;

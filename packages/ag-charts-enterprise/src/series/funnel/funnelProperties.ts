@@ -8,7 +8,7 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType } from 'ag-charts-core';
+import type { InternalAgColorType, RequireOptional } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 
@@ -56,6 +56,20 @@ class FunnelDropOff extends BaseProperties {
 
     @Property
     lineDashOffset: number = 0;
+
+    getStyle(): RequireOptional<AgFunnelSeriesStyle> & { opacity: number } {
+        const { fill, stroke, fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            opacity: 1,
+        };
+    }
 }
 
 export class FunnelProperties

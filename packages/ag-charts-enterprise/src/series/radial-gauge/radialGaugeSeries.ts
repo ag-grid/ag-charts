@@ -811,7 +811,8 @@ export class RadialGaugeSeries
         this.updateNeedleNodes({ needleSelection });
 
         this.targetSelection = this.updateTargetSelection({ targetData, targetSelection });
-        this.updateTargetNodes({ targetSelection, isHighlight: false });
+        this.updateTargetStyles({ targetSelection, isHighlight: false });
+        this.updateTargetNodes({ targetSelection });
 
         this.targetLabelSelection = this.updateTargetLabelSelection({ targetData, targetLabelSelection });
         this.updateTargetLabelNodes({ targetLabelSelection });
@@ -826,7 +827,8 @@ export class RadialGaugeSeries
             targetData: highlightTargetDatum != null ? [highlightTargetDatum] : [],
             targetSelection: highlightTargetSelection,
         });
-        this.updateTargetNodes({ targetSelection: highlightTargetSelection, isHighlight: true });
+        this.updateTargetStyles({ targetSelection: highlightTargetSelection, isHighlight: true });
+        this.updateTargetNodes({ targetSelection: highlightTargetSelection });
 
         this.tickSelection = this.updateTickSelection({ tickData, tickSelection });
         this.updateTickNodes({ tickSelection });
@@ -988,17 +990,27 @@ export class RadialGaugeSeries
         return opts.targetSelection.update(opts.targetData, undefined, (target) => target.itemId);
     }
 
-    private updateTargetNodes(opts: {
+    private updateTargetStyles({
+        targetSelection,
+        isHighlight,
+    }: {
         targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum>;
         isHighlight: boolean;
     }) {
-        const { targetSelection, isHighlight } = opts;
+        targetSelection.each((_, datum) => {
+            datum.style = this.getTargetStyle(isHighlight, datum);
+        });
+    }
 
+    private updateTargetNodes({
+        targetSelection,
+    }: {
+        targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum>;
+    }) {
         targetSelection.each((target, datum) => {
             const { centerX, centerY, angle, radius, shape, size, rotation } = datum;
 
-            const style = this.getTargetStyle(isHighlight, datum);
-            applyShapeStyle(target, style);
+            applyShapeStyle(target, datum.style);
 
             target.size = size;
             target.shape = shape === 'line' ? lineMarker : shape;

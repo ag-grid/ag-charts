@@ -27,4 +27,5 @@ export interface BaseFunnelProperties<TOpts extends object> extends _ModuleSuppo
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;
     label: FunnelSeriesLabel;
     tooltip: _ModuleSupport.SeriesTooltip<Omit<AgFunnelSeriesTooltipRendererParams<unknown>, 'context'>>;
+    getStyle: (datumIndex: number) => Required<AgFunnelSeriesStyle> & { opacity: number };
 }

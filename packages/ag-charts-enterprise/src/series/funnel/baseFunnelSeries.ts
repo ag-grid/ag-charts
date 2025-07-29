@@ -1,11 +1,5 @@
 import { type AgFunnelSeriesLabelFormatterParams, type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import type {
-    InternalAgColorType,
-    RequireOptional,
-    RequiredInternalAgGradientColor,
-    RequiredInternalAgImageFill,
-    RequiredInternalAgPatternColor,
-} from 'ag-charts-core';
+import type { RequireOptional } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -66,7 +60,6 @@ export interface FunnelNodeDatum
     readonly width: number;
     readonly height: number;
     readonly label: FunnelNodeLabelDatum | undefined;
-    readonly strokeWidth: number;
     readonly visible: boolean;
 
     // Required for types
@@ -113,19 +106,6 @@ class FunnelSeriesNodeEvent<
         this.xKey = series.properties.stageKey;
         this.yKey = series.properties.valueKey;
     }
-}
-
-export interface FunnelSeriesShapeStyle {
-    fill?: InternalAgColorType;
-    fillGradientDefaults: RequiredInternalAgGradientColor;
-    fillPatternDefaults: RequiredInternalAgPatternColor;
-    fillImageDefaults: RequiredInternalAgImageFill;
-    fillOpacity: number;
-    stroke?: string;
-    strokeWidth: number;
-    strokeOpacity: number;
-    lineDash: number[];
-    lineDashOffset: number;
 }
 
 export abstract class BaseFunnelSeries<
@@ -203,9 +183,7 @@ export abstract class BaseFunnelSeries<
 
     protected abstract connectorEnabled(): boolean;
 
-    protected abstract barStyle(): FunnelSeriesShapeStyle;
-
-    protected abstract connectorStyle(): FunnelSeriesShapeStyle;
+    protected abstract connectorStyle(index: number): RequireOptional<AgFunnelSeriesStyle> & { opacity: number };
 
     private connectionFactory() {
         return new FunnelConnector();
@@ -304,7 +282,6 @@ export abstract class BaseFunnelSeries<
 
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
         const { stageKey, valueKey } = this.properties;
-        const { strokeWidth } = this.barStyle();
 
         const itemId = `${valueKey}`;
 
@@ -354,7 +331,8 @@ export abstract class BaseFunnelSeries<
             const yNegative = Math.round(yScale.convert(-yDatum));
             const yPositive = Math.round(yScale.convert(yDatum));
 
-            const barHeight = Math.max(strokeWidth, Math.abs(yPositive - yNegative));
+            const style = this.getItemStyle({ datum, datumIndex }, false);
+            const barHeight = Math.max(style.strokeWidth ?? 0, Math.abs(yPositive - yNegative));
 
             const rect: Bounds = {
                 x: barAlongX ? Math.min(yPositive, yNegative) : x,
@@ -392,11 +370,10 @@ export abstract class BaseFunnelSeries<
                 width: rect.width,
                 height: rect.height,
                 midPoint: nodeMidPoint,
-                strokeWidth,
                 crisp,
                 label: labelData,
                 visible,
-                style: this.barStyle(),
+                style,
             };
 
             context.nodeData.push(nodeDatum);
@@ -453,6 +430,11 @@ export abstract class BaseFunnelSeries<
         return context;
     }
 
+    protected abstract getItemStyle(
+        _: Pick<FunnelNodeDatum, 'datum' | 'datumIndex'>,
+        _isHighlight: boolean
+    ): RequireOptional<AgFunnelSeriesStyle>;
+
     protected abstract createLabelData({
         datumIndex,
         rect,
@@ -498,28 +480,23 @@ export abstract class BaseFunnelSeries<
     private updateConnectorNodes(opts: {
         connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
     }) {
-        const { fills, strokes, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = this.properties;
-        const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
-            this.connectorStyle();
+        const { fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = this.properties;
 
         const fillBBox = this.getShapeFillBBox();
 
         opts.connectorSelection.each((connector, datum) => {
-            const { datumIndex } = datum;
+            const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
+                this.connectorStyle(datum.datumIndex);
+
             connector.setProperties(resetConnectorSelectionsFn(connector, datum));
 
-            const connectorFill = getShapeFill(
-                fill ?? fills[datumIndex % fills.length],
-                fillGradientDefaults,
-                fillPatternDefaults,
-                fillImageDefaults
-            );
+            const connectorFill = getShapeFill(fill, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
             applyShapeStyle(
                 connector,
                 {
                     fill: connectorFill,
-                    stroke: stroke ?? strokes[datumIndex % strokes.length],
+                    stroke,
                     fillOpacity,
                     strokeOpacity,
                     strokeWidth,
@@ -631,19 +608,8 @@ export abstract class BaseFunnelSeries<
     }
 
     private legendItemSymbol(datumIndex: number): _ModuleSupport.LegendSymbolOptions {
-        const {
-            strokeWidth,
-            fillOpacity,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-        } = this.barStyle();
-        const { fills, strokes } = this.properties;
-        const fill = fills[datumIndex % fills.length] ?? 'black';
-        const stroke = strokes[datumIndex % strokes.length] ?? 'black';
+        const { strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset, fill, stroke } =
+            this.properties.getStyle(datumIndex);
 
         return {
             marker: getShapeStyle(
@@ -656,9 +622,9 @@ export abstract class BaseFunnelSeries<
                     lineDash,
                     lineDashOffset,
                 },
-                fillGradientDefaults,
-                fillPatternDefaults,
-                fillImageDefaults
+                this.properties.fillGradientDefaults,
+                this.properties.fillPatternDefaults,
+                this.properties.fillImageDefaults
             ),
         };
     }

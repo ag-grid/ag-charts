@@ -247,7 +247,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                         marker,
                         { datumIndex, datum },
                         { xKey, yHighKey, yLowKey },
-                        false,
+                        { isHighlight: false },
                         undefined,
                         {
                             fill,
@@ -547,27 +547,36 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return datumSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
-    protected override updateDatumNodes(opts: {
+    protected override updateDatumStyles({
+        datumSelection,
+        isHighlight,
+    }: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
-        const { datumSelection, isHighlight } = opts;
         const { xKey, yLowKey, yHighKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity } =
             this.properties;
-        const fillBBox = this.getShapeFillBBox();
 
-        datumSelection.each((node, datum) => {
-            const params = { xKey, yHighKey, yLowKey };
-
-            const style = this.getMarkerStyle(marker, datum, params, { isHighlight }, undefined, {
+        datumSelection.each((_, datum) => {
+            datum.style = this.getMarkerStyle(marker, datum, { xKey, yHighKey, yLowKey }, { isHighlight }, undefined, {
                 fill,
                 fillOpacity,
                 stroke,
                 strokeWidth,
                 strokeOpacity,
             });
+        });
+    }
 
-            this.applyMarkerStyle(style, node, datum.point, fillBBox);
+    protected override updateDatumNodes(opts: {
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
+        isHighlight: boolean;
+    }) {
+        const { datumSelection, isHighlight } = opts;
+        const fillBBox = this.getShapeFillBBox();
+
+        datumSelection.each((node, datum) => {
+            this.applyMarkerStyle(datum.style, node, datum.point, fillBBox);
         });
 
         if (!isHighlight) {

@@ -308,7 +308,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 y: rect.y + rect.height / 2,
             };
 
-            const style = this.getItemStyle({ datum, datumIndex }, false);
+            const style = this.getItemStyle({ datum, datumIndex, xValue: xDatum }, false);
 
             const labelData: RangeBarNodeDatum['labels'] = this.createLabelData({
                 datumIndex,
@@ -550,22 +550,32 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return style;
     }
 
-    protected override updateDatumNodes(opts: {
+    protected override updateDatumStyles({
+        datumSelection,
+        isHighlight,
+    }: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        datumSelection.each((_, datum) => {
+            datum.style = this.getItemStyle(datum, isHighlight);
+        });
+    }
 
+    protected override updateDatumNodes({
+        datumSelection,
+    }: {
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
+        isHighlight: boolean;
+    }) {
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
-            const style = this.getItemStyle(datum, isHighlight);
+            applyShapeStyle(rect, datum.style, fillBBox);
 
-            applyShapeStyle(rect, style, fillBBox);
-
-            rect.cornerRadius = style.cornerRadius;
+            rect.cornerRadius = datum.style.cornerRadius ?? 0;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
             rect.crisp = datum.crisp;

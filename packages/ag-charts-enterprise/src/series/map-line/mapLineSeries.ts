@@ -374,12 +374,14 @@ export class MapLineSeries extends TopologySeries<
         const nodeData = this.contextNodeData?.nodeData ?? [];
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
+        this.updateDatumStyles({ datumSelection, isHighlight: false });
         this.updateDatumNodes({ datumSelection, isHighlight: false });
 
         this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum != null ? [highlightedDatum] : [],
             datumSelection: highlightDatumSelection,
         });
+        this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
         this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
     }
 
@@ -428,14 +430,26 @@ export class MapLineSeries extends TopologySeries<
         return overrides ? mergeDefaults(baseStyle, overrides) : baseStyle;
     }
 
-    private updateDatumNodes(opts: {
+    private updateDatumStyles({
+        datumSelection,
+        isHighlight,
+    }: {
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        datumSelection.each((_, nodeDatum) => {
+            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+        });
+    }
 
+    private updateDatumNodes({
+        datumSelection,
+    }: {
+        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum>;
+        isHighlight: boolean;
+    }) {
         datumSelection.each((geoGeometry, nodeDatum) => {
-            const { projectedGeometry } = nodeDatum;
+            const { projectedGeometry, style } = nodeDatum;
             if (projectedGeometry == null) {
                 geoGeometry.visible = false;
                 geoGeometry.projectedGeometry = undefined;
@@ -445,7 +459,6 @@ export class MapLineSeries extends TopologySeries<
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
 
-            const style = this.getItemStyle(nodeDatum, isHighlight);
             geoGeometry.setProperties(style);
         });
     }

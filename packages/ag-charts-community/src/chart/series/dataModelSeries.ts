@@ -125,8 +125,8 @@ export abstract class DataModelSeries<
         }
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
-        const datums = super.pickNodesExactShape(point) as DataModelSeriesNodeDatum[];
+    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown, unknown>[] {
+        const datums = super.pickNodesExactShape(point) as DataModelSeriesNodeDatum<TStyle>[];
         datums.sort((a, b) => a.datumIndex - b.datumIndex);
         return datums;
     }

@@ -461,9 +461,20 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return style;
     }
 
-    protected override updateDatumNodes({
+    protected override updateDatumStyles({
         datumSelection,
         isHighlight,
+    }: {
+        datumSelection: _ModuleSupport.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        datumSelection.each((_, nodeDatum) => {
+            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+        });
+    }
+
+    protected override updateDatumNodes({
+        datumSelection,
     }: {
         datumSelection: _ModuleSupport.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
         isHighlight: boolean;
@@ -471,12 +482,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const isVertical = this.isVertical();
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
         datumSelection.each((boxPlotGroup, nodeDatum) => {
-            const style = this.getItemStyle(nodeDatum, isHighlight);
-
             const fillBBox = this.getShapeFillBBox();
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
-                style as DeepRequired<AgBoxPlotHighlightStyleOptions>,
+                nodeDatum.style as DeepRequired<AgBoxPlotHighlightStyleOptions>,
                 isVertical,
                 isReversedValueAxis,
                 fillBBox

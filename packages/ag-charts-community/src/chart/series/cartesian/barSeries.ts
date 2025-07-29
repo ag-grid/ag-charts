@@ -701,6 +701,15 @@ export class BarSeries extends AbstractBarSeries<
         return style;
     }
 
+    protected override updateDatumStyles(opts: {
+        datumSelection: Selection<BarShape, BarNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        opts.datumSelection.each((_, datum) => {
+            datum.style = this.getItemStyle(datum, opts.isHighlight);
+        });
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<BarShape, BarNodeDatum>;
         isHighlight: boolean;
@@ -712,10 +721,9 @@ export class BarSeries extends AbstractBarSeries<
         const direction = this.getBarDirection();
 
         opts.datumSelection.each((rect, datum) => {
-            const style = this.getItemStyle(datum, opts.isHighlight);
-            applyShapeStyle(rect, style, fillBBox);
+            applyShapeStyle(rect, datum.style, fillBBox);
 
-            const cornerRadius = style.cornerRadius ?? 0;
+            const cornerRadius = datum.style.cornerRadius ?? 0;
             rect.topLeftCornerRadius = datum.topLeftCornerRadius ? cornerRadius : 0;
             rect.topRightCornerRadius = datum.topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = datum.bottomRightCornerRadius ? cornerRadius : 0;

@@ -17,12 +17,22 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
         return new OhlcNode();
     }
 
-    protected override updateDatumNodes({
+    protected override updateDatumStyles({
         datumSelection,
         isHighlight,
     }: {
         datumSelection: _ModuleSupport.Selection<OhlcNode, OhlcNodeDatum>;
         isHighlight: boolean;
+    }) {
+        datumSelection.each((_, datum) => {
+            datum.style = this.getItemStyle(datum, isHighlight);
+        });
+    }
+
+    protected override updateDatumNodes({
+        datumSelection,
+    }: {
+        datumSelection: _ModuleSupport.Selection<OhlcNode, OhlcNodeDatum>;
     }) {
         const { item } = this.properties;
         const { up, down } = item;
@@ -40,8 +50,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
             node.yClose = yClose;
             node.crisp = crisp;
 
-            const style = this.getItemStyle(datum, isHighlight);
-            applyShapeStyle(node, style);
+            applyShapeStyle(node, datum.style);
 
             // Ignore highlight style
             node.strokeAlignment = (isRising ? upStrokeWidth : downStrokeWidth) / 2;

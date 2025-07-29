@@ -21,9 +21,20 @@ export class CandlestickSeries extends OhlcSeriesBase<
         return new CandlestickNode();
     }
 
-    protected override updateDatumNodes({
+    protected override updateDatumStyles({
         datumSelection,
         isHighlight,
+    }: {
+        datumSelection: _ModuleSupport.Selection<CandlestickNode, OhlcNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        datumSelection.each((_, datum) => {
+            datum.style = this.getItemStyle(datum, isHighlight);
+        });
+    }
+
+    protected override updateDatumNodes({
+        datumSelection,
     }: {
         datumSelection: _ModuleSupport.Selection<CandlestickNode, OhlcNodeDatum>;
         isHighlight: boolean;
@@ -36,8 +47,6 @@ export class CandlestickSeries extends OhlcSeriesBase<
         datumSelection.each((node, datum) => {
             const { isRising, centerX, width, y, height, yOpen, yClose, crisp } = datum;
 
-            const style = this.getItemStyle(datum, isHighlight);
-
             node.centerX = centerX;
             node.width = width;
             node.y = y;
@@ -46,9 +55,9 @@ export class CandlestickSeries extends OhlcSeriesBase<
             node.yClose = yClose;
             node.crisp = crisp;
 
-            applyShapeStyle(node, style, this.getShapeFillBBox());
+            applyShapeStyle(node, datum.style, this.getShapeFillBBox());
 
-            const styleWick = style?.wick;
+            const styleWick = datum.style?.wick;
             node.wickStroke = styleWick?.stroke;
             node.wickStrokeWidth = styleWick?.strokeWidth;
             node.wickStrokeOpacity = styleWick?.strokeOpacity;

@@ -106,6 +106,7 @@ describe('HierarchySeries', () => {
             depth: undefined,
             parent: undefined,
             children: [],
+            style: {},
             midPoint: { x: 0, y: 0 },
         });
     });
