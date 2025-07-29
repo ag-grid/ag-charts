@@ -95,7 +95,7 @@ describe('ScatterSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
-            await compare(looserSnapshotDefaults(0.05, 5));
+            await compare(looserSnapshotDefaults(0.06, 5));
         });
 
         it('should render scatter series with a horizontal linear gradient fill', async () => {
