@@ -22,7 +22,7 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
 
 **You MUST use Puppeteer to visually analyze each example before making any changes:**
 
-1. **Navigate to the example**: Use Puppeteer to visit `https://host.docker.internal:4600/charts/gallery/examples/{exampleName}`
+1. **Navigate to the example**: Use the Puppeteer tool to visit `https://localhost:4600/charts/gallery/examples/{exampleName}`
 2. **Take screenshots**: Capture the current visual state of the chart
 3. **Analyze visually**: Base your improvements on what you see, not just code inspection
 4. **Verify changes**: After modifications, take another screenshot to confirm improvements
@@ -33,19 +33,6 @@ You are tasked with improving the visual appeal of an AG Charts gallery example 
 -   If screenshots cannot be captured: **STOP IMMEDIATELY**
 -   Do NOT proceed with code-only analysis
 -   Report the error and explain that visual analysis is required
-
-**Puppeteer Configuration** (REQUIRED):
-
-```javascript
-await puppeteer_navigate({
-    url: `https://host.docker.internal:4600/charts/gallery/examples/${exampleName}`,
-    allowDangerous: true, // Required for self-signed certificate
-    launchOptions: {
-        headless: true,
-        args: ['--ignore-certificate-errors'],
-    },
-});
-```
 
 ## Instructions
 
@@ -1296,7 +1283,7 @@ await puppeteer_navigate({
     - **BEFORE CHANGES: Take a screenshot with Puppeteer to document the current state**
     - Implement the selected enhancements
     - **AFTER CHANGES: Take a new screenshot with Puppeteer to verify improvements**
-    - Test the changes using the development server at `https://host.docker.internal:4600`
+    - Test the changes using the development server at `https://hlocalhost:4600`
         - **MANDATORY**: Use Puppeteer with `allowDangerous: true` for self-signed certificates
     - Ensure the example still loads correctly and functions as expected
     - Verify the example works across different viewport sizes if responsive features are added

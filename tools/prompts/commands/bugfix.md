@@ -4,13 +4,12 @@
 
 3. Create a new branch with the JIRA issue number as the branch name and a short kebab case description of the change.
 
-4. Review the JIRA and analyse the bug using `mcp-ag-jira`.
+4. Review the JIRA and analyse the bug using the `ag-jira` tool.
 
 5. Execute the plan until the JIRA is complete.
     - Make sure all Acceptance Criteria are met if present.
     - Make sure all steps to reproduce have their expected results.
-    - Use `browser` to exercise the changes.
-        - If `browser` is not available, use `puppeteer` to exercise the changes.
+    - Use the puppeteer tool to exercise the changes.
 6. Consider if CLAUDE.md needs updating.
 7. Make sure changes meet the required code quality standards.
     - Always run all CI checks before committing (build, lint, test, etc).

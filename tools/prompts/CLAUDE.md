@@ -150,8 +150,17 @@ nx e2e ag-charts-website
 ## Development Server Notes
 
 -   Normally the Astro dev server is running on port 4600 (HTTPS) and you can just use it.
-    -   If using the puppeteer MCP tool, use `https://host.docker.internal:4600` as the host rather than `https://localhost:4600`.
-    -   When using puppeteer MCP tool, you must use the "--ignore-certificate-errors" flag since we're using a self-signed certificate, and pass `allowDangerous: true` to the puppeteer tool invocation.
+    -   If using the puppeteer MCP tool, you must use the following configuration by default:
+        ```javascript
+        await puppeteer_navigate({
+            url: `${url}`,
+            allowDangerous: true, // Required for self-signed certificate
+            launchOptions: {
+                headless: true, // Required to avoid focus issues
+                args: ['--ignore-certificate-errors'],
+            },
+        });
+        ```
 -   If you need to run the dev server, use `nx dev` to start it.
     -   This includes an incremental watch and build of all packages and website.
 -   `packages/ag-charts-website/src/content/gallery/data.json` is the source of truth for the gallery examples.

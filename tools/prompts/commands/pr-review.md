@@ -29,7 +29,7 @@ If I specify to review specific PRs ($ARGUMENTS), just perform review for them w
 
 ### Identifying PRs for JIRA tickets
 
--   Use the MCP server `mcp-ag-jira` to search for JIRA tickets.
+-   Use the MCP server `ag-jira` to search for JIRA tickets.
 -   Unless requested otherwise:
     -   We're only interested in tickets in the `AG` project with a component of `Charts`.
     -   We're usually interested in tickets with a status of `Needs Review`.
