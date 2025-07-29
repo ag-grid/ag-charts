@@ -16,6 +16,8 @@ const EXPECTED_FOLDER_CONTENTS = {
         'ag-charts-types',
         'ag-charts-website',
         'contents',
+        'ag-charts-community-examples',
+        'sbom.json',
     ],
     'dist/packages/contents': [
         'ag-charts-angular',

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -Eeuo pipefail
+
 excluded=("ag-charts-react" "ag-charts-vue3" "ag-charts-angular" "ag-charts-locale")
 frameworks=("ag-charts-react" "ag-charts-vue3" "ag-charts-angular")
 
@@ -144,7 +146,8 @@ validateLocale()
 }
 
 # check all expected modules & packages are there
-node validatePackageFolderContents.js
+script_dir=$(dirname "$0")
+node $script_dir/validatePackageFolderContents.js
 
 validateModules "dist/packages/contents"
 validateLocale "dist/packages/contents/ag-charts-locale/package"
