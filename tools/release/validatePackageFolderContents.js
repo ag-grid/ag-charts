@@ -11,12 +11,7 @@ const EXPECTED_FOLDER_CONTENTS = {
         'ag-charts-react.tgz',
         'ag-charts-types.tgz',
         'ag-charts-vue3.tgz',
-        // Folders
-        'ag-charts-community',
-        'ag-charts-types',
-        'ag-charts-website',
         'contents',
-        'ag-charts-community-examples',
         'sbom.json',
     ],
     'dist/packages/contents': [
