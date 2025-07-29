@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-generate-code-reference-files",
-  "version": "12.1.0-beta.20250729",
+  "version": "12.1.0-beta.20250729.1002",
   "private": true,
   "dependencies": {
     "ag-shared": "0.0.1",
