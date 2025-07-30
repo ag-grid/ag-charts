@@ -92,7 +92,6 @@ export interface TickGenerationResult<D = any> {
 interface TickStrategyParams<D = any> {
     readonly index: number;
     readonly tickData: TickData<D>;
-    readonly terminate: boolean;
     readonly primaryTickCount: AxisPrimaryTickCount | undefined;
     readonly defaultTickMinSpacing: number;
     readonly visibleRange: [number, number];
@@ -103,7 +102,6 @@ interface TickStrategyResult<D = any> {
     index: number;
     tickData: TickData<D>;
     autoRotation: number;
-    terminate: boolean;
 }
 
 type TickStrategy<D = any> = (params: TickStrategyParams<D>) => TickStrategyResult<D>;
@@ -286,8 +284,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         let index = 0;
         let autoRotation = 0;
         let labelOverlap = true;
-        let terminate = false;
-        while (!terminate && labelOverlap && index <= maxIterations) {
+        while (labelOverlap && index <= maxIterations) {
             autoRotation = 0;
 
             for (const strategy of this.getTickStrategies({
@@ -298,10 +295,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 secondaryAxis,
                 sizeLimit,
             })) {
-                ({ tickData, index, autoRotation, terminate } = strategy({
+                ({ tickData, index, autoRotation } = strategy({
                     index,
                     tickData,
-                    terminate,
                     primaryTickCount,
                     defaultTickMinSpacing,
                     visibleRange,
@@ -371,7 +367,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             primaryTickCount,
             defaultTickMinSpacing,
             visibleRange,
-            terminate,
         }: TickStrategyParams) =>
             this.createTickData(
                 domain,
@@ -384,18 +379,16 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 tickGenerationType,
                 index,
                 tickData,
-                terminate,
                 sizeLimit
             );
 
         strategies.push(tickGenerationStrategy);
 
         if (avoidLabelCollisions && autoRotate) {
-            const autoRotateStrategy = ({ index, tickData, labelsOverlap, terminate }: TickStrategyParams) => ({
+            const autoRotateStrategy = ({ index, tickData, labelsOverlap }: TickStrategyParams) => ({
                 index,
                 tickData,
                 autoRotation: labelsOverlap() ? normalizeAngle360FromDegrees(label.autoRotateAngle) : 0,
-                terminate,
             });
             strategies.push(autoRotateStrategy);
         }
@@ -414,7 +407,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         tickGenerationType: TickGenerationType,
         index: number,
         previousTickData: TickData,
-        terminate: boolean,
         sizeLimit: number | undefined
     ): TickStrategyResult {
         // Find the next tick data where the tick data is different from the previous tick data - and return the index of this data
@@ -508,9 +500,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         };
 
         index += 1;
-        terminate ||= step != null || values != null;
 
-        return { tickData, index, autoRotation: 0, terminate };
+        return { tickData, index, autoRotation: 0 };
     }
 
     private getTimeIntervalTicks(
