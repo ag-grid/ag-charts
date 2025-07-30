@@ -5,6 +5,7 @@ import { aggregationDomain, aggregationXRatioForXValue } from '../aggregation';
 
 const SIZE_QUANTIZATION = 3;
 const FILTER_DATUM_THRESHOLD = 5;
+const FILTER_RANGE_THRESHOLD = 0.05;
 
 export interface BubbleAggregation {
     xValues: any[];
@@ -115,7 +116,11 @@ function aggregateQuad(
     x1: number,
     y1: number
 ): BubbleAggregationNode | undefined {
-    if (indices.length < FILTER_DATUM_THRESHOLD) {
+    if (
+        indices.length < FILTER_DATUM_THRESHOLD &&
+        x1 - x0 < FILTER_RANGE_THRESHOLD &&
+        y1 - y0 < FILTER_RANGE_THRESHOLD
+    ) {
         return;
     } else if (x0 === x1 && y0 === y1) {
         const primaryDatumIndex = getPrimaryDatumIndex(xValues, yValues, xd0, yd0, xd1, yd1, indices, x0, y0, x1, y1);
