@@ -438,7 +438,7 @@ export class Legend extends BaseProperties {
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
             markerLabel.text = this.truncate(text, maxLength, maxItemWidth, paddedSymbolWidth, measurer, id);
 
-            bboxes.push(markerLabel.getTextMeasureBBox());
+            bboxes.push(markerLabel.getBBox());
         });
 
         width = Math.max(1, width);

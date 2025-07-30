@@ -470,12 +470,7 @@ export abstract class CartesianSeries<
         const { dataNodeGroup, labelSelection, paths, labelGroup } = this;
         const { itemId } = this.contextNodeData ?? {};
 
-        this.updatePathNodes({
-            itemId,
-            paths,
-            visible: visible,
-            animationEnabled,
-        });
+        this.updatePathNodes({ itemId, paths, visible, animationEnabled });
 
         dataNodeGroup.visible = animationEnabled || visible;
         labelGroup.visible = visible;

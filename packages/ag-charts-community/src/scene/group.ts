@@ -43,8 +43,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
     opacity: number = 1;
 
-    renderToOffscreenCanvas: boolean = false;
-    optimizeForInfrequentRedraws: boolean = false;
+    renderToOffscreenCanvas: boolean;
+    optimizeForInfrequentRedraws: boolean;
 
     // Used when renderToOffscreenCanvas: true
     private layer: HdpiOffscreenCanvas | undefined = undefined; // optimizeForInfrequentRedraws: false
@@ -54,10 +54,12 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         readonly name?: string;
         readonly zIndex?: ZIndex;
         readonly renderToOffscreenCanvas?: boolean;
+        readonly optimizeForInfrequentRedraws?: boolean;
     }) {
         super(opts);
         this.isContainerNode = true;
         this.renderToOffscreenCanvas = opts?.renderToOffscreenCanvas === true;
+        this.optimizeForInfrequentRedraws = opts?.optimizeForInfrequentRedraws === true;
     }
 
     // We consider a group to be boundless, thus any point belongs to it.

@@ -16,6 +16,8 @@ export class LegendMarkerLabel extends TranslatableGroup {
     private readonly symbolsGroup: Group = this.appendChild(
         new Group({
             name: 'legend-markerLabel-symbols',
+            renderToOffscreenCanvas: true,
+            optimizeForInfrequentRedraws: true,
         })
     );
     private readonly label = this.appendChild(new Text());
@@ -25,19 +27,9 @@ export class LegendMarkerLabel extends TranslatableGroup {
     constructor() {
         super({ name: 'markerLabelGroup' });
 
-        const { label, line, symbolsGroup } = this;
-
-        line.visible = false;
-
-        symbolsGroup.renderToOffscreenCanvas = true;
-        symbolsGroup.optimizeForInfrequentRedraws = true;
-
-        label.textBaseline = 'middle';
-        label.fontSize = 12;
-        label.fontFamily = 'Verdana, sans-serif';
-        label.fill = 'black';
-        // For better looking vertical alignment of labels to markers.
-        label.y = 1;
+        this.line.visible = false;
+        this.label.textBaseline = 'middle';
+        this.label.y = 1; // For better-looking vertical alignment of labels to markers.
     }
 
     override destroy() {
@@ -82,11 +74,6 @@ export class LegendMarkerLabel extends TranslatableGroup {
     setEnabled(enabled: boolean) {
         this.enabled = enabled;
         this.refreshVisibilities();
-    }
-
-    getTextMeasureBBox() {
-        this.layout();
-        return BBox.merge([this.symbolsGroup.getBBox(), this.label.getTextMeasureBBox()]);
     }
 
     private refreshVisibilities() {

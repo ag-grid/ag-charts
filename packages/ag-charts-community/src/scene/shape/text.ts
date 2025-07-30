@@ -236,10 +236,6 @@ export class Text<D = any> extends Shape<D> {
         return toPlainText(this.text);
     }
 
-    getTextMeasureBBox() {
-        return this.computeBBox();
-    }
-
     isPointInPath(x: number, y: number): boolean {
         return this.getBBox()?.containsPoint(x, y) ?? false;
     }
