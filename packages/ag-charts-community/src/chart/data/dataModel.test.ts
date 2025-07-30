@@ -88,8 +88,8 @@ const sum = (groupId: string): AggregatePropertyDefinition<any, any> => ({
 });
 const scopedSum = (scopes: string[], groupId: string) => ({ ...sum(groupId), scopes });
 const range = (groupId: string) => ({ ...actualRange(`range-${groupId}`, groupId), scopes: ['test'] });
-const groupAverage = (groupId: string) => ({
-    ...actualGroupAverage(`groupAverage-${groupId}`, groupId),
+const groupAverage = (matchGroupId: string) => ({
+    ...actualGroupAverage(`groupAverage-${matchGroupId}`, { matchGroupId }),
     scopes: ['test'],
 });
 const rowCountProperty = (prop: string) => ({ ...actualRowCountProperty(prop), scopes: ['test'] });
