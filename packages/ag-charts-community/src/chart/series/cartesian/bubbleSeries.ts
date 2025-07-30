@@ -21,6 +21,7 @@ import type { LabelPlacement, MeasuredLabel, PlacedLabel } from '../../../scene/
 import { extent } from '../../../util/extent';
 import { formatValue } from '../../../util/format.util';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
+import { rescaleVisibleRange } from '../../../util/visibleRange';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -267,11 +268,32 @@ export class BubbleSeries extends CartesianSeries<
         xVisibleRange: [number, number] = xAxis.visibleRange,
         yVisibleRange: [number, number] = yAxis.visibleRange
     ): BubbleAggregationOptions {
+        const { processedData, dataModel } = this;
         const { sizeKey, marker } = this.properties;
         const xRange = Math.abs(xAxis.range[1] - xAxis.range[0]);
         const yRange = Math.abs(yAxis.range[1] - yAxis.range[0]);
         const minSize = marker.size;
         const maxSize = sizeKey ? marker.maxSize : minSize;
+
+        const xScale = xAxis.scale;
+        const yScale = yAxis.scale;
+
+        if (processedData != null && dataModel != null) {
+            if (ContinuousScale.is(xScale)) {
+                xVisibleRange = rescaleVisibleRange(
+                    xVisibleRange,
+                    xScale.domain as [number, number],
+                    dataModel.getDomain(this, `xValue`, 'value', processedData) as [number, number]
+                );
+            }
+            if (ContinuousScale.is(yScale)) {
+                yVisibleRange = rescaleVisibleRange(
+                    yVisibleRange,
+                    yScale.domain as [number, number],
+                    dataModel.getDomain(this, `yValue`, 'value', processedData) as [number, number]
+                );
+            }
+        }
 
         return { xRange, yRange, minSize, maxSize, xVisibleRange, yVisibleRange };
     }

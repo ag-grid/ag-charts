@@ -9,6 +9,7 @@ import {
     intervalMilliseconds,
     intervalStep,
 } from './time';
+import { rescaleVisibleRange } from './visibleRange';
 
 interface TickInterval {
     duration: number;
@@ -83,11 +84,7 @@ export function createTicks(
     }
 
     if (visibleRange != null) {
-        const dr = d1 - d0;
-        const vr = stop - start;
-        const vd0 = start + vr * visibleRange[0];
-        const vd1 = start + vr * visibleRange[1];
-        visibleRange = [(vd0 - d0) / dr, (vd1 - d0) / dr];
+        visibleRange = rescaleVisibleRange(visibleRange, [start, stop], [d0, d1]);
     }
 
     const { ticks } = range(d0, d1, step, visibleRange);
