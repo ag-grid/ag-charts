@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { EllipsisChar, Logger, calcLineHeight } from 'ag-charts-core';
+import { EllipsisChar, type ITextMeasurer, Logger, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
 import type {
     AgMapShapeSeriesLabelFormatterParams,
     AgMapShapeSeriesOptions,
@@ -26,7 +26,6 @@ const {
     createDatumId,
     SeriesNodePickMode,
     valueProperty,
-    CachedTextMeasurerPool,
     ColorScale,
     Group,
     Selection,
@@ -227,7 +226,7 @@ export class MapShapeSeries
     private getLabelLayout(
         datum: any,
         labelValue: string | undefined,
-        measurer: _ModuleSupport.TextMeasurer,
+        measurer: ITextMeasurer,
         geometry: _ModuleSupport.Geometry | undefined,
         previousLabelLayout: LabelLayout | undefined
     ): LabelLayout | undefined {
@@ -345,7 +344,7 @@ export class MapShapeSeries
         const colorValues =
             colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
 
-        const measurer = CachedTextMeasurerPool.getMeasurer({ font: label });
+        const measurer = cachedTextMeasurer(label);
 
         const labelLayouts = new Map<string, LabelLayout>();
         this.previousLabelLayouts = labelLayouts;

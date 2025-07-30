@@ -4,7 +4,7 @@ import {
     type AgPyramidSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Writeable, calcLineHeight } from 'ag-charts-core';
+import { type Writeable, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
 
 import { FunnelConnector } from '../funnel/funnelConnector';
 import { PyramidProperties } from './pyramidProperties';
@@ -14,7 +14,6 @@ const {
     StateMachine,
     valueProperty,
     SeriesNodePickMode,
-    CachedTextMeasurerPool,
     createDatumId,
     BBox,
     Group,
@@ -200,7 +199,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const xDomain = dataModel.getDomain(this, 'xValue', 'value', processedData);
         const yDomain = dataModel.getDomain(this, 'yValue', 'value', processedData);
 
-        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font: stageLabel });
+        const textMeasurer = cachedTextMeasurer(stageLabel);
 
         let textAlign: CanvasTextAlign;
         let textBaseline: CanvasTextBaseline;
