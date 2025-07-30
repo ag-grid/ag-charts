@@ -3,7 +3,8 @@ import { Logger, calcLineHeight } from 'ag-charts-core';
 
 import { MiniChartGroup } from './shapes/miniChartGroup';
 
-const { Property, ZIndexMap, ActionOnSet, CategoryAxis, Padding, Group, BBox, ProxyProperty } = _ModuleSupport;
+const { Property, ZIndexMap, ActionOnSet, CategoryAxis, Padding, Group, BBox, ProxyProperty, stackCartesianSeries } =
+    _ModuleSupport;
 
 class MiniChartPadding {
     @Property
@@ -256,6 +257,8 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         const animated = this.seriesRect != null;
         const seriesRect = new BBox(0, 0, width, height - (padding.top + padding.bottom));
 
+        const resized = this.seriesRect == null || this.seriesRect.width !== width || this.seriesRect.height !== height;
+
         this.seriesRect = seriesRect;
         this.seriesRoot.translationY = padding.top;
         this.seriesRoot.setClipRectCanvasSpace(new BBox(0, -padding.top, width, height));
@@ -294,6 +297,10 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             axis.calculateLayout();
             axis.update();
         });
+
+        if (resized) {
+            stackCartesianSeries(this.series);
+        }
 
         await Promise.all(this.series.map((series) => series.update({ seriesRect })));
     }

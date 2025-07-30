@@ -164,14 +164,6 @@ export function groupAccumulativeValueProperty<K>(
     ];
 }
 
-export function groupStackValueProperty<K>(
-    propName: K,
-    scaleType: ScaleType | undefined,
-    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string }
-) {
-    return [valueProperty(propName, scaleType, opts), accumulateStack(opts.groupId)];
-}
-
 export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKeyInterval'> = {
     type: 'reducer',
     property: 'smallestKeyInterval',
@@ -228,7 +220,7 @@ export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupD
 
 function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
     const normalise = (val: null | number, extent: number) => {
-        if (extent === 0) return null;
+        if (extent === 0) return 0;
         const result = ((val ?? 0) * normaliseTo) / extent;
         if (result >= 0) {
             return Math.min(normaliseTo, result);
@@ -244,14 +236,12 @@ function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
 
             for (const datumIndex of datumIndices) {
                 const column = columns[valueIdx];
-                const value: null | number | number[] | (null | number)[] = column[datumIndex];
+                const value: null | number = column[datumIndex];
                 if (value == null) {
                     column[datumIndex] = undefined;
                     continue;
                 }
-                column[datumIndex] =
-                    // eslint-disable-next-line sonarjs/no-nested-functions
-                    typeof value === 'number' ? normalise(value, extent) : value.map((v) => normalise(v, extent));
+                column[datumIndex] = normalise(value, extent);
             }
         }
     };
@@ -430,15 +420,29 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
             const datumIndices = dataGroup.datumIndices[valueIdx];
             if (datumIndices == null) continue;
 
+            const stackNegative = acc[0];
+            const stackPositive = acc[1];
+
+            const column = columns[valueIdx];
+            let didAccumulate = false;
             for (const datumIndex of datumIndices) {
-                const column = columns[valueIdx];
                 const currentVal = column[datumIndex];
-                const accIndex = isNegative(currentVal) && separateNegative ? 0 : 1;
                 if (!isFiniteNumber(currentVal)) continue;
 
-                if (mode === 'normal') acc[accIndex] += currentVal;
-                column[datumIndex] = acc[accIndex];
-                if (mode === 'trailing') acc[accIndex] += currentVal;
+                const useNegative = separateNegative && isNegative(currentVal);
+                const accValue = useNegative ? stackNegative : stackPositive;
+                if (mode === 'normal') {
+                    column[datumIndex] = accValue + currentVal;
+                } else {
+                    column[datumIndex] = accValue;
+                }
+
+                if (!didAccumulate) {
+                    const accIndex = useNegative ? 0 : 1;
+                    acc[accIndex] = accValue + currentVal;
+
+                    didAccumulate = true;
+                }
             }
         }
     };
@@ -504,34 +508,6 @@ export function accumulateGroup(
         type: 'group-value-processor',
         matchGroupIds: [matchGroupId],
         adjust,
-    };
-}
-
-function groupStackAccFn() {
-    return () => (columns: any[][], valueIndexes: number[], dataGroup: DataGroup) => {
-        // Datum scope.
-        const acc = new Float64Array(valueIndexes.length);
-        let stackCount = 0;
-        for (const valueIdx of valueIndexes) {
-            const column = columns[valueIdx];
-            const datumIndices = dataGroup.datumIndices[valueIdx];
-            if (datumIndices == null) continue;
-
-            for (const datumIndex of datumIndices) {
-                const currentValue = column[datumIndex];
-                acc[stackCount] = Number.isFinite(currentValue) ? currentValue : NaN;
-                stackCount += 1;
-                column[datumIndex] = acc.subarray(0, stackCount);
-            }
-        }
-    };
-}
-
-export function accumulateStack(matchGroupId: string): GroupValueProcessorDefinition<any, any> {
-    return {
-        type: 'group-value-processor',
-        matchGroupIds: [matchGroupId],
-        adjust: groupStackAccFn,
     };
 }
 

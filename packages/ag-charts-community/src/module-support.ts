@@ -19,6 +19,7 @@ export { NewAreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
 export { NewBubbleSeriesModule } from './chart/series/cartesian/bubbleSeriesModule';
 export { NewHistogramSeriesModule } from './chart/series/cartesian/histogramSeriesModule';
 export { NewScatterSeriesModule } from './chart/series/cartesian/scatterSeriesModule';
+export * from './chart/cartesianUtil';
 
 export * from './util/angle';
 export * from './util/border';
