@@ -32,7 +32,8 @@ my-app {
 }
 
 ag-charts,
-ag-financial-charts {
+ag-financial-charts,
+ag-gauge {
     display: block;
     padding: 1rem;
     height: 100%;
