@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { countFractionDigits, createId } from 'ag-charts-core';
+import { cachedTextMeasurer, countFractionDigits, createId } from 'ag-charts-core';
 import type { AgChartLegendPlacement, FormatterParams } from 'ag-charts-types';
 
 import { formatWithContext } from '../utils/formatter';
@@ -13,7 +13,6 @@ const {
     TranslatableGroup,
     Selection,
     Text,
-    CachedTextMeasurerPool,
     createIdsGenerator,
     findMinMax,
     findRangeExtent,
@@ -190,7 +189,7 @@ export class AxisTicks implements _ModuleSupport.TickGenerationAxis<any, any> {
         });
 
         if (this.placement === 'bottom' || this.placement === 'top') {
-            const measurer = CachedTextMeasurerPool.getMeasurer({ font: this.label });
+            const measurer = cachedTextMeasurer(this.label);
 
             const { domain } = this.scale;
             const reversed = domain[0] > domain[1];

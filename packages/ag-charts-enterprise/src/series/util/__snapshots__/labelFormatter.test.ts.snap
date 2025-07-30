@@ -1,0 +1,97 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`label formatter formatSingleLabel formats a label without shrinking within large bounds 1`] = `
+{
+  "fontSize": 20,
+  "height": 23,
+  "lineHeight": 23,
+  "text": "Hello",
+  "width": 48.099998474121094,
+}
+`;
+
+exports[`label formatter formatSingleLabel ignores minimumFontSizes greater than fontSize 1`] = `
+{
+  "fontSize": 20,
+  "height": 23,
+  "lineHeight": 23,
+  "text": "Hello",
+  "width": 48.099998474121094,
+}
+`;
+
+exports[`label formatter formatSingleLabel shrinks a label to fit within smaller bounds 1`] = `
+{
+  "fontSize": 10,
+  "height": 12,
+  "lineHeight": 12,
+  "text": "Hello",
+  "width": 24.049999237060547,
+}
+`;
+
+exports[`label formatter formatStackedLabels formats stacked labels without shrinking within large bounds 1`] = `
+{
+  "height": 45,
+  "label": {
+    "fontSize": 20,
+    "height": 23,
+    "lineHeight": 23,
+    "text": "Hello",
+    "width": 48.099998474121094,
+  },
+  "meta": undefined,
+  "secondaryLabel": {
+    "fontSize": 10,
+    "height": 12,
+    "lineHeight": 12,
+    "text": "World",
+    "width": 27.959999084472656,
+  },
+  "width": 48.099998474121094,
+}
+`;
+
+exports[`label formatter formatStackedLabels ignores minimumFontSizes greater than fontSize 1`] = `
+{
+  "height": 45,
+  "label": {
+    "fontSize": 20,
+    "height": 23,
+    "lineHeight": 23,
+    "text": "Hello",
+    "width": 48.099998474121094,
+  },
+  "meta": undefined,
+  "secondaryLabel": {
+    "fontSize": 10,
+    "height": 12,
+    "lineHeight": 12,
+    "text": "World",
+    "width": 27.959999084472656,
+  },
+  "width": 48.099998474121094,
+}
+`;
+
+exports[`label formatter formatStackedLabels shrinks stacked labels to fit within smaller bounds 1`] = `
+{
+  "height": 30,
+  "label": {
+    "fontSize": 12,
+    "height": 14,
+    "lineHeight": 14,
+    "text": "Hello",
+    "width": 28.860000610351562,
+  },
+  "meta": undefined,
+  "secondaryLabel": {
+    "fontSize": 5,
+    "height": 6,
+    "lineHeight": 6,
+    "text": "World",
+    "width": 13.979999542236328,
+  },
+  "width": 28.860000610351562,
+}
+`;

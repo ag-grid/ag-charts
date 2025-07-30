@@ -6,6 +6,7 @@ import {
     isObject,
     sortBasedOnArray,
     toArray,
+    wrapText,
 } from 'ag-charts-core';
 import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 
@@ -19,7 +20,6 @@ import { angularPadding, normalizeAngle360FromDegrees } from '../../util/angle';
 import { extent } from '../../util/extent';
 import { BaseProperties, PropertiesArray, Property } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
-import { TextWrapper } from '../../util/textWrapper';
 import { createDatumId } from '../data/processors';
 import { LabelBorder } from '../label';
 import type { LabelNodeDatum } from './axis';
@@ -245,7 +245,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     maxHeight = innerRect.height;
                 }
                 text =
-                    TextWrapper.wrapText(text, {
+                    wrapText(text, {
                         font: labelStyles,
                         textWrap: optionsMap[depth].wrapping,
                         overflow: optionsMap[depth].truncate ? 'ellipsis' : 'hide',

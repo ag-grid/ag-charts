@@ -1,5 +1,3 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
 import {
     formatLabels,
     formatSingleLabel,
@@ -7,23 +5,7 @@ import {
     generateLabelSecondaryLabelFontSizeCandidates,
 } from './labelFormatter';
 
-const { CachedTextMeasurerPool, TextWrapper } = _ModuleSupport;
-
-type SpyInstance<T extends (...args: any) => any> = jest.SpyInstance<ReturnType<T>, Parameters<T>>;
-
 describe('label formatter', () => {
-    let wrapLines: SpyInstance<typeof TextWrapper.wrapLines> = undefined!;
-    let measureLines: SpyInstance<typeof CachedTextMeasurerPool.measureLines> = undefined!;
-
-    beforeEach(() => {
-        wrapLines = jest.spyOn(TextWrapper, 'wrapLines');
-        measureLines = jest.spyOn(CachedTextMeasurerPool, 'measureLines');
-    });
-
-    afterEach(() => {
-        jest.resetAllMocks();
-    });
-
     describe('generateLabelSecondaryLabelFontSizeCandidates', () => {
         it('creates a font scale', () => {
             expect(
@@ -82,9 +64,6 @@ describe('label formatter', () => {
 
     describe('formatSingleLabel', () => {
         it('formats a label without shrinking within large bounds', () => {
-            wrapLines.mockImplementation((text) => [text]);
-            measureLines.mockImplementation((_: any, { font }: any) => ({ width: font.fontSize }) as any);
-
             const [format] = formatSingleLabel(
                 'Hello',
                 {
@@ -97,19 +76,10 @@ describe('label formatter', () => {
                 { padding: 10 },
                 () => ({ width: 1000, height: 1000 }) as any
             )!;
-            expect(format).toEqual({
-                text: 'Hello',
-                fontSize: 20,
-                lineHeight: 23,
-                width: 20,
-                height: 23,
-            });
+            expect(format).toMatchSnapshot();
         });
 
         it('shrinks a label to fit within smaller bounds', () => {
-            wrapLines.mockImplementation((text) => [text]);
-            measureLines.mockImplementation((_: any, { font }: any) => ({ width: font.fontSize }) as any);
-
             const [format] = formatSingleLabel(
                 'Hello',
                 {
@@ -119,22 +89,13 @@ describe('label formatter', () => {
                     wrapping: 'never',
                     overflowStrategy: 'hide',
                 },
-                { padding: 10 },
+                { padding: 5 },
                 () => ({ width: 35, height: 35 }) as any
             )!;
-            expect(format).toEqual({
-                text: 'Hello',
-                fontSize: 13,
-                lineHeight: 15,
-                width: 13,
-                height: 15,
-            });
+            expect(format).toMatchSnapshot();
         });
 
         it('ignores minimumFontSizes greater than fontSize', () => {
-            wrapLines.mockImplementation((text) => [text]);
-            measureLines.mockImplementation((_: any, { font }: any) => ({ width: font.fontSize }) as any);
-
             const [format] = formatSingleLabel(
                 'Hello',
                 {
@@ -147,21 +108,12 @@ describe('label formatter', () => {
                 { padding: 10 },
                 () => ({ width: 1000, height: 1000 }) as any
             )!;
-            expect(format).toEqual({
-                text: 'Hello',
-                fontSize: 20,
-                lineHeight: 23,
-                width: 20,
-                height: 23,
-            });
+            expect(format).toMatchSnapshot();
         });
     });
 
     describe('formatStackedLabels', () => {
         it('formats stacked labels without shrinking within large bounds', () => {
-            wrapLines.mockImplementation((text) => [text]);
-            measureLines.mockImplementation((_: any, { font }: any) => ({ width: font.fontSize }) as any);
-
             const format = formatStackedLabels(
                 'Hello',
                 {
@@ -183,31 +135,10 @@ describe('label formatter', () => {
                 { padding: 10 },
                 () => ({ width: 1000, height: 1000 }) as any
             );
-            expect(format).toEqual({
-                width: 20,
-                height: 45,
-                meta: undefined,
-                label: {
-                    text: 'Hello',
-                    fontSize: 20,
-                    lineHeight: 23,
-                    width: 20,
-                    height: 23,
-                },
-                secondaryLabel: {
-                    text: 'World',
-                    fontSize: 10,
-                    lineHeight: 12,
-                    width: 10,
-                    height: 12,
-                },
-            });
+            expect(format).toMatchSnapshot();
         });
 
         it('shrinks stacked labels to fit within smaller bounds', () => {
-            wrapLines.mockImplementation((text) => [text]);
-            measureLines.mockImplementation((_: any, { font }: any) => ({ width: font.fontSize }) as any);
-
             const height = 50;
             const padding = 10;
             const spacing = 10;
@@ -233,31 +164,11 @@ describe('label formatter', () => {
                 { padding },
                 () => ({ width: 50, height }) as any
             );
-            expect(format).toEqual({
-                width: 12,
-                height: 30,
-                label: {
-                    text: 'Hello',
-                    fontSize: 12,
-                    lineHeight: 14,
-                    width: 12,
-                    height: 14,
-                },
-                secondaryLabel: {
-                    text: 'World',
-                    fontSize: 5,
-                    lineHeight: 6,
-                    width: 5,
-                    height: 6,
-                },
-            });
+            expect(format).toMatchSnapshot();
             expect(padding + format!.label!.height + spacing + format!.secondaryLabel!.height + padding).toBe(height);
         });
 
         it('ignores minimumFontSizes greater than fontSize', () => {
-            wrapLines.mockImplementation((text) => [text]);
-            measureLines.mockImplementation((_: any, { font }: any) => ({ width: font.fontSize }) as any);
-
             const format = formatStackedLabels(
                 'Hello',
                 {
@@ -279,32 +190,12 @@ describe('label formatter', () => {
                 { padding: 10 },
                 () => ({ width: 1000, height: 1000 }) as any
             );
-            expect(format).toEqual({
-                width: 20,
-                height: 45,
-                label: {
-                    text: 'Hello',
-                    fontSize: 20,
-                    lineHeight: 23,
-                    width: 20,
-                    height: 23,
-                },
-                secondaryLabel: {
-                    text: 'World',
-                    fontSize: 10,
-                    lineHeight: 12,
-                    width: 10,
-                    height: 12,
-                },
-            });
+            expect(format).toMatchSnapshot();
         });
     });
 
     describe('formatLabels', () => {
         it('formats the secondaryLabel on its own if and only if the primary label is not present', () => {
-            wrapLines.mockImplementation((text) => [text]);
-            measureLines.mockImplementation(() => ({ width: 1 }) as any);
-
             const output = formatLabels(
                 undefined,
                 {

@@ -5,6 +5,7 @@ import {
     countFractionDigits,
     dropFirstWhile,
     dropLastWhile,
+    wrapText,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
 
@@ -23,7 +24,7 @@ import { compareDates } from '../../util/date';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { type AxisPrimaryTickCount, calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { createIdsGenerator } from '../../util/tempUtils';
-import { TextWrapper, type WrapOptions } from '../../util/textWrapper';
+import { type WrapOptions } from '../../util/textWrapper';
 import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
 import {
     intervalCeil,
@@ -912,7 +913,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             const inputText: string = tickLabel ?? String(tick);
 
             if (label.avoidCollisions) {
-                tickLabel = TextWrapper.wrapText(inputText, wrapOptions) || tickLabel;
+                tickLabel = wrapText(inputText, wrapOptions) || tickLabel;
             }
 
             let tickId: string;

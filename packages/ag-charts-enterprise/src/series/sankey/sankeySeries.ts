@@ -6,7 +6,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
+import { Logger, cachedTextMeasurer, calcLineHeight, wrapText } from 'ag-charts-core';
 
 import {
     FlowProportionDatumType,
@@ -28,7 +28,6 @@ const {
     Transformable,
     applyShapeStyle,
     SeriesNodePickMode,
-    TextWrapper,
     createDatumId,
     getShapeStyle,
     getLabelStyles,
@@ -307,7 +306,7 @@ export class SankeySeries extends FlowProportionSeries<
                         }
                     });
                     const maxWidth = maxX - node.x - 2 * labelSpacing;
-                    text = TextWrapper.wrapText(node.label, {
+                    text = wrapText(node.label, {
                         maxWidth,
                         maxHeight: node.height,
                         font: this.properties.label,
@@ -317,7 +316,7 @@ export class SankeySeries extends FlowProportionSeries<
                 }
                 if (text == null || text === '') {
                     const labelInset = leading || trailing ? labelSpacing : labelSpacing * 2;
-                    text = TextWrapper.wrapText(node.label, {
+                    text = wrapText(node.label, {
                         maxWidth: columnWidth - labelInset,
                         maxHeight: node.height,
                         font: this.properties.label,

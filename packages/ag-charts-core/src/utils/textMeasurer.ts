@@ -52,6 +52,8 @@ export function cachedTextMeasurer(font: string | FontOptions): TextMeasurer {
     return cachedMeasurer;
 }
 
+cachedTextMeasurer.clear = () => instanceMap.clear();
+
 // Manages text measurement and wrapping functionalities.
 export class TextMeasurer implements ITextMeasurer {
     private readonly charMap = new Map<string, number>();

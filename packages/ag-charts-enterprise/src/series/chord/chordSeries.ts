@@ -1,5 +1,5 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
-import { Logger, type RequireOptional, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
+import { Logger, type RequireOptional, cachedTextMeasurer, calcLineHeight, wrapText } from 'ag-charts-core';
 import type { AgChordSeriesLabelFormatterParams, AgChordSeriesOptions } from 'ag-charts-types';
 
 import {
@@ -15,7 +15,6 @@ import { ChordSeriesProperties } from './chordSeriesProperties';
 
 const {
     SeriesNodePickMode,
-    TextWrapper,
     createDatumId,
     angleBetween,
     normalizeAngle360,
@@ -153,7 +152,7 @@ export class ChordSeries extends FlowProportionSeries<
                 node.size = size;
                 totalSize += node.size;
 
-                const labelText = label.enabled
+                node.label = label.enabled
                     ? this.getLabelText<AgChordSeriesLabelFormatterParams>(
                           node.label,
                           node.datum,
@@ -164,7 +163,6 @@ export class ChordSeries extends FlowProportionSeries<
                           { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size: node.size }
                       )
                     : undefined;
-                node.label = labelText;
             }
         });
 
@@ -176,7 +174,7 @@ export class ChordSeries extends FlowProportionSeries<
                 const { id, label } = node;
                 if (label == null) return;
 
-                const text = TextWrapper.wrapText(label, {
+                const text = wrapText(label, {
                     maxWidth: labelMaxWidth,
                     font: this.properties.label,
                     textWrap: 'never',

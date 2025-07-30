@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger, appendEllipsis, calcLineHeight, findMaxValue } from 'ag-charts-core';
+import { Logger, appendEllipsis, calcLineHeight, findMaxValue, wrapLines } from 'ag-charts-core';
 import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartAutoSizedLabelOptions,
@@ -12,7 +12,7 @@ import type {
     TextWrap,
 } from 'ag-charts-types';
 
-const { CachedTextMeasurerPool, TextWrapper } = _ModuleSupport;
+const { CachedTextMeasurerPool } = _ModuleSupport;
 
 interface AutoSizedBaseLabelOptions extends AgChartAutoSizedBaseLabelOptions<unknown, any> {
     fontSize: FontSize;
@@ -251,12 +251,12 @@ export function formatSingleLabel<Meta>(
         if (lineHeight > availableHeight) return;
 
         textSizeProps.fontSize = fontSize;
-        const lines = TextWrapper.wrapLines(value, {
+        const lines = wrapLines(value, {
             maxWidth: availableWidth,
             maxHeight: availableHeight,
             font: textSizeProps,
             textWrap: props.wrapping,
-            overflow: (allowTruncation ? props.overflowStrategy : undefined) ?? 'hide',
+            overflow: (allowTruncation ? props.overflowStrategy : null) ?? 'hide',
         });
 
         if (!lines.length) return;
@@ -354,7 +354,7 @@ function wrapLabel(
     textWrap?: TextWrap,
     overflow?: OverflowStrategy
 ) {
-    const lines = TextWrapper.wrapLines(text, { maxWidth, maxHeight, font, textWrap, overflow });
+    const lines = wrapLines(text, { maxWidth, maxHeight, font, textWrap, overflow });
 
     if (!lines.length) return;
 

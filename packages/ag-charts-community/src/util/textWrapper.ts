@@ -14,20 +14,12 @@ export interface WrapOptions extends MeasureOptions {
 }
 
 export class TextWrapper {
-    static wrapText(text: string, options: WrapOptions) {
-        return this.wrapLines(text, options).join('\n');
-    }
-
     static wrapLines(text: string, options: WrapOptions) {
         const clippedResult = this.textWrap(text, options);
         if (options.overflow === 'hide' && clippedResult.some((l) => l.endsWith(EllipsisChar))) {
             return [];
         }
         return clippedResult;
-    }
-
-    static appendEllipsis(text: string) {
-        return text.replace(/[.,]{1,5}$/, '') + EllipsisChar;
     }
 
     static truncateLine(text: string, measurer: TextMeasurer, maxWidth: number, ellipsisForce?: boolean) {

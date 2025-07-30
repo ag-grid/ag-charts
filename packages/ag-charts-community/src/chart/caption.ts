@@ -1,4 +1,4 @@
-import { EllipsisChar, createId, isArray, toPlainText } from 'ag-charts-core';
+import { EllipsisChar, createId, isArray, toPlainText, wrapText } from 'ag-charts-core';
 import type { FontStyle, FontWeight, TextAlign, TextSegment, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../module/moduleContext';
@@ -7,7 +7,6 @@ import { RotatableText } from '../scene/shape/text';
 import { Transformable } from '../scene/transformable';
 import { BaseProperties, Property } from '../util/properties';
 import { ProxyPropertyOnWrite } from '../util/proxy';
-import { TextWrapper } from '../util/textWrapper';
 import type { BoundedTextWidget } from '../widget/boundedTextWidget';
 import type { MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
@@ -90,7 +89,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             this.node.text = text;
             return;
         }
-        const wrappedText = TextWrapper.wrapText(text ?? '', { maxWidth, maxHeight, font: this, textWrap: wrapping });
+        const wrappedText = wrapText(text ?? '', { maxWidth, maxHeight, font: this, textWrap: wrapping });
         this.node.text = wrappedText;
         this.truncated = wrappedText.includes(EllipsisChar);
     }
