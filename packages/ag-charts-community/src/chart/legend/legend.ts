@@ -2,12 +2,15 @@ import {
     type AnyFn,
     CleanupRegistry,
     EllipsisChar,
+    type ITextMeasurer,
     Logger,
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
     type RequiredInternalAgPatternColor,
+    cachedTextMeasurer,
     clamp,
     createId,
+    truncateLine,
 } from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
@@ -41,8 +44,6 @@ import { callWithContext } from '../../util/callbackCache';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties, Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
-import { CachedTextMeasurerPool, type TextMeasurer } from '../../util/textMeasurer';
-import { TextWrapper } from '../../util/textWrapper';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { ChartUpdateType } from '../chartUpdateType';
@@ -418,7 +419,7 @@ export class Legend extends BaseProperties {
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
 
-        const measurer = CachedTextMeasurerPool.getMeasurer({ font: label });
+        const measurer = cachedTextMeasurer(label);
 
         const itemMaxWidthPercentage = 0.8;
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
@@ -598,7 +599,7 @@ export class Legend extends BaseProperties {
         maxCharLength: number,
         maxItemWidth: number,
         paddedMarkerWidth: number,
-        measurer: TextMeasurer,
+        measurer: ITextMeasurer,
         id: string
     ): string {
         let addEllipsis = false;
@@ -607,7 +608,7 @@ export class Legend extends BaseProperties {
             addEllipsis = true;
         }
 
-        const result = TextWrapper.truncateLine(text, measurer, maxItemWidth - paddedMarkerWidth, addEllipsis);
+        const result = truncateLine(text, measurer, maxItemWidth - paddedMarkerWidth, addEllipsis);
 
         if (result.endsWith(EllipsisChar)) {
             this.truncatedItems.add(id);

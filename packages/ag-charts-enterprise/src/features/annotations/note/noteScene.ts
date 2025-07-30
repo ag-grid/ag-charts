@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { clamp } from 'ag-charts-core';
+import { calcLineHeight, clamp } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -143,7 +143,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
 
     protected override getLabelCoords(datum: NoteProperties, bbox: _ModuleSupport.BBox): _ModuleSupport.Vec2 {
         const isPositionTop = datum.position === 'top';
-        const padding = datum.getPadding().top + (datum.fontSize * ANNOTATION_TEXT_LINE_HEIGHT) / 2;
+        const padding = datum.getPadding().top + calcLineHeight(datum.fontSize, ANNOTATION_TEXT_LINE_HEIGHT) / 2;
 
         return { x: bbox.x, y: bbox.y + (isPositionTop ? padding / 2 : 0) };
     }

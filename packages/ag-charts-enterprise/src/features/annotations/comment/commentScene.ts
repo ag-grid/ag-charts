@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { calcLineHeight } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -75,7 +76,7 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
         const top = y - height;
         const right = x + width;
 
-        const cornerRadius = (fontSize * ANNOTATION_TEXT_LINE_HEIGHT + verticalPadding) / 2;
+        const cornerRadius = (calcLineHeight(fontSize, ANNOTATION_TEXT_LINE_HEIGHT) + verticalPadding) / 2;
 
         const { path } = this.shape;
         path.clear();
