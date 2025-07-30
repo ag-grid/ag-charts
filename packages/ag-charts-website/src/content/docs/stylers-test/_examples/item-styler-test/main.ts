@@ -121,6 +121,20 @@ function createItemStyler(type: string) {
 const barLineAreaOptions: AgCartesianChartOptions = {
     series: [
         {
+            type: 'area',
+            xKey: 'category',
+            yKey: 'value1',
+            yName: 'Area Series',
+            marker: {
+                enabled: true,
+                itemStyler: createItemStyler('area-marker'),
+            },
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('area-label*'),
+            },
+        },
+        {
             type: 'bar',
             xKey: 'category',
             yKey: 'value1',
@@ -141,7 +155,6 @@ const barLineAreaOptions: AgCartesianChartOptions = {
             xKey: 'category',
             yKey: 'value2',
             yName: 'Line Series',
-            // Note: Line series does not support itemStyler for the line itself
             marker: {
                 enabled: true,
                 itemStyler: createItemStyler('line-marker'),
@@ -154,22 +167,6 @@ const barLineAreaOptions: AgCartesianChartOptions = {
                 yLowerKey: 'value1',
                 yUpperKey: 'value2',
                 itemStyler: createItemStyler('line-errorBar'),
-            },
-        },
-        {
-            type: 'area',
-            xKey: 'category',
-            yKey: 'value1',
-            yName: 'Area Series',
-            visible: false,
-            // Note: Area series does not support itemStyler for the area itself
-            marker: {
-                enabled: true,
-                itemStyler: createItemStyler('area-marker'),
-            },
-            label: {
-                enabled: true,
-                itemStyler: createItemStyler('area-label*'),
             },
         },
     ],
@@ -570,6 +567,7 @@ const rangeSeriesOptions: AgCartesianChartOptions = {
 
 const waterfallOptions: AgCartesianChartOptions = {
     series: [
+        // Single series only
         {
             type: 'waterfall',
             xKey: 'category',
@@ -591,30 +589,6 @@ const waterfallOptions: AgCartesianChartOptions = {
                 },
                 total: {
                     itemStyler: createItemStyler('waterfall1-total'),
-                },
-            },
-        },
-        {
-            type: 'waterfall',
-            xKey: 'category',
-            yKey: 'value2',
-            yName: 'Waterfall 2',
-            totals: [
-                {
-                    totalType: 'total',
-                    index: 3,
-                    axisLabel: 'Total 2',
-                },
-            ],
-            item: {
-                positive: {
-                    itemStyler: createItemStyler('waterfall2-positive'),
-                },
-                negative: {
-                    itemStyler: createItemStyler('waterfall2-negative'),
-                },
-                total: {
-                    itemStyler: createItemStyler('waterfall2-total'),
                 },
             },
         },
@@ -1141,61 +1115,7 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: cartesianData,
     animation: { enabled: false },
-    series: [
-        {
-            type: 'area',
-            xKey: 'category',
-            yKey: 'value1',
-            yName: 'Area Series',
-            marker: {
-                enabled: true,
-                itemStyler: createItemStyler('area-marker'),
-            },
-            label: {
-                enabled: true,
-                itemStyler: createItemStyler('area-label*'),
-            },
-        },
-        {
-            type: 'bar',
-            xKey: 'category',
-            yKey: 'value1',
-            yName: 'Bar Series',
-            itemStyler: createItemStyler('bar'),
-            label: {
-                enabled: true,
-                itemStyler: createItemStyler('bar-label*'),
-            },
-            errorBar: {
-                yLowerKey: 'value1',
-                yUpperKey: 'value2',
-                itemStyler: createItemStyler('bar-errorBar'),
-            },
-        },
-        {
-            type: 'line',
-            xKey: 'category',
-            yKey: 'value2',
-            yName: 'Line Series',
-            marker: {
-                enabled: true,
-                itemStyler: createItemStyler('line-marker'),
-            },
-            label: {
-                enabled: true,
-                itemStyler: createItemStyler('line-label*'),
-            },
-            errorBar: {
-                yLowerKey: 'value1',
-                yUpperKey: 'value2',
-                itemStyler: createItemStyler('line-errorBar'),
-            },
-        },
-    ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    ...barLineAreaOptions,
 };
 
 chart = AgCharts.create(options);
