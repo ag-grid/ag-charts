@@ -1,18 +1,7 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
-import { calcLineHeight } from 'ag-charts-core';
+import { cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
 
-const {
-    CachedTextMeasurerPool,
-    ZIndexMap,
-    LayoutElement,
-    Property,
-    BaseProperties,
-    valueProperty,
-    Group,
-    Label,
-    Rect,
-    Text,
-} = _ModuleSupport;
+const { ZIndexMap, LayoutElement, Property, BaseProperties, valueProperty, Group, Label, Rect, Text } = _ModuleSupport;
 
 enum LabelConfiguration {
     Open = 1 << 1,
@@ -335,37 +324,20 @@ export class StatusBar
                 continue;
             }
 
+            const positiveTextMeasurer = cachedTextMeasurer(this.positive);
+            const negativeTextMeasurer = cachedTextMeasurer(this.negative);
+
             const maxValueWidth = Math.max(
-                CachedTextMeasurerPool.measureText(formatter.format(domain[0]), {
-                    font: this.positive,
-                    textBaseline: textVAlign,
-                    textAlign: 'left',
-                }).width,
-                CachedTextMeasurerPool.measureText(formatter.format(domain[1]), {
-                    font: this.positive,
-                    textBaseline: textVAlign,
-                    textAlign: 'left',
-                }).width,
-                CachedTextMeasurerPool.measureText(formatter.format(domain[0]), {
-                    font: this.negative,
-                    textBaseline: textVAlign,
-                    textAlign: 'left',
-                }).width,
-                CachedTextMeasurerPool.measureText(formatter.format(domain[1]), {
-                    font: this.negative,
-                    textBaseline: textVAlign,
-                    textAlign: 'left',
-                }).width
+                positiveTextMeasurer.measureLines(formatter.format(domain[0])).width,
+                positiveTextMeasurer.measureLines(formatter.format(domain[1])).width,
+                negativeTextMeasurer.measureLines(formatter.format(domain[0])).width,
+                negativeTextMeasurer.measureLines(formatter.format(domain[1])).width
             );
 
             title.visible = true;
             value.visible = true;
 
-            const titleMetrics = CachedTextMeasurerPool.measureText(label, {
-                font: this.title,
-                textBaseline: textVAlign,
-                textAlign: 'left',
-            });
+            const titleMetrics = cachedTextMeasurer(this.title).measureText(label);
             title.setFont(this.title);
             title.fill = this.title.color;
             title.text = label;
