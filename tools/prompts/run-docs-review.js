@@ -189,22 +189,25 @@ async function getModifiedPagesFromGit(days) {
 
         // Use git log to find modified files in the docs directory
         const gitCommand = `git log --since="${sinceDateStr}" --name-only --pretty=format: -- "${PATHS.DOCS}" | grep -E "index\\.mdoc$" | sort | uniq`;
-        
+
         const modifiedFiles = execSync(gitCommand, { encoding: 'utf8' })
             .split('\n')
             .filter(Boolean)
-            .map(file => file.trim());
+            .map((file) => file.trim());
 
         // Extract page names from the file paths
         const modifiedPageNames = new Set();
-        modifiedFiles.forEach(file => {
+        modifiedFiles.forEach((file) => {
             const match = file.match(/\/docs\/([^\/]+)\/index\.mdoc$/);
             if (match) {
                 modifiedPageNames.add(match[1]);
             }
         });
 
-        console.log(`📝 Found ${modifiedPageNames.size} pages modified in the last ${days} days:`, Array.from(modifiedPageNames).join(', '));
+        console.log(
+            `📝 Found ${modifiedPageNames.size} pages modified in the last ${days} days:`,
+            Array.from(modifiedPageNames).join(', ')
+        );
         return modifiedPageNames;
     } catch (error) {
         console.error('❌ Failed to get git history:', error.message);
@@ -610,14 +613,16 @@ class DocsReviewOrchestrator {
             // Apply refresh-days filter if specified
             if (this.refreshDays !== null && this.refreshDays > 0) {
                 const modifiedPages = await getModifiedPagesFromGit(this.refreshDays);
-                
+
                 // If refresh-days is specified, we need to:
                 // 1. Filter to only pages that were modified
                 // 2. Force regeneration of these pages
-                filteredFiles = filteredFiles.filter(page => modifiedPages.has(page.name));
-                
+                filteredFiles = filteredFiles.filter((page) => modifiedPages.has(page.name));
+
                 if (filteredFiles.length > 0) {
-                    console.log(`🔄 Will refresh ${filteredFiles.length} pages modified in the last ${this.refreshDays} days`);
+                    console.log(
+                        `🔄 Will refresh ${filteredFiles.length} pages modified in the last ${this.refreshDays} days`
+                    );
                     // Enable force mode for these pages
                     this.force = true;
                 } else {
