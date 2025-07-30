@@ -9,6 +9,7 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
+import { cachedTextMeasurer } from 'ag-charts-core';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { formatWithContext } from '../../utils/formatter';
@@ -37,7 +38,6 @@ import {
 const {
     fromToMotion,
     resetMotion,
-    CachedTextMeasurerPool,
     SeriesNodePickMode,
     StateMachine,
     createDatumId,
@@ -349,7 +349,7 @@ export class RadialGaugeSeries
             [];
         const tickFormatter = tickFormat(ticks, typeof label.format === 'string' ? label.format : undefined);
 
-        const measurer = CachedTextMeasurerPool.getMeasurer({ font: label });
+        const measurer = cachedTextMeasurer(label);
         const tickData = ticks
             .map((value, index): RadialGaugeTickDatum | undefined => {
                 let text: string | undefined;

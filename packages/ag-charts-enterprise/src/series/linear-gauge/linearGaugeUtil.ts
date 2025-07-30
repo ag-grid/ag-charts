@@ -1,25 +1,11 @@
-import {
-    type FontFamily,
-    type FontSize,
-    type FontStyle,
-    type FontWeight,
-    type TextAlign,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
+import { cachedTextMeasurer } from 'ag-charts-core';
 
 import { getLabelText } from '../gauge-util/label';
 import { type LabelFormatting, formatSingleLabel, getLineHeight } from '../util/labelFormatter';
 import type { LinearGaugeLabelDatum } from './linearGaugeSeriesProperties';
 
-const { CachedTextMeasurerPool, BBox } = _ModuleSupport;
-
-interface TextProperties {
-    fontSize: FontSize;
-    fontStyle?: FontStyle;
-    fontWeight?: FontWeight;
-    fontFamily?: FontFamily;
-    lineHeight?: number;
-}
+const { BBox } = _ModuleSupport;
 
 interface AnimatableRectDatum {
     x0: number;
@@ -263,14 +249,7 @@ export function formatLinearGaugeLabels(
             const labelMeta = formatSingleLabel(labelText, labelDatum, { padding }, sizeFittingHeight);
             layout = labelMeta?.[0];
         } else {
-            const font: TextProperties = {
-                fontSize: labelDatum.fontSize,
-                fontStyle: labelDatum.fontStyle,
-                fontWeight: labelDatum.fontWeight,
-                fontFamily: labelDatum.fontFamily,
-                lineHeight: labelDatum.lineHeight,
-            };
-            const { width, height } = CachedTextMeasurerPool.measureText(labelText, { font });
+            const { width, height } = cachedTextMeasurer(labelDatum).measureText(labelText);
             layout = {
                 text: labelText,
                 fontSize: labelDatum.fontSize,

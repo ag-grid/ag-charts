@@ -1,4 +1,4 @@
-import type { Point, RequireOptional } from 'ag-charts-core';
+import { type Point, type RequireOptional, cachedTextMeasurer } from 'ag-charts-core';
 import {
     type AgBubbleSeriesLabelFormatterParams,
     type AgBubbleSeriesOptions,
@@ -20,7 +20,6 @@ import { Text } from '../../../scene/shape/text';
 import type { LabelPlacement, MeasuredLabel, PlacedLabel } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/extent';
 import { formatValue } from '../../../util/format.util';
-import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -40,9 +39,9 @@ import {
     type BubbleAggregationOptions,
     aggregateBubbleData,
     computeBubbleAggregationCount,
+    computeBubbleAggregationData,
     computeBubbleAggregationDilation,
 } from './bubbleAggregation';
-import { computeBubbleAggregationData } from './bubbleAggregation';
 import { BubbleSeriesProperties } from './bubbleSeriesProperties';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
 import {
@@ -336,7 +335,7 @@ export class BubbleSeries extends CartesianSeries<
 
         sizeScale.range = [marker.size, marker.maxSize];
 
-        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font: label });
+        const textMeasurer = cachedTextMeasurer(label);
         const rawData = processedData.dataSources.get(this.id);
         if (rawData == null) return;
 
