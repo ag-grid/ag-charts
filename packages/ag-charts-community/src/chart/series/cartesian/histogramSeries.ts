@@ -22,16 +22,16 @@ import { createTicks, tickStep } from '../../../util/ticks';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';
-import type { AggregatePropertyDefinition, DataGroup, GroupByFn, PropertyDefinition } from '../../data/dataModel';
+import type {
+    AggregatePropertyDefinition,
+    DataGroup,
+    GroupByFn,
+    GroupedData,
+    ProcessedOutputDiff,
+    PropertyDefinition,
+} from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import {
-    SORT_DOMAIN_GROUPS,
-    createDatumId,
-    diff,
-    keyProperty,
-    rowCountProperty,
-    valueProperty,
-} from '../../data/processors';
+import { SORT_DOMAIN_GROUPS, createDatumId, keyProperty, rowCountProperty, valueProperty } from '../../data/processors';
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -51,13 +51,20 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { calculateDataDiff } from './diffUtil';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
 
 type HistogramAnimationData = CartesianAnimationData<Rect<HistogramNodeDatum>, HistogramNodeDatum>;
+
+interface CalculatedBin {
+    domain: [number, number];
+    groupIndex: number;
+    datum: any[];
+    frequency: number;
+    total: number;
+}
 
 export class HistogramSeries extends CartesianSeries<
     Rect<HistogramNodeDatum>,
@@ -85,7 +92,7 @@ export class HistogramSeries extends CartesianSeries<
         });
     }
 
-    calculatedBins: [number, number][] = [];
+    calculatedBins: CalculatedBin[] = [];
 
     // During processData phase, used to unify different ways of the user specifying
     // the bins. Returns bins in format[[min1, max1], [min2, max2], ... ].
@@ -186,6 +193,7 @@ export class HistogramSeries extends CartesianSeries<
             props.push(aggProp);
         }
 
+        let calculatedBinDomains: [number, number][] = [];
         const groupByFn: GroupByFn = (dataSet) => {
             const xExtent = fixNumericExtent(dataSet.domain.keys[0]);
             if (xExtent.length === 0) {
@@ -198,7 +206,7 @@ export class HistogramSeries extends CartesianSeries<
                 ? this.calculateNiceBins(xExtent, this.properties.binCount)
                 : this.properties.bins ?? this.deriveBins(xExtent);
             const binCount = bins.length;
-            this.calculatedBins = [...bins];
+            calculatedBinDomains = [...bins];
 
             return (keys) => {
                 let xValue = keys[0];
@@ -223,13 +231,31 @@ export class HistogramSeries extends CartesianSeries<
             };
         };
 
-        if (!this.ctx.animationManager.isSkipped() && this.processedData) {
-            props.push(diff(this.id, this.processedData, false));
-        }
-
-        await this.requestDataModel<any>(dataController, this.data, {
+        const { dataModel, processedData: p } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props,
             groupByFn,
+        });
+        const processedData = p as any as GroupedData<any>;
+
+        const groups = new Map<string, { group: DataGroup; groupIndex: number }>();
+        processedData.groups.forEach((group, groupIndex) => {
+            const domain = group.keys;
+            groups.set(createDatumId(domain), { group, groupIndex });
+        });
+
+        this.calculatedBins = calculatedBinDomains.map((domain): CalculatedBin => {
+            const g = groups.get(createDatumId(domain));
+
+            if (g) {
+                const { group, groupIndex } = g;
+                const [[negativeAgg, positiveAgg] = [0, 0]] = group.aggregation;
+                const datum = [...dataModel.forEachDatum(this, processedData, group)];
+                const frequency = this.frequency(group);
+                const total = negativeAgg + positiveAgg;
+                return { domain, datum, groupIndex, frequency, total };
+            } else {
+                return { domain, datum: [], groupIndex: -1, frequency: 0, total: 0 };
+            }
         });
 
         this.animationState.transition('updateData');
@@ -249,8 +275,8 @@ export class HistogramSeries extends CartesianSeries<
         if (!processedData || !dataModel || !this.calculatedBins.length) return [];
 
         const yDomain = dataModel.getDomain(this, `groupAgg`, 'aggregate', processedData);
-        const xDomainMin = this.calculatedBins?.[0][0];
-        const xDomainMax = this.calculatedBins?.[(this.calculatedBins?.length ?? 0) - 1][1];
+        const xDomainMin = this.calculatedBins[0].domain[0];
+        const xDomainMax = this.calculatedBins[(this.calculatedBins?.length ?? 0) - 1].domain[1];
         if (direction === ChartAxisDirection.X) {
             return fixNumericExtent([xDomainMin, xDomainMax]);
         }
@@ -315,18 +341,10 @@ export class HistogramSeries extends CartesianSeries<
             return context;
         }
 
-        processedData.groups.forEach((group, groupIndex) => {
-            const { keys, aggregation } = group;
-            const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
-            const frequency = this.frequency(group);
-            const domain = keys;
+        this.calculatedBins.forEach(({ domain, datum, groupIndex, frequency, total }) => {
             const [xDomainMin, xDomainMax] = domain;
-            const datum = [...dataModel.forEachDatum(this, processedData, group)];
-
             const xMinPx = xScale.convert(xDomainMin);
             const xMaxPx = xScale.convert(xDomainMax);
-
-            const total = negativeAgg + positiveAgg;
 
             const yZeroPx = yScale.convert(0);
             const yMaxPx = yScale.convert(total);
@@ -367,7 +385,7 @@ export class HistogramSeries extends CartesianSeries<
                 // since each selection is an aggregation of multiple data.
                 aggregatedValue: total,
                 frequency,
-                domain: domain as [number, number],
+                domain,
                 yKey,
                 xKey,
                 x,
@@ -402,7 +420,7 @@ export class HistogramSeries extends CartesianSeries<
     }) {
         const { nodeData, datumSelection } = opts;
 
-        return datumSelection.update(nodeData, undefined, (datum: HistogramNodeDatum) => datum.domain.join('_'));
+        return datumSelection.update(nodeData, undefined, (datum: HistogramNodeDatum) => createDatumId(datum.domain));
     }
 
     private getItemStyle(isHighlight: boolean, datum?: HistogramNodeDatum): RequireOptional<AgHistogramSeriesStyle> {
@@ -646,14 +664,13 @@ export class HistogramSeries extends CartesianSeries<
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
 
-        const dataDiff = calculateDataDiff(
-            this.id,
-            data.datumSelection,
-            (datum) => createDatumId(datum.domain),
-            data.contextData,
-            data.previousContextData,
-            this.processedData
-        );
+        const dataDiff: ProcessedOutputDiff = {
+            changed: true,
+            added: new Set(),
+            updated: new Set(),
+            removed: new Set(),
+            moved: new Set(),
+        };
 
         fromToMotion(
             this.id,
