@@ -31,7 +31,6 @@ const {
     motion,
     applyShapeStyle,
     isGradientFill,
-    getShapeStyle,
     updateLabelNode,
     mergeDefaults,
 } = _ModuleSupport;
@@ -399,12 +398,11 @@ export abstract class RadialColumnSeriesBase<
 
     protected getItemStyle(nodeDatum: RadialColumnNodeDatum, isHighlight: boolean): Required<AgRadialSeriesStyle> {
         const { id: seriesId, properties } = this;
-        const { angleKey, radiusKey, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } =
-            properties;
+        const { angleKey, radiusKey, itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
-        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+        let style = baseStyle;
 
         if (itemStyler != null && nodeDatum != null) {
             const overrides = this.cachedDatumCallback(
@@ -429,12 +427,7 @@ export abstract class RadialColumnSeriesBase<
             );
 
             if (overrides) {
-                style = getShapeStyle(
-                    mergeDefaults(overrides, style),
-                    fillGradientDefaults,
-                    fillPatternDefaults,
-                    fillImageDefaults
-                );
+                style = mergeDefaults(overrides, style);
             }
         }
 
@@ -565,33 +558,17 @@ export abstract class RadialColumnSeriesBase<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const {
-            fill,
-            stroke,
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
+
+        const markerStyle = {
+            fill: fill ?? 'rgba(0, 0, 0, 0)',
+            stroke: stroke ?? 'rgba(0, 0, 0, 0)',
             fillOpacity,
             strokeOpacity,
             strokeWidth,
             lineDash,
             lineDashOffset,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-        } = this.properties;
-
-        const markerStyle = getShapeStyle(
-            {
-                fill: fill ?? 'rgba(0, 0, 0, 0)',
-                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                fillOpacity,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-            },
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults
-        );
+        };
 
         if (_ModuleSupport.isGradientFill(markerStyle.fill)) {
             markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };

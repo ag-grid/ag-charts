@@ -35,7 +35,6 @@ const {
     Rect,
     motion,
     applyShapeStyle,
-    getShapeStyle,
     mergeDefaults,
 } = _ModuleSupport;
 
@@ -543,10 +542,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemId));
 
-        const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = item;
+        const { itemStyler } = item;
         const { xKey, yKey } = properties;
 
-        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+        let style = baseStyle;
 
         if (itemStyler != null) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -568,12 +567,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 }
             );
             if (overrides) {
-                style = getShapeStyle(
-                    mergeDefaults(overrides, style),
-                    fillGradientDefaults,
-                    fillPatternDefaults,
-                    fillImageDefaults
-                );
+                style = mergeDefaults(overrides, style);
             }
         }
 
@@ -697,33 +691,18 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private legendItemSymbol(item: AgWaterfallSeriesItemType): _ModuleSupport.LegendSymbolOptions {
-        const {
-            fill,
-            stroke,
-            fillOpacity,
-            strokeOpacity,
-            strokeWidth,
-            lineDash,
-            lineDashOffset,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-        } = this.getItemConfig(item);
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
+            this.getItemConfig(item);
         return {
-            marker: getShapeStyle(
-                {
-                    fill,
-                    stroke,
-                    fillOpacity,
-                    strokeOpacity,
-                    strokeWidth,
-                    lineDash,
-                    lineDashOffset,
-                },
-                fillGradientDefaults,
-                fillPatternDefaults,
-                fillImageDefaults
-            ),
+            marker: {
+                fill,
+                stroke,
+                fillOpacity,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+            },
         };
     }
 

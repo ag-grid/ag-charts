@@ -10,7 +10,7 @@ import {
     MapShapeBackgroundSeriesProperties,
 } from './mapShapeBackgroundSeriesProperties';
 
-const { createDatumId, Selection, Group, PointerEvents, getShapeStyle } = _ModuleSupport;
+const { createDatumId, Selection, Group, PointerEvents } = _ModuleSupport;
 
 interface MapShapeBackgroundNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}
@@ -196,12 +196,7 @@ export class MapShapeBackgroundSeries
             }
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
-            const styles = getShapeStyle(
-                { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset },
-                this.properties.fillGradientDefaults,
-                this.properties.fillPatternDefaults,
-                this.properties.fillImageDefaults
-            );
+            const styles = { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset };
             geoGeometry.setProperties(styles);
         });
     }

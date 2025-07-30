@@ -42,8 +42,6 @@ const {
     Marker,
     BBox,
     findMinMax,
-    getShapeStyle,
-    getShapeFill,
     applyShapeStyle,
     processedDataIsAnimatable,
     simpleMemorize2,
@@ -421,7 +419,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeOpacity,
             lineDash,
             lineDashOffset,
-            fill: fillColor,
+            fill: seriesFill,
             fillOpacity,
             opacity,
         } = mergeDefaults(this.getHighlightStyle(), this.properties);
@@ -439,13 +437,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             opacity,
             visible,
         });
-
-        const seriesFill = getShapeFill(
-            fillColor,
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
         const fillBBox = this.getShapeFillBBox();
 
         applyShapeFillBBox(fill, seriesFill, fillBBox);
@@ -536,7 +527,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datumSelection.each((node, datum) => {
             const params = { xKey, yHighKey, yLowKey };
 
-            const style = this.getMarkerStyle(marker, datum, params, isHighlight, undefined, {
+            const style = this.getMarkerStyle(marker, datum, params, { isHighlight }, undefined, {
                 fill,
                 fillOpacity,
                 stroke,
@@ -618,8 +609,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const format = this.getMarkerStyle(
             this.properties.marker,
             { datumIndex, datum },
-            { xKey, yLowKey, yHighKey },
-            false
+            { xKey, yLowKey, yHighKey }
         ) as RequireOptional<AgSeriesMarkerStyle>;
 
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
@@ -650,21 +640,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { fill, stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.properties;
 
-        const markerStyle = getShapeStyle(
-            {
-                shape: marker.shape,
-                fill: marker.fill ?? fill,
-                stroke: marker.stroke ?? stroke,
-                fillOpacity: marker.fillOpacity,
-                strokeOpacity: marker.strokeOpacity,
-                strokeWidth: marker.strokeWidth,
-                lineDash: marker.lineDash,
-                lineDashOffset: marker.lineDashOffset,
-            },
-            marker.fillGradientDefaults,
-            marker.fillPatternDefaults,
-            marker.fillImageDefaults
-        );
+        const markerStyle = {
+            shape: marker.shape,
+            fill: marker.fill ?? fill,
+            stroke: marker.stroke ?? stroke,
+            fillOpacity: marker.fillOpacity,
+            strokeOpacity: marker.strokeOpacity,
+            strokeWidth: marker.strokeWidth,
+            lineDash: marker.lineDash,
+            lineDashOffset: marker.lineDashOffset,
+        };
 
         return {
             marker: markerStyle,
@@ -827,7 +812,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {
         const { xKey, yLowKey, yHighKey } = this.properties;
-        return this.getMarkerStyle(this.properties.marker, datum, { xKey, yLowKey, yHighKey }, true);
+        return this.getMarkerStyle(this.properties.marker, datum, { xKey, yLowKey, yHighKey }, { isHighlight: true });
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {

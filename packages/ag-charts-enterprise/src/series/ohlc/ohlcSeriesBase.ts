@@ -33,7 +33,6 @@ const {
     computeBarFocusBounds,
     visibleRangeIndices,
     BandScale,
-    getShapeStyle,
     processedDataIsAnimatable,
     mergeDefaults,
     simpleMemorize2,
@@ -430,18 +429,13 @@ export abstract class OhlcSeriesBase<
 
     protected getItemStyle({ datumIndex, itemId = 'up', datum, xValue }: Partial<OhlcNodeDatum>, isHighlight: boolean) {
         const { id: seriesId, properties } = this;
-        const item = properties.item[itemId];
-
         const { itemStyler } = properties;
 
         const highlightStyle: FillOptions & StrokeOptions & LineDashOptions & { opacity?: number } =
             this.getHighlightStyle(isHighlight);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemId));
 
-        let style =
-            item.fillGradientDefaults && item.fillPatternDefaults && item.fillImageDefaults
-                ? getShapeStyle(baseStyle, item.fillGradientDefaults, item.fillPatternDefaults, item.fillImageDefaults)
-                : baseStyle;
+        let style = baseStyle;
 
         if (itemStyler != null && datumIndex != null) {
             const { xKey, openKey, closeKey, highKey, lowKey } = properties;
@@ -451,7 +445,7 @@ export abstract class OhlcSeriesBase<
                 createDatumId(createDatumId(xValue), isHighlight ? 'highlight' : 'node'),
                 () => {
                     const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-                    return this.callWithContext(itemStyler, {
+                    const styles = this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
                         itemId,
@@ -464,19 +458,16 @@ export abstract class OhlcSeriesBase<
                         highlightState,
                         ...style,
                     });
+                    const resolved = this.ctx.optionsGraphService.resolvePartial(
+                        ['series', `${this.declarationOrder}`, 'item', itemId],
+                        styles
+                    );
+                    return mergeDefaults(resolved, styles);
                 }
             );
 
             if (overrides) {
-                style =
-                    item.fillGradientDefaults && item.fillPatternDefaults && item.fillImageDefaults
-                        ? getShapeStyle(
-                              mergeDefaults(overrides, style),
-                              item.fillGradientDefaults,
-                              item.fillPatternDefaults,
-                              item.fillImageDefaults
-                          )
-                        : mergeDefaults(overrides, style);
+                style = mergeDefaults(overrides, style);
             }
         }
 
@@ -519,7 +510,7 @@ export abstract class OhlcSeriesBase<
 
         const format = this.getItemStyle({ datumIndex, datum, itemId }, false);
 
-        let marker = {
+        const marker = {
             fill: item.fill ?? item.stroke,
             fillOpacity: item.fillOpacity ?? item.strokeOpacity ?? 1,
             stroke: item.stroke,
@@ -528,9 +519,6 @@ export abstract class OhlcSeriesBase<
             lineDash: item.lineDash ?? [0],
             lineDashOffset: item.lineDashOffset ?? 0,
         };
-        if (item.fillGradientDefaults && item.fillPatternDefaults && item.fillImageDefaults) {
-            marker = getShapeStyle(marker, item.fillGradientDefaults, item.fillPatternDefaults, item.fillImageDefaults);
-        }
 
         return this.formatTooltipWithContext(
             tooltip,

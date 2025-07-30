@@ -34,7 +34,7 @@ import { Debug } from '../util/debug';
 import { type CloneOptions, deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
 import { deepFreeze, merge, mergeDefaults } from '../util/object';
 import { enterpriseModule } from './enterpriseModule';
-import { createOptionsGraph } from './optionsGraph';
+import { OptionsGraph, createOptionsGraph } from './optionsGraph';
 
 export interface ChartSpecialOverrides {
     document: Document;
@@ -108,6 +108,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     fastDelta?: DeepPartial<T>;
     chartDef?: ChartModuleDefinition<any>;
     optionsProcessingTime?: number;
+    optionsGraph?: OptionsGraph;
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -156,7 +157,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.removeLeftoverSymbols(this.userOptions);
         }
 
-        let activeTheme, processedOptions, fastDelta, themeParameters, annotationThemes, googleFonts;
+        let activeTheme, processedOptions, fastDelta, themeParameters, annotationThemes, googleFonts, optionsGraph;
         if (
             !stripSymbols &&
             deltaOptions !== undefined &&
@@ -168,11 +169,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             annotationThemes = baseChartOptions.annotationThemes;
         } else {
             ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
-            ({ activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts } = this.slowSetup(
-                processedOverrides,
-                deltaOptions,
-                stripSymbols
-            ));
+            ({ activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, optionsGraph } =
+                this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
         }
 
         this.activeTheme = activeTheme;
@@ -181,6 +179,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.themeParameters = themeParameters;
         this.annotationThemes = annotationThemes;
         this.googleFonts = googleFonts;
+        this.optionsGraph = optionsGraph;
 
         // Capture options processing time for debug stats
         if (apiStartTime !== undefined && typeof apiStartTime === 'number' && !isNaN(apiStartTime)) {
@@ -307,7 +306,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const resolvedOptions = optionsGraph.resolve() as any;
         const themeParameters = optionsGraph.resolveParams();
         const annotationThemes = optionsGraph.resolveAnnotationThemes();
-        optionsGraph.clear();
+        optionsGraph.clearSafe();
 
         // TODO: move into options graph?
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
@@ -328,7 +327,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
-        return { activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts };
+        return { activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, optionsGraph };
     }
 
     private validatePluginOptions(options: T) {

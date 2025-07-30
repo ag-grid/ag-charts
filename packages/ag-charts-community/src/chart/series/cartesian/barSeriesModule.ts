@@ -29,12 +29,16 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
     themeTemplate: {
         series: {
             direction: 'vertical',
-            fill: { $palette: 'fill' },
+            fill: {
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $palette: 'fill' },
+                    ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                    ['image', FILL_IMAGE_DEFAULTS],
+                    ['pattern', FILL_PATTERN_DEFAULTS],
+                ],
+            },
             stroke: { $palette: 'stroke' },
-            // @ts-expect-error undocumented option
-            fillGradientDefaults: FILL_GRADIENT_LINEAR_DEFAULTS,
-            fillPatternDefaults: FILL_PATTERN_DEFAULTS,
-            fillImageDefaults: FILL_IMAGE_DEFAULTS,
             fillOpacity: 1,
             strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
             lineDash: [0],

@@ -30,7 +30,6 @@ const {
     Text,
     Marker,
     mergeDefaults,
-    getShapeStyle,
     updateLabelNode,
 } = _ModuleSupport;
 
@@ -337,7 +336,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 marker,
                 datum,
                 this.getDatumStylerProperties(datum),
-                isHighlight,
+                { isHighlight },
                 undefined,
                 {
                     stroke,
@@ -386,12 +385,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         if (angleValue == null) return;
 
-        const activeStyle = this.getMarkerStyle(
-            marker,
-            { datum, datumIndex },
-            this.getDatumStylerProperties(datum),
-            false
-        );
+        const activeStyle = this.getMarkerStyle(marker, { datum, datumIndex }, this.getDatumStylerProperties(datum), {
+            isHighlight: false,
+        });
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -422,22 +418,17 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.properties;
 
-        const markerStyle = getShapeStyle(
-            {
-                shape: marker.shape,
-                enabled: marker.enabled || strokeWidth <= 0,
-                fill: this.getMarkerFill() ?? marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
-                stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
-                fillOpacity: marker.fillOpacity,
-                strokeOpacity: marker.strokeOpacity,
-                strokeWidth: marker.strokeWidth,
-                lineDash: marker.lineDash,
-                lineDashOffset: marker.lineDashOffset,
-            },
-            marker.fillGradientDefaults,
-            marker.fillPatternDefaults,
-            marker.fillImageDefaults
-        );
+        const markerStyle = {
+            shape: marker.shape,
+            enabled: marker.enabled || strokeWidth <= 0,
+            fill: this.getMarkerFill() ?? marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+            stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+            fillOpacity: marker.fillOpacity,
+            strokeOpacity: marker.strokeOpacity,
+            strokeWidth: marker.strokeWidth,
+            lineDash: marker.lineDash,
+            lineDashOffset: marker.lineDashOffset,
+        };
 
         return {
             marker: markerStyle,
@@ -719,7 +710,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     public getFormattedMarkerStyle(datum: RadarNodeDatum) {
         const { angleKey, radiusKey } = this.properties;
-        return this.getMarkerStyle(this.properties.marker, datum, { angleKey, radiusKey }, true);
+        return this.getMarkerStyle(this.properties.marker, datum, { angleKey, radiusKey }, { isHighlight: true });
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {

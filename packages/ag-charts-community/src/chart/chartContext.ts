@@ -35,6 +35,7 @@ import { ZoomManager } from './interaction/zoomManager';
 import { LayoutManager } from './layout/layoutManager';
 import { SeriesLabelLayoutManager } from './layout/seriesLabelLayoutManager';
 import { LegendManager } from './legend/legendManager';
+import { OptionsGraphService, type ResolvePartialCallback } from './optionsGraphService';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
 import { type UpdateCallback, UpdateService } from './updateService';
@@ -64,6 +65,7 @@ export class ChartContext implements ModuleContext {
     fontManager: FontManager;
     historyManager: HistoryManager;
     interactionManager: InteractionManager;
+    optionsGraphService: OptionsGraphService;
     proxyInteractionService: ProxyInteractionService;
     scene: Scene;
     syncManager: SyncManager;
@@ -88,6 +90,7 @@ export class ChartContext implements ModuleContext {
             fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
             updateCallback: UpdateCallback;
             updateMutex: Mutex;
+            resolvePartialCallback: ResolvePartialCallback;
         }
     ) {
         const {
@@ -102,6 +105,7 @@ export class ChartContext implements ModuleContext {
             chartType,
             domMode,
             withDragInterpretation,
+            resolvePartialCallback,
         } = vars;
 
         this.chartService = chart;
@@ -130,6 +134,7 @@ export class ChartContext implements ModuleContext {
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.interactionManager = new InteractionManager();
         this.contextMenuRegistry = new ContextMenuRegistry(this.eventsHub);
+        this.optionsGraphService = new OptionsGraphService(resolvePartialCallback);
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(this.eventsHub, this.localeManager, this.domManager);
         this.fontManager = new FontManager(this.domManager, this.updateService);

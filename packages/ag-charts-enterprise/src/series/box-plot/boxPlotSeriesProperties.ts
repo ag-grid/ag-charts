@@ -8,16 +8,7 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-const {
-    BaseProperties,
-    FillGradientDefaults,
-    FillPatternDefaults,
-    FillImageDefaults,
-    AbstractBarSeriesProperties,
-    makeSeriesTooltip,
-    Property,
-    mergeDefaults,
-} = _ModuleSupport;
+const { BaseProperties, AbstractBarSeriesProperties, makeSeriesTooltip, Property, mergeDefaults } = _ModuleSupport;
 
 class BoxPlotSeriesCap extends BaseProperties {
     @Property
@@ -83,15 +74,6 @@ export class BoxPlotSeriesProperties extends AbstractBarSeriesProperties<AgBoxPl
 
     @Property
     fill: InternalAgColorType = '#c16068';
-
-    @Property
-    readonly fillGradientDefaults = new FillGradientDefaults();
-
-    @Property
-    readonly fillPatternDefaults = new FillPatternDefaults();
-
-    @Property
-    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity = 1;

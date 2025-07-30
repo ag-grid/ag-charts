@@ -659,6 +659,87 @@ describe('OptionsGraph', () => {
             });
         });
 
+        describe('$applySwitch', () => {
+            it('should resolve to default if no user option', () => {
+                const themeConfig = {
+                    line: {
+                        item: {
+                            $applySwitch: [
+                                { $path: 'type' },
+                                { first: 'default' },
+                                ['one', { first: 'one', second: 'one' }],
+                                ['two', { first: 'two', second: 'two' }],
+                                ['three', { first: 'three', second: 'three' }],
+                            ],
+                        },
+                    },
+                };
+                const userOptions = {};
+                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                expect(options).toStrictEqual({
+                    item: { first: 'default' },
+                    axes: expect.any(Array),
+                });
+            });
+
+            it('should resolve unmatched values to the user options', () => {
+                const themeConfig = {
+                    line: {
+                        item: {
+                            $applySwitch: [
+                                { $path: 'type' },
+                                { first: 'default' },
+                                ['one', { first: 'one', second: 'one' }],
+                                ['two', { first: 'two', second: 'two' }],
+                                ['three', { first: 'three', second: 'three' }],
+                            ],
+                        },
+                    },
+                };
+                const userOptions = {
+                    item: { first: 'user' },
+                };
+                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                expect(options).toStrictEqual({
+                    item: { first: 'user' },
+                    axes: expect.any(Array),
+                });
+            });
+
+            it('should resolve matched values', () => {
+                const themeConfig = {
+                    line: {
+                        item: {
+                            $applySwitch: [
+                                { $path: 'type' },
+                                { first: 'default' },
+                                ['one', { first: 'one', second: 'one' }],
+                                ['two', { first: 'two', second: 'two' }],
+                                ['three', { first: 'three', second: 'three' }],
+                            ],
+                        },
+                    },
+                };
+                const userOptions = {
+                    item: {
+                        type: 'two',
+                        second: 'user',
+                        other: 'user',
+                    },
+                };
+                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                expect(options).toStrictEqual({
+                    item: {
+                        type: 'two',
+                        first: 'two',
+                        second: 'user',
+                        other: 'user',
+                    },
+                    axes: expect.any(Array),
+                });
+            });
+        });
+
         describe('$findFirstSiblingNotOperation', () => {
             it('should pick the path from the first sibling that is not an operation', () => {
                 const themeConfig = {
@@ -781,8 +862,7 @@ describe('OptionsGraph', () => {
                 });
             });
 
-            // Reason: requires fixing
-            it.skip('should map values onto nested $value: $1', () => {
+            it('should map values onto nested $value: $1', () => {
                 const themeConfig = {
                     line: {
                         one: { $map: [{ child: { $value: '$1' } }, { $path: '/two' }] },

@@ -11,16 +11,7 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-const {
-    AbstractBarSeriesProperties,
-    FillGradientDefaults,
-    FillPatternDefaults,
-    FillImageDefaults,
-    makeSeriesTooltip,
-    Property,
-    DropShadow,
-    Label,
-} = _ModuleSupport;
+const { AbstractBarSeriesProperties, makeSeriesTooltip, Property, DropShadow, Label } = _ModuleSupport;
 
 class RangeBarSeriesLabel extends Label<AgRangeBarSeriesLabelFormatterParams> {
     @Property
@@ -54,15 +45,6 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
 
     @Property
     fill: InternalAgColorType = '#99CCFF';
-
-    @Property
-    readonly fillGradientDefaults = new FillGradientDefaults();
-
-    @Property
-    readonly fillPatternDefaults = new FillPatternDefaults();
-
-    @Property
-    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity: number = 1;

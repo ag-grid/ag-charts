@@ -44,7 +44,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
-import { applyShapeStyle, getShapeFill } from '../shapeUtil';
+import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
 import { type AreaSeriesDataAggregationFilter, aggregateAreaData } from './areaAggregation';
 import { AreaSeriesProperties } from './areaSeriesProperties';
@@ -855,7 +855,7 @@ export class AreaSeries extends CartesianSeries<
             strokeOpacity,
             lineDash,
             lineDashOffset,
-            fill: fillColor,
+            fill: seriesFill,
             fillOpacity,
             opacity,
         } = mergeDefaults(this.getHighlightStyle(), this.properties);
@@ -873,13 +873,6 @@ export class AreaSeries extends CartesianSeries<
             opacity,
             visible: visible || animationEnabled,
         });
-
-        const seriesFill = getShapeFill(
-            fillColor,
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
 
         applyShapeStyle(
             fill,
@@ -969,7 +962,7 @@ export class AreaSeries extends CartesianSeries<
         datumSelection.each((node, datum) => {
             const { xValue, yValue } = datum;
             const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
-            const style = this.getMarkerStyle(marker, datum, params, isHighlight, undefined, {
+            const style = this.getMarkerStyle(marker, datum, params, { isHighlight }, undefined, {
                 stroke,
                 strokeWidth,
                 strokeOpacity,
@@ -1057,8 +1050,7 @@ export class AreaSeries extends CartesianSeries<
         const activeStyle = this.getMarkerStyle(
             marker,
             { datum, datumIndex },
-            datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
-            false
+            datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain)
         );
 
         return this.formatTooltipWithContext(
@@ -1089,41 +1081,20 @@ export class AreaSeries extends CartesianSeries<
     }
 
     legendItemSymbol(): LegendSymbolOptions {
-        const {
-            fill,
-            stroke,
-            fillOpacity,
-            strokeOpacity,
-            strokeWidth,
-            lineDash,
-            marker,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-        } = this.properties;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker } = this.properties;
         const useAreaFill = !marker.enabled || marker.fill === undefined;
-
-        const legendMarkerFill = useAreaFill
-            ? getShapeFill(fill, fillGradientDefaults, fillPatternDefaults, fillImageDefaults)
-            : getShapeFill(
-                  marker.fill,
-                  marker.fillGradientDefaults,
-                  marker.fillPatternDefaults,
-                  marker.fillImageDefaults
-              );
+        const legendMarkerFill = useAreaFill ? fill : marker.fill;
 
         const markerStyle = this.getMarkerStyle(
             marker,
             {},
             undefined,
-            false,
+            { isHighlight: false, checkForHighlight: false },
             {
                 size: marker.size,
                 fill: legendMarkerFill,
                 fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
-            },
-            undefined,
-            false
+            }
         );
 
         return {
@@ -1275,7 +1246,7 @@ export class AreaSeries extends CartesianSeries<
             this.properties.marker,
             datum,
             datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
-            true
+            { isHighlight: true }
         );
     }
 

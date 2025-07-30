@@ -5,7 +5,7 @@ import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { isGradientFill, isPatternFill, isImageFill, getShapeFill, applyShapeStyle } = _ModuleSupport;
+const { isGradientFill, isPatternFill, isImageFill, applyShapeStyle } = _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<
     CandlestickNode,
@@ -63,27 +63,20 @@ export class CandlestickSeries extends OhlcSeriesBase<
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { up, down } = this.properties.item;
 
-        const upFill = getShapeFill(up.fill, up.fillGradientDefaults, up.fillPatternDefaults, up.fillImageDefaults);
-        const upColorStops = isGradientFill(upFill)
-            ? upFill.colorStops.map((c) =>
+        const upColorStops = isGradientFill(up.fill)
+            ? up.fill.colorStops!.map((c) =>
                   typeof c === 'string' ? c : { color: c.color, stop: c.stop != null ? c.stop * 0.5 : undefined }
               )
             : [
-                  { color: isPatternFill(upFill) || isImageFill(upFill) ? up.stroke : upFill, stop: 0 },
-                  { color: isPatternFill(upFill) || isImageFill(upFill) ? up.stroke : upFill, stop: 0.5 },
+                  { color: isPatternFill(up.fill) || isImageFill(up.fill) ? up.stroke : up.fill, stop: 0 },
+                  { color: isPatternFill(up.fill) || isImageFill(up.fill) ? up.stroke : up.fill, stop: 0.5 },
               ];
 
-        const downFill = getShapeFill(
-            down.fill,
-            down.fillGradientDefaults,
-            down.fillPatternDefaults,
-            down.fillImageDefaults
-        );
-        const downColorStops = isGradientFill(downFill)
-            ? downFill.colorStops.map((c) =>
+        const downColorStops = isGradientFill(down.fill)
+            ? down.fill.colorStops!.map((c) =>
                   typeof c === 'string' ? c : { color: c.color, stop: c.stop != null ? c.stop * 0.5 : undefined }
               )
-            : [{ color: isPatternFill(downFill) || isImageFill(downFill) ? down.stroke : downFill, stop: 0.5 }];
+            : [{ color: isPatternFill(down.fill) || isImageFill(down.fill) ? down.stroke : down.fill, stop: 0.5 }];
 
         const fill: InternalAgGradientColor = {
             type: 'gradient',

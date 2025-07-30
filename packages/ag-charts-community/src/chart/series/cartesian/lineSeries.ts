@@ -493,7 +493,7 @@ export class LineSeries extends CartesianSeries<
 
             const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
 
-            const style = this.getMarkerStyle(marker, datum, params, isHighlight, undefined, {
+            const style = this.getMarkerStyle(marker, datum, params, { isHighlight }, undefined, {
                 stroke,
                 strokeWidth,
                 strokeOpacity,
@@ -572,12 +572,9 @@ export class LineSeries extends CartesianSeries<
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
         const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
 
-        const format = this.getMarkerStyle(
-            this.properties.marker,
-            { datumIndex, datum },
-            params,
-            false
-        ) as RequireOptional<AgSeriesMarkerStyle>;
+        const format = this.getMarkerStyle(this.properties.marker, { datumIndex, datum }, params, {
+            isHighlight: false,
+        }) as RequireOptional<AgSeriesMarkerStyle>;
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -614,14 +611,12 @@ export class LineSeries extends CartesianSeries<
             marker,
             {},
             undefined,
-            false,
+            { isHighlight: false, checkForHighlight: false },
             {
                 size: marker.size,
                 fill: marker.fill ?? color0,
                 stroke: marker.stroke ?? stroke ?? color0,
-            },
-            undefined,
-            false
+            }
         );
 
         return {
@@ -793,7 +788,7 @@ export class LineSeries extends CartesianSeries<
             this.properties.marker,
             datum,
             datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
-            true
+            { isHighlight: true }
         );
     }
 

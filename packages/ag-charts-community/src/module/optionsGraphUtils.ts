@@ -22,7 +22,7 @@ export interface OptionsGraphInterface {
         object: PlainObject,
         overridesPathArrays?: Array<Array<string> | undefined>
     ): void;
-    graftValue(target: VertexInterface, path: string, operation: unknown, value: unknown): void;
+    graftValue(target: VertexInterface, path: string, ontoObject: unknown, value: unknown): void;
     hasThemeOverride(path: Array<string>): boolean;
     hasUserOption(path: Array<string>): boolean;
     neighboursWithEdgeValue(vertex: VertexInterface, edge: string): Array<VertexInterface> | undefined;
@@ -41,6 +41,7 @@ export const PATH_ARRAY_EDGE = 'pathArray';
 export const DEFAULTS_EDGE = 'default';
 export const OVERRIDES_EDGE = 'override';
 export const USER_OPTIONS_EDGE = 'user';
+export const USER_PARTIAL_OPTIONS_EDGE = 'userPartial';
 
 // The edge that connects an option key, whose value is an operation, to its operation.
 export const OPERATION_EDGE = 'operation';

@@ -97,25 +97,40 @@ export const SAFE_RANGE2_OPERATION: any = {
     ],
 };
 
+export const FILL_GRADIENT_BLANK_DEFAULTS: RequiredInternalAgGradientColor = {
+    type: 'gradient',
+    gradient: 'linear',
+    bounds: 'item',
+    colorStops: [{ color: 'black' }],
+    rotation: 0,
+    reverse: false,
+};
+
 export const FILL_GRADIENT_LINEAR_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
     type: 'gradient',
     gradient: 'linear',
     bounds: 'item',
-    colorStops: { $palette: 'gradient' },
+    colorStops: { $map: [{ color: { $value: '$1' } }, { $palette: 'gradient' }] },
     rotation: 0,
     reverse: false,
 };
 
 export const FILL_GRADIENT_LINEAR_HIERARCHY_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
     ...FILL_GRADIENT_LINEAR_DEFAULTS,
-    colorStops: [
-        {
-            $mix: [{ $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, 'black', 0.15],
-        },
-        {
-            $mix: [{ $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, 'white', 0.15],
-        },
-    ] as any,
+    colorStops: {
+        $shallow: [
+            {
+                color: {
+                    $mix: [{ $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, 'black', 0.15],
+                },
+            },
+            {
+                color: {
+                    $mix: [{ $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, 'white', 0.15],
+                },
+            },
+        ],
+    } as any,
 };
 
 export const FILL_GRADIENT_LINEAR_SHADED_DEFAULTS = (
@@ -123,27 +138,22 @@ export const FILL_GRADIENT_LINEAR_SHADED_DEFAULTS = (
 ): WithThemeParams<RequiredInternalAgGradientColor> => ({
     ...FILL_GRADIENT_LINEAR_DEFAULTS,
     colorStops: {
-        $if: [
-            {
-                $or: [
-                    { $isGradient: { $palette: `${key}.fill` } },
-                    { $isPattern: { $palette: `${key}.fill` } },
-                    { $isImage: { $palette: `${key}.fill` } },
+        $shallow: {
+            $if: [
+                {
+                    $or: [
+                        { $isGradient: { $palette: `${key}.fill` } },
+                        { $isPattern: { $palette: `${key}.fill` } },
+                        { $isImage: { $palette: `${key}.fill` } },
+                    ],
+                },
+                { $path: ['/colorStops', undefined, { $palette: `${key}.fill` }] },
+                [
+                    { color: { $mix: [{ $palette: `${key}.fill` }, 'black', 0.15] } },
+                    { color: { $mix: [{ $palette: `${key}.fill` }, 'white', 0.15] } },
                 ],
-            },
-            {
-                $map: [
-                    { $path: ['/color', undefined, { $value: '$1' }] },
-                    {
-                        $path: ['/colorStops', undefined, { $palette: `${key}.fill` }],
-                    },
-                ],
-            },
-            [
-                { $mix: [{ $palette: `${key}.fill` }, 'black', 0.15] },
-                { $mix: [{ $palette: `${key}.fill` }, 'white', 0.15] },
             ],
-        ],
+        },
     } as any,
 });
 
@@ -151,7 +161,7 @@ export const FILL_GRADIENT_RADIAL_DEFAULTS: WithThemeParams<RequiredInternalAgGr
     type: 'gradient',
     gradient: 'radial',
     bounds: 'item',
-    colorStops: { $palette: 'gradient' },
+    colorStops: { $map: [{ color: { $value: '$1' } }, { $palette: 'gradient' }] },
     rotation: 0,
     reverse: false,
 };
@@ -172,11 +182,11 @@ export const FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS: WithThemeParams<Requ
     reverse: true,
 };
 
-export const FILL_GRADIENT_CONIC_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
+export const FILL_GRADIENT_CONIC_SERIES_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
     type: 'gradient',
     gradient: 'conic',
     bounds: 'series',
-    colorStops: { $palette: 'gradient' },
+    colorStops: { $map: [{ color: { $value: '$1' } }, { $palette: 'gradient' }] },
     rotation: 0,
     reverse: false,
 };
@@ -184,12 +194,14 @@ export const FILL_GRADIENT_CONIC_DEFAULTS: WithThemeParams<RequiredInternalAgGra
 export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternColor> = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
-    width: 10,
-    height: 10,
+    width: { $isUserOption: ['./height', { $path: './height' }, 10] },
+    height: { $isUserOption: ['./width', { $path: './width' }, 10] },
     padding: 2,
     fill: {
         $if: [
-            { $or: [{ $isGradient: { $palette: 'fill' } }, { $isImage: { $palette: 'fill' } }] },
+            {
+                $or: [{ $isGradient: { $palette: 'fill' } }, { $isImage: { $palette: 'fill' } }],
+            },
             { $palette: 'fillFallback' },
             {
                 $if: [
@@ -203,9 +215,32 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
     fillOpacity: 1,
     stroke: SAFE_STROKE_FILL_OPERATION,
     strokeOpacity: 1,
-    strokeWidth: 4,
+    strokeWidth: {
+        $switch: [
+            { $path: './pattern' },
+            0,
+            [['backward-slanted-lines', 'forward-slanted-lines', 'horizontal-lines', 'vertical-lines'], 4],
+        ],
+    },
     backgroundFill: 'none',
     backgroundFillOpacity: 1,
+    rotation: 0,
+    scale: 1,
+};
+
+export const FILL_PATTERN_BLANK_DEFAULTS: RequiredInternalAgPatternColor = {
+    type: 'pattern',
+    pattern: 'forward-slanted-lines',
+    width: 8,
+    height: 8,
+    padding: 1,
+    fill: 'black',
+    fillOpacity: 1,
+    backgroundFill: 'white',
+    backgroundFillOpacity: 1,
+    stroke: 'black',
+    strokeOpacity: 1,
+    strokeWidth: 1,
     rotation: 0,
     scale: 1,
 };
@@ -223,6 +258,17 @@ export const FILL_IMAGE_DEFAULTS: WithThemeParams<RequiredInternalAgImageFill> =
     repeat: 'no-repeat',
     fit: 'contain',
     rotation: 0,
+};
+
+export const FILL_IMAGE_BLANK_DEFAULTS: RequiredInternalAgImageFill = {
+    type: 'image',
+    backgroundFill: 'black',
+    backgroundFillOpacity: 1,
+    rotation: 0,
+    repeat: 'no-repeat',
+    fit: 'contain',
+    width: 8,
+    height: 8,
 };
 
 export function getSequentialColors(colors: { [key: string]: string }) {

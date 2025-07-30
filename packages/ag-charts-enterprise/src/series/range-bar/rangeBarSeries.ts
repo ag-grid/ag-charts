@@ -35,7 +35,6 @@ const {
     motion,
     applyShapeStyle,
     findMinMax,
-    getShapeStyle,
     areScalingEqual,
     processedDataIsAnimatable,
     AGGREGATION_SPAN,
@@ -505,12 +504,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     private getItemStyle(datum: RangeBarNodeDatum, isHighlight: boolean): Required<AgRangeBarSeriesStyle> {
         const { id: seriesId, properties } = this;
 
-        const { xKey, yHighKey, yLowKey, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } =
-            properties;
+        const { xKey, yHighKey, yLowKey, itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
-        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+        let style = baseStyle;
 
         if (itemStyler != null && datum != null) {
             const overrides = this.cachedDatumCallback(
@@ -532,12 +530,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             );
 
             if (overrides) {
-                style = getShapeStyle(
-                    mergeDefaults(overrides, style),
-                    fillGradientDefaults,
-                    fillPatternDefaults,
-                    fillImageDefaults
-                );
+                style = mergeDefaults(overrides, style);
             }
         }
 
@@ -646,33 +639,17 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const {
-            fill,
-            stroke,
-            strokeWidth,
-            fillOpacity,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-        } = this.properties;
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
         return {
-            marker: getShapeStyle(
-                {
-                    fill,
-                    stroke,
-                    fillOpacity,
-                    strokeOpacity,
-                    strokeWidth,
-                    lineDash,
-                    lineDashOffset,
-                },
-                fillGradientDefaults,
-                fillPatternDefaults,
-                fillImageDefaults
-            ),
+            marker: {
+                fill,
+                stroke,
+                fillOpacity,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+            },
         };
     }
 

@@ -5,13 +5,7 @@ import {
     type Padding,
     _ModuleSupport,
 } from 'ag-charts-community';
-import {
-    CleanupRegistry,
-    type RequiredInternalAgGradientColor,
-    type RequiredInternalAgImageFill,
-    type RequiredInternalAgPatternColor,
-    createId,
-} from 'ag-charts-core';
+import { CleanupRegistry, createId } from 'ag-charts-core';
 
 import { AxisTicks } from './axisTicks';
 
@@ -54,43 +48,6 @@ class GradientLegendScale
     @ProxyProperty('axisTicks.padding')
     padding?: AxisTicks['padding'];
 }
-
-const fillGradientDefaults: RequiredInternalAgGradientColor = {
-    type: 'gradient',
-    bounds: 'item',
-    gradient: 'linear',
-    colorStops: [{ color: 'black' }],
-    rotation: 0,
-    reverse: false,
-};
-
-const fillPatternDefaults: RequiredInternalAgPatternColor = {
-    type: 'pattern',
-    pattern: 'forward-slanted-lines',
-    width: 8,
-    height: 8,
-    padding: 1,
-    fill: 'black',
-    fillOpacity: 1,
-    backgroundFill: 'white',
-    backgroundFillOpacity: 1,
-    stroke: 'black',
-    strokeOpacity: 1,
-    strokeWidth: 1,
-    rotation: 0,
-    scale: 1,
-};
-
-const fillImageDefaults: RequiredInternalAgImageFill = {
-    type: 'image',
-    backgroundFill: 'black',
-    backgroundFillOpacity: 1,
-    rotation: 0,
-    repeat: 'no-repeat',
-    fit: 'contain',
-    width: 8,
-    height: 8,
-};
 
 export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLegendOptions> {
     static readonly className = 'GradientLegend';
@@ -414,25 +371,20 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
         const { cornerRadius, fill, fillOpacity, padding } = this;
         const isPaddingNumber = typeof padding === 'number';
 
-        return _ModuleSupport.getShapeStyle(
-            {
-                cornerRadius,
-                fill,
-                fillOpacity,
-                padding: {
-                    top: isPaddingNumber ? padding : padding.top ?? 0,
-                    right: isPaddingNumber ? padding : padding.right ?? 0,
-                    bottom: isPaddingNumber ? padding : padding.bottom ?? 0,
-                    left: isPaddingNumber ? padding : padding.left ?? 0,
-                },
-                stroke,
-                strokeOpacity,
-                strokeWidth: this.border.enabled ? strokeWidth : 0,
+        return {
+            cornerRadius,
+            fill,
+            fillOpacity,
+            padding: {
+                top: isPaddingNumber ? padding : padding.top ?? 0,
+                right: isPaddingNumber ? padding : padding.right ?? 0,
+                bottom: isPaddingNumber ? padding : padding.bottom ?? 0,
+                left: isPaddingNumber ? padding : padding.left ?? 0,
             },
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults
-        );
+            stroke,
+            strokeOpacity,
+            strokeWidth: this.border.enabled ? strokeWidth : 0,
+        };
     }
 
     private onChartHoverChange() {
