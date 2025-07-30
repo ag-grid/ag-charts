@@ -1,4 +1,11 @@
-import { type BoxBounds, boxCollides, countFractionDigits, dropFirstWhile, dropLastWhile } from 'ag-charts-core';
+import {
+    type BoxBounds,
+    boxCollides,
+    cachedTextMeasurer,
+    countFractionDigits,
+    dropFirstWhile,
+    dropLastWhile,
+} from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
@@ -16,7 +23,6 @@ import { compareDates } from '../../util/date';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { type AxisPrimaryTickCount, calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { createIdsGenerator } from '../../util/tempUtils';
-import { CachedTextMeasurerPool } from '../../util/textMeasurer';
 import { TextWrapper, type WrapOptions } from '../../util/textWrapper';
 import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
 import {
@@ -222,8 +228,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const maxIterations = Number.isFinite(maxTickCount) ? maxTickCount : 10;
 
         const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
-        const font = { fontFamily, fontSize, fontStyle, fontWeight };
-        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
+        const textMeasurer = cachedTextMeasurer({ fontFamily, fontSize, fontStyle, fontWeight });
         const checkLabelOverlap = label.enabled && label.avoidCollisions;
 
         const initialRotation = configuredRotation + defaultRotation;

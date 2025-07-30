@@ -1,4 +1,4 @@
-import { type RequireOptional, isPlainObject } from 'ag-charts-core';
+import { type ITextMeasurer, type RequireOptional, isPlainObject } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -21,7 +21,6 @@ import type { Matrix } from '../scene/matrix';
 import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
 import { normalizeAngle360FromDegrees } from '../util/angle';
 import { BaseProperties, Property } from '../util/properties';
-import { type TextMeasurer } from '../util/textMeasurer';
 import { intervalHierarchy, intervalRange, intervalUnit } from '../util/time';
 import { buildDateFormatter } from '../util/timeFormat';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from './chartAxis';
@@ -231,7 +230,7 @@ export function timeIntervalMaxLabelSize(
     primaryLabel: ChartAxisLabel | undefined,
     domain: Date[],
     timeInterval: AgTimeInterval | AgTimeIntervalUnit,
-    textMeasurer: TextMeasurer
+    textMeasurer: ITextMeasurer
 ) {
     const specifier =
         labelSpecifier(label.format, timeInterval) ?? (typeof label.format === 'string' ? label.format : undefined);
@@ -298,7 +297,7 @@ export function createLabelData(
     tickData: { tickLabel: string | undefined; translation: number }[],
     labelX: number,
     labelMatrix: Matrix,
-    textMeasurer: TextMeasurer,
+    textMeasurer: ITextMeasurer,
     label: ChartAxisLabel
 ) {
     const padding = expandLabelPadding(label);

@@ -13,7 +13,7 @@ export interface TextBounds {
 export interface MultilineTextBounds {
     width: number;
     height: number;
-    lineBounds: TextBounds[];
+    lineBounds: (TextBounds & { text: string })[];
 }
 
 export interface LegacyTextMetrics extends Writeable<TextMetrics> {
@@ -80,7 +80,7 @@ export class TextMeasurer implements ITextMeasurer {
                 width = b.width;
             }
             height += b.height;
-            return b;
+            return { text: line, ...b };
         });
         return { width, height, lineBounds };
     }

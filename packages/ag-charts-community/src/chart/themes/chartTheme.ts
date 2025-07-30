@@ -584,6 +584,7 @@ export class ChartTheme {
             {
                 positionAngle: 0,
                 line: { enabled: false },
+                label: { minSpacing: 5 },
             },
             { title: true, time: false }
         ),
@@ -592,6 +593,7 @@ export class ChartTheme {
                 positionAngle: 0,
                 line: { enabled: false },
                 shape: { $findFirstSiblingNotOperation: undefined },
+                label: { minSpacing: 5 },
             },
             { title: true, time: false }
         ),
