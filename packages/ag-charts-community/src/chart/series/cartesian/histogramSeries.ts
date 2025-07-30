@@ -24,7 +24,14 @@ import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFu
 import type { DataController } from '../../data/dataController';
 import type { AggregatePropertyDefinition, DataGroup, GroupByFn, PropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { SORT_DOMAIN_GROUPS, diff, keyProperty, rowCountProperty, valueProperty } from '../../data/processors';
+import {
+    SORT_DOMAIN_GROUPS,
+    createDatumId,
+    diff,
+    keyProperty,
+    rowCountProperty,
+    valueProperty,
+} from '../../data/processors';
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -44,6 +51,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import { calculateDataDiff } from './diffUtil';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
@@ -142,37 +150,35 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     override async processData(dataController: DataController) {
-        if (!this.visible) {
-            this.processedData = undefined;
-            this.animationState.transition('updateData');
-        }
-
+        const { visible } = this;
         const { xKey, yKey, areaPlot, aggregation } = this.properties;
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { xScaleType, yScaleType } = this.getScaleInformation({ yScale, xScale });
 
+        const visibleProps = visible ? {} : { forceValue: 0 };
+
         const props: PropertyDefinition<any>[] = [keyProperty(xKey, xScaleType), SORT_DOMAIN_GROUPS];
         if (yKey) {
-            let aggProp: AggregatePropertyDefinition<any, any, any> = groupCount('groupAgg');
+            let aggProp: AggregatePropertyDefinition<any, any, any> = groupCount('groupAgg', { visible });
 
             if (aggregation === 'count') {
                 // Nothing to do.
             } else if (aggregation === 'sum') {
-                aggProp = groupSum('groupAgg');
+                aggProp = groupSum('groupAgg', { visible });
             } else if (aggregation === 'mean') {
-                aggProp = groupAverage('groupAgg');
+                aggProp = groupAverage('groupAgg', { visible });
             }
             if (areaPlot) {
                 aggProp = area('groupAgg', aggProp);
             }
-            props.push(valueProperty(yKey, yScaleType, { invalidValue: undefined }), aggProp);
+            props.push(valueProperty(yKey, yScaleType, { invalidValue: undefined, ...visibleProps }), aggProp);
         } else {
             // Special property - data model needs at least one value property to perform grouping.
             props.push(rowCountProperty('count'));
 
-            let aggProp = groupCount('groupAgg');
+            let aggProp = groupCount('groupAgg', { visible });
 
             if (areaPlot) {
                 aggProp = area('groupAgg', aggProp);
@@ -294,6 +300,7 @@ export class HistogramSeries extends CartesianSeries<
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
         const { xKey, yKey, xName, yName, label } = this.properties;
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const nodeData: HistogramNodeDatum[] = [];
         const context = {
@@ -302,9 +309,9 @@ export class HistogramSeries extends CartesianSeries<
             labelData: nodeData,
             scales: this.calculateScaling(),
             animationValid: true,
-            visible: this.visible,
+            visible: this.visible || animationEnabled,
         };
-        if (!this.visible || processedData == null || processedData.type !== 'grouped') {
+        if (processedData == null || processedData.type !== 'grouped') {
             return context;
         }
 
@@ -433,7 +440,6 @@ export class HistogramSeries extends CartesianSeries<
             rect.bottomLeftCornerRadius = bottomLeftCornerRadius ? cornerRadius : 0;
             rect.crisp = datum.crisp;
             rect.fillShadow = shadow;
-            rect.visible = datum.height > 0; // prevent stroke from rendering for zero height columns
         });
     }
 
@@ -638,9 +644,30 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
-        // CRT-886 - skip animations due to buggy animation.
-        this.ctx.animationManager.skipCurrentBatch();
-        this.resetDatumAnimation(data);
+        const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
+
+        const dataDiff = calculateDataDiff(
+            this.id,
+            data.datumSelection,
+            (datum) => createDatumId(datum.domain),
+            data.contextData,
+            data.previousContextData,
+            this.processedData
+        );
+
+        fromToMotion(
+            this.id,
+            'datums',
+            this.ctx.animationManager,
+            [data.datumSelection],
+            fns,
+            (_, datum) => createDatumId(datum.domain),
+            dataDiff
+        );
+
+        if (dataDiff?.changed) {
+            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, data.labelSelection);
+        }
     }
 
     protected isLabelEnabled() {
