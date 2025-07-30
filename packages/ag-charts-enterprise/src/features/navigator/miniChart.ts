@@ -1,10 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, calcLineHeight } from 'ag-charts-core';
 
 import { MiniChartGroup } from './shapes/miniChartGroup';
 
-const { Property, ZIndexMap, ActionOnSet, CategoryAxis, TextUtils, Padding, Group, BBox, ProxyProperty } =
-    _ModuleSupport;
+const { Property, ZIndexMap, ActionOnSet, CategoryAxis, Padding, Group, BBox, ProxyProperty } = _ModuleSupport;
 
 class MiniChartPadding {
     @Property
@@ -243,7 +242,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             } else {
                 size =
                     (line.enabled ? line.width : 0) +
-                    (label.enabled ? TextUtils.getLineHeight(label.fontSize ?? 0) + label.spacing : 0);
+                    (label.enabled ? calcLineHeight(label.fontSize ?? 0) + label.spacing : 0);
             }
 
             padding[position] = Math.ceil(size);

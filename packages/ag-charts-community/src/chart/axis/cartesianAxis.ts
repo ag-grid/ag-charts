@@ -1,4 +1,4 @@
-import { arraysEqual, countLines, diffArrays, isPlainObject } from 'ag-charts-core';
+import { arraysEqual, calcLineHeight, countLines, diffArrays, isPlainObject } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
@@ -20,7 +20,6 @@ import { findMinMax } from '../../util/number';
 import { Property } from '../../util/properties';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import { StateMachine } from '../../util/stateMachine';
-import { TextUtils } from '../../util/textMeasurer';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartLayout } from '../chartAxis';
@@ -526,7 +525,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             boxes.push(
                 new BBox(
                     0,
-                    TextUtils.getLineHeight(label.fontSize) + inexactMeasurementPadding,
+                    calcLineHeight(label.fontSize) + inexactMeasurementPadding,
                     1,
                     this.getTickSize(tick) + label.spacing + seriesAreaPadding
                 )
@@ -541,7 +540,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
                         0,
                         this.getTickSize(primaryTick ?? tick) + primaryLabel.spacing + seriesAreaPadding,
                         1,
-                        maxLines * TextUtils.getLineHeight(primaryLabel.fontSize) + inexactMeasurementPadding
+                        maxLines * calcLineHeight(primaryLabel.fontSize) + inexactMeasurementPadding
                     )
                 );
             }

@@ -1,11 +1,7 @@
 type LinkedListItem<T> = { value: T; next: LinkedListItem<T> | null };
 export type LinkedList<T> = LinkedListItem<T> | null;
 
-export const insertListItemsSorted = <T>(
-    list: LinkedList<T>,
-    items: T[],
-    cmp: (a: T, b: T) => number
-): LinkedList<T> => {
+export function insertListItemsSorted<T>(list: LinkedList<T>, items: T[], cmp: (a: T, b: T) => number): LinkedList<T> {
     let head = list;
     let current = head;
     for (const value of items) {
@@ -23,4 +19,4 @@ export const insertListItemsSorted = <T>(
         }
     }
     return head;
-};
+}

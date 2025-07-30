@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger, findMaxValue } from 'ag-charts-core';
+import { Logger, appendEllipsis, calcLineHeight, findMaxValue } from 'ag-charts-core';
 import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartAutoSizedLabelOptions,
@@ -12,7 +12,7 @@ import type {
     TextWrap,
 } from 'ag-charts-types';
 
-const { CachedTextMeasurerPool, TextUtils, TextWrapper } = _ModuleSupport;
+const { CachedTextMeasurerPool, TextWrapper } = _ModuleSupport;
 
 interface AutoSizedBaseLabelOptions extends AgChartAutoSizedBaseLabelOptions<unknown, any> {
     fontSize: FontSize;
@@ -125,9 +125,8 @@ type SizeFittingHeightFn<Meta> = (
 export function getLineHeight(labelProps: AgChartAutoSizedLabelOptions<any, any>, fontSize: number) {
     if (labelProps.lineHeight != null && labelProps.fontSize != null) {
         return (labelProps.lineHeight * fontSize) / labelProps.fontSize;
-    } else {
-        return TextUtils.getLineHeight(fontSize);
     }
+    return calcLineHeight(fontSize);
 }
 
 export function formatStackedLabels<Meta>(
@@ -371,15 +370,13 @@ function wrapLabel(
     };
 }
 
-function clipLines(
-    lines: string[],
-    { font, lineHeight = TextUtils.defaultLineHeight, maxWidth, maxHeight = Infinity }: _ModuleSupport.WrapOptions
-) {
+function clipLines(lines: string[], { font, lineHeight, maxWidth, maxHeight = Infinity }: _ModuleSupport.WrapOptions) {
+    lineHeight ??= calcLineHeight(font.fontSize);
     let height = lineHeight * lines.length;
     while (height > maxHeight) {
         if (lines.length === 1) return;
         lines.pop();
-        lines[lines.length - 1] = TextWrapper.appendEllipsis(lines.at(-1)!);
+        lines[lines.length - 1] = appendEllipsis(lines.at(-1)!);
         height = lineHeight * lines.length;
     }
 
@@ -397,7 +394,7 @@ function clipLines(
             clippedLines.push(line.text);
             width = Math.max(width, line.width);
         }
-        text = TextWrapper.appendEllipsis(clippedLines.join('\n'));
+        text = appendEllipsis(clippedLines.join('\n'));
     } else {
         text = lines.join('\n');
         width = metrics.width;

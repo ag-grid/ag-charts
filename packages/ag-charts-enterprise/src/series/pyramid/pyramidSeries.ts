@@ -4,7 +4,7 @@ import {
     type AgPyramidSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { Writeable } from 'ag-charts-core';
+import { type Writeable, calcLineHeight } from 'ag-charts-core';
 
 import { FunnelConnector } from '../funnel/funnelConnector';
 import { PyramidProperties } from './pyramidProperties';
@@ -15,7 +15,6 @@ const {
     valueProperty,
     SeriesNodePickMode,
     CachedTextMeasurerPool,
-    TextUtils,
     createDatumId,
     BBox,
     Group,
@@ -239,7 +238,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             );
 
             const { width } = textMeasurer.measureText(text);
-            const height = text.split('\n').length * TextUtils.getLineHeight(label.fontSize);
+            const height = text.split('\n').length * calcLineHeight(label.fontSize);
             maxLabelWidth = Math.max(maxLabelWidth, width);
             maxLabelHeight = Math.max(maxLabelHeight, height);
 

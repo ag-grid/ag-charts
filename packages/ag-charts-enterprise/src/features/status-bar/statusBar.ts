@@ -1,4 +1,5 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
+import { calcLineHeight } from 'ag-charts-core';
 
 const {
     CachedTextMeasurerPool,
@@ -7,7 +8,6 @@ const {
     Property,
     BaseProperties,
     valueProperty,
-    TextUtils,
     Group,
     Label,
     Rect,
@@ -306,7 +306,7 @@ export class StatusBar
         this.labelGroup.translationY = layoutBox.y + spacingAbove;
 
         const maxFontSize = Math.max(this.title.fontSize, this.positive.fontSize, this.negative.fontSize);
-        const lineHeight = TextUtils.getLineHeight(maxFontSize);
+        const lineHeight = calcLineHeight(maxFontSize);
 
         const labelConfigurations = chartConfigurations[this.getChartType()] ?? 0;
 
