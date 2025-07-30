@@ -29,15 +29,21 @@ export function sum(id: string, matchGroupId: string) {
     return result;
 }
 
-export function groupSum(id: string, matchGroupId?: string): AggregatePropertyDefinition<any, any> {
+export function groupSum(
+    id: string,
+    opts?: { matchGroupId?: string; visible?: boolean }
+): AggregatePropertyDefinition<any, any> {
+    const visible = opts?.visible ?? true;
     return {
         id,
         type: 'aggregate',
-        matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
+        matchGroupIds: opts?.matchGroupId ? [opts?.matchGroupId] : undefined,
         aggregateFunction: (values) => sumValues(values),
         groupAggregateFunction: (next, acc = [0, 0]) => {
-            acc[0] += next?.[0] ?? 0;
-            acc[1] += next?.[1] ?? 0;
+            if (visible) {
+                acc[0] += next?.[0] ?? 0;
+                acc[1] += next?.[1] ?? 0;
+            }
             return acc;
         },
     };
@@ -54,29 +60,35 @@ export function range(id: string, matchGroupId: string) {
     return result;
 }
 
-export function groupCount(id: string): AggregatePropertyDefinition<any, any> {
+export function groupCount(id: string, opts?: { visible?: boolean }): AggregatePropertyDefinition<any, any> {
+    const visible = opts?.visible ?? true;
     return {
         id,
         type: 'aggregate',
         aggregateFunction: () => [0, 1],
         groupAggregateFunction: (next, acc = [0, 0]) => {
-            acc[0] += next?.[0] ?? 0;
-            acc[1] += next?.[1] ?? 0;
+            if (visible) {
+                acc[0] += next?.[0] ?? 0;
+                acc[1] += next?.[1] ?? 0;
+            }
             return acc;
         },
     };
 }
 
-export function groupAverage(id: string, matchGroupId?: string) {
+export function groupAverage(id: string, opts?: { matchGroupId?: string; visible?: boolean }) {
+    const visible = opts?.visible ?? true;
     const def: AggregatePropertyDefinition<any, any, [number, number], [number, number, number]> = {
         id,
-        matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
+        matchGroupIds: opts?.matchGroupId ? [opts?.matchGroupId] : undefined,
         type: 'aggregate',
         aggregateFunction: (values) => sumValues(values),
         groupAggregateFunction: (next, acc = [0, 0, -1]) => {
-            acc[0] += next?.[0] ?? 0;
-            acc[1] += next?.[1] ?? 0;
-            acc[2]++;
+            if (visible) {
+                acc[0] += next?.[0] ?? 0;
+                acc[2]++;
+                acc[1] += next?.[1] ?? 0;
+            }
             return acc;
         },
         finalFunction: (acc = [0, 0, 0]) => {
