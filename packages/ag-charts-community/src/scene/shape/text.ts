@@ -1,4 +1,13 @@
-import { type BoxBounds, type RequireOptional, createSvgElement, isArray, isString, toPlainText } from 'ag-charts-core';
+import {
+    type BoxBounds,
+    type RequireOptional,
+    calcLineHeight,
+    createSvgElement,
+    isArray,
+    isString,
+    toFontString,
+    toPlainText,
+} from 'ag-charts-core';
 import type {
     FontFamily,
     FontSize,
@@ -12,7 +21,7 @@ import type {
 
 import { Debug } from '../../util/debug';
 import { mergeDefaults } from '../../util/object';
-import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
+import { CachedTextMeasurerPool, type MeasureOptions } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
 import { SceneRefChangeDetection } from '../changeDetectable';
 import { Group } from '../group';
@@ -130,7 +139,7 @@ export class Text<D = any> extends Shape<D> {
             font: { fontSize },
             textAlign,
             textBaseline,
-            lineHeight = useGlyphIndependentMeasurements ? TextUtils.getLineHeight(fontSize) : undefined,
+            lineHeight = useGlyphIndependentMeasurements ? calcLineHeight(fontSize) : undefined,
         } = opts;
         const {
             width,
@@ -151,14 +160,44 @@ export class Text<D = any> extends Shape<D> {
             const padding = (lineHeight - fontSize) / 2;
             offsetTop = padding - alphabeticBaseline;
         } else {
-            offsetTop = TextUtils.getVerticalModifier(textBaseline) * height;
+            offsetTop = Text.getVerticalModifier(textBaseline) * height;
         }
 
         const offsetLeft = useGlyphIndependentMeasurements
-            ? width * TextUtils.getHorizontalModifier(textAlign)
+            ? width * Text.getHorizontalModifier(textAlign)
             : exactOffsetLeft;
 
         return new BBox(x - offsetLeft, y - offsetTop, width, height);
+    }
+
+    private static getHorizontalModifier(textAlign?: CanvasTextAlign): number {
+        switch (textAlign) {
+            case 'left':
+            case 'start':
+                return 0;
+            case 'center':
+                return 0.5;
+            case 'right':
+            case 'end':
+                return 1;
+            default:
+                return 0;
+        }
+    }
+
+    private static getVerticalModifier(textBaseline?: CanvasTextBaseline): number {
+        switch (textBaseline) {
+            case 'hanging':
+            case 'top':
+                return 0;
+            case 'middle':
+                return 0.5;
+            case 'alphabetic': // Alphabetic is not correct here - but it's not called
+            case 'bottom':
+            case 'ideographic':
+            default:
+                return 1;
+        }
     }
 
     protected override computeBBox(
@@ -235,7 +274,7 @@ export class Text<D = any> extends Shape<D> {
             this.textMap.set(textNode, textBBox);
             offsetY = Math.max(
                 offsetY,
-                textBBox.y + textBBox.height / 2 + (textNode.lineHeight ?? TextUtils.getLineHeight(textNode.fontSize))
+                textBBox.y + textBBox.height / 2 + (textNode.lineHeight ?? calcLineHeight(textNode.fontSize))
             );
             totalWidth += textBBox.x + textBBox.width;
         }
@@ -303,13 +342,13 @@ export class Text<D = any> extends Shape<D> {
         }
 
         const { ctx } = renderCtx;
-        const font = TextUtils.toFontString(this);
+        const font = toFontString(this);
         // Try to avoid this assignment, which typically always incurs a font switch cost.
         if (ctx.font !== font) {
             ctx.font = font;
         }
 
-        const { fontSize, lineHeight = TextUtils.getLineHeight(fontSize), textAlign, textBaseline } = this;
+        const { fontSize, lineHeight = calcLineHeight(fontSize), textAlign, textBaseline } = this;
 
         ctx.textAlign = textAlign;
         ctx.textBaseline = textBaseline;
@@ -336,20 +375,20 @@ export class Text<D = any> extends Shape<D> {
     }
 
     protected override executeFill(ctx: CanvasRenderingContext2D) {
-        const { fontSize, lineHeight = TextUtils.getLineHeight(fontSize), textBaseline, lines } = this;
+        const { fontSize, lineHeight = calcLineHeight(fontSize), textBaseline, lines } = this;
         const lineOriginY =
             textBaseline === 'alphabetic'
                 ? 0
-                : TextUtils.getVerticalModifier(textBaseline) * lineHeight * (1 - lines.length);
+                : Text.getVerticalModifier(textBaseline) * lineHeight * (1 - lines.length);
         this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.fillText(line, x, y));
     }
 
     protected override executeStroke(ctx: CanvasRenderingContext2D) {
-        const { fontSize, lineHeight = TextUtils.getLineHeight(fontSize), textBaseline, lines } = this;
+        const { fontSize, lineHeight = calcLineHeight(fontSize), textBaseline, lines } = this;
         const lineOriginY =
             textBaseline === 'alphabetic'
                 ? 0
-                : TextUtils.getVerticalModifier(textBaseline) * lineHeight * (1 - lines.length);
+                : Text.getVerticalModifier(textBaseline) * lineHeight * (1 - lines.length);
         this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.strokeText(line, x, y));
     }
 

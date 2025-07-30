@@ -1,11 +1,10 @@
-import { isArray } from 'ag-charts-core';
+import { calcLineHeight, isArray } from 'ag-charts-core';
 import type { TextAlign } from 'ag-charts-types';
 
 import type { LayoutCompleteEvent } from '../core/eventsHub';
 import type { LayoutContext } from '../module/baseModule';
 import type { BBox } from '../scene/bbox';
 import { Property } from '../util/properties';
-import { TextUtils } from '../util/textMeasurer';
 import { Caption } from './caption';
 
 export class ChartCaptions {
@@ -62,7 +61,7 @@ export class ChartCaptions {
     }
 
     private positionCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox, maxHeight: number) {
-        const containerHeight = Math.max(TextUtils.getLineHeight(caption.fontSize), maxHeight);
+        const containerHeight = Math.max(calcLineHeight(caption.fontSize), maxHeight);
         caption.node.x = this.computeX(caption.textAlign, layoutBox) + caption.padding;
         caption.node.y = layoutBox.y + (vAlign === 'top' ? 0 : layoutBox.height) + caption.padding;
         caption.node.textBaseline = vAlign;

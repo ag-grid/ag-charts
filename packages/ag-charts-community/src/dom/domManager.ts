@@ -425,7 +425,7 @@ export class DOMManager extends BaseManager {
             }
 
             if (isContainer) {
-                return BBox.fromDOMRect(element.getBoundingClientRect());
+                return BBox.fromObject(element.getBoundingClientRect());
             }
 
             element = element.parentElement;
@@ -433,7 +433,7 @@ export class DOMManager extends BaseManager {
 
         // If in a shadow-DOM case, use the shadow-DOMs bounding-box, intersected with the window
         // viewport.
-        if (this.documentRoot != null) return BBox.fromDOMRect(this.documentRoot.getBoundingClientRect());
+        if (this.documentRoot != null) return BBox.fromObject(this.documentRoot.getBoundingClientRect());
 
         const { innerWidth, innerHeight } = getWindow();
         return new BBox(0, 0, innerWidth, innerHeight);
@@ -466,7 +466,7 @@ export class DOMManager extends BaseManager {
 
         const childRects: BBox[] = [];
         for (const child of children.values()) {
-            childRects.push(BBox.fromDOMRect(child.getBoundingClientRect()));
+            childRects.push(BBox.fromObject(child.getBoundingClientRect()));
         }
 
         return BBox.merge(childRects);

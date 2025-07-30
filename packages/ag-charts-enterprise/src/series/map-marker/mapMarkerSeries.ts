@@ -296,7 +296,7 @@ export class MapMarkerSeries
         x: number,
         y: number,
         size: number,
-        measurer: _ModuleSupport.CachedTextMeasurer
+        measurer: _ModuleSupport.TextMeasurer
     ): MapMarkerNodeLabelDatum | undefined {
         if (labelValue == null) return;
 

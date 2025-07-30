@@ -7,6 +7,7 @@ export * from './interfaces/moduleDefinition';
 
 // Classes
 export * from './classes/eventEmitter';
+export * from './classes/lruCache';
 
 // Options
 export * from './options/commonOptionsDefs';
@@ -19,6 +20,7 @@ export * from './utils/async';
 export * from './utils/attributeUtil';
 export * from './utils/boxBounds';
 export * from './utils/binarySearch';
+export * from './utils/canvas';
 export * from './utils/caching';
 export * from './utils/cleanupRegistry';
 export * from './utils/diff';
@@ -31,5 +33,8 @@ export * from './utils/linkedList';
 export * from './utils/numberFormat';
 export * from './utils/numbers';
 export * from './utils/strings';
+export * from './utils/textMeasurer';
+export * from './utils/textUtils';
+export * from './utils/textWrapper';
 export * from './utils/typeGuards';
 export * from './utils/validation';

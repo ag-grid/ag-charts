@@ -1,10 +1,14 @@
-import type {
-    AnyFn,
-    RequiredInternalAgGradientColor,
-    RequiredInternalAgImageFill,
-    RequiredInternalAgPatternColor,
+import {
+    type AnyFn,
+    CleanupRegistry,
+    EllipsisChar,
+    Logger,
+    type RequiredInternalAgGradientColor,
+    type RequiredInternalAgImageFill,
+    type RequiredInternalAgPatternColor,
+    clamp,
+    createId,
 } from 'ag-charts-core';
-import { CleanupRegistry, Logger, clamp, createId } from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -37,7 +41,7 @@ import { callWithContext } from '../../util/callbackCache';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties, Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
-import { CachedTextMeasurer, CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
+import { CachedTextMeasurerPool, type TextMeasurer } from '../../util/textMeasurer';
 import { TextWrapper } from '../../util/textWrapper';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
@@ -594,7 +598,7 @@ export class Legend extends BaseProperties {
         maxCharLength: number,
         maxItemWidth: number,
         paddedMarkerWidth: number,
-        measurer: CachedTextMeasurer,
+        measurer: TextMeasurer,
         id: string
     ): string {
         let addEllipsis = false;
@@ -605,7 +609,7 @@ export class Legend extends BaseProperties {
 
         const result = TextWrapper.truncateLine(text, measurer, maxItemWidth - paddedMarkerWidth, addEllipsis);
 
-        if (result.endsWith(TextUtils.EllipsisChar)) {
+        if (result.endsWith(EllipsisChar)) {
             this.truncatedItems.add(id);
         } else {
             this.truncatedItems.delete(id);

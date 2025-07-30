@@ -1,13 +1,20 @@
 /**
- * Yields items from multiple iterables in sequence.
- * @param iterators - The iterables to iterate over.
- * @returns A generator yielding items from all provided iterables.
+ * Yields items from multiple iterables in sequence. If a value is not iterable,
+ * it is yielded directly.
+ *
+ * @param items - A list of iterable objects or values.
+ * @returns A generator yielding all items from the input iterables, or the values themselves if not iterable.
  */
-export function* iterate<T extends Iterable<any>[]>(
-    ...iterators: T
-): Generator<T[number] extends Iterable<infer U> ? U : never, void, undefined> {
-    for (const iterator of iterators) {
-        yield* iterator;
+export function* iterate<T extends any[]>(
+    ...items: T
+): Generator<T[number] extends Iterable<infer U> ? U : T[number], void, undefined> {
+    for (const item of items) {
+        if (item == null) continue;
+        if (item[Symbol.iterator]) {
+            yield* item;
+        } else {
+            yield item;
+        }
     }
 }
 

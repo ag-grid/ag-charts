@@ -6,7 +6,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, calcLineHeight } from 'ag-charts-core';
 
 import {
     FlowProportionDatumType,
@@ -30,7 +30,6 @@ const {
     SeriesNodePickMode,
     CachedTextMeasurerPool,
     TextWrapper,
-    TextUtils,
     createDatumId,
     getShapeStyle,
     getLabelStyles,
@@ -297,8 +296,9 @@ export class SankeySeries extends FlowProportionSeries<
                 const y = node.y + node.height / 2;
                 let text: string | undefined;
                 if (!leading && !trailing) {
-                    const y1 = y - TextUtils.getLineHeight(fontSize);
-                    const y2 = y + TextUtils.getLineHeight(fontSize);
+                    const lineHeight = calcLineHeight(fontSize);
+                    const y1 = y - lineHeight;
+                    const y2 = y + lineHeight;
                     let maxX = seriesRectWidth;
                     nodeGraph.forEach(({ datum }) => {
                         const intersectsLabel =

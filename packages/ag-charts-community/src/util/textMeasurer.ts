@@ -1,8 +1,5 @@
-import type { Writeable } from 'ag-charts-core';
+import { LRUCache, LineSplitter, type Writeable, createCanvasContext, toFontString } from 'ag-charts-core';
 import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
-
-import { createCanvasContext } from './canvas.util';
-import { LRUCache } from './lruCache';
 
 // Configuration options create a font string.
 export interface FontOptions {
@@ -50,7 +47,7 @@ export interface TextMeasurer {
 }
 
 export class CachedTextMeasurerPool {
-    private static readonly instanceMap = new LRUCache<string, CachedTextMeasurer>(10);
+    private static readonly instanceMap = new LRUCache<CachedTextMeasurer>(10);
 
     // Measures the dimensions of the provided text, handling multiline if needed.
     static measureText(text: string, options: MeasureOptions) {
@@ -65,7 +62,7 @@ export class CachedTextMeasurerPool {
 
     // Gets a TextMeasurer instance, configuring text alignment and baseline if provided.
     static getMeasurer(options: MeasureOptions) {
-        const font = TextUtils.toFontString(options.font);
+        const font = toFontString(options.font);
         const key = `${font}-${options.textAlign ?? 'start'}-${options.textBaseline ?? 'top'}`;
         return this.instanceMap.get(key) ?? this.createFontMeasurer(font, options, key);
     }
@@ -87,9 +84,9 @@ export class CachedTextMeasurerPool {
     }
 }
 
-export class CachedTextMeasurer implements TextMeasurer {
+class CachedTextMeasurer implements TextMeasurer {
     // cached text measurements
-    private readonly measureMap = new LRUCache<string, LegacyTextMetrics>(100);
+    private readonly measureMap = new LRUCache<LegacyTextMetrics>(100);
 
     private readonly textMeasurer: TextMeasurer;
 
@@ -103,7 +100,7 @@ export class CachedTextMeasurer implements TextMeasurer {
         if (options.textBaseline) {
             ctx.textBaseline = options.textBaseline;
         }
-        ctx.font = TextUtils.toFontString(options.font);
+        ctx.font = toFontString(options.font);
 
         this.textMeasurer = new SimpleTextMeasurer(
             (t) => this.cachedCtxMeasureText(t),
@@ -148,57 +145,18 @@ export class CachedTextMeasurer implements TextMeasurer {
     }
 }
 
-export class TextUtils {
-    static readonly EllipsisChar = '\u2026'; // Representation for text clipping.
-    static readonly defaultLineHeight = 1.15; // Normally between 1.1 and 1.2
-    static readonly lineSplitter = /\r?\n/g;
-
-    static toFontString({ fontSize = 10, fontStyle, fontWeight, fontFamily }: FontOptions) {
-        let fontString = '';
-        if (fontStyle && fontStyle !== 'normal') {
-            fontString += `${fontStyle} `;
-        }
-        if (fontWeight && fontWeight !== 'normal' && fontWeight !== 400) {
-            fontString += `${fontWeight} `;
-        }
-        fontString += `${fontSize}px`;
-        fontString += ` ${fontFamily}`;
-        return fontString.trim();
-    }
-
-    static getLineHeight(fontSize: number) {
-        return Math.ceil(fontSize * this.defaultLineHeight);
-    }
-
-    static getHorizontalModifier(textAlign?: CanvasTextAlign): number {
-        switch (textAlign) {
-            case 'left':
-            case 'start':
-                return 0;
-            case 'center':
-                return 0.5;
-            case 'right':
-            case 'end':
-                return 1;
-            default:
-                return 0;
-        }
-    }
-
-    // Determines vertical offset modifier based on text baseline.
-    static getVerticalModifier(textBaseline?: CanvasTextBaseline): number {
-        switch (textBaseline) {
-            case 'hanging':
-            case 'top':
-                return 0;
-            case 'middle':
-                return 0.5;
-            case 'alphabetic': // Alphabetic is not correct here - but it's not called
-            case 'bottom':
-            case 'ideographic':
-            default:
-                return 1;
-        }
+function getVerticalModifier(textBaseline?: CanvasTextBaseline): number {
+    switch (textBaseline) {
+        case 'hanging':
+        case 'top':
+            return 0;
+        case 'middle':
+            return 0.5;
+        case 'alphabetic': // Alphabetic is not correct here - but it's not called
+        case 'bottom':
+        case 'ideographic':
+        default:
+            return 1;
     }
 }
 
@@ -234,7 +192,7 @@ export class SimpleTextMeasurer implements TextMeasurer {
         let baselineDistance = 0; // Distance between first and last baselines.
         let alphabeticBaseline = 0;
 
-        const verticalModifier = TextUtils.getVerticalModifier(this.textBaseline);
+        const verticalModifier = getVerticalModifier(this.textBaseline);
         const lineMetrics = [];
 
         let index = 0;
@@ -301,7 +259,7 @@ export class SimpleTextMeasurer implements TextMeasurer {
 
     // Measures the dimensions of the provided text, handling multiline if needed.
     measureLines(text: string | string[]) {
-        const lines = typeof text === 'string' ? text.split(TextUtils.lineSplitter) : text;
+        const lines = typeof text === 'string' ? text.split(LineSplitter) : text;
         return this.getMultilineMetrics(lines);
     }
 

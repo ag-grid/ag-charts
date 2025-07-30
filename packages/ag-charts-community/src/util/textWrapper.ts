@@ -1,6 +1,7 @@
+import { EllipsisChar, LineSplitter } from 'ag-charts-core';
 import type { OverflowStrategy, TextWrap } from 'ag-charts-types';
 
-import { CachedTextMeasurerPool, type MeasureOptions, type TextMeasurer, TextUtils } from './textMeasurer';
+import { CachedTextMeasurerPool, type MeasureOptions, type TextMeasurer } from './textMeasurer';
 
 // Extended measurement options including wrapping behavior.
 export interface WrapOptions extends MeasureOptions {
@@ -19,18 +20,18 @@ export class TextWrapper {
 
     static wrapLines(text: string, options: WrapOptions) {
         const clippedResult = this.textWrap(text, options);
-        if (options.overflow === 'hide' && clippedResult.some((l) => l.endsWith(TextUtils.EllipsisChar))) {
+        if (options.overflow === 'hide' && clippedResult.some((l) => l.endsWith(EllipsisChar))) {
             return [];
         }
         return clippedResult;
     }
 
     static appendEllipsis(text: string) {
-        return text.replace(/[.,]{1,5}$/, '') + TextUtils.EllipsisChar;
+        return text.replace(/[.,]{1,5}$/, '') + EllipsisChar;
     }
 
     static truncateLine(text: string, measurer: TextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
-        const ellipsisWidth = measurer.textWidth(TextUtils.EllipsisChar);
+        const ellipsisWidth = measurer.textWidth(EllipsisChar);
         let estimatedWidth = 0;
         let i = 0;
         for (; i < text.length; i++) {
@@ -39,17 +40,17 @@ export class TextWrapper {
             estimatedWidth += charWidth;
         }
         if (text.length === i && (!ellipsisForce || estimatedWidth + ellipsisWidth <= maxWidth)) {
-            return ellipsisForce ? text + TextUtils.EllipsisChar : text;
+            return ellipsisForce ? text + EllipsisChar : text;
         }
         text = text.slice(0, i).trimEnd();
         while (text.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
             text = text.slice(0, -1).trimEnd();
         }
-        return text + TextUtils.EllipsisChar;
+        return text + EllipsisChar;
     }
 
     private static textWrap(text: string, options: WrapOptions) {
-        const lines: string[] = text.split(TextUtils.lineSplitter);
+        const lines: string[] = text.split(LineSplitter);
         const measurer = CachedTextMeasurerPool.getMeasurer(options);
 
         if (options.textWrap === 'never') {
