@@ -12,7 +12,7 @@ import type {
 import type { LinearSettingsDialogTextChangeProps } from './settings-dialog/settingsDialog';
 import type { AnnotationStateEvents } from './states/stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
-import { wrapText } from './text/util';
+import { maybeWrapText } from './text/util';
 import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setLineStyle } from './utils/styles';
 import { isChannelType, isEphemeralType, isTextType } from './utils/types';
@@ -252,7 +252,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     return;
                 }
 
-                const wrappedText = wrapText(datum, textInputValue, bbox.width);
+                const wrappedText = maybeWrapText(datum, textInputValue, bbox.width);
                 datum.set({ text: wrappedText });
 
                 ctx.update();

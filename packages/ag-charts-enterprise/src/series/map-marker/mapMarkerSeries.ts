@@ -1,5 +1,5 @@
 import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { type ITextMeasurer, Logger, cachedTextMeasurer } from 'ag-charts-core';
 import { type AgMapMarkerSeriesLabelFormatterParams, type AgMapMarkerSeriesOptions } from 'ag-charts-types';
 
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -15,7 +15,6 @@ import {
 } from './mapMarkerSeriesProperties';
 
 const {
-    CachedTextMeasurerPool,
     fromToMotion,
     StateMachine,
     getMissCount,
@@ -295,7 +294,7 @@ export class MapMarkerSeries
         x: number,
         y: number,
         size: number,
-        measurer: _ModuleSupport.TextMeasurer
+        measurer: ITextMeasurer
     ): MapMarkerNodeLabelDatum | undefined {
         if (labelValue == null) return;
 
@@ -380,7 +379,7 @@ export class MapMarkerSeries
 
         const markerMaxSize = properties.maxSize ?? properties.size;
         sizeScale.range = [Math.min(properties.size, markerMaxSize), markerMaxSize];
-        const measurer = CachedTextMeasurerPool.getMeasurer({ font: label });
+        const measurer = cachedTextMeasurer(label);
 
         let projectedGeometries: Map<string, _ModuleSupport.Geometry> | undefined;
         if (idValues != null && featureValues != null) {

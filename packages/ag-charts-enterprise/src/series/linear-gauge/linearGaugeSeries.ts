@@ -9,6 +9,7 @@ import {
     type FontWeight,
     _ModuleSupport,
 } from 'ag-charts-community';
+import { cachedTextMeasurer } from 'ag-charts-core';
 
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
@@ -38,7 +39,6 @@ const {
     SeriesNodePickMode,
     StateMachine,
     createDatumId,
-    CachedTextMeasurerPool,
     toRadians,
     BBox,
     Group,
@@ -514,7 +514,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
         const lines = label.text?.split('\n');
 
-        const measurer = CachedTextMeasurerPool.getMeasurer({ font: label });
+        const measurer = cachedTextMeasurer(label);
         const ticks =
             scaleProps.interval.values ??
             scale.ticks({

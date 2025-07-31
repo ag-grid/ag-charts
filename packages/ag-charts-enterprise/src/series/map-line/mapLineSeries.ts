@@ -1,5 +1,5 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { type ITextMeasurer, Logger, cachedTextMeasurer } from 'ag-charts-core';
 import type { AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -16,7 +16,6 @@ const {
     createDatumId,
     SeriesNodePickMode,
     valueProperty,
-    CachedTextMeasurerPool,
     ColorScale,
     LinearScale,
     Selection,
@@ -210,7 +209,7 @@ export class MapLineSeries extends TopologySeries<
         datum: any,
         labelValue: string | undefined,
         projectedGeometry: _ModuleSupport.Geometry | undefined,
-        measurer: _ModuleSupport.TextMeasurer
+        measurer: ITextMeasurer
     ): MapLineNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null) return;
 
@@ -278,7 +277,7 @@ export class MapLineSeries extends TopologySeries<
 
         const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
         sizeScale.range = [Math.min(properties.strokeWidth, maxStrokeWidth), maxStrokeWidth];
-        const measurer = CachedTextMeasurerPool.getMeasurer({ font: label });
+        const measurer = cachedTextMeasurer(label);
 
         const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
         processedData.dataSources.get(this.id)?.forEach((_datum, datumIndex) => {

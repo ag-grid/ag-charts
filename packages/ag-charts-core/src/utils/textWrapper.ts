@@ -1,6 +1,6 @@
 import type { OverflowStrategy, TextWrap } from 'ag-charts-types';
 
-import { type TextMeasurer, cachedTextMeasurer } from './textMeasurer';
+import { type ITextMeasurer, cachedTextMeasurer } from './textMeasurer';
 import { EllipsisChar, type FontOptions, LineSplitter } from './textUtils';
 
 // Extended measurement options including wrapping behaviour.
@@ -26,7 +26,7 @@ export function wrapLines(text: string, options: WrapOptions) {
     return clippedResult;
 }
 
-export function truncateLine(text: string, measurer: TextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
+export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
     const ellipsisWidth = measurer.textWidth(EllipsisChar);
     let estimatedWidth = 0;
     let i = 0;
@@ -151,7 +151,7 @@ function getWordAt(text: string, position: number) {
     return nextSpaceIndex === -1 ? text.slice(position) : text.slice(position, nextSpaceIndex);
 }
 
-function clipLines(lines: string[], measurer: TextMeasurer, options: WrapOptions) {
+function clipLines(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
     if (!options.maxHeight) {
         return lines;
     }
@@ -177,7 +177,7 @@ function clipLines(lines: string[], measurer: TextMeasurer, options: WrapOptions
     return lines;
 }
 
-function avoidOrphans(lines: string[], measurer: TextMeasurer, options: WrapOptions) {
+function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
     if (options.avoidOrphans === false || lines.length < 2) return;
 
     const { length } = lines;

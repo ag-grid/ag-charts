@@ -1,6 +1,7 @@
 import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
+import { type FontOptions, cachedTextMeasurer, calcLineHeight, wrapText } from 'ag-charts-core';
 
-const { TextWrapper, CachedTextMeasurerPool, BBox } = _ModuleSupport;
+const { BBox } = _ModuleSupport;
 
 export type AnnotationTextPosition = 'top' | 'center' | 'bottom';
 export type AnnotationTextAlignment = 'left' | 'center' | 'right';
@@ -9,41 +10,14 @@ type TextOptions = _ModuleSupport.FontOptions & { textAlign: TextAlign; position
 
 export const ANNOTATION_TEXT_LINE_HEIGHT = 1.38;
 
-function getTextWrapOptions(options: TextOptions): Omit<_ModuleSupport.WrapOptions, 'maxWidth'> {
-    return {
-        font: {
-            fontFamily: options.fontFamily,
-            fontSize: options.fontSize,
-            fontStyle: options.fontStyle,
-            fontWeight: options.fontWeight,
-        },
-        textAlign: options.textAlign,
-        textBaseline: (options.position == 'center' ? 'middle' : options.position) as CanvasTextBaseline,
-        lineHeight: ANNOTATION_TEXT_LINE_HEIGHT,
-        avoidOrphans: false,
-        textWrap: 'always',
-    };
+export function maybeWrapText(options: TextOptions, text: string, maxWidth: number) {
+    return maxWidth ? wrapText(text, { maxWidth, font: options, textWrap: 'always', avoidOrphans: false }) : text;
 }
 
-export function wrapText(options: TextOptions, text: string, width: number) {
-    return width
-        ? TextWrapper.wrapText(text, {
-              ...getTextWrapOptions(options),
-              maxWidth: width,
-          })
-        : text;
-}
-
-function measureAnnotationText(options: TextOptions, text: string) {
-    const textOptions = getTextWrapOptions(options);
-
-    const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, textOptions);
-    const height = lineMetrics.length * (options.fontSize ?? 14) * ANNOTATION_TEXT_LINE_HEIGHT;
-
-    return {
-        width,
-        height,
-    };
+function measureAnnotationText(options: FontOptions, text: string) {
+    const { lineBounds, width } = cachedTextMeasurer(options).measureLines(text);
+    const height = lineBounds.length * calcLineHeight(options.fontSize, ANNOTATION_TEXT_LINE_HEIGHT);
+    return { width, height };
 }
 
 export function getBBox(
@@ -56,7 +30,7 @@ export function getBBox(
     let height = bbox?.height ?? 0;
 
     if (!bbox) {
-        const wrappedText = options.width != null ? wrapText(options, text, options.width) : text;
+        const wrappedText = options.width != null ? maybeWrapText(options, text, options.width) : text;
         ({ width, height } = measureAnnotationText(options, wrappedText));
     }
 
@@ -72,7 +46,7 @@ export function updateTextNode(
     textBaseline?: CanvasTextBaseline
 ) {
     const { visible = true, fontFamily, fontSize = 14, fontStyle, fontWeight, textAlign } = config;
-    const lineHeight = fontSize * ANNOTATION_TEXT_LINE_HEIGHT;
+    const lineHeight = calcLineHeight(fontSize, ANNOTATION_TEXT_LINE_HEIGHT);
     textBaseline ??= config.position == 'center' ? 'middle' : config.position;
 
     const fill = isPlaceholder ? config.getPlaceholderColor() : config.color;

@@ -6,7 +6,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger, calcLineHeight } from 'ag-charts-core';
+import { Logger, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
 
 import {
     FlowProportionDatumType,
@@ -28,7 +28,6 @@ const {
     Transformable,
     applyShapeStyle,
     SeriesNodePickMode,
-    CachedTextMeasurerPool,
     TextWrapper,
     createDatumId,
     getShapeStyle,
@@ -276,7 +275,7 @@ export class SankeySeries extends FlowProportionSeries<
         const nodeData: SankeyDatum[] = [];
         const labelData: SankeyNodeLabelDatum[] = [];
         const { fontSize } = this.properties.label;
-        const measurer = CachedTextMeasurerPool.getMeasurer({ font: this.properties.label });
+        const measurer = cachedTextMeasurer(this.properties.label);
         columns.forEach((column, index) => {
             const leading = index === 0;
             const trailing = index === columns.length - 1;

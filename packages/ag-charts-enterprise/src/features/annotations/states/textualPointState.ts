@@ -4,7 +4,7 @@ import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
 import type { TextualPointScene } from '../scenes/textualPointScene';
-import { wrapText } from '../text/util';
+import { maybeWrapText } from '../text/util';
 import { setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
 import type { AnnotationStateEvents } from './stateTypes';
@@ -119,7 +119,7 @@ export abstract class TextualPointStateMachine<
                     return;
                 }
 
-                const wrappedText = wrapText(datum, textInputValue, bbox.width);
+                const wrappedText = maybeWrapText(datum, textInputValue, bbox.width);
                 datum?.set({ text: wrappedText });
 
                 ctx.update();

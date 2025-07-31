@@ -1,5 +1,5 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
-import { Logger, type RequireOptional, calcLineHeight } from 'ag-charts-core';
+import { Logger, type RequireOptional, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
 import type { AgChordSeriesLabelFormatterParams, AgChordSeriesOptions } from 'ag-charts-types';
 
 import {
@@ -15,7 +15,6 @@ import { ChordSeriesProperties } from './chordSeriesProperties';
 
 const {
     SeriesNodePickMode,
-    CachedTextMeasurerPool,
     TextWrapper,
     createDatumId,
     angleBetween,
@@ -171,7 +170,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         let labelInset = 0;
         if (this.isLabelEnabled()) {
-            const measurer = CachedTextMeasurerPool.getMeasurer({ font: this.properties.label });
+            const measurer = cachedTextMeasurer(this.properties.label);
             let maxMeasuredLabelWidth = 0;
             nodeGraph.forEach(({ datum: node }) => {
                 const { id, label } = node;
