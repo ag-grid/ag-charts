@@ -1,4 +1,4 @@
-import type { RequireOptional } from 'ag-charts-core';
+import type { Point, RequireOptional } from 'ag-charts-core';
 import { isDefined } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
@@ -31,7 +31,6 @@ import { fixNumericExtent } from '../../data/dataModel';
 import {
     animationValidation,
     groupAccumulativeValueProperty,
-    groupStackValueProperty,
     keyProperty,
     normaliseGroupTo,
     processedDataIsAnimatable,
@@ -46,7 +45,8 @@ import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
 import { applyShapeStyle, getShapeFill } from '../shapeUtil';
-import { datumStylerProperties } from '../util';
+import { datumStylerProperties, visibleRangeIndices } from '../util';
+import { type AreaSeriesDataAggregationFilter, aggregateAreaData } from './areaAggregation';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaSeriesNodeDataContext,
@@ -62,7 +62,6 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD,
 } from './cartesianSeries';
-import { type LineSeriesDataAggregationFilter, aggregateLineData } from './lineAggregation';
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
@@ -83,7 +82,20 @@ type AreaAnimationData = CartesianAnimationData<
     AreaSeriesNodeDataContext
 >;
 
-const memoizedAggregateLineData = simpleMemorize2(aggregateLineData);
+interface StackRange {
+    leading: number;
+    trailing: number;
+    dataValid: boolean;
+    breakBefore: boolean;
+}
+
+interface AreaSeriesStackContext {
+    stack: StackRange[];
+    fillSpans: LinePathSpan[];
+    strokeSpans: LinePathSpan[];
+}
+
+const memoizedAggregateAreaData = simpleMemorize2(aggregateAreaData);
 
 export class AreaSeries extends CartesianSeries<
     Marker,
@@ -91,7 +103,8 @@ export class AreaSeries extends CartesianSeries<
     AreaSeriesProperties,
     MarkerSelectionDatum,
     LabelSelectionDatum,
-    AreaSeriesNodeDataContext
+    AreaSeriesNodeDataContext,
+    AreaSeriesStackContext
 > {
     static readonly className = 'AreaSeries';
     static readonly type = 'area' as const;
@@ -100,7 +113,7 @@ export class AreaSeries extends CartesianSeries<
 
     override connectsToYAxis = true;
 
-    private dataAggregationFilters: LineSeriesDataAggregationFilter[] | undefined = undefined;
+    private dataAggregationFilters: AreaSeriesDataAggregationFilter[] | undefined = undefined;
 
     readonly backgroundGroup = new Group({
         name: `${this.id}-background`,
@@ -208,8 +221,6 @@ export class AreaSeries extends CartesianSeries<
 
         const idMap = {
             value: `area-stack-${groupIndex}-yValue`,
-            values: `area-stack-${groupIndex}-yValues`,
-            stack: `area-stack-${groupIndex}-yValue-stack`,
             marker: `area-stack-${groupIndex}-yValues-marker`,
         };
 
@@ -225,19 +236,11 @@ export class AreaSeries extends CartesianSeries<
             keyProperty(xKey, xScaleType, { id: 'xValue' }),
             valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
             ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })] : []),
-            ...groupStackValueProperty(yKey, yScaleType, { id: `yValueStack`, ...common, groupId: idMap.stack }),
             valueProperty(yKey, yScaleType, { id: `yValue`, ...common, groupId: idMap.value }),
         ];
 
         if (stacked) {
             props.push(
-                ...groupAccumulativeValueProperty(
-                    yKey,
-                    'window',
-                    'current',
-                    { id: `yValueEnd`, ...common, groupId: idMap.values },
-                    yScaleType
-                ),
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'normal',
@@ -341,18 +344,337 @@ export class AreaSeries extends CartesianSeries<
     }
 
     private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>) {
-        if (processedData.type === 'grouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
         const { scale } = xAxis;
-        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
-        const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
+        const domain = dataModel.getDomain(this, `xValue`, 'key', processedData);
 
-        return memoizedAggregateLineData(scale.type, xValues, yValues, domain);
+        return memoizedAggregateAreaData(scale.type, xValues, yValues, domain);
+    }
+
+    private fillSpans: LinePathSpan[] = [];
+    private phantomSpans: LinePathSpan[] = [];
+    private strokeSpans: LinePathSpan[] = [];
+
+    private stackAggregatedData(aggregation: AreaSeriesDataAggregationFilter): AreaSeriesStackContext | undefined {
+        const { indices, metaIndices } = aggregation;
+        const { visible, axes, dataModel, processedData, seriesBelowStackContext } = this;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!visible) {
+            // The aggregation won't have valid indices, so we can't work out these spans
+            // But setting these spans is only useful for animation - which is disabled anyway
+            this.phantomSpans = [];
+            this.fillSpans = [];
+            this.strokeSpans = [];
+            return seriesBelowStackContext;
+        }
+
+        if (xAxis == null || yAxis == null || dataModel == null || processedData == null) return;
+
+        const { scale: xScale } = xAxis;
+        const { scale: yScale } = yAxis;
+
+        const xOffset = (xScale.bandwidth ?? 0) / 2;
+
+        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
+        const yValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
+
+        let [m0, m1] = visibleRangeIndices(1, metaIndices.length - 1, xAxis.range, (metaIndex) => {
+            const startIndex = metaIndices[metaIndex];
+            const endIndex = metaIndices[metaIndex + 1];
+
+            const startDatumIndex = indices[startIndex];
+            const endDatumIndex = indices[endIndex];
+
+            const xValue0 = xValues[startDatumIndex];
+            const xValue1 = xValues[endDatumIndex];
+
+            const { 0: x0 } = this.xCoordinateRange(xValue0, 0);
+            const { 1: x1 } = this.xCoordinateRange(xValue1, 0);
+
+            return [x0, x1];
+        });
+        m0 = Math.max(m0 - 1, 0);
+        m1 = Math.min(m1 + 1, metaIndices.length - 1);
+
+        let phantomSpans: LinePathSpan[] = [];
+        if (seriesBelowStackContext?.fillSpans) {
+            phantomSpans = seriesBelowStackContext?.fillSpans;
+        } else {
+            for (let metaIndex = m0; metaIndex < m1; metaIndex += 1) {
+                const startIndex = metaIndices[metaIndex];
+                const endIndex = metaIndices[metaIndex + 1];
+
+                const startDatumIndex = indices[startIndex];
+                const endDatumIndex = indices[endIndex];
+
+                const xValue0 = xValues[startDatumIndex];
+                const xValue1 = xValues[endDatumIndex];
+
+                const span: LinePathSpan['span'] = {
+                    type: 'linear',
+                    moveTo: false,
+                    x0: xScale.convert(xValue0) + xOffset,
+                    y0: yScale.convert(0),
+                    x1: xScale.convert(xValue1) + xOffset,
+                    y1: yScale.convert(0),
+                };
+
+                phantomSpans.push({
+                    span,
+                    xValue0,
+                    xValue1,
+                    yValue0: 0,
+                    yValue1: 0,
+                });
+            }
+        }
+        this.phantomSpans = phantomSpans;
+
+        const fillSpans: LinePathSpan[] = [];
+        const strokeSpans: LinePathSpan[] = [];
+        for (let metaIndex = m0; metaIndex < m1; metaIndex += 1) {
+            const startIndex = metaIndices[metaIndex];
+            const endIndex = metaIndices[metaIndex + 1];
+
+            const startDatumIndex = indices[startIndex];
+            const endDatumIndex = indices[endIndex];
+
+            const xValue0 = xValues[startDatumIndex];
+            const xValue1 = xValues[endDatumIndex];
+            const yValue0 = yValues[startDatumIndex];
+            const yValue1 = yValues[endDatumIndex];
+
+            const midPoints: Point[] = [];
+            for (let i = startIndex + 1; i < endIndex; i++) {
+                const datumIndex = indices[i];
+                midPoints.push({
+                    x: xScale.convert(xValues[datumIndex]) + xOffset,
+                    y: yScale.convert(yValues[datumIndex]),
+                });
+            }
+
+            const span: LinePathSpan['span'] = {
+                type: 'multi-line',
+                moveTo: false,
+                x0: xScale.convert(xValue0) + xOffset,
+                y0: yScale.convert(yValue0),
+                x1: xScale.convert(xValue1) + xOffset,
+                y1: yScale.convert(yValue1),
+                midPoints,
+            };
+            const spanDatum: LinePathSpan = {
+                span,
+                xValue0,
+                xValue1,
+                yValue0,
+                yValue1,
+            };
+
+            fillSpans.push(spanDatum);
+            strokeSpans.push(spanDatum);
+        }
+
+        this.fillSpans = fillSpans;
+        this.strokeSpans = strokeSpans;
+
+        return {
+            stack: [],
+            fillSpans,
+            strokeSpans,
+        };
+    }
+
+    private stackYValueData(): AreaSeriesStackContext | undefined {
+        const { visible, axes, dataModel, processedData, seriesBelowStackContext, properties } = this;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (xAxis == null || yAxis == null || dataModel == null || processedData == null) return;
+        const { interpolation } = properties;
+        const { scale: xScale } = xAxis;
+        const { scale: yScale } = yAxis;
+
+        const xOffset = (xScale.bandwidth ?? 0) / 2;
+
+        let xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
+        let yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
+
+        const connectMissingData = !this.isStacked() && this.properties.connectMissingData;
+
+        const invalidKeys = processedData.invalidKeys?.get(this.id);
+        const invalidData = connectMissingData ? processedData.invalidData?.get(this.id) : undefined;
+
+        const indexFilter = invalidData ?? invalidKeys;
+        if (indexFilter != null) {
+            xValues = xValues.filter((_, datumIndex) => indexFilter[datumIndex] === false);
+            yValues = yValues.filter((_, datumIndex) => indexFilter[datumIndex] === false);
+        }
+
+        let [startIndex, endIndex] = visibleRangeIndices(1, xValues.length, xAxis.range, (datumIndex) =>
+            this.xCoordinateRange(xValues[datumIndex], 0)
+        );
+        startIndex = Math.max(startIndex - 1, 0);
+        endIndex = Math.min(endIndex + 1, xValues.length);
+
+        let phantomSpans: LinePathSpan[];
+        if (seriesBelowStackContext?.fillSpans) {
+            phantomSpans = seriesBelowStackContext?.fillSpans;
+        } else {
+            const phantomSpanPoints: LineSpanPointDatum[] = [];
+            for (let datumIndex = startIndex; datumIndex < endIndex; datumIndex += 1) {
+                const xDatum = xValues[datumIndex];
+                phantomSpanPoints.push({
+                    point: {
+                        x: xScale.convert(xDatum) + xOffset,
+                        y: yScale.convert(0),
+                    },
+                    xDatum,
+                    yDatum: 0,
+                });
+            }
+
+            phantomSpans = interpolatePoints(phantomSpanPoints, { type: 'linear' } as any);
+        }
+        this.phantomSpans = phantomSpans;
+
+        if (!visible) {
+            this.fillSpans = phantomSpans;
+            this.strokeSpans = [];
+            return seriesBelowStackContext;
+        }
+
+        let bottomStack = seriesBelowStackContext?.stack;
+        if (bottomStack == null) {
+            bottomStack = [];
+            for (let datumIndex = startIndex; datumIndex < endIndex - 1; datumIndex += 1) {
+                bottomStack.push({ leading: 0, trailing: 0, dataValid: true, breakBefore: false });
+            }
+        }
+
+        const topStack = bottomStack.slice();
+        let trackingValidData = false;
+        for (let stackIndex = 0; stackIndex < topStack.length; stackIndex += 1) {
+            const leadingIndex = startIndex + stackIndex;
+            const trailingIndex = startIndex + stackIndex + 1;
+
+            let { leading, trailing, breakBefore } = bottomStack[stackIndex];
+
+            const leadingValue = yValues[leadingIndex];
+            const trailingValue = yValues[trailingIndex];
+            const missingLeading = !Number.isFinite(leadingValue);
+            const missingTrailing = !Number.isFinite(trailingValue);
+            const dataValid = !missingLeading && !missingTrailing;
+
+            if (dataValid) {
+                leading += leadingValue;
+                trailing += trailingValue;
+            }
+
+            if (stackIndex !== 0 && dataValid !== trackingValidData) {
+                breakBefore = true;
+            }
+
+            trackingValidData = dataValid;
+
+            topStack[stackIndex] = { leading, trailing, dataValid, breakBefore };
+        }
+
+        const fillSpans: LinePathSpan[] = [];
+        const strokeSpans: LinePathSpan[] = [];
+        const topSpanPoints: LineSpanPointDatum[] = [];
+        for (let stackIndex = 0; stackIndex < topStack.length; stackIndex += 1) {
+            const { leading, dataValid, breakBefore } = topStack[stackIndex];
+            const leadingIndex = startIndex + stackIndex;
+
+            if (breakBefore) {
+                if (topSpanPoints.length !== 0) {
+                    const previousStack = topStack[stackIndex - 1];
+                    const previousPoint: LineSpanPointDatum = {
+                        point: {
+                            x: xScale.convert(xValues[leadingIndex]) + xOffset,
+                            y: yScale.convert(previousStack.trailing),
+                        },
+                        xDatum: xValues[leadingIndex],
+                        yDatum: previousStack.trailing,
+                    };
+                    topSpanPoints.push(previousPoint);
+
+                    const spans = interpolatePoints(topSpanPoints, interpolation);
+                    fillSpans.push(...spans);
+                    strokeSpans.push(...spans);
+                }
+
+                topSpanPoints.length = 0;
+            }
+
+            if (dataValid) {
+                const leadingPoint: LineSpanPointDatum = {
+                    point: {
+                        x: xScale.convert(xValues[leadingIndex]) + xOffset,
+                        y: yScale.convert(leading),
+                    },
+                    xDatum: xValues[leadingIndex],
+                    yDatum: leading,
+                };
+                topSpanPoints.push(leadingPoint);
+            } else {
+                fillSpans.push(phantomSpans[stackIndex]);
+            }
+        }
+
+        if (topSpanPoints.length !== 0) {
+            const previousStack = topStack[topStack.length - 1];
+            const trailingIndex = startIndex + topStack.length;
+            const trailingPoint: LineSpanPointDatum = {
+                point: {
+                    x: xScale.convert(xValues[trailingIndex]) + xOffset,
+                    y: yScale.convert(previousStack.trailing),
+                },
+                xDatum: xValues[trailingIndex],
+                yDatum: previousStack.trailing,
+            };
+            topSpanPoints.push(trailingPoint);
+
+            const spans = interpolatePoints(topSpanPoints, interpolation);
+            fillSpans.push(...spans);
+            strokeSpans.push(...spans);
+
+            topSpanPoints.length = 0;
+        }
+
+        this.fillSpans = fillSpans;
+        this.strokeSpans = strokeSpans;
+
+        return {
+            stack: topStack,
+            fillSpans,
+            strokeSpans,
+        };
+    }
+
+    override createStackContext(): AreaSeriesStackContext | undefined {
+        const xAxis = this.axes[ChartAxisDirection.X];
+        if (xAxis == null) return;
+
+        const { scale: xScale } = xAxis;
+
+        const [r0, r1] = xScale.range;
+        const range = Math.abs(r1 - r0);
+        const dataAggregationFilter = this.dataAggregationFilters?.find((f) => f.maxRange > range);
+
+        if (dataAggregationFilter) {
+            return this.stackAggregatedData(dataAggregationFilter);
+        } else {
+            return this.stackYValueData();
+        }
     }
 
     override createNodeData() {
@@ -373,8 +695,6 @@ export class AreaSeries extends CartesianSeries<
             label,
             fill: seriesFill,
             stroke: seriesStroke,
-            connectMissingData,
-            interpolation,
         } = this.properties;
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
@@ -393,10 +713,6 @@ export class AreaSeries extends CartesianSeries<
             : yRawValues;
         const yFilterValues =
             yFilterKey != null ? dataModel.resolveColumnById(this, 'yFilterRaw', processedData) : undefined;
-        const yStackValues =
-            processedData.type === 'grouped'
-                ? dataModel.resolveColumnById<number[]>(this, 'yValueStack', processedData)
-                : undefined;
 
         const labelData: LabelSelectionDatum[] = [];
         const markerData: MarkerSelectionDatum[] = [];
@@ -466,7 +782,7 @@ export class AreaSeries extends CartesianSeries<
                     datum: seriesDatum,
                     datumIndex,
                     midPoint: { x: point.x, y: point.y },
-                    cumulativeValue: yValueCumulative,
+                    cumulativeValue: +yValueCumulative,
                     yValue: yDatum,
                     xValue: xDatum,
                     yKey,
@@ -503,196 +819,16 @@ export class AreaSeries extends CartesianSeries<
             }
         };
 
-        if (processedData.type === 'grouped') {
-            for (const { datumIndex } of dataModel.forEachGroupDatum(this, processedData)) {
-                handleDatum(datumIndex);
-            }
-        } else {
-            for (let i = startIndex; i < endIndex; i += 1) {
-                const datumIndex = indices?.[i] ?? i;
-                if (xValues[datumIndex] == null) continue;
-                handleDatum(datumIndex);
-            }
+        for (let i = startIndex; i < endIndex; i += 1) {
+            const datumIndex = indices?.[i] ?? i;
+            if (xValues[datumIndex] == null) continue;
+            handleDatum(datumIndex);
         }
-
-        const spansForPoints = (points: Array<LineSpanPointDatum[] | { skip: number }>): Array<LinePathSpan | null> => {
-            return points.flatMap((p): Array<LinePathSpan | null> => {
-                return Array.isArray(p) ? interpolatePoints(p, interpolation) : new Array(p.skip).fill(null);
-            });
-        };
-
-        const createPoint = (xDatum: any, yDatum: any): LineSpanPointDatum => ({
-            point: {
-                x: xScale.convert(xDatum) + xOffset,
-                y: yScale.convert(yDatum),
-            },
-            xDatum,
-            yDatum,
-        });
-
-        const getSeriesSpans = (index: number) => {
-            const points: Array<LineSpanPointDatum[] | { skip: number }> = [];
-
-            const handleSeriesPoint = (pIdx: number | undefined, datumIndex: number, nIdx: number | undefined) => {
-                const xDatum = xValues[datumIndex];
-                const yDatum = yStackValues != null ? yStackValues?.[datumIndex][index] : yRawValues[datumIndex];
-
-                if (connectMissingData && !Number.isFinite(yRawValues[datumIndex])) return;
-
-                const yDatumIsFinite = Number.isFinite(yDatum);
-
-                let yValueEndBackwards = 0;
-                let yBackwardsFinite = true;
-                let yValueEndForwards = 0;
-                let yForwardsFinite = true;
-                if (yStackValues == null) {
-                    yBackwardsFinite = pIdx == null || Number.isFinite(yRawValues[pIdx]);
-                    yForwardsFinite = nIdx == null || Number.isFinite(yRawValues[nIdx]);
-
-                    yValueEndBackwards = pIdx != null && Number.isFinite(yRawValues[pIdx]) ? yDatum : 0;
-                    yValueEndForwards = nIdx != null && Number.isFinite(yRawValues[nIdx]) ? yDatum : 0;
-                } else {
-                    const yValueStack = yStackValues[datumIndex];
-                    const lastYValueStack = pIdx != null ? yStackValues[pIdx] : undefined;
-                    const nextYValueStack = nIdx != null ? yStackValues[nIdx] : undefined;
-
-                    for (let j = 0; j <= index; j += 1) {
-                        const value = yValueStack[j];
-
-                        if (Number.isFinite(value)) {
-                            const lastWasFinite = lastYValueStack == null || Number.isFinite(lastYValueStack[j]);
-                            const nextWasFinite = nextYValueStack == null || Number.isFinite(nextYValueStack[j]);
-
-                            if (lastWasFinite) {
-                                yValueEndBackwards += value;
-                            } else {
-                                yBackwardsFinite = false;
-                            }
-                            if (nextWasFinite) {
-                                yValueEndForwards += value;
-                            } else {
-                                yForwardsFinite = false;
-                            }
-                        }
-                    }
-                }
-
-                const currentPoints: LineSpanPointDatum[] | { skip: number } | undefined = points[points.length - 1];
-                if (
-                    !connectMissingData &&
-                    (!yBackwardsFinite ||
-                        !yForwardsFinite ||
-                        !yDatumIsFinite ||
-                        yValueEndBackwards !== yValueEndForwards)
-                ) {
-                    if (!yDatumIsFinite && Array.isArray(currentPoints) && currentPoints.length === 1) {
-                        points[points.length - 1] = { skip: 1 };
-                    } else {
-                        const pointBackwards = createPoint(xDatum, yValueEndBackwards);
-                        const pointForwards = createPoint(xDatum, yValueEndForwards);
-
-                        if (Array.isArray(currentPoints)) {
-                            currentPoints.push(pointBackwards);
-                        } else if (currentPoints != null) {
-                            currentPoints.skip += 1;
-                        }
-                        points.push(yDatumIsFinite ? [pointForwards] : { skip: 0 });
-                    }
-                } else {
-                    const yValue = connectMissingData ? yDatum : Math.max(yValueEndBackwards, yValueEndForwards);
-                    const point = createPoint(xDatum, yValue);
-
-                    if (Array.isArray(currentPoints)) {
-                        currentPoints.push(point);
-                    } else if (currentPoints != null) {
-                        currentPoints.skip += 1;
-                        points.push([point]);
-                    } else {
-                        points.push([point]);
-                    }
-                }
-            };
-
-            if (processedData.type === 'grouped') {
-                for (const {
-                    datumIndexes: [pIdx, datumIndex, nIdx],
-                } of dataModel.forEachGroupDatumTuple(this, processedData)) {
-                    handleSeriesPoint(pIdx, datumIndex, nIdx);
-                }
-            } else {
-                // Track the previous, current, and next datum indices
-                // Excluding all datum indices where the xValue is nil
-                let pIdx: number | undefined;
-                let datumIndex: number | undefined;
-                for (let i = startIndex; i < endIndex; i += 1) {
-                    const nIdx = indices?.[i] ?? i;
-                    if (xValues[nIdx] == null) continue;
-
-                    if (datumIndex != null) {
-                        handleSeriesPoint(pIdx, datumIndex, nIdx);
-                    }
-
-                    pIdx = datumIndex;
-                    datumIndex = nIdx;
-                }
-
-                if (datumIndex != null) {
-                    handleSeriesPoint(pIdx, datumIndex, undefined);
-                }
-            }
-
-            return spansForPoints(points);
-        };
-
-        const stackIndex = this.seriesGrouping?.stackIndex ?? 0;
-
-        const getAxisSpans = () => {
-            const getPoint = (datumIndex: number) => {
-                const xDatum = xValues[datumIndex];
-                const yDatum = yStackValues?.[datumIndex][stackIndex] ?? yRawValues[datumIndex];
-
-                if (connectMissingData && !Number.isFinite(yDatum)) return;
-                return createPoint(xDatum, 0);
-            };
-
-            let yValueZeroPoints: Array<LineSpanPointDatum | undefined>;
-            if (processedData.type === 'grouped') {
-                yValueZeroPoints = Array.from(dataModel.forEachGroupDatum(this, processedData), ({ datumIndex }) => {
-                    return getPoint(datumIndex);
-                });
-            } else {
-                yValueZeroPoints = [];
-                for (let i = startIndex; i < endIndex; i += 1) {
-                    const datumIndex = indices?.[i] ?? i;
-                    if (xValues[datumIndex] == null) continue;
-                    yValueZeroPoints.push(getPoint(datumIndex));
-                }
-            }
-
-            yValueZeroPoints = yValueZeroPoints.filter((x): x is LineSpanPointDatum => x != null);
-
-            return interpolatePoints(yValueZeroPoints as LineSpanPointDatum[], interpolation);
-        };
-
-        const currentSeriesSpans = getSeriesSpans(stackIndex);
-
-        const phantomSpans = currentSeriesSpans.map((): LinePathSpan => null!);
-        for (let j = stackIndex - 1; j >= -1; j -= 1) {
-            let spans: Array<LinePathSpan | null> | undefined; // lazily init
-            for (let i = 0; i < phantomSpans.length; i += 1) {
-                if (phantomSpans[i] != null) continue;
-                spans ??= j !== -1 ? getSeriesSpans(j) : getAxisSpans();
-                phantomSpans[i] = spans[i]!;
-            }
-        }
-
-        const fillSpans = currentSeriesSpans.map((span, index) => span ?? phantomSpans[index]);
-        const strokeSpans = currentSeriesSpans.filter((span): span is LinePathSpan => span != null);
 
         const context: AreaSeriesNodeDataContext = {
             itemId: yKey,
-            fillData: { itemId: yKey, spans: fillSpans, phantomSpans },
-            strokeData: { itemId: yKey, spans: strokeSpans },
+            fillData: { itemId: yKey, spans: this.fillSpans, phantomSpans: this.phantomSpans },
+            strokeData: { itemId: yKey, spans: this.strokeSpans },
             labelData,
             nodeData: markerData,
             scales: this.calculateScaling(),

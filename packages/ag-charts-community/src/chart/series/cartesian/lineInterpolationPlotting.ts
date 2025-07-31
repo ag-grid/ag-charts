@@ -1,3 +1,5 @@
+import type { Point } from 'ag-charts-core';
+
 import type { ExtendedPath2D } from '../../../scene/extendedPath2D';
 import { solveBezier, splitBezier2D } from '../../../scene/util/bezier';
 import { type CubicSpan, type LinearSpan, type Span, SpanJoin, type StepSpan, spanRange } from './lineInterpolation';
@@ -81,8 +83,10 @@ function spanSupertype(span: Span, stepX: number): SpanSupertype {
         return linearSupertype(span, stepX);
     } else if (span.type === 'cubic') {
         return bezierSupertype(span, stepX);
-    } else {
+    } else if (span.type === 'step') {
         return stepSupertype(span);
+    } else {
+        return linearSupertype(span as any as LinearSpan, stepX);
     }
 }
 
@@ -109,6 +113,8 @@ function plotStart(
             } else {
                 path.lineTo(x0, y0);
             }
+            break;
+        case SpanJoin.Skip:
             break;
     }
 }
@@ -160,6 +166,29 @@ function plotStep(
     }
 }
 
+function plotMultiLine(
+    path: ExtendedPath2D,
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    midPoints: Point[],
+    reversed: boolean
+) {
+    if (reversed) {
+        for (let i = midPoints.length - 1; i >= 0; i--) {
+            const { x, y } = midPoints[i];
+            path.lineTo(x, y);
+        }
+        path.lineTo(x0, y0);
+    } else {
+        for (const { x, y } of midPoints) {
+            path.lineTo(x, y);
+        }
+        path.lineTo(x1, y1);
+    }
+}
+
 export function plotSpan(path: ExtendedPath2D, span: Span, moveTo: SpanJoin, reversed: boolean) {
     const [start, end] = spanRange(span);
 
@@ -185,6 +214,9 @@ export function plotSpan(path: ExtendedPath2D, span: Span, moveTo: SpanJoin, rev
             break;
         case 'step':
             plotStep(path, span.x0, span.y0, span.x1, span.y1, span.stepX, reversed);
+            break;
+        case 'multi-line':
+            plotMultiLine(path, span.x0, span.y0, span.x1, span.y1, span.midPoints, reversed);
             break;
     }
 }

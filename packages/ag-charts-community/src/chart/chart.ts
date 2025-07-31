@@ -1134,7 +1134,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     // BBox of the chart area containing animatable elements; if this changes, we skip animations.
     protected animationRect?: BBox;
 
-    private async updateSeries(seriesToUpdate: ISeries<unknown, unknown, unknown>[]) {
+    protected async updateSeries(seriesToUpdate: ISeries<unknown, unknown, unknown>[]) {
         const { seriesRect } = this;
 
         await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
