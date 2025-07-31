@@ -15,11 +15,26 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     protected transform?(x: number): number;
     protected transformInvert?(x: number): D;
 
+    private _domain: D[] = [];
+    set domain(value: D[]) {
+        for (const v of value) {
+            if (v == null) {
+                throw new Error('Domain cannot contain null values');
+            }
+        }
+        this._domain = value;
+    }
+
+    get domain() {
+        return this._domain;
+    }
+
     protected constructor(
-        public domain: D[] = [],
+        domain: D[] = [],
         public range: number[] = []
     ) {
         super();
+        this.domain = domain;
     }
 
     abstract override toDomain(value: number): D;
@@ -29,7 +44,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     }
 
     calcBandwidth(smallestInterval = 1, minWidth: 1 | 0 = 1) {
-        const { domain } = this;
+        const { _domain: domain } = this;
 
         const rangeDistance = this.getPixelRange();
         if (domain.length === 0) return rangeDistance;
@@ -50,7 +65,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     }
 
     convert(value: D | number, options?: { clamp?: boolean }) {
-        const { domain } = this;
+        const { _domain: domain } = this;
         if (!domain || domain.length < 2 || value == null) {
             return NaN;
         }
@@ -89,7 +104,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     }
 
     invert(x: number, _nearest?: boolean) {
-        const { domain } = this;
+        const { _domain: domain } = this;
         if (domain.length < 2) return;
 
         let d0: number = domain[0].valueOf();
