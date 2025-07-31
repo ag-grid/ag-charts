@@ -3,6 +3,9 @@ const path = require('path');
 
 const EXPECTED_FOLDER_CONTENTS = {
     'dist/packages': [
+        'ag-charts-types',
+        'ag-charts-website',
+        'ag-charts-angular.tgz',
         'ag-charts-angular.tgz',
         'ag-charts-community.tgz',
         'ag-charts-core.tgz',
