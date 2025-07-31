@@ -246,7 +246,8 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
 
     private updateFontSize(fontSize: number | undefined) {
         this.updateButtonByValue(AnnotationOptions.TextSize, {
-            label: fontSize != null ? String(fontSize) : undefined,
+            label: 'toolbarAnnotationsTextSize',
+            value: fontSize == null ? undefined : String(fontSize),
         });
     }
 

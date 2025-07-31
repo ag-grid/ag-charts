@@ -1,4 +1,4 @@
-import { setAttribute } from 'ag-charts-core';
+import { type ElementID, createElementId, setAttribute } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
@@ -8,12 +8,14 @@ import { ButtonWidget } from '../../widget/buttonWidget';
 export interface ToolbarButtonWidgetOptions {
     icon?: AgIconName;
     label?: string;
-    ariaLabel?: string;
+    value?: string;
     tooltip?: string;
 }
 
 export class ToolbarButtonWidget extends ButtonWidget {
     public section?: string;
+    private valueID?: ElementID;
+    private labelID?: ElementID;
 
     constructor(private readonly localeManager: LocaleManager) {
         super();
@@ -32,7 +34,16 @@ export class ToolbarButtonWidget extends ButtonWidget {
             innerHTML = `<span class="${getIconClassNames(options.icon)} ag-charts-toolbar__icon"></span>`;
         }
 
-        if (options.label != null) {
+        if (options.value != null && options.label != null) {
+            this.labelID ??= createElementId();
+            this.valueID ??= createElementId();
+            this.elem.setAttribute('aria-labelledby', `${this.labelID} ${this.valueID}`);
+
+            const label = localeManager.t(options.label);
+            const labelHTML = `<span id=${this.labelID} style="display: none">${label},</span>`;
+            const valueHTML = `<span id=${this.valueID} class="ag-charts-toolbar__label">${options.value}</span>`;
+            innerHTML = `${innerHTML}${labelHTML}${valueHTML}`;
+        } else if (options.label != null) {
             const label = localeManager.t(options.label);
             innerHTML = `${innerHTML}<span class="ag-charts-toolbar__label">${label}</span>`;
         }
