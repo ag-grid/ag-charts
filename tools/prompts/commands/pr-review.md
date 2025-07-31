@@ -81,6 +81,7 @@ For each PR, review and critique the following:
     -   Are there any performance regressions?
     -   Are there any other risks with the changes?
     -   Should we add more tests?
+-   For visual snapshot changes, ask the visual-qa agent to review the changes.
 -   For examples and documentation changes, check for any offensive language or politically charged language that could be offensive to some users.
 
 ## Report Structure

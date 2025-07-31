@@ -16,6 +16,7 @@ import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
+import { deepClone } from '../../../util/json';
 import { findMinMax } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import { createTicks, tickStep } from '../../../util/ticks';
@@ -38,7 +39,7 @@ import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
 import { type PickFocusInputs, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { applyShapeStyle, getShapeStyle } from '../shapeUtil';
+import { applyShapeStyle } from '../shapeUtil';
 import {
     collapsedStartingBarPosition,
     computeBarFocusBounds,
@@ -427,12 +428,7 @@ export class HistogramSeries extends CartesianSeries<
         const { properties } = this;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
-        return getShapeStyle(
-            mergeDefaults(highlightStyle, properties.getStyle()),
-            properties.fillGradientDefaults,
-            properties.fillPatternDefaults,
-            properties.fillImageDefaults
-        );
+        return mergeDefaults(highlightStyle, properties.getStyle());
     }
 
     protected override updateDatumNodes(opts: {
@@ -594,34 +590,18 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const {
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-        } = this.properties;
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.properties;
 
         return {
-            marker: getShapeStyle(
-                {
-                    fill: fill ?? 'rgba(0, 0, 0, 0)',
-                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                    fillOpacity: fillOpacity,
-                    strokeOpacity: strokeOpacity,
-                    strokeWidth,
-                    lineDash,
-                    lineDashOffset,
-                },
-                fillGradientDefaults,
-                fillPatternDefaults,
-                fillImageDefaults
-            ),
+            marker: {
+                fill: deepClone(fill) ?? 'rgba(0, 0, 0, 0)',
+                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity: fillOpacity,
+                strokeOpacity: strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+            },
         };
     }
 

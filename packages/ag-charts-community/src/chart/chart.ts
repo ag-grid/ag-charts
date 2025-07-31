@@ -319,6 +319,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
             syncManager: new SyncManager(this),
             fireEvent: (event) => this.fireEvent(event),
+            resolvePartialCallback: (path, partialOptions) => {
+                if (!this.chartOptions.optionsGraph) {
+                    Logger.errorOnce('Can not resolve partial options without OptionsGraph.');
+                }
+                return this.chartOptions.optionsGraph?.resolvePartial(path, partialOptions);
+            },
             updateCallback: (type, opts) => this.update(type, opts),
             updateMutex: this.updateMutex,
         }));
@@ -1134,7 +1140,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     // BBox of the chart area containing animatable elements; if this changes, we skip animations.
     protected animationRect?: BBox;
 
-    private async updateSeries(seriesToUpdate: ISeries<unknown, unknown, unknown>[]) {
+    protected async updateSeries(seriesToUpdate: ISeries<unknown, unknown, unknown>[]) {
         const { seriesRect } = this;
 
         await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));

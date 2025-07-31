@@ -3,15 +3,26 @@ import { type AgCandlestickSeriesItemOptions, type WithThemeParams, _ModuleSuppo
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
     multiSeriesHighlightStyle,
+    FILL_GRADIENT_LINEAR_SHADED_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
 } = _ModuleSupport;
 
 function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemOptions> {
     return {
         fill: {
-            $if: [
-                { $eq: [{ $palette: 'type' }, 'user-indexed'] },
-                key === 'up' ? 'transparent' : { $palette: 'fill' },
-                { $palette: `${key}.fill` },
+            $applySwitch: [
+                { $path: 'type' },
+                {
+                    $if: [
+                        { $eq: [{ $palette: 'type' }, 'user-indexed'] },
+                        key === 'up' ? 'transparent' : { $palette: 'fill' },
+                        { $palette: `${key}.fill` },
+                    ],
+                },
+                ['gradient', FILL_GRADIENT_LINEAR_SHADED_DEFAULTS(key)],
+                ['image', FILL_IMAGE_DEFAULTS],
+                ['pattern', FILL_PATTERN_DEFAULTS],
             ],
         },
         stroke: {
@@ -21,10 +32,6 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
                 { $palette: `${key}.stroke` },
             ],
         },
-        // @ts-expect-error undocumented-option
-        fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_SHADED_DEFAULTS(key),
-        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-        fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
     };
 }
 

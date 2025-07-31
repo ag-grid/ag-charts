@@ -41,6 +41,7 @@ import { Transformable } from '../../scene/transformable';
 import { isImageFill, isPatternFill } from '../../scene/util/fill';
 import { Border } from '../../util/border';
 import { callWithContext } from '../../util/callbackCache';
+import { deepClone } from '../../util/json';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties, Property } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
@@ -561,7 +562,8 @@ export class Legend extends BaseProperties {
         if (marker.visible) {
             marker.shape = itemMarker.shape ?? symbol.marker.shape ?? 'square';
             marker.size = itemMarker.size;
-            applyShapeStyle(marker, this.getMarkerStyles(symbol));
+            // Clone the marker symbol styles to prevent mutations affecting the series.
+            applyShapeStyle(marker, this.getMarkerStyles(deepClone(symbol)));
         }
 
         line.visible = anyLineEnabled;

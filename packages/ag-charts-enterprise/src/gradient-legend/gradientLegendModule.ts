@@ -1,4 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { GradientLegend } from './gradientLegend';
 
@@ -33,6 +33,15 @@ export const GradientLegendModule: _ModuleSupport.LegendModule = {
             thickness: 16,
         },
         reverseOrder: false,
+        fill: {
+            $applySwitch: [
+                { $path: 'type' },
+                { $ref: 'chartBackgroundColour' },
+                ['gradient', _ModuleSupport.FILL_GRADIENT_BLANK_DEFAULTS],
+                ['pattern', _ModuleSupport.FILL_PATTERN_BLANK_DEFAULTS],
+                ['image', _ModuleSupport.FILL_IMAGE_BLANK_DEFAULTS],
+            ],
+        },
     },
 
     removable: 'standalone-only',

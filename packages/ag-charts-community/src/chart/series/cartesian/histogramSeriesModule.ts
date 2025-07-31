@@ -35,12 +35,16 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
     ],
     themeTemplate: {
         series: {
-            fill: { $palette: 'fill' },
+            fill: {
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $palette: 'fill' },
+                    ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                    ['image', FILL_IMAGE_DEFAULTS],
+                    ['pattern', FILL_PATTERN_DEFAULTS],
+                ],
+            },
             stroke: { $palette: 'stroke' },
-            // @ts-expect-error undocumented option
-            fillGradientDefaults: FILL_GRADIENT_LINEAR_DEFAULTS,
-            fillPatternDefaults: FILL_PATTERN_DEFAULTS,
-            fillImageDefaults: FILL_IMAGE_DEFAULTS,
             strokeWidth: 1,
             fillOpacity: 1,
             strokeOpacity: 1,

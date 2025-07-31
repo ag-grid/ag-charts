@@ -13,11 +13,6 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type {
-    RequiredInternalAgGradientColor,
-    RequiredInternalAgImageFill,
-    RequiredInternalAgPatternColor,
-} from 'ag-charts-core';
 
 const { BaseProperties, Property, AbstractBarSeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 
@@ -49,16 +44,7 @@ class OhlcSeriesItems extends BaseProperties {
 export abstract class OhlcSeriesBaseProperties<
     T extends AgOhlcSeriesBaseOptions,
 > extends AbstractBarSeriesProperties<T> {
-    abstract item: Record<
-        'up' | 'down',
-        FillOptions &
-            StrokeOptions &
-            LineDashOptions & {
-                fillGradientDefaults?: RequiredInternalAgGradientColor;
-                fillPatternDefaults?: RequiredInternalAgPatternColor;
-                fillImageDefaults?: RequiredInternalAgImageFill;
-            }
-    >;
+    abstract item: Record<'up' | 'down', FillOptions & StrokeOptions & LineDashOptions>;
 
     @Property
     xKey!: string;

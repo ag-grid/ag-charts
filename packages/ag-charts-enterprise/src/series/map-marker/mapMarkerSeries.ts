@@ -29,7 +29,6 @@ const {
     Text,
     Marker,
     applyShapeStyle,
-    getShapeStyle,
     getLabelStyles,
     LonLatBBox,
     mergeDefaults,
@@ -596,7 +595,7 @@ export class MapMarkerSeries
         isHighlight: boolean
     ): Required<AgMapMarkerSeriesStyle> {
         const { id: seriesId, properties, colorScale, sizeScale } = this;
-        const { colorRange, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
+        const { colorRange, itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
@@ -611,7 +610,7 @@ export class MapMarkerSeries
             baseStyle.size = sizeScale.convert(sizeValue, { clamp: true });
         }
 
-        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+        let style = baseStyle;
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -631,12 +630,7 @@ export class MapMarkerSeries
             );
 
             if (overrides) {
-                style = getShapeStyle(
-                    mergeDefaults(overrides, baseStyle),
-                    fillGradientDefaults,
-                    fillPatternDefaults,
-                    fillImageDefaults
-                );
+                style = mergeDefaults(overrides, baseStyle);
             }
         }
         return style;
@@ -734,21 +728,16 @@ export class MapMarkerSeries
         }
 
         return {
-            marker: getShapeStyle(
-                {
-                    shape,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                },
-                this.properties.fillGradientDefaults,
-                this.properties.fillPatternDefaults,
-                this.properties.fillImageDefaults
-            ),
+            marker: {
+                shape,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+            },
         };
     }
 

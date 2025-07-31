@@ -8,8 +8,8 @@ if ! command -v claude >/dev/null 2>&1; then
     exit 0
 fi
 
-# Create .claude/commands/ directory if it doesn't exist
-mkdir -p .claude/commands/
+# Create .claude/{commands,agents}/ directory if it doesn't exist
+mkdir -p .claude/{commands,agents}/
 
 # Symlink CLAUDE.md to root
 if [ -f "tools/prompts/CLAUDE.md" ]; then
@@ -42,12 +42,6 @@ add_mcp fetch npx -y @kazuph/mcp-fetch
 add_mcp sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking
 add_mcp context7 npx -y @upstash/context7-mcp
 add_mcp puppeteer npx -y @modelcontextprotocol/server-puppeteer
-
-if [ -n "${GITHUB_PERSONAL_ACCESS_TOKEN}" ]; then
-    add_mcp mcp-github docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN=${GITHUB_PERSONAL_ACCESS_TOKEN} ghcr.io/github/github-mcp-server
-else
-    echo "GITHUB_PERSONAL_ACCESS_TOKEN is not set, skipping mcp-github"
-fi
 
 if command -v docker >/dev/null 2>&1; then
     if [ -n "${JIRA_URL}" ] && [ -n "${JIRA_USERNAME}" ] && [ -n "${JIRA_API_TOKEN}" ]; then

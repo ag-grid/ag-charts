@@ -18,7 +18,15 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
         series: {
             shape: 'circle',
             maxSize: 30,
-            fill: { $mapPalette: 'fill' },
+            fill: applyMapPalette({
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $mapPalette: 'fill' },
+                    ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                    ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                ],
+            }),
             stroke: { $mapPalette: 'stroke' },
             colorRange: {
                 $if: [
@@ -27,10 +35,6 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
                     applyMapPalette(_ModuleSupport.SAFE_RANGE2_OPERATION),
                 ],
             },
-            // @ts-expect-error undocumented option
-            fillGradientDefaults: applyMapPalette(_ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
-            fillPatternDefaults: applyMapPalette(_ModuleSupport.FILL_PATTERN_DEFAULTS),
-            fillImageDefaults: applyMapPalette(_ModuleSupport.FILL_IMAGE_DEFAULTS),
             fillOpacity: 0.5,
             label: {
                 ..._ModuleSupport.LABEL_BOXING_DEFAULTS,

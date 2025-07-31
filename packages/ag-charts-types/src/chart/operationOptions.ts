@@ -94,7 +94,7 @@ type LogicOperation =
     | { $and: AnyLeaf[] } // Array of values that are truthy
     | { $eq: AnyLeaf[] } // Array of values that are truthy
     | { $not: AnyLeaf } // Target vertex that is truthy
-    | { $switch: AnyLeaf }; // Conditional value | Default value if no case matches | ...One to many cases of [match | match[], value if matched]
+    | { $switch: (AnyLeaf | object)[] }; // Conditional value | Default value if no case matches | ...One to many cases of [match | match[], value if matched]
 
 type NumericOperation =
     | { $even: Leaf<number> } // Number
@@ -103,8 +103,9 @@ type NumericOperation =
 
 type TransformOperation =
     | { $apply: Leaf<object> | [Leaf<object>, Leaf<object[]>] } // Object to merge with each item in the array | Default if no user options supplied
+    | { $applySwitch: any[] }
     | { $findFirstSiblingNotOperation: AnyLeaf } // Default value if no non-operation sibling found
-    | { $map: [AnyLeaf, AnyLeaf] } // Operation to apply to each item in the array | Target array
+    | { $map: [AnyLeaf | object, AnyLeaf] } // Operation to apply to each item in the array | Target array
     | { $merge: Leaf<object>[] } // Array of objects to merge
     | { $omit: [Leaf<string[]>, Leaf<object>] } // Array of keys to omit | Object from which to omit keys
     | { $size: AnyLeaf } // Target vertex

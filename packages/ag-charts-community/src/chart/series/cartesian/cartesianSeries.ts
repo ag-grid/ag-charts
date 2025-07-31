@@ -152,6 +152,7 @@ export abstract class CartesianSeries<
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum<number> = TDatum,
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
+    TStackContext = never,
 > extends DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
     private _contextNodeData?: TContext;
     get contextNodeData() {
@@ -177,6 +178,8 @@ export abstract class CartesianSeries<
     private highlightSelection = Selection.select(this.highlightGroup, () => this.nodeFactory());
 
     public annotationSelections: Set<Selection<NodeWithOpacity, TDatum>> = new Set();
+
+    public seriesBelowStackContext: TStackContext | undefined = undefined;
 
     private readonly opts: CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>;
     private readonly debug = Debug.create();
@@ -383,6 +386,11 @@ export abstract class CartesianSeries<
             this.animationState.transition('resize', animationData);
         }
         this.animationState.transition('update', animationData);
+    }
+
+    public createStackContext(): TStackContext | undefined {
+        // Override point for subclasses to create a stack context.
+        return undefined;
     }
 
     protected updateSelections() {

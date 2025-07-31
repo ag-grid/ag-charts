@@ -28,6 +28,7 @@ import {
     PATH_EDGE,
     RESOLVED_TO_BRANCH,
     USER_OPTIONS_EDGE,
+    USER_PARTIAL_OPTIONS_EDGE,
     getPathSafe,
     hasPathSafe,
     setPathSafe,
@@ -50,8 +51,10 @@ export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject) {
  * be resolved down into an object.
  */
 export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements OptionsGraphInterface {
-    // The priority order in which to resolve options values.
+    // The default priority order in which to resolve options values.
     private static readonly EDGE_PRIORITY = [USER_OPTIONS_EDGE, OVERRIDES_EDGE, DEFAULTS_EDGE];
+
+    private static readonly GRAFT_EDGE = DEFAULTS_EDGE;
 
     // These keys must be stored as shallow objects in the graph and not manipulated.
     private static readonly SHALLOW_KEYS = new Set(['context', 'data', 'topology']);
@@ -71,7 +74,16 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         'volumeKey',
     ];
 
+    // If any of these keys are present in the resolved object then calling `clearSafe()` will not clear the graph.
+    private static readonly UNSAFE_CLEAR_KEYS = new Set(['itemStyler']);
+
     public readonly palette: PlainObject;
+
+    // The current priority order in which to resolve options values.
+    private edgePriority = [...OptionsGraph.EDGE_PRIORITY];
+
+    // The edge value to use when grafting new branches onto the graph from operations.
+    private graftEdge = OptionsGraph.GRAFT_EDGE;
 
     // The initial vertices for different branches of the graph that are resolved separately.
     private readonly root: Vertex<unknown>;
@@ -89,12 +101,14 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
     private readonly cachedPathVertices: Map<string, Vertex<unknown>> = new Map();
 
+    private hasUnsafeClearKeys = false;
+
     constructor(
         private readonly config: PlainObject = {},
         private readonly userOptions: PlainObject = {},
         params: PlainObject | undefined = undefined,
         palette: PlainObject | undefined = undefined,
-        private readonly overrides: PlainObject = {},
+        private readonly overrides: PlainObject | undefined = undefined,
         private readonly internalParams: Map<unknown, unknown> = new Map()
     ) {
         super(PATH_EDGE, OPERATION_EDGE);
@@ -102,10 +116,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.root = this.addVertex('root');
         this.params = this.addVertex('params');
         this.annotations = this.addVertex('annotations');
-
-        this.config = config;
-        this.overrides = overrides;
-        this.internalParams = internalParams;
 
         // TODO: Remove `deepClone()` which is just used to workaround the freezing.
         this.palette = palette ? deepClone(palette) : {};
@@ -204,6 +214,11 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.cachedPathVertices.clear();
     }
 
+    clearSafe() {
+        if (this.hasUnsafeClearKeys) return;
+        this.clear();
+    }
+
     resolve() {
         this.resolved = {};
         this.resolvedParams = {};
@@ -225,6 +240,52 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         return this.resolvedAnnotations;
     }
 
+    /**
+     * Resolve partial options against the existing graph at a given path without overriding the existing user values.
+     */
+    resolvePartial(path: Array<string>, partialOptions?: PlainObject) {
+        if (!partialOptions) return;
+
+        const partialKeys = Object.keys(partialOptions);
+        if (partialKeys.length === 0) return {};
+
+        const userPartialOptions = {};
+        setPathSafe(userPartialOptions, path, partialOptions);
+
+        const parentVertex = this.findVertexAtPath(path);
+        if (!parentVertex) {
+            throw new Error(`Could not find vertex in OptionsGraph at path [${path.join('.')}].`);
+        }
+        const pathArrayVertex = this.findNeighbour(parentVertex, PATH_ARRAY_EDGE);
+
+        // Temporarily use the 'userPartial' edge in-place of 'user' when building and resolving this partial graph.
+        this.graftEdge = USER_PARTIAL_OPTIONS_EDGE;
+        this.edgePriority = [USER_PARTIAL_OPTIONS_EDGE, USER_OPTIONS_EDGE, OVERRIDES_EDGE, DEFAULTS_EDGE];
+
+        this.buildGraphFromObject(parentVertex, USER_PARTIAL_OPTIONS_EDGE, partialOptions, pathArrayVertex);
+
+        // Refresh all the pending processing edges within the given partial options.
+        for (const key of Object.keys(partialOptions)) {
+            const childVertex = this.findNeighbourWithValue(parentVertex, key, PATH_EDGE);
+            if (childVertex) {
+                this.refreshPendingProcessingEdges(childVertex);
+            }
+        }
+
+        this.buildDependencyGraph();
+
+        const resolved = {};
+        this.resolveVertex(parentVertex, resolved);
+
+        this.clearGraphEdge(parentVertex, USER_PARTIAL_OPTIONS_EDGE);
+
+        this.graftEdge = OptionsGraph.GRAFT_EDGE;
+        this.edgePriority = [...OptionsGraph.EDGE_PRIORITY];
+
+        // Only pick the keys that have been requested to prevent overwriting other values with the graph.
+        return pick(getPathSafe(resolved, path) as PlainObject, partialKeys);
+    }
+
     findVertexAtPath(path: Array<string>) {
         const key = path.join('.');
         if (this.cachedPathVertices.has(key)) {
@@ -241,6 +302,8 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     }
 
     hasThemeOverride(path: Array<string>) {
+        if (this.overrides == null) return false;
+
         if (path[0] === 'axes' && path.length > 1) {
             const axisType = this.getResolvedPath(['axes', path[1], 'type']) as string;
             if (hasPathSafe(this.overrides, ['common', 'axes', axisType, ...path.slice(2)])) {
@@ -307,12 +370,19 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         return this.resolveValueOrSymbol(value);
     }
 
-    // Resolve the value currently referenced by `$1`
+    /**
+     * Resolve the value currently referenced by `$1` by the nearest self-or-ancestor that has a defined value.
+     */
     resolveValue$1(pathArray: Array<string>) {
-        return getPathSafe(this.value$1, pathArray);
+        for (let i = pathArray.length; i >= 0; i--) {
+            const resolvedValue = getPathSafe(this.value$1, pathArray.slice(0, i));
+            if (resolvedValue != undefined) return resolvedValue;
+        }
     }
 
-    // Graft a branch of the theme config onto the target vertex.
+    /**
+     * Graft a branch of the theme config onto the target vertex.
+     */
     graftConfig(target: Vertex<unknown>, configPathArray: Array<string>, ignorePaths: Set<string>) {
         const targetConfigObject = getPathSafe(this.config, configPathArray);
         const targetPathArrayVertex = this.findNeighbour(target, PATH_ARRAY_EDGE);
@@ -357,10 +427,12 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.buildDependencyGraph();
     }
 
-    // Graft a given object onto the target vertex.
+    /**
+     * Graft a given object onto the target vertex.
+     */
     graftObject(target: Vertex<unknown>, object: PlainObject, overridesPathArrays?: Array<Array<string> | undefined>) {
         const pathArrayVertex = this.findNeighbour(target, PATH_ARRAY_EDGE);
-        this.buildGraphFromObject(target, DEFAULTS_EDGE, object, pathArrayVertex);
+        this.buildGraphFromObject(target, this.graftEdge, object, pathArrayVertex);
 
         if (this.overrides && overridesPathArrays) {
             for (const overridePathArray of overridesPathArrays) {
@@ -375,8 +447,10 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.buildDependencyGraph();
     }
 
-    // Graft a given operation and value onto `path` child of the target vertex.
-    graftValue(target: Vertex<unknown>, path: string, operation: unknown, value: unknown) {
+    /**
+     * Graft a given operation and value onto `path` child of the target vertex.
+     */
+    graftValue(target: Vertex<unknown>, path: string, ontoObject: unknown, value: unknown) {
         const pathArray = [...this.getPathArray(target), path];
 
         // Set the value referenced by `$1`
@@ -384,13 +458,13 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
         const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
 
-        // TODO: use the correct edgeValue?
-        this.buildGraphFromValue(target, pathVertex, DEFAULTS_EDGE, pathArray, operation);
-
+        this.buildGraphFromValue(target, pathVertex, this.graftEdge, pathArray, ontoObject);
         this.buildDependencyGraph();
     }
 
-    // Resolve a branch as if it were a child of the context vertex, but without attaching it to the resolved root.
+    /**
+     * Resolve a branch as if it were a child of the context vertex, but without attaching it to the resolved root.
+     */
     graftAndResolveOrphan(context: Vertex<unknown>, branch: Vertex<unknown>) {
         const orphan: PlainObject = {};
         const orphanVertex = this.addVertex(orphan);
@@ -523,6 +597,14 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         } else if (isObjectLike(value)) {
             this.buildGraphFromObject(pathVertex, edgeValue, value, pathArrayVertex, shallowPaths);
         } else {
+            const neighbour = this.findNeighbour(pathVertex, edgeValue);
+            // TODO: this check shouldn't be needed, the duplication is caused by the $applyTheme operation somehow.
+            // Some values can be duplicated for the same edge, e.g. positional axis overrides combined with
+            // non-positional axis overrides. These are legitimate duplications, but should probably be handled
+            // better than the current approach of last added has priority.
+            if (neighbour && this.getVertexValue(neighbour) === value) {
+                return;
+            }
             const valueVertex = this.addVertex(value);
             this.addEdge(pathVertex, valueVertex, edgeValue);
         }
@@ -582,6 +664,10 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         }
     }
 
+    /**
+     * Add dependency edges on operations that require other vertices to be resolved before the operation can be
+     * resolved. Then clear the list of pending edges.
+     */
     private buildDependencyGraph() {
         for (let i = 0; i < this.pendingProcessingEdgesFrom.length; i++) {
             const valueVertex = this.pendingProcessingEdgesFrom[i];
@@ -599,8 +685,62 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.pendingProcessingEdgesTo = [];
     }
 
+    /**
+     * Within the branch starting at the given vertex, reassign any value vertices and their operation key vertices to
+     * the pending processing edges. These can then be built with `this.buildDependencyGraph()`.
+     */
+    private refreshPendingProcessingEdges(vertex: Vertex<unknown>) {
+        const defaultValueVertex = this.findNeighbour(vertex, DEFAULTS_EDGE);
+        const valueVertex = defaultValueVertex ?? vertex;
+        const operationVertex = this.findNeighbour(valueVertex, OPERATION_EDGE);
+        if (operationVertex) {
+            this.pendingProcessingEdgesFrom.push(valueVertex);
+            this.pendingProcessingEdgesTo.push(operationVertex);
+            const neighbours = this.neighboursWithEdgeValue(valueVertex, OPERATION_VALUE_EDGE);
+            if (neighbours) {
+                for (const neighbour of neighbours) {
+                    this.refreshPendingProcessingEdges(neighbour);
+                }
+            }
+        }
+
+        const neighbours = this.neighboursWithEdgeValue(vertex, PATH_EDGE);
+        if (neighbours) {
+            for (const neighbour of neighbours) {
+                this.refreshPendingProcessingEdges(neighbour);
+            }
+        }
+    }
+
+    /**
+     * Remove all edges associated with this vertex and its descendents through paths and operations.
+     */
+    private clearGraphEdge(vertex: Vertex<unknown>, edgeValue: string) {
+        this.removeEdges(vertex, edgeValue);
+        const pathNeighbours = this.neighboursWithEdgeValue(vertex, PATH_EDGE);
+        if (pathNeighbours) {
+            for (const child of pathNeighbours) {
+                this.clearGraphEdge(child, edgeValue);
+            }
+        }
+        const operationNeighbours = this.neighboursWithEdgeValue(vertex, OPERATION_EDGE);
+        if (operationNeighbours) {
+            for (const child of operationNeighbours) {
+                this.clearGraphEdge(child, edgeValue);
+            }
+        }
+        const operationValueNeighbours = this.neighboursWithEdgeValue(vertex, OPERATION_VALUE_EDGE);
+        if (operationValueNeighbours) {
+            for (const child of operationValueNeighbours) {
+                this.clearGraphEdge(child, edgeValue);
+            }
+        }
+    }
+
     private resolveVertex(vertex: Vertex<unknown>, object: PlainObject = this.resolved!) {
         const pathArray = this.getPathArray(vertex);
+
+        // TODO: is it resolving the same vertex multiple times, is that a bug, or should it just skip it if already resolved?
 
         this.resolveVertexInEdgePriority(vertex, object, pathArray);
         this.resolveVertexAutoEnable(vertex, object, pathArray);
@@ -609,9 +749,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
     private resolveVertexInEdgePriority(vertex: Vertex<unknown>, object: PlainObject, pathArray: Array<string>) {
         const children = this.neighboursWithEdgeValue(vertex, PATH_EDGE);
-        const [highestPriority] = OptionsGraph.EDGE_PRIORITY;
+        const [highestPriority] = this.edgePriority;
 
-        for (const edgeValue of OptionsGraph.EDGE_PRIORITY) {
+        for (const edgeValue of this.edgePriority) {
             const valueVertex = this.findNeighbour(vertex, edgeValue);
             if (valueVertex == null) continue;
 
@@ -623,6 +763,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             // Avoid setting an array value when the vertex has children with specific array index values and this is
             // not the highest priority edge
             if (children && children.length > 0 && Array.isArray(value) && edgeValue !== highestPriority) continue;
+
+            this.hasUnsafeClearKeys ||=
+                value != null && OptionsGraph.UNSAFE_CLEAR_KEYS.has(pathArray[pathArray.length - 1]);
 
             if (pathArray.length === 0) {
                 if (value == null) continue;

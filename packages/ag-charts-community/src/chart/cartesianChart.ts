@@ -7,6 +7,7 @@ import { staticFromToMotion } from '../motion/fromToMotion';
 import type { BBox } from '../scene/bbox';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import { NumberAxis } from './axis/numberAxis';
+import { stackCartesianSeries } from './cartesianUtil';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import type { ChartAxis } from './chartAxis';
@@ -165,6 +166,8 @@ export class CartesianChart extends Chart {
             },
             clipSeries,
         });
+
+        stackCartesianSeries(this.series);
     }
 
     updateAxes(layoutBox: BBox) {

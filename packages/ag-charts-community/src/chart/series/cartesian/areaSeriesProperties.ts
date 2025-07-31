@@ -10,7 +10,6 @@ import { DropShadow } from '../../../scene/dropShadow';
 import { Property } from '../../../util/properties';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
-import { FillGradientDefaults, FillImageDefaults, FillPatternDefaults } from '../seriesProperties';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
@@ -36,15 +35,6 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgAreaSeries
 
     @Property
     fill: InternalAgColorType = '#c16068';
-
-    @Property
-    readonly fillGradientDefaults = new FillGradientDefaults();
-
-    @Property
-    readonly fillPatternDefaults = new FillPatternDefaults();
-
-    @Property
-    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity = 1;

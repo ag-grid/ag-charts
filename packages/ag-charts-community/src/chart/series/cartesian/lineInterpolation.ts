@@ -33,12 +33,23 @@ export type StepSpan = {
     stepX: number;
 };
 
-export type Span = LinearSpan | CubicSpan | StepSpan;
+export type MultiLineSpan = {
+    type: 'multi-line';
+    moveTo: boolean;
+    x0: number;
+    y0: number;
+    x1: number;
+    y1: number;
+    midPoints: Point[];
+};
+
+export type Span = LinearSpan | CubicSpan | StepSpan | MultiLineSpan;
 
 export function spanRange(span: Span): [Point, Point] {
     switch (span.type) {
         case 'linear':
         case 'step':
+        case 'multi-line':
             return [
                 { x: span.x0, y: span.y0 },
                 { x: span.x1, y: span.y1 },
@@ -94,6 +105,16 @@ export function collapseSpanToPoint(span: Span, point: Point): Span {
                 cp3x: x,
                 cp3y: y,
             };
+        case 'multi-line':
+            return {
+                type: 'multi-line',
+                moveTo: span.moveTo,
+                x0: x,
+                y0: y,
+                x1: x,
+                y1: y,
+                midPoints: span.midPoints.map(() => ({ x, y })),
+            };
     }
 }
 
@@ -134,6 +155,19 @@ export function rescaleSpan(span: Span, nextStart: Point, nextEnd: Point): Span 
                 x1: nextEnd.x,
                 y1: nextEnd.y,
                 stepX: nextEnd.x - (span.stepX - prevStart.x) * widthScale,
+            };
+        case 'multi-line':
+            return {
+                type: 'multi-line',
+                moveTo: span.moveTo,
+                x0: nextStart.x,
+                y0: nextStart.y,
+                x1: nextEnd.x,
+                y1: nextEnd.y,
+                midPoints: span.midPoints.map((midPoint) => ({
+                    x: nextStart.x + (midPoint.x - prevStart.x) * widthScale,
+                    y: nextStart.y + (midPoint.y - prevStart.y) * heightScale,
+                })),
             };
     }
 }
@@ -206,12 +240,42 @@ export function clipSpanX(span: Span, x0: number, x1: number): Span {
                 cp3y: bezier[3].y,
             };
         }
+        case 'multi-line': {
+            const { midPoints } = span;
+
+            const midPointStartIndex = midPoints.findLastIndex((midPoint) => midPoint.x <= x0);
+            let midPointEndIndex = midPoints.findIndex((midPoint) => midPoint.x >= x1);
+            if (midPointEndIndex === -1) midPointEndIndex = midPoints.length;
+
+            const startPoint = midPointStartIndex >= 0 ? midPoints[midPointStartIndex] : undefined;
+            const startX = startPoint?.x ?? spanX0;
+            const startY = startPoint?.y ?? spanY0;
+
+            const endPoint = midPointEndIndex < midPoints.length ? midPoints[midPointEndIndex] : undefined;
+            const endX = endPoint?.x ?? spanX1;
+            const endY = endPoint?.y ?? spanY1;
+
+            const m = startY === endY ? undefined : (endY - startY) / (endX - startX);
+            const y0 = m == null ? startY : m * (startX - spanX0) + startY;
+            const y1 = m == null ? startY : m * (endX - spanX0) + startY;
+
+            return {
+                type: 'multi-line',
+                moveTo,
+                x0,
+                y0,
+                x1,
+                y1,
+                midPoints: midPoints.slice(Math.max(midPointStartIndex, 0), midPointEndIndex),
+            };
+        }
     }
 }
 
 export enum SpanJoin {
     MoveTo,
     LineTo,
+    Skip,
 }
 
 export function linearPoints(points: Iterable<Point>): Span[] {

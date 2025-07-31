@@ -42,7 +42,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
-import { applyShapeStyle, getShapeStyle } from '../shapeUtil';
+import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties } from '../util';
 import { AbstractBarSeries, type AbstractBarSeriesAnimationData } from './abstractBarSeries';
 import {
@@ -655,17 +655,12 @@ export class BarSeries extends AbstractBarSeries<
     private getItemStyle(nodeDatum: BarNodeDatum, isHighlight: boolean): Required<AgBarSeriesStyle> {
         const { id: seriesId, properties } = this;
 
-        const { xKey, yKey, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
+        const { xKey, yKey, itemStyler } = properties;
 
         const { xValue, yValue, datum, datumIndex } = nodeDatum;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        let style = getShapeStyle(
-            mergeDefaults(highlightStyle, properties.getStyle()),
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults
-        );
+        let style = mergeDefaults(highlightStyle, properties.getStyle());
 
         if (itemStyler && nodeDatum != null) {
             const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
@@ -692,12 +687,7 @@ export class BarSeries extends AbstractBarSeries<
             );
 
             if (overrides) {
-                style = getShapeStyle(
-                    mergeDefaults(overrides, style),
-                    fillGradientDefaults,
-                    fillPatternDefaults,
-                    fillImageDefaults
-                );
+                style = mergeDefaults(overrides, style);
             }
         }
 
@@ -811,34 +801,18 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const {
-            fill,
-            stroke,
-            strokeWidth,
-            fillOpacity,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-        } = this.properties;
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
 
         return {
-            marker: getShapeStyle(
-                {
-                    fill: fill ?? 'rgba(0, 0, 0, 0)',
-                    stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                    fillOpacity,
-                    strokeOpacity,
-                    strokeWidth,
-                    lineDash,
-                    lineDashOffset,
-                },
-                fillGradientDefaults,
-                fillPatternDefaults,
-                fillImageDefaults
-            ),
+            marker: {
+                fill: fill ?? 'rgba(0, 0, 0, 0)',
+                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+            },
         };
     }
 

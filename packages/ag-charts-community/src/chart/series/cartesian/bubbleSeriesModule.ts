@@ -37,12 +37,16 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
             shape: 'circle',
             size: 7,
             maxSize: 30,
-            fill: { $palette: 'fill' },
+            fill: {
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $palette: 'fill' },
+                    ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                    ['image', FILL_IMAGE_DEFAULTS],
+                    ['pattern', FILL_PATTERN_DEFAULTS],
+                ],
+            },
             stroke: { $palette: 'stroke' },
-            // @ts-expect-error undocumented option
-            fillGradientDefaults: FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
-            fillPatternDefaults: FILL_PATTERN_DEFAULTS,
-            fillImageDefaults: FILL_IMAGE_DEFAULTS,
             fillOpacity: 0.8,
             maxRenderedItems: 10_000,
             label: {

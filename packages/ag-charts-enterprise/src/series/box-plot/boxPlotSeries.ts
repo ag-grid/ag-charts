@@ -25,7 +25,6 @@ const {
     ContinuousScale,
     ChartAxisDirection,
     motion,
-    getShapeStyle,
 } = _ModuleSupport;
 
 class BoxPlotSeriesNodeEvent<
@@ -247,34 +246,18 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const {
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-        } = this.properties;
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.properties;
 
         return {
-            marker: getShapeStyle(
-                {
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeOpacity,
-                    strokeWidth,
-                    lineDash,
-                    lineDashOffset,
-                },
-                fillGradientDefaults,
-                fillPatternDefaults,
-                fillImageDefaults
-            ),
+            marker: {
+                fill: _ModuleSupport.deepClone(fill),
+                fillOpacity,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
+            },
         };
     }
 
@@ -431,26 +414,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     ): Required<AgBoxPlotSeriesStyle> {
         const { id: seriesId, properties } = this;
 
-        const {
-            xKey,
-            minKey,
-            q1Key,
-            medianKey,
-            q3Key,
-            maxKey,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-            itemStyler,
-        } = properties;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight);
-        let style = getShapeStyle(
-            mergeDefaults(highlightStyle, properties.getStyle()),
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults
-        );
+        let style = mergeDefaults(highlightStyle, properties.getStyle());
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -475,12 +442,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             );
 
             if (overrides) {
-                style = getShapeStyle(
-                    mergeDefaults(overrides, style),
-                    fillGradientDefaults,
-                    fillPatternDefaults,
-                    fillImageDefaults
-                );
+                style = mergeDefaults(overrides, style);
             }
         }
 

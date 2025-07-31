@@ -17,12 +17,16 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
         },
         marker: {
             enabled: true,
-            fill: { $palette: 'fill' },
+            fill: {
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $palette: 'fill' },
+                    ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                    ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                ],
+            },
             stroke: { $palette: 'stroke' },
-            // @ts-expect-error undocumented option
-            fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
-            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-            fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             fillOpacity: 1,
             shape: 'circle',
             size: 6,
@@ -58,10 +62,15 @@ export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>[
     _ModuleSupport.mergeDefaults(
         {
             series: {
-                fill: { $palette: 'fill' },
-                fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
-                fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-                fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
+                fill: {
+                    $applySwitch: [
+                        { $path: 'type' },
+                        { $palette: 'fill' },
+                        ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
+                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                        ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                    ],
+                },
                 fillOpacity: 0.8,
                 strokeWidth: 2,
                 marker: {

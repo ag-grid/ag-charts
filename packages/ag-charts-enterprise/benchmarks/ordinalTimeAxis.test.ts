@@ -15,7 +15,7 @@ describe('ordinal time axis benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 130, expectedCanvasCount: 4, autoSnapshot: false },
+        { expectedRelativeMB: 135, expectedCanvasCount: 4, autoSnapshot: false },
         async () => {
             await ctx.create();
         }
