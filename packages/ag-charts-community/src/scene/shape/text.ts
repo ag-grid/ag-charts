@@ -119,8 +119,9 @@ export class Text<D = any> extends Shape<D> {
         opts: { font: string | FontOptions; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
     ): BBox {
         const { font, textAlign, textBaseline } = opts;
-        const { width, height } = cachedTextMeasurer(font).measureLines(lines);
-        const offsetTop = Text.getVerticalModifier(textBaseline) * height;
+        const { width, height, lineBounds } = cachedTextMeasurer(font).measureLines(lines);
+        const offsetTop =
+            textBaseline === 'alphabetic' ? lineBounds[0].ascent : Text.getVerticalModifier(textBaseline) * height;
         const offsetLeft = width * Text.getHorizontalModifier(textAlign);
 
         return new BBox(x - offsetLeft, y - offsetTop, width, height);
@@ -128,9 +129,6 @@ export class Text<D = any> extends Shape<D> {
 
     private static getHorizontalModifier(textAlign?: CanvasTextAlign): number {
         switch (textAlign) {
-            case 'left':
-            case 'start':
-                return 0;
             case 'center':
                 return 0.5;
             case 'right':
@@ -143,8 +141,6 @@ export class Text<D = any> extends Shape<D> {
 
     private static getVerticalModifier(textBaseline?: CanvasTextBaseline): number {
         switch (textBaseline) {
-            case 'top':
-                return 0;
             case 'middle':
                 return 0.5;
             case 'bottom':
