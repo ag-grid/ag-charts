@@ -1,5 +1,6 @@
 import {
     type BoxBounds,
+    type WrapOptions,
     boxCollides,
     cachedTextMeasurer,
     countFractionDigits,
@@ -24,7 +25,6 @@ import { compareDates } from '../../util/date';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { type AxisPrimaryTickCount, calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { createIdsGenerator } from '../../util/tempUtils';
-import { type WrapOptions } from '../../util/textWrapper';
 import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
 import {
     intervalCeil,

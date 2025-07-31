@@ -1,18 +1,20 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { Logger, appendEllipsis, calcLineHeight, findMaxValue, wrapLines } from 'ag-charts-core';
+import {
+    type FontOptions,
+    Logger,
+    appendEllipsis,
+    cachedTextMeasurer,
+    calcLineHeight,
+    findMaxValue,
+    wrapLines,
+} from 'ag-charts-core';
 import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
-    FontFamily,
     FontSize,
-    FontStyle,
-    FontWeight,
     OverflowStrategy,
     TextWrap,
 } from 'ag-charts-types';
-
-const { CachedTextMeasurerPool } = _ModuleSupport;
 
 interface AutoSizedBaseLabelOptions extends AgChartAutoSizedBaseLabelOptions<unknown, any> {
     fontSize: FontSize;
@@ -24,14 +26,6 @@ interface AutoSizedLabelOptions extends AgChartAutoSizedLabelOptions<unknown, an
 
 interface AutoSizedSecondaryLabelOptions extends AgChartAutoSizedSecondaryLabelOptions<unknown, any> {
     fontSize: FontSize;
-}
-
-interface TextProperties {
-    fontSize: FontSize;
-    fontStyle?: FontStyle;
-    fontWeight?: FontWeight;
-    fontFamily?: FontFamily;
-    lineHeight?: number;
 }
 
 type FontSizeCandidate = {
@@ -350,7 +344,7 @@ function wrapLabel(
     text: string,
     maxWidth: number,
     maxHeight: number,
-    font: TextProperties,
+    font: FontOptions,
     textWrap?: TextWrap,
     overflow?: OverflowStrategy
 ) {
@@ -359,7 +353,7 @@ function wrapLabel(
     if (!lines.length) return;
 
     const lineHeight = getLineHeight(props, font.fontSize);
-    const { width } = CachedTextMeasurerPool.measureLines(lines, { font });
+    const { width } = cachedTextMeasurer(font).measureLines(lines);
 
     return {
         width,
@@ -370,8 +364,15 @@ function wrapLabel(
     };
 }
 
-function clipLines(lines: string[], { font, lineHeight, maxWidth, maxHeight = Infinity }: _ModuleSupport.WrapOptions) {
-    lineHeight ??= calcLineHeight(font.fontSize);
+function clipLines(
+    lines: string[],
+    {
+        font,
+        lineHeight,
+        maxWidth,
+        maxHeight = Infinity,
+    }: { font: FontOptions; lineHeight: number; maxWidth: number; maxHeight?: number }
+) {
     let height = lineHeight * lines.length;
     while (height > maxHeight) {
         if (lines.length === 1) return;
@@ -380,13 +381,13 @@ function clipLines(lines: string[], { font, lineHeight, maxWidth, maxHeight = In
         height = lineHeight * lines.length;
     }
 
-    const metrics = CachedTextMeasurerPool.measureLines(lines, { font });
+    const metrics = cachedTextMeasurer(font).measureLines(lines);
 
     let text: string, width: number;
     if (metrics.width > maxWidth) {
         const clippedLines: string[] = [];
         width = 0;
-        for (const line of metrics.lineMetrics) {
+        for (const line of metrics.lineBounds) {
             if (line.width > maxWidth) {
                 if (!clippedLines.length) return;
                 break;
