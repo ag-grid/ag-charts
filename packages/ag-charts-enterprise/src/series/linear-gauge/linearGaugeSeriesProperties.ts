@@ -1,10 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { RequireOptional } from 'ag-charts-core';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgGradientColorMode,
     AgLinearGaugeLabelPlacement,
     AgLinearGaugeMarkerShape,
     AgLinearGaugeOptions,
+    AgLinearGaugeSeriesStyle,
     AgLinearGaugeTargetPlacement,
     AgLinearGaugeTooltipRendererParams,
     FontStyle,
@@ -17,8 +20,16 @@ import type {
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { AutoSizedLabel } from '../util/autoSizedLabel';
 
-const { BaseProperties, makeSeriesTooltip, SeriesProperties, PropertiesArray, Property, Label, AxisLabel } =
-    _ModuleSupport;
+const {
+    BaseProperties,
+    makeSeriesTooltip,
+    SeriesProperties,
+    PropertiesArray,
+    Property,
+    Label,
+    AxisLabel,
+    getColorStops,
+} = _ModuleSupport;
 
 export enum NodeDataType {
     Node,
@@ -27,7 +38,8 @@ export enum NodeDataType {
 
 export type LinearGaugeNodeDatumIndex = { type: NodeDataType.Node } | { type: NodeDataType.Target; index: number };
 
-export interface LinearGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
+export interface LinearGaugeNodeDatum
+    extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex, AgLinearGaugeSeriesStyle> {
     type: NodeDataType.Node;
     x0: number;
     y0: number;
@@ -41,7 +53,6 @@ export interface LinearGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum<Lin
     topRightCornerRadius: number;
     bottomRightCornerRadius: number;
     bottomLeftCornerRadius: number;
-    fill: string | _ModuleSupport.ShapeColor | undefined;
     horizontalInset: number;
     verticalInset: number;
 }
@@ -59,7 +70,8 @@ export interface LinearGaugeTargetDatumLabel {
     lineHeight: number | undefined;
 }
 
-export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
+export interface LinearGaugeTargetDatum
+    extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex, AgLinearGaugeSeriesStyle> {
     type: NodeDataType.Target;
     value: number;
     text: string | undefined;
@@ -68,13 +80,6 @@ export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum<L
     shape: AgLinearGaugeMarkerShape;
     size: number;
     rotation: number;
-    fill: string;
-    fillOpacity: number;
-    stroke: string;
-    strokeOpacity: number;
-    strokeWidth: number;
-    lineDash: number[];
-    lineDashOffset: number;
     label: LinearGaugeTargetDatumLabel;
 }
 export type LinearGaugeLabelDatum = {
@@ -145,6 +150,28 @@ export class LinearGaugeTargetProperties extends BaseProperties {
 
     @Property
     readonly label = new LinearGaugeDefaultTargetLabelProperties();
+
+    getStyle(): Required<AgLinearGaugeSeriesStyle> {
+        const {
+            fill = 'black',
+            fillOpacity = 1,
+            stroke = 'black',
+            strokeWidth = 0,
+            strokeOpacity = 1,
+            lineDash = [0],
+            lineDashOffset = 0,
+        } = this;
+
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        };
+    }
 }
 
 class LinearGaugeBarProperties extends BaseProperties {
@@ -183,6 +210,27 @@ class LinearGaugeBarProperties extends BaseProperties {
 
     @Property
     lineDashOffset: number = 0;
+
+    getStyle(
+        defaultColorRange: string[],
+        horizontal: boolean,
+        scale: _ModuleSupport.LinearScale
+    ): RequireOptional<AgLinearGaugeSeriesStyle> {
+        const { fill, fills, fillMode, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } =
+            this;
+
+        const barFill = fill ?? createLinearGradient(fills, fillMode, defaultColorRange, scale, horizontal);
+
+        return {
+            fill: barFill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        };
+    }
 }
 
 class LinearGaugeScaleIntervalProperties extends BaseProperties {
@@ -218,7 +266,7 @@ class LinearGaugeScaleProperties extends BaseProperties {
     fillMode: AgGradientColorMode = 'continuous';
 
     @Property
-    fill: string | undefined;
+    fill: _ModuleSupport.ShapeColor | undefined;
 
     @Property
     fillOpacity: number = 1;
@@ -246,6 +294,41 @@ class LinearGaugeScaleProperties extends BaseProperties {
 
     @Property
     readonly label = new LinearGaugeScaleLabelProperties();
+
+    getStyle(
+        barEnabled: boolean,
+        defaultColorRange: string[],
+        horizontal: boolean,
+        scale: _ModuleSupport.LinearScale
+    ): RequireOptional<AgLinearGaugeSeriesStyle> {
+        const {
+            fill,
+            fills,
+            defaultFill,
+            fillMode,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        } = this;
+
+        const scaleFill =
+            fill ??
+            (barEnabled && fills.length === 0 ? defaultFill : undefined) ??
+            createLinearGradient(fills, fillMode, defaultColorRange, scale, horizontal);
+
+        return {
+            fill: scaleFill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        };
+    }
 }
 
 export class LinearGaugeLabelProperties extends AutoSizedLabel<unknown> {
@@ -304,4 +387,22 @@ export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeO
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgLinearGaugeTooltipRendererParams>();
+}
+
+export function createLinearGradient(
+    fills: _ModuleSupport.StopProperties[],
+    fillMode: AgGradientColorMode,
+    defaultColorRange: string[],
+    scale: _ModuleSupport.LinearScale,
+    horizontal: boolean
+): InternalAgGradientColor {
+    const colorStops = getColorStops(fills, defaultColorRange, scale.domain, fillMode);
+    return {
+        type: 'gradient',
+        gradient: 'linear',
+        colorSpace: 'oklch',
+        colorStops,
+        rotation: horizontal ? 90 : 0,
+        bounds: 'series',
+    };
 }

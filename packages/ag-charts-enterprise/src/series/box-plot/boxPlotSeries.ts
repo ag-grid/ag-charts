@@ -52,6 +52,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     BoxPlotGroup,
     AgBoxPlotSeriesOptions,
     BoxPlotSeriesProperties,
+    AgBoxPlotSeriesStyle,
     BoxPlotNodeDatum
 > {
     static readonly className = 'BoxPlotSeries';
@@ -239,6 +240,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 scaledValues,
                 midPoint,
                 focusRect,
+                style: this.getItemStyle({ datumIndex, datum }, false),
             });
         });
 
@@ -386,7 +388,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override animateEmptyUpdateReady({
         datumSelection,
-    }: _ModuleSupport.CartesianAnimationData<BoxPlotGroup, BoxPlotNodeDatum>) {
+    }: _ModuleSupport.CartesianAnimationData<BoxPlotGroup, AgBoxPlotSeriesStyle, BoxPlotNodeDatum>) {
         const isVertical = this.isVertical();
         const { from, to } = prepareBoxPlotFromTo(isVertical);
         motion.resetMotion([datumSelection], resetBoxPlotSelectionsScalingCenterFn(isVertical));

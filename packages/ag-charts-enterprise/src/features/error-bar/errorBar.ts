@@ -15,6 +15,7 @@ type ErrorBoundCartesianSeries = Omit<
         _ModuleSupport.Node,
         object,
         _ModuleSupport.CartesianSeriesProperties<any>,
+        object,
         ErrorBarNodeDatum
     >,
     'highlightSelection'

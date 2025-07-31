@@ -10,10 +10,10 @@ import type { SeriesNodeDatum } from '../seriesTypes';
 
 export type QuadtreeCompatibleNode = Node & DistantObject & { readonly midPoint: { x: number; y: number } };
 
-export function addHitTestersToQuadtree<TNode extends QuadtreeCompatibleNode, TDatum extends SeriesNodeDatum<unknown>>(
-    quadtree: QuadtreeNearest<TDatum>,
-    hitTesters: Iterable<TNode>
-) {
+export function addHitTestersToQuadtree<
+    TNode extends QuadtreeCompatibleNode,
+    TDatum extends SeriesNodeDatum<unknown, unknown>,
+>(quadtree: QuadtreeNearest<TDatum>, hitTesters: Iterable<TNode>) {
     for (const node of hitTesters) {
         const datum: TDatum | undefined = node.datum;
         if (datum === undefined) {
@@ -24,12 +24,12 @@ export function addHitTestersToQuadtree<TNode extends QuadtreeCompatibleNode, TD
     }
 }
 
-type SeriesWithQuadtreeNearest<TDatum extends SeriesNodeDatum<unknown>> = {
+type SeriesWithQuadtreeNearest<TDatum extends SeriesNodeDatum<unknown, unknown>> = {
     readonly contentGroup: Group;
     getQuadTree(): QuadtreeNearest<TDatum>;
 };
 
-export function findQuadtreeMatch<TDatum extends SeriesNodeDatum<unknown>>(
+export function findQuadtreeMatch<TDatum extends SeriesNodeDatum<unknown, unknown>>(
     series: SeriesWithQuadtreeNearest<TDatum>,
     point: Point
 ): SeriesNodePickMatch | undefined {

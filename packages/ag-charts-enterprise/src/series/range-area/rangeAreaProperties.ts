@@ -4,12 +4,14 @@ import type {
     AgRangeAreaSeriesOptions,
     AgRangeAreaSeriesOptionsKeys,
     AgRangeAreaSeriesTooltipRendererParams,
+    AgSeriesMarkerStyle,
     PixelSize,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
+export interface RangeAreaMarkerDatum
+    extends Omit<_ModuleSupport.CartesianSeriesNodeDatum<AgSeriesMarkerStyle>, 'yKey' | 'yValue'> {
     readonly index: number;
     readonly yLowKey: string;
     readonly yHighKey: string;

@@ -53,6 +53,7 @@ export class MapMarkerSeries
         MapMarkerNodeDatum,
         AgMapMarkerSeriesOptions,
         MapMarkerSeriesProperties,
+        AgMapMarkerSeriesStyle,
         MapMarkerNodeLabelDatum,
         MapMarkerNodeDataContext
     >
@@ -437,6 +438,7 @@ export class MapMarkerSeries
                     point: { x, y, size },
                     midPoint: { x, y },
                     legendItemName,
+                    style: this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
                 });
             } else if (projectedGeometry != null) {
                 markerPositions(projectedGeometry, 1).forEach(([x, y], index) => {
@@ -460,6 +462,7 @@ export class MapMarkerSeries
                         point: { x, y, size },
                         midPoint: { x, y },
                         legendItemName,
+                        style: this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
                     });
                 });
             }
@@ -700,7 +703,7 @@ export class MapMarkerSeries
         const { x: x0, y: y0 } = p;
 
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown, unknown> | undefined;
 
         this.contextNodeData?.nodeData.forEach((datum) => {
             const { x, y, size } = datum.point;

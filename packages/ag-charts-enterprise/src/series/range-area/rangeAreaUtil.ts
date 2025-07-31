@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgSeriesMarkerStyle, _ModuleSupport } from 'ag-charts-community';
 
 import { type RangeAreaMarkerDatum } from './rangeAreaProperties';
 
@@ -19,7 +19,8 @@ export interface RangeAreaLabelDatum extends Readonly<_ModuleSupport.Point> {
     textBaseline: CanvasTextBaseline;
     datum: any;
     itemId?: string;
-    series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
+    series: _ModuleSupport.CartesianSeriesNodeDatum<AgSeriesMarkerStyle>['series'];
+    style: AgSeriesMarkerStyle;
 }
 
 interface RangeAreaFillPathDatum {
@@ -34,7 +35,11 @@ interface RangeAreaStrokePathDatum {
 }
 
 export interface RangeAreaContext
-    extends _ModuleSupport.CartesianSeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> {
+    extends _ModuleSupport.CartesianSeriesNodeDataContext<
+        AgSeriesMarkerStyle,
+        RangeAreaMarkerDatum,
+        RangeAreaLabelDatum
+    > {
     fillData: RangeAreaFillPathDatum;
     highStrokeData: RangeAreaStrokePathDatum;
     lowStrokeData: RangeAreaStrokePathDatum;

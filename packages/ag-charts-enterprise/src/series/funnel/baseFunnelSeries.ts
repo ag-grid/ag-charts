@@ -53,11 +53,14 @@ export type FunnelNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
     textBaseline: CanvasTextBaseline;
     datum: any;
     itemId: string;
-    series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
+    series: _ModuleSupport.CartesianSeriesNodeDatum<AgFunnelSeriesStyle>['series'];
     visible: boolean;
+    style: AgFunnelSeriesStyle;
 };
 
-export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_ModuleSupport.Point> {
+export interface FunnelNodeDatum
+    extends _ModuleSupport.CartesianSeriesNodeDatum<AgFunnelSeriesStyle>,
+        Readonly<_ModuleSupport.Point> {
     readonly index: number;
     readonly itemId: string;
     readonly width: number;
@@ -91,7 +94,13 @@ interface FunnelContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
 }
 
 export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode>
-    extends _ModuleSupport.CartesianAnimationData<TNode, FunnelNodeDatum, FunnelNodeLabelDatum, FunnelContext> {}
+    extends _ModuleSupport.CartesianAnimationData<
+        TNode,
+        AgFunnelSeriesStyle,
+        FunnelNodeDatum,
+        FunnelNodeLabelDatum,
+        FunnelContext
+    > {}
 
 class FunnelSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -126,6 +135,7 @@ export abstract class BaseFunnelSeries<
     TNode,
     TOpts,
     BaseFunnelProperties<TOpts>,
+    AgFunnelSeriesStyle,
     FunnelNodeDatum,
     FunnelNodeLabelDatum,
     FunnelContext
@@ -386,6 +396,7 @@ export abstract class BaseFunnelSeries<
                 crisp,
                 label: labelData,
                 visible,
+                style: this.barStyle(),
             };
 
             context.nodeData.push(nodeDatum);
@@ -520,14 +531,6 @@ export abstract class BaseFunnelSeries<
         });
     }
 
-    protected override getHighlightLabelData(
-        labelData: FunnelNodeLabelDatum[],
-        highlightedItem: FunnelNodeDatum
-    ): FunnelNodeLabelDatum[] | undefined {
-        const labelItems = labelData.filter((ld) => ld.datum === highlightedItem.datum);
-        return labelItems.length > 0 ? labelItems : undefined;
-    }
-
     protected override updateLabelSelection(opts: {
         labelData: FunnelNodeLabelDatum[];
         labelSelection: FunnelAnimationData<TNode>['labelSelection'];
@@ -583,7 +586,13 @@ export abstract class BaseFunnelSeries<
     }
 
     protected override resetAllAnimation(
-        data: _ModuleSupport.CartesianAnimationData<TNode, FunnelNodeDatum, FunnelNodeLabelDatum, FunnelContext>
+        data: _ModuleSupport.CartesianAnimationData<
+            TNode,
+            AgFunnelSeriesStyle,
+            FunnelNodeDatum,
+            FunnelNodeLabelDatum,
+            FunnelContext
+        >
     ): void {
         super.resetAllAnimation(data);
 

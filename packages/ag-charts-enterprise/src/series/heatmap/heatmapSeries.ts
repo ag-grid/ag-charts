@@ -33,7 +33,7 @@ const {
     updateLabelNode,
 } = _ModuleSupport;
 
-interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
+interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum<AgHeatmapSeriesStyle> {
     readonly point: Readonly<_ModuleSupport.SizedPoint>;
     midPoint: Readonly<_ModuleSupport.Point>;
     readonly width: number;
@@ -43,7 +43,7 @@ interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
 
 interface HeatmapLabelDatum extends _ModuleSupport.Point {
     datumIndex: number;
-    series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
+    series: _ModuleSupport.CartesianSeriesNodeDatum<AgHeatmapSeriesStyle>['series'];
     datum: any;
     itemId?: string;
     text: string;
@@ -55,6 +55,7 @@ interface HeatmapLabelDatum extends _ModuleSupport.Point {
     color: string | undefined;
     textAlign: TextAlign;
     textBaseline: VerticalAlign;
+    style: AgHeatmapSeriesStyle;
 }
 
 type ItemStyle = Pick<AgHeatmapSeriesStyle, 'fill'> &
@@ -87,6 +88,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     _ModuleSupport.Rect,
     AgHeatmapSeriesOptions,
     HeatmapSeriesProperties,
+    AgHeatmapSeriesStyle,
     HeatmapNodeDatum,
     HeatmapLabelDatum
 > {
@@ -285,6 +287,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
             const point = { x, y, size: 0 };
 
+            const style = this.getItemStyle({ datumIndex, datum, colorValue }, false);
+
             nodeData.push({
                 series: this,
                 itemId: yKey,
@@ -300,6 +304,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 height,
                 midPoint: { x, y },
                 missing: colorValues != null && colorValue == null,
+                style,
             });
 
             if (labels?.label != null) {
@@ -325,6 +330,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                     textBaseline: verticalAlign,
                     x: lx,
                     y: ly,
+                    style,
                 });
             }
         });
@@ -576,7 +582,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         addHitTestersToQuadtree(quadtree, this.datumNodesIter());
     }
 
-    protected override pickNodesExactShape(point: _ModuleSupport.Point): _ModuleSupport.SeriesNodeDatum<unknown>[] {
+    protected override pickNodesExactShape(
+        point: _ModuleSupport.Point
+    ): _ModuleSupport.SeriesNodeDatum<unknown, unknown>[] {
         const item = findQuadtreeMatch(this, point);
         return item != null && item.distance <= 0 ? [item.datum] : [];
     }

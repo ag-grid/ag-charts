@@ -16,7 +16,7 @@ export interface SpanDatum {
 }
 
 export interface SpanContext {
-    scales: CartesianSeriesNodeDataContext['scales'];
+    scales: CartesianSeriesNodeDataContext<object>['scales'];
     data: SpanDatum[];
     zeroData?: SpanDatum[];
 }

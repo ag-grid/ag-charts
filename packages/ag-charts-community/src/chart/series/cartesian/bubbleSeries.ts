@@ -3,6 +3,7 @@ import {
     type AgBubbleSeriesLabelFormatterParams,
     type AgBubbleSeriesOptions,
     type AgErrorBoundSeriesTooltipRendererParams,
+    type AgSeriesMarkerStyle,
     type FillOptions,
     type FormatterPropertyType,
     type LineDashOptions,
@@ -53,7 +54,7 @@ import {
 } from './cartesianSeries';
 import { computeMarkerFocusBounds, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 
-type BubbleScatterAnimationData = CartesianAnimationData<Marker, BubbleScatterNodeDatum>;
+type BubbleScatterAnimationData = CartesianAnimationData<Marker, AgSeriesMarkerStyle, BubbleScatterNodeDatum>;
 
 class BubbleScatterSeriesNodeEvent<
     TEvent extends string = SeriesNodeEventTypes,
@@ -66,7 +67,9 @@ class BubbleScatterSeriesNodeEvent<
     }
 }
 
-export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
+export interface BubbleScatterNodeDatum
+    extends CartesianSeriesNodeDatum<AgSeriesMarkerStyle>,
+        ErrorBoundSeriesNodeDatum {
     readonly point: Readonly<SizedPoint>;
     readonly sizeValue: any;
     readonly label: MeasuredLabel;
@@ -81,6 +84,7 @@ export class BubbleSeries extends CartesianSeries<
     Marker,
     AgBubbleSeriesOptions,
     BubbleSeriesProperties,
+    AgSeriesMarkerStyle,
     BubbleScatterNodeDatum
 > {
     static readonly className: string = 'BubbleSeries';
@@ -416,6 +420,12 @@ export class BubbleSeries extends CartesianSeries<
             }
 
             const markerSize = sizeValue != null ? sizeScale.convert(sizeValue) : marker.size;
+            const point = { x, y, size: Math.sqrt(dilation) * markerSize };
+            const params = { xKey, yKey, sizeKey, labelKey };
+            const style = this.getMarkerStyle(marker, { datumIndex, datum, point }, params, {
+                isHighlight: false,
+                resolveItemStylerMarkerPath: false,
+            });
 
             nodeData.push({
                 series: this,
@@ -428,7 +438,7 @@ export class BubbleSeries extends CartesianSeries<
                 yValue: yDatum,
                 sizeValue,
                 capDefaults: { lengthRatioMultiplier: marker.getDiameter(), lengthMax: Infinity },
-                point: { x, y, size: Math.sqrt(dilation) * markerSize },
+                point,
                 midPoint: { x, y },
                 label: nodeLabel,
                 anchor,
@@ -436,6 +446,7 @@ export class BubbleSeries extends CartesianSeries<
                 count,
                 dilation,
                 selected,
+                style,
             });
         };
 
@@ -504,21 +515,16 @@ export class BubbleSeries extends CartesianSeries<
         return datumSelection.update(data, undefined, getId);
     }
 
-    protected override updateDatumNodes(opts: {
+    override updateDatumStyles(opts: {
         datumSelection: Selection<Marker, BubbleScatterNodeDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
+
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
-
-        this.sizeScale.range = [marker.size, marker.maxSize];
-        const fillBBox = this.getShapeFillBBox();
-
-        const aggregated = this.dataAggregation != null;
-
         const params = { xKey, yKey, sizeKey, labelKey };
 
-        datumSelection.each((node, datum, index) => {
+        datumSelection.each((_, datum) => {
             const { count, dilation } = datum;
 
             const style = this.getMarkerStyle(marker, datum, params, {
@@ -526,8 +532,26 @@ export class BubbleSeries extends CartesianSeries<
                 resolveItemStylerMarkerPath: false,
             });
             style.fillOpacity = (1 - (1 - (style.fillOpacity ?? 1)) ** count) / Math.sqrt(dilation);
+            datum.style = style;
+        });
+    }
 
-            this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
+    protected override updateDatumNodes(opts: {
+        datumSelection: Selection<Marker, BubbleScatterNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        const { datumSelection, isHighlight } = opts;
+        const { marker } = this.properties;
+
+        this.sizeScale.range = [marker.size, marker.maxSize];
+        const fillBBox = this.getShapeFillBBox();
+
+        const aggregated = this.dataAggregation != null;
+
+        datumSelection.each((node, datum, index) => {
+            const { count } = datum;
+
+            this.applyMarkerStyle(datum.style, node, datum.point, fillBBox, { selected: datum.selected });
             node.zIndex = aggregated ? [-count, index] : 0;
         });
 

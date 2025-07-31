@@ -1,10 +1,8 @@
-import { createSvgElement } from 'ag-charts-core';
+import { type ColorSpace, createSvgElement } from 'ag-charts-core';
 
 import { ColorScale } from '../../scale/colorScale';
 import type { BBox } from '../bbox';
 import type { GradientColorStop } from './stops';
-
-export type ColorSpace = 'rgb' | 'oklch';
 
 export interface GradientParams {
     centerX?: number;

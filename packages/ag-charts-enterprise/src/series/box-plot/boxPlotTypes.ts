@@ -1,6 +1,7 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { AgBoxPlotSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 
-export interface BoxPlotNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'xValue' | 'yKey' | 'yValue'> {
+export interface BoxPlotNodeDatum
+    extends Omit<_ModuleSupport.CartesianSeriesNodeDatum<AgBoxPlotSeriesStyle>, 'xValue' | 'yKey' | 'yValue'> {
     readonly bandwidth: number;
 
     readonly scaledValues: {

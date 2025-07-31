@@ -59,6 +59,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     RadarNodeDatum,
     AgBaseRadarSeriesOptions,
     RadarSeriesProperties<AgBaseRadarSeriesOptions>,
+    AgSeriesMarkerStyle,
     _ModuleSupport.Marker
 > {
     static readonly className: string = 'RadarSeries';
@@ -164,7 +165,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         if (!processedData || !dataModel) return;
 
-        const { angleKey, radiusKey, angleName, radiusName, marker, label } = this.properties;
+        const { angleKey, radiusKey, angleName, radiusName, marker, label, stroke, strokeWidth, strokeOpacity } =
+            this.properties;
         const angleScale = this.axes[ChartAxisDirection.Angle]?.scale;
         const radiusScale = this.axes[ChartAxisDirection.Radius]?.scale;
 
@@ -240,6 +242,18 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,
                 missing: !isFiniteNumber(angle) || !isFiniteNumber(radius),
+                style: this.getMarkerStyle(
+                    marker,
+                    { datum, datumIndex },
+                    this.getDatumStylerProperties(datum),
+                    { isHighlight: false },
+                    undefined,
+                    {
+                        stroke,
+                        strokeWidth,
+                        strokeOpacity,
+                    }
+                ),
             };
         });
 
@@ -335,7 +349,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             const style = this.getMarkerStyle(
                 marker,
                 datum,
-                this.getDatumStylerProperties(datum),
+                this.getDatumStylerProperties(datum.datum),
                 { isHighlight },
                 undefined,
                 {

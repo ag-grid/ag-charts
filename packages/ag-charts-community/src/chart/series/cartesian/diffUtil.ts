@@ -2,7 +2,7 @@ import type { ProcessedData } from '../../data/dataModel';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { type Scaling, areScalingEqual } from './scaling';
 
-export function calculateDataDiff<N extends CartesianSeriesNodeDatum>(
+export function calculateDataDiff<N extends CartesianSeriesNodeDatum<object>>(
     seriesId: string,
     datumSelection: Iterable<{ datum: N }>,
     getDatumId: (datum: N) => string,
@@ -47,8 +47,8 @@ function isGroupScaleContext(ctx: unknown): ctx is { groupScale: Scaling } {
 }
 
 function hasScalingChanged(
-    contextNodeData: CartesianSeriesNodeDataContext,
-    previousContextNodeData?: CartesianSeriesNodeDataContext
+    contextNodeData: CartesianSeriesNodeDataContext<object>,
+    previousContextNodeData?: CartesianSeriesNodeDataContext<object>
 ) {
     if (!previousContextNodeData) return false;
 

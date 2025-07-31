@@ -73,6 +73,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     _ModuleSupport.Marker,
     AgRangeAreaSeriesOptions,
     RangeAreaProperties,
+    AgSeriesMarkerStyle,
     RangeAreaMarkerDatum,
     RangeAreaLabelDatum,
     RangeAreaContext
@@ -206,7 +207,19 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
-        const { xKey, yLowKey, yHighKey, connectMissingData, marker, interpolation } = this.properties;
+        const {
+            xKey,
+            yLowKey,
+            yHighKey,
+            connectMissingData,
+            marker,
+            interpolation,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+        } = this.properties;
         const rawData = processedData.dataSources.get(this.id) ?? [];
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -230,6 +243,20 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 spanPoints[spanPoints.length - 1];
             if (Number.isFinite(yHighValue) && Number.isFinite(yLowValue)) {
                 const appendMarker = (id: 'high' | 'low', yValue: any, y: number) => {
+                    const style = this.getMarkerStyle(
+                        marker,
+                        { datumIndex, datum },
+                        { xKey, yHighKey, yLowKey },
+                        false,
+                        undefined,
+                        {
+                            fill,
+                            fillOpacity,
+                            stroke,
+                            strokeWidth,
+                            strokeOpacity,
+                        }
+                    );
                     markerData.push({
                         index: datumIndex,
                         series: this,
@@ -245,6 +272,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                         yHighKey,
                         point: { x, y, size },
                         enabled: true,
+                        style,
                     });
                     const highLabelDatum: RangeAreaLabelDatum = this.createLabelData({
                         datumIndex,
@@ -256,6 +284,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                         inverted,
                         datum,
                         series: this,
+                        style,
                     });
                     labelData.push(highLabelDatum);
                 };
@@ -354,6 +383,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         inverted,
         datum,
         series,
+        style,
     }: {
         datumIndex: number;
         point: _ModuleSupport.Point;
@@ -364,6 +394,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         inverted: boolean;
         datum: any;
         series: RangeAreaSeries;
+        style: AgSeriesMarkerStyle;
     }): RangeAreaLabelDatum {
         const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, label } = this.properties;
         const { placement } = label;
@@ -398,6 +429,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
+            style,
         };
     }
 
@@ -572,14 +604,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    protected override getHighlightLabelData(
-        labelData: RangeAreaLabelDatum[],
-        highlightedItem: RangeAreaMarkerDatum
-    ): RangeAreaLabelDatum[] | undefined {
-        const labelItems = labelData.filter((ld) => ld.datum === highlightedItem.datum);
-        return labelItems.length > 0 ? labelItems : undefined;
-    }
-
     protected override getHighlightData(
         nodeData: RangeAreaMarkerDatum[],
         highlightedItem: RangeAreaMarkerDatum
@@ -699,6 +723,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     override animateEmptyUpdateReady(
         animationData: _ModuleSupport.CartesianAnimationData<
             _ModuleSupport.Marker,
+            AgSeriesMarkerStyle,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext
@@ -717,6 +742,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     protected override animateReadyResize(
         animationData: _ModuleSupport.CartesianAnimationData<
             _ModuleSupport.Marker,
+            AgSeriesMarkerStyle,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext
@@ -731,6 +757,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     override animateWaitingUpdateReady(
         animationData: _ModuleSupport.CartesianAnimationData<
             _ModuleSupport.Marker,
+            AgSeriesMarkerStyle,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext

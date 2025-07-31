@@ -1,4 +1,5 @@
 import type { InternalAgColorType } from 'ag-charts-core';
+import type { AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Point, SizedPoint } from '../../../scene/point';
@@ -28,9 +29,9 @@ export type AreaStrokePathDatum = {
     readonly itemId: string;
 };
 
-export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
-    readonly xValue: NonNullable<CartesianSeriesNodeDatum['xValue']>;
-    readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
+export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum<AgSeriesMarkerStyle> {
+    readonly xValue: NonNullable<CartesianSeriesNodeDatum<AgSeriesMarkerStyle>['xValue']>;
+    readonly yValue: NonNullable<CartesianSeriesNodeDatum<AgSeriesMarkerStyle>['yValue']>;
     readonly point: Readonly<SizedPoint>;
     readonly yKey: string;
     readonly fill?: InternalAgColorType;
@@ -40,13 +41,13 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
     readonly selected: boolean | undefined;
 }
 
-export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum<number> {
+export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum<number, AgSeriesMarkerStyle> {
     readonly itemId: any;
     readonly labelText: string;
 }
 
 export interface AreaSeriesNodeDataContext
-    extends CartesianSeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
+    extends CartesianSeriesNodeDataContext<AgSeriesMarkerStyle, MarkerSelectionDatum, LabelSelectionDatum> {
     fillData: AreaFillPathDatum;
     strokeData: AreaStrokePathDatum;
     stackVisible: boolean;

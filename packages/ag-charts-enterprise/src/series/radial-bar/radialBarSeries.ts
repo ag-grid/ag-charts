@@ -59,7 +59,7 @@ interface RadialBarLabelNodeDatum {
     textBaseline: CanvasTextBaseline;
 }
 
-interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
+interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum<AgRadialSeriesStyle> {
     readonly label?: RadialBarLabelNodeDatum;
     readonly angleValue: any;
     readonly radiusValue: any;
@@ -76,6 +76,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     RadialBarNodeDatum,
     AgRadialBarSeriesOptions,
     RadialBarSeriesProperties<AgRadialBarSeriesOptions>,
+    AgRadialSeriesStyle,
     _ModuleSupport.Sector
 > {
     static readonly className = 'RadialBarSeries';
@@ -336,6 +337,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 clipSector,
                 reversed,
                 index: datumIndex,
+                style: this.getItemStyle({ datumIndex, datum, radiusValue: radiusDatum }, false),
             });
         }
 
@@ -365,7 +367,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         this.animationState.transition('update');
     }
 
-    protected getItemStyle(nodeDatum: RadialBarNodeDatum, isHighlight: boolean): Required<AgRadialSeriesStyle> {
+    protected getItemStyle(
+        nodeDatum: Pick<RadialBarNodeDatum, 'datumIndex' | 'datum' | 'radiusValue'>,
+        isHighlight: boolean
+    ): Required<AgRadialSeriesStyle> {
         const { id: seriesId, properties } = this;
         const { angleKey, radiusKey, itemStyler } = properties;
 
@@ -603,7 +608,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         ];
     }
 
-    private getDatumId(datum: RadialBarNodeDatum) {
+    private getDatumId(datum: Pick<RadialBarNodeDatum, 'radiusValue'>) {
         return createDatumId(datum.radiusValue);
     }
 

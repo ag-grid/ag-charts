@@ -44,12 +44,14 @@ type WaterfallNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
     readonly textBaseline: CanvasTextBaseline;
 };
 
-type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] & {
+type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum<AgWaterfallSeriesStyle>['point'] & {
     readonly x2: number;
     readonly y2: number;
 };
 
-interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_ModuleSupport.Point> {
+interface WaterfallNodeDatum
+    extends _ModuleSupport.CartesianSeriesNodeDatum<AgWaterfallSeriesStyle>,
+        Readonly<_ModuleSupport.Point> {
     readonly index: number;
     readonly itemId: AgWaterfallSeriesItemType;
     readonly cumulativeValue: number;
@@ -68,6 +70,7 @@ interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataConte
 
 type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
     _ModuleSupport.Rect,
+    AgWaterfallSeriesStyle,
     WaterfallNodeDatum,
     WaterfallNodeDatum,
     WaterfallContext
@@ -77,6 +80,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     _ModuleSupport.Rect<WaterfallNodeDatum>,
     AgWaterfallSeriesOptions,
     WaterfallSeriesProperties,
+    AgWaterfallSeriesStyle,
     WaterfallNodeDatum,
     WaterfallNodeDatum,
     WaterfallContext
@@ -443,6 +447,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                         rect,
                     }),
                 },
+                style: this.getItemStyle({ datumIndex, datum, itemId: seriesItemType }, false),
             };
 
             context.nodeData.push(nodeDatum);

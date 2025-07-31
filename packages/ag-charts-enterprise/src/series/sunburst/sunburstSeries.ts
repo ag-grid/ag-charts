@@ -1,6 +1,6 @@
 import { type AgSunburstSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
-import type { AgSunburstSeriesOptions, FontStyle, FontWeight } from 'ag-charts-types';
+import type { AgSunburstSeriesOptions, AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
@@ -21,7 +21,7 @@ const {
     mergeDefaults,
 } = _ModuleSupport;
 
-class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
+class SunburstNode extends _ModuleSupport.HierarchyNode<AgSunburstSeriesStyle, SunburstNode> {
     label: LabelLayout | undefined = undefined;
     secondaryLabel: LabelLayout | undefined = undefined;
     contentHeight: number = 0;
@@ -82,6 +82,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     _ModuleSupport.Sector,
     AgSunburstSeriesOptions,
     SunburstSeriesProperties,
+    AgSunburstSeriesStyle,
     SunburstNode
 > {
     static readonly className = 'SunburstSeries';
@@ -146,7 +147,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.labelSelection.update(descendants, updateLabelGroup, (node) => this.getDatumId(node));
     }
 
-    private getItemStyle(nodeDatum: SunburstNode, isHighlight: boolean) {
+    protected getItemStyle(
+        nodeDatum: Pick<SunburstNode, 'datumIndex' | 'datum' | 'depth' | 'colorValue'>,
+        isHighlight: boolean
+    ) {
         const { id: seriesId, properties, colorScale } = this;
 
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;

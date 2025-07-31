@@ -57,7 +57,11 @@ import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
 
-type HistogramAnimationData = CartesianAnimationData<Rect<HistogramNodeDatum>, HistogramNodeDatum>;
+type HistogramAnimationData = CartesianAnimationData<
+    Rect<HistogramNodeDatum>,
+    AgHistogramSeriesStyle,
+    HistogramNodeDatum
+>;
 
 interface CalculatedBin {
     domain: [number, number];
@@ -71,6 +75,7 @@ export class HistogramSeries extends CartesianSeries<
     Rect<HistogramNodeDatum>,
     AgHistogramSeriesOptions,
     HistogramSeriesProperties,
+    AgHistogramSeriesStyle,
     HistogramNodeDatum
 > {
     static readonly className = 'HistogramSeries';
@@ -402,6 +407,7 @@ export class HistogramSeries extends CartesianSeries<
                 bottomLeftCornerRadius: yAxisReversed,
                 label: selectionDatumLabel,
                 crisp: true,
+                style: this.getItemStyle({ datumIndex: groupIndex }, false),
             });
         });
 
@@ -424,10 +430,13 @@ export class HistogramSeries extends CartesianSeries<
         return datumSelection.update(nodeData, undefined, (datum: HistogramNodeDatum) => createDatumId(datum.domain));
     }
 
-    private getItemStyle(isHighlight: boolean, datum?: HistogramNodeDatum): RequireOptional<AgHistogramSeriesStyle> {
+    private getItemStyle(
+        { datumIndex }: Partial<HistogramNodeDatum>,
+        isHighlight: boolean
+    ): RequireOptional<AgHistogramSeriesStyle> {
         const { properties } = this;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         return mergeDefaults(highlightStyle, properties.getStyle());
     }
 
@@ -441,7 +450,7 @@ export class HistogramSeries extends CartesianSeries<
         const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
-            const style = this.getItemStyle(isHighlight, datum);
+            const style = this.getItemStyle(datum, isHighlight);
 
             const { cornerRadius = 0 } = style;
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
@@ -584,7 +593,7 @@ export class HistogramSeries extends CartesianSeries<
                 yName,
                 xRange: [rangeMin, rangeMax] satisfies [number, number],
                 frequency,
-                ...this.getItemStyle(false),
+                ...this.getItemStyle({ datumIndex }, false),
             }
         );
     }

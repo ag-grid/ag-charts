@@ -55,7 +55,7 @@ interface RadialColumnLabelNodeDatum {
     textBaseline: CanvasTextBaseline;
 }
 
-export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
+export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum<AgRadialSeriesStyle> {
     readonly label?: RadialColumnLabelNodeDatum;
     readonly angleValue: any;
     readonly radiusValue: any;
@@ -79,6 +79,7 @@ export abstract class RadialColumnSeriesBase<
     RadialColumnNodeDatum,
     AgBaseRadialColumnSeriesOptions,
     RadialColumnSeriesBaseProperties<AgBaseRadialColumnSeriesOptions>,
+    AgRadialSeriesStyle,
     ItemPathType
 > {
     protected override readonly NodeEvent = RadialColumnSeriesNodeEvent;
@@ -361,6 +362,7 @@ export abstract class RadialColumnSeriesBase<
                 axisOuterRadius,
                 columnWidth,
                 index: datumIndex,
+                style: this.getItemStyle({ datumIndex, datum, angleValue: angleDatum }, false),
             });
         }
 
@@ -396,7 +398,10 @@ export abstract class RadialColumnSeriesBase<
 
     protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
 
-    protected getItemStyle(nodeDatum: RadialColumnNodeDatum, isHighlight: boolean): Required<AgRadialSeriesStyle> {
+    protected getItemStyle(
+        nodeDatum: Pick<RadialColumnNodeDatum, 'datumIndex' | 'datum' | 'angleValue'>,
+        isHighlight: boolean
+    ): Required<AgRadialSeriesStyle> {
         const { id: seriesId, properties } = this;
         const { angleKey, radiusKey, itemStyler } = properties;
 
@@ -604,7 +609,7 @@ export abstract class RadialColumnSeriesBase<
         ];
     }
 
-    private getDatumId(datum: RadialColumnNodeDatum) {
+    private getDatumId(datum: Pick<RadialColumnNodeDatum, 'angleValue'>) {
         return createDatumId(datum.angleValue);
     }
 

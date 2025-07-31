@@ -1,7 +1,7 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 
 export function readDatum(
-    nodeDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined
+    nodeDatum: _ModuleSupport.SeriesNodeDatum<unknown, unknown> | undefined
 ): null | Partial<{ [key: string]: unknown }> {
     if (typeof nodeDatum?.datum === 'object') {
         return nodeDatum.datum;

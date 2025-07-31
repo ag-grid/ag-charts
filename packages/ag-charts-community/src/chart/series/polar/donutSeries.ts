@@ -87,7 +87,7 @@ interface PieDonutLabelDatum {
     box?: BBox;
 }
 
-interface PieDonutNodeDatum extends DataModelSeriesNodeDatum {
+interface PieDonutNodeDatum extends DataModelSeriesNodeDatum<PieDonutSeriesStyle> {
     readonly radius: number; // in the [0, 1] range
     readonly innerRadius: number;
     readonly outerRadius: number;
@@ -135,7 +135,13 @@ interface PieDonutSeriesLabelFormatterParams
         AgPieSeriesLabelFormatterParams {}
 interface PieDonutSeriesStyle extends AgDonutSeriesStyle, AgPieSeriesStyle {}
 
-export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOptions, DonutSeriesProperties, Sector> {
+export class DonutSeries extends PolarSeries<
+    PieDonutNodeDatum,
+    AgDonutSeriesOptions,
+    DonutSeriesProperties,
+    PieDonutSeriesStyle,
+    Sector
+> {
     static readonly className: string = 'DonutSeries';
     static readonly type: string = 'donut';
 
@@ -466,7 +472,9 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             const legendItemValue = legendItemValues?.[datumIndex];
 
             const nodeLabels = this.getLabels(datumIndex, datum, midAngle, span, processedDataValues);
-            const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
+            const sectorFormat = this.getItemStyle({ datum, datumIndex }, false);
+
+            const style = this.getItemStyle({ datum, datumIndex }, false, legendItemValues);
 
             const node = {
                 itemId: datumIndex,
@@ -488,6 +496,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                 focusable: true,
                 ...nodeLabels,
+                style,
             };
             nodes.push(node);
 
@@ -659,6 +668,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 gradient: 'radial',
                 rotation: 0,
                 reverse: true,
+                colorSpace: 'rgb',
             },
             {
                 type: 'pattern',
@@ -698,13 +708,11 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         };
     }
 
-    private getSectorFormat(
-        datum: any,
-        datumIndex: number,
+    private getItemStyle(
+        { datum, datumIndex = 0 }: Partial<PieDonutNodeDatum>,
         isHighlight: boolean,
-        nodeDatum?: PieDonutNodeDatum,
         legendItemValues?: string[],
-        activeHighlight?: SeriesNodeDatum<unknown>
+        activeHighlight?: SeriesNodeDatum<unknown, unknown>
     ) {
         const {
             angleKey,
@@ -732,7 +740,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             cornerRadius,
             opacity,
         } = mergeDefaults(
-            this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, legendItemValues),
+            this.getHighlightStyle(isHighlight, datumIndex, legendItemValues),
             {
                 fill: defaultFill,
                 stroke: defaultStroke,
@@ -1009,14 +1017,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             _index: number,
             isDatumHighlighted: boolean
         ) => {
-            const format = this.getSectorFormat(
-                datum.datum,
-                datum.itemId,
-                isDatumHighlighted,
-                datum,
-                legendItemValues,
-                highlightedDatum
-            );
+            const format = this.getItemStyle(datum, isDatumHighlighted, legendItemValues, highlightedDatum);
 
             datum.sectorFormat.fill = format.fill;
             datum.sectorFormat.stroke = format.stroke;
@@ -1654,14 +1655,14 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 angleName,
                 radiusKey,
                 radiusName,
-                ...this.getSectorFormat(datum, datumIndex, false),
+                ...this.getItemStyle({ datum, datumIndex }, false),
             }
         );
     }
 
     private legendItemSymbol(datumIndex: number): LegendSymbolOptions {
         const datum = this.processedData?.dataSources.get(this.id)?.[datumIndex];
-        const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
+        const sectorFormat = this.getItemStyle({ datum, datumIndex }, false);
         const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
 
         let { fill } = sectorFormat;

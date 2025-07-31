@@ -13,7 +13,7 @@ import { Label } from '../../label';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
-export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
+export interface HistogramNodeDatum extends CartesianSeriesNodeDatum<AgHistogramSeriesStyle> {
     readonly x: number;
     readonly y: number;
     readonly width: number;

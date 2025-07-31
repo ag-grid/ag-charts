@@ -1,8 +1,9 @@
 import {
-    type AgGradientColorMode,
     type AgRadialGaugeMarkerShape,
     type AgRadialGaugeOptions,
+    type AgRadialGaugeSeriesStyle,
     type AgRadialGaugeTargetPlacement,
+    type AgSeriesMarkerStyle,
     type FontStyle,
     type FontWeight,
     type TextAlign,
@@ -45,7 +46,6 @@ const {
     normalizeAngle360Inclusive,
     isBetweenAngles,
     sectorBox,
-    toDegrees,
     toRadians,
     BBox,
     Group,
@@ -55,7 +55,6 @@ const {
     SectorBox,
     Text,
     Marker,
-    getColorStops,
     tickFormat,
     applyShapeStyle,
     mergeDefaults,
@@ -79,14 +78,8 @@ interface Target {
     spacing: number;
     size: number;
     rotation: number;
-    fill: string;
-    fillOpacity: number;
-    stroke: string;
-    strokeWidth: number;
-    strokeOpacity: number;
-    lineDash: number[];
-    lineDashOffset: number;
     label: TargetLabel;
+    style: AgSeriesMarkerStyle;
 }
 
 type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
@@ -153,6 +146,7 @@ export class RadialGaugeSeries
         RadialGaugeNodeDatum,
         AgRadialGaugeOptions,
         RadialGaugeSeriesProperties,
+        AgRadialGaugeSeriesStyle,
         RadialGaugeLabelDatum,
         RadialGaugeNodeDataContext
     >
@@ -390,40 +384,14 @@ export class RadialGaugeSeries
         return tickData;
     }
 
-    private createConicGradient(
-        fills: _ModuleSupport.StopProperties[],
-        fillMode: AgGradientColorMode
-    ): _ModuleSupport.ShapeColor {
-        const { scale } = this;
-        const { domain, range } = scale;
-        const [startAngle, endAngle] = range;
-        const { defaultColorRange } = this.properties;
-
-        const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
-        const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
-
-        const colorStops = getColorStops(fills, defaultColorRange, domain, fillMode).map(
-            ({ color, stop }): _ModuleSupport.GradientColorStop => {
-                stop = Math.min(Math.max(stop, 0), 1);
-                const angle = startAngle + sweepAngle * stop;
-                stop = (angle - conicAngle) / (2 * Math.PI);
-                stop = ((stop % 1) + 1) % 1;
-                return { stop, color };
-            }
-        );
+    protected getShapeFillBBox(): _ModuleSupport.ShapeFillBBox {
+        const { centerX, centerY, radius } = this;
+        const bbox = new BBox(centerX - radius, centerY - radius, 2 * radius, 2 * radius);
 
         return {
-            type: 'gradient',
-            gradient: 'conic',
-            colorSpace: 'oklch',
-            colorStops,
-            rotation: toDegrees(conicAngle) + 90,
+            series: bbox,
+            axis: bbox,
         };
-    }
-
-    protected getShapeFillBBox(): _ModuleSupport.BBox {
-        const { centerX, centerY, radius } = this;
-        return new BBox(centerX - radius, centerY - radius, 2 * radius, 2 * radius);
     }
 
     private getTargets(): Target[] {
@@ -435,16 +403,9 @@ export class RadialGaugeSeries
                 value = defaultTarget.value ?? 0,
                 shape = defaultTarget.shape ?? 'triangle',
                 rotation = defaultTarget.rotation ?? 0,
-                strokeWidth = defaultTarget.strokeWidth ?? 0,
                 placement = defaultTarget.placement ?? 'middle',
                 spacing = defaultTarget.spacing ?? 0,
                 size = defaultTarget.size ?? 0,
-                fill = defaultTarget.fill ?? 'black',
-                fillOpacity = defaultTarget.fillOpacity ?? 1,
-                stroke = defaultTarget.stroke ?? 'black',
-                strokeOpacity = defaultTarget.strokeOpacity ?? 1,
-                lineDash = defaultTarget.lineDash ?? [0],
-                lineDashOffset = defaultTarget.lineDashOffset ?? 0,
             } = target;
             const {
                 enabled: labelEnabled = defaultTarget.label.enabled,
@@ -464,13 +425,6 @@ export class RadialGaugeSeries
                 spacing,
                 size,
                 rotation,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
                 label: {
                     enabled: labelEnabled,
                     color: labelColor,
@@ -480,6 +434,7 @@ export class RadialGaugeSeries
                     fontFamily: labelFontFamily,
                     spacing: labelSpacing,
                 },
+                style: target.getStyle(),
             };
         });
     }
@@ -568,7 +523,11 @@ export class RadialGaugeSeries
             label,
             secondaryLabel,
         } = properties;
-        const { outerRadius = radius * outerRadiusRatio, innerRadius = radius * innerRadiusRatio } = properties;
+        const {
+            outerRadius = radius * outerRadiusRatio,
+            innerRadius = radius * innerRadiusRatio,
+            defaultColorRange,
+        } = properties;
         const targets = this.getTargets();
 
         const nodeData: RadialGaugeNodeDatum[] = [];
@@ -585,11 +544,8 @@ export class RadialGaugeSeries
         const maxTicks = Math.ceil(normalizeAngle360Inclusive(containerEndAngle - containerStartAngle) * radius);
         let segments = segmentation.enabled ? segmentation.interval.getSegments(scale, maxTicks) : undefined;
 
-        const barFill = !bar.enabled ? 'rgba(0,0,0,0)' : bar.fill ?? this.createConicGradient(bar.fills, bar.fillMode);
-        const scaleFill =
-            scaleProps.fill ??
-            (bar.enabled && scaleProps.fills.length === 0 ? scaleProps.defaultFill : undefined) ??
-            this.createConicGradient(scaleProps.fills, scaleProps.fillMode);
+        const barStyle = bar.getStyle(defaultColorRange, scale);
+        const scaleStyle = scaleProps.getStyle(bar.enabled, defaultColorRange, scale);
 
         if (segments == null && cornersOnAllItems) {
             const segmentStart = Math.min(...scale.domain);
@@ -614,7 +570,7 @@ export class RadialGaugeSeries
                 clipEndAngle: undefined,
                 startCornerRadius: cornerRadius,
                 endCornerRadius: cornerRadius,
-                fill: barFill,
+                style: barStyle,
             });
 
             scaleData.push({
@@ -633,7 +589,7 @@ export class RadialGaugeSeries
                 clipEndAngle: undefined,
                 startCornerRadius: cornerRadius,
                 endCornerRadius: cornerRadius,
-                fill: scaleFill,
+                style: scaleStyle,
             });
         } else {
             segments ??= scale.domain;
@@ -665,7 +621,7 @@ export class RadialGaugeSeries
                     clipEndAngle: containerEndAngle,
                     startCornerRadius: cornersOnAllItems || isStart ? cornerRadius : 0,
                     endCornerRadius: cornersOnAllItems || isEnd ? cornerRadius : 0,
-                    fill: barFill,
+                    style: barStyle,
                 });
 
                 scaleData.push({
@@ -684,7 +640,7 @@ export class RadialGaugeSeries
                     clipEndAngle: undefined,
                     startCornerRadius: cornersOnAllItems || isStart ? cornerRadius : 0,
                     endCornerRadius: cornersOnAllItems || isEnd ? cornerRadius : 0,
-                    fill: scaleFill,
+                    style: scaleStyle,
                 });
             }
         }
@@ -763,19 +719,7 @@ export class RadialGaugeSeries
 
         for (let i = 0; i < targets.length; i += 1) {
             const target = targets[i];
-            const {
-                value: targetValue,
-                text,
-                size,
-                shape,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-            } = target;
+            const { value: targetValue, text, size, shape, style } = target;
 
             if (targetValue < Math.min(...scale.domain) || targetValue > Math.max(...scale.domain)) {
                 continue;
@@ -804,14 +748,8 @@ export class RadialGaugeSeries
                 angle: targetAngle,
                 rotation: targetRotation,
                 size,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
                 label: this.getTargetLabel(target),
+                style,
             });
         }
 
@@ -913,16 +851,14 @@ export class RadialGaugeSeries
     }) {
         const { datumSelection } = opts;
         const { ctx, properties } = this;
-        const { bar, segmentation } = properties;
+        const { segmentation } = properties;
         const sectorSpacing = segmentation.spacing ?? 0;
-        const { fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = bar;
-        const strokeWidth = bar.strokeWidth;
         const animationDisabled = ctx.animationManager.isSkipped();
 
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((sector, datum) => {
-            const { centerX, centerY, innerRadius, outerRadius, startCornerRadius, endCornerRadius, fill } = datum;
+            const { centerX, centerY, innerRadius, outerRadius, startCornerRadius, endCornerRadius } = datum;
             sector.centerX = centerX;
             sector.centerY = centerY;
             sector.innerRadius = innerRadius;
@@ -931,14 +867,8 @@ export class RadialGaugeSeries
                 ? _ModuleSupport.PointerEvents.All
                 : _ModuleSupport.PointerEvents.None;
 
-            sector.fill = fill;
-            sector.fillBBox = fillBBox;
-            sector.fillOpacity = fillOpacity;
-            sector.stroke = stroke;
-            sector.strokeOpacity = strokeOpacity;
-            sector.strokeWidth = strokeWidth;
-            sector.lineDash = lineDash;
-            sector.lineDashOffset = lineDashOffset;
+            applyShapeStyle(sector, datum.style, fillBBox);
+
             sector.startOuterCornerRadius = startCornerRadius;
             sector.startInnerCornerRadius = startCornerRadius;
             sector.endOuterCornerRadius = endCornerRadius;
@@ -982,27 +912,20 @@ export class RadialGaugeSeries
         scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum>;
     }) {
         const { scaleSelection } = opts;
-        const { scale, segmentation } = this.properties;
+        const { segmentation } = this.properties;
         const sectorSpacing = segmentation.spacing ?? 0;
-        const { fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = scale;
 
         const fillBBox = this.getShapeFillBBox();
 
         scaleSelection.each((sector, datum) => {
-            const { centerX, centerY, innerRadius, outerRadius, startCornerRadius, endCornerRadius, fill } = datum;
+            const { centerX, centerY, innerRadius, outerRadius, startCornerRadius, endCornerRadius } = datum;
             sector.centerX = centerX;
             sector.centerY = centerY;
             sector.innerRadius = innerRadius;
             sector.outerRadius = outerRadius;
 
-            sector.fill = fill;
-            sector.fillBBox = fillBBox;
-            sector.fillOpacity = fillOpacity;
-            sector.stroke = stroke;
-            sector.strokeOpacity = strokeOpacity;
-            sector.strokeWidth = strokeWidth;
-            sector.lineDash = lineDash;
-            sector.lineDashOffset = lineDashOffset;
+            applyShapeStyle(sector, datum.style, fillBBox);
+
             sector.startOuterCornerRadius = startCornerRadius;
             sector.startInnerCornerRadius = startCornerRadius;
             sector.endOuterCornerRadius = endCornerRadius;
@@ -1037,13 +960,16 @@ export class RadialGaugeSeries
 
             needle.d = RadialGaugeNeedle.defaultPathData;
 
-            needle.fill = fill;
-            needle.fillOpacity = fillOpacity;
-            needle.stroke = stroke;
-            needle.strokeOpacity = strokeOpacity;
-            needle.strokeWidth = strokeWidth / scale;
-            needle.lineDash = lineDash.map((d) => d / scale);
-            needle.lineDashOffset = lineDashOffset / scale;
+            applyShapeStyle(needle, {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeOpacity,
+                strokeWidth: strokeWidth / scale,
+                lineDash: lineDash.map((d) => d / scale),
+                lineDashOffset: lineDashOffset / scale,
+            });
+
             needle.translationX = centerX;
             needle.translationY = centerY;
             needle.scalingX = scale;
@@ -1069,35 +995,9 @@ export class RadialGaugeSeries
         const { targetSelection, isHighlight } = opts;
 
         targetSelection.each((target, datum) => {
-            const {
-                centerX,
-                centerY,
-                angle,
-                radius,
-                shape,
-                size,
-                rotation,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-            } = datum;
+            const { centerX, centerY, angle, radius, shape, size, rotation } = datum;
 
-            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
-
-            const style = mergeDefaults(highlightStyle, {
-                fill,
-                fillOpacity,
-                stroke,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-                opacity: 1,
-            });
+            const style = this.getTargetStyle(isHighlight, datum);
             applyShapeStyle(target, style);
 
             target.size = size;
@@ -1105,6 +1005,15 @@ export class RadialGaugeSeries
             target.translationX = centerX + radius * Math.cos(angle);
             target.translationY = centerY + radius * Math.sin(angle);
             target.rotation = angle + rotation;
+        });
+    }
+
+    private getTargetStyle(isHighlight: boolean, { datumIndex, style }: RadialGaugeTargetDatum) {
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+
+        return mergeDefaults(highlightStyle, {
+            ...style,
+            opacity: 1,
         });
     }
 

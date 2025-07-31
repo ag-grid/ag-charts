@@ -1,4 +1,5 @@
 import {
+    type ColorSpace,
     Logger,
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
@@ -157,6 +158,9 @@ export class FillGradientDefaults
 
     @Property
     reverse: boolean = false;
+
+    @Property
+    colorSpace: ColorSpace = 'rgb';
 }
 
 export class FillPatternDefaults

@@ -1,8 +1,9 @@
 import {
-    type AgGradientColorMode,
     type AgLinearGaugeMarkerShape,
     type AgLinearGaugeOptions,
+    type AgLinearGaugeSeriesStyle,
     type AgLinearGaugeTargetPlacement,
+    type AgSeriesMarkerStyle,
     type AgTimeInterval,
     type AgTimeIntervalUnit,
     type FontStyle,
@@ -52,7 +53,6 @@ const {
     AxisTickGenerator,
     NiceMode,
     easing,
-    getColorStops,
     findRangeExtent,
     tickFormat,
     mergeDefaults,
@@ -77,14 +77,8 @@ interface Target {
     spacing: number;
     size: number;
     rotation: number;
-    fill: string;
-    fillOpacity: number;
-    stroke: string;
-    strokeWidth: number;
-    strokeOpacity: number;
-    lineDash: number[];
-    lineDashOffset: number;
     label: TargetLabel;
+    style: AgSeriesMarkerStyle;
 }
 
 type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
@@ -173,6 +167,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     LinearGaugeNodeDatum,
     AgLinearGaugeOptions,
     LinearGaugeSeriesProperties,
+    AgLinearGaugeSeriesStyle,
     LinearGaugeLabelDatum,
     LinearGaugeNodeDataContext
 > {
@@ -304,30 +299,17 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return formatLabel(value, this.properties.scale);
     }
 
-    private createLinearGradient(
-        scale: _ModuleSupport.LinearScale,
-        fills: _ModuleSupport.StopProperties[],
-        fillMode: AgGradientColorMode
-    ): _ModuleSupport.ShapeColor {
-        const { properties, horizontal } = this;
-        const { defaultColorRange } = properties;
-        const colorStops = getColorStops(fills, defaultColorRange, scale.domain, fillMode);
-        return {
-            type: 'gradient',
-            gradient: 'linear',
-            colorSpace: 'oklch',
-            colorStops,
-            rotation: horizontal ? 90 : 0,
-        };
-    }
-
-    protected getShapeFillBBox(): _ModuleSupport.BBox {
+    protected getShapeFillBBox(): _ModuleSupport.ShapeFillBBox {
         const { properties, originX, originY, horizontal, scale } = this;
         const { thickness } = properties;
 
         const length = findRangeExtent(scale.range);
+        const bbox = new BBox(originX, originY, horizontal ? length : thickness, horizontal ? thickness : length);
 
-        return new BBox(originX, originY, horizontal ? length : thickness, horizontal ? thickness : length);
+        return {
+            axis: bbox,
+            series: bbox,
+        };
     }
 
     private getTargets(): Target[] {
@@ -339,16 +321,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 value = defaultTarget.value ?? 0,
                 shape = defaultTarget.shape ?? 'triangle',
                 rotation = defaultTarget.rotation ?? 0,
-                strokeWidth = defaultTarget.strokeWidth ?? 0,
                 placement = defaultTarget.placement ?? 'middle',
                 spacing = defaultTarget.spacing ?? 0,
                 size = defaultTarget.size ?? 0,
-                fill = defaultTarget.fill ?? 'black',
-                fillOpacity = defaultTarget.fillOpacity ?? 1,
-                stroke = defaultTarget.stroke ?? 'black',
-                strokeOpacity = defaultTarget.strokeOpacity ?? 1,
-                lineDash = defaultTarget.lineDash ?? [0],
-                lineDashOffset = defaultTarget.lineDashOffset ?? 0,
             } = target;
             const {
                 enabled: labelEnabled = defaultTarget.label.enabled,
@@ -368,13 +343,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 spacing,
                 size,
                 rotation,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
                 label: {
                     enabled: labelEnabled,
                     color: labelColor,
@@ -384,6 +352,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                     fontFamily: labelFontFamily,
                     spacing: labelSpacing,
                 },
+                style: target.getStyle(),
             };
         });
     }
@@ -538,7 +507,17 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     override createNodeData() {
         const { id: seriesId, properties, horizontal, scale, seriesRect } = this;
-        const { value, segmentation, thickness, cornerRadius, cornerMode, bar, scale: scaleProps, label } = properties;
+        const {
+            value,
+            segmentation,
+            thickness,
+            cornerRadius,
+            cornerMode,
+            bar,
+            scale: scaleProps,
+            label,
+            defaultColorRange,
+        } = properties;
 
         scale.domain = [scaleProps.min, scaleProps.max];
         // Required to generate ticks in horizontalLabelInset
@@ -641,11 +620,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const maxTicks = Math.ceil(mainAxisSize);
         let segments = segmentation.enabled ? segmentation.interval.getSegments(scale, maxTicks) : undefined;
 
-        const barFill = bar.fill ?? this.createLinearGradient(scale, bar.fills, bar.fillMode);
-        const scaleFill =
-            scaleProps.fill ??
-            (bar.enabled && scaleProps.fills.length === 0 ? scaleProps.defaultFill : undefined) ??
-            this.createLinearGradient(scale, scaleProps.fills, scaleProps.fillMode);
+        const barStyle = bar.getStyle(defaultColorRange, horizontal, scale);
+        const scaleStyle = scaleProps.getStyle(bar.enabled, defaultColorRange, horizontal, scale);
 
         if (segments == null && cornersOnAllItems) {
             const segmentStart = Math.min(...scale.domain);
@@ -677,9 +653,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                     topRightCornerRadius: cornerRadius,
                     bottomRightCornerRadius: cornerRadius,
                     bottomLeftCornerRadius: cornerRadius,
-                    fill: barFill,
                     horizontalInset,
                     verticalInset,
+                    style: barStyle,
                 });
             }
 
@@ -707,9 +683,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 topRightCornerRadius: cornerRadius,
                 bottomRightCornerRadius: cornerRadius,
                 bottomLeftCornerRadius: cornerRadius,
-                fill: scaleFill,
                 horizontalInset,
                 verticalInset,
+                style: scaleStyle,
             });
         } else {
             segments ??= scale.domain;
@@ -756,9 +732,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                         topRightCornerRadius,
                         bottomRightCornerRadius,
                         bottomLeftCornerRadius,
-                        fill: barFill,
                         horizontalInset,
                         verticalInset,
+                        style: barStyle,
                     });
                 }
 
@@ -780,9 +756,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                     topRightCornerRadius,
                     bottomRightCornerRadius,
                     bottomLeftCornerRadius,
-                    fill: scaleFill,
                     horizontalInset,
                     verticalInset,
+                    style: scaleStyle,
                 });
             }
         }
@@ -796,19 +772,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             : verticalTargetPlacementRotation;
         for (let i = 0; i < targets.length; i += 1) {
             const target = targets[i];
-            const {
-                value: targetValue,
-                text,
-                shape,
-                size,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-            } = target;
+            const { value: targetValue, text, shape, size, style } = target;
 
             const targetPoint = this.getTargetPoint(target);
             const targetRotation = toRadians(target.rotation + targetPlacementRotation[target.placement]);
@@ -827,14 +791,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 shape,
                 size,
                 rotation: targetRotation,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
                 label: this.getTargetLabel(target),
+                style,
             });
         }
 
@@ -931,24 +889,14 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
     }) {
         const { datumSelection } = opts;
-        const { ctx, properties } = this;
-        const { bar } = properties;
-        const { fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = bar;
-        const strokeWidth = bar.strokeWidth;
+        const { ctx } = this;
         const animationDisabled = ctx.animationManager.isSkipped();
         const fillBBox = this.getShapeFillBBox();
         datumSelection.each((rect, datum) => {
-            const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius, fill } =
+            const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            rect.fill = fill;
-            rect.fillBBox = fillBBox;
-            rect.fillOpacity = fillOpacity;
-            rect.stroke = stroke;
-            rect.strokeOpacity = strokeOpacity;
-            rect.strokeWidth = strokeWidth;
-            rect.lineDash = lineDash;
-            rect.lineDashOffset = lineDashOffset;
+            applyShapeStyle(rect, datum.style, fillBBox);
             rect.topLeftCornerRadius = topLeftCornerRadius;
             rect.topRightCornerRadius = topRightCornerRadius;
             rect.bottomRightCornerRadius = bottomRightCornerRadius;
@@ -1019,22 +967,16 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
     }) {
         const { scaleSelection } = opts;
-        const { scale } = this.properties;
-        const { fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = scale;
+
         const fillBBox = this.getShapeFillBBox();
 
         scaleSelection.each((rect, datum) => {
-            const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius, fill } =
+            const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            rect.fill = fill;
-            rect.fillBBox = fillBBox;
-            rect.fillOpacity = fillOpacity;
-            rect.stroke = stroke;
-            rect.strokeOpacity = strokeOpacity;
-            rect.strokeWidth = strokeWidth;
-            rect.lineDash = lineDash;
-            rect.lineDashOffset = lineDashOffset;
+            applyShapeStyle(rect, datum.style, fillBBox);
+
+            rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, datum));
             rect.topLeftCornerRadius = topLeftCornerRadius;
             rect.topRightCornerRadius = topRightCornerRadius;
             rect.bottomRightCornerRadius = bottomRightCornerRadius;
@@ -1058,33 +1000,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { targetSelection, isHighlight } = opts;
 
         targetSelection.each((target, datum) => {
-            const {
-                x,
-                y,
-                shape,
-                size,
-                rotation,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-            } = datum;
+            const { x, y, shape, size, rotation } = datum;
 
-            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
-
-            const style = mergeDefaults(highlightStyle, {
-                fill,
-                fillOpacity,
-                stroke,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-                opacity: 1,
-            });
+            const style = this.getTargetStyle(isHighlight, datum);
             applyShapeStyle(target, style);
 
             target.size = size;
@@ -1092,6 +1010,15 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             target.translationX = x;
             target.translationY = y;
             target.rotation = rotation;
+        });
+    }
+
+    private getTargetStyle(isHighlight: boolean, { datumIndex, style }: LinearGaugeTargetDatum) {
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+
+        return mergeDefaults(highlightStyle, {
+            ...style,
+            opacity: 1,
         });
     }
 

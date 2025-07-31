@@ -5,7 +5,8 @@ import type { HighlightState } from 'ag-charts-types';
 const { nearestSquared, nearestSquaredInContainer, partialAssign, mergeDefaults, BBox } = _ModuleSupport;
 type NearestResult<T> = _ModuleSupport.NearestResult<T>;
 
-export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
+export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum<ErrorBarStylingOptions> &
+    _ModuleSupport.ErrorBoundSeriesNodeDatum;
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
 
 type FormatOptions = Pick<AgErrorBarOptions<any>, 'xLowerKey' | 'xUpperKey' | 'yLowerKey' | 'yUpperKey' | 'itemStyler'>;

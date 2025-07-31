@@ -113,6 +113,7 @@ export const FILL_GRADIENT_LINEAR_DEFAULTS: WithThemeParams<RequiredInternalAgGr
     colorStops: { $map: [{ color: { $value: '$1' } }, { $palette: 'gradient' }] },
     rotation: 0,
     reverse: false,
+    colorSpace: 'rgb',
 };
 
 export const FILL_GRADIENT_LINEAR_HIERARCHY_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
@@ -164,6 +165,7 @@ export const FILL_GRADIENT_RADIAL_DEFAULTS: WithThemeParams<RequiredInternalAgGr
     colorStops: { $map: [{ color: { $value: '$1' } }, { $palette: 'gradient' }] },
     rotation: 0,
     reverse: false,
+    colorSpace: 'rgb',
 };
 
 export const FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
@@ -189,6 +191,7 @@ export const FILL_GRADIENT_CONIC_SERIES_DEFAULTS: WithThemeParams<RequiredIntern
     colorStops: { $map: [{ color: { $value: '$1' } }, { $palette: 'gradient' }] },
     rotation: 0,
     reverse: false,
+    colorSpace: 'rgb',
 };
 
 export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternColor> = {

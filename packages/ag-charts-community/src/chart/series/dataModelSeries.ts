@@ -13,7 +13,7 @@ import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesNodeDatum } from './seriesTypes';
 
-export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {}
+export interface DataModelSeriesNodeDatum<TStyle> extends SeriesNodeDatum<number, TStyle> {}
 
 export interface DataModelSeriesNodeDataContext<TDatum, TLabel = TDatum>
     extends SeriesNodeDataContext<number, TDatum, TLabel> {}
@@ -24,12 +24,13 @@ export type DataModelSeriesConstructorOpts<TProps extends SeriesProperties<any>>
 };
 
 export abstract class DataModelSeries<
-    TDatum extends SeriesNodeDatum<number>,
+    TDatum extends SeriesNodeDatum<number, TStyle>,
     TOpts extends object,
     TProps extends SeriesProperties<TOpts>,
+    TStyle extends object,
     TLabel = TDatum,
     TContext extends DataModelSeriesNodeDataContext<TDatum, TLabel> = DataModelSeriesNodeDataContext<TDatum, TLabel>,
-> extends Series<number, TDatum, TOpts, TProps, TLabel, TContext> {
+> extends Series<number, TDatum, TOpts, TProps, TStyle, TLabel, TContext> {
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
     private readonly categoryKey: string | undefined;

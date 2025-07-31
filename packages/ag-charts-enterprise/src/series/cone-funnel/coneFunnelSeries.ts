@@ -173,6 +173,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgCo
             datumIndex,
             series: this,
             visible,
+            style: this.barStyle(),
         };
     }
 

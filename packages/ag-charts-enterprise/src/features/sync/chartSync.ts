@@ -244,7 +244,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
             if (axis.keys.length && !axis.keys.some((key) => seriesKeys.includes(key))) return;
 
-            const nodeData: _ModuleSupport.SeriesNodeDatum<unknown>[] = (series as any).contextNodeData?.nodeData ?? [];
+            const nodeData: _ModuleSupport.SeriesNodeDatum<unknown, unknown>[] =
+                (series as any).contextNodeData?.nodeData ?? [];
             if (!nodeData?.length) return;
 
             const firstNode = nodeData[0];
@@ -263,7 +264,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     private dispatchHighlightUpdate(
         chart: _ModuleSupport.SyncChartLike,
-        nodeDatum?: _ModuleSupport.SeriesNodeDatum<any>
+        nodeDatum?: _ModuleSupport.SeriesNodeDatum<any, unknown>
     ) {
         debug('ChartSync.dispatchHighlightUpdate()', chart.id, nodeDatum);
 

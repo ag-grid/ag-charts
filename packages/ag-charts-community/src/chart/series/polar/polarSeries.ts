@@ -52,18 +52,20 @@ export const DEFAULT_POLAR_DIRECTION_NAMES = {
 };
 
 export type UnknownPolarSeries = PolarSeries<
-    DataModelSeriesNodeDatum,
+    DataModelSeriesNodeDatum<object>,
     object,
     SeriesProperties<object> & PolarSeriesProperties,
+    object,
     Node
 >;
 
 export abstract class PolarSeries<
-    TDatum extends DataModelSeriesNodeDatum & { legendItemValue?: string },
+    TDatum extends DataModelSeriesNodeDatum<TStyle> & { legendItemValue?: string },
     TOpts extends object,
     TProps extends SeriesProperties<TOpts> & PolarSeriesProperties,
+    TStyle extends object,
     TNode extends Node,
-> extends DataModelSeries<TDatum, TOpts, TProps> {
+> extends DataModelSeries<TDatum, TOpts, TProps, TStyle> {
     override directions = [ChartAxisDirection.Angle, ChartAxisDirection.Radius];
 
     protected itemGroup = this.contentGroup.appendChild(new Group());

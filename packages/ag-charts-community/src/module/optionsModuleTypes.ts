@@ -7,7 +7,7 @@ import type { Point } from '../scene/point';
 import type { BaseOptionsModule, ModuleInstance } from './baseModule';
 import type { SeriesContext } from './moduleContext';
 
-export type PickNodeDatumResult = { datum: SeriesNodeDatum<unknown>; distanceSquared: number } | undefined;
+export type PickNodeDatumResult = { datum: SeriesNodeDatum<unknown, unknown>; distanceSquared: number } | undefined;
 
 export interface SeriesOptionInstance extends ModuleInstance {
     pickNodeExact(point: Point): PickNodeDatumResult;

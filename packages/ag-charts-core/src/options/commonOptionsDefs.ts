@@ -87,7 +87,12 @@ export interface InternalAgGradientColor extends AgGradientColor {
     bounds?: AgGradientColorBounds;
     /** Reverse the order of colour stops. */
     reverse?: boolean;
+    /** Color space of the gradient. */
+    colorSpace?: ColorSpace;
 }
+
+export type ColorSpace = 'rgb' | 'oklch';
+
 export interface InternalAgPatternColor extends AgPatternColor {
     /** Padding for the shape in the pattern unit. */
     padding?: number;
@@ -123,6 +128,7 @@ export const fillGradientDefaults = optionsDefs<InternalAgGradientColor>({
     colorStops: required(or(gradientColorStops, and(arrayLength(2), arrayOf(color)))),
     rotation: required(number),
     reverse: required(boolean),
+    colorSpace: required(union('rgb', 'oklch')),
 });
 
 export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({

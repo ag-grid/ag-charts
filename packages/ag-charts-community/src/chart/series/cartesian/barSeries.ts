@@ -77,7 +77,7 @@ interface BarNodeLabelDatum extends Readonly<Point> {
     readonly textBaseline: CanvasTextBaseline;
 }
 
-interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
+interface BarNodeDatum extends CartesianSeriesNodeDatum<AgBarSeriesStyle>, ErrorBoundSeriesNodeDatum, Readonly<Point> {
     readonly xValue: string | number;
     readonly yValue: string | number;
     readonly cumulativeValue: number;
@@ -103,6 +103,7 @@ export class BarSeries extends AbstractBarSeries<
     BarShape<BarNodeDatum>,
     AgBarSeriesOptions,
     BarSeriesProperties,
+    AgBarSeriesStyle,
     BarNodeDatum,
     BarNodeDatum
 > {
@@ -448,6 +449,7 @@ export class BarSeries extends AbstractBarSeries<
                         : undefined,
                 missing: yValue == null,
                 focusable: !phantom,
+                style: this.getItemStyle({ xValue, yValue, datum, datumIndex, phantom }, false),
             };
         };
 
@@ -644,7 +646,7 @@ export class BarSeries extends AbstractBarSeries<
         const highlightItem = nodeData.find(
             (nodeDatum) => nodeDatum.datum === highlightedItem.datum && !nodeDatum.phantom
         );
-        return highlightItem != null ? [highlightItem] : undefined;
+        return highlightItem != null ? [{ ...highlightItem }] : undefined;
     }
 
     protected override updateDatumSelection(opts: {
@@ -654,7 +656,10 @@ export class BarSeries extends AbstractBarSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemStyle(nodeDatum: BarNodeDatum, isHighlight: boolean): Required<AgBarSeriesStyle> {
+    private getItemStyle(
+        nodeDatum: Pick<BarNodeDatum, 'xValue' | 'yValue' | 'phantom' | 'datum' | 'datumIndex'>,
+        isHighlight: boolean
+    ): Required<AgBarSeriesStyle> {
         const { id: seriesId, properties } = this;
 
         const { xKey, yKey, itemStyler } = properties;

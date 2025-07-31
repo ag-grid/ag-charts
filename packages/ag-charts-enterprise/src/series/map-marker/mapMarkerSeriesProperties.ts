@@ -22,7 +22,7 @@ const {
 
 export interface MapMarkerNodeLabelDatum extends _ModuleSupport.PointLabelDatum {}
 
-export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
+export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum<AgMapMarkerSeriesStyle> {
     readonly index: number;
     readonly idValue: string | undefined;
     readonly lonValue: number | undefined;

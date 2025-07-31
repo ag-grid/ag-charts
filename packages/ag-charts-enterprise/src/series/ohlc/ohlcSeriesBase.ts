@@ -1,5 +1,7 @@
 import {
+    type AgCandlestickSeriesItemOptions,
     type AgOhlcSeriesBaseOptions,
+    type AgOhlcSeriesItemOptions,
     type AgOhlcSeriesItemType,
     type FillOptions,
     type LineDashOptions,
@@ -39,8 +41,10 @@ const {
 } = _ModuleSupport;
 
 const memoizedAggregateOhlcData = simpleMemorize2(aggregateOhlcData);
+interface OhlcCandleStickSeriesStyle extends AgCandlestickSeriesItemOptions, AgOhlcSeriesItemOptions {}
 
-export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
+export interface OhlcNodeDatum
+    extends Omit<_ModuleSupport.CartesianSeriesNodeDatum<OhlcCandleStickSeriesStyle>, 'yKey' | 'yValue'> {
     readonly itemId: AgOhlcSeriesItemType;
 
     readonly openValue: number;
@@ -89,7 +93,7 @@ export abstract class OhlcSeriesBase<
     TNode extends OhlcBaseNode,
     TOpts extends AgOhlcSeriesBaseOptions,
     TProps extends OhlcSeriesBaseProperties<TOpts>,
-> extends _ModuleSupport.AbstractBarSeries<TNode, TOpts, TProps, OhlcNodeDatum> {
+> extends _ModuleSupport.AbstractBarSeries<TNode, TOpts, TProps, OhlcCandleStickSeriesStyle, OhlcNodeDatum> {
     protected override readonly NodeEvent = OhlcSeriesNodeEvent;
 
     private dataAggregationFilters: OhlcSeriesDataAggregationFilter[] | undefined = undefined;
@@ -300,6 +304,7 @@ export abstract class OhlcSeriesBase<
                 yOpen,
                 yClose,
                 crisp,
+                style: this.getItemStyle({ datumIndex, itemId, datum, xValue }, false),
             });
         };
 

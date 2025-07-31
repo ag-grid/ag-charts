@@ -29,7 +29,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly interactionManager: _ModuleSupport.InteractionManager;
 
     // State
-    private pickedNode: _ModuleSupport.SeriesNodeDatum<unknown> | undefined = undefined;
+    private pickedNode: _ModuleSupport.SeriesNodeDatum<unknown, unknown> | undefined = undefined;
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
     private showEvent: MouseEvent | undefined = undefined;
     private x: number = 0;

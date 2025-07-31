@@ -1,4 +1,8 @@
-import { type AgMapLineBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgMapLineBackgroundOptions,
+    type AgMapLineBackgroundThemeableOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -19,6 +23,7 @@ export class MapLineBackgroundSeries
         MapLineBackgroundNodeDatum,
         AgMapLineBackgroundOptions,
         MapLineBackgroundSeriesProperties,
+        AgMapLineBackgroundThemeableOptions,
         MapLineBackgroundNodeDatum,
         MapLineNodeDataContext
     >
@@ -122,9 +127,11 @@ export class MapLineBackgroundSeries
     }
 
     override createNodeData() {
-        const { id: seriesId, topology, scale } = this;
+        const { id: seriesId, topology, scale, properties } = this;
 
         if (topology == null) return;
+
+        const { stroke, strokeOpacity, lineDash, lineDashOffset, strokeWidth } = properties;
 
         const nodeData: MapLineBackgroundNodeDatum[] = [];
         const labelData: never[] = [];
@@ -141,6 +148,7 @@ export class MapLineBackgroundSeries
                 datumIndex: 0,
                 index,
                 projectedGeometry,
+                style: { stroke, strokeOpacity, lineDash, lineDashOffset, strokeWidth },
             });
         });
 
@@ -182,10 +190,7 @@ export class MapLineBackgroundSeries
     private updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineBackgroundNodeDatum>;
     }) {
-        const { properties } = this;
         const { datumSelection } = opts;
-        const { stroke, strokeOpacity, lineDash, lineDashOffset } = properties;
-        const strokeWidth = properties.strokeWidth;
 
         datumSelection.each((geoGeometry, datum) => {
             const { projectedGeometry } = datum;
@@ -197,11 +202,8 @@ export class MapLineBackgroundSeries
 
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
-            geoGeometry.stroke = stroke;
-            geoGeometry.strokeWidth = strokeWidth;
-            geoGeometry.strokeOpacity = strokeOpacity;
-            geoGeometry.lineDash = lineDash;
-            geoGeometry.lineDashOffset = lineDashOffset;
+
+            geoGeometry.setProperties(datum.style);
         });
     }
 

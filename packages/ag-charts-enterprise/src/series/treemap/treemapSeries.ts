@@ -34,7 +34,7 @@ const {
     mergeDefaults,
 } = _ModuleSupport;
 
-class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
+class TreemapNode extends _ModuleSupport.HierarchyNode<AgTreemapSeriesStyle, TreemapNode> {
     labelValue: string | undefined = undefined;
     secondaryLabelValue: string | undefined = undefined;
     label: LabelLayout | undefined = undefined;
@@ -118,6 +118,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     DistantGroup,
     AgTreemapSeriesOptions,
     TreemapSeriesProperties,
+    AgTreemapSeriesStyle,
     TreemapNode
 > {
     static readonly className = 'TreemapSeries';
@@ -341,7 +342,11 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         return undefined;
     }
 
-    private getItemStyle(nodeDatum: TreemapNode, isLeaf: boolean, isHighlight: boolean) {
+    protected getItemStyle(
+        nodeDatum: Pick<TreemapNode, 'datumIndex' | 'datum' | 'depth' | 'colorValue'>,
+        isLeaf: boolean,
+        isHighlight: boolean
+    ) {
         const { id: seriesId, properties, colorScale, ctx } = this;
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
         const rootIndex = nodeDatum.datumIndex?.[0] ?? 0;

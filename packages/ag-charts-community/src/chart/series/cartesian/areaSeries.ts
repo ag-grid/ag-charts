@@ -77,6 +77,7 @@ const CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR = 0.25;
 
 type AreaAnimationData = CartesianAnimationData<
     Marker,
+    AgSeriesMarkerStyle,
     MarkerSelectionDatum,
     LabelSelectionDatum,
     AreaSeriesNodeDataContext
@@ -101,6 +102,7 @@ export class AreaSeries extends CartesianSeries<
     Marker,
     AgAreaSeriesOptions,
     AreaSeriesProperties,
+    AgSeriesMarkerStyle,
     MarkerSelectionDatum,
     LabelSelectionDatum,
     AreaSeriesNodeDataContext,
@@ -705,11 +707,15 @@ export class AreaSeries extends CartesianSeries<
             label,
             fill: seriesFill,
             stroke: seriesStroke,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
         } = this.properties;
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
 
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const { isContinuousY } = this.getScaleInformation({ xScale, yScale });
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -785,6 +791,20 @@ export class AreaSeries extends CartesianSeries<
                 crossFiltering = true;
             }
 
+            const params = datumStylerProperties(xDatum, yDatum, xKey, yKey, xDomain, yDomain);
+            const style = this.getMarkerStyle(
+                marker,
+                { datumIndex, datum: seriesDatum, point },
+                params,
+                false,
+                undefined,
+                {
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                }
+            );
+
             if (validPoint && marker) {
                 markerData.push({
                     series: this,
@@ -802,6 +822,7 @@ export class AreaSeries extends CartesianSeries<
                     stroke: marker.stroke ?? seriesStroke,
                     strokeWidth: marker.strokeWidth ?? this.properties.strokeWidth,
                     selected,
+                    style,
                 });
             }
 
@@ -825,6 +846,7 @@ export class AreaSeries extends CartesianSeries<
                     x: point.x,
                     y: point.y,
                     labelText,
+                    style, // TODO: remove?
                 });
             }
         };
@@ -958,7 +980,7 @@ export class AreaSeries extends CartesianSeries<
         return datumSelection.update(markersEnabled ? nodeData : []);
     }
 
-    protected override updateDatumNodes(opts: {
+    protected override updateDatumStyles(opts: {
         datumSelection: Selection<Marker, MarkerSelectionDatum>;
         isHighlight: boolean;
     }) {
@@ -967,9 +989,7 @@ export class AreaSeries extends CartesianSeries<
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
-        const fillBBox = this.getShapeFillBBox();
-
-        datumSelection.each((node, datum) => {
+        datumSelection.each((_, datum) => {
             const { xValue, yValue } = datum;
             const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
             const style = this.getMarkerStyle(marker, datum, params, { isHighlight }, undefined, {
@@ -978,12 +998,20 @@ export class AreaSeries extends CartesianSeries<
                 strokeOpacity,
             });
 
-            this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
+            datum.style = style;
         });
+    }
 
-        if (!isHighlight) {
-            this.properties.marker.markClean();
-        }
+    protected override updateDatumNodes(opts: {
+        datumSelection: Selection<Marker, MarkerSelectionDatum>;
+        isHighlight: boolean;
+    }) {
+        const { datumSelection, isHighlight } = opts;
+        const fillBBox = this.getShapeFillBBox();
+
+        datumSelection.each((node, datum) => {
+            this.applyMarkerStyle(datum.style, node, datum.point, fillBBox, { selected: datum.selected });
+        });
 
         if (!isHighlight) {
             this.properties.marker.markClean();

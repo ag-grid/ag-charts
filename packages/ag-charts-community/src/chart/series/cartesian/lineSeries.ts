@@ -71,7 +71,13 @@ import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClip
 
 const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
 
-type LineAnimationData = CartesianAnimationData<Marker, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
+type LineAnimationData = CartesianAnimationData<
+    Marker,
+    AgSeriesMarkerStyle,
+    LineNodeDatum,
+    LineNodeDatum,
+    LineSeriesNodeDataContext
+>;
 
 type SpanPoints = Array<LineSpanPointDatum[] | { skip: number }>;
 
@@ -81,6 +87,7 @@ export class LineSeries extends CartesianSeries<
     Marker,
     AgLineSeriesOptions,
     LineSeriesProperties,
+    AgSeriesMarkerStyle,
     LineNodeDatum,
     LineNodeDatum,
     LineSeriesNodeDataContext
@@ -316,6 +323,9 @@ export class LineSeries extends CartesianSeries<
             connectMissingData,
             interpolation,
             legendItemName,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
         } = this.properties;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -331,6 +341,7 @@ export class LineSeries extends CartesianSeries<
             yFilterKey != null ? dataModel.resolveColumnById(this, `yFilterRaw`, processedData) : undefined;
 
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
 
         const capDefaults = {
             lengthRatioMultiplier: this.properties.marker.getDiameter(),
@@ -378,6 +389,22 @@ export class LineSeries extends CartesianSeries<
                     capDefaults,
                     labelText,
                     selected,
+                    style: this.getMarkerStyle(
+                        marker,
+                        {
+                            datumIndex,
+                            datum,
+                            point: { x, y, size },
+                        },
+                        datumStylerProperties(xDatum, yDatum, xKey, yKey, xDomain, yDomain),
+                        { isHighlight: false },
+                        undefined,
+                        {
+                            stroke,
+                            strokeWidth,
+                            strokeOpacity,
+                        }
+                    ),
                 });
             }
 
@@ -496,7 +523,7 @@ export class LineSeries extends CartesianSeries<
         return datumSelection.update(nodeData, undefined, (datum) => createDatumId(datum.xValue));
     }
 
-    protected override updateDatumNodes(opts: {
+    protected override updateDatumStyles(opts: {
         datumSelection: Selection<Marker, LineNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -505,28 +532,37 @@ export class LineSeries extends CartesianSeries<
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
-        const applyTranslation = this.ctx.animationManager.isSkipped();
-        const fillBBox = this.getShapeFillBBox();
-
-        datumSelection.each((node, datum) => {
+        datumSelection.each((_, datum) => {
             const { xValue, yValue } = datum;
 
             const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
 
-            const style = this.getMarkerStyle(marker, datum, params, { isHighlight }, undefined, {
+            datum.style = this.getMarkerStyle(marker, datum, params, { isHighlight }, undefined, {
                 stroke,
                 strokeWidth,
                 strokeOpacity,
             });
+        });
+    }
 
-            this.applyMarkerStyle(style, node, datum.point, fillBBox, {
+    protected override updateDatumNodes(opts: {
+        datumSelection: Selection<Marker, LineNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        const { datumSelection, isHighlight } = opts;
+
+        const applyTranslation = this.ctx.animationManager.isSkipped();
+        const fillBBox = this.getShapeFillBBox();
+
+        datumSelection.each((node, datum) => {
+            this.applyMarkerStyle(datum.style, node, datum.point, fillBBox, {
                 applyTranslation,
                 selected: datum.selected,
             });
         });
 
         if (!isHighlight) {
-            marker.markClean();
+            this.properties.marker.markClean();
         }
     }
 

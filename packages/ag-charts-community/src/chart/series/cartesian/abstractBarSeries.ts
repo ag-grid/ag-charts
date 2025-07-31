@@ -1,5 +1,5 @@
 import { isFiniteNumber } from 'ag-charts-core';
-import type { Direction } from 'ag-charts-types';
+import type { AgBarSeriesStyle, Direction } from 'ag-charts-types';
 
 import { CategoryScale } from '../../../scale/categoryScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
@@ -29,29 +29,30 @@ export abstract class AbstractBarSeriesProperties<T extends object> extends Cart
 }
 
 export interface AbstractBarSeriesNodeDataContext<
-    TDatum extends CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum<number> = TDatum,
-> extends CartesianSeriesNodeDataContext<TDatum, TLabel> {
+    TDatum extends CartesianSeriesNodeDatum<AgBarSeriesStyle>,
+    TLabel extends SeriesNodeDatum<number, AgBarSeriesStyle> = TDatum,
+> extends CartesianSeriesNodeDataContext<AgBarSeriesStyle, TDatum, TLabel> {
     groupScale: Scaling | undefined;
 }
 
 export type AbstractBarSeriesAnimationData<
     TNode extends QuadtreeCompatibleNode,
-    TDatum extends CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum<number> = TDatum,
-> = CartesianAnimationData<TNode, TDatum, TLabel, AbstractBarSeriesNodeDataContext<TDatum, TLabel>>;
+    TDatum extends CartesianSeriesNodeDatum<AgBarSeriesStyle>,
+    TLabel extends SeriesNodeDatum<number, AgBarSeriesStyle> = TDatum,
+> = CartesianAnimationData<TNode, AgBarSeriesStyle, TDatum, TLabel, AbstractBarSeriesNodeDataContext<TDatum, TLabel>>;
 
 export abstract class AbstractBarSeries<
     TNode extends QuadtreeCompatibleNode,
     TOpts extends object,
     TProps extends AbstractBarSeriesProperties<TOpts>,
-    TDatum extends CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum<number> = TDatum,
+    TStyle extends object,
+    TDatum extends CartesianSeriesNodeDatum<TStyle>,
+    TLabel extends SeriesNodeDatum<number, TStyle> = TDatum,
     TContext extends AbstractBarSeriesNodeDataContext<TDatum, TLabel> = AbstractBarSeriesNodeDataContext<
         TDatum,
         TLabel
     >,
-> extends CartesianSeries<TNode, TOpts, TProps, TDatum, TLabel, TContext> {
+> extends CartesianSeries<TNode, TOpts, TProps, TStyle, TDatum, TLabel, TContext> {
     /**
      * Used to get the position of bars within each group.
      */
@@ -176,7 +177,7 @@ export abstract class AbstractBarSeries<
         addHitTestersToQuadtree(quadtree, this.datumNodesIter());
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
+    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown, unknown>[] {
         const item = findQuadtreeMatch(this, point);
         return item != null && item.distance <= 0 ? [item.datum] : [];
     }

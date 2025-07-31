@@ -1,6 +1,5 @@
 import type { EventsHub, HighlightNodeDatum } from '../../core/eventsHub';
 import { StateTracker } from '../../util/stateTracker';
-import type { SeriesNodeDatum } from '../series/seriesTypes';
 
 /**
  * Manages the actively highlighted series/datum for a chart. Tracks the requested highlights from
@@ -24,7 +23,7 @@ export class HighlightManager {
         return this.highlightStates.stateValue();
     }
 
-    private isEqual(a?: SeriesNodeDatum<unknown>, b?: SeriesNodeDatum<unknown>): boolean {
+    private isEqual(a?: HighlightNodeDatum, b?: HighlightNodeDatum): boolean {
         return (
             a === b ||
             (a != null && b != null && a?.series === b?.series && a?.itemId === b?.itemId && a?.datum === b?.datum)

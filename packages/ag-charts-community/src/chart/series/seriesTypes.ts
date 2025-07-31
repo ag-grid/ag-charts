@@ -36,8 +36,8 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     hasData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
-    fireNodeClickEvent(event: Event, datum: SeriesNodeDatum<unknown>): boolean;
-    fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum<unknown>): void;
+    fireNodeClickEvent(event: Event, datum: SeriesNodeDatum<unknown, unknown>): boolean;
+    fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum<unknown, unknown>): void;
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent<'nodeContextMenuAction'>;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
@@ -63,7 +63,7 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     getFormatterContext(
         direction: ChartAxisDirection
     ): Array<{ seriesId: string; key: string; name: string | undefined }>;
-    datumMidPoint?<T extends SeriesNodeDatum<unknown>>(datum: T): Point | undefined;
+    datumMidPoint?<T extends SeriesNodeDatum<unknown, unknown>>(datum: T): Point | undefined;
     isEnabled(): boolean;
     type: string;
     visible: boolean;
@@ -77,7 +77,7 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
  * Processed series datum used in node selections,
  * contains information used to render pie sectors, bars, markers, etc.
  */
-export interface SeriesNodeDatum<I> {
+export interface SeriesNodeDatum<I, S> {
     readonly series: ISeries<I, any, any>;
     readonly itemId?: any;
     readonly datum: unknown;
@@ -87,6 +87,7 @@ export interface SeriesNodeDatum<I> {
     readonly enabled?: boolean;
     readonly focusable?: boolean;
     midPoint?: Readonly<Point>;
+    style: S;
 }
 
 export interface ErrorBoundSeriesNodeDatum {

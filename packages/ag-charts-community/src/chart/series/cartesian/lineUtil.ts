@@ -1,3 +1,5 @@
+import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+
 import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Point } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
@@ -35,15 +37,15 @@ export type LineSpanPointDatum = {
     yDatum: any;
 };
 
-export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
-    readonly xValue: NonNullable<CartesianSeriesNodeDatum['xValue']>;
-    readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
-    readonly point: NonNullable<CartesianSeriesNodeDatum['point']>;
+export interface LineNodeDatum extends CartesianSeriesNodeDatum<AgSeriesMarkerStyle>, ErrorBoundSeriesNodeDatum {
+    readonly xValue: NonNullable<CartesianSeriesNodeDatum<AgSeriesMarkerStyle>['xValue']>;
+    readonly yValue: NonNullable<CartesianSeriesNodeDatum<AgSeriesMarkerStyle>['yValue']>;
+    readonly point: NonNullable<CartesianSeriesNodeDatum<AgSeriesMarkerStyle>['point']>;
     readonly labelText?: string;
     readonly selected: boolean | undefined;
 }
 
-export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContext<LineNodeDatum> {
+export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContext<AgSeriesMarkerStyle, LineNodeDatum> {
     strokeData: LineStrokePathDatum;
     crossFiltering: boolean;
 }
