@@ -10,16 +10,7 @@ import {
     toFontString,
     toPlainText,
 } from 'ag-charts-core';
-import type {
-    FontFamily,
-    FontSize,
-    FontStyle,
-    FontWeight,
-    Opacity,
-    Padding,
-    PixelSize,
-    TextSegment,
-} from 'ag-charts-types';
+import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, TextSegment } from 'ag-charts-types';
 
 import { Debug } from '../../util/debug';
 import { mergeDefaults } from '../../util/object';
@@ -34,14 +25,10 @@ import { Rect } from './rect';
 import { Shape, type ShapeColor } from './shape';
 import { setSvgFontAttributes } from './svgUtils';
 
-export interface TextSizeProperties {
-    fontFamily?: FontFamily;
-    fontSize: FontSize;
-    fontStyle?: FontStyle;
-    fontWeight?: FontWeight;
+export interface TextSizeProperties extends FontOptions {
     lineHeight?: number;
-    textBaseline?: CanvasTextBaseline;
     textAlign?: CanvasTextAlign;
+    textBaseline?: CanvasTextBaseline;
 }
 
 export interface TextBoxingProperties {
@@ -156,16 +143,14 @@ export class Text<D = any> extends Shape<D> {
 
     private static getVerticalModifier(textBaseline?: CanvasTextBaseline): number {
         switch (textBaseline) {
-            case 'hanging':
             case 'top':
                 return 0;
             case 'middle':
                 return 0.5;
-            case 'alphabetic': // Alphabetic is not correct here - but it's not called
             case 'bottom':
-            case 'ideographic':
-            default:
                 return 1;
+            default:
+                return 0;
         }
     }
 
@@ -321,41 +306,27 @@ export class Text<D = any> extends Shape<D> {
     }
 
     protected override executeFill(ctx: CanvasRenderingContext2D) {
-        const { fontSize, lineHeight = calcLineHeight(fontSize), textBaseline, lines } = this;
-        const lineOriginY =
-            textBaseline === 'alphabetic'
-                ? 0
-                : Text.getVerticalModifier(textBaseline) * lineHeight * (1 - lines.length);
-        this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.fillText(line, x, y));
+        this.renderLines((line, x, y) => ctx.fillText(line, x, y));
     }
 
     protected override executeStroke(ctx: CanvasRenderingContext2D) {
-        const { fontSize, lineHeight = calcLineHeight(fontSize), textBaseline, lines } = this;
-        const lineOriginY =
-            textBaseline === 'alphabetic'
-                ? 0
-                : Text.getVerticalModifier(textBaseline) * lineHeight * (1 - lines.length);
-        this.renderLines(lineOriginY, lineHeight, (line, x, y) => ctx.strokeText(line, x, y));
+        this.renderLines((line, x, y) => ctx.strokeText(line, x, y));
     }
 
-    private renderLines(
-        offsetY: number,
-        lineHeight: number,
-        renderCallback: (line: string, x: number, y: number) => void
-    ): void {
-        const { lines, x, y } = this;
+    private renderLines(renderCallback: (line: string, x: number, y: number) => void): void {
+        const { x, y } = this;
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+        const { lines, fontSize, lineHeight = calcLineHeight(fontSize) } = this;
 
-        if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(offsetY) || !Number.isFinite(lineHeight)) {
-            return;
-        }
-
+        let offsetY =
+            lines.length > 1 ? Text.getVerticalModifier(this.textBaseline) * (lineHeight * (1 - lines.length)) : 0;
         for (const line of lines) {
             renderCallback(line, x, y + offsetY);
             offsetY += lineHeight;
         }
     }
 
-    setFont(props: TextSizeProperties) {
+    setFont(props: FontOptions) {
         this.fontFamily = props.fontFamily;
         this.fontSize = props.fontSize;
         this.fontStyle = props.fontStyle;

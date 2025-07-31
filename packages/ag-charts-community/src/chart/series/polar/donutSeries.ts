@@ -1543,7 +1543,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             text.y = 0;
             text.fill = color;
             text.textAlign = 'center';
-            text.textBaseline = 'alphabetic';
             textBBoxes.push(text.getBBox());
             margins.push(datum.spacing);
         });
