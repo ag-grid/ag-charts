@@ -819,17 +819,11 @@ export class AreaSeries extends CartesianSeries<
             }
         };
 
-        // if (processedData.type === 'grouped') {
-        //     for (const { datumIndex } of dataModel.forEachGroupDatum(this, processedData)) {
-        //         handleDatum(datumIndex);
-        //     }
-        // } else {
         for (let i = startIndex; i < endIndex; i += 1) {
             const datumIndex = indices?.[i] ?? i;
             if (xValues[datumIndex] == null) continue;
             handleDatum(datumIndex);
         }
-        // }
 
         const context: AreaSeriesNodeDataContext = {
             itemId: yKey,
