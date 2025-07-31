@@ -103,7 +103,7 @@ function countVisibleItems(
     return count;
 }
 
-function aggregateQuad(
+function quadChildren(
     xValues: any[],
     yValues: any[],
     xd0: number,
@@ -115,18 +115,7 @@ function aggregateQuad(
     y0: number,
     x1: number,
     y1: number
-): BubbleAggregationNode | undefined {
-    if (
-        indices.length < FILTER_DATUM_THRESHOLD &&
-        x1 - x0 < FILTER_RANGE_THRESHOLD &&
-        y1 - y0 < FILTER_RANGE_THRESHOLD
-    ) {
-        return;
-    } else if (x0 === x1 && y0 === y1) {
-        const primaryDatumIndex = getPrimaryDatumIndex(xValues, yValues, xd0, yd0, xd1, yd1, indices, x0, y0, x1, y1);
-        return { scale: 0, x0, y0, x1, y1, indices, primaryDatumIndex, children: null };
-    }
-
+): BubbleAggregationNode[] {
     const childBuckets: ChildBucket[] = [
         { x0: 1, y0: 1, x1: 0, y1: 0, indices: [] },
         { x0: 1, y0: 1, x1: 0, y1: 0, indices: [] },
@@ -152,17 +141,43 @@ function aggregateQuad(
         childBucket.y1 = Math.max(childBucket.y1, yRatio);
     }
 
-    let children: BubbleAggregationNode[] | null = [];
+    const children: BubbleAggregationNode[] = [];
     for (const childBucket of childBuckets) {
         const { indices: childIndices, x0: cx0, x1: cx1, y0: cy0, y1: cy1 } = childBucket;
+        if (childIndices.length === 0) continue;
+
         const child = aggregateQuad(xValues, yValues, xd0, yd0, xd1, yd1, childIndices, cx0, cy0, cx1, cy1);
-        if (child != null) children.push(child);
+        children.push(child);
     }
 
-    if (children.length === 1) {
+    return children;
+}
+
+function aggregateQuad(
+    xValues: any[],
+    yValues: any[],
+    xd0: number,
+    yd0: number,
+    xd1: number,
+    yd1: number,
+    indices: number[],
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number
+): BubbleAggregationNode {
+    const terminate =
+        (indices.length < FILTER_DATUM_THRESHOLD &&
+            x1 - x0 < FILTER_RANGE_THRESHOLD &&
+            y1 - y0 < FILTER_RANGE_THRESHOLD) ||
+        (x0 === x1 && y0 === y1);
+
+    let children = terminate ? null : quadChildren(xValues, yValues, xd0, yd0, xd1, yd1, indices, x0, y0, x1, y1);
+
+    if (children?.length === 1) {
         // Flatten the tree if there's only one child
         return children[0];
-    } else if (children.length === 0) {
+    } else if (children?.length === 0) {
         children = null;
     }
 
@@ -269,7 +284,7 @@ function computeBubbleAggregationCountIndices(
                 continue;
             }
 
-            if (item.scale <= minScale) {
+            if (dilation !== 1 && item.scale <= minScale) {
                 if (counter != null) {
                     counter.count += 1;
                 }
