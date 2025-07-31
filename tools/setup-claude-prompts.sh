@@ -8,8 +8,8 @@ if ! command -v claude >/dev/null 2>&1; then
     exit 0
 fi
 
-# Create .claude/commands/ directory if it doesn't exist
-mkdir -p .claude/commands/
+# Create .claude/{commands,agents}/ directory if it doesn't exist
+mkdir -p .claude/{commands,agents}/
 
 # Symlink CLAUDE.md to root
 if [ -f "tools/prompts/CLAUDE.md" ]; then
