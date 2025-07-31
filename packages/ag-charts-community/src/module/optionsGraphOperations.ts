@@ -392,9 +392,9 @@ function lessThanOperation(graph: OptionsGraphInterface, vertex: VertexInterface
 }
 
 function notOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    for (const valueVertex of values) {
-        return !graph.resolveVertexValue(vertex, valueVertex);
-    }
+    const valueVertex = values[0];
+    if (!valueVertex) return;
+    return !graph.resolveVertexValue(vertex, valueVertex);
 }
 
 function orOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -933,9 +933,10 @@ function mulOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
 }
 
 function roundOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    for (const valueVertex of values) {
-        return Math.round(Number(graph.resolveVertexValue(vertex, valueVertex)));
-    }
+    const valueVertex = values[0];
+    if (!valueVertex) return;
+
+    return Math.round(Number(graph.resolveVertexValue(vertex, valueVertex)));
 }
 
 export const operations: Record<Operation, OperationFns> = {
