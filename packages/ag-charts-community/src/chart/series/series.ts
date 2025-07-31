@@ -109,7 +109,7 @@ export type PickResult = {
 
 export type INodeEventConstructor<
     TDatum extends SeriesNodeDatum<unknown>,
-    TSeries extends Series<any, TDatum, object, any, object>,
+    TSeries extends Series<any, TDatum, object, any>,
     TEvent extends string = SeriesNodeEventTypes,
 > = new <T extends TEvent>(type: T, event: Event, { datum }: TDatum, series: TSeries) => INodeEvent<T>;
 
@@ -196,7 +196,7 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
     }
 }
 
-export type UnknownSeries = Series<unknown, SeriesNodeDatum<unknown>, object, SeriesProperties<object>, object>;
+export type UnknownSeries = Series<unknown, SeriesNodeDatum<unknown>, object, SeriesProperties<object>>;
 
 export abstract class Series<
         TDatumIndex,
