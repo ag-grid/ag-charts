@@ -374,6 +374,45 @@ test.describe('keyboard-nav', () => {
             });
         });
 
+        test.describe('vertical linear', () => {
+            let enable: Locator, disable: Locator, item: Locator, container: Locator;
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl('linear-gauge-test', 'corner-radius', 'vanilla').url);
+                enable = page.getByText('Enable');
+                disable = page.getByText('Disable');
+                item = page.getByText('Item');
+                container = page.getByText('Container');
+            });
+            test('item', async ({ page }) => {
+                await disable.click();
+                await item.click();
+                await page.mouse.click(400, 300);
+                await page.keyboard.press('ArrowLeft');
+                await expect(page).toHaveScreenshot('vertical-linear-gauge-corners-item.png');
+            });
+            test('container', async ({ page }) => {
+                await disable.click();
+                await container.click();
+                await page.mouse.click(400, 300);
+                await page.keyboard.press('ArrowLeft');
+                await expect(page).toHaveScreenshot('vertical-linear-gauge-corners-container.png');
+            });
+            test('segmented item', async ({ page }) => {
+                await enable.click();
+                await item.click();
+                await page.mouse.click(400, 300);
+                await page.keyboard.press('ArrowLeft');
+                await expect(page).toHaveScreenshot('vertical-linear-gauge-corners-segmented-item.png');
+            });
+            test('segmented container', async ({ page }) => {
+                await enable.click();
+                await container.click();
+                await page.mouse.click(400, 300);
+                await page.keyboard.press('ArrowLeft');
+                await expect(page).toHaveScreenshot('vertical-linear-gauge-corners-segmented-container.png');
+            });
+        });
+
         test.describe('radial', () => {
             let enable: Locator, disable: Locator, item: Locator, container: Locator;
             test.beforeEach(async ({ page }) => {
@@ -411,6 +450,21 @@ test.describe('keyboard-nav', () => {
                 await page.keyboard.press('ArrowLeft');
                 await expect(page).toHaveScreenshot('radial-gauge-corners-segmented-container.png');
             });
+        });
+    });
+
+    test.describe('AG-15607 linear gauge bar thickness', () => {
+        test('horizontal', async ({ page }) => {
+            await gotoExample(page, toExamplePageUrl('linear-gauge-test', 'bar-thickness-horizontal', 'vanilla').url);
+            await page.mouse.click(400, 300);
+            await page.keyboard.press('ArrowLeft');
+            await expect(page).toHaveScreenshot('AG-15607-bar-thickness-horizontal.png');
+        });
+        test('vertical', async ({ page }) => {
+            await gotoExample(page, toExamplePageUrl('linear-gauge-test', 'bar-thickness-vertical', 'vanilla').url);
+            await page.mouse.click(400, 300);
+            await page.keyboard.press('ArrowLeft');
+            await expect(page).toHaveScreenshot('AG-15607-bar-thickness-vertical.png');
         });
     });
 
