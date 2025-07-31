@@ -687,6 +687,7 @@ function refOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, va
 
 enum TransformOperation {
     Apply = '$apply',
+    ApplySwitch = '$applySwitch',
     ApplyTheme = '$applyTheme',
     FindFirstSiblingNotOperation = '$findFirstSiblingNotOperation',
     Map = '$map',
@@ -699,6 +700,7 @@ enum TransformOperation {
 
 const transformOperations: Record<TransformOperation, OperationFns> = {
     $apply: applyOperation,
+    $applySwitch: applySwitchOperation,
     $applyTheme: applyThemeOperation,
     $findFirstSiblingNotOperation: findFirstSiblingNotOperationOperation,
     $map: mapOperation,
@@ -717,6 +719,11 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
 
     const defaultValue = defaultValueVertex ? graph.getVertexValue(defaultValueVertex) : undefined;
     const children = graph.neighboursWithEdgeValue(vertex, PATH_EDGE);
+
+    if ((!children || children.length === 0) && defaultValue == null) {
+        return RESOLVED_TO_BRANCH;
+    }
+
     const overridesPath1 = overridesPathVertex1
         ? (graph.resolveVertexValue(vertex, overridesPathVertex1) as Array<string>)
         : undefined;
@@ -749,6 +756,26 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
     }
 
     return RESOLVED_TO_BRANCH;
+}
+
+function applySwitchOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [conditionValueVertex, defaultValueVertex, ...caseVertices] = values;
+    const conditionValue = graph.resolveVertexValue(vertex, conditionValueVertex);
+
+    for (const caseVertex of caseVertices) {
+        const caseValue = graph.getVertexValue(caseVertex);
+        if (!Array.isArray(caseValue)) continue;
+        const [caseConditionValue, caseResultValue] = caseValue;
+        if (
+            conditionValue === caseConditionValue ||
+            (Array.isArray(caseConditionValue) && caseConditionValue.includes(conditionValue))
+        ) {
+            graph.graftObject(vertex, caseResultValue);
+            return RESOLVED_TO_BRANCH;
+        }
+    }
+
+    return graph.resolveVertexValue(vertex, defaultValueVertex);
 }
 
 function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -829,15 +856,20 @@ function findFirstSiblingNotOperationOperation(
 function mapOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [mapOperationVertex, mapValuesVertex] = values;
 
-    const mapOperationFn = graph.getVertexValue(mapOperationVertex);
+    const mapOntoObject = graph.getVertexValue(mapOperationVertex);
     const mapValues = graph.resolveVertexValue(vertex, mapValuesVertex);
-
     if (!Array.isArray(mapValues)) return;
-    if (!getOperation(mapOperationFn)) return mapValues.map(() => mapOperationFn);
+
+    // Only graft the map values if there are not already any children in the array. This prevents mixing a user array
+    // on top of the existing default array created by the $map operation. All $map arrays are in effect shallow.
+    const neighbours = graph.neighboursWithEdgeValue(vertex, PATH_EDGE);
+    if (neighbours && neighbours.length > 0) {
+        return;
+    }
 
     let index = 0;
     for (const value of mapValues) {
-        graph.graftValue(vertex, `${index}`, mapOperationFn, value);
+        graph.graftValue(vertex, `${index}`, mapOntoObject, value);
         index++;
     }
 
@@ -876,12 +908,29 @@ function sizeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, va
     return Object.keys(value).length;
 }
 
-function shallowOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, values: Array<VertexInterface>) {
+function shallowOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const pathArray = graph.getPathArray(vertex);
+    const hasUserOption = graph.hasUserOption(pathArray);
+
+    // If the user has not provided an option and there is only one item in the default value then assume it is an
+    // operation and resolve it.
+    if (!hasUserOption && values.length === 1) {
+        return graph.resolveVertexValue(vertex, values[0]);
+    }
+
     const shallowValues = [];
     for (const valueVertex of values) {
         shallowValues.push(graph.getVertexValue(valueVertex));
     }
-    return shallowValues;
+
+    // If the user has provided an option, do not resolve the values and just return the shallow copy.
+    if (hasUserOption) {
+        return shallowValues;
+    }
+
+    // Otherwise graft the shallow copy onto the graph and resolve the default array.
+    graph.graftObject(vertex, shallowValues);
+    return RESOLVED_TO_BRANCH;
 }
 
 function valueOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {

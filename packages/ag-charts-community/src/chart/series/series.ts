@@ -5,9 +5,6 @@ import {
     LRUCache,
     Logger,
     type RequireOptional,
-    type RequiredInternalAgGradientColor,
-    type RequiredInternalAgImageFill,
-    type RequiredInternalAgPatternColor,
     createId,
     isEmptyObject,
 } from 'ag-charts-core';
@@ -61,7 +58,7 @@ import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type { INodeEvent, ISeries, NodeDataDependencies, SeriesNodeDatum, SeriesNodeEventTypes } from './seriesTypes';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
-import { type ShapeFillBBox, applyShapeStyle, getShapeStyle } from './shapeUtil';
+import { type ShapeFillBBox, applyShapeStyle } from './shapeUtil';
 
 export interface SeriesDataEvent {
     readonly dataModel: DataModel<any, any, any>;
@@ -1009,26 +1006,26 @@ export abstract class Series<
     }
 
     public getMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams> & {
-            fillGradientDefaults: RequiredInternalAgGradientColor;
-            fillPatternDefaults: RequiredInternalAgPatternColor;
-            fillImageDefaults: RequiredInternalAgImageFill;
-        },
+        marker: ISeriesMarker<TParams>,
         { datumIndex, datum, point }: Partial<TDatum>,
         params?: TParams,
-        isHighlight = false,
+        opts?: {
+            isHighlight?: boolean;
+            checkForHighlight?: boolean;
+            resolveItemStylerMarkerPath?: boolean;
+        },
         defaultOverrideStyle: AgSeriesMarkerStyle & { size: number } = { size: point?.size ?? marker.size ?? 0 },
-        inheritedStyle?: AgSeriesMarkerStyle,
-        checkForHighlight: boolean = true
+        inheritedStyle?: AgSeriesMarkerStyle
     ) {
-        const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = marker;
+        const { itemStyler } = marker;
+        const { isHighlight = false, checkForHighlight = true, resolveItemStylerMarkerPath = true } = opts ?? {};
 
         const highlightStyle: AgSeriesMarkerStyle | undefined = checkForHighlight
             ? this.getHighlightStyle(isHighlight, datumIndex)
             : undefined;
         const baseStyle = mergeDefaults(highlightStyle, defaultOverrideStyle, marker.getStyle(), inheritedStyle);
 
-        let markerStyle = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+        let markerStyle = baseStyle;
 
         if (itemStyler && params) {
             const highlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -1042,12 +1039,12 @@ export abstract class Series<
                 highlightState,
                 datum,
             });
-            markerStyle = getShapeStyle(
-                mergeDefaults(style, markerStyle),
-                fillGradientDefaults,
-                fillPatternDefaults,
-                fillImageDefaults
-            );
+            const resolvePath = resolveItemStylerMarkerPath
+                ? ['series', `${this.declarationOrder}`, 'marker']
+                : ['series', `${this.declarationOrder}`];
+            const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, style);
+
+            markerStyle = mergeDefaults(resolved, markerStyle);
         }
 
         return markerStyle;

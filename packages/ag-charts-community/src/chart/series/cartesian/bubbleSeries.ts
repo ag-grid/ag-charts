@@ -522,7 +522,10 @@ export class BubbleSeries extends CartesianSeries<
         datumSelection.each((node, datum, index) => {
             const { count, dilation } = datum;
 
-            const style = this.getMarkerStyle(marker, datum, params, isHighlight);
+            const style = this.getMarkerStyle(marker, datum, params, {
+                isHighlight,
+                resolveItemStylerMarkerPath: false,
+            });
             style.fillOpacity = (1 - (1 - (style.fillOpacity ?? 1)) ** count) / Math.sqrt(dilation);
 
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
@@ -669,7 +672,7 @@ export class BubbleSeries extends CartesianSeries<
             marker,
             { datum, datumIndex },
             { xKey, yKey, sizeKey, labelKey, highlighted: true },
-            false
+            { resolveItemStylerMarkerPath: false }
         );
 
         return this.formatTooltipWithContext(
@@ -698,7 +701,11 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const marker = this.getMarkerStyle(this.properties.marker, {}, undefined, false, undefined, undefined, false);
+        const marker = this.getMarkerStyle(this.properties.marker, {}, undefined, {
+            isHighlight: false,
+            checkForHighlight: false,
+            resolveItemStylerMarkerPath: false,
+        });
         return {
             marker,
         };
@@ -743,7 +750,12 @@ export class BubbleSeries extends CartesianSeries<
 
     public getFormattedMarkerStyle(datum: BubbleScatterNodeDatum) {
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
-        return this.getMarkerStyle(marker, datum, { xKey, yKey, sizeKey, labelKey }, false);
+        return this.getMarkerStyle(
+            marker,
+            datum,
+            { xKey, yKey, sizeKey, labelKey },
+            { resolveItemStylerMarkerPath: false }
+        );
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {

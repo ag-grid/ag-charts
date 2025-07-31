@@ -13,18 +13,8 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-const {
-    AbstractBarSeriesProperties,
-    BaseProperties,
-    FillGradientDefaults,
-    FillPatternDefaults,
-    FillImageDefaults,
-    PropertiesArray,
-    makeSeriesTooltip,
-    Property,
-    DropShadow,
-    Label,
-} = _ModuleSupport;
+const { AbstractBarSeriesProperties, BaseProperties, PropertiesArray, makeSeriesTooltip, Property, DropShadow, Label } =
+    _ModuleSupport;
 
 export class WaterfallSeriesTotal extends BaseProperties {
     @Property
@@ -56,15 +46,6 @@ export class WaterfallSeriesItem extends BaseProperties {
 
     @Property
     fill: InternalAgColorType = '#c16068';
-
-    @Property
-    readonly fillGradientDefaults = new FillGradientDefaults();
-
-    @Property
-    readonly fillPatternDefaults = new FillPatternDefaults();
-
-    @Property
-    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     stroke: string = '#c16068';

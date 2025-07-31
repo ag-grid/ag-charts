@@ -16,6 +16,7 @@ import type { ZoomManager } from '../chart/interaction/zoomManager';
 import type { LayoutManager } from '../chart/layout/layoutManager';
 import type { SeriesLabelLayoutManager } from '../chart/layout/seriesLabelLayoutManager';
 import type { LegendManager } from '../chart/legend/legendManager';
+import type { OptionsGraphService } from '../chart/optionsGraphService';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
 import type { EventsHub } from '../core/eventsHub';
@@ -34,6 +35,7 @@ export interface ModuleContext {
     readonly chartService: ChartService;
     readonly dataService: DataService<any>;
     readonly layoutManager: LayoutManager;
+    readonly optionsGraphService: OptionsGraphService;
     readonly updateService: UpdateService;
 
     readonly axisManager: AxisManager;

@@ -1,21 +1,27 @@
 import { type AgWaterfallSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
 
+const { FILL_GRADIENT_LINEAR_SHADED_DEFAULTS, FILL_IMAGE_DEFAULTS, FILL_PATTERN_DEFAULTS } = _ModuleSupport;
+
 function itemTheme(
     key: 'altUp' | 'altDown' | 'neutral',
     index: number
 ): WithThemeParams<AgWaterfallSeriesItemOptions<any> & { label: { padding: number } }> {
     return {
         fill: {
-            $if: [
-                { $eq: [{ $palette: 'type' }, 'user-indexed'] },
-                { $path: [`/${index}`, { $palette: 'fill' }, { $palette: 'fills' }] },
-                { $palette: `${key}.fill` },
+            $applySwitch: [
+                { $path: 'type' },
+                {
+                    $if: [
+                        { $eq: [{ $palette: 'type' }, 'user-indexed'] },
+                        { $path: [`/${index}`, { $palette: 'fill' }, { $palette: 'fills' }] },
+                        { $palette: `${key}.fill` },
+                    ],
+                },
+                ['gradient', FILL_GRADIENT_LINEAR_SHADED_DEFAULTS(key)],
+                ['image', FILL_IMAGE_DEFAULTS],
+                ['pattern', FILL_PATTERN_DEFAULTS],
             ],
         },
-        // @ts-expect-error undocumented option
-        fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_SHADED_DEFAULTS(key),
-        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-        fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         stroke: { $palette: `${key}.stroke` },
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         label: {

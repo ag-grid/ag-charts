@@ -16,7 +16,15 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
-            fill: { $mapPalette: 'fill' },
+            fill: applyMapPalette({
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $mapPalette: 'fill' },
+                    ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
+                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                    ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                ],
+            }),
             stroke: { $ref: 'chartBackgroundColor' },
             colorRange: {
                 $if: [
@@ -25,10 +33,6 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                     applyMapPalette(_ModuleSupport.SAFE_RANGE2_OPERATION),
                 ],
             },
-            // @ts-expect-error undocumented option
-            fillGradientDefaults: applyMapPalette(_ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS),
-            fillPatternDefaults: applyMapPalette(_ModuleSupport.FILL_PATTERN_DEFAULTS),
-            fillImageDefaults: applyMapPalette(_ModuleSupport.FILL_IMAGE_DEFAULTS),
             fillOpacity: 1,
             strokeWidth: 1,
             lineDash: [0],

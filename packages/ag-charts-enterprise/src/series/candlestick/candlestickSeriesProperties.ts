@@ -10,8 +10,7 @@ import type { InternalAgColorType } from 'ag-charts-core';
 
 import { OhlcSeriesBaseProperties } from '../ohlc/ohlcSeriesProperties';
 
-const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, BaseProperties, makeSeriesTooltip, Property } =
-    _ModuleSupport;
+const { BaseProperties, makeSeriesTooltip, Property } = _ModuleSupport;
 
 class CandlestickSeriesWick extends BaseProperties {
     @Property
@@ -33,15 +32,6 @@ class CandlestickSeriesWick extends BaseProperties {
 class CandlestickSeriesItem extends BaseProperties {
     @Property
     fill: InternalAgColorType = '#c16068';
-
-    @Property
-    readonly fillGradientDefaults = new FillGradientDefaults();
-
-    @Property
-    readonly fillPatternDefaults = new FillPatternDefaults();
-
-    @Property
-    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity = 1;

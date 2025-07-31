@@ -16,13 +16,17 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
-            fill: { $path: ['/1', { $mapPalette: 'fill' }, { $mapPalette: 'hierarchyColors' }] },
+            fill: applyMapPalette({
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $path: ['/1', { $mapPalette: 'fill' }, { $mapPalette: 'hierarchyColors' }] },
+                    ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_HIERARCHY_DEFAULTS],
+                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                    ['pattern', _ModuleSupport.FILL_PATTERN_HIERARCHY_DEFAULTS],
+                ],
+            }),
             stroke: { $ref: 'chartBackgroundColor' },
             strokeWidth: 1,
-            // @ts-expect-error undocumented-option
-            fillGradientDefaults: applyMapPalette(_ModuleSupport.FILL_GRADIENT_LINEAR_HIERARCHY_DEFAULTS),
-            fillPatternDefaults: applyMapPalette(_ModuleSupport.FILL_PATTERN_HIERARCHY_DEFAULTS),
-            fillImageDefaults: applyMapPalette(_ModuleSupport.FILL_IMAGE_DEFAULTS),
         },
     },
 };

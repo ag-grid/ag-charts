@@ -4,20 +4,29 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
     AgChartThemeOverrides['range-area'] & { series: { label: { padding: number } } }
 > = {
     series: {
-        fill: { $palette: 'fill' },
-        fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
-        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
+        fill: {
+            $applySwitch: [
+                { $path: 'type' },
+                { $palette: 'fill' },
+                ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
+                ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+            ],
+        },
         stroke: { $palette: 'stroke' },
         fillOpacity: 0.7,
         nodeClickRange: 'nearest',
         marker: {
             enabled: false,
-            fill: { $palette: 'fill' },
+            fill: {
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $palette: 'fill' },
+                    ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                    ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                ],
+            },
             stroke: { $palette: 'stroke' },
-            // @ts-expect-error undocumented option
-            fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
-            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-            fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
             size: 6,
             strokeWidth: 2,
         },

@@ -33,7 +33,6 @@ const {
     Text,
     PointerEvents,
     applyShapeStyle,
-    getShapeStyle,
     getLabelStyles,
     mergeDefaults,
 } = _ModuleSupport;
@@ -481,12 +480,7 @@ export class MapShapeSeries
                 : colorRange?.[0] ?? baseStyle.fill;
         }
 
-        let style = getShapeStyle(
-            baseStyle,
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
+        let style = baseStyle;
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -506,12 +500,7 @@ export class MapShapeSeries
             );
 
             if (overrides) {
-                style = getShapeStyle(
-                    mergeDefaults(overrides, style),
-                    this.properties.fillGradientDefaults,
-                    this.properties.fillPatternDefaults,
-                    this.properties.fillImageDefaults
-                );
+                style = mergeDefaults(overrides, style);
             }
         }
 
@@ -629,20 +618,15 @@ export class MapShapeSeries
         }
 
         return {
-            marker: getShapeStyle(
-                {
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                },
-                this.properties.fillGradientDefaults,
-                this.properties.fillPatternDefaults,
-                this.properties.fillImageDefaults
-            ),
+            marker: {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+            },
         };
     }
 

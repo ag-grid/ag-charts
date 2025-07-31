@@ -3,29 +3,37 @@ import { _ModuleSupport } from 'ag-charts-community';
 const {
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
     multiSeriesHighlightStyle,
+    FILL_GRADIENT_LINEAR_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    SAFE_FILL_OPERATION,
 } = _ModuleSupport;
 
 export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['themeTemplate'] = {
     series: {
         direction: 'vertical',
         fill: {
-            $if: [
+            $applySwitch: [
+                { $path: 'type' },
                 {
-                    $or: [
-                        { $isGradient: { $palette: 'fill' } },
-                        { $isPattern: { $palette: 'fill' } },
-                        { $isImage: { $palette: 'fill' } },
+                    $if: [
+                        {
+                            $or: [
+                                { $isGradient: { $palette: 'fill' } },
+                                { $isPattern: { $palette: 'fill' } },
+                                { $isImage: { $palette: 'fill' } },
+                            ],
+                        },
+                        { $palette: 'fill' },
+                        { $mix: [SAFE_FILL_OPERATION, { $ref: 'chartBackgroundColor' }, 0.7] },
                     ],
                 },
-                { $palette: 'fill' },
-                { $mix: [_ModuleSupport.SAFE_FILL_OPERATION, { $ref: 'chartBackgroundColor' }, 0.7] },
+                ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                ['image', FILL_IMAGE_DEFAULTS],
+                ['pattern', FILL_PATTERN_DEFAULTS],
             ],
         },
         stroke: { $palette: 'stroke' },
-        // @ts-expect-error undocumented option
-        fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
-        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-        fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         strokeWidth: 2,
         highlight: multiSeriesHighlightStyle(),
     },
