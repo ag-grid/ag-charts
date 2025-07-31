@@ -76,6 +76,7 @@ export const gradientStrict = optionsDefs<AgGradientColorStrict>(
         gradient: undocumented(union('linear', 'radial', 'conic')),
         bounds: undocumented(gradientBounds),
         reverse: undocumented(boolean),
+        colorSpace: undocumented(union('rgb', 'oklch')),
     },
     'a gradient object with color stops'
 );
@@ -184,6 +185,7 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
             gradient: undocumented(union('linear', 'radial', 'conic')),
             bounds: undocumented(gradientBounds),
             reverse: undocumented(boolean),
+            colorSpace: undocumented(union('rgb', 'oklch')),
         },
         pattern: {
             pattern: union(
