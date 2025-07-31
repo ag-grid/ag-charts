@@ -44,14 +44,12 @@ type WaterfallNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
     readonly textBaseline: CanvasTextBaseline;
 };
 
-type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum<AgWaterfallSeriesStyle>['point'] & {
+type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] & {
     readonly x2: number;
     readonly y2: number;
 };
 
-interface WaterfallNodeDatum
-    extends _ModuleSupport.CartesianSeriesNodeDatum<AgWaterfallSeriesStyle>,
-        Readonly<_ModuleSupport.Point> {
+interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_ModuleSupport.Point> {
     readonly index: number;
     readonly itemId: AgWaterfallSeriesItemType;
     readonly cumulativeValue: number;
@@ -62,6 +60,7 @@ interface WaterfallNodeDatum
     // Required for types
     readonly clipBBox?: _ModuleSupport.BBox;
     readonly opacity?: number;
+    style: AgWaterfallSeriesStyle;
 }
 
 interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<WaterfallNodeDatum> {
@@ -70,7 +69,6 @@ interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataConte
 
 type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
     _ModuleSupport.Rect,
-    AgWaterfallSeriesStyle,
     WaterfallNodeDatum,
     WaterfallNodeDatum,
     WaterfallContext
@@ -80,7 +78,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     _ModuleSupport.Rect<WaterfallNodeDatum>,
     AgWaterfallSeriesOptions,
     WaterfallSeriesProperties,
-    AgWaterfallSeriesStyle,
     WaterfallNodeDatum,
     WaterfallNodeDatum,
     WaterfallContext

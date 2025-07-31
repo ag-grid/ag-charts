@@ -1,5 +1,5 @@
 import { clamp } from 'ag-charts-core';
-import type { AgMarkerShape, AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { AgMarkerShape } from 'ag-charts-types';
 
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
@@ -45,7 +45,7 @@ export function markerScaleInAnimation<T>(
     markerSelections.forEach((s) => s.cleanup());
 }
 
-export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum<object>>(
+export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
     { id, nodeDataDependencies }: { id: string } & NodeDataDependant,
     animationManager: AnimationManager,
     ...markerSelections: Selection<Node, T>[]
@@ -75,7 +75,7 @@ export function resetMarkerFn(_node: NodeWithOpacity & Node) {
     return { opacity: 1, scalingX: 1, scalingY: 1 };
 }
 
-export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum<object>>(_node: Node, datum: T) {
+export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node: Node, datum: T) {
     return {
         x: datum.point?.x ?? NaN,
         y: datum.point?.y ?? NaN,
@@ -84,7 +84,7 @@ export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum<object>
     };
 }
 
-interface MarkerNodeDatum extends SeriesNodeDatum<unknown, AgSeriesMarkerStyle> {
+interface MarkerNodeDatum extends SeriesNodeDatum<unknown> {
     readonly point: Point & SizedPoint;
 }
 

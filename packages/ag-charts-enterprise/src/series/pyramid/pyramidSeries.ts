@@ -35,9 +35,7 @@ type PyramidNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
     readonly visible: boolean;
 };
 
-interface PyramidNodeDatum
-    extends _ModuleSupport.DataModelSeriesNodeDatum<AgPyramidSeriesStyle>,
-        Readonly<_ModuleSupport.Point> {
+interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Readonly<_ModuleSupport.Point> {
     readonly index: number;
     readonly xValue: string;
     readonly yValue: number;
@@ -46,6 +44,7 @@ interface PyramidNodeDatum
     readonly bottom: number;
     readonly left: number;
     readonly label: PyramidNodeLabelDatum | undefined;
+    style: AgPyramidSeriesStyle;
 }
 
 interface PyramidNodeDataContext
@@ -66,7 +65,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     PyramidNodeDatum,
     AgPyramidSeriesOptions,
     PyramidProperties,
-    AgPyramidSeriesStyle,
     PyramidNodeLabelDatum,
     PyramidNodeDataContext
 > {
@@ -667,7 +665,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     override pickNodeClosestDatum({ x, y }: _ModuleSupport.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown, unknown> | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
 
         this.datumSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);

@@ -19,7 +19,7 @@ export interface RangeAreaLabelDatum extends Readonly<_ModuleSupport.Point> {
     textBaseline: CanvasTextBaseline;
     datum: any;
     itemId?: string;
-    series: _ModuleSupport.CartesianSeriesNodeDatum<AgSeriesMarkerStyle>['series'];
+    series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     style: AgSeriesMarkerStyle;
 }
 
@@ -35,11 +35,7 @@ interface RangeAreaStrokePathDatum {
 }
 
 export interface RangeAreaContext
-    extends _ModuleSupport.CartesianSeriesNodeDataContext<
-        AgSeriesMarkerStyle,
-        RangeAreaMarkerDatum,
-        RangeAreaLabelDatum
-    > {
+    extends _ModuleSupport.CartesianSeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> {
     fillData: RangeAreaFillPathDatum;
     highStrokeData: RangeAreaStrokePathDatum;
     lowStrokeData: RangeAreaStrokePathDatum;

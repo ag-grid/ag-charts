@@ -87,7 +87,7 @@ interface PieDonutLabelDatum {
     box?: BBox;
 }
 
-interface PieDonutNodeDatum extends DataModelSeriesNodeDatum<PieDonutSeriesStyle> {
+interface PieDonutNodeDatum extends DataModelSeriesNodeDatum {
     readonly radius: number; // in the [0, 1] range
     readonly innerRadius: number;
     readonly outerRadius: number;
@@ -111,6 +111,8 @@ interface PieDonutNodeDatum extends DataModelSeriesNodeDatum<PieDonutSeriesStyle
     readonly legendItem?: { key: string; text: string };
     readonly legendItemValue?: string;
     enabled: boolean;
+
+    style: PieDonutSeriesStyle;
 }
 
 interface ProcessedDataValues {
@@ -135,13 +137,7 @@ interface PieDonutSeriesLabelFormatterParams
         AgPieSeriesLabelFormatterParams {}
 interface PieDonutSeriesStyle extends AgDonutSeriesStyle, AgPieSeriesStyle {}
 
-export class DonutSeries extends PolarSeries<
-    PieDonutNodeDatum,
-    AgDonutSeriesOptions,
-    DonutSeriesProperties,
-    PieDonutSeriesStyle,
-    Sector
-> {
+export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOptions, DonutSeriesProperties, Sector> {
     static readonly className: string = 'DonutSeries';
     static readonly type: string = 'donut';
 
@@ -712,7 +708,7 @@ export class DonutSeries extends PolarSeries<
         { datum, datumIndex = 0 }: Partial<PieDonutNodeDatum>,
         isHighlight: boolean,
         legendItemValues?: string[],
-        activeHighlight?: SeriesNodeDatum<unknown, unknown>
+        activeHighlight?: SeriesNodeDatum<unknown>
     ) {
         const {
             angleKey,

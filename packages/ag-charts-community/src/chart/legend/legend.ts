@@ -1041,7 +1041,6 @@ export class Legend extends BaseProperties {
                 datum: undefined,
                 datumIndex: undefined,
                 legendItemName,
-                style: undefined,
             });
         } else {
             highlightManager.updateHighlight(this.id);
@@ -1160,7 +1159,6 @@ export class Legend extends BaseProperties {
                 datum: undefined,
                 datumIndex: undefined,
                 legendItemName: datum?.legendItemName,
-                style: undefined,
             });
         } else {
             this.updateHighlight();

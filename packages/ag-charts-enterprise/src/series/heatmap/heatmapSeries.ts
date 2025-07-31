@@ -33,17 +33,18 @@ const {
     updateLabelNode,
 } = _ModuleSupport;
 
-interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum<AgHeatmapSeriesStyle> {
+interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly point: Readonly<_ModuleSupport.SizedPoint>;
     midPoint: Readonly<_ModuleSupport.Point>;
     readonly width: number;
     readonly height: number;
     readonly colorValue: any;
+    style: AgHeatmapSeriesStyle;
 }
 
 interface HeatmapLabelDatum extends _ModuleSupport.Point {
     datumIndex: number;
-    series: _ModuleSupport.CartesianSeriesNodeDatum<AgHeatmapSeriesStyle>['series'];
+    series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     datum: any;
     itemId?: string;
     text: string;
@@ -88,7 +89,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     _ModuleSupport.Rect,
     AgHeatmapSeriesOptions,
     HeatmapSeriesProperties,
-    AgHeatmapSeriesStyle,
     HeatmapNodeDatum,
     HeatmapLabelDatum
 > {
@@ -592,9 +592,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         addHitTestersToQuadtree(quadtree, this.datumNodesIter());
     }
 
-    protected override pickNodesExactShape(
-        point: _ModuleSupport.Point
-    ): _ModuleSupport.SeriesNodeDatum<unknown, unknown>[] {
+    protected override pickNodesExactShape(point: _ModuleSupport.Point): _ModuleSupport.SeriesNodeDatum<unknown>[] {
         const item = findQuadtreeMatch(this, point);
         return item != null && item.distance <= 0 ? [item.datum] : [];
     }

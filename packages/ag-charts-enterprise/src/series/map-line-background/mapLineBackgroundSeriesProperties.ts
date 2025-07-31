@@ -3,9 +3,10 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 const { Property, SeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 
-export interface MapLineBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum<AgMapLineSeriesStyle> {
+export interface MapLineBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
     readonly projectedGeometry: _ModuleSupport.Geometry;
+    style: AgMapLineSeriesStyle;
 }
 
 export class MapLineBackgroundSeriesProperties extends SeriesProperties<AgMapLineBackgroundOptions> {

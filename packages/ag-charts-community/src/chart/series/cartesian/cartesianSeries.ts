@@ -39,7 +39,7 @@ import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type { Scaling } from './scaling';
 
-export interface CartesianSeriesNodeDatum<TStyle extends object> extends DataModelSeriesNodeDatum<TStyle> {
+export interface CartesianSeriesNodeDatum extends DataModelSeriesNodeDatum {
     readonly xKey: string;
     readonly yKey?: string;
     readonly xValue?: any;
@@ -49,9 +49,8 @@ export interface CartesianSeriesNodeDatum<TStyle extends object> extends DataMod
 type CartesianSeriesOpts<
     TNode extends Node<TDatum>,
     TProps extends CartesianSeriesProperties<any>,
-    TStyle extends object,
-    TDatum extends CartesianSeriesNodeDatum<TStyle>,
-    TLabel extends SeriesNodeDatum<number, TStyle>,
+    TDatum extends CartesianSeriesNodeDatum,
+    TLabel extends SeriesNodeDatum<number>,
 > = {
     pathsPerSeries: string[];
     pathsZIndexSubOrderOffset: number[];
@@ -77,7 +76,7 @@ export const DEFAULT_CARTESIAN_DIRECTION_NAMES = {
 };
 
 export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<
-    SeriesNodeDatum<number, unknown>,
+    SeriesNodeDatum<number>,
     TEvent
 > {
     readonly xKey?: string;
@@ -85,8 +84,8 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
     constructor(
         type: TEvent,
         nativeEvent: Event,
-        datum: SeriesNodeDatum<number, unknown>,
-        series: ISeries<number, SeriesNodeDatum<number, unknown>, { xKey?: string; yKey?: string }>
+        datum: SeriesNodeDatum<number>,
+        series: ISeries<number, SeriesNodeDatum<number>, { xKey?: string; yKey?: string }>
     ) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
@@ -97,20 +96,15 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
 type CartesianAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing' | 'disabled';
 type CartesianAnimationEvent<
     TNode extends Node,
-    TStyle extends object,
-    TDatum extends CartesianSeriesNodeDatum<TStyle>,
-    TLabel extends SeriesNodeDatum<number, TStyle> = TDatum,
-    TContext extends CartesianSeriesNodeDataContext<TStyle, TDatum, TLabel> = CartesianSeriesNodeDataContext<
-        TStyle,
-        TDatum,
-        TLabel
-    >,
+    TDatum extends CartesianSeriesNodeDatum,
+    TLabel extends SeriesNodeDatum<number> = TDatum,
+    TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > = {
-    update: CartesianAnimationData<TNode, TStyle, TDatum, TLabel, TContext>;
+    update: CartesianAnimationData<TNode, TDatum, TLabel, TContext>;
     updateData: undefined;
     highlight: Selection<TNode, TDatum>;
-    resize: CartesianAnimationData<TNode, TStyle, TDatum, TLabel, TContext>;
-    clear: CartesianAnimationData<TNode, TStyle, TDatum, TLabel, TContext>;
+    resize: CartesianAnimationData<TNode, TDatum, TLabel, TContext>;
+    clear: CartesianAnimationData<TNode, TDatum, TLabel, TContext>;
     reset: undefined;
     skip: undefined;
     disable: undefined;
@@ -118,14 +112,9 @@ type CartesianAnimationEvent<
 
 export interface CartesianAnimationData<
     TNode extends Node,
-    TStyle extends object,
-    TDatum extends CartesianSeriesNodeDatum<TStyle>,
-    TLabel extends SeriesNodeDatum<number, TStyle> = TDatum,
-    TContext extends CartesianSeriesNodeDataContext<TStyle, TDatum, TLabel> = CartesianSeriesNodeDataContext<
-        TStyle,
-        TDatum,
-        TLabel
-    >,
+    TDatum extends CartesianSeriesNodeDatum,
+    TLabel extends SeriesNodeDatum<number> = TDatum,
+    TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > {
     datumSelection: Selection<TNode, TDatum>;
     labelSelection: Selection<Text, TLabel>;
@@ -146,9 +135,8 @@ export abstract class CartesianSeriesProperties<T extends object> extends Series
 }
 
 export interface CartesianSeriesNodeDataContext<
-    TStyle extends object,
-    TDatum extends CartesianSeriesNodeDatum<TStyle> = CartesianSeriesNodeDatum<TStyle>,
-    TLabel extends SeriesNodeDatum<number, TStyle> = TDatum,
+    TDatum extends CartesianSeriesNodeDatum = CartesianSeriesNodeDatum,
+    TLabel extends SeriesNodeDatum<number> = TDatum,
 > extends DataModelSeriesNodeDataContext<TDatum, TLabel> {
     scales: { [key in ChartAxisDirection]?: Scaling };
     animationValid?: boolean;
@@ -161,16 +149,11 @@ export abstract class CartesianSeries<
     TNode extends Node<any>,
     TOpts extends object,
     TProps extends CartesianSeriesProperties<TOpts>,
-    TStyle extends object,
-    TDatum extends CartesianSeriesNodeDatum<TStyle>,
-    TLabel extends SeriesNodeDatum<number, TStyle> = TDatum,
-    TContext extends CartesianSeriesNodeDataContext<TStyle, TDatum, TLabel> = CartesianSeriesNodeDataContext<
-        TStyle,
-        TDatum,
-        TLabel
-    >,
+    TDatum extends CartesianSeriesNodeDatum,
+    TLabel extends SeriesNodeDatum<number> = TDatum,
+    TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
     TStackContext = never,
-> extends DataModelSeries<TDatum, TOpts, TProps, TStyle, TLabel, TContext> {
+> extends DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
     private _contextNodeData?: TContext;
     get contextNodeData() {
         return this._contextNodeData;
@@ -198,14 +181,14 @@ export abstract class CartesianSeries<
 
     public seriesBelowStackContext: TStackContext | undefined = undefined;
 
-    private readonly opts: CartesianSeriesOpts<TNode, TProps, TStyle, TDatum, TLabel>;
+    private readonly opts: CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>;
     private readonly debug = Debug.create();
 
     protected quadtree?: QuadtreeNearest<TDatum>;
 
     protected animationState: StateMachine<
         CartesianAnimationState,
-        CartesianAnimationEvent<TNode, TStyle, TDatum, TLabel, TContext>
+        CartesianAnimationEvent<TNode, TDatum, TLabel, TContext>
     >;
 
     protected constructor({
@@ -217,8 +200,8 @@ export abstract class CartesianSeries<
         propertyKeys,
         propertyNames,
         ...otherOpts
-    }: Partial<CartesianSeriesOpts<TNode, TProps, TStyle, TDatum, TLabel>> &
-        Pick<CartesianSeriesOpts<TNode, TProps, TStyle, TDatum, TLabel>, 'propertyKeys' | 'propertyNames'> &
+    }: Partial<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>> &
+        Pick<CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>, 'propertyKeys' | 'propertyNames'> &
         DataModelSeriesConstructorOpts<TProps>) {
         super({
             propertyKeys,
@@ -251,7 +234,7 @@ export abstract class CartesianSeries<
 
         this.animationState = new StateMachine<
             CartesianAnimationState,
-            CartesianAnimationEvent<TNode, TStyle, TDatum, TLabel, TContext>
+            CartesianAnimationEvent<TNode, TDatum, TLabel, TContext>
         >(
             'empty',
             {
@@ -571,7 +554,7 @@ export abstract class CartesianSeries<
         // Override point for subclasses
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown, unknown>[] {
+    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<unknown>[] {
         const result = super.pickNodesExactShape(point);
 
         if (result.length !== 0) {
@@ -610,7 +593,7 @@ export abstract class CartesianSeries<
         const hitPoint = { x, y };
 
         let minDistance = Infinity;
-        let closestDatum: SeriesNodeDatum<unknown, unknown> | undefined;
+        let closestDatum: SeriesNodeDatum<unknown> | undefined;
 
         for (const datum of contextNodeData.nodeData) {
             const { point: { x: datumX = NaN, y: datumY = NaN } = {} } = datum;
@@ -670,7 +653,7 @@ export abstract class CartesianSeries<
         if (majorDirection !== ChartAxisDirection.X) hitPointCoords.reverse();
 
         const minDistance = [Infinity, Infinity];
-        let closestDatum: SeriesNodeDatum<unknown, unknown> | undefined;
+        let closestDatum: SeriesNodeDatum<unknown> | undefined;
 
         for (const datum of contextNodeData.nodeData) {
             const { x: datumX = NaN, y: datumY = NaN } = datum.point ?? datum.midPoint ?? {};
@@ -1013,7 +996,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected resetPathAnimation(data: CartesianAnimationData<TNode, TStyle, TDatum, TLabel, TContext>) {
+    protected resetPathAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         const { path } = this.opts?.animationResetFns ?? {};
 
         if (path) {
@@ -1023,7 +1006,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected resetDatumAnimation(data: CartesianAnimationData<TNode, TStyle, TDatum, TLabel, TContext>) {
+    protected resetDatumAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         const { datum } = this.opts?.animationResetFns ?? {};
 
         if (datum) {
@@ -1031,7 +1014,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected resetLabelAnimation(data: CartesianAnimationData<TNode, TStyle, TDatum, TLabel, TContext>) {
+    protected resetLabelAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         const { label } = this.opts?.animationResetFns ?? {};
 
         if (label) {
@@ -1039,7 +1022,7 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected resetAllAnimation(data: CartesianAnimationData<TNode, TStyle, TDatum, TLabel, TContext>) {
+    protected resetAllAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         // Stop any running animations by prefix convention.
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
@@ -1052,12 +1035,12 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected animateEmptyUpdateReady(data: CartesianAnimationData<TNode, TStyle, TDatum, TLabel, TContext>) {
+    protected animateEmptyUpdateReady(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation(data);
     }
 
-    protected animateWaitingUpdateReady(data: CartesianAnimationData<TNode, TStyle, TDatum, TLabel, TContext>) {
+    protected animateWaitingUpdateReady(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation(data);
     }
@@ -1069,11 +1052,11 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected animateReadyResize(data: CartesianAnimationData<TNode, TStyle, TDatum, TLabel, TContext>) {
+    protected animateReadyResize(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         this.resetAllAnimation(data);
     }
 
-    protected animateClearingUpdateEmpty(data: CartesianAnimationData<TNode, TStyle, TDatum, TLabel, TContext>) {
+    protected animateClearingUpdateEmpty(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
         this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation(data);
     }
@@ -1082,7 +1065,7 @@ export abstract class CartesianSeries<
         const { _contextNodeData: contextData } = this;
         if (!contextData) return;
 
-        const animationData: CartesianAnimationData<TNode, TStyle, TDatum, TLabel, TContext> = {
+        const animationData: CartesianAnimationData<TNode, TDatum, TLabel, TContext> = {
             datumSelection: this.datumSelection,
             labelSelection: this.labelSelection,
             annotationSelections: [...this.annotationSelections],

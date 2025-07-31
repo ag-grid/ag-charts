@@ -47,14 +47,12 @@ export type FunnelNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
     textBaseline: CanvasTextBaseline;
     datum: any;
     itemId: string;
-    series: _ModuleSupport.CartesianSeriesNodeDatum<AgFunnelSeriesStyle>['series'];
+    series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     visible: boolean;
     style: AgFunnelSeriesStyle;
 };
 
-export interface FunnelNodeDatum
-    extends _ModuleSupport.CartesianSeriesNodeDatum<AgFunnelSeriesStyle>,
-        Readonly<_ModuleSupport.Point> {
+export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_ModuleSupport.Point> {
     readonly index: number;
     readonly itemId: string;
     readonly width: number;
@@ -66,6 +64,8 @@ export interface FunnelNodeDatum
     readonly crisp: boolean;
     readonly opacity?: number;
     readonly clipBBox?: _ModuleSupport.BBox;
+
+    style: AgFunnelSeriesStyle;
 }
 
 interface FunnelConnectorDatum {
@@ -87,13 +87,7 @@ interface FunnelContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
 }
 
 export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode>
-    extends _ModuleSupport.CartesianAnimationData<
-        TNode,
-        AgFunnelSeriesStyle,
-        FunnelNodeDatum,
-        FunnelNodeLabelDatum,
-        FunnelContext
-    > {}
+    extends _ModuleSupport.CartesianAnimationData<TNode, FunnelNodeDatum, FunnelNodeLabelDatum, FunnelContext> {}
 
 class FunnelSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -115,7 +109,6 @@ export abstract class BaseFunnelSeries<
     TNode,
     TOpts,
     BaseFunnelProperties<TOpts>,
-    AgFunnelSeriesStyle,
     FunnelNodeDatum,
     FunnelNodeLabelDatum,
     FunnelContext
@@ -563,13 +556,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected override resetAllAnimation(
-        data: _ModuleSupport.CartesianAnimationData<
-            TNode,
-            AgFunnelSeriesStyle,
-            FunnelNodeDatum,
-            FunnelNodeLabelDatum,
-            FunnelContext
-        >
+        data: _ModuleSupport.CartesianAnimationData<TNode, FunnelNodeDatum, FunnelNodeLabelDatum, FunnelContext>
     ): void {
         super.resetAllAnimation(data);
 

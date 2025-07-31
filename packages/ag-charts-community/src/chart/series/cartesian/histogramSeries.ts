@@ -57,11 +57,7 @@ import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
 
-type HistogramAnimationData = CartesianAnimationData<
-    Rect<HistogramNodeDatum>,
-    AgHistogramSeriesStyle,
-    HistogramNodeDatum
->;
+type HistogramAnimationData = CartesianAnimationData<Rect<HistogramNodeDatum>, HistogramNodeDatum>;
 
 interface CalculatedBin {
     domain: [number, number];
@@ -75,7 +71,6 @@ export class HistogramSeries extends CartesianSeries<
     Rect<HistogramNodeDatum>,
     AgHistogramSeriesOptions,
     HistogramSeriesProperties,
-    AgHistogramSeriesStyle,
     HistogramNodeDatum
 > {
     static readonly className = 'HistogramSeries';

@@ -1,7 +1,6 @@
 import {
     type AgLinearGaugeMarkerShape,
     type AgLinearGaugeOptions,
-    type AgLinearGaugeSeriesStyle,
     type AgLinearGaugeTargetPlacement,
     type AgSeriesMarkerStyle,
     type AgTimeInterval,
@@ -167,7 +166,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     LinearGaugeNodeDatum,
     AgLinearGaugeOptions,
     LinearGaugeSeriesProperties,
-    AgLinearGaugeSeriesStyle,
     LinearGaugeLabelDatum,
     LinearGaugeNodeDataContext
 > {

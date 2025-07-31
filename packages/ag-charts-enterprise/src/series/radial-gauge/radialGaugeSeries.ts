@@ -1,7 +1,6 @@
 import {
     type AgRadialGaugeMarkerShape,
     type AgRadialGaugeOptions,
-    type AgRadialGaugeSeriesStyle,
     type AgRadialGaugeTargetPlacement,
     type AgSeriesMarkerStyle,
     type FontStyle,
@@ -146,7 +145,6 @@ export class RadialGaugeSeries
         RadialGaugeNodeDatum,
         AgRadialGaugeOptions,
         RadialGaugeSeriesProperties,
-        AgRadialGaugeSeriesStyle,
         RadialGaugeLabelDatum,
         RadialGaugeNodeDataContext
     >

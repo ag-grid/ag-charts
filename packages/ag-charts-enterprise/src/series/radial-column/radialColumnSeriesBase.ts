@@ -55,7 +55,7 @@ interface RadialColumnLabelNodeDatum {
     textBaseline: CanvasTextBaseline;
 }
 
-export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum<AgRadialSeriesStyle> {
+export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly label?: RadialColumnLabelNodeDatum;
     readonly angleValue: any;
     readonly radiusValue: any;
@@ -71,6 +71,7 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNod
     readonly axisOuterRadius: number;
     readonly columnWidth: number;
     readonly index: number;
+    style: AgRadialSeriesStyle;
 }
 
 export abstract class RadialColumnSeriesBase<
@@ -79,7 +80,6 @@ export abstract class RadialColumnSeriesBase<
     RadialColumnNodeDatum,
     AgBaseRadialColumnSeriesOptions,
     RadialColumnSeriesBaseProperties<AgBaseRadialColumnSeriesOptions>,
-    AgRadialSeriesStyle,
     ItemPathType
 > {
     protected override readonly NodeEvent = RadialColumnSeriesNodeEvent;

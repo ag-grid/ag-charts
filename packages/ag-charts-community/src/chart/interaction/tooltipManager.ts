@@ -102,7 +102,7 @@ export class TooltipManager {
     public static makeTooltipMeta(
         event: TooltipPointerEvent,
         series: ISeries<any, any, any>,
-        datum: SeriesNodeDatum<unknown, unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
+        datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
         movedBounds: BoxBounds | undefined
     ): TooltipMeta {
         const { canvasX, canvasY } = event;

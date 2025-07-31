@@ -10,8 +10,7 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-export interface RangeAreaMarkerDatum
-    extends Omit<_ModuleSupport.CartesianSeriesNodeDatum<AgSeriesMarkerStyle>, 'yKey' | 'yValue'> {
+export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
     readonly index: number;
     readonly yLowKey: string;
     readonly yHighKey: string;
@@ -19,6 +18,7 @@ export interface RangeAreaMarkerDatum
     readonly yHighValue: number;
     readonly point: Readonly<_ModuleSupport.SizedPoint>;
     readonly enabled: boolean;
+    style: AgSeriesMarkerStyle;
 }
 
 const {

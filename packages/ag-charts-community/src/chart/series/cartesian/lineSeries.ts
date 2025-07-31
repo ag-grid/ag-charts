@@ -71,13 +71,7 @@ import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClip
 
 const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
 
-type LineAnimationData = CartesianAnimationData<
-    Marker,
-    AgSeriesMarkerStyle,
-    LineNodeDatum,
-    LineNodeDatum,
-    LineSeriesNodeDataContext
->;
+type LineAnimationData = CartesianAnimationData<Marker, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
 
 type SpanPoints = Array<LineSpanPointDatum[] | { skip: number }>;
 
@@ -87,7 +81,6 @@ export class LineSeries extends CartesianSeries<
     Marker,
     AgLineSeriesOptions,
     LineSeriesProperties,
-    AgSeriesMarkerStyle,
     LineNodeDatum,
     LineNodeDatum,
     LineSeriesNodeDataContext

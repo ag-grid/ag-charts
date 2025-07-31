@@ -37,15 +37,16 @@ export type LineSpanPointDatum = {
     yDatum: any;
 };
 
-export interface LineNodeDatum extends CartesianSeriesNodeDatum<AgSeriesMarkerStyle>, ErrorBoundSeriesNodeDatum {
-    readonly xValue: NonNullable<CartesianSeriesNodeDatum<AgSeriesMarkerStyle>['xValue']>;
-    readonly yValue: NonNullable<CartesianSeriesNodeDatum<AgSeriesMarkerStyle>['yValue']>;
-    readonly point: NonNullable<CartesianSeriesNodeDatum<AgSeriesMarkerStyle>['point']>;
+export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
+    readonly xValue: NonNullable<CartesianSeriesNodeDatum['xValue']>;
+    readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
+    readonly point: NonNullable<CartesianSeriesNodeDatum['point']>;
     readonly labelText?: string;
     readonly selected: boolean | undefined;
+    style: AgSeriesMarkerStyle;
 }
 
-export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContext<AgSeriesMarkerStyle, LineNodeDatum> {
+export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContext<LineNodeDatum> {
     strokeData: LineStrokePathDatum;
     crossFiltering: boolean;
 }

@@ -53,7 +53,6 @@ export class MapMarkerSeries
         MapMarkerNodeDatum,
         AgMapMarkerSeriesOptions,
         MapMarkerSeriesProperties,
-        AgMapMarkerSeriesStyle,
         MapMarkerNodeLabelDatum,
         MapMarkerNodeDataContext
     >
@@ -703,7 +702,7 @@ export class MapMarkerSeries
         const { x: x0, y: y0 } = p;
 
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown, unknown> | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
 
         this.contextNodeData?.nodeData.forEach((datum) => {
             const { x, y, size } = datum.point;

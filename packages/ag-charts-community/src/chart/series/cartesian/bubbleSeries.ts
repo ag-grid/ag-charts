@@ -54,7 +54,7 @@ import {
 } from './cartesianSeries';
 import { computeMarkerFocusBounds, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 
-type BubbleScatterAnimationData = CartesianAnimationData<Marker, AgSeriesMarkerStyle, BubbleScatterNodeDatum>;
+type BubbleScatterAnimationData = CartesianAnimationData<Marker, BubbleScatterNodeDatum>;
 
 class BubbleScatterSeriesNodeEvent<
     TEvent extends string = SeriesNodeEventTypes,
@@ -67,9 +67,7 @@ class BubbleScatterSeriesNodeEvent<
     }
 }
 
-export interface BubbleScatterNodeDatum
-    extends CartesianSeriesNodeDatum<AgSeriesMarkerStyle>,
-        ErrorBoundSeriesNodeDatum {
+export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: Readonly<SizedPoint>;
     readonly sizeValue: any;
     readonly label: MeasuredLabel;
@@ -78,13 +76,13 @@ export interface BubbleScatterNodeDatum
     readonly count: number;
     readonly dilation: number;
     readonly selected: boolean | undefined;
+    style: AgSeriesMarkerStyle;
 }
 
 export class BubbleSeries extends CartesianSeries<
     Marker,
     AgBubbleSeriesOptions,
     BubbleSeriesProperties,
-    AgSeriesMarkerStyle,
     BubbleScatterNodeDatum
 > {
     static readonly className: string = 'BubbleSeries';

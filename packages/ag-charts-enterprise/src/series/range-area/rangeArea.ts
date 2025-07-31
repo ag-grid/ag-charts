@@ -73,7 +73,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     _ModuleSupport.Marker,
     AgRangeAreaSeriesOptions,
     RangeAreaProperties,
-    AgSeriesMarkerStyle,
     RangeAreaMarkerDatum,
     RangeAreaLabelDatum,
     RangeAreaContext
@@ -732,7 +731,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     override animateEmptyUpdateReady(
         animationData: _ModuleSupport.CartesianAnimationData<
             _ModuleSupport.Marker,
-            AgSeriesMarkerStyle,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext
@@ -751,7 +749,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     protected override animateReadyResize(
         animationData: _ModuleSupport.CartesianAnimationData<
             _ModuleSupport.Marker,
-            AgSeriesMarkerStyle,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext
@@ -766,7 +763,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     override animateWaitingUpdateReady(
         animationData: _ModuleSupport.CartesianAnimationData<
             _ModuleSupport.Marker,
-            AgSeriesMarkerStyle,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext

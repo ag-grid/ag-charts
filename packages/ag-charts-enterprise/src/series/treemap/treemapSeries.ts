@@ -34,7 +34,7 @@ const {
     mergeDefaults,
 } = _ModuleSupport;
 
-class TreemapNode extends _ModuleSupport.HierarchyNode<AgTreemapSeriesStyle, TreemapNode> {
+class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;
     secondaryLabelValue: string | undefined = undefined;
     label: LabelLayout | undefined = undefined;
@@ -118,7 +118,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     DistantGroup,
     AgTreemapSeriesOptions,
     TreemapSeriesProperties,
-    AgTreemapSeriesStyle,
     TreemapNode
 > {
     static readonly className = 'TreemapSeries';

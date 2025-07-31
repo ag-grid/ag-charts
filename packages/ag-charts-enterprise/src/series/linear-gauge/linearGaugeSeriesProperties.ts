@@ -38,8 +38,7 @@ export enum NodeDataType {
 
 export type LinearGaugeNodeDatumIndex = { type: NodeDataType.Node } | { type: NodeDataType.Target; index: number };
 
-export interface LinearGaugeNodeDatum
-    extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex, AgLinearGaugeSeriesStyle> {
+export interface LinearGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
     type: NodeDataType.Node;
     x0: number;
     y0: number;
@@ -55,6 +54,7 @@ export interface LinearGaugeNodeDatum
     bottomLeftCornerRadius: number;
     horizontalInset: number;
     verticalInset: number;
+    style: AgLinearGaugeSeriesStyle;
 }
 
 export interface LinearGaugeTargetDatumLabel {
@@ -70,8 +70,7 @@ export interface LinearGaugeTargetDatumLabel {
     lineHeight: number | undefined;
 }
 
-export interface LinearGaugeTargetDatum
-    extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex, AgLinearGaugeSeriesStyle> {
+export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
     type: NodeDataType.Target;
     value: number;
     text: string | undefined;
@@ -81,6 +80,7 @@ export interface LinearGaugeTargetDatum
     size: number;
     rotation: number;
     label: LinearGaugeTargetDatumLabel;
+    style: AgLinearGaugeSeriesStyle;
 }
 export type LinearGaugeLabelDatum = {
     placement: AgLinearGaugeLabelPlacement;

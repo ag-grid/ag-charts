@@ -77,7 +77,7 @@ interface BarNodeLabelDatum extends Readonly<Point> {
     readonly textBaseline: CanvasTextBaseline;
 }
 
-interface BarNodeDatum extends CartesianSeriesNodeDatum<AgBarSeriesStyle>, ErrorBoundSeriesNodeDatum, Readonly<Point> {
+interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, Readonly<Point> {
     readonly xValue: string | number;
     readonly yValue: string | number;
     readonly cumulativeValue: number;
@@ -93,6 +93,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum<AgBarSeriesStyle>, Error
     readonly clipBBox: BBox | undefined;
     readonly crisp: boolean;
     readonly label?: BarNodeLabelDatum;
+    style: AgBarSeriesStyle;
 }
 
 type BarAnimationData = AbstractBarSeriesAnimationData<BarShape, BarNodeDatum>;
@@ -103,7 +104,6 @@ export class BarSeries extends AbstractBarSeries<
     BarShape<BarNodeDatum>,
     AgBarSeriesOptions,
     BarSeriesProperties,
-    AgBarSeriesStyle,
     BarNodeDatum,
     BarNodeDatum
 > {

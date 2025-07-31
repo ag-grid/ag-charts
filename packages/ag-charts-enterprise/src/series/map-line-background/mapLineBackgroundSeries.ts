@@ -1,8 +1,4 @@
-import {
-    type AgMapLineBackgroundOptions,
-    type AgMapLineBackgroundThemeableOptions,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgMapLineBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -23,7 +19,6 @@ export class MapLineBackgroundSeries
         MapLineBackgroundNodeDatum,
         AgMapLineBackgroundOptions,
         MapLineBackgroundSeriesProperties,
-        AgMapLineBackgroundThemeableOptions,
         MapLineBackgroundNodeDatum,
         MapLineNodeDataContext
     >

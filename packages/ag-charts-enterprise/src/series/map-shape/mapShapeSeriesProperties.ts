@@ -22,12 +22,13 @@ export interface MapShapeNodeLabelDatum {
     readonly lineHeight: number;
 }
 
-export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum<AgMapShapeSeriesStyle> {
+export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly idValue: string;
     readonly colorValue: number | undefined;
     readonly labelValue: string | undefined;
     readonly legendItemName: string | undefined;
     readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
+    style: AgMapShapeSeriesStyle;
 }
 
 export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesOptions> {

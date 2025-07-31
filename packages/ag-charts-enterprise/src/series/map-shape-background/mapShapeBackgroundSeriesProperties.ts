@@ -5,10 +5,10 @@ import type { InternalAgColorType } from 'ag-charts-core';
 const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, Property, SeriesProperties, makeSeriesTooltip } =
     _ModuleSupport;
 
-export interface MapShapeBackgroundNodeDatum
-    extends _ModuleSupport.DataModelSeriesNodeDatum<AgMapShapeBackgroundThemeableOptions> {
+export interface MapShapeBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
     readonly projectedGeometry: _ModuleSupport.Geometry;
+    style: AgMapShapeBackgroundThemeableOptions;
 }
 
 export class MapShapeBackgroundSeriesProperties extends SeriesProperties<AgMapShapeBackgroundOptions> {

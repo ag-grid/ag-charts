@@ -62,12 +62,12 @@ interface RangeBarNodeLabelDatum extends Readonly<_ModuleSupport.Point> {
     textBaseline: CanvasTextBaseline;
     datum: any;
     itemId: string;
-    series: _ModuleSupport.CartesianSeriesNodeDatum<AgRangeBarSeriesStyle>['series'];
+    series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     style: AgRangeBarSeriesStyle;
 }
 
 interface RangeBarNodeDatum
-    extends Omit<_ModuleSupport.CartesianSeriesNodeDatum<AgRangeBarSeriesStyle>, 'yKey' | 'yValue'>,
+    extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>,
         Readonly<_ModuleSupport.Point> {
     readonly index: number;
     readonly itemId: string;
@@ -83,6 +83,7 @@ interface RangeBarNodeDatum
     // Required for types
     readonly clipBBox?: _ModuleSupport.BBox;
     readonly opacity?: number;
+    style: AgRangeBarSeriesStyle;
 }
 
 type RangeBarContext = _ModuleSupport.AbstractBarSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
@@ -112,7 +113,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     _ModuleSupport.Rect<RangeBarNodeDatum>,
     AgRangeBarSeriesOptions,
     RangeBarProperties,
-    AgRangeBarSeriesStyle,
     RangeBarNodeDatum,
     RangeBarNodeLabelDatum
 > {

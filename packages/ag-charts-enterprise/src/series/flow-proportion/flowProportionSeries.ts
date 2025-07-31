@@ -22,18 +22,19 @@ type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 's
 export interface FlowProportionLinkDatum<
     TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
-> extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex, NodeStyle> {
+> extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Link;
     index: number;
     fromNode: TNodeDatum;
     toNode: TNodeDatum;
     size: number;
+    style: NodeStyle;
 }
 
 export interface FlowProportionNodeDatum<
     TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
-> extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex, NodeStyle> {
+> extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Node;
     index: number;
     linksBefore: TLinkDatum[];
@@ -41,6 +42,7 @@ export interface FlowProportionNodeDatum<
     id: string;
     size: number;
     label: string | undefined;
+    style: NodeStyle;
 }
 
 export interface FlowProportionSeriesContext<
@@ -56,19 +58,16 @@ type TDatum<
 
 export class FlowProportionSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeEvent<
-    _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex, NodeStyle>,
-    TEvent
-> {
+> extends _ModuleSupport.SeriesNodeEvent<_ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>, TEvent> {
     readonly size?: number;
     readonly label?: string;
     constructor(
         type: TEvent,
         nativeEvent: Event,
-        datum: _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex, NodeStyle>,
+        datum: _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>,
         series: _ModuleSupport.ISeries<
             FlowProportionNodeDatumIndex,
-            _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex, NodeStyle>,
+            _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>,
             unknown
         > & {
             contextNodeData?: _ModuleSupport.SeriesNodeDataContext<
@@ -101,7 +100,6 @@ export abstract class FlowProportionSeries<
     TDatum<TNodeDatum, TLinkDatum>,
     TOpts,
     TProps,
-    NodeStyle,
     TLabel,
     _ModuleSupport.SeriesNodeDataContext<FlowProportionNodeDatumIndex, TDatum<TNodeDatum, TLinkDatum>, TLabel>
 > {
@@ -623,7 +621,7 @@ export abstract class FlowProportionSeries<
 
     override pickNodeClosestDatum({ x, y }: _ModuleSupport.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown, unknown> | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
 
         this.linkSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);

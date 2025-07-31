@@ -59,7 +59,7 @@ interface RadialBarLabelNodeDatum {
     textBaseline: CanvasTextBaseline;
 }
 
-interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum<AgRadialSeriesStyle> {
+interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly label?: RadialBarLabelNodeDatum;
     readonly angleValue: any;
     readonly radiusValue: any;
@@ -70,13 +70,13 @@ interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum<AgR
     readonly clipSector: _ModuleSupport.SectorBox;
     readonly reversed: boolean;
     readonly index: number;
+    style: AgRadialSeriesStyle;
 }
 
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     RadialBarNodeDatum,
     AgRadialBarSeriesOptions,
     RadialBarSeriesProperties<AgRadialBarSeriesOptions>,
-    AgRadialSeriesStyle,
     _ModuleSupport.Sector
 > {
     static readonly className = 'RadialBarSeries';

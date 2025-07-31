@@ -77,7 +77,6 @@ const CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR = 0.25;
 
 type AreaAnimationData = CartesianAnimationData<
     Marker,
-    AgSeriesMarkerStyle,
     MarkerSelectionDatum,
     LabelSelectionDatum,
     AreaSeriesNodeDataContext
@@ -102,7 +101,6 @@ export class AreaSeries extends CartesianSeries<
     Marker,
     AgAreaSeriesOptions,
     AreaSeriesProperties,
-    AgSeriesMarkerStyle,
     MarkerSelectionDatum,
     LabelSelectionDatum,
     AreaSeriesNodeDataContext,
@@ -846,7 +844,6 @@ export class AreaSeries extends CartesianSeries<
                     x: point.x,
                     y: point.y,
                     labelText,
-                    style,
                 });
             }
         };

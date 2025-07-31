@@ -1,27 +1,21 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-interface TopologySeriesNodeDatum<TStyle> extends _ModuleSupport.DataModelSeriesNodeDatum<TStyle> {}
+interface TopologySeriesNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {}
 
 interface TopologySeriesNodeDataContext<
-    TStyle extends object,
-    TDatum extends TopologySeriesNodeDatum<TStyle> = TopologySeriesNodeDatum<TStyle>,
+    TDatum extends TopologySeriesNodeDatum = TopologySeriesNodeDatum,
     TLabel extends object = object,
 > extends _ModuleSupport.DataModelSeriesNodeDataContext<TDatum, TLabel> {}
 
 abstract class TopologySeriesProperties<T extends object> extends _ModuleSupport.SeriesProperties<T> {}
 
 export abstract class TopologySeries<
-    TDatum extends TopologySeriesNodeDatum<TStyle>,
+    TDatum extends TopologySeriesNodeDatum,
     TOpts extends object,
     TProps extends TopologySeriesProperties<TOpts>,
-    TStyle extends object,
     TLabel extends object,
-    TContext extends TopologySeriesNodeDataContext<TStyle, TDatum, TLabel> = TopologySeriesNodeDataContext<
-        TStyle,
-        TDatum,
-        TLabel
-    >,
-> extends _ModuleSupport.DataModelSeries<TDatum, TOpts, TProps, TStyle, TLabel, TContext> {
+    TContext extends TopologySeriesNodeDataContext<TDatum, TLabel> = TopologySeriesNodeDataContext<TDatum, TLabel>,
+> extends _ModuleSupport.DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
     override addChartEventListeners(): void {
         this.cleanup.register(
             this.ctx.eventsHub.on('legend:item-click', (event) => {

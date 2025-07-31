@@ -7,7 +7,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum<AgSeriesMarkerStyle> {
+export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
     readonly label?: {
         text: string;
@@ -19,6 +19,7 @@ export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum<
     readonly point: Readonly<_ModuleSupport.SizedPoint>;
     readonly angleValue: any;
     readonly radiusValue: any;
+    style: AgSeriesMarkerStyle;
 }
 
 const { Label, SeriesMarker, SeriesProperties, makeSeriesTooltip, Property } = _ModuleSupport;

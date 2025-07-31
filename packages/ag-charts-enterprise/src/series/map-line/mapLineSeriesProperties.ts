@@ -12,13 +12,14 @@ const { Property, SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
 
 export interface MapLineNodeLabelDatum extends _ModuleSupport.PointLabelDatum {}
 
-export interface MapLineNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum<AgMapLineSeriesStyle> {
+export interface MapLineNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly idValue: string;
     readonly labelValue: string | undefined;
     readonly colorValue: number | undefined;
     readonly sizeValue: number | undefined;
     readonly legendItemName: string | undefined;
     readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
+    style: AgMapLineSeriesStyle;
 }
 
 export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOptions> {

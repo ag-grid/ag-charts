@@ -1,4 +1,5 @@
 import { Logger, arraysEqual, clamp } from 'ag-charts-core';
+import type { FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -31,16 +32,12 @@ type HierarchyAnimationEvent<TNode extends Node, TDatum> = {
     skip: undefined;
 };
 
-export interface HierarchyNodeDatum<TStyle> extends SeriesNodeDatum<number[], TStyle> {}
+export interface HierarchyNodeDatum extends SeriesNodeDatum<number[]> {}
 
 export interface HierarchyAnimationData<_TNode extends Node, _TNodeClass> {}
 
-export class HierarchyNode<
-        TStyle = object,
-        This extends HierarchyNode<TStyle, This, TDatum> = any,
-        TDatum = Record<string, any>,
-    >
-    implements HierarchyNodeDatum<TStyle>, Pick<HighlightNodeDatum, 'colorValue'>
+export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatum = Record<string, any>>
+    implements HierarchyNodeDatum, Pick<HighlightNodeDatum, 'colorValue'>
 {
     private static readonly Walk = {
         PreOrder: 0,
@@ -59,7 +56,7 @@ export class HierarchyNode<
         public readonly depth: number | undefined,
         public readonly parent: This | undefined,
         public readonly children: This[],
-        public readonly style: TStyle
+        public readonly style: FillOptions & StrokeOptions
     ) {
         this.midPoint = { x: 0, y: 0 };
     }
@@ -95,9 +92,8 @@ export abstract class HierarchySeries<
     TNode extends Node,
     TOpts extends object,
     TProps extends HierarchySeriesProperties<TOpts>,
-    TStyle extends object,
-    TNodeClass extends HierarchyNode<TStyle>,
-> extends Series<number[], TNodeClass, TOpts, TProps, TStyle> {
+    TNodeClass extends HierarchyNode,
+> extends Series<number[], TNodeClass, TOpts, TProps> {
     protected abstract NodeClass: new (...params: ConstructorParameters<typeof HierarchyNode<any, any>>) => TNodeClass;
 
     rootNode: TNodeClass | undefined;
@@ -373,7 +369,7 @@ export abstract class HierarchySeries<
         };
     }
 
-    getDatumAriaText(datum: SeriesNodeDatum<number, TStyle>, description: string): string | undefined {
+    getDatumAriaText(datum: SeriesNodeDatum<number>, description: string): string | undefined {
         if (!(datum instanceof this.NodeClass)) {
             Logger.error(`datum is not HierarchyNode: ${JSON.stringify(datum)}`);
             return;
@@ -394,8 +390,8 @@ export abstract class HierarchySeries<
     }
 
     protected abstract getItemStyle(
-        datum: Partial<HierarchyNode<TStyle>>,
+        datum: Partial<HierarchyNode>,
         isLeaf: boolean,
         isHighlight: boolean
-    ): TStyle;
+    ): FillOptions & StrokeOptions;
 }

@@ -59,7 +59,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     RadarNodeDatum,
     AgBaseRadarSeriesOptions,
     RadarSeriesProperties<AgBaseRadarSeriesOptions>,
-    AgSeriesMarkerStyle,
     _ModuleSupport.Marker
 > {
     static readonly className: string = 'RadarSeries';

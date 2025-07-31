@@ -13,7 +13,7 @@ import { Label } from '../../label';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
 
-export interface HistogramNodeDatum extends CartesianSeriesNodeDatum<AgHistogramSeriesStyle> {
+export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly x: number;
     readonly y: number;
     readonly width: number;
@@ -34,6 +34,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum<AgHistogram
     // Required for types
     readonly crisp: boolean;
     readonly opacity?: number;
+    style: AgHistogramSeriesStyle;
 }
 
 export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHistogramSeriesOptions> {

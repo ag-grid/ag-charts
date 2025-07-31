@@ -8,13 +8,7 @@ class ExampleHierarchySeriesProperties extends HierarchySeriesProperties<never> 
     readonly tooltip: SeriesTooltip<never> = null!;
 }
 
-class ExampleHierarchySeries extends HierarchySeries<
-    Group,
-    object,
-    ExampleHierarchySeriesProperties,
-    object,
-    HierarchyNode
-> {
+class ExampleHierarchySeries extends HierarchySeries<Group, object, ExampleHierarchySeriesProperties, HierarchyNode> {
     override properties = new ExampleHierarchySeriesProperties();
 
     NodeClass = HierarchyNode;
@@ -57,7 +51,7 @@ class ExampleHierarchySeries extends HierarchySeries<
         return false;
     }
 
-    override getItemStyle(_datum: Partial<HierarchyNode<object>>, _isLeaf: boolean, _isHighlight: boolean) {
+    override getItemStyle(_datum: Partial<HierarchyNode>, _isLeaf: boolean, _isHighlight: boolean) {
         return {};
     }
 }

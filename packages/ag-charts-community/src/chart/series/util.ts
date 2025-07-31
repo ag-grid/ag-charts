@@ -80,7 +80,7 @@ export function visibleRangeIndices(
 
 export function getDatumRefPoint(
     series: ISeries<any, any, any>,
-    datum: SeriesNodeDatum<unknown, unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
+    datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
     movedBounds: BoxBounds | undefined
 ): { canvasX: number; canvasY: number } | undefined {
     if (movedBounds) {
