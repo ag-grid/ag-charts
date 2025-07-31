@@ -963,6 +963,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         });
 
         this.datumUnion.update(datumSelection, this.itemGroup, _ModuleSupport.Rect, (node, first, last) => {
+            const thickness: number = this.properties.thickness;
+            const barThickness: number = this.properties.bar.thickness ?? thickness;
+
             const clipX =
                 first.clipBBox || last.clipBBox
                     ? Math.min(first.clipBBox?.x ?? Infinity, last.clipBBox?.x ?? Infinity)
@@ -984,7 +987,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             node.clipBBox.x = clipX ?? left;
             node.clipBBox.y = clipY ?? top;
             if (this.horizontal) {
-                node.height = node.clipBBox.height = height;
+                node.height = node.clipBBox.height = height - (thickness - barThickness);
                 node.width = width;
                 node.clipBBox.width = node.width - (last.width - (last.clipBBox?.width ?? last.width));
                 node.topLeftCornerRadius = first.topLeftCornerRadius;
@@ -992,7 +995,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 node.topRightCornerRadius = last.topRightCornerRadius;
                 node.bottomRightCornerRadius = last.bottomRightCornerRadius;
             } else {
-                node.width = node.clipBBox.width = width;
+                node.width = node.clipBBox.width = width - (thickness - barThickness);
                 node.height = height;
                 node.clipBBox.height = node.height - (last.height - (last.clipBBox?.height ?? last.height));
                 node.topLeftCornerRadius = first.topLeftCornerRadius;
