@@ -104,6 +104,7 @@ export const FILL_GRADIENT_BLANK_DEFAULTS: RequiredInternalAgGradientColor = {
     colorStops: [{ color: 'black' }],
     rotation: 0,
     reverse: false,
+    colorSpace: 'rgb',
 };
 
 export const FILL_GRADIENT_LINEAR_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
