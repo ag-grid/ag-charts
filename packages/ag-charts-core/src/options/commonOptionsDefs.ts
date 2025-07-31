@@ -88,7 +88,7 @@ export interface InternalAgGradientColor extends AgGradientColor {
     bounds?: AgGradientColorBounds;
     /** Reverse the order of colour stops. */
     reverse?: boolean;
-    /** Color space of the gradient. */
+    /** Colour space to use when interpolating colours in the gradient. */
     colorSpace?: ColorSpace;
 }
 
