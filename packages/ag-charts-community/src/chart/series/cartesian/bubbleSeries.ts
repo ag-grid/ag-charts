@@ -570,7 +570,6 @@ export class BubbleSeries extends CartesianSeries<
                 highlightState
             );
             text.text = datum.label.text;
-            console.log(text.text, datum.point);
             text.fill = style.color;
             text.x = datum.point?.x ?? 0;
             text.y = datum.point?.y ?? 0;
@@ -578,6 +577,7 @@ export class BubbleSeries extends CartesianSeries<
             text.fontWeight = style.fontWeight;
             text.fontSize = style.fontSize;
             text.fontFamily = style.fontFamily;
+            text.textBaseline = 'top';
             text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
             text.setBoxing(style);
         });

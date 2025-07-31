@@ -70,8 +70,8 @@ function circleRectOverlap(
     // Find distance to the closest edges.
     const dx = cx - edgeX;
     const dy = cy - edgeY;
-    const d = Math.sqrt(dx * dx + dy * dy);
-    return d <= c.size * 0.5;
+    const d = Math.sqrt(dx ** 2 + dy ** 2);
+    return d <= c.size / 2;
 }
 
 export function isPointLabelDatum(x: any): x is PointLabelDatum {
@@ -100,7 +100,7 @@ export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds: BoxBou
     const previousResults: PlacedLabel[] = [];
 
     const sortedDataClone = new Map(
-        [...data.entries()].map(([k, d]) => [k, d.toSorted((a, b) => b.point.size - a.point.size)])
+        Array.from(data.entries(), ([k, d]) => [k, d.toSorted((a, b) => b.point.size - a.point.size)])
     );
     const dataValues = [...sortedDataClone.values()].flat();
     for (const [seriesId, datums] of sortedDataClone.entries()) {
@@ -110,29 +110,32 @@ export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds: BoxBou
             const d = datums[index];
             const { point, label, anchor } = d;
             const { text, width, height } = label;
-            const r = point.size * 0.5;
+            const r = point.size / 2;
             let dx = 0;
             let dy = 0;
             if (r > 0 && d.placement != null) {
                 const placement = labelPlacements[d.placement];
-                dx = (width * 0.5 + r + padding) * placement.x;
-                dy = (height * 0.5 + r + padding) * placement.y;
+                dx = (width / 2 + r + padding) * placement.x;
+                dy = (height / 2 + r + padding) * placement.y;
             }
-            const x = point.x - width * 0.5 + dx - ((anchor?.x ?? 0.5) - 0.5) * point.size;
-            const y = point.y - height * 0.5 + dy - ((anchor?.y ?? 0.5) - 0.5) * point.size;
 
-            const withinBounds = boxContains(bounds, x, y, width, height);
-            if (!withinBounds) continue;
+            let x = point.x - width / 2 + dx;
+            let y = point.y - height / 2 + dy;
 
-            const overlapPoints = dataValues.some((dataDatum) => circleRectOverlap(dataDatum, x, y, width, height));
-            if (overlapPoints) continue;
+            if (anchor) {
+                x -= (anchor.x - 0.5) * point.size;
+                y -= (anchor.y - 0.5) * point.size;
+            }
 
-            const overlapLabels = previousResults.some((pr) => boxCollides(pr, x, y, width, height));
-            if (overlapLabels) continue;
-
-            const resultDatum = { index, text, x, y, width, height, datum: d };
-            labels.push(resultDatum);
-            previousResults.push(resultDatum);
+            if (
+                boxContains(bounds, x, y, width, height) &&
+                !dataValues.some((dataDatum) => circleRectOverlap(dataDatum, x, y, width, height)) &&
+                !previousResults.some((pr) => boxCollides(pr, x, y, width, height))
+            ) {
+                const resultDatum = { index, text, x, y, width, height, datum: d };
+                labels.push(resultDatum);
+                previousResults.push(resultDatum);
+            }
         }
 
         result.set(seriesId, labels);
