@@ -328,6 +328,10 @@ export function computeBubbleAggregationDilation(
     aggregationOptions: BubbleAggregationOptions,
     maxRenderedItems: number
 ) {
+    if (computeBubbleAggregationCount(1, dataAggregation, aggregationOptions) <= maxRenderedItems) {
+        return 1;
+    }
+
     let minDilation = 1;
     let maxDilation = 2;
     while (
@@ -349,7 +353,7 @@ export function computeBubbleAggregationDilation(
         }
     }
 
-    return minDilation;
+    return (minDilation + maxDilation) / 2;
 }
 
 export function computeBubbleAggregationData(
