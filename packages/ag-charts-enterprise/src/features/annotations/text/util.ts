@@ -6,7 +6,7 @@ const { BBox } = _ModuleSupport;
 export type AnnotationTextPosition = 'top' | 'center' | 'bottom';
 export type AnnotationTextAlignment = 'left' | 'center' | 'right';
 
-type TextOptions = _ModuleSupport.FontOptions & { textAlign: TextAlign; position: AnnotationTextPosition };
+type TextOptions = FontOptions & { textAlign: TextAlign; position: AnnotationTextPosition };
 
 export const ANNOTATION_TEXT_LINE_HEIGHT = 1.38;
 

@@ -1,7 +1,6 @@
 import { cachedTextMeasurer } from 'ag-charts-core';
 
 import type { DOMManager } from '../../dom/domManager';
-import { CachedTextMeasurerPool } from '../../util/textMeasurer';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { UpdateService } from '../updateService';
 
@@ -60,7 +59,6 @@ export class FontManager {
             if (width != null && width > 0) {
                 // Clear the text measurer pool to ensure the font metrics are recalculated on update
                 cachedTextMeasurer.clear();
-                CachedTextMeasurerPool.clear();
                 this.updateService.update(ChartUpdateType.PERFORM_LAYOUT);
             }
         });

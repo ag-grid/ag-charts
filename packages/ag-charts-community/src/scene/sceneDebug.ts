@@ -1,8 +1,7 @@
 /* eslint-disable no-restricted-properties */
-import { Logger, getWindow, isString, toArray } from 'ag-charts-core';
+import { Logger, TextMeasurer, getWindow, isString, toArray } from 'ag-charts-core';
 
 import { Debug } from '../util/debug';
-import { SimpleTextMeasurer } from '../util/textMeasurer';
 import { BBox } from './bbox';
 import { Group } from './group';
 import type { LayersManager } from './layersManager';
@@ -83,7 +82,7 @@ export function debugStats(
         detailedStats ? `Ops: ${pct(opsPerformed, opsSkipped)}` : null,
         detailedStats && memUsage ? memUsage : null,
     ].filter(isString);
-    const measurer = new SimpleTextMeasurer((t) => ctx.measureText(t));
+    const measurer = new TextMeasurer((t) => ctx.measureText(t));
     const statsSize = new Map(stats.map((t) => [t, measurer.measureLines(t)]));
     const width = Math.max(...Array.from(statsSize.values(), (s) => s.width));
     const height = accumulate(statsSize.values(), (s) => s.height);

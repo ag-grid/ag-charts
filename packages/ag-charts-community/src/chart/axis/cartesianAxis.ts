@@ -511,7 +511,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
                 tempText.setProperties(datum);
 
-                const box = tempText.getBBox(false);
+                const box = tempText.getBBox();
                 if (box) {
                     boxes.push(box);
                 }

@@ -1,6 +1,8 @@
 import {
     type BoxBounds,
+    type FontOptions,
     type RequireOptional,
+    cachedTextMeasurer,
     calcLineHeight,
     createSvgElement,
     isArray,
@@ -21,7 +23,6 @@ import type {
 
 import { Debug } from '../../util/debug';
 import { mergeDefaults } from '../../util/object';
-import { CachedTextMeasurerPool, type MeasureOptions } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
 import { SceneRefChangeDetection } from '../changeDetectable';
 import { Group } from '../group';
@@ -55,9 +56,6 @@ export interface TextBoxingProperties {
         strokeOpacity?: Opacity;
     };
 }
-
-// @todo() - Workaround for subclassing
-let externUseGlyphIndependentMeasurements = false;
 
 export class Text<D = any> extends Shape<D> {
     static readonly className = 'Text';
@@ -131,41 +129,12 @@ export class Text<D = any> extends Shape<D> {
         lines: string | string[],
         x: number,
         y: number,
-        opts: MeasureOptions,
-        useGlyphIndependentMeasurements: boolean = true
+        opts: { font: string | FontOptions; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
     ): BBox {
-        const {
-            font,
-            font: { fontSize },
-            textAlign,
-            textBaseline,
-            lineHeight = useGlyphIndependentMeasurements ? calcLineHeight(fontSize) : undefined,
-        } = opts;
-        const {
-            width,
-            alphabeticBaseline,
-            offsetLeft: exactOffsetLeft,
-            offsetTop: exactOffsetTop,
-            height: exactHeight,
-        } = CachedTextMeasurerPool.measureLines(
-            lines,
-            useGlyphIndependentMeasurements ? { font, lineHeight, textAlign: 'start', textBaseline: 'top' } : opts
-        );
-        const height = lineHeight == null ? exactHeight : lineHeight * lines.length;
-
-        let offsetTop: number;
-        if (lineHeight == null) {
-            offsetTop = exactOffsetTop;
-        } else if (textBaseline === 'alphabetic') {
-            const padding = (lineHeight - fontSize) / 2;
-            offsetTop = padding - alphabeticBaseline;
-        } else {
-            offsetTop = Text.getVerticalModifier(textBaseline) * height;
-        }
-
-        const offsetLeft = useGlyphIndependentMeasurements
-            ? width * Text.getHorizontalModifier(textAlign)
-            : exactOffsetLeft;
+        const { font, textAlign, textBaseline } = opts;
+        const { width, height } = cachedTextMeasurer(font).measureLines(lines);
+        const offsetTop = Text.getVerticalModifier(textBaseline) * height;
+        const offsetLeft = width * Text.getHorizontalModifier(textAlign);
 
         return new BBox(x - offsetLeft, y - offsetTop, width, height);
     }
@@ -200,9 +169,7 @@ export class Text<D = any> extends Shape<D> {
         }
     }
 
-    protected override computeBBox(
-        useGlyphIndependentMeasurements: boolean = externUseGlyphIndependentMeasurements
-    ): BBox {
+    protected override computeBBox(): BBox {
         this.generateTextMap();
         if (this.textMap?.size) {
             const bbox = BBox.merge(this.textMap.values());
@@ -210,26 +177,10 @@ export class Text<D = any> extends Shape<D> {
             bbox.y = this.y;
             return bbox;
         }
-        const { x, y, lines, textBaseline, textAlign, lineHeight } = this;
-        const measuredTextBounds = Text.computeBBox(
-            lines,
-            x,
-            y,
-            { font: this, textBaseline, textAlign, lineHeight },
-            useGlyphIndependentMeasurements
-        );
+        const { x, y, lines, textBaseline, textAlign } = this;
+        const measuredTextBounds = Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign });
         if (this.boxing != null) measuredTextBounds.grow(this.boxPadding);
         return measuredTextBounds;
-    }
-
-    override getBBox(useGlyphIndependentMeasurements: boolean = true): BBox {
-        if (useGlyphIndependentMeasurements) {
-            externUseGlyphIndependentMeasurements = true;
-            const bbox = this.computeBBox(true);
-            externUseGlyphIndependentMeasurements = false;
-            return bbox;
-        }
-        return super.getBBox();
     }
 
     getPlainText() {
@@ -315,7 +266,7 @@ export class Text<D = any> extends Shape<D> {
         }
 
         if (Text.debug.check() && !this.textMap?.size) {
-            const bbox = this.getBBox(true);
+            const bbox = this.getBBox();
             ctx.strokeStyle = 'red';
             ctx.lineWidth = 1;
             ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
@@ -344,7 +295,7 @@ export class Text<D = any> extends Shape<D> {
             ctx.font = font;
         }
 
-        const { fontSize, lineHeight = calcLineHeight(fontSize), textAlign, textBaseline } = this;
+        const { textAlign, textBaseline } = this;
 
         ctx.textAlign = textAlign;
         ctx.textBaseline = textBaseline;
@@ -353,8 +304,7 @@ export class Text<D = any> extends Shape<D> {
             // Use the static version of computeBBox instead of dynamic version. The `boxing: Rect` shape is drawn using
             // the same matrix transformation of the text, so we want to ignore translation/rotation/scale
             // transformations from derived classes. We only need to measure the width/height of the untransformed text
-            const opts: MeasureOptions = { font: this, textBaseline, textAlign, lineHeight };
-            const textBBox = Text.computeBBox(this.lines, this.x, this.y, opts);
+            const textBBox = Text.computeBBox(this.lines, this.x, this.y, { font: this, textBaseline, textAlign });
             if (textBBox.width !== 0 && textBBox.height !== 0) {
                 const { x, y, width, height } = textBBox.grow(this.boxPadding);
                 this.boxing.opacity = this.opacity;

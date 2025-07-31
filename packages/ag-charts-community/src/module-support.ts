@@ -41,7 +41,6 @@ export * from './util/properties';
 export * from './util/proxy';
 export * from './util/stateMachine';
 export * from './util/timeFormatDefaults';
-export * from './util/textMeasurer';
 export * from './util/timeFormat';
 export * from './util/time';
 export * from './util/properties';

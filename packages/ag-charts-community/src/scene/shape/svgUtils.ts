@@ -1,6 +1,5 @@
+import type { FontOptions } from 'ag-charts-core';
 import type { LineDashOptions, StrokeOptions } from 'ag-charts-types';
-
-import type { FontOptions } from '../../util/textMeasurer';
 
 export function setSvgFontAttributes(element: SVGElement, options: FontOptions) {
     const { fontStyle, fontWeight, fontSize, fontFamily } = options;

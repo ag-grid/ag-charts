@@ -1,33 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Text text measurements should measure text currently 1`] = `
-{
-  "height": 18.666666666666668,
-  "lineHeight": 24,
-  "width": 130.66666666666666,
-}
-`;
-
-exports[`Text text measurements should measure text currently 2`] = `
-{
-  "height": 37.333333333333336,
-  "lineHeight": 48,
-  "width": 357.3333333333333,
-}
-`;
-
 exports[`Text text measurements should measure text size currently 1`] = `
 {
-  "height": 18.666666666666668,
-  "lineHeight": 24,
+  "ascent": 18.666666666666664,
+  "descent": 5.333333333333333,
+  "height": 23.999999999999996,
   "width": 130.66666666666666,
 }
 `;
 
 exports[`Text text measurements should measure text size currently 2`] = `
 {
-  "height": 37.333333333333336,
-  "lineHeight": 48,
+  "ascent": 37.33333333333333,
+  "descent": 10.666666666666666,
+  "height": 47.99999999999999,
   "width": 357.3333333333333,
 }
 `;
