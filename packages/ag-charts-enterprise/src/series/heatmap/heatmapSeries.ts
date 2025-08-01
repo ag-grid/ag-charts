@@ -136,16 +136,22 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 valueProperty(xKey, xScaleType, { id: 'xValue' }),
                 valueProperty(yKey, yScaleType, { id: 'yValue' }),
                 ...(colorKey
-                    ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: null })]
+                    ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]
                     : []),
             ],
         });
 
         if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
-            const domain = processedData.domain.values[colorKeyIdx].filter((v) => v != null);
-            this.colorScale.domain = [Math.min(...domain), Math.max(...domain)];
-            this.colorScale.range = colorRange;
+            const rawDomain = processedData.domain.values[colorKeyIdx].filter((v) => v != null);
+            const domain = _ModuleSupport.extent(rawDomain);
+            this.colorScale.domain = domain ?? [];
+            if (domain?.length && domain[0] === domain[1]) {
+                const midIndex = Math.floor(colorRange.length / 2);
+                this.colorScale.range = [colorRange[midIndex], colorRange[midIndex]];
+            } else {
+                this.colorScale.range = colorRange;
+            }
             this.colorScale.update();
         }
     }
@@ -229,7 +235,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)
             : undefined;
 
-        const colorDomain = colorKey ? dataModel.getDomain(this, 'colorValue', 'value', processedData) : undefined;
+        const colorDomain = colorKey ? dataModel.getDomain(this, 'colorValue', 'value', processedData) : [];
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -262,7 +268,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                           datum,
                           colorKey!,
                           'color',
-                          colorDomain ?? [],
+                          colorDomain,
                           label,
                           { value: colorValue, datum, colorKey, colorName, xKey, yKey, xName, yName }
                       )
