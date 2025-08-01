@@ -4,6 +4,8 @@ import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgPolarChartOptions,
+    AgSankeySeriesLinkItemStylerParams,
+    AgSankeySeriesNodeItemStylerParams,
     InteractionRange,
 } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
@@ -456,5 +458,55 @@ describe('SankeySeries', () => {
             chart = deproxy(AgCharts.create(options as AgChartOptions));
             await compare();
         });
+    });
+
+    it('AG-15669 - should correctly invoke itemStyler and apply result to node', async () => {
+        const options = {
+            title: {
+                text: 'itemStyler test',
+            },
+            subtitle: {
+                text: 'If you can see gray, something went wrong!',
+            },
+            data: [
+                { from: 'Nuclear (red)', to: 'Renewables (green)', size: 38 },
+                { from: 'Renewables (green)', to: 'Total (green)', size: 147 },
+            ],
+            series: [
+                {
+                    type: 'sankey',
+                    fromKey: 'from',
+                    toKey: 'to',
+                    sizeKey: 'size',
+                    sizeName: 'Total (GWh)',
+                    node: {
+                        fill: 'gray',
+                        itemStyler: (p: AgSankeySeriesNodeItemStylerParams<unknown, unknown>) => {
+                            const { label } = p;
+                            if (label === 'Nuclear (red)') {
+                                return { fill: 'red' };
+                            }
+
+                            return { fill: 'green' };
+                        },
+                    },
+                    link: {
+                        fill: 'gray',
+                        itemStyler: (p: AgSankeySeriesLinkItemStylerParams<{ from: string }, unknown>) => {
+                            const { from } = p.datum;
+                            if (from === 'Nuclear (red)') {
+                                return { fill: 'red' };
+                            }
+
+                            return { fill: 'green' };
+                        },
+                    },
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as AgChartOptions);
+
+        chart = deproxy(AgCharts.create(options as AgChartOptions));
+        await compare();
     });
 });

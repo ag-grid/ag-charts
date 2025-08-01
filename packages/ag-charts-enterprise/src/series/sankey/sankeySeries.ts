@@ -431,7 +431,7 @@ export class SankeySeries extends FlowProportionSeries<
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
-                createDatumId(datumIndex.index, 'link', isHighlight ? 'highlight' : 'node'),
+                createDatumId(datumIndex.index, 'node', isHighlight ? 'highlight' : 'node'),
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                     const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -449,8 +449,9 @@ export class SankeySeries extends FlowProportionSeries<
             );
 
             if (overrides) {
-                style = getShapeStyle(
-                    mergeDefaults(overrides, style),
+                style = mergeDefaults(
+                    overrides,
+                    style,
                     { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
                     { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
                     fillImageDefaults
@@ -553,8 +554,8 @@ export class SankeySeries extends FlowProportionSeries<
 
             if (overrides) {
                 style = mergeDefaults(
-                    style,
                     overrides,
+                    style,
                     { ...fillGradientDefaults.toJson(), colorStops: defaultColorStops },
                     { ...fillPatternDefaults.toJson(), fill: defaultPatternFill, stroke: defaultPatternFill },
                     fillImageDefaults
