@@ -70,7 +70,7 @@ export class ChartCaptions {
 
     private shrinkLayoutByCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox) {
         if (caption.layoutStyle === 'block') {
-            const bbox = caption.node.getBBox();
+            const bbox = caption.node.getBBox().clone();
             const { spacing = 0 } = caption;
             if (vAlign === 'bottom' && isArray(caption.text)) {
                 caption.node.y -= bbox.height;
