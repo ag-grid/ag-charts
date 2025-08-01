@@ -143,7 +143,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
-            this.colorScale.domain = processedData.domain.values[colorKeyIdx];
+            const domain = processedData.domain.values[colorKeyIdx].filter((v) => v != null);
+            this.colorScale.domain = [Math.min(...domain), Math.max(...domain)];
             this.colorScale.range = colorRange;
             this.colorScale.update();
         }
@@ -163,7 +164,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const colorDataIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
         const dataCount = processedData.input.count;
         const missCount = getMissCount(this, processedData.defs.values[colorDataIdx].missing);
-        const colorDataMissing = dataCount === 0 || dataCount === missCount;
+        const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
+        const actualCount = processedData.domain.values[colorKeyIdx].filter((v) => v != null).length;
+        const colorDataMissing = dataCount === 0 || dataCount === missCount || actualCount === 0;
         return !colorDataMissing;
     }
 
@@ -226,7 +229,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)
             : undefined;
 
-        const colorDomain = dataModel.getDomain(this, 'colorValue', 'value', processedData);
+        const colorDomain = colorKey ? dataModel.getDomain(this, 'colorValue', 'value', processedData) : undefined;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -259,7 +262,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                           datum,
                           colorKey!,
                           'color',
-                          colorDomain,
+                          colorDomain ?? [],
                           label,
                           { value: colorValue, datum, colorKey, colorName, xKey, yKey, xName, yName }
                       )
@@ -541,9 +544,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 enabled: this.visible,
                 seriesId: this.id,
                 series: this.getFormatterContext('color'),
-                colorDomain:
-                    this.processedData!.domain.values[this.dataModel.resolveProcessedDataIndexById(this, 'colorValue')],
-                colorRange: this.properties.colorRange,
+                colorDomain: this.colorScale.domain,
+                colorRange: this.colorScale.range,
             },
         ];
     }
