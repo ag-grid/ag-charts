@@ -69,7 +69,7 @@ export class ColorScale extends AbstractScale<number, string> {
         for (let i = 1; i < domain.length; i++) {
             const a = domain[i - 1];
             const b = domain[i];
-            if (a >= b) {
+            if (a > b) {
                 Logger.warnOnce('`colorDomain` values should be supplied in ascending order.');
                 domain.sort((a2, b2) => a2 - b2);
                 break;
