@@ -23,7 +23,7 @@ import { simpleMemorize2 } from '../../../util/memo';
 import { mergeDefaults } from '../../../util/object';
 import { isContinuous } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
-import { TimeAxis } from '../../axis/timeAxis';
+import { NumberAxis } from '../../axis/numberAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DatumPropertyDefinition, ProcessedData, PropertyDefinition } from '../../data/dataModel';
@@ -186,6 +186,10 @@ export class AreaSeries extends CartesianSeries<
         return stackCount > 1;
     }
 
+    private isNormalized() {
+        return this.properties.normalizedTo != null;
+    }
+
     private _isStacked: boolean | undefined = undefined;
     override setSeriesIndex(index: number) {
         const isStacked = this.isStacked();
@@ -236,7 +240,6 @@ export class AreaSeries extends CartesianSeries<
             keyProperty(xKey, xScaleType, { id: 'xValue' }),
             valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
             ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })] : []),
-            valueProperty(yKey, yScaleType, { id: `yValue`, ...common, groupId: idMap.value }),
         ];
 
         if (stacked) {
@@ -252,7 +255,10 @@ export class AreaSeries extends CartesianSeries<
         }
 
         if (isDefined(normalizedTo)) {
-            props.push(normaliseGroupTo(Object.values(idMap), normalizedTo));
+            props.push(
+                valueProperty(yKey, yScaleType, { id: `yValue`, ...common, groupId: idMap.value }),
+                normaliseGroupTo(Object.values(idMap), normalizedTo)
+            );
         }
         if (animationEnabled) {
             props.push(animationValidation());
@@ -283,8 +289,12 @@ export class AreaSeries extends CartesianSeries<
         return [y - r, y + r];
     }
 
+    private yValueKey() {
+        return this.isNormalized() ? 'yValue' : 'yValueRaw';
+    }
+
     private yCumulativeKey(processData: ProcessedData<any>) {
-        return processData.type === 'grouped' ? 'yValueCumulative' : 'yValue';
+        return processData.type === 'grouped' ? 'yValueCumulative' : this.yValueKey();
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
@@ -309,13 +319,13 @@ export class AreaSeries extends CartesianSeries<
             'xValue'
         );
 
-        if (yAxis instanceof LogAxis || yAxis instanceof TimeAxis) {
-            return fixNumericExtent(yExtent);
-        } else {
+        if (yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
                 ? [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]]
                 : [];
             return fixNumericExtent(fixedYExtent);
+        } else {
+            return fixNumericExtent(yExtent);
         }
     }
 
@@ -505,7 +515,7 @@ export class AreaSeries extends CartesianSeries<
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
         let xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        let yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
+        let yValues = dataModel.resolveColumnById(this, this.yValueKey(), processedData);
 
         const connectMissingData = !this.isStacked() && this.properties.connectMissingData;
 

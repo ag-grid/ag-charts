@@ -610,6 +610,44 @@ describe('LineSeries', () => {
             const imageData = extractImageData(ctx);
             expect(imageData).toMatchImageSnapshot();
         });
+
+        it('should handle stacked with unconnected missing data case', async () => {
+            const options = {
+                ...examples.LINE_STACKED_MISSING_DATA,
+                series: examples.LINE_STACKED_MISSING_DATA.series!.map((series) => ({
+                    ...series,
+                    connectMissingData: false,
+                })),
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot();
+        });
+
+        it('should handle stacked with connected missing data case', async () => {
+            const options = {
+                ...examples.LINE_STACKED_MISSING_DATA,
+                series: examples.LINE_STACKED_MISSING_DATA.series!.map((series) => ({
+                    ...series,
+                    connectMissingData: true,
+                })),
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot();
+        });
     });
 
     describe('item styler', () => {

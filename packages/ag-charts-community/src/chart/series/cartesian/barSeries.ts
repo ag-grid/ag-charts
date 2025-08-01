@@ -20,6 +20,7 @@ import type { Text } from '../../../scene/shape/text';
 import { simpleMemorize2 } from '../../../util/memo';
 import { mergeDefaults } from '../../../util/object';
 import { LogAxis } from '../../axis/logAxis';
+import { NumberAxis } from '../../axis/numberAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, type PropertyDefinition, fixNumericExtent } from '../../data/dataModel';
@@ -265,13 +266,14 @@ export class BarSeries extends AbstractBarSeries<
             yExtent = [Math.min(yExtent[0], yFilterExtent[0]), Math.max(yExtent[1], yFilterExtent[1])];
         }
 
-        if (this.getValueAxis() instanceof LogAxis) {
-            return fixNumericExtent(yExtent);
-        } else {
+        const yAxis = this.getValueAxis();
+        if (yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
                 ? [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])]
                 : [];
             return fixNumericExtent(fixedYExtent);
+        } else {
+            return fixNumericExtent(yExtent);
         }
     }
 
