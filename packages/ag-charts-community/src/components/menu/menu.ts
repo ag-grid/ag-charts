@@ -2,7 +2,8 @@ import { createElement } from 'ag-charts-core';
 
 import type { LabelIcon } from '../../dom/elements';
 import { getIconClassNames } from '../../util/dom';
-import { type MenuCloser, initMenuKeyNav, isButtonClickEvent } from '../../util/keynavUtil';
+import { MenuItemRadioWidget, MenuItemWidget } from '../../widget/menuItemWidget';
+import { MenuWidget } from '../../widget/menuWidget';
 import { AnchoredPopover, type AnchoredPopoverOptions } from '../popover/anchoredPopover';
 
 export interface MenuOptions<Value = any> extends AnchoredPopoverOptions {
@@ -18,84 +19,66 @@ export type MenuItem<Value = any> = LabelIcon & {
     strokeWidth?: number;
 };
 
+type MenuRow = MenuItemWidget | MenuItemRadioWidget;
+
 /**
  * An anchored popover containing a list of pressable items.
  */
 export class Menu extends AnchoredPopover {
-    protected menuCloser?: MenuCloser;
+    protected menuWidget?: MenuWidget;
 
     public show<Value = any>(options: MenuOptions<Value>): void {
-        const rows = options.items.map((item) => this.createRow(options, item));
+        const menu = new MenuWidget('vertical');
+        for (const item of options.items) {
+            menu.addChild(this.createRow(options, item));
+        }
+        menu.addClass('ag-charts-menu');
+        this.showWidget(menu, options);
 
-        const popover = this.showWithChildren(rows, options);
-        popover.classList.add('ag-charts-menu');
-        popover.setAttribute('role', 'menu');
-
-        this.menuCloser = initMenuKeyNav({
-            orientation: 'vertical',
-            menu: popover,
-            buttons: rows,
-            sourceEvent: options.sourceEvent,
-            closeCallback: () => this.hide(),
-        });
-        this.hideFns.push(() => {
-            this.menuCloser?.finishClosing();
-            this.menuCloser = undefined;
-        });
+        this.menuWidget?.destroy();
+        this.menuWidget = menu;
     }
 
-    private createRow<Value>(options: MenuOptions<Value>, item: MenuItem<Value>) {
-        const { menuItemRole = 'menuitem' } = options;
+    private allocRow(options: MenuOptions, item: MenuItem): MenuRow {
+        if (options.menuItemRole == null || options.menuItemRole === 'menuitem') {
+            return new MenuItemWidget();
+        } else {
+            options.menuItemRole satisfies 'menuitemradio';
+            const result = new MenuItemRadioWidget();
+            result.setChecked(options.value === item.value);
+            return result;
+        }
+    }
 
+    private createRow<Value>(options: MenuOptions<Value>, item: MenuItem<Value>): MenuRow {
         const active = item.value === options.value;
-        const row = createElement('div', 'ag-charts-menu__row');
-        row.setAttribute('role', menuItemRole);
-        if (menuItemRole === 'menuitemradio') {
-            row.setAttribute('aria-checked', (options.value === item.value).toString());
-        }
+        const row = this.allocRow(options, item);
+        row.addClass('ag-charts-menu__row');
+        row.toggleClass(`ag-charts-menu__row--active`, active);
         if (typeof item.value === 'string') {
-            row.dataset.popoverId = item.value;
+            row.getElement().dataset.popoverId = item.value;
         }
-        row.classList.toggle(`ag-charts-menu__row--active`, active);
 
         if (item.icon != null) {
             const icon = createElement('span', `ag-charts-menu__icon ${getIconClassNames(item.icon)}`);
-            row.appendChild(icon);
+            row.getElement().appendChild(icon);
         }
 
         const strokeWidthVisible = item.strokeWidth != null;
         if (strokeWidthVisible) {
-            row.classList.toggle(`ag-charts-menu__row--stroke-width-visible`, strokeWidthVisible);
-            row.style.setProperty('--strokeWidth', strokeWidthVisible ? `${item.strokeWidth}px` : null);
+            row.toggleClass(`ag-charts-menu__row--stroke-width-visible`, strokeWidthVisible);
+            row.setCSSVariable('--strokeWidth', strokeWidthVisible ? `${item.strokeWidth}px` : null);
         }
 
         if (item.label != null) {
             const label = createElement('span', 'ag-charts-menu__label');
             label.textContent = this.ctx.localeManager.t(item.label);
-            row.appendChild(label);
+            row.getElement().appendChild(label);
         }
 
         if ('altText' in item) {
-            row.ariaLabel = this.ctx.localeManager.t(item.altText);
+            row.setAriaLabel(this.ctx.localeManager.t(item.altText));
         }
-
-        const select = () => {
-            options.onPress?.(item);
-        };
-
-        const onclick = (e: KeyboardEvent | MouseEvent) => {
-            if (isButtonClickEvent(e)) {
-                select();
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        };
-        row.addEventListener('keydown', onclick);
-        row.addEventListener('click', onclick);
-
-        row.addEventListener('mousemove', () => {
-            row.focus({ preventScroll: true });
-        });
 
         return row;
     }

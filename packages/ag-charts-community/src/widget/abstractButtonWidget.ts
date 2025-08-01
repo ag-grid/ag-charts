@@ -7,7 +7,7 @@ import type { WidgetEventMap as EventMap, KeyboardWidgetEvent } from './widgetEv
 type R = ReturnType<Widget['addListener']>;
 
 export class AbstractButtonWidget<TElement extends HTMLElement> extends Widget<TElement> {
-    constructor(element: TElement, role?: 'menuitem') {
+    constructor(element: TElement, role?: 'menuitem' | 'menuitemradio') {
         super(element);
         setAttribute(this.elem, 'role', role);
         this.setEnabled(true);

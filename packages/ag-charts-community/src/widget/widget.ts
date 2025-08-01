@@ -163,6 +163,10 @@ export abstract class Widget<
         setElementStyle(this.elem, 'pointer-events', pointerEvents);
     }
 
+    setCSSVariable(key: `--${string}`, value: string | null) {
+        this.elem.style.setProperty(key, value);
+    }
+
     isDisabled() {
         return getAttribute(this.elem, 'aria-disabled', false);
     }
