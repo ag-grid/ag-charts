@@ -42,6 +42,7 @@ import {
     computeBubbleAggregationCount,
     computeBubbleAggregationData,
     computeBubbleAggregationDilation,
+    computeBubbleDilationOpacity,
 } from './bubbleAggregation';
 import { BubbleSeriesProperties } from './bubbleSeriesProperties';
 import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -525,7 +526,7 @@ export class BubbleSeries extends CartesianSeries<
                 isHighlight,
                 resolveItemStylerMarkerPath: false,
             });
-            style.fillOpacity = (1 - (1 - (style.fillOpacity ?? 1)) ** count) / Math.sqrt(dilation);
+            style.fillOpacity = computeBubbleDilationOpacity(style.fillOpacity ?? 1, count, dilation);
 
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
             node.zIndex = aggregated ? [-count, index] : 0;
