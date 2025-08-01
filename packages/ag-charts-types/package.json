@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-types",
-  "version": "12.1.1-beta.20250731.1337",
+  "version": "12.1.1-beta.20250801",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
