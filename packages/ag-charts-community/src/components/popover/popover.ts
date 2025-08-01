@@ -5,6 +5,7 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { getLastFocus } from '../../util/keynavUtil';
 import type { Vec2 } from '../../util/vector';
+import type { Widget } from '../../widget/widget';
 
 const canvasOverlay = 'canvas-overlay';
 
@@ -75,12 +76,20 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         this.element.replaceChildren();
     }
 
-    protected showWithChildren(children: Array<HTMLElement>, options: Options) {
+    protected showWidget(widget: Widget, options: Options) {
+        this.showWithChildren(widget, options);
+    }
+
+    protected showWithChildren(childrenOrWidget: Array<HTMLElement> | Widget, options: Options) {
         if (!this.element.parentElement) {
             throw new Error('Can not show popover that has not been attached to a parent.');
         }
+        const [children, widget]: [Array<HTMLElement> | undefined, Widget | undefined] = Array.isArray(childrenOrWidget)
+            ? [childrenOrWidget, undefined]
+            : [undefined, childrenOrWidget];
 
-        const popover = createElement('div', 'ag-charts-popover');
+        const popover = widget?.getElement() ?? createElement('div');
+        popover.classList.toggle('ag-charts-popover', true);
 
         if (options.ariaLabel != null) {
             popover.setAttribute('aria-label', options.ariaLabel);
@@ -90,7 +99,9 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
             popover.classList.add(options.class);
         }
 
-        popover.replaceChildren(...children);
+        if (children) {
+            popover.replaceChildren(...children);
+        }
         this.element.replaceChildren(popover);
 
         this.hideFns.push(() => this.removeChildren());
