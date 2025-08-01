@@ -19,6 +19,8 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/extent';
 import { simpleMemorize2 } from '../../../util/memo';
 import { mergeDefaults } from '../../../util/object';
+import { LogAxis } from '../../axis/logAxis';
+import { NumberAxis } from '../../axis/numberAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DataModelOptions, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
@@ -115,6 +117,10 @@ export class LineSeries extends CartesianSeries<
         });
     }
 
+    private isNormalized() {
+        return this.properties.normalizedTo != null;
+    }
+
     override async processData(dataController: DataController) {
         if (this.data == null) return;
 
@@ -134,6 +140,11 @@ export class LineSeries extends CartesianSeries<
         if (stacked && !visible) {
             common.forceValue = 0;
         }
+
+        const idMap = {
+            value: `area-stack-${groupIndex}-yValue`,
+            marker: `area-stack-${groupIndex}-yValues-marker`,
+        };
 
         const props: DataModelOptions<any, false, false>['props'] = [];
 
@@ -159,39 +170,22 @@ export class LineSeries extends CartesianSeries<
         }
 
         if (stacked) {
-            const ids = [
-                `line-stack-${groupIndex}-yValues`,
-                `line-stack-${groupIndex}-yValues-trailing`,
-                `line-stack-${groupIndex}-yValues-marker`,
-            ];
-
             props.push(
-                ...groupAccumulativeValueProperty(
-                    yKey,
-                    'window',
-                    'current',
-                    { id: `yValueEnd`, ...common, groupId: ids[0] },
-                    yScaleType
-                ),
-                ...groupAccumulativeValueProperty(
-                    yKey,
-                    'window-trailing',
-                    'current',
-                    { id: `yValueStart`, ...common, groupId: ids[1] },
-                    yScaleType
-                ),
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'normal',
                     'current',
-                    { id: `yValueCumulative`, ...common, groupId: ids[2] },
+                    { id: `yValueCumulative`, ...common, groupId: idMap.marker },
                     yScaleType
                 )
             );
+        }
 
-            if (isDefined(normalizedTo)) {
-                props.push(normaliseGroupTo([ids[0], ids[1], ids[2]], normalizedTo));
-            }
+        if (isDefined(normalizedTo)) {
+            props.push(
+                valueProperty(yKey, yScaleType, { id: `yValue`, ...common, groupId: idMap.value }),
+                normaliseGroupTo(Object.values(idMap), normalizedTo)
+            );
         }
 
         if (animationEnabled) {
@@ -212,6 +206,14 @@ export class LineSeries extends CartesianSeries<
         this.animationState.transition('updateData');
     }
 
+    private yValueKey() {
+        return this.isNormalized() ? 'yValue' : 'yValueRaw';
+    }
+
+    private yCumulativeKey(processData: ProcessedData<any>) {
+        return processData.type === 'grouped' ? 'yValueCumulative' : this.yValueKey();
+    }
+
     override xCoordinateRange(xValue: any, pixelSize: number): [number, number] {
         const { marker } = this.properties;
         const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
@@ -227,8 +229,10 @@ export class LineSeries extends CartesianSeries<
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
-        const { dataModel, processedData } = this;
+        const { dataModel, processedData, axes } = this;
         if (!dataModel || !processedData) return [];
+
+        const yAxis = axes[ChartAxisDirection.Y];
 
         if (direction === ChartAxisDirection.X) {
             const xDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
@@ -240,14 +244,29 @@ export class LineSeries extends CartesianSeries<
             return fixNumericExtent(extent(domain));
         }
 
-        const yKey = this.dataModel?.hasColumnById(this, `yValueEnd`) ? 'yValueEnd' : 'yValueRaw';
-        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, [yKey], 'xValue');
-        return fixNumericExtent(yExtent);
+        const yExtent = this.domainForClippedRange(
+            ChartAxisDirection.Y,
+            [this.yCumulativeKey(this.processedData!)],
+            'xValue'
+        );
+
+        if (this.isNormalized() && yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
+            const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
+                ? [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]]
+                : [];
+            return fixNumericExtent(fixedYExtent);
+        } else {
+            return fixNumericExtent(yExtent);
+        }
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): number[] {
-        const yKey = this.dataModel?.hasColumnById(this, `yValueEnd`) ? 'yValueEnd' : 'yValueRaw';
-        return this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange);
+        return this.domainForVisibleRange(
+            ChartAxisDirection.Y,
+            [this.yCumulativeKey(this.processedData!)],
+            'xValue',
+            visibleRange
+        );
     }
 
     override getVisibleItems(
@@ -255,8 +274,13 @@ export class LineSeries extends CartesianSeries<
         yVisibleRange: [number, number] | undefined,
         minVisibleItems: number
     ): number {
-        const yKey = this.dataModel?.hasColumnById(this, `yValueEnd`) ? 'yValueEnd' : 'yValueRaw';
-        return this.countVisibleItems('xValue', [yKey], xVisibleRange, yVisibleRange, minVisibleItems);
+        return this.countVisibleItems(
+            'xValue',
+            [this.yCumulativeKey(this.processedData!)],
+            xVisibleRange,
+            yVisibleRange,
+            minVisibleItems
+        );
     }
 
     private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>) {
@@ -268,7 +292,7 @@ export class LineSeries extends CartesianSeries<
 
         const { scale } = xAxis;
         const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
+        const yValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
         const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
 
         return memoizedAggregateLineData(scale.type, xValues, yValues, domain);
@@ -293,7 +317,6 @@ export class LineSeries extends CartesianSeries<
             interpolation,
             legendItemName,
         } = this.properties;
-        const stacked = this.dataModel?.hasColumnById(this, `yValueEnd`);
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -302,11 +325,8 @@ export class LineSeries extends CartesianSeries<
 
         const rawData = processedData.dataSources.get(this.id) ?? [];
         const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
-        const yEndValues = stacked ? dataModel.resolveColumnById<number>(this, `yValueEnd`, processedData) : undefined;
-        const yCumulativeValues = stacked
-            ? dataModel.resolveColumnById<number>(this, `yValueCumulative`, processedData)
-            : yValues;
+        const yRawValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
+        const yCumulativeValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
         const selectionValues =
             yFilterKey != null ? dataModel.resolveColumnById(this, `yFilterRaw`, processedData) : undefined;
 
@@ -322,12 +342,12 @@ export class LineSeries extends CartesianSeries<
         const handleDatum = (datumIndex: number) => {
             const datum = rawData[datumIndex];
             const xDatum = xValues[datumIndex];
-            const yDatum = yValues[datumIndex];
-            const yEndDatum = yEndValues?.[datumIndex];
+            const yDatum = yRawValues[datumIndex];
+            const yCumulative = yCumulativeValues[datumIndex];
             const selected = selectionValues?.[datumIndex];
 
             const x = xScale.convert(xDatum) + xOffset;
-            const y = yScale.convert(yCumulativeValues[datumIndex]) + yOffset;
+            const y = yScale.convert(yCumulative) + yOffset;
 
             if (!Number.isFinite(x)) return;
 
@@ -352,7 +372,7 @@ export class LineSeries extends CartesianSeries<
                     xKey,
                     point: { x, y, size },
                     midPoint: { x, y },
-                    cumulativeValue: yEndDatum,
+                    cumulativeValue: yCumulative,
                     yValue: yDatum,
                     xValue: xDatum,
                     capDefaults,
@@ -410,7 +430,7 @@ export class LineSeries extends CartesianSeries<
         const strokeData = { itemId: yKey, spans: strokeSpans };
 
         const crossFiltering =
-            selectionValues?.some((selectionValue, index) => selectionValue === yValues[index]) ?? false;
+            selectionValues?.some((selectionValue, index) => selectionValue === yRawValues[index]) ?? false;
 
         return {
             itemId: yKey,
