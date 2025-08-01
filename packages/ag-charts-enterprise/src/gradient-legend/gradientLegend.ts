@@ -233,8 +233,7 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
         const offset = gradient.thickness + (scale.padding ?? 0);
         axisTicks.translationX = vertical ? offset : gradientRectBBox.x;
         axisTicks.translationY = vertical ? gradientRectBBox.y : offset;
-        const domain = positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain;
-        axisTicks.scale.domain = domain.filter((v) => v != null);
+        axisTicks.scale.domain = positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain;
         axisTicks.scale.range = vertical
             ? [gradientRectBBox.x, gradientRectBBox.height]
             : [gradientRectBBox.y, gradientRectBBox.width];

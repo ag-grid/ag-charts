@@ -110,7 +110,7 @@ describe('HeatmapSeries', () => {
         await compare();
     });
 
-    it('AG-15645 - should handle null values', async () => {
+    it('AG-15645 - should handle some null color values', async () => {
         const options = prepareEnterpriseTestOptions({
             data: [
                 {
@@ -122,6 +122,52 @@ describe('HeatmapSeries', () => {
                     x: 1753866000000,
                     y: 'ExDest Bats Dark (BATD)',
                     z: 1200,
+                },
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Cboe LIS (LISX)',
+                    z: null,
+                },
+            ],
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'x',
+                    yKey: 'y',
+                    colorKey: 'z',
+                    label: {},
+                },
+            ],
+            axes: [
+                {
+                    position: 'bottom',
+                    type: 'category',
+                    label: {},
+                },
+                {
+                    position: 'left',
+                    type: 'category',
+                    label: {},
+                },
+            ],
+        });
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it('AG-15645 - should handle all null color values', async () => {
+        const options = prepareEnterpriseTestOptions({
+            data: [
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Aquis AoD (AQXA)',
+                    z: null,
+                },
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Bats Dark (BATD)',
+                    z: null,
                 },
                 {
                     x: 1753866000000,
