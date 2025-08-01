@@ -6,7 +6,7 @@ exports[`label formatter formatSingleLabel formats a label without shrinking wit
   "height": 23,
   "lineHeight": 23,
   "text": "Hello",
-  "width": 45.58000183105469,
+  "width": 48.099998474121094,
 }
 `;
 
@@ -16,7 +16,7 @@ exports[`label formatter formatSingleLabel ignores minimumFontSizes greater than
   "height": 23,
   "lineHeight": 23,
   "text": "Hello",
-  "width": 45.58000183105469,
+  "width": 48.099998474121094,
 }
 `;
 
@@ -26,7 +26,7 @@ exports[`label formatter formatSingleLabel shrinks a label to fit within smaller
   "height": 12,
   "lineHeight": 12,
   "text": "Hello",
-  "width": 22.790000915527344,
+  "width": 24.049999237060547,
 }
 `;
 
@@ -38,7 +38,7 @@ exports[`label formatter formatStackedLabels formats stacked labels without shri
     "height": 23,
     "lineHeight": 23,
     "text": "Hello",
-    "width": 45.58000183105469,
+    "width": 48.099998474121094,
   },
   "meta": undefined,
   "secondaryLabel": {
@@ -46,9 +46,9 @@ exports[`label formatter formatStackedLabels formats stacked labels without shri
     "height": 12,
     "lineHeight": 12,
     "text": "World",
-    "width": 25.93000030517578,
+    "width": 27.959999084472656,
   },
-  "width": 45.58000183105469,
+  "width": 48.099998474121094,
 }
 `;
 
@@ -60,7 +60,7 @@ exports[`label formatter formatStackedLabels ignores minimumFontSizes greater th
     "height": 23,
     "lineHeight": 23,
     "text": "Hello",
-    "width": 45.58000183105469,
+    "width": 48.099998474121094,
   },
   "meta": undefined,
   "secondaryLabel": {
@@ -68,9 +68,9 @@ exports[`label formatter formatStackedLabels ignores minimumFontSizes greater th
     "height": 12,
     "lineHeight": 12,
     "text": "World",
-    "width": 25.93000030517578,
+    "width": 27.959999084472656,
   },
-  "width": 45.58000183105469,
+  "width": 48.099998474121094,
 }
 `;
 
@@ -82,7 +82,7 @@ exports[`label formatter formatStackedLabels shrinks stacked labels to fit withi
     "height": 14,
     "lineHeight": 14,
     "text": "Hello",
-    "width": 27.350000381469727,
+    "width": 28.860000610351562,
   },
   "meta": undefined,
   "secondaryLabel": {
@@ -90,8 +90,8 @@ exports[`label formatter formatStackedLabels shrinks stacked labels to fit withi
     "height": 6,
     "lineHeight": 6,
     "text": "World",
-    "width": 12.970000267028809,
+    "width": 13.979999542236328,
   },
-  "width": 27.350000381469727,
+  "width": 28.860000610351562,
 }
 `;
