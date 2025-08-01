@@ -82,6 +82,8 @@ For each PR, review and critique the following:
     -   Are there any other risks with the changes?
     -   Should we add more tests?
 -   For visual snapshot changes, ask the visual-qa agent to review the changes.
+    -   Make sure before and after states of images are available to the agent, and instruct the agent where to locate these.
+-   If there is a code-reviewer agent, ask it to review the changes and provide a distinct detailed report in `${REPO_ROOT}/reports/pr-reviews/${PR_NUMBER}-${JIRA_ID:-none}-detailed-code-review.md` and link it in the main report.
 -   For examples and documentation changes, check for any offensive language or politically charged language that could be offensive to some users.
 
 ## Report Structure
@@ -102,9 +104,9 @@ For each PR, review and critique the following:
         -   Warn about any unexpected visual changes.
 
 -   For stakeholder attention section:
-    -   Breaking changes for users, focusing on:
-        -   Contract changes in our public API contract in `ag-charts-types` since the latest release.
+    -   Breaking TypeScript or behavior changes for users:
+        -   We ONLY care about TypeScript contract changes in `ag-charts-types` since the latest release, as this is our external API contract.
+        -   We DO NOT care about other interface or contract changes as these are internally used and not part of our external API contract.
         -   Behavioral changes in `ag-charts-community` or `ag-charts-enterprise`.
-        -   DO NOT include other interface or contract changes as we don't support users depending on these or writing custom code against these.
     -   Points of interest for the QA team.
     -   Points of interest for the Product Manager.
