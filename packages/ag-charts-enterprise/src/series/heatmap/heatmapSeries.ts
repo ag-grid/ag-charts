@@ -229,7 +229,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)
             : undefined;
 
-        const colorDomain = dataModel.getDomain(this, 'colorValue', 'value', processedData);
+        const colorDomain = colorKey ? dataModel.getDomain(this, 'colorValue', 'value', processedData) : undefined;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -262,7 +262,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                           datum,
                           colorKey!,
                           'color',
-                          colorDomain,
+                          colorDomain ?? [],
                           label,
                           { value: colorValue, datum, colorKey, colorName, xKey, yKey, xName, yName }
                       )

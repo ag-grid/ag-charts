@@ -201,4 +201,46 @@ describe('HeatmapSeries', () => {
         chart = AgCharts.create(options);
         await compare();
     });
+
+    it('AG-15645 - should handle no colorKey', async () => {
+        const options = prepareEnterpriseTestOptions({
+            data: [
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Aquis AoD (AQXA)',
+                },
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Bats Dark (BATD)',
+                },
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Cboe LIS (LISX)',
+                },
+            ],
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'x',
+                    yKey: 'y',
+                    label: {},
+                },
+            ],
+            axes: [
+                {
+                    position: 'bottom',
+                    type: 'category',
+                    label: {},
+                },
+                {
+                    position: 'left',
+                    type: 'category',
+                    label: {},
+                },
+            ],
+        });
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
 });
