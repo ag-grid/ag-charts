@@ -63,8 +63,8 @@ vite.config.*.timestamp*
 vitest.config.*.timestamp*
 
 # Ignore local AI.
-.claude/
-.mcp.json
+/.claude/
+/.mcp.json
 CLAUDE.md
 todos.md
 .tmp
