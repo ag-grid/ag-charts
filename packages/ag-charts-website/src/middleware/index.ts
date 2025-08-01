@@ -83,10 +83,12 @@ function isBinary(path: string) {
     return BINARY_EXTENSIONS.includes(extension);
 }
 
+const siteUrl = new URL(env.PUBLIC_SITE_URL);
 export const onRequest = defineMiddleware(async (context, next) => {
     const response = await next();
 
-    const useRelativePaths = context.url.hostname.startsWith('host.internal.docker');
+    const host = context.url.host;
+    const useRelativePaths = host.startsWith('host.docker.internal') || host !== siteUrl.host;
     if (useRelativePaths) {
         // We should use relative paths for the gallery examples in dev.
         if (isHtml(context.url.pathname)) {

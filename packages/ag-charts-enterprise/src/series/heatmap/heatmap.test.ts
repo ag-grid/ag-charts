@@ -65,7 +65,7 @@ describe('HeatmapSeries', () => {
         await compare();
     });
 
-    test('AG-8290 label boxing', async () => {
+    it('AG-8290 label boxing', async () => {
         const options = prepareEnterpriseTestOptions({
             data: [
                 { year: '2018', month: 'Jan', temperature: 4.4 },
@@ -102,6 +102,140 @@ describe('HeatmapSeries', () => {
                         fillOpacity: 0.7,
                         cornerRadius: 10,
                     },
+                },
+            ],
+        });
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it('AG-15645 - should handle some null color values', async () => {
+        const options = prepareEnterpriseTestOptions({
+            data: [
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Aquis AoD (AQXA)',
+                    z: null,
+                },
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Bats Dark (BATD)',
+                    z: 1200,
+                },
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Cboe LIS (LISX)',
+                    z: null,
+                },
+            ],
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'x',
+                    yKey: 'y',
+                    colorKey: 'z',
+                    label: {},
+                },
+            ],
+            axes: [
+                {
+                    position: 'bottom',
+                    type: 'category',
+                    label: {},
+                },
+                {
+                    position: 'left',
+                    type: 'category',
+                    label: {},
+                },
+            ],
+        });
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it('AG-15645 - should handle all null color values', async () => {
+        const options = prepareEnterpriseTestOptions({
+            data: [
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Aquis AoD (AQXA)',
+                    z: null,
+                },
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Bats Dark (BATD)',
+                    z: null,
+                },
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Cboe LIS (LISX)',
+                    z: null,
+                },
+            ],
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'x',
+                    yKey: 'y',
+                    colorKey: 'z',
+                    label: {},
+                },
+            ],
+            axes: [
+                {
+                    position: 'bottom',
+                    type: 'category',
+                    label: {},
+                },
+                {
+                    position: 'left',
+                    type: 'category',
+                    label: {},
+                },
+            ],
+        });
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
+    it('AG-15645 - should handle no colorKey', async () => {
+        const options = prepareEnterpriseTestOptions({
+            data: [
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Aquis AoD (AQXA)',
+                },
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Bats Dark (BATD)',
+                },
+                {
+                    x: 1753866000000,
+                    y: 'ExDest Cboe LIS (LISX)',
+                },
+            ],
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'x',
+                    yKey: 'y',
+                    label: {},
+                },
+            ],
+            axes: [
+                {
+                    position: 'bottom',
+                    type: 'category',
+                    label: {},
+                },
+                {
+                    position: 'left',
+                    type: 'category',
+                    label: {},
                 },
             ],
         });
