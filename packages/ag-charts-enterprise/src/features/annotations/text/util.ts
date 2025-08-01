@@ -15,8 +15,8 @@ export function maybeWrapText(options: TextOptions, text: string, maxWidth: numb
 }
 
 function measureAnnotationText(options: FontOptions, text: string) {
-    const { lineBounds, width } = cachedTextMeasurer(options).measureLines(text);
-    const height = lineBounds.length * calcLineHeight(options.fontSize, ANNOTATION_TEXT_LINE_HEIGHT);
+    const { lineMetrics, width } = cachedTextMeasurer(options).measureLines(text);
+    const height = lineMetrics.length * calcLineHeight(options.fontSize, ANNOTATION_TEXT_LINE_HEIGHT);
     return { width, height };
 }
 

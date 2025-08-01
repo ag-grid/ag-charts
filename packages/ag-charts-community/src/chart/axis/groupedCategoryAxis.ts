@@ -1,13 +1,4 @@
-import {
-    calcLineHeight,
-    getMaxInnerRectSize,
-    inRange,
-    isArray,
-    isObject,
-    sortBasedOnArray,
-    toArray,
-    wrapText,
-} from 'ag-charts-core';
+import { getMaxInnerRectSize, inRange, isArray, isObject, sortBasedOnArray, toArray, wrapText } from 'ag-charts-core';
 import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -257,7 +248,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
             tempText.x = horizontal ? datum.screen : labelSpacing;
             tempText.y = horizontal ? labelSpacing : datum.screen;
             tempText.rotation = 0;
-            tempText.lineHeight = calcLineHeight(labelStyles.fontSize);
             tempText.fill = labelStyles.color;
             tempText.text = text;
             tempText.textAlign = 'center';

@@ -81,23 +81,46 @@ export class Text<D = any> extends Shape<D> {
     })
     text?: string | TextSegment[] = undefined;
 
-    @SceneChangeDetection()
+    fontCache?: string = undefined;
+
+    get font() {
+        this.fontCache ??= toFontString(this);
+        return this.fontCache;
+    }
+
+    @SceneChangeDetection({
+        changeCb: (o: Text) => {
+            o.fontCache = undefined;
+        },
+    })
     fontStyle?: FontStyle;
 
-    @SceneChangeDetection()
+    @SceneChangeDetection({
+        changeCb: (o: Text) => {
+            o.fontCache = undefined;
+        },
+    })
     fontWeight?: FontWeight;
 
-    @SceneChangeDetection()
+    @SceneChangeDetection({
+        changeCb: (o: Text) => {
+            o.fontCache = undefined;
+        },
+    })
     fontSize: number = Text.defaultFontSize;
 
-    @SceneChangeDetection()
+    @SceneChangeDetection({
+        changeCb: (o: Text) => {
+            o.fontCache = undefined;
+        },
+    })
     fontFamily?: string = 'sans-serif';
 
     @SceneChangeDetection()
     textAlign: CanvasTextAlign = 'start';
 
     @SceneChangeDetection()
-    textBaseline: CanvasTextBaseline = 'alphabetic';
+    textBaseline: CanvasTextBaseline = 'alphabetic'; // we don't support 'hanging' or 'ideographic' baselines
 
     // TextMetrics are used if lineHeight is not defined.
     @SceneChangeDetection()
@@ -119,9 +142,11 @@ export class Text<D = any> extends Shape<D> {
         opts: { font: string | FontOptions; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
     ): BBox {
         const { font, textAlign, textBaseline } = opts;
-        const { width, height, lineBounds } = cachedTextMeasurer(font).measureLines(lines);
+        const { width, height, lineMetrics } = cachedTextMeasurer(font).measureLines(lines);
         const offsetTop =
-            textBaseline === 'alphabetic' ? lineBounds[0].ascent : Text.getVerticalModifier(textBaseline) * height;
+            textBaseline === 'alphabetic'
+                ? lineMetrics[0]?.ascent ?? 0
+                : Text.getVerticalModifier(textBaseline) * height;
         const offsetLeft = width * Text.getHorizontalModifier(textAlign);
 
         return new BBox(x - offsetLeft, y - offsetTop, width, height);
@@ -279,13 +304,13 @@ export class Text<D = any> extends Shape<D> {
         const { textAlign, textBaseline } = this;
 
         ctx.textAlign = textAlign;
-        ctx.textBaseline = textBaseline;
+        ctx.textBaseline = textBaseline === 'middle' ? 'middle' : 'alphabetic';
 
         if (this.boxing) {
-            // Use the static version of computeBBox instead of dynamic version. The `boxing: Rect` shape is drawn using
-            // the same matrix transformation of the text, so we want to ignore translation/rotation/scale
+            // Use the static version of computeBBox instead of a dynamic version. The `boxing: Rect` shape is drawn
+            // using the same matrix transformation of the text, so we want to ignore translation/rotation/scale
             // transformations from derived classes. We only need to measure the width/height of the untransformed text
-            const textBBox = Text.computeBBox(this.lines, this.x, this.y, { font: this, textBaseline, textAlign });
+            const textBBox = Text.computeBBox(this.lines, this.x, this.y, this);
             if (textBBox.width !== 0 && textBBox.height !== 0) {
                 const { x, y, width, height } = textBBox.grow(this.boxPadding);
                 this.boxing.opacity = this.opacity;
@@ -311,13 +336,26 @@ export class Text<D = any> extends Shape<D> {
 
     private renderLines(renderCallback: (line: string, x: number, y: number) => void): void {
         const { x, y } = this;
-        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
-        const { lines, fontSize, lineHeight = calcLineHeight(fontSize) } = this;
 
-        let offsetY =
-            lines.length > 1 ? Text.getVerticalModifier(this.textBaseline) * (lineHeight * (1 - lines.length)) : 0;
-        for (const line of lines) {
-            renderCallback(line, x, y + offsetY);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+
+        const { lines, textBaseline, lineHeight = calcLineHeight(this.fontSize) } = this;
+        const { lineMetrics } = cachedTextMeasurer(this).measureLines(lines);
+
+        let offsetY = 0;
+        if (textBaseline === 'top') {
+            offsetY = lineMetrics[0].ascent;
+        } else if (textBaseline === 'middle' || textBaseline === 'bottom') {
+            offsetY = lineHeight * (1 - lines.length);
+            if (textBaseline === 'middle') {
+                offsetY /= 2;
+            } else {
+                offsetY -= lineMetrics[0].descent;
+            }
+        }
+
+        for (const line of lineMetrics) {
+            renderCallback(line.text, x, y + offsetY);
             offsetY += lineHeight;
         }
     }

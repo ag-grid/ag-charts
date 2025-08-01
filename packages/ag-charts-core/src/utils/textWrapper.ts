@@ -156,14 +156,14 @@ function clipLines(lines: string[], measurer: ITextMeasurer, options: WrapOption
         return lines;
     }
 
-    const { height, lineBounds } = measurer.measureLines(lines);
+    const { height, lineMetrics } = measurer.measureLines(lines);
 
     if (height <= options.maxHeight) {
         return lines;
     }
 
-    for (let i = 0, cumulativeHeight = 0; i < lineBounds.length; i++) {
-        cumulativeHeight += lineBounds[i].height;
+    for (let i = 0, cumulativeHeight = 0; i < lineMetrics.length; i++) {
+        cumulativeHeight += lineMetrics[i].height;
         if (cumulativeHeight > options.maxHeight) {
             if (options.overflow === 'hide') {
                 return [];

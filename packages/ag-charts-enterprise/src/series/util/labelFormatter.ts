@@ -387,7 +387,7 @@ function clipLines(
     if (metrics.width > maxWidth) {
         const clippedLines: string[] = [];
         width = 0;
-        for (const line of metrics.lineBounds) {
+        for (const line of metrics.lineMetrics) {
             if (line.width > maxWidth) {
                 if (!clippedLines.length) return;
                 break;
