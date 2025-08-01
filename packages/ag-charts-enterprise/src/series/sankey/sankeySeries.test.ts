@@ -4,6 +4,8 @@ import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgPolarChartOptions,
+    AgSankeySeriesLinkItemStylerParams,
+    AgSankeySeriesNodeItemStylerParams,
     InteractionRange,
 } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
@@ -479,8 +481,7 @@ describe('SankeySeries', () => {
                     sizeName: 'Total (GWh)',
                     node: {
                         fill: 'gray',
-                        itemStyler: (p) => {
-                            console.log(p);
+                        itemStyler: (p: AgSankeySeriesNodeItemStylerParams<unknown, unknown>) => {
                             const { label } = p;
                             if (label === 'Nuclear (red)') {
                                 return { fill: 'red' };
@@ -491,7 +492,7 @@ describe('SankeySeries', () => {
                     },
                     link: {
                         fill: 'gray',
-                        itemStyler: (p) => {
+                        itemStyler: (p: AgSankeySeriesLinkItemStylerParams<{ from: string }, unknown>) => {
                             const { from } = p.datum;
                             if (from === 'Nuclear (red)') {
                                 return { fill: 'red' };
