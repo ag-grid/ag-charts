@@ -165,10 +165,9 @@ function clipLines(lines: string[], measurer: ITextMeasurer, options: WrapOption
     for (let i = 0, cumulativeHeight = 0; i < lineMetrics.length; i++) {
         cumulativeHeight += lineMetrics[i].height;
         if (cumulativeHeight > options.maxHeight) {
-            if (options.overflow === 'hide') return [];
+            if (options.overflow === 'hide' || i === 0) return [];
             const clippedResults = lines.slice(0, i);
-            const lastLine = clippedResults.pop();
-            if (!lastLine) return [];
+            const lastLine = clippedResults.pop()!;
             return clippedResults.concat(truncateLine(lastLine, measurer, options.maxWidth, true));
         }
     }
