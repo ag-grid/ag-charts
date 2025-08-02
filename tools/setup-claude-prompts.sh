@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 # Setup Claude prompts by symlinking files from tools/prompts/ to appropriate locations
 # Only run if claude command is available
 
@@ -19,6 +21,7 @@ done
 
 # Check if claude command exists
 if ! command -v claude >/dev/null 2>&1; then
+    echo "claude command not found"
     exit 0
 fi
 
@@ -62,10 +65,10 @@ function add_mcp() {
 
 # Add MCPs if UPDATE_MCP_CONFIG is enabled
 if [ "$UPDATE_MCP_CONFIG" = true ]; then
-    add_mcp fetch project npx -y @kazuph/mcp-fetch
-    add_mcp sequential-thinking project npx -y @modelcontextprotocol/server-sequential-thinking
-    add_mcp context7 project npx -y @upstash/context7-mcp
-    add_mcp puppeteer project npx -y @modelcontextprotocol/server-puppeteer
+    add_mcp fetch project yarn run mcp-fetch
+    add_mcp sequential-thinking project yarn run mcp-server-sequential-thinking
+    add_mcp context7 project yarn run context7-mcp
+    add_mcp puppeteer project yarn run mcp-server-puppeteer
 
     if command -v docker >/dev/null 2>&1; then
         if [ -n "${JIRA_URL}" ] && [ -n "${JIRA_USERNAME}" ] && [ -n "${JIRA_API_TOKEN}" ]; then

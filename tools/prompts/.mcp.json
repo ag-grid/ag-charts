@@ -2,26 +2,26 @@
     "mcpServers": {
         "fetch": {
             "type": "stdio",
-            "command": "npx",
-            "args": ["-y", "@kazuph/mcp-fetch"],
+            "command": "yarn",
+            "args": ["run", "mcp-fetch"],
             "env": {}
         },
         "sequential-thinking": {
             "type": "stdio",
-            "command": "npx",
-            "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+            "command": "yarn",
+            "args": ["run", "mcp-server-sequential-thinking"],
             "env": {}
         },
         "context7": {
             "type": "stdio",
-            "command": "npx",
-            "args": ["-y", "@upstash/context7-mcp"],
+            "command": "yarn",
+            "args": ["run", "context7-mcp"],
             "env": {}
         },
         "puppeteer": {
             "type": "stdio",
-            "command": "npx",
-            "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+            "command": "yarn",
+            "args": ["run", "mcp-server-puppeteer"],
             "env": {}
         }
     }
