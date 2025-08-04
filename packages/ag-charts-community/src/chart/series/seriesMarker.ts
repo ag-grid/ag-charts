@@ -28,7 +28,7 @@ export class SeriesMarker<TParams = never>
 
     @Property
     @SceneChangeDetection()
-    size: number = 6;
+    size: number = 0; // Default derived from series-specific theme practically.
 
     @Property
     @SceneObjectChangeDetection({ equals: objectsEqual })
@@ -73,7 +73,17 @@ export class SeriesMarker<TParams = never>
     >;
 
     getStyle(): AgSeriesMarkerStyle {
-        const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
+        const {
+            size = 0,
+            shape,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        } = this;
 
         return {
             size,
@@ -89,6 +99,6 @@ export class SeriesMarker<TParams = never>
     }
 
     getDiameter(): number {
-        return this.size + this.strokeWidth;
+        return (this.size ?? 0) + this.strokeWidth;
     }
 }
