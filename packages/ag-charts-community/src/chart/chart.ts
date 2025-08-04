@@ -319,8 +319,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
             syncManager: new SyncManager(this),
             fireEvent: (event) => this.fireEvent(event),
-            resolvePartialCallback: (path, partialOptions) =>
-                this.chartOptions.optionsGraph?.resolvePartial(path, partialOptions),
             updateCallback: (type, opts) => this.update(type, opts),
             updateMutex: this.updateMutex,
         }));
