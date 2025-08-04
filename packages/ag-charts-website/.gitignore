@@ -6,3 +6,6 @@ public/gallery/thumbnails
 
 # Algolia search output
 search-output/
+
+# Generated technical review reports
+src/content/docs/**/reports/
