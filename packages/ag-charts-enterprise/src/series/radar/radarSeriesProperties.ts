@@ -19,7 +19,7 @@ export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum 
     readonly point: Readonly<_ModuleSupport.SizedPoint>;
     readonly angleValue: any;
     readonly radiusValue: any;
-    style: AgSeriesMarkerStyle;
+    style?: AgSeriesMarkerStyle;
 }
 
 const { Label, SeriesMarker, SeriesProperties, makeSeriesTooltip, Property } = _ModuleSupport;

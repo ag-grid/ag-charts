@@ -31,6 +31,14 @@ export enum HighlightState {
     OtherItem,
 }
 
+export const highlightStates = [
+    HighlightState.None,
+    HighlightState.Item,
+    HighlightState.Series,
+    HighlightState.OtherSeries,
+    HighlightState.OtherItem,
+];
+
 type HighlightMixins = {
     fill: AgColorType;
     fillOpacity: number;

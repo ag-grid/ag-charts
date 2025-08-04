@@ -334,7 +334,6 @@ export class LineSeries extends CartesianSeries<
             yFilterKey != null ? dataModel.resolveColumnById(this, `yFilterRaw`, processedData) : undefined;
 
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
 
         const capDefaults = {
             lengthRatioMultiplier: this.properties.marker.getDiameter(),
@@ -382,22 +381,6 @@ export class LineSeries extends CartesianSeries<
                     capDefaults,
                     labelText,
                     selected,
-                    style: this.getMarkerStyle(
-                        marker,
-                        {
-                            datumIndex,
-                            datum,
-                            point: { x, y, size },
-                        },
-                        datumStylerProperties(xDatum, yDatum, xKey, yKey, xDomain, yDomain),
-                        { isHighlight: false },
-                        undefined,
-                        {
-                            stroke,
-                            strokeWidth,
-                            strokeOpacity,
-                        }
-                    ),
                 });
             }
 
@@ -460,6 +443,11 @@ export class LineSeries extends CartesianSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
             crossFiltering,
+            styles: this.getMarkerStyles(marker, {
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            }),
         };
     }
 
@@ -542,13 +530,23 @@ export class LineSeries extends CartesianSeries<
         datumSelection: Selection<Marker, LineNodeDatum>;
         isHighlight: boolean;
     }) {
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
+
         const { datumSelection, isHighlight } = opts;
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
         const fillBBox = this.getShapeFillBBox();
 
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
         datumSelection.each((node, datum) => {
-            this.applyMarkerStyle(datum.style, node, datum.point, fillBBox, {
+            const style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            this.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 applyTranslation,
                 selected: datum.selected,
             });

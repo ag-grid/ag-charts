@@ -488,7 +488,7 @@ export abstract class CartesianSeries<
             return;
         }
 
-        if (this.hasChangesOnHighlight) {
+        if (this.hasItemStylers()) {
             this.updateDatumStyles({ datumSelection, isHighlight: false });
         }
 

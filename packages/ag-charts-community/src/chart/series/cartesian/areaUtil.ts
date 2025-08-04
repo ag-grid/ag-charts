@@ -4,6 +4,7 @@ import type { AgSeriesMarkerStyle } from 'ag-charts-types';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
+import type { SeriesNodeStyleContext } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { SpanJoin, spanRange } from './lineInterpolation';
@@ -39,7 +40,7 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
     readonly strokeWidth: number;
     readonly cumulativeValue: number;
     readonly selected: boolean | undefined;
-    style: AgSeriesMarkerStyle;
+    style?: AgSeriesMarkerStyle;
 }
 
 export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum<number> {
@@ -53,6 +54,7 @@ export interface AreaSeriesNodeDataContext
     strokeData: AreaStrokePathDatum;
     stackVisible: boolean;
     crossFiltering: boolean;
+    styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
 }
 
 export function plotAreaPathFill({ path }: Path, { spans, phantomSpans }: AreaFillPathDatum) {

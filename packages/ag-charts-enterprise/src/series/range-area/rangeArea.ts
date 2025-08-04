@@ -242,20 +242,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 spanPoints[spanPoints.length - 1];
             if (Number.isFinite(yHighValue) && Number.isFinite(yLowValue)) {
                 const appendMarker = (id: 'high' | 'low', yValue: any, y: number) => {
-                    const style = this.getMarkerStyle(
-                        marker,
-                        { datumIndex, datum },
-                        { xKey, yHighKey, yLowKey },
-                        { isHighlight: false },
-                        undefined,
-                        {
-                            fill,
-                            fillOpacity,
-                            stroke,
-                            strokeWidth,
-                            strokeOpacity,
-                        }
-                    );
                     markerData.push({
                         index: datumIndex,
                         series: this,
@@ -271,7 +257,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                         yHighKey,
                         point: { x, y, size },
                         enabled: true,
-                        style,
                     });
                     const highLabelDatum: RangeAreaLabelDatum = this.createLabelData({
                         datumIndex,
@@ -283,7 +268,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                         inverted,
                         datum,
                         series: this,
-                        style,
                     });
                     labelData.push(highLabelDatum);
                 };
@@ -369,6 +353,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             lowStrokeData: { itemId: 'low', spans: lowSpans },
             scales: this.calculateScaling(),
             visible: this.visible,
+            styles: this.getMarkerStyles(marker, {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            }),
         };
 
         return context;
@@ -382,7 +373,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         inverted,
         datum,
         series,
-        style,
     }: {
         datumIndex: number;
         point: _ModuleSupport.Point;
@@ -393,7 +383,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         inverted: boolean;
         datum: any;
         series: RangeAreaSeries;
-        style: AgSeriesMarkerStyle;
     }): RangeAreaLabelDatum {
         const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, label } = this.properties;
         const { placement } = label;
@@ -428,7 +417,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
-            style,
         };
     }
 
@@ -571,11 +559,21 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
+
         const { datumSelection, isHighlight } = opts;
         const fillBBox = this.getShapeFillBBox();
 
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
         datumSelection.each((node, datum) => {
-            this.applyMarkerStyle(datum.style, node, datum.point, fillBBox);
+            const style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            this.applyMarkerStyle(style, node, datum.point, fillBBox);
         });
 
         if (!isHighlight) {

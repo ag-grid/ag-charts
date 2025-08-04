@@ -20,7 +20,7 @@ export interface RangeAreaLabelDatum extends Readonly<_ModuleSupport.Point> {
     datum: any;
     itemId?: string;
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
-    style: AgSeriesMarkerStyle;
+    style?: AgSeriesMarkerStyle;
 }
 
 interface RangeAreaFillPathDatum {
@@ -39,6 +39,7 @@ export interface RangeAreaContext
     fillData: RangeAreaFillPathDatum;
     highStrokeData: RangeAreaStrokePathDatum;
     lowStrokeData: RangeAreaStrokePathDatum;
+    styles: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
 }
 
 function prepareRangeAreaPathStrokeAnimationFns(

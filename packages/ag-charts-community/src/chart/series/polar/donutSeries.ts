@@ -736,7 +736,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             cornerRadius,
             opacity,
         } = mergeDefaults(
-            this.getHighlightStyle(isHighlight, datumIndex, legendItemValues),
+            this.getHighlightStyle(isHighlight, datumIndex, undefined, legendItemValues),
             {
                 fill: defaultFill,
                 stroke: defaultStroke,
