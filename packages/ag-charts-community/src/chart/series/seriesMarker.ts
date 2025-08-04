@@ -73,17 +73,7 @@ export class SeriesMarker<TParams = never>
     >;
 
     getStyle(): AgSeriesMarkerStyle {
-        const {
-            size = 0,
-            shape,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-        } = this;
+        const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
 
         return {
             size,
@@ -99,6 +89,6 @@ export class SeriesMarker<TParams = never>
     }
 
     getDiameter(): number {
-        return (this.size ?? 0) + this.strokeWidth;
+        return this.size + this.strokeWidth;
     }
 }
