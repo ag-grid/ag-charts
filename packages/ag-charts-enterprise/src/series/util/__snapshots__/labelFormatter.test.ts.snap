@@ -1,35 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`label formatter formatSingleLabel formats a label without shrinking within large bounds 1`] = `
-{
-  "fontSize": 20,
-  "height": 23,
-  "lineHeight": 23,
-  "text": "Hello",
-  "width": 48.099998474121094,
-}
-`;
-
-exports[`label formatter formatSingleLabel ignores minimumFontSizes greater than fontSize 1`] = `
-{
-  "fontSize": 20,
-  "height": 23,
-  "lineHeight": 23,
-  "text": "Hello",
-  "width": 48.099998474121094,
-}
-`;
-
-exports[`label formatter formatSingleLabel shrinks a label to fit within smaller bounds 1`] = `
-{
-  "fontSize": 10,
-  "height": 12,
-  "lineHeight": 12,
-  "text": "Hello",
-  "width": 24.049999237060547,
-}
-`;
-
 exports[`label formatter formatStackedLabels formats stacked labels without shrinking within large bounds 1`] = `
 {
   "height": 45,

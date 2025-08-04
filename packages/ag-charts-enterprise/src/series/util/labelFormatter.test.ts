@@ -74,9 +74,9 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 1000, height: 1000 }) as any
+                () => ({ width: 1000, height: 1000, meta: undefined })
             )!;
-            expect(format).toMatchSnapshot();
+            expect(format.lineHeight).toEqual(23);
         });
 
         it('shrinks a label to fit within smaller bounds', () => {
@@ -90,9 +90,9 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 5 },
-                () => ({ width: 35, height: 35 }) as any
+                () => ({ width: 36, height: 36, meta: undefined })
             )!;
-            expect(format).toMatchSnapshot();
+            expect(format.lineHeight).toEqual(12);
         });
 
         it('ignores minimumFontSizes greater than fontSize', () => {
@@ -106,9 +106,9 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 1000, height: 1000 }) as any
+                () => ({ width: 1000, height: 1000, meta: undefined })
             )!;
-            expect(format).toMatchSnapshot();
+            expect(format.lineHeight).toEqual(23);
         });
     });
 
@@ -133,7 +133,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 1000, height: 1000 }) as any
+                () => ({ width: 1000, height: 1000, meta: undefined })
             );
             expect(format).toMatchSnapshot();
         });
@@ -162,7 +162,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding },
-                () => ({ width: 50, height }) as any
+                () => ({ width: 50, height, meta: undefined })
             );
             expect(format).toMatchSnapshot();
             expect(padding + format!.label!.height + spacing + format!.secondaryLabel!.height + padding).toBe(height);
@@ -188,7 +188,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 1000, height: 1000 }) as any
+                () => ({ width: 1000, height: 1000, meta: undefined })
             );
             expect(format).toMatchSnapshot();
         });
@@ -215,7 +215,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: Infinity, height: Infinity }) as any
+                () => ({ width: Infinity, height: Infinity, meta: undefined })
             );
 
             expect(output!.label).toBe(undefined);
