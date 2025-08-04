@@ -21,6 +21,10 @@ export interface LineSeriesDataAggregationFilter {
     maxRange: number;
 }
 
+const SMALLEST_INTERVAL_MIN_RECURSE = 3;
+const SMALLEST_INTERVAL_RECURSE_LIMIT = 20;
+const SMALLEST_INTERVAL_MAX_INDEX_ADJUSTMENTS = 100;
+
 function calculateSmallestInterval(
     xValues: any[],
     d0: number,
@@ -30,7 +34,28 @@ function calculateSmallestInterval(
     currentSmallestInterval: number,
     depth: number
 ): number {
-    if (startDatumIndex >= endDatumIndex) return currentSmallestInterval;
+    // Statistical-based. Can be inaccurate in extreme cases, but avoids iterating entire array
+    let indexAdjustments = 0;
+    while (
+        indexAdjustments < SMALLEST_INTERVAL_MAX_INDEX_ADJUSTMENTS &&
+        xValues[startDatumIndex] == null &&
+        startDatumIndex < endDatumIndex
+    ) {
+        startDatumIndex += 1;
+        indexAdjustments += 1;
+    }
+    while (
+        indexAdjustments < SMALLEST_INTERVAL_MAX_INDEX_ADJUSTMENTS &&
+        xValues[endDatumIndex] == null &&
+        endDatumIndex > startDatumIndex
+    ) {
+        endDatumIndex -= 1;
+        indexAdjustments += 1;
+    }
+
+    if (indexAdjustments >= SMALLEST_INTERVAL_MAX_INDEX_ADJUSTMENTS || startDatumIndex >= endDatumIndex) {
+        return currentSmallestInterval;
+    }
 
     const ratio = Number.isFinite(d0)
         ? aggregationXRatioForXValue(xValues[endDatumIndex], d0, d1) -
@@ -38,14 +63,14 @@ function calculateSmallestInterval(
         : aggregationXRatioForDatumIndex(endDatumIndex, xValues.length) -
           aggregationXRatioForDatumIndex(startDatumIndex, xValues.length);
 
-    if (ratio === 0) return currentSmallestInterval;
+    if (ratio === 0 || !Number.isFinite(ratio)) return currentSmallestInterval;
 
     const currentInterval = Math.abs(ratio) / (endDatumIndex - startDatumIndex);
 
     let recurse: boolean;
-    if (depth < 3) {
+    if (depth < SMALLEST_INTERVAL_MIN_RECURSE) {
         recurse = true;
-    } else if (depth > 20) {
+    } else if (depth > SMALLEST_INTERVAL_RECURSE_LIMIT) {
         recurse = false;
     } else {
         recurse = currentInterval <= currentSmallestInterval;

@@ -24,7 +24,7 @@ describe('resize benchmark', () => {
             await ctx.create();
         });
 
-        benchmark('10x resize', ctx, { expectedRelativeMB: 4.5, expectedCanvasCount: 2 }, async () => {
+        benchmark('10x resize', ctx, { expectedRelativeMB: 3.5, expectedCanvasCount: 2 }, async () => {
             const height = 600;
             const ratios = [0.9, 0.8, 0.7, 0.6, 0.5];
             const method = isAtOrAfterVersion(10, 0, 0) ? 'parentResize' : 'rawResize';
