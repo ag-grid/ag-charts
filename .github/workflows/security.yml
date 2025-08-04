@@ -8,14 +8,24 @@ on:
                 type: boolean
                 default: false
                 required: true
+            force_jira_ticket:
+                description: 'Force create a Jira ticket even if the run is not scheduled'
+                type: boolean
+                default: false
+                required: true
     schedule:
         - cron: '0 0 * * *' # Run daily at midnight UTC
+
+permissions:
+    contents: read
 
 env:
     OUTPUT_DIR: test-results/
     REPORT_FILE: report.json
+    SNYK_FILE: snyk.json
     PREV_COMMIT_SHA_FILE: ./commit-sha.txt
     REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+    SLACK_CHANNEL: '#ci-chart-gate'
     AG_LIBRARY: charts
 
 jobs:
@@ -31,18 +41,33 @@ jobs:
             - name: Snyk scan workspaces
               id: snyk-scan-workspaces
               uses: ./external/ag-shared/github/actions/snyk-scan-workspaces
+              continue-on-error: true
               with:
                   snyk_token: ${{ secrets.SNYK_TOKEN }}
                   remote_repo_url: ${{env.REPO_URL}}
                   output_dir: ${{ env.OUTPUT_DIR }}
                   report_file: ${{ env.REPORT_FILE }}
+                  snyk_file: ${{ env.SNYK_FILE }}
+
+            - name: Publish CTRF Report
+              uses: ctrf-io/github-test-reporter@v1
+              if: always()
+              with:
+                  report-path: '${{ env.OUTPUT_DIR }}${{ env.REPORT_FILE }}'
 
             - name: Persist scan results
               if: always()
               uses: actions/upload-artifact@v4
               with:
-                  name: snyk-scan-workspaces
+                  name: code-dependency-scan
                   path: ${{ env.OUTPUT_DIR }}
+
+            - name: Fail job if scan failed
+              shell: bash
+              if: success() && steps.snyk-scan-workspaces.outcome == 'failure'
+              run: |
+                  echo "Workflow failed, failing the build."
+                  exit 1
 
     sast-code-scan:
         runs-on: ubuntu-latest
@@ -56,6 +81,7 @@ jobs:
             - name: Snyk code scan
               id: snyk-code-scan
               uses: ./external/ag-shared/github/actions/snyk-code-scan
+              continue-on-error: true
               with:
                   snyk_token: ${{ secrets.SNYK_TOKEN }}
                   output_dir: ${{ env.OUTPUT_DIR }}
@@ -65,7 +91,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@v4
               with:
-                  name: snyk-code-scan
+                  name: sast-code-scan
                   path: ${{ env.OUTPUT_DIR }}
 
     combine-scan-results:
@@ -144,22 +170,22 @@ jobs:
                   AG_LIBRARY: ${{ env.AG_LIBRARY }}
                   CTRF_REPORT_FILE: ${{ env.REPORT_FILE }}
                   SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
-                  SLACK_CHANNEL: '#ci-chart-gate'
+                  SLACK_CHANNEL: ${{ env.SLACK_CHANNEL }}
                   PREV_COMMIT_SHA: ${{ env.PREV_COMMIT_SHA }}
                   CURRENT_COMMIT_SHA: ${{ github.sha }}
                   IS_SUCCESS: ${{ needs.code-dependency-scan.result != 'failure' && needs.sast-code-scan.result != 'failure' }}
 
             # - name: Create Jira Ticket
-            #   uses: ./external/ag-shared/github/actions/jira-integration
+            #   uses: ./.github/actions/jira-integration
             #   continue-on-error: true
             #   if: ${{ github.event_name == 'schedule' || inputs.force_jira_ticket }}
             #   with:
-            #       JIRA_API_AUTH: ${{ secrets.JIRA_API_AUTH }}
-            #       JIRA_SUMMARY: "[NR] CI/CD workflow '${{ github.workflow }}' is failing."
-            #       CTRF_REPORT_FILE: ${{ env.REPORT_FILE }}
-            #       IS_SUCCESS: ${{ needs.code-dependency-scan.result != 'failure' && needs.sast-code-scan.result != 'failure' }}
-            #       PREV_COMMIT_SHA: ${{ env.PREV_COMMIT_SHA }}
-            #       CURRENT_COMMIT_SHA: ${{ github.sha }}
+            #     JIRA_API_AUTH: ${{ secrets.JIRA_API_AUTH }}
+            #     JIRA_SUMMARY: "[NR] CI/CD workflow '${{ github.workflow }}' is failing."
+            #     CTRF_REPORT_FILE: ${{ env.REPORT_FILE }}
+            #     IS_SUCCESS: ${{ needs.code-dependency-scan.result != 'failure' && needs.sast-code-scan.result != 'failure' }}
+            #     PREV_COMMIT_SHA: ${{ env.PREV_COMMIT_SHA }}
+            #     CURRENT_COMMIT_SHA: ${{ github.sha }}
 
             - name: Set commit SHA
               id: set-commit-sha
