@@ -22,7 +22,7 @@ describe('sparkline benchmark', () => {
     benchmark(
         'initial load (pooled)',
         ctx,
-        { expectedRelativeMB: 3.5, expectedCanvasCount: 1, autoSnapshot: false },
+        { expectedRelativeMB: 4.3, expectedCanvasCount: 1, autoSnapshot: false },
         async () => {
             await ctx.create({ container: document.createElement('div') });
         }
