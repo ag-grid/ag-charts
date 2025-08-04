@@ -162,12 +162,14 @@ export class Text<D = any> extends Shape<D> {
         textBaseline?: CanvasTextBaseline
     ): number {
         switch (textBaseline) {
+            case 'alphabetic':
+                return lineMetrics[0]?.ascent ?? 0;
             case 'middle':
                 return height / 2;
             case 'bottom':
                 return height;
             default:
-                return lineMetrics[0]?.ascent ?? 0;
+                return 0;
         }
     }
 
