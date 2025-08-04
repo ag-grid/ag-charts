@@ -152,6 +152,80 @@ describe('Sparkline Preset', () => {
             chart = AgCharts.__createSparkline(options);
             await waitForChartStability(chart);
         });
+
+        it('should render a bar sparkline', async () => {
+            const options = prepareSparklineOptions({
+                type: 'bar',
+                xKey: 'x',
+                yKey: 'y',
+                data: [
+                    {
+                        x: 0,
+                        y: 0.56,
+                    },
+                    {
+                        x: 1,
+                        y: -0.81,
+                    },
+                    {
+                        x: 2,
+                        y: -0.18,
+                    },
+                    {
+                        x: 3,
+                        y: 0.66,
+                    },
+                    {
+                        x: 4,
+                        y: -0.45,
+                    },
+                ],
+            });
+
+            chart = AgCharts.__createSparkline(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('should render a bar sparkline with an item styler', async () => {
+            const options = prepareSparklineOptions({
+                type: 'bar',
+                xKey: 'x',
+                yKey: 'y',
+                data: [
+                    {
+                        x: 0,
+                        y: 0.56,
+                    },
+                    {
+                        x: 1,
+                        y: -0.81,
+                    },
+                    {
+                        x: 2,
+                        y: -0.18,
+                    },
+                    {
+                        x: 3,
+                        y: 0.66,
+                    },
+                    {
+                        x: 4,
+                        y: -0.45,
+                    },
+                ],
+                itemStyler: (params) => {
+                    if (params.first) return { fill: 'blue' };
+                    if (params.last) return { fill: 'green' };
+                },
+            });
+
+            chart = AgCharts.__createSparkline(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
     });
 
     describe('#updateDelta', () => {
