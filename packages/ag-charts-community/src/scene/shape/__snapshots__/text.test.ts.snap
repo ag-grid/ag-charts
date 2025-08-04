@@ -2,18 +2,18 @@
 
 exports[`Text text measurements should measure text size currently 1`] = `
 {
-  "ascent": 18.666666666666664,
-  "descent": 5.333333333333333,
-  "height": 23.999999999999996,
-  "width": 130.66666666666666,
+  "ascent": 18,
+  "descent": 6,
+  "height": 24,
+  "width": 123.30000305175781,
 }
 `;
 
 exports[`Text text measurements should measure text size currently 2`] = `
 {
-  "ascent": 37.33333333333333,
-  "descent": 10.666666666666666,
-  "height": 47.99999999999999,
-  "width": 357.3333333333333,
+  "ascent": 36,
+  "descent": 12,
+  "height": 48,
+  "width": 257.29998779296875,
 }
 `;
