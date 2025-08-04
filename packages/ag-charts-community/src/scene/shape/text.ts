@@ -1,6 +1,7 @@
 import {
     type BoxBounds,
     type FontOptions,
+    type LineMetricsBox,
     type RequireOptional,
     cachedTextMeasurer,
     calcLineHeight,
@@ -139,40 +140,48 @@ export class Text<D = any> extends Shape<D> {
         lines: string | string[],
         x: number,
         y: number,
-        opts: { font: string | FontOptions; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
-    ): BBox {
-        const { font, textAlign, textBaseline } = opts;
-        const { width, height, lineMetrics } = cachedTextMeasurer(font).measureLines(lines);
-        const offsetTop =
-            textBaseline === 'alphabetic'
-                ? lineMetrics[0]?.ascent ?? 0
-                : Text.getVerticalModifier(textBaseline) * height;
-        const offsetLeft = width * Text.getHorizontalModifier(textAlign);
-
-        return new BBox(x - offsetLeft, y - offsetTop, width, height);
-    }
-
-    private static getHorizontalModifier(textAlign?: CanvasTextAlign): number {
-        switch (textAlign) {
-            case 'center':
-                return 0.5;
-            case 'right':
-            case 'end':
-                return 1;
-            default:
-                return 0;
+        opts: {
+            font: string | FontOptions;
+            lineHeight?: number;
+            textAlign?: CanvasTextAlign;
+            textBaseline?: CanvasTextBaseline;
         }
+    ): BBox {
+        const { font, lineHeight, textAlign, textBaseline } = opts;
+        const { width, height, lineMetrics } = cachedTextMeasurer(font).measureLines(lines);
+        const totalHeight = lineHeight ? lineHeight * lineMetrics.length : height;
+        const offsetTop = Text.calcTopOffset(totalHeight, lineMetrics, textBaseline);
+        const offsetLeft = Text.calcLeftOffset(width, textAlign);
+
+        return new BBox(x - offsetLeft, y - offsetTop, width, totalHeight);
     }
 
-    private static getVerticalModifier(textBaseline?: CanvasTextBaseline): number {
+    private static calcTopOffset(
+        height: number,
+        lineMetrics: LineMetricsBox[],
+        textBaseline?: CanvasTextBaseline
+    ): number {
         switch (textBaseline) {
             case 'middle':
-                return 0.5;
+                return height / 2;
             case 'bottom':
-                return 1;
+                return height;
             default:
-                return 0;
+                return lineMetrics[0]?.ascent ?? 0;
         }
+    }
+
+    private static calcLeftOffset(width: number, textAlign?: CanvasTextAlign): number {
+        let offset = 0;
+        switch (textAlign) {
+            case 'center':
+                offset = 0.5;
+                break;
+            case 'right':
+            case 'end':
+                offset = 1;
+        }
+        return width * offset;
     }
 
     protected override computeBBox(): BBox {
@@ -287,7 +296,7 @@ export class Text<D = any> extends Shape<D> {
     }
 
     private renderText(renderCtx: RenderContext): void {
-        const { fill, stroke, strokeWidth } = this;
+        const { fill, stroke, strokeWidth, font, textAlign } = this;
 
         if ((!fill && !(stroke && strokeWidth)) || !this.layerManager) {
             // Short circuit early if nothing will be rendered.
@@ -295,16 +304,12 @@ export class Text<D = any> extends Shape<D> {
         }
 
         const { ctx } = renderCtx;
-        const font = toFontString(this);
         // Try to avoid this assignment, which typically always incurs a font switch cost.
         if (ctx.font !== font) {
             ctx.font = font;
         }
 
-        const { textAlign, textBaseline } = this;
-
         ctx.textAlign = textAlign;
-        ctx.textBaseline = textBaseline === 'middle' ? 'middle' : 'alphabetic';
 
         if (this.boxing) {
             // Use the static version of computeBBox instead of a dynamic version. The `boxing: Rect` shape is drawn
@@ -339,8 +344,9 @@ export class Text<D = any> extends Shape<D> {
 
         if (!Number.isFinite(x) || !Number.isFinite(y)) return;
 
+        const measurer = cachedTextMeasurer(this);
         const { lines, textBaseline, lineHeight = calcLineHeight(this.fontSize) } = this;
-        const { lineMetrics } = cachedTextMeasurer(this).measureLines(lines);
+        const { lineMetrics } = measurer.measureLines(lines);
 
         let offsetY = 0;
         if (textBaseline === 'top') {
@@ -349,6 +355,7 @@ export class Text<D = any> extends Shape<D> {
             offsetY = lineHeight * (1 - lines.length);
             if (textBaseline === 'middle') {
                 offsetY /= 2;
+                offsetY -= measurer.baselineDistance(textBaseline);
             } else {
                 offsetY -= lineMetrics[0].descent;
             }
