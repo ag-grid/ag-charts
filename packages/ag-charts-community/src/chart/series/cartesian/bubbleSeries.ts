@@ -150,14 +150,14 @@ export class BubbleSeries extends CartesianSeries<
             ],
         });
 
-        this.dataAggregation = this.aggregateData(dataModel, processedData);
-
         const sizeKeyIdx = sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`) : undefined;
         const mutableMarkerDomain: [number, number] | undefined = marker.domain
             ? [marker.domain[0], marker.domain[1]]
             : undefined;
         this.sizeScale.domain =
             mutableMarkerDomain ?? (sizeKeyIdx == null ? undefined : processedData.domain.values[sizeKeyIdx]) ?? [];
+
+        this.dataAggregation = this.aggregateData(dataModel, processedData);
 
         this.animationState.transition('updateData');
     }
@@ -271,8 +271,8 @@ export class BubbleSeries extends CartesianSeries<
         const { sizeKey, marker } = this.properties;
         const xRange = Math.abs(xAxis.range[1] - xAxis.range[0]);
         const yRange = Math.abs(yAxis.range[1] - yAxis.range[0]);
-        const minSize = marker.size;
-        const maxSize = sizeKey ? marker.maxSize : minSize;
+        const minSize = Math.max(marker.size, 1);
+        const maxSize = sizeKey ? Math.max(marker.maxSize, 1) : minSize;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
