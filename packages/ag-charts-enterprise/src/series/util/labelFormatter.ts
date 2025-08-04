@@ -1,18 +1,20 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { Logger, appendEllipsis, calcLineHeight, findMaxValue } from 'ag-charts-core';
+import {
+    type FontOptions,
+    Logger,
+    appendEllipsis,
+    cachedTextMeasurer,
+    calcLineHeight,
+    findMaxValue,
+    wrapLines,
+} from 'ag-charts-core';
 import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
-    FontFamily,
     FontSize,
-    FontStyle,
-    FontWeight,
     OverflowStrategy,
     TextWrap,
 } from 'ag-charts-types';
-
-const { CachedTextMeasurerPool, TextWrapper } = _ModuleSupport;
 
 interface AutoSizedBaseLabelOptions extends AgChartAutoSizedBaseLabelOptions<unknown, any> {
     fontSize: FontSize;
@@ -24,14 +26,6 @@ interface AutoSizedLabelOptions extends AgChartAutoSizedLabelOptions<unknown, an
 
 interface AutoSizedSecondaryLabelOptions extends AgChartAutoSizedSecondaryLabelOptions<unknown, any> {
     fontSize: FontSize;
-}
-
-interface TextProperties {
-    fontSize: FontSize;
-    fontStyle?: FontStyle;
-    fontWeight?: FontWeight;
-    fontFamily?: FontFamily;
-    lineHeight?: number;
 }
 
 type FontSizeCandidate = {
@@ -251,12 +245,12 @@ export function formatSingleLabel<Meta>(
         if (lineHeight > availableHeight) return;
 
         textSizeProps.fontSize = fontSize;
-        const lines = TextWrapper.wrapLines(value, {
+        const lines = wrapLines(value, {
             maxWidth: availableWidth,
             maxHeight: availableHeight,
             font: textSizeProps,
             textWrap: props.wrapping,
-            overflow: (allowTruncation ? props.overflowStrategy : undefined) ?? 'hide',
+            overflow: (allowTruncation ? props.overflowStrategy : null) ?? 'hide',
         });
 
         if (!lines.length) return;
@@ -350,16 +344,16 @@ function wrapLabel(
     text: string,
     maxWidth: number,
     maxHeight: number,
-    font: TextProperties,
+    font: FontOptions,
     textWrap?: TextWrap,
     overflow?: OverflowStrategy
 ) {
-    const lines = TextWrapper.wrapLines(text, { maxWidth, maxHeight, font, textWrap, overflow });
+    const lines = wrapLines(text, { maxWidth, maxHeight, font, textWrap, overflow });
 
     if (!lines.length) return;
 
     const lineHeight = getLineHeight(props, font.fontSize);
-    const { width } = CachedTextMeasurerPool.measureLines(lines, { font });
+    const { width } = cachedTextMeasurer(font).measureLines(lines);
 
     return {
         width,
@@ -370,8 +364,15 @@ function wrapLabel(
     };
 }
 
-function clipLines(lines: string[], { font, lineHeight, maxWidth, maxHeight = Infinity }: _ModuleSupport.WrapOptions) {
-    lineHeight ??= calcLineHeight(font.fontSize);
+function clipLines(
+    lines: string[],
+    {
+        font,
+        lineHeight,
+        maxWidth,
+        maxHeight = Infinity,
+    }: { font: FontOptions; lineHeight: number; maxWidth: number; maxHeight?: number }
+) {
     let height = lineHeight * lines.length;
     while (height > maxHeight) {
         if (lines.length === 1) return;
@@ -380,7 +381,7 @@ function clipLines(lines: string[], { font, lineHeight, maxWidth, maxHeight = In
         height = lineHeight * lines.length;
     }
 
-    const metrics = CachedTextMeasurerPool.measureLines(lines, { font });
+    const metrics = cachedTextMeasurer(font).measureLines(lines);
 
     let text: string, width: number;
     if (metrics.width > maxWidth) {

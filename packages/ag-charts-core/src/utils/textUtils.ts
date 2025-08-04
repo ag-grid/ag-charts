@@ -23,7 +23,7 @@ export function toFontString({ fontSize, fontStyle, fontWeight, fontFamily }: Fo
 }
 
 export function calcLineHeight(fontSize: number, lineHeightRatio = 1.15) {
-    return Math.ceil(fontSize * lineHeightRatio);
+    return Math.round(fontSize * lineHeightRatio);
 }
 
 export function appendEllipsis(text: string) {

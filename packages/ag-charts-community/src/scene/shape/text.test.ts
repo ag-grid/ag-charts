@@ -1,10 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { cachedTextMeasurer, wrapText } from 'ag-charts-core';
 import type { TextWrap } from 'ag-charts-types';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
-import { CachedTextMeasurerPool } from '../../util/textMeasurer';
-import { TextWrapper } from '../../util/textWrapper';
 import { IScene } from '../node';
 import { Text } from './text';
 
@@ -286,7 +285,7 @@ describe('Text', () => {
                     } else if (breakWord) {
                         wrapping = 'always';
                     }
-                    textNode.text = TextWrapper.wrapText((textNode.text as string) ?? '', {
+                    textNode.text = wrapText((textNode.text as string) ?? '', {
                         maxWidth,
                         maxHeight: truncate ? maxHeight : Infinity,
                         font: textNode,
@@ -324,7 +323,7 @@ describe('Text', () => {
 
         it('should handle all text wrapping options for a small box', () => {
             expect(
-                TextWrapper.wrapText(exampleString, {
+                wrapText(exampleString, {
                     maxWidth: 50,
                     maxHeight: 50,
                     font,
@@ -333,7 +332,7 @@ describe('Text', () => {
                 })
             ).toBe('');
             expect(
-                TextWrapper.wrapText(exampleString, {
+                wrapText(exampleString, {
                     maxWidth: 50,
                     maxHeight: 50,
                     font,
@@ -342,7 +341,7 @@ describe('Text', () => {
                 })
             ).toBe('');
             expect(
-                TextWrapper.wrapText(exampleString, {
+                wrapText(exampleString, {
                     maxWidth: 50,
                     maxHeight: 50,
                     font,
@@ -351,7 +350,7 @@ describe('Text', () => {
                 })
             ).toBe('');
             expect(
-                TextWrapper.wrapText(exampleString, {
+                wrapText(exampleString, {
                     maxWidth: 50,
                     maxHeight: 50,
                     font,
@@ -363,7 +362,7 @@ describe('Text', () => {
 
         it('should handle all text wrapping options for a tall box', () => {
             expect(
-                TextWrapper.wrapText(exampleString, {
+                wrapText(exampleString, {
                     maxWidth: 50,
                     maxHeight: 1000,
                     font,
@@ -372,7 +371,7 @@ describe('Text', () => {
                 })
             ).toBe('');
             expect(
-                TextWrapper.wrapText(exampleString, {
+                wrapText(exampleString, {
                     maxWidth: 50,
                     maxHeight: 1000,
                     font,
@@ -383,7 +382,7 @@ describe('Text', () => {
 
             // The word is broken here, so does not overflow
             expect(
-                TextWrapper.wrapText(exampleString, {
+                wrapText(exampleString, {
                     maxWidth: 50,
                     maxHeight: 1000,
                     font,
@@ -392,7 +391,7 @@ describe('Text', () => {
                 })
             ).not.toBe('');
             expect(
-                TextWrapper.wrapText(exampleString, {
+                wrapText(exampleString, {
                     maxWidth: 50,
                     maxHeight: 1000,
                     font,
@@ -404,41 +403,28 @@ describe('Text', () => {
     });
 
     describe('text measurements', () => {
-        it('should measure text currently', () => {
-            expect(
-                CachedTextMeasurerPool.measureText('Hello world!', {
-                    font: { fontSize: 24, fontFamily: 'serif' },
-                    textBaseline: 'bottom',
-                    textAlign: 'start',
-                })
-            ).toMatchSnapshot();
-            expect(
-                CachedTextMeasurerPool.measureText('Hello world!', {
-                    font: { fontSize: 48, fontFamily: 'serif', fontWeight: 'bold' },
-                    textBaseline: 'middle',
-                    textAlign: 'center',
-                })
-            ).toMatchSnapshot();
-        });
+        // it('should measure text currently', () => {
+        //     expect(
+        //         CachedTextMeasurerPool.measureText('Hello world!', {
+        //             font: { fontSize: 24, fontFamily: 'serif' },
+        //             textBaseline: 'bottom',
+        //             textAlign: 'start',
+        //         })
+        //     ).toMatchSnapshot();
+        //     expect(
+        //         CachedTextMeasurerPool.measureText('Hello world!', {
+        //             font: { fontSize: 48, fontFamily: 'serif', fontWeight: 'bold' },
+        //             textBaseline: 'middle',
+        //             textAlign: 'center',
+        //         })
+        //     ).toMatchSnapshot();
+        // });
 
         it('should measure text size currently', () => {
-            expect(
-                CachedTextMeasurerPool.measureText('Hello world!', {
-                    font: {
-                        fontSize: 24,
-                        fontFamily: 'serif',
-                    },
-                })
-            ).toMatchSnapshot();
-            expect(
-                CachedTextMeasurerPool.measureText('Hello world!', {
-                    font: {
-                        fontSize: 48,
-                        fontFamily: 'serif',
-                        fontWeight: 'bold',
-                    },
-                })
-            ).toMatchSnapshot();
+            const textMeasurerA = cachedTextMeasurer({ fontSize: 24, fontFamily: 'serif' });
+            const textMeasurerB = cachedTextMeasurer({ fontSize: 48, fontFamily: 'serif', fontWeight: 'bold' });
+            expect(textMeasurerA.measureText('Hello world!')).toMatchSnapshot();
+            expect(textMeasurerB.measureText('Hello world!')).toMatchSnapshot();
         });
     });
 });

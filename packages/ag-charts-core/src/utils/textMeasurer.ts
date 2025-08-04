@@ -3,17 +3,17 @@ import type { Writeable } from '../interfaces/globalTypes';
 import { createCanvasContext } from './canvas';
 import { type FontOptions, LineSplitter, toFontString } from './textUtils';
 
-export interface TextBounds {
+export interface TextMetricsBox {
     width: number;
     height: number;
     ascent: number;
     descent: number;
 }
 
-export interface MultilineTextBounds {
+export interface MultilineTextMetricsBox {
     width: number;
     height: number;
-    lineBounds: (TextBounds & { text: string })[];
+    lineMetrics: (TextMetricsBox & { text: string })[];
 }
 
 export interface LegacyTextMetrics extends Writeable<TextMetrics> {
@@ -22,8 +22,8 @@ export interface LegacyTextMetrics extends Writeable<TextMetrics> {
 }
 
 export interface ITextMeasurer {
-    measureText(text: string): TextBounds;
-    measureLines(text: string | string[]): MultilineTextBounds;
+    measureText(text: string): TextMetricsBox;
+    measureLines(text: string | string[]): MultilineTextMetricsBox;
     textWidth(text: string, estimate?: boolean): number;
 }
 
@@ -52,13 +52,15 @@ export function cachedTextMeasurer(font: string | FontOptions): TextMeasurer {
     return cachedMeasurer;
 }
 
+cachedTextMeasurer.clear = () => instanceMap.clear();
+
 // Manages text measurement and wrapping functionalities.
 export class TextMeasurer implements ITextMeasurer {
     private readonly charMap = new Map<string, number>();
 
     constructor(private readonly measureTextFn: (text: string, useCache?: boolean) => LegacyTextMetrics) {}
 
-    measureText(text: string): TextBounds {
+    measureText(text: string): TextMetricsBox {
         const m = this.measureTextFn(text);
         const {
             width,
@@ -70,11 +72,11 @@ export class TextMeasurer implements ITextMeasurer {
         return { width, height, ascent, descent };
     }
 
-    measureLines(text: string | string[]): MultilineTextBounds {
+    measureLines(text: string | string[]): MultilineTextMetricsBox {
         const lines = typeof text === 'string' ? text.split(LineSplitter) : text;
         let width = 0;
         let height = 0;
-        const lineBounds = lines.map((line) => {
+        const lineMetrics = lines.map((line) => {
             const b = this.measureText(line);
             if (width < b.width) {
                 width = b.width;
@@ -82,7 +84,7 @@ export class TextMeasurer implements ITextMeasurer {
             height += b.height;
             return { text: line, ...b };
         });
-        return { width, height, lineBounds };
+        return { width, height, lineMetrics };
     }
 
     textWidth(text: string, estimate?: boolean): number {

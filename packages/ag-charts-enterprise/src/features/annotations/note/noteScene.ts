@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { calcLineHeight, clamp } from 'ag-charts-core';
+import { calcLineHeight, clamp, wrapText } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -9,7 +9,7 @@ import { ANNOTATION_TEXT_LINE_HEIGHT } from '../text/util';
 import { convertPoint } from '../utils/values';
 import { ICON_HEIGHT, ICON_WIDTH, LABEL_OFFSET, type NoteProperties, TOOLBAR_OFFSET } from './noteProperties';
 
-const { ZIndexMap, TextWrapper } = _ModuleSupport;
+const { ZIndexMap } = _ModuleSupport;
 
 export class NoteScene extends TextualPointScene<NoteProperties> {
     static override is(value: unknown): value is NoteScene {
@@ -71,18 +71,11 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         super.updateLabel(datum, bbox);
 
         this.label.visible = labelVisibility;
-        this.label.text = TextWrapper.wrapText(datum.text, {
-            font: {
-                fontFamily: datum.fontFamily,
-                fontSize: datum.fontSize,
-                fontStyle: datum.fontStyle,
-                fontWeight: datum.fontWeight,
-            },
-            avoidOrphans: false,
-            textAlign: datum.textAlign,
-            textBaseline: 'top',
-            textWrap: 'always',
+        this.label.text = wrapText(datum.text, {
             maxWidth: 200,
+            font: datum,
+            textWrap: 'always',
+            avoidOrphans: false,
         });
     }
 

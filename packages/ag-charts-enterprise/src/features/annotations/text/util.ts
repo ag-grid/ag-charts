@@ -6,7 +6,7 @@ const { BBox } = _ModuleSupport;
 export type AnnotationTextPosition = 'top' | 'center' | 'bottom';
 export type AnnotationTextAlignment = 'left' | 'center' | 'right';
 
-type TextOptions = _ModuleSupport.FontOptions & { textAlign: TextAlign; position: AnnotationTextPosition };
+type TextOptions = FontOptions & { textAlign: TextAlign; position: AnnotationTextPosition };
 
 export const ANNOTATION_TEXT_LINE_HEIGHT = 1.38;
 
@@ -15,8 +15,8 @@ export function maybeWrapText(options: TextOptions, text: string, maxWidth: numb
 }
 
 function measureAnnotationText(options: FontOptions, text: string) {
-    const { lineBounds, width } = cachedTextMeasurer(options).measureLines(text);
-    const height = lineBounds.length * calcLineHeight(options.fontSize, ANNOTATION_TEXT_LINE_HEIGHT);
+    const { lineMetrics, width } = cachedTextMeasurer(options).measureLines(text);
+    const height = lineMetrics.length * calcLineHeight(options.fontSize, ANNOTATION_TEXT_LINE_HEIGHT);
     return { width, height };
 }
 

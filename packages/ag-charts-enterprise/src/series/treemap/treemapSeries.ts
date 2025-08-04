@@ -9,13 +9,18 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type InternalAgColorType, type RequireOptional, calcLineHeight, isNumberEqual } from 'ag-charts-core';
+import {
+    type InternalAgColorType,
+    type RequireOptional,
+    calcLineHeight,
+    isNumberEqual,
+    wrapText,
+} from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
 const {
-    TextWrapper,
     createDatumId,
     Rect,
     Group,
@@ -593,7 +598,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 if (groupTitleHeight == null) return;
 
                 const innerWidth = bbox.width - 2 * padding;
-                const text = TextWrapper.wrapText(labelValue, {
+                const text = wrapText(labelValue, {
                     maxWidth: bbox.width - 2 * padding,
                     font: group.label,
                     textWrap: 'never',

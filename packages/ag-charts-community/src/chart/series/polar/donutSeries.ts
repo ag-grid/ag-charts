@@ -863,7 +863,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             const dy = this.getTitleTranslationY();
             title.node.y = isFinite(dy) ? dy : 0;
 
-            const titleBox = title.node.getBBox(false);
+            const titleBox = title.node.getBBox();
             title.node.visible = title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox);
         }
 
@@ -1208,13 +1208,11 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
             const textAlign = label.collisionTextAlign ?? label.textAlign;
             const textBaseline = label.textBaseline;
-            return Text.computeBBox(
-                label.text,
-                x,
-                y,
-                { font: this.properties.calloutLabel, textAlign, textBaseline },
-                false
-            ).grow(padding);
+            return Text.computeBBox(label.text, x, y, {
+                font: this.properties.calloutLabel,
+                textAlign,
+                textBaseline,
+            }).grow(padding);
         };
 
         const avoidNeighbourYCollision = (
@@ -1345,7 +1343,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             tempTextNode.setFont(style);
             tempTextNode.setAlign(align);
             tempTextNode.setBoxing(style);
-            const box = tempTextNode.getBBox(false);
+            const box = tempTextNode.getBBox();
 
             let displayText = label.text;
             let visible = true;
@@ -1397,7 +1395,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                     textBaseline: 'bottom',
                     textAlign: 'center',
                 });
-                titleBox = text.getBBox(false);
+                titleBox = text.getBBox();
                 textBoxes.push(titleBox);
             }
         }
@@ -1423,7 +1421,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 textBaseline: label.textBaseline,
             });
             text.setBoxing(style);
-            const box = text.getBBox(false);
+            const box = text.getBBox();
             label.box = box;
 
             // Hide labels that where pushed too far by the collision avoidance algorithm
@@ -1513,7 +1511,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 text.setAlign(align);
                 text.setBoxing(style);
 
-                const bbox = text.getBBox(false);
+                const bbox = text.getBBox();
                 const corners = [
                     [bbox.x, bbox.y],
                     [bbox.x + bbox.width, bbox.y],
@@ -1545,7 +1543,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             text.y = 0;
             text.fill = color;
             text.textAlign = 'center';
-            text.textBaseline = 'alphabetic';
             textBBoxes.push(text.getBBox());
             margins.push(datum.spacing);
         });

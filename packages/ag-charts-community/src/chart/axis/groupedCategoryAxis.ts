@@ -1,12 +1,4 @@
-import {
-    calcLineHeight,
-    getMaxInnerRectSize,
-    inRange,
-    isArray,
-    isObject,
-    sortBasedOnArray,
-    toArray,
-} from 'ag-charts-core';
+import { getMaxInnerRectSize, inRange, isArray, isObject, sortBasedOnArray, toArray, wrapText } from 'ag-charts-core';
 import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -19,7 +11,6 @@ import { angularPadding, normalizeAngle360FromDegrees } from '../../util/angle';
 import { extent } from '../../util/extent';
 import { BaseProperties, PropertiesArray, Property } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
-import { TextWrapper } from '../../util/textWrapper';
 import { createDatumId } from '../data/processors';
 import { LabelBorder } from '../label';
 import type { LabelNodeDatum } from './axis';
@@ -245,7 +236,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     maxHeight = innerRect.height;
                 }
                 text =
-                    TextWrapper.wrapText(text, {
+                    wrapText(text, {
                         font: labelStyles,
                         textWrap: optionsMap[depth].wrapping,
                         overflow: optionsMap[depth].truncate ? 'ellipsis' : 'hide',
@@ -257,7 +248,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
             tempText.x = horizontal ? datum.screen : labelSpacing;
             tempText.y = horizontal ? labelSpacing : datum.screen;
             tempText.rotation = 0;
-            tempText.lineHeight = calcLineHeight(labelStyles.fontSize);
             tempText.fill = labelStyles.color;
             tempText.text = text;
             tempText.textAlign = 'center';
