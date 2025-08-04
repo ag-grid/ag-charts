@@ -4,6 +4,7 @@ import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 import {
     intervalFloor,
     intervalMilliseconds,
+    intervalNext,
     intervalRange,
     intervalRangeCount,
     intervalRangeStartIndex,
@@ -62,6 +63,8 @@ export class UnitTimeScale extends DiscreteTimeScale {
     }
 
     override convert(value: Date, options?: { clamp?: boolean; interpolate?: boolean }): number {
+        this.refresh();
+
         if (!(value instanceof Date)) value = new Date(value as any);
 
         const { domain, interval } = this;
@@ -71,7 +74,13 @@ export class UnitTimeScale extends DiscreteTimeScale {
             const [start, stop] = calculateBandRange(domain, interval);
             const d0 = Math.min(start.valueOf(), stop.valueOf());
             const d1 = Math.max(start.valueOf(), stop.valueOf());
-            if (t < d0 || t >= d1 + intervalMilliseconds(interval)) return NaN;
+            const dNext = intervalNext(interval, new Date(d1)).valueOf();
+            if (t > d1 && t < dNext) {
+                const { bands, reversed } = this;
+                return this.ordinalRange(reversed ? 0 : bands.length - 1);
+            } else if (t < d0 || t >= dNext) {
+                return NaN;
+            }
         }
 
         return super.convert(value, options);
