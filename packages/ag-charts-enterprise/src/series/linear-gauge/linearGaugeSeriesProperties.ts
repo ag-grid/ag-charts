@@ -151,15 +151,15 @@ export class LinearGaugeTargetProperties extends BaseProperties {
     @Property
     readonly label = new LinearGaugeDefaultTargetLabelProperties();
 
-    getStyle(): Required<AgLinearGaugeSeriesStyle> {
+    getStyle(defaultTarget: LinearGaugeTargetProperties): Required<AgLinearGaugeSeriesStyle> {
         const {
-            fill = 'black',
-            fillOpacity = 1,
-            stroke = 'black',
-            strokeWidth = 0,
-            strokeOpacity = 1,
-            lineDash = [0],
-            lineDashOffset = 0,
+            fill = defaultTarget.fill ?? 'black',
+            fillOpacity = defaultTarget.fillOpacity ?? 1,
+            stroke = defaultTarget.stroke ?? 'black',
+            strokeWidth = defaultTarget.strokeWidth ?? 0,
+            strokeOpacity = defaultTarget.strokeOpacity ?? 1,
+            lineDash = defaultTarget.lineDash ?? [0],
+            lineDashOffset = defaultTarget.lineDashOffset ?? 0,
         } = this;
 
         return {

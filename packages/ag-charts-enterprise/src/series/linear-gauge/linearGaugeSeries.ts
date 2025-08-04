@@ -350,7 +350,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                     fontFamily: labelFontFamily,
                     spacing: labelSpacing,
                 },
-                style: target.getStyle(),
+                style: target.getStyle(defaultTarget),
             };
         });
     }
