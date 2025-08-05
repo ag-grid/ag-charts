@@ -22,7 +22,7 @@ const options: AgPolarChartOptions = {
                     url: '${baseWWWUrl}/example-assets/docs-images/' + `${mode.toLowerCase()}.png`,
                     width: 20,
                     height: 20,
-                    repeat: 'repeat-x',
+                    repeat: 'no-repeat', // Default
                 };
             }),
         },

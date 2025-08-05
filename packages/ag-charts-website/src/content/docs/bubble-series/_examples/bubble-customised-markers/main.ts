@@ -35,7 +35,7 @@ const options: AgChartOptions = {
             yName: 'Weight',
             sizeKey: 'age',
             sizeName: 'Age',
-            shape: 'circle',
+            shape: 'circle', // default
             fill: '#7b91deb5',
             stroke: '#56659b',
         },
