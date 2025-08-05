@@ -16,7 +16,7 @@ The Treemap Series is designed to display a single series and is created using t
 series: [
     {
         type: 'treemap',
-        labelKey: 'name',
+        labelKey: 'title',
     },
 ],
 ```
@@ -57,9 +57,9 @@ The `sizeKey` can be used to provide a numeric value to adjust the relative sizi
 series: [
     {
         type: 'treemap',
-        labelKey: 'name',
-        sizeKey: 'size',
-        sizeName: 'Size',
+        labelKey: 'title',
+        sizeKey: 'total',
+        sizeName: 'Total',
     },
 ],
 ```
@@ -78,9 +78,9 @@ Colouring can be customised by the `colorKey` and `colorRange` values in the ser
 series: [
     {
         type: 'treemap',
-        labelKey: 'name',
-        sizeKey: 'size',
-        sizeName: 'Size',
+        labelKey: "title",
+        sizeKey: "total",
+        sizeName: "Total",
         colorKey: 'change',
         colorName: 'Change',
         colorRange: ['#43A047', '#FF5722'],
@@ -136,8 +136,8 @@ Labels can be customised through the `group` and `tile` properties for non-leaf 
 series: [
     {
         type: 'treemap',
-        labelKey: 'name',
-        secondaryLabelKey: 'size',
+        labelKey: 'title',
+        secondaryLabelKey: 'total',
         sizeKey: 'total',
         sizeName: 'Total',
         group: {
@@ -148,12 +148,12 @@ series: [
         },
         tile: {
             label: {
-                fontSize: 32,
-                minimumFontSize: 18,
-                spacing: 12,
+                fontSize: 24,
+                minimumFontSize: 9,
+                spacing: 8,
             },
             secondaryLabel: {
-                formatter: (params) => formatSize(params.datum),
+                formatter: (params) => `£${params.value.toFixed(1)}bn`,
             },
         },
     },
