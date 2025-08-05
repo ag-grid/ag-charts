@@ -28,7 +28,6 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Market Share (%)',
             },
-            interval: { step: 5 },
         },
     ],
 };
