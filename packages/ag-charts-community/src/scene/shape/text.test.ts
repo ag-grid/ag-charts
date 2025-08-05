@@ -25,7 +25,7 @@ const BASE_OPTIONS = {
     textAlign: 'start' as CanvasTextAlign,
     fontSize: 15,
     lineHeight: 15,
-    fontFamily: 'sans-serif',
+    fontFamily: 'Verdana',
     textBaseline: 'top' as CanvasTextBaseline,
 };
 
@@ -421,8 +421,8 @@ describe('Text', () => {
         // });
 
         it('should measure text size currently', () => {
-            const textMeasurerA = cachedTextMeasurer({ fontSize: 24, fontFamily: 'serif' });
-            const textMeasurerB = cachedTextMeasurer({ fontSize: 48, fontFamily: 'serif', fontWeight: 'bold' });
+            const textMeasurerA = cachedTextMeasurer({ fontSize: 24, fontFamily: 'Verdana' });
+            const textMeasurerB = cachedTextMeasurer({ fontSize: 48, fontFamily: 'Verdana', fontWeight: 'bold' });
             expect(textMeasurerA.measureText('Hello world!')).toMatchSnapshot();
             expect(textMeasurerB.measureText('Hello world!')).toMatchSnapshot();
         });
