@@ -47,9 +47,9 @@ Object.defineProperty(CanvasRenderingContext2D.prototype, 'createConicGradient',
 Object.defineProperty(CanvasRenderingContext2D.prototype, 'fillText', {
     value: function (this: CanvasRenderingContext2D, text: string, x: number, y: number) {
         // @ts-expect-error Skia api
-        let path = this.outlineText(text);
-        path = path.transform(new DOMMatrix([1, 0, 0, 1, x, y]));
-        this.fill(path);
+        let path2d = this.outlineText(text);
+        path2d = path2d.transform(new DOMMatrix([1, 0, 0, 1, x, y]));
+        this.fill(path2d);
     },
     writable: true,
     configurable: true,

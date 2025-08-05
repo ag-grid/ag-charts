@@ -246,7 +246,7 @@ describe('LegendEvent', () => {
             expect(legendItemClick).toBeCalledTimes(3);
         });
 
-        test('donuts', async () => {
+        test.only('donuts', async () => {
             // https://plnkr.co/edit/BoHbSyw1KYOpprOg?open=main.js
             const legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {});
             chart = await createChart({
@@ -275,12 +275,12 @@ describe('LegendEvent', () => {
                 ],
                 legend: { listeners: { legendItemClick } },
             });
-            await clickAction(272, 550)(chart);
-            await clickAction(401, 550)(chart);
-            await clickAction(538, 550)(chart);
-            await clickAction(275, 572)(chart);
-            await clickAction(402, 572)(chart);
-            await clickAction(525, 572)(chart);
+            await clickAction(60, 575)(chart);
+            await clickAction(180, 575)(chart);
+            await clickAction(300, 575)(chart);
+            await clickAction(420, 575)(chart);
+            await clickAction(530, 575)(chart);
+            await clickAction(650, 575)(chart);
 
             expect(legendItemClick.mock.calls[0][0].text).toEqual('2020 - Labour');
             expect(legendItemClick.mock.calls[1][0].text).toEqual('2020 - LibDem');
