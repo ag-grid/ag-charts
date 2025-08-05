@@ -196,7 +196,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return memoizedAggregateRangeBarData(xAxis.scale.type, xValues, yHighValues, yLowValues, domain);
+        return memoizedAggregateRangeBarData(
+            xAxis.scale.type,
+            xValues,
+            yHighValues,
+            yLowValues,
+            domain,
+            processedData.reduced?.smallestKeyInterval
+        );
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {

@@ -176,7 +176,14 @@ export abstract class OhlcSeriesBase<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return memoizedAggregateOhlcData(xAxis.scale.type, xValues, highValues, lowValues, domain);
+        return memoizedAggregateOhlcData(
+            xAxis.scale.type,
+            xValues,
+            highValues,
+            lowValues,
+            domain,
+            processedData.reduced?.smallestKeyInterval
+        );
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {

@@ -60,7 +60,7 @@ export function aggregateAreaData(
 
     const [d0, d1] = aggregationDomain(scale, domain);
 
-    let maxRange = aggregationRangeFittingPoints(xValues);
+    let maxRange = aggregationRangeFittingPoints(xValues, d0, d1);
 
     const { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange);
 

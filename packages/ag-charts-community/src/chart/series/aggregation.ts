@@ -7,17 +7,111 @@ export const AGGREGATION_INDEX_Y_MIN = 2;
 export const AGGREGATION_INDEX_Y_MAX = 3;
 export const AGGREGATION_SPAN = 4;
 
-export function aggregationRangeFittingPoints(data: any[], opts?: { smallestInterval?: number }) {
-    const smallestDataInterval = opts?.smallestInterval;
-    if (smallestDataInterval != null) {
-        return nextPowerOf2(Math.trunc(1 / smallestDataInterval)) >> 3;
+const SMALLEST_INTERVAL_MIN_RECURSE = 3;
+const SMALLEST_INTERVAL_RECURSE_LIMIT = 20;
+const SMALLEST_INTERVAL_MAX_INDEX_ADJUSTMENTS = 100;
+
+function estimateSmallestPixelIntervalIter(
+    xValues: any[],
+    d0: number,
+    d1: number,
+    startDatumIndex: number,
+    endDatumIndex: number,
+    currentSmallestInterval: number,
+    depth: number
+): number {
+    // Statistical-based. Can be inaccurate in extreme cases, but avoids iterating entire array
+    let indexAdjustments = 0;
+    while (
+        indexAdjustments < SMALLEST_INTERVAL_MAX_INDEX_ADJUSTMENTS &&
+        xValues[startDatumIndex] == null &&
+        startDatumIndex < endDatumIndex
+    ) {
+        startDatumIndex += 1;
+        indexAdjustments += 1;
+    }
+    while (
+        indexAdjustments < SMALLEST_INTERVAL_MAX_INDEX_ADJUSTMENTS &&
+        xValues[endDatumIndex] == null &&
+        endDatumIndex > startDatumIndex
+    ) {
+        endDatumIndex -= 1;
+        indexAdjustments += 1;
     }
 
-    let power = Math.ceil(Math.log2(data.length)) - 1;
-    // This cap represents ~500MB for a Float64Array with 4 values per point (or half that for an Int32Array)
-    // This is usually a temporary array, so actual resource usage is much lower
-    power = Math.min(Math.max(power, 0), 24);
-    return (2 ** power) | 0;
+    if (indexAdjustments >= SMALLEST_INTERVAL_MAX_INDEX_ADJUSTMENTS || startDatumIndex >= endDatumIndex) {
+        return currentSmallestInterval;
+    }
+
+    const ratio = Number.isFinite(d0)
+        ? aggregationXRatioForXValue(xValues[endDatumIndex], d0, d1) -
+          aggregationXRatioForXValue(xValues[startDatumIndex], d0, d1)
+        : aggregationXRatioForDatumIndex(endDatumIndex, xValues.length) -
+          aggregationXRatioForDatumIndex(startDatumIndex, xValues.length);
+
+    if (ratio === 0 || !Number.isFinite(ratio)) return currentSmallestInterval;
+
+    const currentInterval = Math.abs(ratio) / (endDatumIndex - startDatumIndex);
+
+    let recurse: boolean;
+    if (depth < SMALLEST_INTERVAL_MIN_RECURSE) {
+        recurse = true;
+    } else if (depth > SMALLEST_INTERVAL_RECURSE_LIMIT) {
+        recurse = false;
+    } else {
+        recurse = currentInterval <= currentSmallestInterval;
+    }
+
+    currentSmallestInterval = Math.min(currentSmallestInterval, currentInterval);
+
+    if (!recurse) return currentSmallestInterval;
+
+    const midIndex = Math.floor((startDatumIndex + endDatumIndex) / 2);
+    const leadingInterval = estimateSmallestPixelIntervalIter(
+        xValues,
+        d0,
+        d1,
+        startDatumIndex,
+        midIndex,
+        currentSmallestInterval,
+        depth + 1
+    );
+    const trailingInterval = estimateSmallestPixelIntervalIter(
+        xValues,
+        d0,
+        d1,
+        midIndex + 1,
+        endDatumIndex,
+        currentSmallestInterval,
+        depth + 1
+    );
+    return Math.min(leadingInterval, trailingInterval, currentSmallestInterval);
+}
+
+function estimateSmallestPixelInterval(xValues: any[], d0: number, d1: number) {
+    return estimateSmallestPixelIntervalIter(xValues, d0, d1, 0, xValues.length - 1, 1 / (xValues.length - 1), 0);
+}
+
+export function aggregationRangeFittingPoints(
+    xValues: any[],
+    d0: number,
+    d1: number,
+    opts?: { smallestKeyInterval?: number }
+) {
+    if (Number.isFinite(d0)) {
+        const smallestKeyInterval = opts?.smallestKeyInterval;
+        const smallestPixelInterval =
+            smallestKeyInterval != null
+                ? smallestKeyInterval / (d1 - d0)
+                : estimateSmallestPixelInterval(xValues, d0, d1);
+        return nextPowerOf2(Math.trunc(1 / smallestPixelInterval)) >> 3;
+    } else {
+        let power = Math.ceil(Math.log2(xValues.length)) - 1;
+        // This cap represents ~500MB for a Float64Array with 4 values per point (or half that for an Int32Array)
+        // This is usually a temporary array, so actual resource usage is much lower
+        power = Math.min(Math.max(power, 0), 24);
+        return (2 ** power) | 0;
+    }
 }
 
 export function aggregationDomain(scale: ScaleType, domain: any[]): [number, number] {

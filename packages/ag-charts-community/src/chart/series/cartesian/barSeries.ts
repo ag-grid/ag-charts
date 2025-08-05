@@ -305,7 +305,13 @@ export class BarSeries extends AbstractBarSeries<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return memoizedAggregateBarData(xAxis.scale.type, xValues, yValues, domain);
+        return memoizedAggregateBarData(
+            xAxis.scale.type,
+            xValues,
+            yValues,
+            domain,
+            processedData.reduced?.smallestKeyInterval
+        );
     }
 
     createNodeData() {
