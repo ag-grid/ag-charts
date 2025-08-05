@@ -4,13 +4,14 @@ import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 import {
     intervalFloor,
     intervalMilliseconds,
+    intervalNext,
     intervalRange,
     intervalRangeCount,
     intervalRangeStartIndex,
 } from '../util/time';
 import { normalizeContinuousDomains } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
-import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from './scale';
+import type { NormalizedDomain, ScaleAlignment, ScaleTickParams, ScaleTickResult } from './scale';
 
 const MAX_BANDS = 50e6; // Max array length is ~4bn
 
@@ -61,7 +62,9 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return normalizeContinuousDomains(...domains);
     }
 
-    override convert(value: Date, options?: { clamp?: boolean; interpolate?: boolean }): number {
+    override convert(value: Date, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
+        this.refresh();
+
         if (!(value instanceof Date)) value = new Date(value as any);
 
         const { domain, interval } = this;
@@ -71,7 +74,8 @@ export class UnitTimeScale extends DiscreteTimeScale {
             const [start, stop] = calculateBandRange(domain, interval);
             const d0 = Math.min(start.valueOf(), stop.valueOf());
             const d1 = Math.max(start.valueOf(), stop.valueOf());
-            if (t < d0 || t >= d1 + intervalMilliseconds(interval)) return NaN;
+            const dNext = intervalNext(interval, new Date(d1)).valueOf();
+            if (t < d0 || t >= dNext) return NaN;
         }
 
         return super.convert(value, options);

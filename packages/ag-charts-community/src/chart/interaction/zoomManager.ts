@@ -374,7 +374,7 @@ export class ZoomManager extends BaseManager {
         const [, end] = extents;
         const start = fn(end);
 
-        const ratio = this.rangeToRatio({ start, end }, direction);
+        const ratio = this.rangeToRatio({ start }, direction);
         if (!ratio) return;
 
         this.updateZoom(callerId, { [direction]: ratio });
@@ -604,9 +604,8 @@ export class ZoomManager extends BaseManager {
             start,
             end
         );
-        let r0 = range.start == null ? d0 : scale.convert(range.start, { alignment: startAlignment });
-        let r1 =
-            range.end == null ? d1 : scale.convert(range.end, { alignment: endAlignment }) + (scale.bandwidth ?? 0);
+        let r0 = start == null ? d0 : scale.convert(start, { alignment: startAlignment });
+        let r1 = end == null ? d1 : scale.convert(end, { alignment: endAlignment }) + (scale.bandwidth ?? 0);
 
         if (!isFiniteNumber(r0) || !isFiniteNumber(r1)) return;
 
@@ -614,14 +613,14 @@ export class ZoomManager extends BaseManager {
 
         if (r0 < dMin || r0 > dMax) {
             Logger.warnOnce(
-                `Invalid range start [${range.start}], expecting a value between [${scale.invert(d0)}] and [${scale.invert?.(d1)}], ignoring.`
+                `Invalid range start [${start}], expecting a value between [${scale.invert(d0)}] and [${scale.invert(d1)}], ignoring.`
             );
             return;
         }
 
         if (r1 < dMin || r1 > dMax) {
             Logger.warnOnce(
-                `Invalid range end [${range.end}], expecting a value between [${scale.invert(d0)}] and [${scale.invert?.(d1)}], ignoring.`
+                `Invalid range end [${end}], expecting a value between [${scale.invert(d0)}] and [${scale.invert(d1)}], ignoring.`
             );
             return;
         }
@@ -630,8 +629,11 @@ export class ZoomManager extends BaseManager {
         r1 = Math.min(dMax, Math.max(dMin, r1));
 
         const diff = d1 - d0;
+        if (diff === 0) return;
+
         const min = Math.abs((r0 - d0) / diff);
         const max = Math.abs((r1 - d0) / diff);
+        if (min >= max) return;
 
         return { min, max };
     }
