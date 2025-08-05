@@ -90,7 +90,14 @@
         "ag-charts-website-benchmarks_axes-1M-time_main.ts:generate-example",
         "ag-charts-website-benchmarks_axes-1M-unit-time_main.ts:generate-example",
         "ag-charts-website-benchmarks_axes-1M-ordinal-time_main.ts:generate-example",
-        "ag-charts-website-benchmarks_axes-1M-number_main.ts:generate-example"
+        "ag-charts-website-benchmarks_axes-1M-number_main.ts:generate-example",
+        "ag-charts-website-benchmarks_high-perf-area_main.ts:generate-example",
+        "ag-charts-website-benchmarks_high-perf-area-stacked_main.ts:generate-example",
+        "ag-charts-website-benchmarks_high-perf-bar_main.ts:generate-example",
+        "ag-charts-website-benchmarks_high-perf-line_main.ts:generate-example",
+        "ag-charts-website-benchmarks_high-perf-ohlc_main.ts:generate-example",
+        "ag-charts-website-benchmarks_high-perf-range-area_main.ts:generate-example",
+        "ag-charts-website-benchmarks_high-perf-range-bar_main.ts:generate-example"
       ]
     },
     "pack": {
