@@ -246,7 +246,7 @@ describe('LegendEvent', () => {
             expect(legendItemClick).toBeCalledTimes(3);
         });
 
-        test.only('donuts', async () => {
+        test('donuts', async () => {
             // https://plnkr.co/edit/BoHbSyw1KYOpprOg?open=main.js
             const legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {});
             chart = await createChart({
