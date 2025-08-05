@@ -1,4 +1,5 @@
 import type { ScaleType } from '../../scale/scale';
+import { nextPowerOf2 } from '../../util/number';
 
 export const AGGREGATION_INDEX_X_MIN = 0;
 export const AGGREGATION_INDEX_X_MAX = 1;
@@ -6,7 +7,12 @@ export const AGGREGATION_INDEX_Y_MIN = 2;
 export const AGGREGATION_INDEX_Y_MAX = 3;
 export const AGGREGATION_SPAN = 4;
 
-export function aggregationRangeFittingPoints(data: any[]) {
+export function aggregationRangeFittingPoints(data: any[], opts?: { smallestInterval?: number }) {
+    const smallestDataInterval = opts?.smallestInterval;
+    if (smallestDataInterval != null) {
+        return nextPowerOf2(Math.trunc(1 / smallestDataInterval)) >> 3;
+    }
+
     let power = Math.ceil(Math.log2(data.length)) - 1;
     // This cap represents ~500MB for a Float64Array with 4 values per point (or half that for an Int32Array)
     // This is usually a temporary array, so actual resource usage is much lower
