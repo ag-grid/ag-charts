@@ -31,6 +31,7 @@ const {
     applyShapeStyle,
     getShapeStyle,
     getShapeFill,
+    getItemStyles,
 } = _ModuleSupport;
 
 export type Bounds = {
@@ -49,7 +50,6 @@ export type FunnelNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
     itemId: string;
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     visible: boolean;
-    style: AgFunnelSeriesStyle;
 };
 
 export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_ModuleSupport.Point> {
@@ -65,7 +65,7 @@ export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum
     readonly opacity?: number;
     readonly clipBBox?: _ModuleSupport.BBox;
 
-    style: AgFunnelSeriesStyle;
+    style?: RequireOptional<AgFunnelSeriesStyle>;
 }
 
 interface FunnelConnectorDatum {
@@ -84,6 +84,7 @@ interface FunnelConnectorDatum {
 
 interface FunnelContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<FunnelNodeDatum, FunnelNodeLabelDatum> {
     connectorData: FunnelConnectorDatum[];
+    styles: _ModuleSupport.SeriesNodeStyleContext<AgFunnelSeriesStyle>;
 }
 
 export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode>
@@ -286,6 +287,7 @@ export abstract class BaseFunnelSeries<
             scales: this.calculateScaling(),
             groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
+            styles: getItemStyles(this.getItemStyle.bind(this)),
         };
 
         const isVisible = this.visible;
@@ -324,7 +326,8 @@ export abstract class BaseFunnelSeries<
             const yNegative = Math.round(yScale.convert(-yDatum));
             const yPositive = Math.round(yScale.convert(yDatum));
 
-            const style = this.getItemStyle({ datum, datumIndex }, false);
+            const style = this.getItemStyle(undefined, false);
+
             const barHeight = Math.max(style.strokeWidth ?? 0, Math.abs(yPositive - yNegative));
 
             const rect: Bounds = {
@@ -366,7 +369,6 @@ export abstract class BaseFunnelSeries<
                 crisp,
                 label: labelData,
                 visible,
-                style,
             };
 
             context.nodeData.push(nodeDatum);
@@ -424,7 +426,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected abstract getItemStyle(
-        _: Pick<FunnelNodeDatum, 'datum' | 'datumIndex'>,
+        _: FunnelNodeDatum | undefined,
         _isHighlight: boolean
     ): RequireOptional<AgFunnelSeriesStyle>;
 

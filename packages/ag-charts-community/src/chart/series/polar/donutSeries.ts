@@ -47,7 +47,8 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { SeriesNodeEvent, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
-import type { SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
+import type { HighlightState } from '../seriesProperties';
+import type { SeriesNodeEventTypes } from '../seriesTypes';
 import { applyShapeStyle, getShapeFill } from '../shapeUtil';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
 import { DonutSeriesProperties } from './donutSeriesProperties';
@@ -470,7 +471,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             const nodeLabels = this.getLabels(datumIndex, datum, midAngle, span, processedDataValues);
             const sectorFormat = this.getItemStyle({ datum, datumIndex }, false);
 
-            const style = this.getItemStyle({ datum, datumIndex }, false, legendItemValues);
+            const style = this.getItemStyle({ datum, datumIndex }, false, undefined, legendItemValues);
 
             const node = {
                 itemId: datumIndex,
@@ -707,8 +708,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     private getItemStyle(
         { datum, datumIndex = 0 }: Partial<PieDonutNodeDatum>,
         isHighlight: boolean,
-        legendItemValues?: string[],
-        activeHighlight?: SeriesNodeDatum<unknown>
+        highlightState?: HighlightState,
+        legendItemValues?: string[]
     ) {
         const {
             angleKey,
@@ -736,7 +737,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             cornerRadius,
             opacity,
         } = mergeDefaults(
-            this.getHighlightStyle(isHighlight, datumIndex, undefined, legendItemValues),
+            this.getHighlightStyle(isHighlight, datumIndex, highlightState, legendItemValues),
             {
                 fill: defaultFill,
                 stroke: defaultStroke,
@@ -770,7 +771,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                         cornerRadius,
                         highlighted: isHighlight,
                         highlightState: this.getHighlightStateString(
-                            activeHighlight ?? this.ctx.highlightManager?.getActiveHighlight(),
+                            this.ctx.highlightManager?.getActiveHighlight(),
                             isHighlight,
                             datumIndex
                         ),
@@ -1013,7 +1014,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             _index: number,
             isDatumHighlighted: boolean
         ) => {
-            const format = this.getItemStyle(datum, isDatumHighlighted, legendItemValues, highlightedDatum);
+            const format = this.getItemStyle(datum, isDatumHighlighted, undefined, legendItemValues);
 
             datum.sectorFormat.fill = format.fill;
             datum.sectorFormat.stroke = format.stroke;

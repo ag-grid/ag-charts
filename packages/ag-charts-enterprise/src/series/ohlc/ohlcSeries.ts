@@ -25,15 +25,23 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
-            datum.style = this.getItemStyle(datum, isHighlight);
+            datum.style = this.getItemStyle(datum, isHighlight, undefined, datum.itemId);
         });
     }
 
     protected override updateDatumNodes({
         datumSelection,
+        isHighlight,
     }: {
         datumSelection: _ModuleSupport.Selection<OhlcNode, OhlcNodeDatum>;
+        isHighlight: boolean;
     }) {
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
         const { item } = this.properties;
         const { up, down } = item;
         const { strokeWidth: upStrokeWidth } = up;
@@ -50,7 +58,13 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
             node.yClose = yClose;
             node.crisp = crisp;
 
-            applyShapeStyle(node, datum.style);
+            const style =
+                datum.style ??
+                contextNodeData.styles[datum.itemId][
+                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
+                ];
+
+            applyShapeStyle(node, style);
 
             // Ignore highlight style
             node.strokeAlignment = (isRising ? upStrokeWidth : downStrokeWidth) / 2;

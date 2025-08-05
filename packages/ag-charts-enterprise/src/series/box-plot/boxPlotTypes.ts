@@ -14,5 +14,5 @@ export interface BoxPlotNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNod
 
     readonly focusRect: { x: number; y: number; width: number; height: number };
 
-    style: AgBoxPlotSeriesStyle;
+    style?: Required<AgBoxPlotSeriesStyle>;
 }

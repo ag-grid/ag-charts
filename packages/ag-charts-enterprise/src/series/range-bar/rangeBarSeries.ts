@@ -44,6 +44,7 @@ const {
     AGGREGATION_INDEX_Y_MIN,
     mergeDefaults,
     simpleMemorize2,
+    getItemStyles,
 } = _ModuleSupport;
 
 const memoizedAggregateRangeBarData = simpleMemorize2(aggregateRangeBarData);
@@ -63,7 +64,6 @@ interface RangeBarNodeLabelDatum extends Readonly<_ModuleSupport.Point> {
     datum: any;
     itemId: string;
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
-    style: AgRangeBarSeriesStyle;
 }
 
 interface RangeBarNodeDatum
@@ -83,10 +83,8 @@ interface RangeBarNodeDatum
     // Required for types
     readonly clipBBox?: _ModuleSupport.BBox;
     readonly opacity?: number;
-    style: AgRangeBarSeriesStyle;
+    style?: Required<AgRangeBarSeriesStyle>;
 }
-
-type RangeBarContext = _ModuleSupport.AbstractBarSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
 
 type RangeBarAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<
     _ModuleSupport.Rect,
@@ -109,12 +107,18 @@ class RangeBarSeriesNodeEvent<
     }
 }
 
+interface RangeBarSeriesNodeDataContext
+    extends _ModuleSupport.AbstractBarSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum> {
+    styles: _ModuleSupport.SeriesNodeStyleContext<AgRangeBarSeriesStyle>;
+}
+
 export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     _ModuleSupport.Rect<RangeBarNodeDatum>,
     AgRangeBarSeriesOptions,
     RangeBarProperties,
     RangeBarNodeDatum,
-    RangeBarNodeLabelDatum
+    RangeBarNodeLabelDatum,
+    RangeBarSeriesNodeDataContext
 > {
     static readonly className = 'RangeBarSeries';
     static readonly type = 'range-bar' as const;
@@ -241,13 +245,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const itemId = `${yLowKey}-${yHighKey}`;
 
-        const context: RangeBarContext = {
+        const context: RangeBarSeriesNodeDataContext = {
             itemId,
             nodeData: [],
             labelData: [],
             scales: this.calculateScaling(),
             groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
+            styles: getItemStyles(this.getItemStyle.bind(this)),
         };
         if (!visible) return context;
 
@@ -308,9 +313,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 y: rect.y + rect.height / 2,
             };
 
-            const style = this.getItemStyle({ datum, datumIndex, xValue: xDatum }, false);
-
-            const labelData: RangeBarNodeDatum['labels'] = this.createLabelData({
+            const labelData: RangeBarNodeLabelDatum[] = this.createLabelData({
                 datumIndex,
                 rect,
                 barAlongX,
@@ -318,7 +321,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 yHighValue,
                 datum: datum,
                 series: this,
-                style,
             });
 
             const nodeDatum: RangeBarNodeDatum = {
@@ -340,7 +342,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 midPoint: nodeMidPoint,
                 crisp,
                 labels: labelData,
-                style,
             };
 
             context.nodeData.push(nodeDatum);
@@ -426,7 +427,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         yHighValue,
         datum,
         series,
-        style,
     }: {
         datumIndex: number;
         rect: Bounds;
@@ -435,7 +435,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         yHighValue: number;
         datum: any;
         series: RangeBarSeries;
-        style: AgRangeBarSeriesStyle;
     }): RangeBarNodeLabelDatum[] {
         const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, label } = this.properties;
         const labelParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName };
@@ -465,7 +464,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             itemId: 'low',
             datum,
             series,
-            style,
         };
         const yHighLabel: RangeBarNodeLabelDatum = {
             datumIndex,
@@ -485,7 +483,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             itemId: 'high',
             datum,
             series,
-            style,
         };
 
         if (placement === 'outside') {
@@ -512,31 +509,36 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private getItemStyle(
-        datum: Pick<RangeBarNodeDatum, 'datumIndex' | 'datum' | 'xValue'>,
-        isHighlight: boolean
+        nodeDatum: RangeBarNodeDatum | undefined,
+        isHighlight: boolean,
+        highlightState?: _ModuleSupport.HighlightState
     ): Required<AgRangeBarSeriesStyle> {
         const { id: seriesId, properties } = this;
 
         const { xKey, yHighKey, yLowKey, itemStyler } = properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
+        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
         let style = baseStyle;
 
-        if (itemStyler != null && datum != null) {
+        if (itemStyler != null && nodeDatum != null) {
             const overrides = this.cachedDatumCallback(
-                createDatumId(this.getDatumId(datum), isHighlight ? 'highlight' : 'node'),
+                createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
+                    const highlightStateString = this.getHighlightStateString(
+                        activeHighlight,
+                        isHighlight,
+                        nodeDatum.datumIndex
+                    );
                     return this.callWithContext(itemStyler, {
                         seriesId,
-                        datum: datum.datum,
+                        datum: nodeDatum.datum,
                         xKey,
                         yHighKey,
                         yLowKey,
                         highlighted: isHighlight,
-                        highlightState,
+                        highlightState: highlightStateString,
                         ...style,
                     });
                 }
@@ -564,18 +566,28 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override updateDatumNodes({
         datumSelection,
+        isHighlight,
     }: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
         isHighlight: boolean;
     }) {
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
-            applyShapeStyle(rect, datum.style, fillBBox);
+            const style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            applyShapeStyle(rect, style, fillBBox);
 
-            rect.cornerRadius = datum.style.cornerRadius ?? 0;
+            rect.cornerRadius = style.cornerRadius ?? 0;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
             rect.crisp = datum.crisp;

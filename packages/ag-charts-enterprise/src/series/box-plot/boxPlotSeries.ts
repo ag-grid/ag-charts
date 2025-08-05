@@ -25,7 +25,12 @@ const {
     ContinuousScale,
     ChartAxisDirection,
     motion,
+    getItemStyles,
 } = _ModuleSupport;
+
+interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<BoxPlotNodeDatum> {
+    styles: _ModuleSupport.SeriesNodeStyleContext<AgBoxPlotSeriesStyle>;
+}
 
 class BoxPlotSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -52,7 +57,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     BoxPlotGroup,
     AgBoxPlotSeriesOptions,
     BoxPlotSeriesProperties,
-    BoxPlotNodeDatum
+    BoxPlotNodeDatum,
+    BoxPlotNodeDatum,
+    BoxPlotSeriesNodeDataContext
 > {
     static readonly className = 'BoxPlotSeries';
     static readonly type = 'box-plot' as const;
@@ -165,6 +172,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             scales: this.calculateScaling(),
             groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
+            styles: getItemStyles(this.getItemStyle.bind(this)),
         };
 
         if (!visible) return context;
@@ -239,7 +247,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 scaledValues,
                 midPoint,
                 focusRect,
-                style: this.getItemStyle({ datumIndex, datum }, false),
             });
         });
 
@@ -325,7 +332,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (xValue == null) return;
 
-        const format = this.getItemStyle({ datumIndex, datum }, false);
+        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
+
+        const format = this.getItemStyle(nodeDatum, false);
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [
             {
@@ -410,22 +419,24 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private getItemStyle(
-        { datumIndex, datum }: Partial<BoxPlotNodeDatum>,
-        isHighlight: boolean
+        nodeDatum: BoxPlotNodeDatum | undefined,
+        isHighlight: boolean,
+        highlightState?: _ModuleSupport.HighlightState
     ): Required<AgBoxPlotSeriesStyle> {
         const { id: seriesId, properties } = this;
 
         const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler } = properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight);
+        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
         let style = mergeDefaults(highlightStyle, properties.getStyle());
 
-        if (itemStyler != null && datumIndex != null) {
+        if (itemStyler != null && nodeDatum != null) {
+            const { datumIndex, datum } = nodeDatum;
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
@@ -436,7 +447,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                         q3Key,
                         maxKey,
                         highlighted: isHighlight,
-                        highlightState,
+                        highlightState: highlightStateString,
                         ...style,
                     });
                 }
@@ -474,21 +485,26 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override updateDatumNodes({
         datumSelection,
+        isHighlight,
     }: {
         datumSelection: _ModuleSupport.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
         isHighlight: boolean;
     }) {
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
         const isVertical = this.isVertical();
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
         datumSelection.each((boxPlotGroup, nodeDatum) => {
+            const style = (nodeDatum.style ??
+                contextNodeData.styles[
+                    this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex)
+                ]) as DeepRequired<AgBoxPlotHighlightStyleOptions>;
             const fillBBox = this.getShapeFillBBox();
-            boxPlotGroup.updateDatumStyles(
-                nodeDatum,
-                nodeDatum.style as DeepRequired<AgBoxPlotHighlightStyleOptions>,
-                isVertical,
-                isReversedValueAxis,
-                fillBBox
-            );
+            boxPlotGroup.updateDatumStyles(nodeDatum, style, isVertical, isReversedValueAxis, fillBBox);
         });
     }
 

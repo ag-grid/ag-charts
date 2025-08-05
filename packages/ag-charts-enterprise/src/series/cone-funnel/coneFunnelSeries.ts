@@ -53,10 +53,10 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgCo
     }
 
     protected getItemStyle(
-        { datumIndex }: Pick<FunnelNodeDatum, 'datumIndex'>,
+        nodeDatum: FunnelNodeDatum | undefined,
         _isHighlight: boolean
     ): RequireOptional<AgConeFunnelSeriesStyle> & { opacity: number } {
-        return this.properties.getStyle(datumIndex);
+        return this.properties.getStyle(nodeDatum?.datumIndex ?? 0);
     }
 
     protected override connectorStyle(index: number): RequireOptional<AgConeFunnelSeriesStyle> & { opacity: number } {
@@ -149,7 +149,6 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgCo
             datumIndex,
             series: this,
             visible,
-            style: this.properties.getStyle(datumIndex),
         };
     }
 

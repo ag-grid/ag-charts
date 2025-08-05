@@ -14,6 +14,7 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import {
     DataModelSeries,
     type DataModelSeriesConstructorOpts,
+    type DataModelSeriesNodeDataContext,
     type DataModelSeriesNodeDatum,
 } from '../dataModelSeries';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
@@ -63,7 +64,9 @@ export abstract class PolarSeries<
     TOpts extends object,
     TProps extends SeriesProperties<TOpts> & PolarSeriesProperties,
     TNode extends Node,
-> extends DataModelSeries<TDatum, TOpts, TProps> {
+    TLabel = TDatum,
+    TContext extends DataModelSeriesNodeDataContext<TDatum, TLabel> = DataModelSeriesNodeDataContext<TDatum, TLabel>,
+> extends DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
     override directions = [ChartAxisDirection.Angle, ChartAxisDirection.Radius];
 
     protected itemGroup = this.contentGroup.appendChild(new Group());

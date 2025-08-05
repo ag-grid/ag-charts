@@ -38,6 +38,7 @@ const {
     processedDataIsAnimatable,
     mergeDefaults,
     simpleMemorize2,
+    getItemStylesPerItemId,
 } = _ModuleSupport;
 
 const memoizedAggregateOhlcData = simpleMemorize2(aggregateOhlcData);
@@ -63,7 +64,7 @@ export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDa
 
     readonly crisp: boolean;
 
-    style: OhlcCandleStickSeriesStyle;
+    style?: Required<OhlcCandleStickSeriesStyle>;
 }
 
 class OhlcSeriesNodeEvent<
@@ -90,11 +91,22 @@ class OhlcSeriesNodeEvent<
     }
 }
 
+interface OhlcSeriesBaseNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<OhlcNodeDatum> {
+    styles: Record<'up' | 'down', _ModuleSupport.SeriesNodeStyleContext<OhlcCandleStickSeriesStyle>>;
+}
+
 export abstract class OhlcSeriesBase<
     TNode extends OhlcBaseNode,
     TOpts extends AgOhlcSeriesBaseOptions,
     TProps extends OhlcSeriesBaseProperties<TOpts>,
-> extends _ModuleSupport.AbstractBarSeries<TNode, TOpts, TProps, OhlcNodeDatum> {
+> extends _ModuleSupport.AbstractBarSeries<
+    TNode,
+    TOpts,
+    TProps,
+    OhlcNodeDatum,
+    OhlcNodeDatum,
+    OhlcSeriesBaseNodeDataContext
+> {
     protected override readonly NodeEvent = OhlcSeriesNodeEvent;
 
     private dataAggregationFilters: OhlcSeriesDataAggregationFilter[] | undefined = undefined;
@@ -251,6 +263,7 @@ export abstract class OhlcSeriesBase<
             scales: this.calculateScaling(),
             groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
+            styles: getItemStylesPerItemId(this.getItemStyle.bind(this), 'up', 'down'),
         };
         if (!visible) return context;
 
@@ -305,7 +318,6 @@ export abstract class OhlcSeriesBase<
                 yOpen,
                 yClose,
                 crisp,
-                style: this.getItemStyle({ datumIndex, itemId, datum, xValue }, false),
             });
         };
 
@@ -433,24 +445,30 @@ export abstract class OhlcSeriesBase<
         return labelSelection.update(labelData);
     }
 
-    protected getItemStyle({ datumIndex, itemId = 'up', datum, xValue }: Partial<OhlcNodeDatum>, isHighlight: boolean) {
+    protected getItemStyle(
+        nodeDatum: OhlcNodeDatum | undefined,
+        isHighlight: boolean,
+        highlightState?: _ModuleSupport.HighlightState,
+        itemId: 'up' | 'down' = 'up'
+    ) {
         const { id: seriesId, properties } = this;
         const { itemStyler } = properties;
 
         const highlightStyle: FillOptions & StrokeOptions & LineDashOptions & { opacity?: number } =
-            this.getHighlightStyle(isHighlight);
+            this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemId));
 
         let style = baseStyle;
 
-        if (itemStyler != null && datumIndex != null) {
+        if (itemStyler != null && nodeDatum != null) {
+            const { datumIndex, datum, xValue } = nodeDatum;
             const { xKey, openKey, closeKey, highKey, lowKey } = properties;
 
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(createDatumId(xValue), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
                     const styles = this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
@@ -461,7 +479,7 @@ export abstract class OhlcSeriesBase<
                         highKey,
                         lowKey,
                         highlighted: isHighlight,
-                        highlightState,
+                        highlightState: highlightStateString,
                         ...style,
                     });
                     const resolved = this.ctx.optionsGraphService.resolvePartial(
@@ -514,7 +532,9 @@ export abstract class OhlcSeriesBase<
         const itemId = closeValue >= openValue ? 'up' : 'down';
         const item = this.properties.item[itemId];
 
-        const format = this.getItemStyle({ datumIndex, datum, itemId }, false);
+        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
+
+        const format = this.getItemStyle(nodeDatum, false);
 
         const marker = {
             fill: item.fill ?? item.stroke,
