@@ -35,12 +35,12 @@ describe('simple-chart benchmark', () => {
             }
         });
 
-        benchmark('1x datum highlight', ctx, { expectedRelativeMB: 5.5, expectedCanvasCount: 3 }, async () => {
+        benchmark('1x datum highlight', ctx, { expectedRelativeMB: 4, expectedCanvasCount: 3 }, async () => {
             const point = ctx.nodePositions[0][1];
             await ctx.hover(point.x, point.y);
         });
 
-        benchmark('15x datum highlight', ctx, { expectedRelativeMB: 5.5, expectedCanvasCount: 3 }, async () => {
+        benchmark('15x datum highlight', ctx, { expectedRelativeMB: 4, expectedCanvasCount: 3 }, async () => {
             for (let nodeIdx = 0; nodeIdx < 5; nodeIdx++) {
                 for (let seriesIdx = 0; seriesIdx < 3; seriesIdx++) {
                     const point = ctx.nodePositions[seriesIdx][nodeIdx];

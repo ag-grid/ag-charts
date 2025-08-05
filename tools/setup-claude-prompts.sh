@@ -25,6 +25,10 @@ if ! command -v claude >/dev/null 2>&1; then
     exit 0
 fi
 
+if command -v direnv >/dev/null 2>&1 && [ -d "$HOME/.claude-ag-grid/" ]; then
+    direnv allow
+fi
+
 # Create .claude/{commands,agents}/ directory if it doesn't exist
 mkdir -p .claude/{commands,agents}/
 

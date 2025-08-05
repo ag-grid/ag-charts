@@ -1,28 +1,50 @@
 {
     "permissions": {
         "allow": [
+            "Bash(command -v:*)",
             "Bash(find:*)",
-            "Bash(ls:*)",
-            "Bash(rg:*)",
-            "Bash(grep:*)",
-            "Bash(mkdir:*)",
-            "Bash(touch:*)",
-            "Bash(mv:reports/*)",
-            "Bash(nx lint:*)",
-            "Bash(nx show projects:*)",
-            "Bash(nx build:*)",
-            "Bash(nx generate-examples:*)",
-            "Bash(gh pr list:*)",
-            "Bash(gh pr view:*)",
-            "Bash(gh pr diff:*)",
+            "Bash(gh pr checkout:*)",
             "Bash(gh pr checks:*)",
+            "Bash(gh pr diff:*)",
+            "Bash(gh pr list:*)",
+            "Bash(gh pr review:*)",
+            "Bash(gh pr view:*)",
             "Bash(git fetch:*)",
-            "WebFetch(domain:github.com)"
+            "Bash(grep:*)",
+            "Bash(jq:*)",
+            "Bash(ls:*)",
+            "Bash(mkdir:*)",
+            "Bash(npx tsc:*)",
+            "Bash(nx build:*)",
+            "Bash(nx dev)",
+            "Bash(nx format:*)",
+            "Bash(nx generate-examples:*)",
+            "Bash(nx lint:*)",
+            "Bash(nx run:*)",
+            "Bash(nx show projects:*)",
+            "Bash(nx test:*)",
+            "Bash(nx validate-examples:*)",
+            "Bash(rg:*)",
+            "Bash(touch:*)",
+            "Bash(yarn nx build:*)",
+            "Bash(yarn nx format:write:*)",
+            "Bash(yarn nx:*)",
+            "Bash(yarn test:*)",
+            "WebFetch(domain:ag-grid.atlassian.net)",
+            "WebFetch(domain:docs.anthropic.com)",
+            "WebFetch(domain:github.com)",
+            "WebFetch(domain:localhost)",
+            "mcp__ide__getDiagnostics",
+            "mcp__puppeteer__puppeteer_click",
+            "mcp__puppeteer__puppeteer_evaluate",
+            "mcp__puppeteer__puppeteer_hover",
+            "mcp__puppeteer__puppeteer_navigate",
+            "mcp__puppeteer__puppeteer_screenshot",
+            "mcp__sequential-thinking__sequentialthinking"
         ],
-        "deny": [],
-        "enabledMcpjsonServers": ["mcp-atlassian", "mcp-github"]
+        "deny": []
+        "includeCoAuthoredBy": false,
     },
-    "includeCoAuthoredBy": false,
     "hooks": {
         "PostToolUse": [
             {
@@ -30,7 +52,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -q '\\.ts$'; then yarn prettier --write \"$file_path\"; fi; }"
+                        "command": "jq -r '.tool_input.file_path' | { read file_path; yarn nx format --files \"$file_path\"; fi; }"
                     }
                 ]
             }
