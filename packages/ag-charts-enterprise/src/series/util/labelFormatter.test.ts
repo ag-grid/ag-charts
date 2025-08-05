@@ -90,9 +90,9 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 5 },
-                () => ({ width: 36, height: 36, meta: undefined })
+                () => ({ width: 40, height: 40, meta: undefined })
             )!;
-            expect(format.lineHeight).toEqual(12);
+            expect(format.lineHeight).toEqual(14);
         });
 
         it('ignores minimumFontSizes greater than fontSize', () => {
