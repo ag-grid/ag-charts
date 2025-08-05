@@ -12,7 +12,7 @@ A Pie Series displays categorical data as proportional slices within a circle.
 To create a Pie Series, use the `pie` series type.
 
 ```js
-series: [{ type: 'pie', angleKey: 'amount', legendItemKey: 'amount' }],
+series: [{ type: 'pie', angleKey: 'amount', legendItemKey: 'asset' }],
 ```
 
 In this configuration:
@@ -68,7 +68,7 @@ series: [
         type: 'pie',
         radiusKey: 'yield',
         angleKey: 'amount',
-        calloutLabelKey: 'asset',
+        legendItemKey: 'asset',
     },
 ],
 ```

@@ -40,9 +40,9 @@ const options: AgChartOptions<MyDatumType> = {
     ],
     series: [
         {
-            type: 'pie',
-            angleKey: 'gdp',
-            legendItemKey: 'country',
+            type: 'bar',
+            yKey: 'gdp',
+            xKey: 'country',
             itemStyler: (params) => {
                 switch (params.datum.region) {
                     case 'AMER': return { fill: 'red' };

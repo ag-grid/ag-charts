@@ -28,7 +28,7 @@ export class SeriesMarker<TParams = never>
 
     @Property
     @SceneChangeDetection()
-    size: number = 6;
+    size: number = 0; // Default derived from series-specific theme practically.
 
     @Property
     @SceneObjectChangeDetection({ equals: objectsEqual })
