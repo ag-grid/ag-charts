@@ -23,6 +23,10 @@ const options: AgChartOptions = {
             colorName: 'Daily Vehicles',
         },
     ],
+    gradientLegend: {
+        scale: { label: { format: '.2s' } },
+        position: 'right-top',
+    },
 };
 
 AgCharts.create(options);

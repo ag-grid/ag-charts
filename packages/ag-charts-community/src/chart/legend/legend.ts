@@ -303,7 +303,7 @@ export class Legend extends BaseProperties {
      * Spacing between the legend and the edge of the chart's element.
      */
     @Property
-    spacing = 20;
+    spacing: PixelSize = 0; // Default derived from chart theme practically.
 
     @Property
     xOffset?: PixelSize;

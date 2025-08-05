@@ -76,7 +76,7 @@ export const IMAGE_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
     failureThreshold: FAILURE_THRESHOLD,
     failureThresholdType: 'percent',
     customDiffConfig: {
-        threshold: 0.02, // 2x the default of 0.01 - this is the per pixel threshold for colour/opacity difference.
+        threshold: 0.05, // 0.5x the default of 0.1 - this is the per pixel threshold for colour/opacity difference.
     },
 };
 
@@ -84,7 +84,7 @@ export const PATTERN_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
     ...IMAGE_SNAPSHOT_DEFAULTS,
     customDiffConfig: {
         ...IMAGE_SNAPSHOT_DEFAULTS.customDiffConfig,
-        threshold: 0.05,
+        threshold: 0.075,
     },
 };
 

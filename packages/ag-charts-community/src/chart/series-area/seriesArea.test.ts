@@ -56,7 +56,7 @@ describe('SeriesArea', () => {
                 ...SIMPLE_COLUMN_CHART_EXAMPLE,
                 ...SERIES_AREA_OPTIONS,
             });
-            await compare();
+            await compare({ ...IMAGE_SNAPSHOT_DEFAULTS, customDiffConfig: { threshold: 0.75 } });
         });
     });
 

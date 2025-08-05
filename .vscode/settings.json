@@ -19,5 +19,6 @@
     "**/dist/**": true,
     "**/node_modules/**": true
   },
-  "image-diff.viewer.showDiffByDefault": true
+  "image-diff.viewer.showDiffByDefault": true,
+  "cSpell.words": ["ultrathink"]
 }

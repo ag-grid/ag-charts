@@ -506,51 +506,6 @@ export class DataModel<
         }
     }
 
-    /**
-     * Provides a window-based convenience iterator to iterate over all of the extracted datum
-     * values in a GroupedData, including the previous and next entries relative to each datum.
-     *
-     * @param scope to which datums should belong
-     * @param processedData to iterate through
-     */
-    *forEachGroupDatumTuple(scope: ScopeProvider, processedData: GroupedData<any>) {
-        const columnIndex = processedData.columnScopes.findIndex((s) => s.has(scope.id));
-        const output: {
-            group: DataGroup;
-            nextGroup?: DataGroup;
-            nextGroupIndex?: number;
-            columnIndex: number;
-            groupIndex: number;
-            datumIndexes: [number | undefined, number, number | undefined];
-        } = { columnIndex, datumIndexes: [undefined, undefined, undefined] } as any;
-
-        for (const next of this.forEachGroupDatum(scope, processedData)) {
-            output.group = output.nextGroup!;
-            output.groupIndex = output.nextGroupIndex!;
-            output.nextGroup = next.group;
-            output.nextGroupIndex = next.groupIndex;
-            output.datumIndexes[0] = output.datumIndexes[1];
-            output.datumIndexes[1] = output.datumIndexes[2]!;
-            output.datumIndexes[2] = next.datumIndex;
-
-            if (output.group != null && output.datumIndexes[1] != null) {
-                yield output;
-            }
-        }
-
-        output.group = output.nextGroup!;
-        output.groupIndex = output.nextGroupIndex!;
-        output.nextGroup = undefined;
-        output.nextGroupIndex = undefined;
-        output.datumIndexes[0] = output.datumIndexes[1];
-        output.datumIndexes[1] = output.datumIndexes[2]!;
-        output.datumIndexes[2] = undefined;
-
-        if (output.group != null && output.datumIndexes[1] != null) {
-            yield output;
-        }
-    }
-
     getDomain(
         scope: ScopeProvider,
         searchId: string,

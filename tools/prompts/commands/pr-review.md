@@ -81,8 +81,52 @@ For each PR, review and critique the following:
     -   Are there any performance regressions?
     -   Are there any other risks with the changes?
     -   Should we add more tests?
--   For visual snapshot changes, ask the visual-qa agent to review the changes.
-    -   Make sure before and after states of images are available to the agent, and instruct the agent where to locate these.
+-   For visual snapshot changes, follow the comprehensive visual snapshot review process:
+
+    ### Visual Snapshot Review Process
+
+    1. **Pre-Analysis Phase**
+        - Analyze the PR's code changes to identify:
+            - Which chart types/components were modified
+            - What visual changes are expected based on the code changes
+            - Any rendering logic, styling, or layout modifications
+        - Create a manifest of expected visual impacts
+    2. **Snapshot Categorization**
+        - Group snapshots by:
+            - Chart type (bar, line, scatter, etc.)
+            - Component (axis, legend, tooltip, etc.)
+            - Test category (basic rendering, interactions, edge cases)
+        - Identify which snapshots correspond to modified code
+        - Flag snapshots from unmodified components for regression checking
+    3. **Visual-QA Agent Instructions**
+       When invoking the visual-qa agent, provide:
+        - The PR diff and summary of code changes
+        - The manifest of expected visual changes
+        - Specific areas of focus based on modified code
+        - Instructions to categorize changes as:
+            - **Expected**: Changes directly correlating to code modifications
+            - **Possibly Expected**: Changes in related components that might be side effects
+            - **Unexpected**: Changes in unmodified components or unrelated features
+            - **Regression**: Breaking changes that degrade visual quality
+    4. **Prioritized Review Strategy**
+       For large snapshot sets (100+ images):
+        - **Priority 1**: Review all snapshots for directly modified components
+        - **Priority 2**: Sample 20% of snapshots from indirectly affected components
+        - **Priority 3**: Sample 5% of snapshots from unmodified components
+        - **Always Review**: Any flagged regressions or unexpected changes
+    5. **Validation Criteria**
+       Visual changes are considered acceptable if they:
+        - Align with the PR's stated purpose
+        - Don't introduce visual regressions (misalignment, clipping, rendering artifacts)
+        - Maintain consistency across similar chart types
+        - Don't break existing visual features unless intentionally deprecated
+    6. **Report Requirements**
+       The visual review section should include:
+        - Summary of snapshot changes (total count, categorized by expected/unexpected)
+        - Detailed analysis of any unexpected changes
+        - Visual regression risks assessment
+        - Recommendations for additional manual review if needed
+
 -   If there is a code-reviewer agent, ask it to review the changes and provide a distinct detailed report in `${REPO_ROOT}/reports/pr-reviews/${PR_NUMBER}-${JIRA_ID:-none}-detailed-code-review.md` and link it in the main report.
 -   For examples and documentation changes, check for any offensive language or politically charged language that could be offensive to some users.
 
@@ -100,8 +144,15 @@ For each PR, review and critique the following:
 
     -   Summary of the changes.
     -   The main body of the report focusing on the review criteria.
-    -   If there are visual snapshot changes, summarise the most significant visual changes even if they are expected.
-        -   Warn about any unexpected visual changes.
+    -   If there are visual snapshot changes:
+        -   Provide a summary table: Total snapshots | Expected | Possibly Expected | Unexpected | Regressions
+        -   List the most significant visual changes with categorization
+        -   For unexpected changes, provide detailed analysis including:
+            -   Which component/chart type
+            -   Nature of the change
+            -   Potential cause based on code analysis
+            -   Risk assessment
+        -   Include links to the visual-qa agent's detailed report if generated
 
 -   For stakeholder attention section:
     -   Breaking TypeScript or behavior changes for users:

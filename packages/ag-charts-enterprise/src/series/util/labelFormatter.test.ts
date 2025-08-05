@@ -68,6 +68,7 @@ describe('label formatter', () => {
                 'Hello',
                 {
                     enabled: true,
+                    fontFamily: 'Verdana',
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
@@ -84,6 +85,7 @@ describe('label formatter', () => {
                 'Hello',
                 {
                     enabled: true,
+                    fontFamily: 'Verdana',
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
@@ -100,6 +102,7 @@ describe('label formatter', () => {
                 'Hello',
                 {
                     enabled: true,
+                    fontFamily: 'Verdana',
                     fontSize: 20,
                     minimumFontSize: 30,
                     wrapping: 'never',
@@ -118,6 +121,7 @@ describe('label formatter', () => {
                 'Hello',
                 {
                     enabled: true,
+                    fontFamily: 'Verdana',
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
@@ -127,6 +131,7 @@ describe('label formatter', () => {
                 'World',
                 {
                     enabled: true,
+                    fontFamily: 'Verdana',
                     fontSize: 10,
                     minimumFontSize: 5,
                     wrapping: 'never',
@@ -147,6 +152,7 @@ describe('label formatter', () => {
                 'Hello',
                 {
                     enabled: true,
+                    fontFamily: 'Verdana',
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
@@ -156,6 +162,7 @@ describe('label formatter', () => {
                 'World',
                 {
                     enabled: true,
+                    fontFamily: 'Verdana',
                     fontSize: 10,
                     minimumFontSize: 5,
                     wrapping: 'never',
@@ -173,6 +180,7 @@ describe('label formatter', () => {
                 'Hello',
                 {
                     enabled: true,
+                    fontFamily: 'Verdana',
                     fontSize: 20,
                     minimumFontSize: 30,
                     wrapping: 'never',
@@ -182,6 +190,7 @@ describe('label formatter', () => {
                 'World',
                 {
                     enabled: true,
+                    fontFamily: 'Verdana',
                     fontSize: 10,
                     minimumFontSize: 20,
                     wrapping: 'never',
@@ -200,6 +209,7 @@ describe('label formatter', () => {
                 undefined,
                 {
                     enabled: true,
+                    fontFamily: 'Verdana',
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
@@ -209,6 +219,7 @@ describe('label formatter', () => {
                 'World',
                 {
                     enabled: true,
+                    fontFamily: 'Verdana',
                     fontSize: 10,
                     minimumFontSize: 5,
                     wrapping: 'never',
