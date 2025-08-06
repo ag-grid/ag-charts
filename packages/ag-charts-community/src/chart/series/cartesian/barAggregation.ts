@@ -38,13 +38,15 @@ export function aggregateBarData(
     scale: ScaleType,
     xValues: any[],
     yValues: any[],
-    domain: number[]
+    domain: number[],
+    smallestKeyInterval: number | undefined
 ): BarSeriesDataAggregationFilter[] | undefined {
     if (xValues.length < AGGREGATION_THRESHOLD) return;
 
     const [d0, d1] = aggregationDomain(scale, domain);
 
-    let maxRange = aggregationRangeFittingPoints(xValues);
+    let maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval });
+
     let { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange);
     let indices = getIndices(maxRange, indexData);
 
