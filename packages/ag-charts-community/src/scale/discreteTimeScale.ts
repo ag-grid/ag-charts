@@ -20,9 +20,16 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         return new Date(value);
     }
 
+    protected get reversed(): boolean {
+        const { domain } = this;
+        return domain.length > 0 && domain[0].valueOf() > domain[domain.length - 1].valueOf();
+    }
+
     override convert(value: Date, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
+        this.refresh();
+
         if (!(value instanceof Date)) value = new Date(value as any);
-        const { domain, bands } = this;
+        const { domain, bands, reversed } = this;
 
         if (domain.length <= 0) return NaN;
 
@@ -38,7 +45,6 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         }
 
         const alignment = options?.alignment ?? ScaleAlignment.Leading;
-        const reversed = domain[0].valueOf() > domain[domain.length - 1].valueOf();
         if (alignment !== ScaleAlignment.Interpolate) {
             const r = super.convert(value, options);
             return reversed ? r1 - (r - r0) : r;

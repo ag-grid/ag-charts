@@ -1,4 +1,4 @@
-import { AgCharts, AgDonutSeriesOptions, AgImageFill, AgPolarChartOptions } from 'ag-charts-community';
+import { AgCharts, AgColorRepeat, AgDonutSeriesOptions, AgImageFill, AgPolarChartOptions } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -22,7 +22,7 @@ const options: AgPolarChartOptions = {
                     url: '${baseWWWUrl}/example-assets/docs-images/' + `${mode.toLowerCase()}.png`,
                     width: 20,
                     height: 20,
-                    repeat: 'no-repeat',
+                    repeat: 'no-repeat', // Default
                 };
             }),
         },
@@ -31,20 +31,11 @@ const options: AgPolarChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function noRepeat() {
+function repeat(type: AgColorRepeat) {
     const series = options.series![0] as AgDonutSeriesOptions;
     series.fills = series.fills?.map((fill) => ({
         ...(fill as AgImageFill),
-        repeat: 'no-repeat',
-    }));
-    chart.update(options);
-}
-
-function repeat() {
-    const series = options.series![0] as AgDonutSeriesOptions;
-    series.fills = series.fills?.map((fill) => ({
-        ...(fill as AgImageFill),
-        repeat: 'repeat',
+        repeat: type,
     }));
     chart.update(options);
 }

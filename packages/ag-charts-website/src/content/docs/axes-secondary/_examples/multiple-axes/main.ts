@@ -59,7 +59,6 @@ const options: AgChartOptions = {
             position: 'right',
             keys: ['exportedTonnes'],
             title: {
-                enabled: true,
                 text: 'Exports (tonnes)',
             },
             label: {

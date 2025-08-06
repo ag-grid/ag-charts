@@ -1,16 +1,25 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+import path from 'path';
 import * as SkiaCanvas from 'skia-canvas';
-import { Canvas, ExportFormat } from 'skia-canvas';
-
-import { mockCanvasText } from './mock-canvas-text';
+import { Canvas, DOMMatrix, ExportFormat, FontLibrary } from 'skia-canvas';
 
 // Something is causing this to not be imported as a value
 const { CanvasRenderingContext2D } = SkiaCanvas as any;
+
+FontLibrary.use('Verdana', [
+    path.resolve(__dirname, '../../../fonts/Arimo-Regular.ttf'),
+    path.resolve(__dirname, '../../../fonts/Arimo-Bold.ttf'),
+]);
 
 export class ConfiguredCanvas extends Canvas {
     constructor(width: number, height: number) {
         super(width, height);
         this.gpu = false;
+    }
+
+    override toBuffer(format: SkiaCanvas.ExportFormat, options?: SkiaCanvas.RenderOptions): Promise<Buffer> {
+        // @ts-expect-error Incorrect types
+        return super.toBuffer(format, { ...options, msaa: false });
     }
 
     transferToImageBitmap() {
@@ -30,6 +39,17 @@ const superCreateConicGradient = CanvasRenderingContext2D.prototype.createConicG
 Object.defineProperty(CanvasRenderingContext2D.prototype, 'createConicGradient', {
     value: function (this: CanvasRenderingContext2D, angle: number, x: number, y: number) {
         return superCreateConicGradient.call(this, angle + Math.PI / 2, x, y);
+    },
+    writable: true,
+    configurable: true,
+});
+
+Object.defineProperty(CanvasRenderingContext2D.prototype, 'fillText', {
+    value: function (this: CanvasRenderingContext2D, text: string, x: number, y: number) {
+        // @ts-expect-error Skia api
+        let path2d = this.outlineText(text);
+        path2d = path2d.transform(new DOMMatrix([1, 0, 0, 1, x, y]));
+        this.fill(path2d);
     },
     writable: true,
     configurable: true,
@@ -83,10 +103,7 @@ export class MockContext {
     }
 
     getRenderContext2D(): globalThis.CanvasRenderingContext2D {
-        let ctx = this.ctx.nodeCanvas.getContext('2d') as unknown as CanvasRenderingContext2D;
-        if (this.mockText) {
-            ctx = mockCanvasText(ctx as any) as any;
-        }
+        const ctx = this.ctx.nodeCanvas.getContext('2d') as unknown as CanvasRenderingContext2D;
         return ctx as unknown as globalThis.CanvasRenderingContext2D;
     }
 
@@ -122,16 +139,13 @@ export class MockContext {
     }
 }
 
-function proxyGetContext2D(mockCtx: MockContext, canvas: Canvas, target: any) {
+function proxyGetContext2D(_mockCtx: MockContext, canvas: Canvas, target: any) {
     if (target.__patched === true) return;
     target.__patched = true;
 
     const { getContext } = canvas;
     target.getContext = (type: '2d') => {
-        let ctx = getContext.call(canvas, type);
-        if (mockCtx.mockText) {
-            ctx = mockCanvasText(ctx as any) as any;
-        }
+        const ctx = getContext.call(canvas, type);
         return ctx;
     };
 }

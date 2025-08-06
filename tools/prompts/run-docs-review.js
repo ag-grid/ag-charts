@@ -32,8 +32,8 @@ const PATHS = {
 };
 
 const FILE_NAMES = {
-    REVIEW_PLAN: 'review-plan.md',
-    REPORT: 'report.md',
+    REVIEW_PLAN: 'technical-review-plan.md',
+    REPORT: 'reports/technical-review-report.md',
     SUMMARY: 'summary.md',
     PROGRESS: 'progress.json',
     CURRENT_PROMPT: 'current-prompt.md',
@@ -62,6 +62,14 @@ const DEFAULT_OPTIONS = {
     dryRun: false,
     limit: null, // No limit by default
     refreshDays: null, // Refresh pages modified in past N days
+    maxRetries: 10, // Increased for 5-hour quota window
+    quotaRetryDelay: 300000, // 5 minutes initial delay (more reasonable)
+    maxQuotaRetryDelay: 1800000, // 30 minutes max delay (caps exponential growth)
+    quotaBackoffMultiplier: 1.5, // Gentler exponential growth
+    pauseOnQuotaExhaustion: true,
+    quotaWindowHours: 5, // Track the quota window duration
+    serverOverloadMaxRetries: 5, // Fewer retries for server overload
+    serverOverloadBaseDelay: 30000, // 30 seconds base delay for server overload
 };
 
 // ============================================================================
@@ -79,7 +87,8 @@ function getReportPath(...parts) {
  * Get the path for a page-specific file
  */
 function getPageFilePath(pageName, fileName) {
-    return getReportPath(pageName, fileName);
+    // New structure: files are written alongside the documentation pages
+    return path.join(PATHS.DOCS, pageName, fileName);
 }
 
 /**
@@ -131,17 +140,111 @@ function cleanupFile(filePath) {
 }
 
 /**
+ * Detect if an error is related to actual quota exhaustion (not server overload)
+ */
+function isQuotaError(stderr, stdout) {
+    return hasQuotaError(stderr, stdout) != null;
+}
+
+function hasQuotaError(stderr, stdout) {
+    const errorText = (stderr + stdout).toLowerCase();
+
+    // True quota exhaustion patterns - these indicate we've hit our usage limits
+    const quotaPatterns = [
+        'quota exceeded',
+        'usage limit exceeded',
+        'daily limit exceeded',
+        'monthly limit exceeded',
+        'request limit exceeded',
+        'rate limit exceeded',
+        'quota limit',
+        'usage quota',
+        'billing limit',
+        'account limit',
+        'usage limit reached',
+    ];
+
+    return quotaPatterns.find((pattern) => errorText.includes(pattern));
+}
+
+/**
+ * Detect if an error is related to server overload (429 but not quota)
+ */
+function isServerOverloadError(stderr, stdout) {
+    const errorText = (stderr + stdout).toLowerCase();
+
+    // Server overload patterns - temporary capacity issues
+    const overloadPatterns = [
+        'too many requests',
+        '429',
+        'server overloaded',
+        'temporarily unavailable',
+        'try again later',
+        'service unavailable',
+        'capacity exceeded',
+    ];
+
+    // Check for overload patterns but exclude true quota messages
+    const hasOverloadPattern = overloadPatterns.some((pattern) => errorText.includes(pattern));
+    const hasQuotaPattern = isQuotaError(stderr, stdout);
+
+    // It's server overload if we see overload patterns but no explicit quota language
+    return hasOverloadPattern && !hasQuotaPattern;
+}
+
+/**
+ * Sleep utility for delays
+ */
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Check if enough time has passed since quota exhaustion to likely have reset
+ */
+function checkQuotaRecovery() {
+    const quotaFile = getReportPath('quota-exhaustion.json');
+
+    if (!fs.existsSync(quotaFile)) {
+        return { recovered: true, info: null };
+    }
+
+    try {
+        const quotaInfo = JSON.parse(fs.readFileSync(quotaFile, 'utf8'));
+        const exhaustionTime = new Date(quotaInfo.timestamp).getTime();
+        const estimatedResetTime = new Date(quotaInfo.estimatedResetTime).getTime();
+        const now = Date.now();
+
+        const hoursWaited = (now - exhaustionTime) / (1000 * 60 * 60);
+        const quotaLikelyReset = now >= estimatedResetTime;
+
+        return {
+            recovered: quotaLikelyReset,
+            info: {
+                ...quotaInfo,
+                hoursWaited: hoursWaited.toFixed(1),
+                quotaLikelyReset,
+                timeUntilReset: quotaLikelyReset ? 0 : Math.max(0, (estimatedResetTime - now) / (1000 * 60 * 60)),
+            },
+        };
+    } catch (error) {
+        console.warn('⚠️  Could not parse quota exhaustion info, assuming recovered');
+        return { recovered: true, info: null };
+    }
+}
+
+/**
  * Build phase-specific prompt instructions
  */
 function buildPromptInstructions(phase, pageName, dryRun = false) {
     const baseInstructions = {
         [PHASES.PLANNING]: `
-IMPORTANT: Write the review plan to: reports/docs-review/${pageName}/review-plan.md
+IMPORTANT: Write the review plan to: packages/ag-charts-website/src/content/docs/${pageName}/technical-review-plan.md
 Do NOT write files to the root directory or any other location.`,
         [PHASES.EXECUTION]: `
 IMPORTANT: When writing files during this phase:
-- Write the final report to: reports/docs-review/${pageName}/report.md
-- Save all screenshots to: reports/docs-review/${pageName}/{exampleName}/
+- Write the final report to: packages/ag-charts-website/src/content/docs/${pageName}/reports/technical-review-report.md
+- Save all screenshots to: packages/ag-charts-website/src/content/docs/${pageName}/reports/\${exampleName}/
 - If you need to create temporary files, use: reports/docs-review/${pageName}/tmp/
 - Do NOT write files to the root directory or any other location`,
         [PHASES.SUMMARY]: `
@@ -220,34 +323,136 @@ async function getModifiedPagesFromGit(days) {
 // ============================================================================
 
 /**
- * Execute Claude with consistent error handling and file management
+ * Execute Claude with quota-aware retry logic that resets on success
  */
 async function executeClaudeCommand(prompt, model, pageName, phase, options) {
-    const { verbose, sessionId } = options;
+    const {
+        verbose,
+        sessionId,
+        maxRetries = 10,
+        quotaRetryDelay = 300000,
+        maxQuotaRetryDelay = 1800000,
+        quotaBackoffMultiplier = 1.5,
+        pauseOnQuotaExhaustion = true,
+        quotaWindowHours = 5,
+        serverOverloadMaxRetries = 5,
+        serverOverloadBaseDelay = 30000,
+    } = options;
 
-    // Save current prompt
     const promptFile = getReportPath(FILE_NAMES.CURRENT_PROMPT);
     const outputFile = getReportPath(FILE_NAMES.CURRENT_OUTPUT);
 
     await saveCurrentPrompt(promptFile, prompt, pageName, phase, model, sessionId);
 
-    try {
-        const result = await runClaudeCode(prompt, model, pageName, phase, {
-            verbose,
-            outputFile,
-            sessionId,
-        });
+    let attempt = 0;
+    let currentDelay = quotaRetryDelay;
+    let quotaStartTime = null; // Track when quota issues started
 
-        // Cleanup on success
-        cleanupFile(promptFile);
-        cleanupFile(outputFile);
+    while (attempt <= maxRetries) {
+        try {
+            const result = await runClaudeCode(prompt, model, pageName, phase, {
+                verbose,
+                outputFile,
+                sessionId,
+            });
 
-        return result;
-    } catch (error) {
-        // Cleanup on error
-        cleanupFile(promptFile);
-        cleanupFile(outputFile);
-        throw error;
+            // SUCCESS: Reset retry state and cleanup
+            if (attempt > 0) {
+                console.log(`✅ Quota recovery successful for ${pageName} after ${attempt} retries`);
+            }
+
+            cleanupFile(promptFile);
+            cleanupFile(outputFile);
+            return result;
+        } catch (error) {
+            const isQuota = isQuotaError(error.message, '');
+            const isServerOverload = isServerOverloadError(error.message, '');
+
+            if (isServerOverload && attempt < serverOverloadMaxRetries) {
+                attempt++;
+
+                // Server overload: shorter delays, let Claude CLI handle its own backoff
+                const overloadDelay = Math.min(serverOverloadBaseDelay + attempt * 15000, 120000); // 30s to 2min max
+
+                console.log(`\n⚠️  Server overload detected for ${pageName} (${phase})`);
+                console.log(`   Attempt ${attempt}/${serverOverloadMaxRetries + 1}`);
+                console.log(`   Brief wait for server recovery: ${Math.round(overloadDelay / 1000)}s...`);
+
+                await sleep(overloadDelay);
+                continue;
+            } else if (isQuota && attempt < maxRetries) {
+                attempt++;
+
+                // Track quota start time for window awareness
+                if (quotaStartTime === null) {
+                    quotaStartTime = Date.now();
+                }
+
+                // Check if we're approaching the quota window limit
+                const elapsedHours = (Date.now() - quotaStartTime) / (1000 * 60 * 60);
+                const remainingWindowTime = quotaWindowHours - elapsedHours;
+
+                console.log(`\n⏳ Quota limit detected for ${pageName} (${phase})`);
+                console.log(`   Attempt ${attempt}/${maxRetries + 1}`);
+                console.log(`   Elapsed quota time: ${elapsedHours.toFixed(1)}h / ${quotaWindowHours}h`);
+
+                if (remainingWindowTime < currentDelay / (1000 * 60 * 60)) {
+                    console.log(
+                        `   ⚠️  Remaining quota window (${remainingWindowTime.toFixed(1)}h) shorter than next delay`
+                    );
+                    console.log(`   Reducing delay to fit within quota window...`);
+                    currentDelay = Math.max(60000, remainingWindowTime * 60 * 60 * 1000 * 0.8); // 80% of remaining time, min 1 minute
+                }
+
+                console.log(`   Waiting ${Math.round(currentDelay / 60000)} minutes before retry...`);
+
+                await sleep(currentDelay);
+
+                // Exponential backoff, capped at max delay
+                currentDelay = Math.min(currentDelay * quotaBackoffMultiplier, maxQuotaRetryDelay);
+                continue;
+            } else if (isQuota && attempt >= maxRetries && pauseOnQuotaExhaustion) {
+                // Quota exhausted after max retries
+                const elapsedHours = quotaStartTime ? (Date.now() - quotaStartTime) / (1000 * 60 * 60) : 0;
+
+                console.log(
+                    `\n🛑 Quota exhausted for ${pageName} after ${maxRetries} retries (${elapsedHours.toFixed(1)}h elapsed)`
+                );
+                console.log(
+                    `   Quota window resets in ~${Math.max(0, quotaWindowHours - elapsedHours).toFixed(1)} hours`
+                );
+                console.log(`   Pausing execution. You can resume later with:`);
+                console.log(`   node ${process.argv[1]} --resume`);
+
+                // Save quota exhaustion info for resume logic
+                const quotaInfo = {
+                    timestamp: new Date().toISOString(),
+                    page: pageName,
+                    phase: phase,
+                    attemptsExhausted: maxRetries,
+                    quotaStartTime: quotaStartTime,
+                    estimatedResetTime: new Date(quotaStartTime + quotaWindowHours * 60 * 60 * 1000).toISOString(),
+                };
+
+                saveFile(getReportPath('quota-exhaustion.json'), JSON.stringify(quotaInfo, null, 2));
+
+                process.exit(2); // Exit code 2 for quota exhaustion
+            } else if (isServerOverload && attempt >= serverOverloadMaxRetries) {
+                // Server overload retries exhausted
+                console.log(`\n🔥 Server overload persists for ${pageName} after ${serverOverloadMaxRetries} retries`);
+                console.log(`   This appears to be a temporary server capacity issue.`);
+                console.log(`   You may want to try again in a few minutes.`);
+
+                cleanupFile(promptFile);
+                cleanupFile(outputFile);
+                throw new Error(`Server overload persists after ${serverOverloadMaxRetries} retries: ${error.message}`);
+            } else {
+                // Non-quota, non-overload error or retries exhausted for other errors
+                cleanupFile(promptFile);
+                cleanupFile(outputFile);
+                throw error;
+            }
+        }
     }
 }
 
@@ -300,8 +505,12 @@ async function runClaudeCode(prompt, model, pageName, phase, options) {
 
     return new Promise((resolve, reject) => {
         const args = ['--model', model, '--permission-mode', 'bypassPermissions', '--print'];
+        // Inherit environment to ensure MCP configuration is passed to spawned Claude processes
+        const env = { ...process.env };
+
         const child = spawn('claude', args, {
             stdio: ['pipe', 'pipe', 'pipe'],
+            env: env,
         });
 
         let stdout = '';
@@ -376,6 +585,11 @@ async function runClaudeCode(prompt, model, pageName, phase, options) {
 
             if (code === 0) {
                 resolve(stdout);
+            }
+
+            const quotaError = hasQuotaError(stderr, stdout);
+            if (quotaError != null) {
+                reject(new Error(`Quota error: ${quotaError}`));
             } else {
                 reject(new Error(`Claude exited with code ${code}: ${stderr}`));
             }
@@ -458,6 +672,14 @@ class DocsReviewOrchestrator {
         this.force = this.options.force;
         this.limit = this.options.limit;
         this.refreshDays = this.options.refreshDays;
+        this.maxRetries = this.options.maxRetries;
+        this.quotaRetryDelay = this.options.quotaRetryDelay;
+        this.maxQuotaRetryDelay = this.options.maxQuotaRetryDelay;
+        this.quotaBackoffMultiplier = this.options.quotaBackoffMultiplier;
+        this.pauseOnQuotaExhaustion = !this.options.disableQuotaPause; // Invert the disable flag
+        this.quotaWindowHours = this.options.quotaWindowHours;
+        this.serverOverloadMaxRetries = this.options.serverOverloadMaxRetries;
+        this.serverOverloadBaseDelay = this.options.serverOverloadBaseDelay;
 
         // Initialize state
         this.results = {
@@ -470,7 +692,44 @@ class DocsReviewOrchestrator {
         this.sessionId = options.sessionId || Date.now().toString();
     }
 
+    /**
+     * Build standardized options for executeClaudeCommand calls
+     */
+    getExecuteOptions() {
+        return {
+            verbose: this.verbose,
+            sessionId: this.sessionId,
+            maxRetries: this.maxRetries,
+            quotaRetryDelay: this.quotaRetryDelay,
+            maxQuotaRetryDelay: this.maxQuotaRetryDelay,
+            quotaBackoffMultiplier: this.quotaBackoffMultiplier,
+            pauseOnQuotaExhaustion: this.pauseOnQuotaExhaustion,
+            quotaWindowHours: this.quotaWindowHours,
+            serverOverloadMaxRetries: this.serverOverloadMaxRetries,
+            serverOverloadBaseDelay: this.serverOverloadBaseDelay,
+        };
+    }
+
     async run() {
+        // Check quota status if resuming
+        if (this.resume) {
+            const quotaStatus = checkQuotaRecovery();
+
+            if (!quotaStatus.recovered && quotaStatus.info) {
+                console.log(`⏳ Quota may not have reset yet:`);
+                console.log(`   Last exhaustion: ${quotaStatus.info.hoursWaited}h ago`);
+                console.log(`   Estimated reset: ${quotaStatus.info.timeUntilReset.toFixed(1)}h remaining`);
+                console.log(`   Continue anyway? (y/N)`);
+
+                // In a real implementation, you might want to add interactive confirmation
+                // For unattended operation, you could add a --force-resume flag
+            } else if (quotaStatus.info) {
+                console.log(`✅ Quota likely reset (${quotaStatus.info.hoursWaited}h since exhaustion)`);
+                // Clean up quota exhaustion file
+                cleanupFile(getReportPath('quota-exhaustion.json'));
+            }
+        }
+
         this.logConfiguration();
 
         try {
@@ -591,11 +850,12 @@ class DocsReviewOrchestrator {
                     return {
                         name: pageName,
                         path: file,
-                        isTestPage: pageName.includes('-test'),
-                        isBenchmarkPage: pageName.includes('benchmarks'),
+                        isTestPage: pageName.endsWith('-test'),
+                        isBenchmarkPage: pageName === 'benchmarks',
+                        isUpgradePage: pageName.startsWith('upgrade-to-'),
                     };
                 })
-                .filter((page) => !page.isTestPage && !page.isBenchmarkPage)
+                .filter((page) => !page.isTestPage && !page.isBenchmarkPage && !page.isUpgradePage)
                 .filter((page) => {
                     if (this.pageGlob) {
                         const minimatch = require('minimatch');
@@ -704,11 +964,12 @@ class DocsReviewOrchestrator {
             let planningCompleted = 0;
             let executionCompleted = 0;
 
-            // Get all page directories
-            const pagesDirs = fs.existsSync(PATHS.REPORTS)
-                ? fs.readdirSync(PATHS.REPORTS).filter((dir) => {
-                      const fullPath = path.join(PATHS.REPORTS, dir);
-                      return fs.statSync(fullPath).isDirectory() && !Object.values(FILE_NAMES).includes(dir);
+            // Get all page directories from the docs folder
+            const pagesDirs = fs.existsSync(PATHS.DOCS)
+                ? fs.readdirSync(PATHS.DOCS).filter((dir) => {
+                      const fullPath = path.join(PATHS.DOCS, dir);
+                      // Check if it's a directory and contains index.mdoc
+                      return fs.statSync(fullPath).isDirectory() && fs.existsSync(path.join(fullPath, 'index.mdoc'));
                   })
                 : [];
 
@@ -803,15 +1064,18 @@ class DocsReviewOrchestrator {
         // Check if error already exists for this page and phase
         const existingError = this.results.errors.find((e) => e.page === page && e.phase === phase);
 
+        // Ensure we only store the string message, not complex objects
+        const safeErrorMessage = typeof errorMessage === 'string' ? errorMessage : String(errorMessage);
+
         if (!existingError) {
             this.results.errors.push({
                 page: page,
                 phase: phase,
-                error: errorMessage,
+                error: safeErrorMessage,
             });
         } else {
             // Update existing error message
-            existingError.error = errorMessage;
+            existingError.error = safeErrorMessage;
         }
     }
 
@@ -882,12 +1146,16 @@ class DocsReviewOrchestrator {
 This is the planning phase. Create a detailed, page-specific review plan using the expensive model for sophisticated reasoning.
 
 Please use the documentation review prompt from tools/prompts/commands/docs-review.md to create a comprehensive review plan. Focus on the Phase 1 requirements: read the documentation page, identify key validation targets, and create a structured plan with prioritized testing tasks.
+
+IMPORTANT: Include a clear delegation plan for the example-tester agent with:
+- Which examples need testing
+- What documentation claims about each example
+- Expected behaviors to validate
+- Specific features that should be demonstrated
+
 ${buildPromptInstructions(PHASES.PLANNING, page.name, this.dryRun)}`;
 
-        return executeClaudeCommand(prompt, this.planningModel, page.name, PHASES.PLANNING, {
-            verbose: this.verbose,
-            sessionId: this.sessionId,
-        });
+        return executeClaudeCommand(prompt, this.planningModel, page.name, PHASES.PLANNING, this.getExecuteOptions());
     }
 
     async runPhase2(page) {
@@ -903,18 +1171,17 @@ ${this.skipScreenshots ? 'Skip screenshot capture for this run.' : ''}
 
 Please use the documentation review prompt from tools/prompts/commands/docs-review.md to execute the review plan. Focus on the Phase 2 requirements: work through planned validations, document findings, and create the final report with screenshots.
 
+IMPORTANT: For example testing, use the Task tool to delegate to the example-tester agent. Provide clear expectations extracted from documentation and include the agent's findings in your report.
+
 Note how example paths are mapped from repo paths:
-    -   \`packages/ag-charts-website/src/content/docs/${pageName}/_examples/${exampleName}/index.html\` => \`https://localhost:4600/charts/vanilla/${pageName}/examples/${exampleName}\`
+    -   \`packages/ag-charts-website/src/content/docs/${page.name}/_examples/\${exampleName}/index.html\` => \`https://localhost:4600/charts/vanilla/${page.name}/examples/\${exampleName}\`
 
 Note how docs paths are mapped from repo paths:
-    -   \`packages/ag-charts-website/src/content/docs/${pageName}/index.mdoc\` => \`https://localhost:4600/charts/javascript/${pageName}/\`
+    -   \`packages/ag-charts-website/src/content/docs/${page.name}/index.mdoc\` => \`https://localhost:4600/charts/javascript/${page.name}/\`
 
 ${buildPromptInstructions(PHASES.EXECUTION, page.name, this.dryRun)}`;
 
-        return executeClaudeCommand(prompt, this.executionModel, page.name, PHASES.EXECUTION, {
-            verbose: this.verbose,
-            sessionId: this.sessionId,
-        });
+        return executeClaudeCommand(prompt, this.executionModel, page.name, PHASES.EXECUTION, this.getExecuteOptions());
     }
 
     async runSummaryPhase(pages) {
@@ -1002,7 +1269,9 @@ This is batch ${batchNum} of the summary phase. You need to:
    - List of specific issues with their descriptions
    - Overall priority (High/Medium/Low)
 
-3. Create a JSON summary with this structure:
+3. Create a JSON summary with this EXACT structure. IMPORTANT: Your response MUST be valid JSON only - no other text:
+
+\`\`\`json
 {
   "batchNumber": ${batchNum},
   "pages": [
@@ -1026,21 +1295,62 @@ This is batch ${batchNum} of the summary phase. You need to:
   ],
   "patterns": ["List any patterns you notice across pages in this batch"]
 }
+\`\`\`
 
-Read each report from: reports/docs-review/{pageName}/report.md${this.dryRun ? '\n\nIMPORTANT: This is a DRY RUN. Create minimal batch summary with just basic counts.' : ''}`;
+CRITICAL: Return ONLY the JSON structure above. Do not include any explanatory text, markdown formatting, or additional content outside the JSON code block.
 
-        const result = await executeClaudeCommand(prompt, this.summaryModel, `batch-${batchNum}`, PHASES.SUMMARY, {
-            verbose: this.verbose,
-            sessionId: this.sessionId,
-        });
+Read each report from: packages/ag-charts-website/src/content/docs/{pageName}/reports/technical-review-report.md${this.dryRun ? '\n\nIMPORTANT: This is a DRY RUN. Create minimal batch summary with just basic counts.' : ''}`;
+
+        const result = await executeClaudeCommand(
+            prompt,
+            this.summaryModel,
+            `batch-${batchNum}`,
+            PHASES.SUMMARY,
+            this.getExecuteOptions()
+        );
 
         // Parse the JSON response
         const jsonMatch = result.match(/```json\n([\s\S]*?)\n```/);
         if (jsonMatch) {
-            return JSON.parse(jsonMatch[1]);
+            try {
+                return JSON.parse(jsonMatch[1]);
+            } catch (parseError) {
+                console.error('❌ Failed to parse JSON from code block:', parseError.message);
+                console.error('JSON content:', jsonMatch[1]);
+                throw new Error(`Invalid JSON in code block: ${parseError.message}`);
+            }
         } else {
             // Try to parse the entire response as JSON
-            return JSON.parse(result);
+            try {
+                return JSON.parse(result);
+            } catch (parseError) {
+                console.error('❌ Failed to parse response as JSON:', parseError.message);
+                console.error('Response content (first 200 chars):', result.substring(0, 200));
+
+                // Create a fallback summary structure if JSON parsing fails
+                console.log('🔄 Creating fallback batch summary structure...');
+                return {
+                    batchNumber: batchNum,
+                    pages: batch.map((page) => ({
+                        name: page.name,
+                        status: 'Failed',
+                        counts: {
+                            technicalAccuracy: 0,
+                            exampleConsistency: 0,
+                            visualInteraction: 0,
+                            contentQuality: 0,
+                        },
+                        priority: 'Unknown',
+                        issues: [
+                            {
+                                category: 'Parse Error',
+                                description: 'Failed to parse batch summary response as JSON',
+                            },
+                        ],
+                    })),
+                    patterns: ['JSON parsing failed - manual review required'],
+                };
+            }
         }
     }
 
@@ -1068,7 +1378,7 @@ The summary MUST include:
 Format the results table like this:
 | Page Name | Status | Technical Accuracy | Example Issues | Visual/Interaction | Priority | Report |
 |-----------|--------|-------------------|----------------|-------------------|----------|---------|
-| page-name | ⚠️ | 3 | 2 | 1 | High | [View Report](./page-name/report.md) |
+| page-name | ⚠️ | 3 | 2 | 1 | High | [View Report](../packages/ag-charts-website/src/content/docs/page-name/reports/technical-review-report.md) |
 
 Here are the batch summaries to aggregate:
 
@@ -1077,10 +1387,13 @@ ${batchSummaryText}
 Total pages reviewed: ${allPages.length}
 ${buildPromptInstructions(PHASES.SUMMARY, '', this.dryRun)}`;
 
-        return executeClaudeCommand(prompt, this.summaryModel, 'final-summary', PHASES.SUMMARY, {
-            verbose: this.verbose,
-            sessionId: this.sessionId,
-        });
+        return executeClaudeCommand(
+            prompt,
+            this.summaryModel,
+            'final-summary',
+            PHASES.SUMMARY,
+            this.getExecuteOptions()
+        );
     }
 
     generateSummaryReport() {
@@ -1205,6 +1518,41 @@ function parseArgs() {
             type: 'number',
             describe: 'Refresh review plans for pages modified in the past N days (uses git history)',
         })
+        .option('max-retries', {
+            type: 'number',
+            default: 10,
+            describe: 'Maximum retries for quota errors',
+        })
+        .option('quota-retry-delay', {
+            type: 'number',
+            default: 300000,
+            describe: 'Initial delay in ms for quota retries (default: 5 minutes)',
+        })
+        .option('max-quota-retry-delay', {
+            type: 'number',
+            default: 1800000,
+            describe: 'Maximum delay in ms for quota retries (default: 30 minutes)',
+        })
+        .option('quota-window-hours', {
+            type: 'number',
+            default: 5,
+            describe: 'Quota reset window in hours (default: 5)',
+        })
+        .option('disable-quota-pause', {
+            type: 'boolean',
+            default: false,
+            describe: 'Disable pausing on quota exhaustion (fail fast)',
+        })
+        .option('server-overload-max-retries', {
+            type: 'number',
+            default: 5,
+            describe: 'Maximum retries for server overload (429) errors',
+        })
+        .option('server-overload-base-delay', {
+            type: 'number',
+            default: 30000,
+            describe: 'Base delay in ms for server overload retries (default: 30 seconds)',
+        })
         .example('$0', 'Run documentation review on all pages')
         .example('$0 --batch-size=3 --skip-screenshots', 'Use smaller batch size and skip screenshots')
         .example(
@@ -1223,6 +1571,12 @@ function parseArgs() {
         .example('$0 --clean', 'Clean up and start fresh')
         .example('$0 --refresh-days=7', 'Refresh review for pages modified in the last 7 days')
         .example('$0 --refresh-days=30 --limit=10', 'Refresh up to 10 pages modified in the last month')
+        .example(
+            '$0 --max-retries=5 --quota-retry-delay=120000',
+            'Custom quota handling with 5 retries starting at 2 minutes'
+        )
+        .example('$0 --disable-quota-pause', 'Fail fast on quota exhaustion instead of pausing')
+        .example('$0 --quota-window-hours=8', 'Use 8-hour quota window instead of default 5 hours')
         .help()
         .alias('help', 'h').argv;
 }
