@@ -46,7 +46,6 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     }
 
     private onButtonPressed({ event, buttonBounds }: _ModuleSupport.ToolbarEventMap['button-pressed']) {
-        this.menu.setAnchor({ x: buttonBounds.x + buttonBounds.width + 6, y: buttonBounds.y });
         this.menu.show({
             items: menuItems,
             menuItemRole: 'menuitemradio',
@@ -62,6 +61,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
                 this.toolbar.clearActiveButton();
             },
         });
+        this.menu.setAnchor({ x: buttonBounds.x + buttonBounds.width + 6, y: buttonBounds.y });
 
         this.toolbar.toggleActiveButtonByIndex(0);
     }
