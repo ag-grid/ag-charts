@@ -1,12 +1,4 @@
-import {
-    type FontOptions,
-    Logger,
-    appendEllipsis,
-    cachedTextMeasurer,
-    calcLineHeight,
-    findMaxValue,
-    wrapLines,
-} from 'ag-charts-core';
+import { type FontOptions, Logger, cachedTextMeasurer, calcLineHeight, findMaxValue, wrapLines } from 'ag-charts-core';
 import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartAutoSizedLabelOptions,
@@ -242,7 +234,7 @@ export function formatSingleLabel<Meta>(
         const availableWidth = sizeFitting.width - sizeAdjust;
         const availableHeight = sizeFitting.height - sizeAdjust;
 
-        if (lineHeight > availableHeight) return;
+        if (lineHeight > availableHeight || availableWidth < 0) return;
 
         textSizeProps.fontSize = fontSize;
         const lines = wrapLines(value, {
@@ -255,16 +247,10 @@ export function formatSingleLabel<Meta>(
 
         if (!lines.length) return;
 
-        const clippedLabel = clipLines(lines, {
-            lineHeight,
-            font: textSizeProps,
-            maxWidth: availableWidth,
-            maxHeight: availableHeight,
-        });
+        const { width, height } = cachedTextMeasurer(textSizeProps).measureLines(lines);
+        const text = lines.join('\n');
 
-        if (!clippedLabel) return;
-
-        return [{ fontSize, lineHeight, ...clippedLabel }, sizeFitting.meta];
+        return [{ width, height, text, fontSize, lineHeight }, sizeFitting.meta];
     });
 }
 
@@ -362,44 +348,4 @@ function wrapLabel(
         height: lines.length * lineHeight,
         fontSize: font.fontSize,
     };
-}
-
-function clipLines(
-    lines: string[],
-    {
-        font,
-        lineHeight,
-        maxWidth,
-        maxHeight = Infinity,
-    }: { font: FontOptions; lineHeight: number; maxWidth: number; maxHeight?: number }
-) {
-    let height = lineHeight * lines.length;
-    while (height > maxHeight) {
-        if (lines.length === 1) return;
-        lines.pop();
-        lines[lines.length - 1] = appendEllipsis(lines.at(-1)!);
-        height = lineHeight * lines.length;
-    }
-
-    const metrics = cachedTextMeasurer(font).measureLines(lines);
-
-    let text: string, width: number;
-    if (metrics.width > maxWidth) {
-        const clippedLines: string[] = [];
-        width = 0;
-        for (const line of metrics.lineMetrics) {
-            if (line.width > maxWidth) {
-                if (!clippedLines.length) return;
-                break;
-            }
-            clippedLines.push(line.text);
-            width = Math.max(width, line.width);
-        }
-        text = appendEllipsis(clippedLines.join('\n'));
-    } else {
-        text = lines.join('\n');
-        width = metrics.width;
-    }
-
-    return { text, width, height };
 }

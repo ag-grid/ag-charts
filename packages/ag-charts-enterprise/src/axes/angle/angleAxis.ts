@@ -1,6 +1,6 @@
 import type { AgAngleAxisLabelOrientation } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { EllipsisChar, countFractionDigits, isNumberEqual, wrapText } from 'ag-charts-core';
+import { countFractionDigits, isNumberEqual, wrapText } from 'ag-charts-core';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
@@ -406,9 +406,6 @@ export abstract class AngleAxis<
                 if (overflowLeft > pixelError || overflowRight > pixelError) {
                     const availWidth = box.width - Math.max(overflowLeft, overflowRight);
                     text = wrapText(text, { maxWidth: availWidth, font: label, textWrap: 'never' });
-                    if (text === EllipsisChar) {
-                        text = '';
-                    }
                     tempText.text = text;
                     box = tempText.getBBox();
                 }

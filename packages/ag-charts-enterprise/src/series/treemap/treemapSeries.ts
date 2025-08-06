@@ -2,7 +2,6 @@ import {
     type AgTreemapSeriesLabelFormatterParams,
     type AgTreemapSeriesOptions,
     type AgTreemapSeriesStyle,
-    type FontOptions,
     type FontStyle,
     type FontWeight,
     type TextAlign,
@@ -10,8 +9,10 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type FontOptions,
     type InternalAgColorType,
     type RequireOptional,
+    cachedTextMeasurer,
     calcLineHeight,
     isNumberEqual,
     wrapText,
@@ -74,21 +75,8 @@ enum TextNodeTag {
 type ItemStyle = Pick<AgTreemapSeriesStyle, 'fill' | 'stroke'> &
     Omit<Required<AgTreemapSeriesStyle>, 'fill' | 'stroke'>;
 
-const tempText = new Text();
-
 function getTextSize(text: string, style: FontOptions): { width: number; height: number } {
-    const { fontStyle, fontWeight, fontSize, fontFamily } = style;
-    tempText.setProperties({
-        text,
-        fontStyle,
-        fontWeight,
-        fontSize,
-        fontFamily,
-        textAlign: 'left',
-        textBaseline: 'top',
-    });
-
-    const { width, height } = tempText.getBBox();
+    const { width, height } = cachedTextMeasurer(style).measureLines(text);
     return { width, height };
 }
 

@@ -37,16 +37,6 @@ const options: AgChartOptions = {
                 strokeWidth: 0,
                 gap: 1,
             },
-            highlightStyle: {
-                tile: {
-                    label: {
-                        color: '#34495e',
-                    },
-                    secondaryLabel: {
-                        color: '#34495e',
-                    },
-                },
-            },
         },
     ],
     title: {

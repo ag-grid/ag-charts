@@ -10,10 +10,14 @@ export interface TextMetricsBox {
     descent: number;
 }
 
+export interface LineMetricsBox extends TextMetricsBox {
+    text: string;
+}
+
 export interface MultilineTextMetricsBox {
     width: number;
     height: number;
-    lineMetrics: (TextMetricsBox & { text: string })[];
+    lineMetrics: LineMetricsBox[];
 }
 
 export interface LegacyTextMetrics extends Writeable<TextMetrics> {
@@ -24,6 +28,7 @@ export interface LegacyTextMetrics extends Writeable<TextMetrics> {
 export interface ITextMeasurer {
     measureText(text: string): TextMetricsBox;
     measureLines(text: string | string[]): MultilineTextMetricsBox;
+    baselineDistance(textBaseline: CanvasTextBaseline): number;
     textWidth(text: string, estimate?: boolean): number;
 }
 
@@ -40,8 +45,7 @@ export function cachedTextMeasurer(font: string | FontOptions): TextMeasurer {
     const ctx = createCanvasContext();
     ctx.font = font;
 
-    cachedMeasurer = new TextMeasurer((text, useCache = true) => {
-        if (!useCache) return ctx.measureText(text);
+    cachedMeasurer = new TextMeasurer(ctx, (text) => {
         let textMetrics = cachedTextMetrics.get(text);
         if (textMetrics) return textMetrics;
         textMetrics = ctx.measureText(text);
@@ -56,12 +60,28 @@ cachedTextMeasurer.clear = () => instanceMap.clear();
 
 // Manages text measurement and wrapping functionalities.
 export class TextMeasurer implements ITextMeasurer {
+    private readonly baselineMap = new Map<string, number>();
     private readonly charMap = new Map<string, number>();
 
-    constructor(private readonly measureTextFn: (text: string, useCache?: boolean) => LegacyTextMetrics) {}
+    constructor(
+        private readonly ctx: CanvasRenderingContext2D,
+        private readonly measureTextCached?: (text: string, useCache?: boolean) => LegacyTextMetrics
+    ) {}
+
+    baselineDistance(textBaseline: CanvasTextBaseline): number {
+        if (textBaseline === 'alphabetic') return 0;
+        if (this.baselineMap.has(textBaseline)) {
+            return this.baselineMap.get(textBaseline)!;
+        }
+        this.ctx.textBaseline = textBaseline;
+        const { alphabeticBaseline } = this.ctx.measureText('');
+        this.baselineMap.set(textBaseline, alphabeticBaseline);
+        this.ctx.textBaseline = 'alphabetic';
+        return alphabeticBaseline; // Distance from the alphabetic baseline to the specified baseline.
+    }
 
     measureText(text: string): TextMetricsBox {
-        const m = this.measureTextFn(text);
+        const m = this.measureTextCached?.(text) ?? this.ctx.measureText(text);
         const {
             width,
             // Apply fallbacks for environments like `node-canvas` where some metrics may be missing.
@@ -96,13 +116,13 @@ export class TextMeasurer implements ITextMeasurer {
             return estimatedWidth;
         }
         if (text.length > 1) {
-            return this.measureTextFn(text, false).width;
+            return this.ctx.measureText(text).width;
         }
         return this.charMap.get(text) ?? this.charWidth(text);
     }
 
     private charWidth(char: string) {
-        const { width } = this.measureTextFn(char, false);
+        const { width } = this.ctx.measureText(char);
         this.charMap.set(char, width);
         return width;
     }

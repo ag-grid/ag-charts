@@ -23,12 +23,12 @@ export function dy(zoom: DefinedZoomState) {
     return zoom.y.max - zoom.y.min;
 }
 
-function isZoomRangeEqual(left: _ModuleSupport.ZoomState, right: _ModuleSupport.ZoomState, epsilon: number = 1e-10) {
-    return isNumberEqual(left.min, right.min, epsilon) && isNumberEqual(left.max, right.max, epsilon);
+function isZoomRangeEqual(left: _ModuleSupport.ZoomState, right: _ModuleSupport.ZoomState) {
+    return isNumberEqual(left.min, right.min) && isNumberEqual(left.max, right.max);
 }
 
-export function isZoomEqual(left: DefinedZoomState, right: DefinedZoomState, epsilon?: number) {
-    return isZoomRangeEqual(left.x, right.x, epsilon) && isZoomRangeEqual(left.y, right.y, epsilon);
+export function isZoomEqual(left: DefinedZoomState, right: DefinedZoomState) {
+    return isZoomRangeEqual(left.x, right.x) && isZoomRangeEqual(left.y, right.y);
 }
 
 export function isMaxZoom(zoom: DefinedZoomState) {

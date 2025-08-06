@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { EllipsisChar, type ITextMeasurer, Logger, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
+import { type ITextMeasurer, Logger, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
 import type {
     AgMapShapeSeriesLabelFormatterParams,
     AgMapShapeSeriesOptions,
@@ -306,8 +306,6 @@ export class MapShapeSeries
         if (labelFormatting == null) return;
 
         const [{ text, fontSize, lineHeight, width }, formattingX] = labelFormatting;
-        // FIXME - formatSingleLabel should never return an ellipsis
-        if (text === EllipsisChar) return;
 
         // Only shift horizontally if necessary
         const x = width < maxSizeWithoutTruncation.width ? untruncatedX : formattingX;
