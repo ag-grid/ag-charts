@@ -53,18 +53,23 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
     protected override onChildAdded(child: MenuItemWidget): void {
         super.onChildAdded(child);
         child.addListener('mouseenter', this.handleMouseEnter);
+        child.addListener('mousemove', this.handleMouseMove);
     }
 
     protected override onChildRemoved(child: MenuItemWidget): void {
         super.onChildRemoved(child);
         child.removeListener('mouseenter', this.handleMouseEnter);
+        child.removeListener('mousemove', this.handleMouseMove);
     }
 
     private readonly handleMouseEnter = (ev: WidgetEvent, current: MenuItemWidget) => {
         if (!current.hasPopup()) {
             this.openSubMenu(ev, undefined);
         }
-        current.addListener('mousemove', () => current.focus({ preventScroll: true }));
+    };
+
+    private readonly handleMouseMove = (_ev: WidgetEvent, current: MenuItemWidget) => {
+        current.focus({ preventScroll: true });
     };
 
     public addSubMenu(): { subMenuButton: MenuItemWidget; subMenu: MenuWidget } {
