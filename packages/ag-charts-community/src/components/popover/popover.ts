@@ -5,7 +5,7 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { getLastFocus } from '../../util/keynavUtil';
 import type { Vec2 } from '../../util/vector';
-import type { Widget } from '../../widget/widget';
+import type { MenuWidget } from '../../widget/menuWidget';
 
 const canvasOverlay = 'canvas-overlay';
 
@@ -76,19 +76,11 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         this.element.replaceChildren();
     }
 
-    protected showWidget(widget: Widget, options: Options) {
-        this.showWithChildren(widget, options);
-    }
-
-    protected showWithChildren(childrenOrWidget: Array<HTMLElement> | Widget, options: Options) {
+    private initPopoverElement(popover: HTMLElement | undefined, options: Options): HTMLElement {
         if (!this.element.parentElement) {
             throw new Error('Can not show popover that has not been attached to a parent.');
         }
-        const [children, widget]: [Array<HTMLElement> | undefined, Widget | undefined] = Array.isArray(childrenOrWidget)
-            ? [childrenOrWidget, undefined]
-            : [undefined, childrenOrWidget];
-
-        const popover = widget?.getElement() ?? createElement('div');
+        popover ??= createElement('div', 'ag-charts-popover');
         popover.classList.toggle('ag-charts-popover', true);
 
         if (options.ariaLabel != null) {
@@ -99,10 +91,21 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
             popover.classList.add(options.class);
         }
 
-        if (children) {
-            popover.replaceChildren(...children);
-        }
         this.element.replaceChildren(popover);
+        return popover;
+    }
+
+    protected showWidget(widget: MenuWidget, options: Options) {
+        this.initPopoverElement(widget.getElement(), options);
+        const { sourceEvent } = options;
+        if (sourceEvent) {
+            widget.open({ sourceEvent });
+        }
+    }
+
+    protected showWithChildren(children: Array<HTMLElement>, options: Options) {
+        const popover = this.initPopoverElement(undefined, options);
+        popover.replaceChildren(...children);
 
         this.hideFns.push(() => this.removeChildren());
         if (options.onHide) {

@@ -21,6 +21,8 @@ interface OpenScope {
     close: () => void;
 }
 
+type OpenEvent = Pick<WidgetEvent, 'sourceEvent'>;
+
 enum CloseMode {
     CLOSE = '0',
     ABORT = '1',
@@ -50,17 +52,21 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
 
     protected override onChildAdded(child: MenuItemWidget): void {
         super.onChildAdded(child);
-        if (!child.hasPopup()) {
-            child.addListener('mouseenter', this.closeSubMenu);
-        }
+        child.addListener('mouseenter', this.handleMouseEnter);
     }
 
     protected override onChildRemoved(child: MenuItemWidget): void {
         super.onChildRemoved(child);
-        if (!child.hasPopup()) {
-            child.removeListener('mouseenter', this.closeSubMenu);
-        }
+        child.removeListener('mouseenter', this.handleMouseEnter);
     }
+
+    private readonly handleMouseEnter = (ev: WidgetEvent, current: MenuItemWidget) => {
+        if (!current.hasPopup()) {
+            this.openSubMenu(ev, undefined)
+        }
+        current.addListener('mousemove', () => current.focus({ preventScroll: true }));
+    };
+
 
     public addSubMenu(): { subMenuButton: MenuItemWidget; subMenu: MenuWidget } {
         const subMenuButton = new MenuItemWidget();
@@ -90,8 +96,6 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
         return { subMenuButton, subMenu };
     }
 
-    private readonly closeSubMenu = (ev: WidgetEvent) => this.openSubMenu(ev, undefined);
-
     private openSubMenu(ev: WidgetEvent, subMenu: MenuWidget | undefined) {
         const { openScope } = this;
         if (!openScope) return;
@@ -101,7 +105,7 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
         openScope.openSubMenu = subMenu;
     }
 
-    public open(event: WidgetEvent, opts?: { overrideFocusVisible?: boolean }): void {
+    public open(event: OpenEvent, opts?: { overrideFocusVisible?: boolean }): void {
         if (this.openScope != null) return; // already open
 
         this.openScope = {
