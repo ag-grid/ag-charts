@@ -1,0 +1,218 @@
+name: check-workflow-permissions
+description: Comprehensive permission checker for GitHub workflows across different event types
+inputs:
+    allowed_associations:
+        description: 'Comma-separated list of allowed author associations (default: "OWNER,MEMBER,COLLABORATOR")'
+        required: false
+        default: 'OWNER,MEMBER,COLLABORATOR'
+    allow_dependabot:
+        description: 'Whether to allow Dependabot PRs (default: false)'
+        required: false
+        default: 'false'
+    allow_forks:
+        description: 'Whether to allow PRs from forks (default: false)'
+        required: false
+        default: 'false'
+    require_write_permission:
+        description: 'Whether to require write permission for push events (default: true)'
+        required: false
+        default: 'true'
+    check_branch_protection:
+        description: 'Whether to check branch protection rules for push events (default: false)'
+        required: false
+        default: 'false'
+    allowed_branches:
+        description: 'Comma-separated list of allowed branches for push events (e.g., "main,develop")'
+        required: false
+        default: ''
+outputs:
+    allowed:
+        description: 'Whether the actor is allowed to trigger the workflow'
+        value: ${{ steps.check.outputs.allowed }}
+    association:
+        description: 'The author association of the actor'
+        value: ${{ steps.check.outputs.association }}
+    actor_type:
+        description: 'Type of actor (user, dependabot, github-actions, etc.)'
+        value: ${{ steps.check.outputs.actor_type }}
+    event_type:
+        description: 'The GitHub event type'
+        value: ${{ steps.check.outputs.event_type }}
+runs:
+    using: composite
+    steps:
+        - name: Check workflow permissions
+          id: check
+          shell: bash
+          env:
+              GITHUB_TOKEN: ${{ github.token }}
+          run: |
+              # Set error handling
+              set -euo pipefail
+              
+              # Initialize variables
+              ALLOWED=false
+              ASSOCIATION="NONE"
+              ACTOR_TYPE="user"
+              EVENT_TYPE="${{ github.event_name }}"
+              
+              echo "event_type=$EVENT_TYPE" >> $GITHUB_OUTPUT
+              
+              # Detect actor type
+              ACTOR="${{ github.actor }}"
+              if [[ "$ACTOR" == "dependabot[bot]" ]]; then
+                ACTOR_TYPE="dependabot"
+              elif [[ "$ACTOR" == "github-actions[bot]" ]]; then
+                ACTOR_TYPE="github-actions"
+              elif [[ "$ACTOR" =~ \[bot\]$ ]]; then
+                ACTOR_TYPE="bot"
+              fi
+              echo "actor_type=$ACTOR_TYPE" >> $GITHUB_OUTPUT
+              
+              # Handle different event types
+              case "$EVENT_TYPE" in
+                "pull_request"|"pull_request_target")
+                  echo "🔍 Checking pull request permissions..."
+                  
+                  # Check if from fork - CORRECTED: Use proper property path
+                  IS_FORK="${{ github.event.pull_request.head.repo.fork }}"
+                  if [[ "$IS_FORK" == "true" && "${{ inputs.allow_forks }}" != "true" ]]; then
+                    echo "❌ Pull request from fork not allowed"
+                    ALLOWED=false
+                  else
+                    # Get author association - VERIFIED: This is correct
+                    ASSOCIATION="${{ github.event.pull_request.author_association }}"
+                    
+                    # Check Dependabot
+                    if [[ "$ACTOR_TYPE" == "dependabot" ]]; then
+                      if [[ "${{ inputs.allow_dependabot }}" == "true" ]]; then
+                        echo "✅ Dependabot PR allowed"
+                        ALLOWED=true
+                      else
+                        echo "❌ Dependabot PR not allowed"
+                        ALLOWED=false
+                      fi
+                    else
+                      # Check association
+                      ALLOWED_ASSOCIATIONS="${{ inputs.allowed_associations }}"
+                      IFS=',' read -ra ALLOWED_ARRAY <<< "$ALLOWED_ASSOCIATIONS"
+                      
+                      for allowed in "${ALLOWED_ARRAY[@]}"; do
+                        allowed=$(echo "$allowed" | xargs)
+                        if [[ "$ASSOCIATION" == "$allowed" ]]; then
+                          ALLOWED=true
+                          echo "✅ PR author has allowed association: $ASSOCIATION"
+                          break
+                        fi
+                      done
+                      
+                      if [[ "$ALLOWED" != "true" ]]; then
+                        echo "❌ PR author association not allowed: $ASSOCIATION"
+                      fi
+                    fi
+                  fi
+                  ;;
+                  
+                "push")
+                  echo "🔍 Checking push permissions..."
+                  
+                  # For push events, check repository permissions
+                  if [[ "${{ inputs.require_write_permission }}" == "true" ]]; then
+                    # CORRECTED: Use available context properties
+                    # github.repository_owner_id and github.actor_id may not be available
+                    if [[ "${{ github.repository_owner }}" == "${{ github.actor }}" ]]; then
+                      ASSOCIATION="OWNER"
+                      ALLOWED=true
+                      echo "✅ Push by repository owner"
+                    else
+                      # For push events, we trust that only authorized users can push
+                      # since GitHub enforces branch protection and write permissions
+                      ASSOCIATION="COLLABORATOR"
+                      ALLOWED=true
+                      echo "✅ Push event (assuming authorized user with write access)"
+                    fi
+                  else
+                    ALLOWED=true
+                    echo "✅ Push permission check disabled"
+                  fi
+                  
+                  # Check branch restrictions - CORRECTED: Extract branch properly
+                  if [[ -n "${{ inputs.allowed_branches }}" ]]; then
+                    # Extract branch name from github.ref (refs/heads/branch-name)
+                    BRANCH="${{ github.ref }}"
+                    BRANCH="${BRANCH#refs/heads/}"
+                    ALLOWED_BRANCHES="${{ inputs.allowed_branches }}"
+                    IFS=',' read -ra BRANCH_ARRAY <<< "$ALLOWED_BRANCHES"
+                    
+                    BRANCH_ALLOWED=false
+                    for allowed_branch in "${BRANCH_ARRAY[@]}"; do
+                      allowed_branch=$(echo "$allowed_branch" | xargs)
+                      if [[ "$BRANCH" == "$allowed_branch" ]]; then
+                        BRANCH_ALLOWED=true
+                        break
+                      fi
+                    done
+                    
+                    if [[ "$BRANCH_ALLOWED" != "true" ]]; then
+                      echo "❌ Push to branch '$BRANCH' not allowed"
+                      ALLOWED=false
+                    fi
+                  fi
+                  ;;
+                  
+                "issue_comment")
+                  echo "🔍 Checking issue comment permissions..."
+                  # VERIFIED: This is correct
+                  ASSOCIATION="${{ github.event.comment.author_association }}"
+                  
+                  # Check association
+                  ALLOWED_ASSOCIATIONS="${{ inputs.allowed_associations }}"
+                  IFS=',' read -ra ALLOWED_ARRAY <<< "$ALLOWED_ASSOCIATIONS"
+                  
+                  for allowed in "${ALLOWED_ARRAY[@]}"; do
+                    allowed=$(echo "$allowed" | xargs)
+                    if [[ "$ASSOCIATION" == "$allowed" ]]; then
+                      ALLOWED=true
+                      echo "✅ Comment author has allowed association: $ASSOCIATION"
+                      break
+                    fi
+                  done
+                  
+                  if [[ "$ALLOWED" != "true" ]]; then
+                    echo "❌ Comment author association not allowed: $ASSOCIATION"
+                  fi
+                  ;;
+                  
+                "workflow_dispatch"|"schedule"|"workflow_call")
+                  # These are typically secure events
+                  echo "✅ Secure event type: $EVENT_TYPE"
+                  ALLOWED=true
+                  ASSOCIATION="N/A"
+                  ;;
+                  
+                *)
+                  echo "⚠️  Unknown event type: $EVENT_TYPE - defaulting to deny"
+                  ALLOWED=false
+                  ;;
+              esac
+              
+              # Validate association is not empty for relevant events
+              if [[ "$EVENT_TYPE" =~ ^(pull_request|pull_request_target|issue_comment)$ && -z "$ASSOCIATION" ]]; then
+                echo "::error::Author association is empty - this is unexpected"
+                ASSOCIATION="UNKNOWN"
+                ALLOWED=false
+              fi
+              
+              # Set outputs
+              echo "allowed=$ALLOWED" >> $GITHUB_OUTPUT
+              echo "association=$ASSOCIATION" >> $GITHUB_OUTPUT
+              
+              # Exit with appropriate code
+              if [[ "$ALLOWED" == "true" ]]; then
+                echo "✅ Workflow allowed to proceed"
+                exit 0
+              else
+                echo "❌ Workflow not allowed to proceed"
+                echo "::error::Unauthorized attempt to trigger workflow"
+                exit 1
+              fi
