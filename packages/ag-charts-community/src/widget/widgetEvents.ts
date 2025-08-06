@@ -109,13 +109,13 @@ export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType>
           readonly sourceEvent: TouchEvent;
       };
 
-export type CloseWidgetEvent = {
-    type: 'close-widget';
+export type CollapseWidgetEvent = {
+    type: 'collapse-widget';
     sourceEvent?: never;
 };
 
-export type OpenWidgetEvent = {
-    type: 'open-widget';
+export type ExpandWidgetEvent = {
+    type: 'expand-widget';
     sourceEvent?: never;
 };
 
@@ -123,8 +123,8 @@ export type WidgetEventMap = {
     'drag-start': DragWidgetEvent<'drag-start'>;
     'drag-move': DragWidgetEvent<'drag-move'>;
     'drag-end': DragWidgetEvent<'drag-end'>;
-    'close-widget': CloseWidgetEvent;
-    'open-widget': OpenWidgetEvent;
+    'collapse-widget': CollapseWidgetEvent;
+    'expand-widget': ExpandWidgetEvent;
 
     blur: FocusWidgetEvent<'blur'>;
     change: WidgetEvent;

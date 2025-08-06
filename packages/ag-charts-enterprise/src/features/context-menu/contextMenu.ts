@@ -34,7 +34,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     private showEvent: MouseEvent | undefined = undefined;
     private x: number = 0;
     private y: number = 0;
-    private closingSubMenus = 0;
+    private collapsingSubMenus = 0;
 
     // HTML elements
     private readonly element: HTMLElement;
@@ -54,7 +54,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.element.addEventListener('contextmenu', (event) => event.preventDefault()); // AG-10223
         // CRT-481 Automatically close the context menu when change focus with TAB / Shift+TAB
         this.element.addEventListener('focusout', ({ relatedTarget }) => {
-            if (this.closingSubMenus > 0) return;
+            if (this.collapsingSubMenus > 0) return;
             if (relatedTarget == null || (relatedTarget instanceof Node && !this.element.contains(relatedTarget))) {
                 this.hide();
             }
@@ -63,7 +63,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             () => this.element.parentNode?.removeChild(this.element),
             () => this.menuWidget.destroy(),
             ctx.eventsHub.on('dom:hidden', () => this.hide()),
-            this.menuWidget.addListener('close-widget', () => this.onClose())
+            this.menuWidget.addListener('collapse-widget', () => this.onCollapse())
         );
         this.menuWidget.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
 
@@ -132,20 +132,20 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.createMenu(expandedItems);
         this.element.appendChild(this.menuWidget.getElement());
-        this.menuWidget.open(widgetEvent, { overrideFocusVisible });
+        this.menuWidget.expand(widgetEvent, { overrideFocusVisible });
     }
 
     private hide() {
-        this.menuWidget.close();
+        this.menuWidget.collapse();
     }
 
-    private onClose() {
+    private onCollapse() {
         this.interactionManager.popState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.removeChild(this.menuWidget.getElement());
         this.element.style.display = 'none';
     }
 
-    private onSubMenuOpen(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
+    private onSubMenuExpand(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
         const bounds = button.getBounds();
         button.setFocusOverride(true);
         button.getElement().insertAdjacentElement('afterend', menu.getElement());
@@ -182,13 +182,13 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             }
         }
     }
-    private onSubMenuClose(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
+    private onSubMenuCollapse(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
         button.setFocusOverride(undefined);
         // AG-14931 Removing HTML elements can fire a 'focusout' event with `relatedTarget: null` and dismiss the whole
         // context menu, we want to avoid that.
-        this.closingSubMenus++;
+        this.collapsingSubMenus++;
         menu.remove();
-        this.closingSubMenus--;
+        this.collapsingSubMenus--;
     }
 
     private createMenu(expandedItems: ContextMenuItem[]) {
@@ -214,8 +214,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     } else {
                         const { subMenuButton, subMenu } = menuWidget.addSubMenu();
                         subMenu.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
-                        subMenu.addListener('open-widget', () => this.onSubMenuOpen(subMenuButton, subMenu));
-                        subMenu.addListener('close-widget', () => this.onSubMenuClose(subMenuButton, subMenu));
+                        subMenu.addListener('expand-widget', () => this.onSubMenuExpand(subMenuButton, subMenu));
+                        subMenu.addListener('collapse-widget', () => this.onSubMenuCollapse(subMenuButton, subMenu));
                         this.initButtonElement(subMenuButton, item);
                         this.createMenuItems(subMenu, item.items);
                     }

@@ -108,8 +108,8 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         if (sourceEvent) {
             this.destroyWidget();
             this.initPopoverElement(widget.getElement(), options);
-            widget.open({ sourceEvent });
-            widget.addListener('close-widget', () => this.removeChildren());
+            widget.expand({ sourceEvent });
+            widget.addListener('collapse-widget', () => this.removeChildren());
             this.menuWidget = widget;
         }
     }
