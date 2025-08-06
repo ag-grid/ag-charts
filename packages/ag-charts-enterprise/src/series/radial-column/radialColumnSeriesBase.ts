@@ -484,11 +484,16 @@ export abstract class RadialColumnSeriesBase<
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
 
         const fillBBox = this.getShapeFillBBox();
+        const hasItemStylers = this.hasItemStylers();
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const { midPoint } = nodeDatum;
+
+                if (hasItemStylers) {
+                    nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+                }
 
                 const style =
                     nodeDatum.style ??

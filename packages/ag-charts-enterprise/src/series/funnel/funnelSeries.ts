@@ -102,16 +102,11 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         };
     }
 
-    protected getItemStyle(
-        nodeDatum: FunnelNodeDatum | undefined,
-        isHighlight: boolean,
-        highlightState?: _ModuleSupport.HighlightState
-    ) {
+    protected getItemStyle({ datum, datumIndex }: Pick<FunnelNodeDatum, 'datum' | 'datumIndex'>, isHighlight: boolean) {
         const { id: seriesId, properties } = this;
         const { stageKey, valueKey, itemStyler } = properties;
-        const { datum, datumIndex = 0 } = nodeDatum ?? {};
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(datumIndex));
         let style = getShapeStyle(
             baseStyle,
@@ -151,18 +146,6 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         return style;
     }
 
-    protected override updateDatumStyles({
-        datumSelection,
-        isHighlight,
-    }: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, FunnelNodeDatum>;
-        isHighlight: boolean;
-    }) {
-        datumSelection.each((_, datum) => {
-            datum.style = this.getItemStyle(datum, isHighlight);
-        });
-    }
-
     protected override updateDatumNodes({
         datumSelection,
         isHighlight,
@@ -174,7 +157,6 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         if (!contextNodeData) {
             return;
         }
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const { shadow } = this.properties;
 
@@ -183,9 +165,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
-            const style =
-                datum.style ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            const style = this.getItemStyle(datum, isHighlight);
             applyShapeStyle(rect, style, fillBBox);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
@@ -194,9 +174,8 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
         });
     }
 
-    protected tooltipStyle(_datum: unknown, datumIndex: number) {
-        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
-        return this.getItemStyle(nodeDatum, false);
+    protected tooltipStyle(datum: unknown, datumIndex: number) {
+        return this.getItemStyle({ datum, datumIndex }, false);
     }
 
     override animateEmptyUpdateReady(params: FunnelAnimationData<_ModuleSupport.Rect>) {

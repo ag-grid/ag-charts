@@ -112,8 +112,6 @@ interface PieDonutNodeDatum extends DataModelSeriesNodeDatum {
     readonly legendItem?: { key: string; text: string };
     readonly legendItemValue?: string;
     enabled: boolean;
-
-    style: PieDonutSeriesStyle;
 }
 
 interface ProcessedDataValues {
@@ -471,8 +469,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             const nodeLabels = this.getLabels(datumIndex, datum, midAngle, span, processedDataValues);
             const sectorFormat = this.getItemStyle({ datum, datumIndex }, false);
 
-            const style = this.getItemStyle({ datum, datumIndex }, false, undefined, legendItemValues);
-
             const node = {
                 itemId: datumIndex,
                 series: this,
@@ -493,7 +489,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                 focusable: true,
                 ...nodeLabels,
-                style,
             };
             nodes.push(node);
 

@@ -444,12 +444,17 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const fillBBox = this.getShapeFillBBox();
+        const hasItemStylers = this.hasItemStylers();
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const datum = readDatum(nodeDatum);
                 if (datum == null) return;
+
+                if (hasItemStylers) {
+                    nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+                }
 
                 const style =
                     nodeDatum.style ??

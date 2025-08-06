@@ -31,7 +31,6 @@ const {
     applyShapeStyle,
     getShapeStyle,
     getShapeFill,
-    getItemStyles,
 } = _ModuleSupport;
 
 export type Bounds = {
@@ -64,8 +63,6 @@ export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum
     readonly crisp: boolean;
     readonly opacity?: number;
     readonly clipBBox?: _ModuleSupport.BBox;
-
-    style?: RequireOptional<AgFunnelSeriesStyle>;
 }
 
 interface FunnelConnectorDatum {
@@ -84,7 +81,6 @@ interface FunnelConnectorDatum {
 
 interface FunnelContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<FunnelNodeDatum, FunnelNodeLabelDatum> {
     connectorData: FunnelConnectorDatum[];
-    styles: _ModuleSupport.SeriesNodeStyleContext<AgFunnelSeriesStyle>;
 }
 
 export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode>
@@ -287,7 +283,6 @@ export abstract class BaseFunnelSeries<
             scales: this.calculateScaling(),
             groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
-            styles: getItemStyles(this.getItemStyle.bind(this)),
         };
 
         const isVisible = this.visible;
@@ -326,7 +321,7 @@ export abstract class BaseFunnelSeries<
             const yNegative = Math.round(yScale.convert(-yDatum));
             const yPositive = Math.round(yScale.convert(yDatum));
 
-            const style = this.getItemStyle(undefined, false);
+            const style = this.getItemStyle({ datum, datumIndex }, false);
 
             const barHeight = Math.max(style.strokeWidth ?? 0, Math.abs(yPositive - yNegative));
 
@@ -426,7 +421,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected abstract getItemStyle(
-        _: FunnelNodeDatum | undefined,
+        _: Partial<FunnelNodeDatum>,
         _isHighlight: boolean
     ): RequireOptional<AgFunnelSeriesStyle>;
 
