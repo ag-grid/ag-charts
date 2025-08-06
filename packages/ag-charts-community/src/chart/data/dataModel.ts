@@ -1121,7 +1121,7 @@ export class DataModel<
                     accValue = reducer(accValue, group.keys);
                 }
             } else {
-                const onlyScope = first(dataSources.keys());
+                const onlyScope = isScoped(def) ? def.scopes[0] : first(dataSources.keys());
                 const keyColumns = keys.map((k) => k.get(onlyScope)).filter((k) => k != null);
                 const keysParam = keyColumns.map((): unknown => undefined!);
                 const rawData = dataSources.get(onlyScope)!;
