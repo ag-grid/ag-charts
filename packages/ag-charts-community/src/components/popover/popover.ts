@@ -100,6 +100,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         const { sourceEvent } = options;
         if (sourceEvent) {
             widget.open({ sourceEvent });
+            widget.addListener('close-widget', () => this.removeChildren());
         }
     }
 

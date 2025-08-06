@@ -85,6 +85,7 @@ export class Menu extends AnchoredPopover {
             options.onPress?.(item);
             sourceEvent.preventDefault();
             sourceEvent.stopPropagation();
+            this.menuWidget?.close();
         });
 
         return row;
