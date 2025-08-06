@@ -15,7 +15,7 @@ inputs:
     denial_message_template:
         description: 'Template for denial message. Use {user} for username and {command} for command'
         required: false
-        default: '❌ @{user} Sorry, you don\'t have permission to run `{command}`. This command is restricted to organization members and collaborators.'
+        default: "❌ @{user} Sorry, you don't have permission to run `{command}`. This command is restricted to organization members and collaborators."
 outputs:
     allowed:
         description: 'Whether the user is allowed to execute the command'
@@ -32,7 +32,7 @@ runs:
           run: |
               # Set error handling
               set -euo pipefail
-              
+
               # For non-issue_comment events, always allow
               if [[ "${{ github.event_name }}" != "issue_comment" ]]; then
                 echo "allowed=true" >> $GITHUB_OUTPUT
@@ -40,7 +40,7 @@ runs:
                 echo "✅ Non-issue_comment event, proceeding"
                 exit 0
               fi
-              
+
               # For issue_comment events, check if it's the specified command
               if [[ "${{ github.event.comment.body }}" != "${{ inputs.command }}" ]]; then
                 echo "allowed=false" >> $GITHUB_OUTPUT
@@ -48,11 +48,11 @@ runs:
                 echo "Not the specified command (${{ inputs.command }})"
                 exit 0
               fi
-              
+
               # Check author association
               ASSOCIATION="${{ github.event.comment.author_association }}"
               ALLOWED_ASSOCIATIONS="${{ inputs.allowed_associations }}"
-              
+
               # Validate association is not empty
               if [[ -z "$ASSOCIATION" ]]; then
                 echo "::error::Author association is empty - this is unexpected"
@@ -60,10 +60,10 @@ runs:
                 echo "association=UNKNOWN" >> $GITHUB_OUTPUT
                 exit 1
               fi
-              
+
               # Convert comma-separated list to array
               IFS=',' read -ra ALLOWED_ARRAY <<< "$ALLOWED_ASSOCIATIONS"
-              
+
               # Check if current association is in allowed list
               ALLOWED=false
               for allowed in "${ALLOWED_ARRAY[@]}"; do
@@ -74,7 +74,7 @@ runs:
                   break
                 fi
               done
-              
+
               if [[ "$ALLOWED" == "true" ]]; then
                 echo "allowed=true" >> $GITHUB_OUTPUT
                 echo "association=$ASSOCIATION" >> $GITHUB_OUTPUT
@@ -102,7 +102,7 @@ runs:
                   const message = template
                       .replace('{user}', context.payload.comment.user.login)
                       .replace('{command}', '${{ inputs.command }}');
-                  
+
                   await github.rest.issues.createComment({
                       issue_number: context.issue.number,
                       owner: context.repo.owner,

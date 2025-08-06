@@ -33,7 +33,7 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v4
-              
+
             - name: Check user permissions
               id: check
               uses: ./external/ag-shared/github/actions/check-issue-comment-permissions
