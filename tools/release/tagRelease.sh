@@ -1,6 +1,6 @@
 if [ "$#" -ne 1 ]
 then
-    echo "You must the release version as the first argument"
+    echo "You must supply the release version as the first argument"
     exit 1
 fi
 

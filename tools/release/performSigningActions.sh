@@ -4,7 +4,7 @@ PACKAGE_DIRECTORY="./dist/packages"
 
 if [ "$#" -ne 1 ]
 then
-    echo "You must the GPG public key as the first argument"
+    echo "You must supply the GPG public key as the first argument"
     exit 1
 fi
 
