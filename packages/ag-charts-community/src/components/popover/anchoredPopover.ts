@@ -1,6 +1,7 @@
 import { clamp, getWindow } from 'ag-charts-core';
 
 import type { Vec2 } from '../../util/vector';
+import type { MenuWidget } from '../../widget/menuWidget';
 import { Popover, type PopoverOptions } from './popover';
 
 export interface AnchoredPopoverOptions extends PopoverOptions {
@@ -26,16 +27,24 @@ export abstract class AnchoredPopover<
         this.repositionWithinBounds();
     }
 
-    protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
+    private updateAnchor(options: Options) {
         const anchor = options.anchor ?? this.anchor;
         const fallbackAnchor = options.fallbackAnchor ?? this.fallbackAnchor;
-
-        const popover = super.showWithChildren(children, options);
 
         // If an anchor has already been provided, apply it to prevent a flash of the picker in the wrong location
         if (anchor) {
             this.setAnchor(anchor, fallbackAnchor);
         }
+    }
+
+    protected override showWidget(widget: MenuWidget, options: Options): void {
+        super.showWidget(widget, options);
+        this.updateAnchor(options);
+    }
+
+    protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
+        const popover = super.showWithChildren(children, options);
+        this.updateAnchor(options);
 
         // Wait for the DOM to be ready to reposition the element, so it is able to calculate if it will overflow the
         // bounding box
