@@ -1,10 +1,10 @@
-import type { _Widget } from 'ag-charts-community';
 import { createElement } from 'ag-charts-core';
 
 import type { LabelIcon } from '../../dom/elements';
 import { getIconClassNames } from '../../util/dom';
 import { MenuItemRadioWidget, MenuItemWidget } from '../../widget/menuItemWidget';
 import { MenuWidget } from '../../widget/menuWidget';
+import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { AnchoredPopover, type AnchoredPopoverOptions } from '../popover/anchoredPopover';
 
 export interface MenuOptions<Value = any> extends AnchoredPopoverOptions {
@@ -76,7 +76,7 @@ export class Menu extends AnchoredPopover {
             row.setAriaLabel(this.ctx.localeManager.t(item.altText));
         }
 
-        row.addListener('click', ({ sourceEvent }: _Widget.MouseWidgetEvent<'click'>) => {
+        row.addListener('click', ({ sourceEvent }: MouseWidgetEvent<'click'>) => {
             options.onPress?.(item);
             sourceEvent.preventDefault();
             sourceEvent.stopPropagation();
