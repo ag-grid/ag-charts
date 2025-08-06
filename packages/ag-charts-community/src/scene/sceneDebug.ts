@@ -63,9 +63,7 @@ export function debugStats(
     const { start, ...durations } = debugSplitTimes;
 
     const splits = Object.entries(durations)
-        .map(([n, t]) => {
-            return time(n, t);
-        })
+        .map(([n, t]) => time(n, t))
         .filter((v) => v != null)
         .join(' + ');
     const extras = Object.entries(extraDebugStats)
@@ -82,7 +80,7 @@ export function debugStats(
         detailedStats ? `Ops: ${pct(opsPerformed, opsSkipped)}` : null,
         detailedStats && memUsage ? memUsage : null,
     ].filter(isString);
-    const measurer = new TextMeasurer((t) => ctx.measureText(t));
+    const measurer = new TextMeasurer(ctx);
     const statsSize = new Map(stats.map((t) => [t, measurer.measureLines(t)]));
     const width = Math.max(...Array.from(statsSize.values(), (s) => s.width));
     const height = accumulate(statsSize.values(), (s) => s.height);

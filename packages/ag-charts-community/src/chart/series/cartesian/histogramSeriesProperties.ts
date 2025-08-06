@@ -34,6 +34,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     // Required for types
     readonly crisp: boolean;
     readonly opacity?: number;
+    style?: RequireOptional<AgHistogramSeriesStyle>;
 }
 
 export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHistogramSeriesOptions> {

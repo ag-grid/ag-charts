@@ -2,6 +2,7 @@ import type {
     AgColorType,
     AgConeFunnelSeriesLabelFormatterParams,
     AgConeFunnelSeriesOptions,
+    AgConeFunnelSeriesStyle,
     AgConeFunnelSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -80,4 +81,18 @@ export class ConeFunnelProperties
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgConeFunnelSeriesTooltipRendererParams<unknown>>();
+
+    getStyle(index: number): Required<AgConeFunnelSeriesStyle> & { opacity: number } {
+        const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
+        return {
+            fill: fills[index % fills.length],
+            fillOpacity,
+            stroke: strokes[index % strokes.length],
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            opacity: 1,
+        };
+    }
 }

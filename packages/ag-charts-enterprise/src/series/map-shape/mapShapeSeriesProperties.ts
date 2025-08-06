@@ -28,6 +28,7 @@ export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDat
     readonly labelValue: string | undefined;
     readonly legendItemName: string | undefined;
     readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
+    style: AgMapShapeSeriesStyle;
 }
 
 export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesOptions> {

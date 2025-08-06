@@ -37,6 +37,7 @@ const {
     applyShapeStyle,
     updateLabelNode,
     mergeDefaults,
+    getItemStyles,
 } = _ModuleSupport;
 
 class RadialBarSeriesNodeEvent<
@@ -70,13 +71,21 @@ interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly clipSector: _ModuleSupport.SectorBox;
     readonly reversed: boolean;
     readonly index: number;
+    style?: Required<AgRadialSeriesStyle>;
+}
+
+export interface RadialBarSeriesNodeDataContext
+    extends _ModuleSupport.DataModelSeriesNodeDataContext<RadialBarNodeDatum, RadialBarNodeDatum> {
+    styles: _ModuleSupport.SeriesNodeStyleContext<Required<AgRadialSeriesStyle>>;
 }
 
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     RadialBarNodeDatum,
     AgRadialBarSeriesOptions,
     RadialBarSeriesProperties<AgRadialBarSeriesOptions>,
-    _ModuleSupport.Sector
+    _ModuleSupport.Sector,
+    RadialBarNodeDatum,
+    RadialBarSeriesNodeDataContext
 > {
     static readonly className = 'RadialBarSeries';
     static readonly type = 'radial-bar' as const;
@@ -86,6 +95,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     protected override readonly NodeEvent = RadialBarSeriesNodeEvent;
 
     private readonly groupScale = new CategoryScale<string>();
+
+    private contextNodeData?: RadialBarSeriesNodeDataContext;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -203,8 +214,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     protected maybeRefreshNodeData() {
         const circleChanged = this.didCircleChange();
         if (!circleChanged && !this.nodeDataRefresh) return;
-        const { nodeData = [] } = this.createNodeData() ?? {};
-        this.nodeData = nodeData;
+        this.contextNodeData = this.createNodeData();
+        this.nodeData = this.contextNodeData?.nodeData ?? [];
         this.nodeDataRefresh = false;
     }
 
@@ -279,7 +290,12 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         };
 
         const nodeData: RadialBarNodeDatum[] = [];
-        const context = { itemId: radiusKey, nodeData, labelData: nodeData };
+        const context = {
+            itemId: radiusKey,
+            nodeData,
+            labelData: nodeData,
+            styles: getItemStyles(this.getItemStyle.bind(this)),
+        };
         if (!this.visible) return context;
 
         const { dataSources } = processedData;
@@ -365,11 +381,15 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         this.animationState.transition('update');
     }
 
-    protected getItemStyle(nodeDatum: RadialBarNodeDatum, isHighlight: boolean): Required<AgRadialSeriesStyle> {
+    protected getItemStyle(
+        nodeDatum: RadialBarNodeDatum | undefined,
+        isHighlight: boolean,
+        highlightState?: _ModuleSupport.HighlightState
+    ): Required<AgRadialSeriesStyle> {
         const { id: seriesId, properties } = this;
         const { angleKey, radiusKey, itemStyler } = properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
+        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
         let style = baseStyle;
 
@@ -378,7 +398,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightState = this.getHighlightStateString(
+                    const highlightStateString = this.getHighlightStateString(
                         activeHighlight,
                         isHighlight,
                         nodeDatum.datumIndex
@@ -387,7 +407,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                         seriesId,
                         datum: nodeDatum.datum,
                         highlighted: isHighlight,
-                        highlightState,
+                        highlightState: highlightStateString,
                         angleKey,
                         radiusKey,
                         ...style,
@@ -417,7 +437,14 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             selectionData = this.nodeData;
         }
 
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
         const fillBBox = this.getShapeFillBBox();
+        const hasItemStylers = this.hasItemStylers();
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
@@ -425,7 +452,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 const datum = readDatum(nodeDatum);
                 if (datum == null) return;
 
-                const style = this.getItemStyle(nodeDatum, isHighlight);
+                if (hasItemStylers) {
+                    nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+                }
+
+                const style =
+                    nodeDatum.style ??
+                    contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex)];
 
                 const cornerRadius = style.cornerRadius;
 
@@ -603,7 +636,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         ];
     }
 
-    private getDatumId(datum: RadialBarNodeDatum) {
+    private getDatumId(datum: Pick<RadialBarNodeDatum, 'radiusValue'>) {
         return createDatumId(datum.radiusValue);
     }
 

@@ -1,4 +1,4 @@
-import { boxesEqual } from 'ag-charts-core';
+import { boxesEqual, isNumberEqual } from 'ag-charts-core';
 
 import type { DistantObject } from '../../util/nearest';
 import { BBox } from '../bbox';
@@ -14,8 +14,6 @@ interface CornerRadii {
     bottomRight: number;
     bottomLeft: number;
 }
-
-const epsilon = 1e-6;
 
 const cornerEdges = (
     leadingEdge: number,
@@ -35,7 +33,7 @@ const cornerEdges = (
         leadingClipped = true;
         leading0 = leadingEdge;
         leading1 = leadingInset - Math.sqrt(Math.max(cornerRadius ** 2 - (trailingInset - leadingEdge) ** 2));
-    } else if (leading0 < epsilon) {
+    } else if (isNumberEqual(leading0, 0)) {
         leading0 = 0;
     }
 
@@ -43,7 +41,7 @@ const cornerEdges = (
         trailingClipped = true;
         trailing0 = trailingInset - Math.sqrt(Math.max(cornerRadius ** 2 - (leadingInset - trailingEdge) ** 2));
         trailing1 = trailingEdge;
-    } else if (trailing1 < epsilon) {
+    } else if (isNumberEqual(trailing1, 0)) {
         trailing1 = 0;
     }
 

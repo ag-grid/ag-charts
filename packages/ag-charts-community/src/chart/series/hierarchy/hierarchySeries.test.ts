@@ -50,6 +50,10 @@ class ExampleHierarchySeries extends HierarchySeries<Group, object, ExampleHiera
     override hasItemStylers(): boolean {
         return false;
     }
+
+    override getItemStyle(_datum: Partial<HierarchyNode>, _isLeaf: boolean, _isHighlight: boolean) {
+        return {};
+    }
 }
 
 describe('HierarchySeries', () => {
@@ -96,6 +100,7 @@ describe('HierarchySeries', () => {
             depth: undefined,
             parent: undefined,
             children: [],
+            style: {},
             midPoint: { x: 0, y: 0 },
         });
     });

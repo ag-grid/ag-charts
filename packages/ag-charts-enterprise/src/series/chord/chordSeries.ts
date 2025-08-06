@@ -378,7 +378,7 @@ export class ChordSeries extends FlowProportionSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId([datum.type, datum.id]));
     }
 
-    protected getNodeStyle(
+    protected override getNodeStyle(
         { datumIndex, datum, size = 0, label }: Partial<ChordNodeDatum>,
         fromNodeDatumIndex: number,
         isHighlight: boolean
@@ -457,7 +457,7 @@ export class ChordSeries extends FlowProportionSeries<
         );
     }
 
-    protected getLinkStyle(
+    protected override getLinkStyle(
         { datumIndex, datum }: Partial<ChordLinkDatum>,
         fromNodeDatumIndex: FlowProportionNodeDatumIndex,
         isHighlight: boolean

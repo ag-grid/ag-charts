@@ -705,6 +705,9 @@ export class AreaSeries extends CartesianSeries<
             label,
             fill: seriesFill,
             stroke: seriesStroke,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
         } = this.properties;
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
@@ -845,6 +848,7 @@ export class AreaSeries extends CartesianSeries<
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
             crossFiltering,
+            styles: this.getMarkerStyles(marker, { stroke, strokeWidth, strokeOpacity }),
         };
 
         return context;
@@ -958,7 +962,7 @@ export class AreaSeries extends CartesianSeries<
         return datumSelection.update(markersEnabled ? nodeData : []);
     }
 
-    protected override updateDatumNodes(opts: {
+    protected override updateDatumStyles(opts: {
         datumSelection: Selection<Marker, MarkerSelectionDatum>;
         isHighlight: boolean;
     }) {
@@ -967,9 +971,7 @@ export class AreaSeries extends CartesianSeries<
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
-        const fillBBox = this.getShapeFillBBox();
-
-        datumSelection.each((node, datum) => {
+        datumSelection.each((_, datum) => {
             const { xValue, yValue } = datum;
             const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
             const style = this.getMarkerStyle(marker, datum, params, { isHighlight }, undefined, {
@@ -978,12 +980,28 @@ export class AreaSeries extends CartesianSeries<
                 strokeOpacity,
             });
 
+            datum.style = style;
+        });
+    }
+
+    protected override updateDatumNodes(opts: {
+        datumSelection: Selection<Marker, MarkerSelectionDatum>;
+        isHighlight: boolean;
+    }) {
+        const { contextNodeData } = this;
+        if (!contextNodeData) return;
+
+        const { datumSelection, isHighlight } = opts;
+        const fillBBox = this.getShapeFillBBox();
+
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
+        datumSelection.each((node, datum) => {
+            const style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
         });
-
-        if (!isHighlight) {
-            this.properties.marker.markClean();
-        }
 
         if (!isHighlight) {
             this.properties.marker.markClean();

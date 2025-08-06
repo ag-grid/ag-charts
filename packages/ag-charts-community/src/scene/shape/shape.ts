@@ -1,4 +1,11 @@
-import { type InternalAgGradientColor, boxesEqual, clamp, generateUUID, isString } from 'ag-charts-core';
+import {
+    type ColorSpace,
+    type InternalAgGradientColor,
+    boxesEqual,
+    clamp,
+    generateUUID,
+    isString,
+} from 'ag-charts-core';
 import type { AgImageFill, AgPatternColor, CssColor, LineDashOptions, StrokeOptions } from 'ag-charts-types';
 
 import { objectsEqual } from '../../util/object';
@@ -6,7 +13,7 @@ import type { BBox } from '../bbox';
 import { SceneArrayChangeDetection, SceneObjectChangeDetection, TRIPLE_EQ } from '../changeDetectable';
 import type { DropShadow } from '../dropShadow';
 import { ConicGradient } from '../gradient/conicGradient';
-import { type ColorSpace, Gradient, type GradientParams } from '../gradient/gradient';
+import { Gradient, type GradientParams } from '../gradient/gradient';
 import { LinearGradient } from '../gradient/linearGradient';
 import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';

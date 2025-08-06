@@ -32,6 +32,7 @@ export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDa
     readonly sizeValue: number | undefined;
     readonly legendItemName: string | undefined;
     readonly point: Readonly<_ModuleSupport.SizedPoint>;
+    style: AgMapMarkerSeriesStyle;
 }
 
 class MapMarkerSeriesLabel extends Label<AgMapMarkerSeriesLabelFormatterParams> {

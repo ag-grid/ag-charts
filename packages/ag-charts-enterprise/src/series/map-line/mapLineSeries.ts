@@ -21,12 +21,11 @@ const {
     Selection,
     Text,
     Transformable,
+    mergeDefaults,
 } = _ModuleSupport;
 
 interface MapLineNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapLineNodeDatum, MapLineNodeLabelDatum> {}
-
-type ItemStyle = Required<AgMapLineSeriesStyle> & { opacity: number };
 
 export class MapLineSeries extends TopologySeries<
     MapLineNodeDatum,
@@ -320,6 +319,7 @@ export class MapLineSeries extends TopologySeries<
                 sizeValue,
                 projectedGeometry,
                 legendItemName,
+                style: this.getItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
             });
         });
 
@@ -373,12 +373,14 @@ export class MapLineSeries extends TopologySeries<
         const nodeData = this.contextNodeData?.nodeData ?? [];
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
+        this.updateDatumStyles({ datumSelection, isHighlight: false });
         this.updateDatumNodes({ datumSelection, isHighlight: false });
 
         this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum != null ? [highlightedDatum] : [],
             datumSelection: highlightDatumSelection,
         });
+        this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
         this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
     }
 
@@ -389,103 +391,74 @@ export class MapLineSeries extends TopologySeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
 
-    private getItemBaseStyle(isHighlight: boolean, datum?: MapLineNodeDatum): ItemStyle {
-        const { properties } = this;
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
-
-        return {
-            stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? properties.strokeWidth,
-            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
-            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
-            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
-            opacity: highlightStyle?.opacity ?? 1,
-        };
-    }
-
-    protected getItemStyleOverrides(
-        datumId: string,
-        datum: any,
-        colorValue: number | undefined,
-        sizeValue: number | undefined,
-        format: ItemStyle,
-        highlighted: boolean,
-        datumIndex?: number
-    ) {
+    protected getItemStyle(
+        { datumIndex = 0, datum, colorValue, sizeValue }: Partial<MapLineNodeDatum>,
+        isHighlight: boolean
+    ): Required<AgMapLineSeriesStyle> {
         const { id: seriesId, properties, colorScale, sizeScale } = this;
         const { colorRange, itemStyler } = properties;
 
-        let overrides: Partial<ItemStyle> | undefined;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
 
-        if (!highlighted && colorValue != null) {
-            overrides ??= {};
-            overrides.stroke = this.isColorScaleValid()
+        if (!isHighlight && colorValue != null) {
+            baseStyle.stroke = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
                 : colorRange?.[0] ?? properties.stroke;
         }
 
         if (sizeValue != null) {
-            overrides ??= {};
-            overrides.strokeWidth = sizeScale.convert(sizeValue, { clamp: true });
+            baseStyle.strokeWidth = sizeScale.convert(sizeValue, { clamp: true });
         }
 
+        let overrides;
         if (itemStyler != null) {
-            const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
-                () => {
-                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datumIndex);
-
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        highlighted,
-                        highlightState,
-                        ...format,
-                        ...overrides,
-                    });
-                }
-            );
-
-            overrides ??= {};
-            Object.assign(overrides, itemStyle);
+            overrides = this.cachedDatumCallback(createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'), () => {
+                const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+                const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                return this.callWithContext(itemStyler, {
+                    seriesId,
+                    datum,
+                    highlighted: isHighlight,
+                    highlightState,
+                    ...baseStyle,
+                });
+            });
         }
 
-        return overrides;
+        return overrides ? mergeDefaults(baseStyle, overrides) : baseStyle;
     }
 
-    private updateDatumNodes(opts: {
+    private updateDatumStyles({
+        datumSelection,
+        isHighlight,
+    }: {
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        datumSelection.each((_, nodeDatum) => {
+            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+        });
+    }
 
+    private updateDatumNodes({
+        datumSelection,
+    }: {
+        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum>;
+        isHighlight: boolean;
+    }) {
         datumSelection.each((geoGeometry, nodeDatum) => {
-            const { datum, datumIndex, colorValue, sizeValue, projectedGeometry } = nodeDatum;
+            const { projectedGeometry, style } = nodeDatum;
             if (projectedGeometry == null) {
                 geoGeometry.visible = false;
                 geoGeometry.projectedGeometry = undefined;
                 return;
             }
 
-            const format = this.getItemBaseStyle(isHighlight, nodeDatum);
-            const overrides = this.getItemStyleOverrides(
-                String(datumIndex),
-                datum,
-                colorValue,
-                sizeValue,
-                format,
-                isHighlight,
-                datumIndex
-            );
-
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
-            geoGeometry.stroke = overrides?.stroke ?? format.stroke;
-            geoGeometry.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
-            geoGeometry.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
-            geoGeometry.lineDash = overrides?.lineDash ?? format.lineDash;
-            geoGeometry.lineDashOffset = overrides?.lineDashOffset ?? format.lineDashOffset;
+
+            geoGeometry.setProperties(style);
         });
     }
 
@@ -727,11 +700,7 @@ export class MapLineSeries extends TopologySeries<
             data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? String(colorValue) });
         }
 
-        const format = this.getItemBaseStyle(false);
-        Object.assign(
-            format,
-            this.getItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format, false, datumIndex)
-        );
+        const format = this.getItemStyle({ datumIndex, datum, colorValue, sizeValue }, false);
 
         return this.formatTooltipWithContext(
             tooltip,

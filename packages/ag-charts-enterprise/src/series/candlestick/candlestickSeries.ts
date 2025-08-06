@@ -21,6 +21,18 @@ export class CandlestickSeries extends OhlcSeriesBase<
         return new CandlestickNode();
     }
 
+    protected override updateDatumStyles({
+        datumSelection,
+        isHighlight,
+    }: {
+        datumSelection: _ModuleSupport.Selection<CandlestickNode, OhlcNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        datumSelection.each((_, datum) => {
+            datum.style = this.getItemStyle(datum, isHighlight, undefined, datum.itemId);
+        });
+    }
+
     protected override updateDatumNodes({
         datumSelection,
         isHighlight,
@@ -28,6 +40,12 @@ export class CandlestickSeries extends OhlcSeriesBase<
         datumSelection: _ModuleSupport.Selection<CandlestickNode, OhlcNodeDatum>;
         isHighlight: boolean;
     }) {
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
         const { item } = this.properties;
         const { up, down } = item;
         const { strokeWidth: upStrokeWidth } = up;
@@ -35,8 +53,11 @@ export class CandlestickSeries extends OhlcSeriesBase<
 
         datumSelection.each((node, datum) => {
             const { isRising, centerX, width, y, height, yOpen, yClose, crisp } = datum;
-
-            const style = this.getItemStyle(datum, isHighlight);
+            const style =
+                datum.style ??
+                contextNodeData.styles[datum.itemId][
+                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
+                ];
 
             node.centerX = centerX;
             node.width = width;

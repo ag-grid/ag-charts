@@ -38,7 +38,7 @@ import {
     rangedValueProperty,
     valueProperty,
 } from '../../data/processors';
-import { expandLabelPadding } from '../../label';
+import { Label, expandLabelPadding } from '../../label';
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -47,7 +47,8 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { SeriesNodeEvent, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
-import type { SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
+import type { HighlightState } from '../seriesProperties';
+import type { SeriesNodeEventTypes } from '../seriesTypes';
 import { applyShapeStyle, getShapeFill } from '../shapeUtil';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
 import { DonutSeriesProperties } from './donutSeriesProperties';
@@ -126,8 +127,8 @@ interface ProcessedDataValues {
 }
 
 enum DonutNodeTag {
-    Callout,
-    Label,
+    CalloutLine,
+    CalloutLabel,
 }
 
 interface PieDonutSeriesLabelFormatterParams
@@ -466,7 +467,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             const legendItemValue = legendItemValues?.[datumIndex];
 
             const nodeLabels = this.getLabels(datumIndex, datum, midAngle, span, processedDataValues);
-            const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
+            const sectorFormat = this.getItemStyle({ datum, datumIndex }, false);
 
             const node = {
                 itemId: datumIndex,
@@ -659,6 +660,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 gradient: 'radial',
                 rotation: 0,
                 reverse: true,
+                colorSpace: 'rgb',
             },
             {
                 type: 'pattern',
@@ -698,13 +700,11 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         };
     }
 
-    private getSectorFormat(
-        datum: any,
-        datumIndex: number,
+    private getItemStyle(
+        { datum, datumIndex = 0 }: Partial<PieDonutNodeDatum>,
         isHighlight: boolean,
-        nodeDatum?: PieDonutNodeDatum,
-        legendItemValues?: string[],
-        activeHighlight?: SeriesNodeDatum<unknown>
+        highlightState?: HighlightState,
+        legendItemValues?: string[]
     ) {
         const {
             angleKey,
@@ -732,7 +732,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             cornerRadius,
             opacity,
         } = mergeDefaults(
-            this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, legendItemValues),
+            this.getHighlightStyle(isHighlight, datumIndex, highlightState, legendItemValues),
             {
                 fill: defaultFill,
                 stroke: defaultStroke,
@@ -766,7 +766,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                         cornerRadius,
                         highlighted: isHighlight,
                         highlightState: this.getHighlightStateString(
-                            activeHighlight ?? this.ctx.highlightManager?.getActiveHighlight(),
+                            this.ctx.highlightManager?.getActiveHighlight(),
                             isHighlight,
                             datumIndex
                         ),
@@ -944,12 +944,12 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
         calloutLabelSelection.update(this.calloutNodeData, (group) => {
             const line = new Line();
-            line.tag = DonutNodeTag.Callout;
+            line.tag = DonutNodeTag.CalloutLine;
             line.pointerEvents = PointerEvents.None;
             group.appendChild(line);
 
             const text = new Text();
-            text.tag = DonutNodeTag.Label;
+            text.tag = DonutNodeTag.CalloutLabel;
             text.pointerEvents = PointerEvents.None;
             group.appendChild(text);
         });
@@ -1009,14 +1009,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             _index: number,
             isDatumHighlighted: boolean
         ) => {
-            const format = this.getSectorFormat(
-                datum.datum,
-                datum.itemId,
-                isDatumHighlighted,
-                datum,
-                legendItemValues,
-                highlightedDatum
-            );
+            const format = this.getItemStyle(datum, isDatumHighlighted, undefined, legendItemValues);
 
             datum.sectorFormat.fill = format.fill;
             datum.sectorFormat.stroke = format.stroke;
@@ -1071,7 +1064,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const calloutColors = isStringFillArray(colors) ? colors ?? this.properties.strokes : strokes;
         const { offset } = this.properties.calloutLabel;
 
-        this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.Callout).forEach((line) => {
+        this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.CalloutLine).forEach((line) => {
             const datum = line.closestDatum() as PieDonutNodeDatum;
             const { calloutLabel: label, outerRadius, datumIndex } = datum;
 
@@ -1193,13 +1186,11 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             .filter((d) => d.midSin >= 0 && d.calloutLabel?.textAlign === 'center')
             .sort((a, b) => a.midCos - b.midCos);
 
-        const params = { angleKey: this.properties.angleKey };
         const getTextBBox = (datum: (typeof data)[number]) => {
             const label = datum.calloutLabel;
             if (label == null) return BBox.zero.clone();
 
-            type TParams = AgDonutSeriesLabelFormatterParams;
-            const style = getLabelStyles<TParams>(this, datum, params, calloutLabel);
+            const style = this.getLabelStyle(datum, calloutLabel);
             const padding = expandLabelPadding(style);
 
             const labelRadius = datum.outerRadius + calloutLine.length + offset;
@@ -1299,13 +1290,27 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         avoidXCollisions(bottomLabels);
     }
 
+    private getLabelStyle(datum: PieDonutNodeDatum, label: Label<AgDonutSeriesLabelFormatterParams>) {
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const isHighlight = false; // Labels are not highlighted in donut series
+        const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
+        return getLabelStyles<AgDonutSeriesLabelFormatterParams>(
+            this,
+            datum,
+            this.properties,
+            label,
+            isHighlight,
+            highlightState
+        );
+    }
+
     private updateCalloutLabelNodes(seriesRect: BBox) {
         const { radiusScale } = this;
         const { calloutLabel, calloutLine } = this.properties;
 
         const tempTextNode = new Text();
 
-        this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.Label).forEach((text) => {
+        this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.CalloutLabel).forEach((text) => {
             const datum: PieDonutNodeDatum = text.closestDatum();
             const label = datum.calloutLabel;
             const radius = radiusScale.convert(datum.radius);
@@ -1315,18 +1320,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 text.visible = false;
                 return;
             }
-            type TParams = AgDonutSeriesLabelFormatterParams;
-            const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-            const isHighlight = false; // Labels are not highlighted in donut series
-            const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
-            const style = getLabelStyles<TParams>(
-                this,
-                datum,
-                this.properties,
-                calloutLabel,
-                isHighlight,
-                highlightState
-            );
+
+            const style = this.getLabelStyle(datum, calloutLabel);
 
             const labelRadius = outerRadius + calloutLine.length + calloutLabel.offset;
             const x = datum.midCos * labelRadius;
@@ -1400,15 +1395,13 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             }
         }
 
-        type TParams = AgDonutSeriesLabelFormatterParams;
-        const params: TParams = { angleKey: this.properties.angleKey };
         this.calloutNodeData.forEach((datum) => {
             const label = datum.calloutLabel;
             if (!label || datum.outerRadius === 0) {
                 return null;
             }
 
-            const style = getLabelStyles<TParams>(this, datum, params, calloutLabel);
+            const style = this.getLabelStyle(datum, calloutLabel);
             const labelRadius = datum.outerRadius + calloutLength + offset;
             const x = datum.midCos * labelRadius;
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
@@ -1483,18 +1476,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
             let isTextVisible = false;
             if (datum.sectorLabel && outerRadius !== 0) {
-                type TParams = AgDonutSeriesLabelFormatterParams;
-                const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                const isHighlight = false; // Labels are not highlighted in donut series
-                const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datum.datumIndex);
-                const style = getLabelStyles<TParams>(
-                    this,
-                    datum,
-                    properties,
-                    properties.sectorLabel,
-                    isHighlight,
-                    highlightState
-                );
+                const style = this.getLabelStyle(datum, properties.sectorLabel);
                 const labelRadius = innerRadius * (1 - positionRatio) + outerRadius * positionRatio + positionOffset;
 
                 text.fill = style.color;
@@ -1654,14 +1636,14 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 angleName,
                 radiusKey,
                 radiusName,
-                ...this.getSectorFormat(datum, datumIndex, false),
+                ...this.getItemStyle({ datum, datumIndex }, false),
             }
         );
     }
 
     private legendItemSymbol(datumIndex: number): LegendSymbolOptions {
         const datum = this.processedData?.dataSources.get(this.id)?.[datumIndex];
-        const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
+        const sectorFormat = this.getItemStyle({ datum, datumIndex }, false);
         const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
 
         let { fill } = sectorFormat;

@@ -3,6 +3,7 @@ import {
     type AgBubbleSeriesLabelFormatterParams,
     type AgBubbleSeriesOptions,
     type AgErrorBoundSeriesTooltipRendererParams,
+    type AgSeriesMarkerStyle,
     type FillOptions,
     type FormatterPropertyType,
     type LineDashOptions,
@@ -32,7 +33,7 @@ import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
-import { type PickFocusInputs, SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import {
@@ -44,7 +45,11 @@ import {
     computeBubbleAggregationDilation,
 } from './bubbleAggregation';
 import { BubbleSeriesProperties } from './bubbleSeriesProperties';
-import type { CartesianAnimationData, CartesianSeriesNodeDatum } from './cartesianSeries';
+import type {
+    CartesianAnimationData,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+} from './cartesianSeries';
 import {
     CartesianSeries,
     CartesianSeriesNodeEvent,
@@ -75,13 +80,21 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     readonly count: number;
     readonly dilation: number;
     readonly selected: boolean | undefined;
+    style?: AgSeriesMarkerStyle;
+}
+
+interface BubbleSeriesNodeDataContext
+    extends CartesianSeriesNodeDataContext<BubbleScatterNodeDatum, BubbleScatterNodeDatum> {
+    styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
 }
 
 export class BubbleSeries extends CartesianSeries<
     Marker,
     AgBubbleSeriesOptions,
     BubbleSeriesProperties,
-    BubbleScatterNodeDatum
+    BubbleScatterNodeDatum,
+    BubbleScatterNodeDatum,
+    BubbleSeriesNodeDataContext
 > {
     static readonly className: string = 'BubbleSeries';
     static readonly type: string = 'bubble';
@@ -416,6 +429,7 @@ export class BubbleSeries extends CartesianSeries<
             }
 
             const markerSize = sizeValue != null ? sizeScale.convert(sizeValue) : marker.size;
+            const point = { x, y, size: Math.sqrt(dilation) * markerSize };
 
             nodeData.push({
                 series: this,
@@ -428,7 +442,7 @@ export class BubbleSeries extends CartesianSeries<
                 yValue: yDatum,
                 sizeValue,
                 capDefaults: { lengthRatioMultiplier: marker.getDiameter(), lengthMax: Infinity },
-                point: { x, y, size: Math.sqrt(dilation) * markerSize },
+                point,
                 midPoint: { x, y },
                 label: nodeLabel,
                 anchor,
@@ -472,6 +486,7 @@ export class BubbleSeries extends CartesianSeries<
             labelData: labelEnabled ? nodeData : [],
             scales: this.calculateScaling(),
             visible: this.visible,
+            styles: this.getMarkerStyles(marker),
         };
     }
 
@@ -504,21 +519,16 @@ export class BubbleSeries extends CartesianSeries<
         return datumSelection.update(data, undefined, getId);
     }
 
-    protected override updateDatumNodes(opts: {
+    override updateDatumStyles(opts: {
         datumSelection: Selection<Marker, BubbleScatterNodeDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
+
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
-
-        this.sizeScale.range = [marker.size, marker.maxSize];
-        const fillBBox = this.getShapeFillBBox();
-
-        const aggregated = this.dataAggregation != null;
-
         const params = { xKey, yKey, sizeKey, labelKey };
 
-        datumSelection.each((node, datum, index) => {
+        datumSelection.each((_, datum) => {
             const { count, dilation } = datum;
 
             const style = this.getMarkerStyle(marker, datum, params, {
@@ -526,6 +536,35 @@ export class BubbleSeries extends CartesianSeries<
                 resolveItemStylerMarkerPath: false,
             });
             style.fillOpacity = (1 - (1 - (style.fillOpacity ?? 1)) ** count) / Math.sqrt(dilation);
+            datum.style = style;
+        });
+    }
+
+    protected override updateDatumNodes(opts: {
+        datumSelection: Selection<Marker, BubbleScatterNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        const { contextNodeData } = this;
+        if (!contextNodeData) return;
+        const { datumSelection, isHighlight } = opts;
+        const { marker } = this.properties;
+
+        this.sizeScale.range = [marker.size, marker.maxSize];
+        const fillBBox = this.getShapeFillBBox();
+
+        const aggregated = this.dataAggregation != null;
+
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
+        datumSelection.each((node, datum, index) => {
+            const {
+                count,
+                point: { size },
+            } = datum;
+            const style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            style.size = size;
 
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
             node.zIndex = aggregated ? [-count, index] : 0;

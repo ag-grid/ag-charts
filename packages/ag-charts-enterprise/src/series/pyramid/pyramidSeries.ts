@@ -44,6 +44,7 @@ interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Read
     readonly bottom: number;
     readonly left: number;
     readonly label: PyramidNodeLabelDatum | undefined;
+    style: AgPyramidSeriesStyle;
 }
 
 interface PyramidNodeDataContext
@@ -401,6 +402,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                     x,
                     y,
                 },
+                style: this.getItemStyle({ datumIndex, datum }, false),
             });
 
             yStart = yEnd;
@@ -442,6 +444,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const stageLabelData = this.contextNodeData?.stageLabelData ?? [];
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
+        this.updateDatumStyles({ datumSelection, isHighlight: false });
         this.updateDatumNodes({ datumSelection, isHighlight: false });
 
         this.labelSelection = this.updateLabelSelection({ labelData, labelSelection });
@@ -457,6 +460,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             nodeData: highlightedDatum != null ? [highlightedDatum] : [],
             datumSelection: highlightDatumSelection,
         });
+        this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
         this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
 
         this.animationState.transition('update');
@@ -512,11 +516,24 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return style;
     }
 
-    private updateDatumNodes(opts: {
+    private updateDatumStyles({
+        datumSelection,
+        isHighlight,
+    }: {
         datumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        datumSelection.each((_, nodeDatum) => {
+            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+        });
+    }
+
+    private updateDatumNodes({
+        datumSelection,
+    }: {
+        datumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum>;
+        isHighlight: boolean;
+    }) {
         const { properties } = this;
         const { shadow } = properties;
 
@@ -526,9 +543,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             : undefined;
 
         datumSelection.each((connector, nodeDatum) => {
-            const style = this.getItemStyle(nodeDatum, isHighlight);
-
-            applyShapeStyle(connector, style, fillBBox);
+            applyShapeStyle(connector, nodeDatum.style, fillBBox);
 
             applyPyramidDatum(connector, nodeDatum);
 

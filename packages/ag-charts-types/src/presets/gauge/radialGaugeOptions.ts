@@ -29,11 +29,9 @@ export interface AgRadialGaugeScaleInterval {
 
 export interface AgRadialGaugeScaleLabel<TContext = ContextDefault> extends AgGaugeScaleLabel<TContext> {}
 
-export interface AgRadialGaugeScale<TContext = ContextDefault>
-    extends FillsOptions,
-        FillOptions,
-        StrokeOptions,
-        LineDashOptions {
+export interface AgRadialGaugeSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
+
+export interface AgRadialGaugeScale<TContext = ContextDefault> extends FillsOptions, AgRadialGaugeSeriesStyle {
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     min?: number;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
@@ -50,12 +48,12 @@ export interface AgRadialGaugeTooltipRendererParams
     value: number;
 }
 
-export interface AgRadialGaugeBarStyle extends FillsOptions, FillOptions, StrokeOptions, LineDashOptions {
+export interface AgRadialGaugeBarStyle extends FillsOptions, AgRadialGaugeSeriesStyle {
     /** Whether the bar should be shown. */
     enabled?: boolean;
 }
 
-export interface AgRadialGaugeNeedleStyle extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgRadialGaugeNeedleStyle extends AgRadialGaugeSeriesStyle {
     /** Whether the needle should be shown. */
     enabled?: boolean;
     /** Ratio of the size of the needle. */
@@ -71,7 +69,7 @@ export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<nev
     spacing?: PixelSize;
 }
 
-export interface AgRadialGaugeTarget extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgRadialGaugeTarget extends AgRadialGaugeSeriesStyle {
     /** Value to use to position the target */
     value: number;
     /** Text to use for the target label. */

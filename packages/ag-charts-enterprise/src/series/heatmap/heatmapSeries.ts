@@ -39,6 +39,7 @@ interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly width: number;
     readonly height: number;
     readonly colorValue: any;
+    style: AgHeatmapSeriesStyle;
 }
 
 interface HeatmapLabelDatum extends _ModuleSupport.Point {
@@ -55,6 +56,7 @@ interface HeatmapLabelDatum extends _ModuleSupport.Point {
     color: string | undefined;
     textAlign: TextAlign;
     textBaseline: VerticalAlign;
+    style: AgHeatmapSeriesStyle;
 }
 
 type ItemStyle = Pick<AgHeatmapSeriesStyle, 'fill'> &
@@ -285,6 +287,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
             const point = { x, y, size: 0 };
 
+            const style = this.getItemStyle({ datumIndex, datum, colorValue }, false);
+
             nodeData.push({
                 series: this,
                 itemId: yKey,
@@ -300,6 +304,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 height,
                 midPoint: { x, y },
                 missing: colorValues != null && colorValue == null,
+                style,
             });
 
             if (labels?.label != null) {
@@ -325,6 +330,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                     textBaseline: verticalAlign,
                     x: lx,
                     y: ly,
+                    style,
                 });
             }
         });
@@ -393,29 +399,39 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return overrides ? mergeDefaults(overrides, baseStyle) : baseStyle;
     }
 
-    protected override updateDatumNodes(opts: {
+    protected override updateDatumStyles({
+        datumSelection,
+        isHighlight,
+    }: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, HeatmapNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { isHighlight } = opts;
+        datumSelection.each((_, nodeDatum) => {
+            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+        });
+    }
 
+    protected override updateDatumNodes({
+        datumSelection,
+    }: {
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, HeatmapNodeDatum>;
+        isHighlight: boolean;
+    }) {
         const xAxis = this.axes[ChartAxisDirection.X];
         const [visibleMin, visibleMax] = xAxis?.visibleRange ?? [];
         const isZoomed = visibleMin !== 0 || visibleMax !== 1;
         const crisp = !isZoomed;
 
-        opts.datumSelection.each((rect, nodeDatum) => {
-            const { point, width, height } = nodeDatum;
+        datumSelection.each((rect, nodeDatum) => {
+            const { point, width, height, style } = nodeDatum;
 
-            const style = this.getItemStyle(nodeDatum, isHighlight);
+            applyShapeStyle(rect, style);
 
             rect.crisp = crisp;
             rect.x = Math.floor(point.x - width / 2);
             rect.y = Math.floor(point.y - height / 2);
             rect.width = Math.ceil(width);
             rect.height = Math.ceil(height);
-
-            applyShapeStyle(rect, style);
         });
     }
 

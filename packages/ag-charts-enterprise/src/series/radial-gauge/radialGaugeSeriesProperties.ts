@@ -1,11 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
+import type { InternalAgGradientColor } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgGradientColorMode,
     AgRadialGaugeLabelFormatterParams,
     AgRadialGaugeMarkerShape,
     AgRadialGaugeOptions,
+    AgRadialGaugeSeriesStyle,
     AgRadialGaugeTargetPlacement,
     AgRadialGaugeTooltipRendererParams,
     FontStyle,
@@ -15,6 +17,8 @@ import type {
 
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
+
+const { getColorStops, normalizeAngle360, normalizeAngle360Inclusive, toDegrees } = _ModuleSupport;
 
 const { BaseProperties, makeSeriesTooltip, SeriesProperties, PropertiesArray, AxisLabel, Property, Label } =
     _ModuleSupport;
@@ -43,7 +47,7 @@ export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum<Rad
     clipEndAngle: number | undefined;
     startCornerRadius: number;
     endCornerRadius: number;
-    fill: string | _ModuleSupport.ShapeColor | undefined;
+    style: AgRadialGaugeSeriesStyle;
 }
 
 export interface RadialGaugeTargetDatumLabel {
@@ -70,14 +74,8 @@ export interface RadialGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum<R
     angle: number;
     size: number;
     rotation: number;
-    fill: string;
-    fillOpacity: number;
-    stroke: string;
-    strokeOpacity: number;
-    strokeWidth: number;
-    lineDash: number[];
-    lineDashOffset: number;
     label: RadialGaugeTargetDatumLabel;
+    style: AgRadialGaugeSeriesStyle;
 }
 
 export type RadialGaugeLabelDatum = {
@@ -148,6 +146,28 @@ export class RadialGaugeTargetProperties extends BaseProperties {
 
     @Property
     readonly label = new RadialGaugeDefaultTargetLabelProperties();
+
+    getStyle(): Required<AgRadialGaugeSeriesStyle> {
+        const {
+            fill = 'black',
+            fillOpacity = 1,
+            stroke = 'black',
+            strokeWidth = 0,
+            strokeOpacity = 1,
+            lineDash = [0],
+            lineDashOffset = 0,
+        } = this;
+
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        };
+    }
 }
 
 class RadialGaugeBarProperties extends BaseProperties {
@@ -180,6 +200,36 @@ class RadialGaugeBarProperties extends BaseProperties {
 
     @Property
     lineDashOffset: number = 0;
+
+    getStyle(
+        defaultColorRange: string[],
+        scale: _ModuleSupport.LinearScale
+    ): RequireOptional<AgRadialGaugeSeriesStyle> {
+        const {
+            enabled,
+            fill,
+            fills,
+            fillMode,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        } = this;
+
+        const barFill = enabled ? fill ?? createConicGradient(fills, fillMode, defaultColorRange, scale) : 'none';
+
+        return {
+            fill: barFill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        };
+    }
 }
 
 class RadialGaugeScaleIntervalProperties extends BaseProperties {
@@ -240,6 +290,40 @@ class RadialGaugeScaleProperties extends BaseProperties {
 
     @Property
     readonly label = new RadialGaugeScaleLabelProperties();
+
+    getStyle(
+        barEnabled: boolean,
+        defaultColorRange: string[],
+        scale: _ModuleSupport.LinearScale
+    ): RequireOptional<AgRadialGaugeSeriesStyle> {
+        const {
+            fill,
+            fills,
+            defaultFill,
+            fillMode,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        } = this;
+
+        const scaleFill =
+            fill ??
+            (barEnabled && fills.length === 0 ? defaultFill : undefined) ??
+            createConicGradient(fills, fillMode, defaultColorRange, scale);
+
+        return {
+            fill: scaleFill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        };
+    }
 }
 
 class RadialGaugeNeedleProperties extends BaseProperties {
@@ -344,4 +428,36 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeO
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgRadialGaugeTooltipRendererParams>();
+}
+
+export function createConicGradient(
+    fills: _ModuleSupport.StopProperties[],
+    fillMode: AgGradientColorMode,
+    defaultColorRange: string[],
+    scale: _ModuleSupport.LinearScale
+): InternalAgGradientColor {
+    const { domain, range } = scale;
+    const [startAngle, endAngle] = range;
+
+    const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
+    const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
+
+    const colorStops = getColorStops(fills, defaultColorRange, domain, fillMode).map(
+        ({ color, stop }): _ModuleSupport.GradientColorStop => {
+            stop = Math.min(Math.max(stop, 0), 1);
+            const angle = startAngle + sweepAngle * stop;
+            stop = (angle - conicAngle) / (2 * Math.PI);
+            stop = ((stop % 1) + 1) % 1;
+            return { stop, color };
+        }
+    );
+
+    return {
+        type: 'gradient',
+        gradient: 'conic',
+        colorSpace: 'oklch',
+        colorStops,
+        bounds: 'series',
+        rotation: toDegrees(conicAngle) + 90,
+    };
 }

@@ -37,9 +37,16 @@ import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
-import { type PickFocusInputs, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import {
+    type PickFocusInputs,
+    type SeriesNodePickMatch,
+    SeriesNodePickMode,
+    type SeriesNodeStyleContext,
+} from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import type { HighlightState } from '../seriesProperties';
 import { applyShapeStyle } from '../shapeUtil';
+import { getItemStyles } from '../util';
 import {
     collapsedStartingBarPosition,
     computeBarFocusBounds,
@@ -49,6 +56,7 @@ import {
 import {
     type CartesianAnimationData,
     CartesianSeries,
+    type CartesianSeriesNodeDataContext,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
@@ -67,11 +75,17 @@ interface CalculatedBin {
     total: number;
 }
 
+interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<HistogramNodeDatum> {
+    styles: SeriesNodeStyleContext<AgHistogramSeriesStyle>;
+}
+
 export class HistogramSeries extends CartesianSeries<
     Rect<HistogramNodeDatum>,
     AgHistogramSeriesOptions,
     HistogramSeriesProperties,
-    HistogramNodeDatum
+    HistogramNodeDatum,
+    HistogramNodeDatum,
+    HistogramSeriesNodeDataContext
 > {
     static readonly className = 'HistogramSeries';
     static readonly type = 'histogram' as const;
@@ -337,6 +351,7 @@ export class HistogramSeries extends CartesianSeries<
             scales: this.calculateScaling(),
             animationValid: true,
             visible: this.visible || animationEnabled,
+            styles: getItemStyles(this.getItemStyle.bind(this)),
         };
         if (processedData == null || processedData.type !== 'grouped') {
             return context;
@@ -424,25 +439,44 @@ export class HistogramSeries extends CartesianSeries<
         return datumSelection.update(nodeData, undefined, (datum: HistogramNodeDatum) => createDatumId(datum.domain));
     }
 
-    private getItemStyle(isHighlight: boolean, datum?: HistogramNodeDatum): RequireOptional<AgHistogramSeriesStyle> {
+    private getItemStyle(
+        nodeDatum: HistogramNodeDatum | undefined,
+        isHighlight: boolean,
+        highlightState?: HighlightState
+    ): RequireOptional<AgHistogramSeriesStyle> {
         const { properties } = this;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datum?.datumIndex);
+        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
         return mergeDefaults(highlightStyle, properties.getStyle());
+    }
+
+    protected override updateDatumStyles(opts: {
+        datumSelection: Selection<Rect, HistogramNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        const { isHighlight } = opts;
+        opts.datumSelection.each((_rect, datum) => {
+            datum.style = this.getItemStyle(datum, isHighlight);
+        });
     }
 
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<Rect, HistogramNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { isHighlight } = opts;
-        const { shadow } = this.properties;
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
+        const { shadow } = this.properties;
         const fillBBox = this.getShapeFillBBox();
 
         opts.datumSelection.each((rect, datum) => {
-            const style = this.getItemStyle(isHighlight, datum);
-
+            const style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex)];
             const { cornerRadius = 0 } = style;
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
@@ -521,6 +555,7 @@ export class HistogramSeries extends CartesianSeries<
         if (!dataModel || processedData?.type !== 'grouped' || !xAxis || !yAxis) {
             return;
         }
+        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
 
         const group = processedData.groups[datumIndex];
         const { aggregation, keys } = group;
@@ -584,7 +619,7 @@ export class HistogramSeries extends CartesianSeries<
                 yName,
                 xRange: [rangeMin, rangeMax] satisfies [number, number],
                 frequency,
-                ...this.getItemStyle(false),
+                ...this.getItemStyle(nodeDatum, false),
             }
         );
     }

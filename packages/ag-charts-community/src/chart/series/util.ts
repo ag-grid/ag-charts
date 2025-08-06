@@ -1,6 +1,7 @@
 import { type BoxBounds, findMaxIndex, findMinIndex } from 'ag-charts-core';
 
 import { Transformable } from '../../scene/transformable';
+import { type HighlightState, highlightStates } from './seriesProperties';
 import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from './seriesTypes';
 
 function datumBoundaryPoints(datum: any, domain: any[]): [boolean, boolean] {
@@ -133,4 +134,33 @@ export function countExpandingSearch(
     }
 
     return count;
+}
+
+export function getItemStyles<TNodeDatum, TStyle>(
+    getItemStyle: (nodeDatum: TNodeDatum | undefined, isHighlight: boolean, highlightState?: HighlightState) => TStyle
+) {
+    const result = {} as Record<HighlightState, TStyle>;
+    for (const state of highlightStates) {
+        result[state] = getItemStyle(undefined, false, state);
+    }
+    return result;
+}
+
+export function getItemStylesPerItemId<ItemId extends string, TNodeDatum, TStyle>(
+    getItemStyle: (
+        nodeDatum: TNodeDatum | undefined,
+        isHighlight: boolean,
+        highlightState?: HighlightState,
+        itemId?: ItemId
+    ) => TStyle,
+    ...itemIds: ItemId[]
+) {
+    const result = {} as Record<ItemId, Record<HighlightState, TStyle>>;
+    for (const itemId of itemIds ?? ['default']) {
+        for (const state of highlightStates) {
+            const states = (result[itemId] ??= {} as Record<HighlightState, TStyle>);
+            states[state] = getItemStyle(undefined, false, state, itemId);
+        }
+    }
+    return result;
 }

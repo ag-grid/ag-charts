@@ -76,6 +76,7 @@ export const gradientStrict = optionsDefs<AgGradientColorStrict>(
         gradient: undocumented(union('linear', 'radial', 'conic')),
         bounds: undocumented(gradientBounds),
         reverse: undocumented(boolean),
+        colorSpace: undocumented(union('rgb', 'oklch')),
     },
     'a gradient object with color stops'
 );
@@ -87,7 +88,12 @@ export interface InternalAgGradientColor extends AgGradientColor {
     bounds?: AgGradientColorBounds;
     /** Reverse the order of colour stops. */
     reverse?: boolean;
+    /** Colour space to use when interpolating colours in the gradient. */
+    colorSpace?: ColorSpace;
 }
+
+export type ColorSpace = 'rgb' | 'oklch';
+
 export interface InternalAgPatternColor extends AgPatternColor {
     /** Padding for the shape in the pattern unit. */
     padding?: number;
@@ -123,6 +129,7 @@ export const fillGradientDefaults = optionsDefs<InternalAgGradientColor>({
     colorStops: required(or(gradientColorStops, and(arrayLength(2), arrayOf(color)))),
     rotation: required(number),
     reverse: required(boolean),
+    colorSpace: required(union('rgb', 'oklch')),
 });
 
 export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
@@ -178,6 +185,7 @@ const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(
             gradient: undocumented(union('linear', 'radial', 'conic')),
             bounds: undocumented(gradientBounds),
             reverse: undocumented(boolean),
+            colorSpace: undocumented(union('rgb', 'oklch')),
         },
         pattern: {
             pattern: union(

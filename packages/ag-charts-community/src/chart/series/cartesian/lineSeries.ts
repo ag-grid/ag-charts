@@ -316,6 +316,9 @@ export class LineSeries extends CartesianSeries<
             connectMissingData,
             interpolation,
             legendItemName,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
         } = this.properties;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -440,6 +443,11 @@ export class LineSeries extends CartesianSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
             crossFiltering,
+            styles: this.getMarkerStyles(marker, {
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            }),
         };
     }
 
@@ -496,7 +504,7 @@ export class LineSeries extends CartesianSeries<
         return datumSelection.update(nodeData, undefined, (datum) => createDatumId(datum.xValue));
     }
 
-    protected override updateDatumNodes(opts: {
+    protected override updateDatumStyles(opts: {
         datumSelection: Selection<Marker, LineNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -505,20 +513,39 @@ export class LineSeries extends CartesianSeries<
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
-        const applyTranslation = this.ctx.animationManager.isSkipped();
-        const fillBBox = this.getShapeFillBBox();
-
-        datumSelection.each((node, datum) => {
+        datumSelection.each((_, datum) => {
             const { xValue, yValue } = datum;
 
             const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
 
-            const style = this.getMarkerStyle(marker, datum, params, { isHighlight }, undefined, {
+            datum.style = this.getMarkerStyle(marker, datum, params, { isHighlight }, undefined, {
                 stroke,
                 strokeWidth,
                 strokeOpacity,
             });
+        });
+    }
 
+    protected override updateDatumNodes(opts: {
+        datumSelection: Selection<Marker, LineNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
+
+        const { datumSelection, isHighlight } = opts;
+
+        const applyTranslation = this.ctx.animationManager.isSkipped();
+        const fillBBox = this.getShapeFillBBox();
+
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
+        datumSelection.each((node, datum) => {
+            const style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 applyTranslation,
                 selected: datum.selected,
@@ -526,7 +553,7 @@ export class LineSeries extends CartesianSeries<
         });
 
         if (!isHighlight) {
-            marker.markClean();
+            this.properties.marker.markClean();
         }
     }
 

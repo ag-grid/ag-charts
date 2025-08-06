@@ -53,7 +53,7 @@ import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { SeriesType } from '../mapping/types';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
-import { HighlightState, type SeriesProperties } from './seriesProperties';
+import { HighlightState, type SeriesProperties, highlightStates } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type { INodeEvent, ISeries, NodeDataDependencies, SeriesNodeDatum, SeriesNodeEventTypes } from './seriesTypes';
@@ -101,7 +101,11 @@ export type PickFocusOutputs = {
     clipFocusBox: boolean;
 };
 
-export type PickResult = { pickMode: SeriesNodePickMode; datums: SeriesNodeDatum<unknown>[]; distance: number };
+export type PickResult = {
+    pickMode: SeriesNodePickMode;
+    datums: SeriesNodeDatum<unknown>[];
+    distance: number;
+};
 
 export type INodeEventConstructor<
     TDatum extends SeriesNodeDatum<unknown>,
@@ -138,6 +142,14 @@ export type SeriesNodeDataContext<I, S = SeriesNodeDatum<I>, L = S> = {
     itemId: string;
     nodeData: S[];
     labelData: L[];
+};
+
+export type SeriesNodeStyleContext<TStyle> = {
+    [HighlightState.None]: TStyle;
+    [HighlightState.Item]: TStyle;
+    [HighlightState.Series]: TStyle;
+    [HighlightState.OtherSeries]: TStyle;
+    [HighlightState.OtherItem]: TStyle;
 };
 
 export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesOptionInstance, SeriesContext>;
@@ -580,7 +592,7 @@ export abstract class Series<
     }
 
     protected getHighlightState(
-        datum: HighlightNodeDatum | undefined,
+        highlightedDatum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
         datumIndex?: TDatumIndex,
         legendItemValues?: string[]
@@ -589,12 +601,12 @@ export abstract class Series<
             return HighlightState.Item;
         }
 
-        if (datum?.series == null) {
+        if (highlightedDatum?.series == null) {
             return HighlightState.None;
         }
 
-        if (this.isSeriesHighlighted(datum, legendItemValues)) {
-            const itemHighlighted = this.isItemHighlighted(datum, datumIndex);
+        if (this.isSeriesHighlighted(highlightedDatum, legendItemValues)) {
+            const itemHighlighted = this.isItemHighlighted(highlightedDatum, datumIndex);
             if (itemHighlighted == null) {
                 return HighlightState.Series;
             }
@@ -674,9 +686,14 @@ export abstract class Series<
         return highlightedDatum.datumIndex === datumIndex;
     }
 
-    protected getHighlightStyle(isHighlight?: boolean, datumIndex?: TDatumIndex, legendItemValues?: string[]) {
+    protected getHighlightStyle(
+        isHighlight?: boolean,
+        datumIndex?: TDatumIndex,
+        highlightState?: HighlightState,
+        legendItemValues?: string[]
+    ) {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
+        highlightState ??= this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
         return this.properties.highlight.getStyle(highlightState);
     }
 
@@ -1010,6 +1027,7 @@ export abstract class Series<
         { datumIndex, datum, point }: Partial<TDatum>,
         params?: TParams,
         opts?: {
+            highlightState?: HighlightState;
             isHighlight?: boolean;
             checkForHighlight?: boolean;
             resolveItemStylerMarkerPath?: boolean;
@@ -1018,10 +1036,15 @@ export abstract class Series<
         inheritedStyle?: AgSeriesMarkerStyle
     ) {
         const { itemStyler } = marker;
-        const { isHighlight = false, checkForHighlight = true, resolveItemStylerMarkerPath = true } = opts ?? {};
+        const {
+            highlightState,
+            isHighlight = false,
+            checkForHighlight = true,
+            resolveItemStylerMarkerPath = true,
+        } = opts ?? {};
 
         const highlightStyle: AgSeriesMarkerStyle | undefined = checkForHighlight
-            ? this.getHighlightStyle(isHighlight, datumIndex)
+            ? this.getHighlightStyle(isHighlight, datumIndex, highlightState)
             : undefined;
         const baseStyle = mergeDefaults(highlightStyle, defaultOverrideStyle, marker.getStyle(), inheritedStyle);
 
@@ -1029,14 +1052,14 @@ export abstract class Series<
 
         if (itemStyler && params) {
             const highlight = this.ctx.highlightManager?.getActiveHighlight();
-            const highlightState = this.getHighlightStateString(highlight, isHighlight, datumIndex);
+            const highlightStateString = this.getHighlightStateString(highlight, isHighlight, datumIndex);
 
             const style = this.cachedCallWithContext(itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
                 ...params,
                 highlighted: isHighlight,
-                highlightState,
+                highlightState: highlightStateString,
                 datum,
             });
             const resolvePath = resolveItemStylerMarkerPath
@@ -1048,6 +1071,23 @@ export abstract class Series<
         }
 
         return markerStyle;
+    }
+
+    public getMarkerStyles<TParams>(marker: ISeriesMarker<TParams>, inheritedStyle?: AgSeriesMarkerStyle) {
+        return highlightStates.reduce(
+            (styles, state) => {
+                styles[state] = this.getMarkerStyle(
+                    marker,
+                    {},
+                    undefined,
+                    { highlightState: state },
+                    undefined,
+                    inheritedStyle
+                );
+                return styles;
+            },
+            {} as Record<HighlightState, AgSeriesMarkerStyle>
+        );
     }
 
     protected applyMarkerStyle(

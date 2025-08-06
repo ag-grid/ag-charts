@@ -1,7 +1,10 @@
+import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+
 import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Point } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
+import type { SeriesNodeStyleContext } from '../series';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import type { InterpolationProperties } from './interpolationProperties';
@@ -41,11 +44,13 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
     readonly point: NonNullable<CartesianSeriesNodeDatum['point']>;
     readonly labelText?: string;
     readonly selected: boolean | undefined;
+    style?: AgSeriesMarkerStyle;
 }
 
 export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContext<LineNodeDatum> {
     strokeData: LineStrokePathDatum;
     crossFiltering: boolean;
+    styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
 }
 
 export function interpolatePoints(

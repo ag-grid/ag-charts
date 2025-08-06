@@ -122,9 +122,11 @@ export class MapShapeBackgroundSeries
     }
 
     override createNodeData() {
-        const { id: seriesId, topology, scale } = this;
+        const { id: seriesId, topology, scale, properties } = this;
 
         if (topology == null) return;
+
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = properties;
 
         const nodeData: MapShapeBackgroundNodeDatum[] = [];
         const labelData: never[] = [];
@@ -141,6 +143,7 @@ export class MapShapeBackgroundSeries
                 datumIndex: 0,
                 index,
                 projectedGeometry,
+                style: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset },
             });
         });
 
@@ -182,10 +185,7 @@ export class MapShapeBackgroundSeries
     private updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeBackgroundNodeDatum>;
     }) {
-        const { properties } = this;
         const { datumSelection } = opts;
-        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties;
-        const strokeWidth = properties.strokeWidth;
 
         datumSelection.each((geoGeometry, datum) => {
             const { projectedGeometry } = datum;
@@ -196,8 +196,7 @@ export class MapShapeBackgroundSeries
             }
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
-            const styles = { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset };
-            geoGeometry.setProperties(styles);
+            geoGeometry.setProperties(datum.style);
         });
     }
 

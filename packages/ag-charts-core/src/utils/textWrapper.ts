@@ -20,6 +20,7 @@ export function wrapText(text: string, options: WrapOptions) {
 
 export function wrapLines(text: string, options: WrapOptions) {
     const clippedResult = textWrap(text, options);
+
     if (options.overflow === 'hide' && clippedResult.some((l) => l.endsWith(EllipsisChar))) {
         return [];
     }
@@ -42,7 +43,7 @@ export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: nu
     while (text.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
         text = text.slice(0, -1).trimEnd();
     }
-    return text + EllipsisChar;
+    return text.length ? text + EllipsisChar : '';
 }
 
 function textWrap(text: string, options: WrapOptions) {
@@ -78,7 +79,11 @@ function textWrap(text: string, options: WrapOptions) {
             }
 
             if (estimatedWidth > options.maxWidth) {
-                if (i === 0) break; // char width is greater than options.maxWidth
+                // char width is greater than options.maxWidth
+                if (i === 0) {
+                    line = '';
+                    break;
+                }
 
                 // check actual width in case estimation is off
                 const actualWidth = measurer.textWidth(line.slice(0, i + 1));
@@ -107,7 +112,10 @@ function textWrap(text: string, options: WrapOptions) {
                         );
                     }
                 } else if (wrapOnSpace) {
-                    result.push(truncateLine(line, measurer, options.maxWidth, true));
+                    const newLine = truncateLine(line, measurer, options.maxWidth, true);
+                    if (newLine) {
+                        result.push(newLine);
+                    }
                 }
 
                 if (wrapOnSpace) {
@@ -151,7 +159,7 @@ function getWordAt(text: string, position: number) {
     return nextSpaceIndex === -1 ? text.slice(position) : text.slice(position, nextSpaceIndex);
 }
 
-function clipLines(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
+export function clipLines(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
     if (!options.maxHeight) {
         return lines;
     }
@@ -168,7 +176,9 @@ function clipLines(lines: string[], measurer: ITextMeasurer, options: WrapOption
             if (options.overflow === 'hide' || i === 0) return [];
             const clippedResults = lines.slice(0, i);
             const lastLine = clippedResults.pop()!;
-            return clippedResults.concat(truncateLine(lastLine, measurer, options.maxWidth, true));
+            return clippedResults.concat(
+                lastLine.endsWith(EllipsisChar) ? lastLine : truncateLine(lastLine, measurer, options.maxWidth, true)
+            );
         }
     }
 

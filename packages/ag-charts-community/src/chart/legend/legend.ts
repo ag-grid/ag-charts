@@ -167,6 +167,7 @@ const fillGradientDefaults: RequiredInternalAgGradientColor = {
     colorStops: [{ color: 'black' }],
     rotation: 0,
     reverse: false,
+    colorSpace: 'rgb',
 };
 
 const fillPatternDefaults: RequiredInternalAgPatternColor = {
