@@ -43,6 +43,10 @@ export interface RadarPathPoint {
     arc?: boolean;
 }
 
+interface RadarSeriesNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<number, RadarNodeDatum> {
+    styles: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+}
+
 class RadarSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
 > extends _ModuleSupport.SeriesNodeEvent<RadarNodeDatum, TEvent> {
@@ -74,6 +78,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     );
 
     protected resetInvalidToZero: boolean = false;
+
+    public contextNodeData?: RadarSeriesNodeDataContext;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -154,8 +160,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     maybeRefreshNodeData() {
         const didCircleChange = this.didCircleChange();
         if (!didCircleChange && !this.nodeDataRefresh) return;
-        const { nodeData = [] } = this.createNodeData() ?? {};
-        this.nodeData = nodeData;
+        this.contextNodeData = this.createNodeData();
+        this.nodeData = this.contextNodeData?.nodeData ?? [];
         this.nodeDataRefresh = false;
     }
 
@@ -164,7 +170,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         if (!processedData || !dataModel) return;
 
-        const { angleKey, radiusKey, angleName, radiusName, marker, label } = this.properties;
+        const { angleKey, radiusKey, angleName, radiusName, marker, label, stroke, strokeWidth, strokeOpacity } =
+            this.properties;
         const angleScale = this.axes[ChartAxisDirection.Angle]?.scale;
         const radiusScale = this.axes[ChartAxisDirection.Radius]?.scale;
 
@@ -243,7 +250,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             };
         });
 
-        return { itemId: radiusKey, nodeData, labelData: nodeData };
+        return {
+            itemId: radiusKey,
+            nodeData,
+            labelData: nodeData,
+            styles: this.getMarkerStyles(marker, { stroke, strokeWidth, strokeOpacity }),
+        };
     }
 
     update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
@@ -266,8 +278,15 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         this.updatePathSelections();
         this.updateMarkerSelection();
+        this.updateHighlightSelection();
 
         this.updatePathNodes();
+
+        if (this.hasItemStylers()) {
+            this.updateDatumStyles(this.itemSelection, false);
+            this.updateDatumStyles(this.highlightSelection, true);
+        }
+
         this.updateMarkers(this.itemSelection, false);
         this.updateMarkers(this.highlightSelection, true);
         this.updateLabels();
@@ -284,13 +303,31 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected updateMarkerSelection() {
-        if (this.properties.marker.isDirty()) {
+        const { marker } = this.properties;
+        if (marker.isDirty()) {
             this.itemSelection.clear();
             this.itemSelection.cleanup();
             this.itemSelection = Selection.select(this.itemGroup, () => this.nodeFactory(), false);
         }
 
-        this.itemSelection.update(this.properties.marker.enabled ? this.nodeData : []);
+        const data = this.visible && marker.shape && marker.enabled ? this.nodeData : [];
+        this.itemSelection.update(data);
+    }
+
+    protected updateHighlightSelection() {
+        const { marker } = this.properties;
+        if (marker.isDirty()) {
+            this.highlightSelection.clear();
+            this.highlightSelection.cleanup();
+            this.highlightSelection = Selection.select(this.highlightGroup, () => this.nodeFactory(), false);
+        }
+
+        const highlighted = this.ctx.highlightManager?.getActiveHighlight();
+        const data =
+            this.visible && marker.shape && marker.enabled && highlighted?.datum
+                ? [{ ...highlighted } as RadarNodeDatum]
+                : [];
+        this.highlightSelection.update(data);
     }
 
     protected getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
@@ -309,33 +346,17 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         };
     }
 
-    protected updateMarkers(
+    protected updateDatumStyles(
         selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
         isHighlight: boolean
     ) {
-        const { visible } = this;
         const { marker, stroke, strokeWidth, strokeOpacity } = this.properties;
 
-        let selectionData: RadarNodeDatum[] = [];
-
-        if (visible && marker.shape && marker.enabled) {
-            if (isHighlight) {
-                const highlighted = this.ctx.highlightManager?.getActiveHighlight();
-                if (highlighted?.datum) {
-                    selectionData = [highlighted as RadarNodeDatum];
-                }
-            } else {
-                selectionData = this.nodeData;
-            }
-        }
-
-        const fillBBox = this.getShapeFillBBox();
-
-        selection.update(selectionData).each((node, datum) => {
-            const style = this.getMarkerStyle(
+        selection.each((_, datum) => {
+            datum.style = this.getMarkerStyle(
                 marker,
                 datum,
-                this.getDatumStylerProperties(datum),
+                this.getDatumStylerProperties(datum.datum),
                 { isHighlight },
                 undefined,
                 {
@@ -344,7 +365,25 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                     strokeOpacity,
                 }
             );
+        });
+    }
 
+    protected updateMarkers(
+        selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
+        isHighlight: boolean
+    ) {
+        const fillBBox = this.getShapeFillBBox();
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
+
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
+        selection.each((node, datum) => {
+            const style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             this.applyMarkerStyle(style, node, datum.point, fillBBox);
         });
     }

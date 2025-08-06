@@ -1,4 +1,5 @@
 import {
+    type ColorSpace,
     Logger,
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
@@ -29,6 +30,14 @@ export enum HighlightState {
     OtherSeries,
     OtherItem,
 }
+
+export const highlightStates = [
+    HighlightState.None,
+    HighlightState.Item,
+    HighlightState.Series,
+    HighlightState.OtherSeries,
+    HighlightState.OtherItem,
+];
 
 type HighlightMixins = {
     fill: AgColorType;
@@ -157,6 +166,9 @@ export class FillGradientDefaults
 
     @Property
     reverse: boolean = false;
+
+    @Property
+    colorSpace: ColorSpace = 'rgb';
 }
 
 export class FillPatternDefaults

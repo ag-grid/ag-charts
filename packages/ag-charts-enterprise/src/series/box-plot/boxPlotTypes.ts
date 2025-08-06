@@ -1,4 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { AgBoxPlotSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 
 export interface BoxPlotNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'xValue' | 'yKey' | 'yValue'> {
     readonly bandwidth: number;
@@ -13,4 +13,6 @@ export interface BoxPlotNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNod
     };
 
     readonly focusRect: { x: number; y: number; width: number; height: number };
+
+    style?: Required<AgBoxPlotSeriesStyle>;
 }

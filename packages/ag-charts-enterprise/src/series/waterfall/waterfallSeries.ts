@@ -36,6 +36,7 @@ const {
     motion,
     applyShapeStyle,
     mergeDefaults,
+    getItemStylesPerItemId,
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
@@ -60,10 +61,12 @@ interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Re
     // Required for types
     readonly clipBBox?: _ModuleSupport.BBox;
     readonly opacity?: number;
+    style?: Required<AgWaterfallSeriesStyle>;
 }
 
 interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<WaterfallNodeDatum> {
     pointData?: WaterfallNodePointDatum[];
+    styles: Record<AgWaterfallSeriesItemType, _ModuleSupport.SeriesNodeStyleContext<Required<AgWaterfallSeriesStyle>>>;
 }
 
 type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
@@ -247,6 +250,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             scales: this.calculateScaling(),
             groupScale: this.getScaling(this.groupScale),
             visible: this.visible,
+            styles: getItemStylesPerItemId(this.getItemStyle.bind(this), 'total', 'subtotal', 'positive', 'negative'),
         };
 
         if (!this.visible) return context;
@@ -534,12 +538,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private getItemStyle(
-        { datumIndex = 0, datum, itemId = 'total' }: Partial<WaterfallNodeDatum>,
-        isHighlight: boolean
+        nodeDatum: WaterfallNodeDatum | undefined,
+        isHighlight: boolean,
+        highlightState?: _ModuleSupport.HighlightState,
+        itemId: AgWaterfallSeriesItemType = 'total'
     ): Required<AgWaterfallSeriesStyle> {
         const { id: seriesId, properties } = this;
+        const { datumIndex = 0, datum } = nodeDatum ?? {};
+
         const item = properties.item[itemId === 'subtotal' ? 'total' : itemId];
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemId));
 
         const { itemStyler } = item;
@@ -547,12 +555,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         let style = baseStyle;
 
-        if (itemStyler != null) {
+        if (itemStyler != null && nodeDatum != null) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
 
                     return this.callWithContext(itemStyler, {
                         seriesId,
@@ -561,7 +569,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                         xKey,
                         yKey,
                         highlighted: isHighlight,
-                        highlightState,
+                        highlightState: highlightStateString,
                         ...style,
                     });
                 }
@@ -574,24 +582,44 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return style;
     }
 
-    protected override updateDatumNodes(opts: {
+    protected override updateDatumStyles({
+        datumSelection,
+        isHighlight,
+    }: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, WaterfallNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        datumSelection.each((_, datum) => {
+            datum.style = this.getItemStyle(datum, isHighlight, undefined, datum.itemId);
+        });
+    }
+
+    protected override updateDatumNodes({
+        datumSelection,
+        isHighlight,
+    }: {
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, WaterfallNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
-            const style = this.getItemStyle(datum, isHighlight);
-
+            const style =
+                datum.style ??
+                contextNodeData.styles[datum.itemId][
+                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
+                ];
             applyShapeStyle(rect, style, fillBBox);
 
             rect.cornerRadius = style.cornerRadius ?? 0;
-
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
-
             rect.crisp = datum.crisp;
         });
     }
@@ -671,7 +699,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             total = yValue;
         }
 
-        const format = this.getItemStyle({ datumIndex, datum, itemId: seriesItemType }, false);
+        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
+        const format = this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemId);
 
         return this.formatTooltipWithContext(
             tooltip,

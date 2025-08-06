@@ -146,7 +146,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.labelSelection.update(descendants, updateLabelGroup, (node) => this.getDatumId(node));
     }
 
-    private getItemStyle(nodeDatum: SunburstNode, isHighlight: boolean) {
+    protected getItemStyle(
+        nodeDatum: Pick<SunburstNode, 'datumIndex' | 'datum' | 'depth' | 'colorValue'>,
+        isHighlight: boolean
+    ) {
         const { id: seriesId, properties, colorScale } = this;
 
         const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;

@@ -437,6 +437,7 @@ export class MapMarkerSeries
                     point: { x, y, size },
                     midPoint: { x, y },
                     legendItemName,
+                    style: this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
                 });
             } else if (projectedGeometry != null) {
                 markerPositions(projectedGeometry, 1).forEach(([x, y], index) => {
@@ -460,6 +461,7 @@ export class MapMarkerSeries
                         point: { x, y, size },
                         midPoint: { x, y },
                         legendItemName,
+                        style: this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
                     });
                 });
             }

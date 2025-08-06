@@ -469,6 +469,8 @@ export abstract class CartesianSeries<
         this.contentGroup.visible = animationEnabled || visible;
 
         this.highlightGroup.visible = (animationEnabled || visible) && itemHighlighted;
+
+        this.updateDatumStyles({ datumSelection: highlightSelection, isHighlight: true });
         this.updateDatumNodes({
             datumSelection: highlightSelection,
             isHighlight: true,
@@ -486,6 +488,10 @@ export abstract class CartesianSeries<
             return;
         }
 
+        if (this.hasItemStylers()) {
+            this.updateDatumStyles({ datumSelection, isHighlight: false });
+        }
+
         const redrawAll = this.strokewidthChange() || this.hasChangesOnHighlight;
 
         if (nodeRefresh || redrawAll) {
@@ -498,15 +504,8 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected getHighlightLabelData(labelData: TLabel[], highlightedItem: TDatum): TLabel[] | undefined {
-        const labelItems = labelData.filter(
-            (ld) => ld.datum === highlightedItem.datum && ld.itemId === highlightedItem.itemId
-        );
-        return labelItems.length === 0 ? undefined : labelItems;
-    }
-
     protected getHighlightData(_nodeData: TDatum[], highlightedItem: TDatum): TDatum[] | undefined {
-        return highlightedItem ? [highlightedItem] : undefined;
+        return highlightedItem ? [{ ...highlightedItem }] : undefined;
     }
 
     protected updateHighlightSelection(): boolean {
@@ -704,7 +703,10 @@ export abstract class CartesianSeries<
                 }
             }
 
-            return { datum: closestDatum, distance: Math.sqrt(closestDistanceSquared) };
+            return {
+                datum: closestDatum,
+                distance: Math.sqrt(closestDistanceSquared),
+            };
         }
     }
 
@@ -962,16 +964,6 @@ export abstract class CartesianSeries<
         });
     }
 
-    protected updateHighlightSelectionLabel(opts: {
-        items?: TLabel[];
-        highlightLabelSelection: Selection<Text, TLabel>;
-    }) {
-        return this.updateLabelSelection({
-            labelData: opts.items ?? [],
-            labelSelection: opts.highlightLabelSelection,
-        });
-    }
-
     protected updateDatumSelection(opts: {
         nodeData: TDatum[];
         datumSelection: Selection<TNode, TDatum>;
@@ -980,6 +972,10 @@ export abstract class CartesianSeries<
         return opts.datumSelection;
     }
     protected updateDatumNodes(_opts: { datumSelection: Selection<TNode, TDatum>; isHighlight: boolean }): void {
+        // Override point for sub-classes.
+    }
+
+    protected updateDatumStyles(_opts: { datumSelection: Selection<TNode, TDatum>; isHighlight: boolean }): void {
         // Override point for sub-classes.
     }
 

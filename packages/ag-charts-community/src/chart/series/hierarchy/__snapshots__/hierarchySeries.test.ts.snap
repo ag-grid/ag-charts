@@ -18,6 +18,7 @@ HierarchyNode {
             "y": 0,
           },
           "sizeValue": 1,
+          "style": {},
           "sumSize": 1,
         },
         HierarchyNode {
@@ -33,6 +34,7 @@ HierarchyNode {
             "y": 0,
           },
           "sizeValue": 2,
+          "style": {},
           "sumSize": 2,
         },
         HierarchyNode {
@@ -48,6 +50,7 @@ HierarchyNode {
             "y": 0,
           },
           "sizeValue": 3,
+          "style": {},
           "sumSize": 3,
         },
       ],
@@ -61,6 +64,7 @@ HierarchyNode {
         "y": 0,
       },
       "sizeValue": 5,
+      "style": {},
       "sumSize": 11,
     },
     HierarchyNode {
@@ -78,6 +82,7 @@ HierarchyNode {
             "y": 0,
           },
           "sizeValue": 1,
+          "style": {},
           "sumSize": 1,
         },
         HierarchyNode {
@@ -96,6 +101,7 @@ HierarchyNode {
                 "y": 0,
               },
               "sizeValue": 4,
+              "style": {},
               "sumSize": 4,
             },
             HierarchyNode {
@@ -112,6 +118,7 @@ HierarchyNode {
                 "y": 0,
               },
               "sizeValue": 5,
+              "style": {},
               "sumSize": 5,
             },
             HierarchyNode {
@@ -128,6 +135,7 @@ HierarchyNode {
                 "y": 0,
               },
               "sizeValue": 6,
+              "style": {},
               "sumSize": 6,
             },
           ],
@@ -142,6 +150,7 @@ HierarchyNode {
             "y": 0,
           },
           "sizeValue": 2,
+          "style": {},
           "sumSize": 17,
         },
         HierarchyNode {
@@ -160,6 +169,7 @@ HierarchyNode {
                 "y": 0,
               },
               "sizeValue": 7,
+              "style": {},
               "sumSize": 7,
             },
           ],
@@ -174,6 +184,7 @@ HierarchyNode {
             "y": 0,
           },
           "sizeValue": 3,
+          "style": {},
           "sumSize": 10,
         },
       ],
@@ -187,6 +198,7 @@ HierarchyNode {
         "y": 0,
       },
       "sizeValue": 5,
+      "style": {},
       "sumSize": 33,
     },
   ],
@@ -198,6 +210,7 @@ HierarchyNode {
     "y": 0,
   },
   "sizeValue": 0,
+  "style": {},
   "sumSize": 44,
 }
 `;

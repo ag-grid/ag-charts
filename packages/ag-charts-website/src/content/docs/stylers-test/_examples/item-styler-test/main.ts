@@ -121,6 +121,20 @@ function createItemStyler(type: string) {
 const barLineAreaOptions: AgCartesianChartOptions = {
     series: [
         {
+            type: 'area',
+            xKey: 'category',
+            yKey: 'value1',
+            yName: 'Area Series',
+            marker: {
+                enabled: true,
+                itemStyler: createItemStyler('area-marker'),
+            },
+            label: {
+                enabled: true,
+                itemStyler: createItemStyler('area-label*'),
+            },
+        },
+        {
             type: 'bar',
             xKey: 'category',
             yKey: 'value1',
@@ -141,7 +155,6 @@ const barLineAreaOptions: AgCartesianChartOptions = {
             xKey: 'category',
             yKey: 'value2',
             yName: 'Line Series',
-            // Note: Line series does not support itemStyler for the line itself
             marker: {
                 enabled: true,
                 itemStyler: createItemStyler('line-marker'),
@@ -154,22 +167,6 @@ const barLineAreaOptions: AgCartesianChartOptions = {
                 yLowerKey: 'value1',
                 yUpperKey: 'value2',
                 itemStyler: createItemStyler('line-errorBar'),
-            },
-        },
-        {
-            type: 'area',
-            xKey: 'category',
-            yKey: 'value1',
-            yName: 'Area Series',
-            visible: false,
-            // Note: Area series does not support itemStyler for the area itself
-            marker: {
-                enabled: true,
-                itemStyler: createItemStyler('area-marker'),
-            },
-            label: {
-                enabled: true,
-                itemStyler: createItemStyler('area-label*'),
             },
         },
     ],
@@ -570,6 +567,7 @@ const rangeSeriesOptions: AgCartesianChartOptions = {
 
 const waterfallOptions: AgCartesianChartOptions = {
     series: [
+        // Single series only
         {
             type: 'waterfall',
             xKey: 'category',
@@ -591,30 +589,6 @@ const waterfallOptions: AgCartesianChartOptions = {
                 },
                 total: {
                     itemStyler: createItemStyler('waterfall1-total'),
-                },
-            },
-        },
-        {
-            type: 'waterfall',
-            xKey: 'category',
-            yKey: 'value2',
-            yName: 'Waterfall 2',
-            totals: [
-                {
-                    totalType: 'total',
-                    index: 3,
-                    axisLabel: 'Total 2',
-                },
-            ],
-            item: {
-                positive: {
-                    itemStyler: createItemStyler('waterfall2-positive'),
-                },
-                negative: {
-                    itemStyler: createItemStyler('waterfall2-negative'),
-                },
-                total: {
-                    itemStyler: createItemStyler('waterfall2-total'),
                 },
             },
         },
@@ -1141,61 +1115,7 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: cartesianData,
     animation: { enabled: false },
-    series: [
-        {
-            type: 'area',
-            xKey: 'category',
-            yKey: 'value1',
-            yName: 'Area Series',
-            marker: {
-                enabled: true,
-                itemStyler: createItemStyler('area-marker'),
-            },
-            label: {
-                enabled: true,
-                itemStyler: createItemStyler('area-label*'),
-            },
-        },
-        {
-            type: 'bar',
-            xKey: 'category',
-            yKey: 'value1',
-            yName: 'Bar Series',
-            itemStyler: createItemStyler('bar'),
-            label: {
-                enabled: true,
-                itemStyler: createItemStyler('bar-label*'),
-            },
-            errorBar: {
-                yLowerKey: 'value1',
-                yUpperKey: 'value2',
-                itemStyler: createItemStyler('bar-errorBar'),
-            },
-        },
-        {
-            type: 'line',
-            xKey: 'category',
-            yKey: 'value2',
-            yName: 'Line Series',
-            marker: {
-                enabled: true,
-                itemStyler: createItemStyler('line-marker'),
-            },
-            label: {
-                enabled: true,
-                itemStyler: createItemStyler('line-label*'),
-            },
-            errorBar: {
-                yLowerKey: 'value1',
-                yUpperKey: 'value2',
-                itemStyler: createItemStyler('line-errorBar'),
-            },
-        },
-    ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    ...barLineAreaOptions,
 };
 
 chart = AgCharts.create(options);
@@ -1214,8 +1134,8 @@ function updateStatusIndicators() {
         'none',
     ];
 
-    // Create configuration groups - only for current chart
-    const configGroups: Record<string, string[]> = {};
+    // Create series groups - only for current chart
+    const seriesGroups: Record<string, string[]> = {};
     const currentChartKeys = Object.keys(itemStylerStatus).filter((key) => {
         const status = itemStylerStatus[key];
         return status && status.used && status.chartType === currentChartType;
@@ -1226,15 +1146,15 @@ function updateStatusIndicators() {
         const seriesType = parts[0];
         const configType = parts.length > 1 ? parts[parts.length - 1] : 'item';
 
-        if (!configGroups[configType]) {
-            configGroups[configType] = [];
+        if (!seriesGroups[seriesType]) {
+            seriesGroups[seriesType] = [];
         }
-        if (!configGroups[configType].includes(seriesType)) {
-            configGroups[configType].push(seriesType);
+        if (!seriesGroups[seriesType].includes(configType)) {
+            seriesGroups[seriesType].push(configType);
         }
     });
 
-    // Create status indicators HTML
+    // Create status indicators HTML with series grouping
     const statusHtml = `
         <h3>Current Chart: ${currentChartType}</h3>
         <div class="status-items">
@@ -1257,7 +1177,7 @@ function updateStatusIndicators() {
 
                             if (unseenCount === 0) {
                                 color = '#4caf50';
-                                statusText = 'Valid ✓';
+                                statusText = 'Complete ✓';
                                 tooltip = `All ${totalCount} states seen`;
                             } else {
                                 color = '#ffd700';
@@ -1268,24 +1188,125 @@ function updateStatusIndicators() {
                         }
                     }
 
-                    return `<div class="status-item" style="background: ${color}; color: ${color === '#ffd700' ? 'black' : 'white'};" title="${tooltip}">
+                    return `<div class="status-item" style="background: ${color}; color: ${color === '#ffd700' ? 'black' : 'white'}; padding: 5px 10px; margin: 2px; border-radius: 3px; display: inline-block;" title="${tooltip}">
                         ${name}: ${statusText}
+                    </div>`;
+                })
+                .join('')}
+        </div>
+        <h4>Series Summary</h4>
+        <div class="series-summary">
+            ${Object.keys(seriesGroups)
+                .sort()
+                .map((seriesType) => {
+                    const configs = seriesGroups[seriesType];
+                    let completeCount = 0;
+                    let partialCount = 0;
+                    let unusedCount = 0;
+
+                    configs.forEach((config) => {
+                        const key = config === 'item' ? seriesType : `${seriesType}-${config}`;
+                        const status = itemStylerStatus[key];
+
+                        if (!status || !status.used) {
+                            unusedCount++;
+                        } else if (status.unseenStates.size === 0) {
+                            completeCount++;
+                        } else {
+                            partialCount++;
+                        }
+                    });
+
+                    const totalConfigs = configs.length;
+                    let summaryColor = '#4caf50';
+                    let summaryText = 'Complete';
+
+                    if (unusedCount > 0 || partialCount > 0) {
+                        if (completeCount === 0) {
+                            summaryColor = '#f44336';
+                            summaryText = 'Incomplete';
+                        } else {
+                            summaryColor = '#ffd700';
+                            summaryText = 'Partial';
+                        }
+                    }
+
+                    return `<div class="series-item" style="background: ${summaryColor}; color: ${summaryColor === '#ffd700' ? 'black' : 'white'}; padding: 8px 12px; margin: 5px; border-radius: 5px; display: inline-block;">
+                        <strong>${seriesType}</strong>: ${summaryText} (${completeCount}/${totalConfigs} complete)
                     </div>`;
                 })
                 .join('')}
         </div>
     `;
 
-    // Create matrix HTML
+    // Create matrix HTML with grouped columns
     const matrixHtml = `
-        <h3>State vs Configuration Matrix</h3>
+        <style>
+            .status-matrix-table {
+                border-collapse: collapse;
+                width: 100%;
+                margin: 10px 0;
+                font-size: 12px;
+            }
+            .status-matrix-table th, .status-matrix-table td {
+                border: 1px solid #ddd;
+                padding: 4px 8px;
+                text-align: center;
+            }
+            .status-matrix-table th {
+                background: #f5f5f5;
+                font-weight: bold;
+            }
+            .status-matrix-table .config-header {
+                background: #e8e8e8;
+                font-size: 10px;
+                border-top: 2px solid #999;
+            }
+            .status-matrix-table .state-name {
+                background: #f9f9f9;
+                text-align: left;
+                font-weight: bold;
+            }
+            .matrix-cell {
+                width: 30px;
+                height: 20px;
+                min-width: 30px;
+            }
+            .matrix-legend {
+                margin: 10px 0;
+                font-size: 12px;
+            }
+            .legend-item {
+                margin-right: 15px;
+                display: inline-flex;
+                align-items: center;
+            }
+            .legend-color {
+                width: 12px;
+                height: 12px;
+                margin-right: 5px;
+                border: 1px solid #ccc;
+            }
+        </style>
+        <h3>State vs Series Configuration Matrix</h3>
         <table class="status-matrix-table">
             <thead>
                 <tr>
-                    <th>State / Config</th>
-                    ${Object.keys(configGroups)
+                    <th rowspan="2">Highlight State</th>
+                    ${Object.keys(seriesGroups)
                         .sort()
-                        .map((config) => `<th>${config}</th>`)
+                        .map((seriesType) => `<th colspan="${seriesGroups[seriesType].length}">${seriesType}</th>`)
+                        .join('')}
+                </tr>
+                <tr>
+                    ${Object.keys(seriesGroups)
+                        .sort()
+                        .map((seriesType) =>
+                            seriesGroups[seriesType]
+                                .sort()
+                                .map((config) => `<th class="config-header">${config}</th>`)
+                                .join('')
+                        )
                         .join('')}
                 </tr>
             </thead>
@@ -1294,26 +1315,45 @@ function updateStatusIndicators() {
                     .map((state) => {
                         return `<tr>
                         <td class="state-name">${state}</td>
-                        ${Object.keys(configGroups)
+                        ${Object.keys(seriesGroups)
                             .sort()
-                            .map((config) => {
-                                const hasState = configGroups[config].some((seriesType) => {
-                                    const key = config === 'item' ? seriesType : `${seriesType}-${config}`;
-                                    const status = itemStylerStatus[key];
-                                    return status && status.used && !status.unseenStates.has(state);
-                                });
+                            .map((seriesType) =>
+                                seriesGroups[seriesType]
+                                    .sort()
+                                    .map((config) => {
+                                        const key = config === 'item' ? seriesType : `${seriesType}-${config}`;
+                                        const status = itemStylerStatus[key];
+                                        const hasState = status && status.used && !status.unseenStates.has(state);
 
-                                const color = hasState ? '#4caf50' : '#999';
-                                const tooltip = hasState ? 'State seen' : 'State not seen';
+                                        let color = '#999';
+                                        let tooltip = 'Configuration not used';
 
-                                return `<td class="matrix-cell" style="background: ${color};" title="${tooltip}"></td>`;
-                            })
+                                        if (status && status.used) {
+                                            if (hasState) {
+                                                color = '#4caf50';
+                                                tooltip = `${seriesType} ${config}: State "${state}" seen`;
+                                            } else {
+                                                color = '#ffd700';
+                                                tooltip = `${seriesType} ${config}: State "${state}" NOT seen`;
+                                            }
+                                        }
+
+                                        return `<td class="matrix-cell" style="background: ${color};" title="${tooltip}"></td>`;
+                                    })
+                                    .join('')
+                            )
                             .join('')}
                     </tr>`;
                     })
                     .join('')}
             </tbody>
         </table>
+        <div class="matrix-legend">
+            <strong>Legend:</strong>
+            <span class="legend-item"><span class="legend-color" style="background: #4caf50;"></span> State seen</span>
+            <span class="legend-item"><span class="legend-color" style="background: #ffd700;"></span> State not seen</span>
+            <span class="legend-item"><span class="legend-color" style="background: #999;"></span> Config not used</span>
+        </div>
     `;
 
     statusContainer.innerHTML = statusHtml;

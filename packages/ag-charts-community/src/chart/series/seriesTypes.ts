@@ -87,6 +87,7 @@ export interface SeriesNodeDatum<I> {
     readonly enabled?: boolean;
     readonly focusable?: boolean;
     midPoint?: Readonly<Point>;
+    readonly style?: unknown;
 }
 
 export interface ErrorBoundSeriesNodeDatum {

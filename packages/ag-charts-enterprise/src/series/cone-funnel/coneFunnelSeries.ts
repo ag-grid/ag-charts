@@ -1,15 +1,16 @@
 import {
     type AgConeFunnelSeriesLabelFormatterParams,
     type AgConeFunnelSeriesOptions,
+    type AgConeFunnelSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
+import type { RequireOptional } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
     type Bounds,
     type FunnelNodeDatum,
     type FunnelNodeLabelDatum,
-    type FunnelSeriesShapeStyle,
 } from '../funnel/baseFunnelSeries';
 import { ConeFunnelProperties } from './coneFunnelProperties';
 import { resetLineSelectionsFn } from './coneFunnelUtil';
@@ -51,40 +52,15 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgCo
         return true;
     }
 
-    protected override barStyle(): FunnelSeriesShapeStyle {
-        return {
-            fillOpacity: 1,
-            strokeOpacity: 1,
-            strokeWidth: 0,
-            lineDash: [],
-            lineDashOffset: 0,
-            fillGradientDefaults: this.properties.fillGradientDefaults,
-            fillPatternDefaults: this.properties.fillPatternDefaults,
-            fillImageDefaults: this.properties.fillImageDefaults,
-        };
+    protected getItemStyle(
+        { datumIndex }: Pick<FunnelNodeDatum, 'datumIndex'>,
+        _isHighlight: boolean
+    ): RequireOptional<AgConeFunnelSeriesStyle> & { opacity: number } {
+        return this.properties.getStyle(datumIndex);
     }
 
-    protected override connectorStyle(): FunnelSeriesShapeStyle {
-        const {
-            fillOpacity,
-            strokeOpacity,
-            strokeWidth,
-            lineDash,
-            lineDashOffset,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-        } = this.properties;
-        return {
-            fillOpacity,
-            strokeOpacity,
-            strokeWidth,
-            lineDash,
-            lineDashOffset,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-        };
+    protected override connectorStyle(index: number): RequireOptional<AgConeFunnelSeriesStyle> & { opacity: number } {
+        return this.properties.getStyle(index);
     }
 
     protected override nodeFactory(): _ModuleSupport.Line {
@@ -194,11 +170,8 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line, AgCo
     }
 
     protected tooltipStyle(_datum: any, datumIndex: number) {
-        const { fills, strokes } = this.properties;
-
-        const fill = fills[datumIndex % fills.length] ?? 'black';
-        const stroke = strokes[datumIndex % strokes.length] ?? 'black';
-        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.barStyle();
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
+            this.properties.getStyle(datumIndex);
 
         return {
             fill,

@@ -19,6 +19,7 @@ export interface MapLineNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatu
     readonly sizeValue: number | undefined;
     readonly legendItemName: string | undefined;
     readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
+    style: AgMapLineSeriesStyle;
 }
 
 export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOptions> {
@@ -90,4 +91,15 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgMapLineSeriesTooltipRendererParams<any>>();
+
+    getStyle(): Required<AgMapLineSeriesStyle> {
+        const { stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this;
+        return {
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+        };
+    }
 }

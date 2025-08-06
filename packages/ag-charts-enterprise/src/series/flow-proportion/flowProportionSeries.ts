@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
@@ -16,6 +16,9 @@ export type FlowProportionNodeDatumIndex = {
     index: number;
 };
 
+type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
+    Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
+
 export interface FlowProportionLinkDatum<
     TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
@@ -25,6 +28,7 @@ export interface FlowProportionLinkDatum<
     fromNode: TNodeDatum;
     toNode: TNodeDatum;
     size: number;
+    style: NodeStyle;
 }
 
 export interface FlowProportionNodeDatum<
@@ -38,6 +42,7 @@ export interface FlowProportionNodeDatum<
     id: string;
     size: number;
     label: string | undefined;
+    style: NodeStyle;
 }
 
 export interface FlowProportionSeriesContext<
@@ -232,6 +237,16 @@ export abstract class FlowProportionSeries<
                     id,
                     size: 0,
                     label,
+                    style: this.getNodeStyle(
+                        {
+                            datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex },
+                            datum: {},
+                            size: 0,
+                            label,
+                        } as Partial<TNodeDatum>,
+                        datumIndex,
+                        false
+                    ),
                 };
             };
 
@@ -267,11 +282,13 @@ export abstract class FlowProportionSeries<
                 const id: string = nodeIdValues[datumIndex];
                 const label: string | undefined = labelValues?.[datumIndex];
 
+                const nodeDatumIndex = { type: FlowProportionDatumType.Node, index: datumIndex };
+
                 processedNodes.set(id, {
                     series: this,
                     itemId: undefined,
                     datum,
-                    datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex },
+                    datumIndex: nodeDatumIndex,
                     type: FlowProportionDatumType.Node,
                     index: datumIndex,
                     linksBefore: [],
@@ -279,12 +296,29 @@ export abstract class FlowProportionSeries<
                     id,
                     size: 0,
                     label,
+                    style: this.getNodeStyle(
+                        { datumIndex: nodeDatumIndex, datum, size: 0, label } as Partial<TNodeDatum>,
+                        datumIndex,
+                        false
+                    ),
                 });
             });
         }
 
         this.processedNodes = processedNodes;
     }
+
+    protected abstract getNodeStyle(
+        datum: Partial<TNodeDatum>,
+        fromNodeDatumIndex: number,
+        isHighlight: boolean
+    ): NodeStyle;
+
+    protected abstract getLinkStyle(
+        { datumIndex, datum }: Partial<TLinkDatum>,
+        fromNodeDatumIndex: FlowProportionNodeDatumIndex,
+        isHighlight: boolean
+    ): NodeStyle;
 
     protected getNodeGraph(
         createNode: (node: FlowProportionNodeDatum<TNodeDatum, TLinkDatum>) => TNodeDatum,
@@ -329,16 +363,23 @@ export abstract class FlowProportionSeries<
             const toNode = nodesById.get(toId);
             if (size <= 0 || fromNode == null || toNode == null) return;
 
+            const linkNodeDatumIndex = { type: FlowProportionDatumType.Link, index: datumIndex };
+
             const link = createLink({
                 series: this,
                 itemId: undefined,
                 datum,
-                datumIndex: { type: FlowProportionDatumType.Link, index: datumIndex },
+                datumIndex: linkNodeDatumIndex,
                 type: FlowProportionDatumType.Link,
                 index: datumIndex,
                 fromNode,
                 toNode,
                 size,
+                style: this.getLinkStyle(
+                    { datum, datumIndex: linkNodeDatumIndex } as Partial<TLinkDatum>,
+                    fromNode.datumIndex,
+                    false
+                ),
             });
             baseLinks.push(link);
         });

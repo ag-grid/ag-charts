@@ -33,6 +33,7 @@ const {
     isGradientFill,
     updateLabelNode,
     mergeDefaults,
+    getItemStyles,
 } = _ModuleSupport;
 
 class RadialColumnSeriesNodeEvent<
@@ -71,6 +72,12 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNod
     readonly axisOuterRadius: number;
     readonly columnWidth: number;
     readonly index: number;
+    style?: AgRadialSeriesStyle;
+}
+
+interface RadialColumnSeriesNodeDataContext
+    extends _ModuleSupport.DataModelSeriesNodeDataContext<RadialColumnNodeDatum, RadialColumnNodeDatum> {
+    styles: _ModuleSupport.SeriesNodeStyleContext<AgRadialSeriesStyle>;
 }
 
 export abstract class RadialColumnSeriesBase<
@@ -79,11 +86,15 @@ export abstract class RadialColumnSeriesBase<
     RadialColumnNodeDatum,
     AgBaseRadialColumnSeriesOptions,
     RadialColumnSeriesBaseProperties<AgBaseRadialColumnSeriesOptions>,
-    ItemPathType
+    ItemPathType,
+    RadialColumnNodeDatum,
+    RadialColumnSeriesNodeDataContext
 > {
     protected override readonly NodeEvent = RadialColumnSeriesNodeEvent;
 
     private readonly groupScale = new CategoryScale<string>();
+
+    public contextNodeData?: RadialColumnSeriesNodeDataContext;
 
     constructor(
         moduleCtx: _ModuleSupport.ModuleContext,
@@ -217,8 +228,8 @@ export abstract class RadialColumnSeriesBase<
     maybeRefreshNodeData() {
         const circleChanged = this.didCircleChange();
         if (!circleChanged && !this.nodeDataRefresh) return;
-        const { nodeData = [] } = this.createNodeData() ?? {};
-        this.nodeData = nodeData;
+        this.contextNodeData = this.createNodeData();
+        this.nodeData = this.contextNodeData?.nodeData ?? [];
         this.nodeDataRefresh = false;
     }
 
@@ -294,7 +305,12 @@ export abstract class RadialColumnSeriesBase<
         };
 
         const nodeData: RadialColumnNodeDatum[] = [];
-        const context = { itemId: radiusKey, nodeData, labelData: nodeData };
+        const context = {
+            itemId: radiusKey,
+            nodeData,
+            labelData: nodeData,
+            styles: getItemStyles(this.getItemStyle.bind(this)),
+        };
         if (!this.visible) return context;
 
         const { dataSources } = processedData;
@@ -364,7 +380,12 @@ export abstract class RadialColumnSeriesBase<
             });
         }
 
-        return { itemId: radiusKey, nodeData, labelData: nodeData };
+        return {
+            itemId: radiusKey,
+            nodeData,
+            labelData: nodeData,
+            styles: getItemStyles(this.getItemStyle.bind(this)),
+        };
     }
 
     protected getColumnWidth(_startAngle: number, _endAngle: number) {
@@ -396,11 +417,15 @@ export abstract class RadialColumnSeriesBase<
 
     protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
 
-    protected getItemStyle(nodeDatum: RadialColumnNodeDatum, isHighlight: boolean): Required<AgRadialSeriesStyle> {
+    protected getItemStyle(
+        nodeDatum: RadialColumnNodeDatum | undefined,
+        isHighlight: boolean,
+        highlightState?: _ModuleSupport.HighlightState
+    ): Required<AgRadialSeriesStyle> {
         const { id: seriesId, properties } = this;
         const { angleKey, radiusKey, itemStyler } = properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
+        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
         let style = baseStyle;
 
@@ -409,7 +434,7 @@ export abstract class RadialColumnSeriesBase<
                 createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightState = this.getHighlightStateString(
+                    const highlightStateString = this.getHighlightStateString(
                         activeHighlight,
                         isHighlight,
                         nodeDatum.datumIndex
@@ -418,7 +443,7 @@ export abstract class RadialColumnSeriesBase<
                         seriesId,
                         datum: nodeDatum.datum,
                         highlighted: isHighlight,
-                        highlightState,
+                        highlightState: highlightStateString,
                         angleKey,
                         radiusKey,
                         ...style,
@@ -438,6 +463,12 @@ export abstract class RadialColumnSeriesBase<
         selection: _ModuleSupport.Selection<ItemPathType, RadialColumnNodeDatum>,
         isHighlight: boolean
     ) {
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
         let selectionData: RadialColumnNodeDatum[] = [];
         if (isHighlight) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -453,13 +484,20 @@ export abstract class RadialColumnSeriesBase<
         const axisOuterRadius = radiusAxisReversed ? this.getAxisInnerRadius() : this.radius;
 
         const fillBBox = this.getShapeFillBBox();
+        const hasItemStylers = this.hasItemStylers();
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const { midPoint } = nodeDatum;
 
-                const style = this.getItemStyle(nodeDatum, isHighlight);
+                if (hasItemStylers) {
+                    nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+                }
+
+                const style =
+                    nodeDatum.style ??
+                    contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex)];
 
                 const fill = style.fill;
                 const itemBounds = isGradientFill(fill) && fill.bounds === 'item';
@@ -471,7 +509,7 @@ export abstract class RadialColumnSeriesBase<
 
                 applyShapeStyle(node, style, fillBBox, fillParams);
 
-                node.cornerRadius = style.cornerRadius;
+                node.cornerRadius = style.cornerRadius ?? 0;
                 node.lineJoin = 'round';
             });
     }
@@ -604,7 +642,7 @@ export abstract class RadialColumnSeriesBase<
         ];
     }
 
-    private getDatumId(datum: RadialColumnNodeDatum) {
+    private getDatumId(datum: Pick<RadialColumnNodeDatum, 'angleValue'>) {
         return createDatumId(datum.angleValue);
     }
 

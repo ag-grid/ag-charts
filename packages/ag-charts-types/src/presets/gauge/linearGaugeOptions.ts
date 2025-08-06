@@ -12,6 +12,8 @@ import type {
 
 export type AgLinearGaugeTargetPlacement = 'before' | 'after' | 'middle';
 
+export interface AgLinearGaugeSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
+
 export interface AgLinearGaugeScaleInterval {
     /** Array of values in scale units for specified intervals along the scale. The values in this array must be compatible with the scale type. */
     values?: number[];
@@ -24,11 +26,7 @@ export interface AgLinearGaugeScaleLabel<TContext = ContextDefault> extends AgGa
     placement?: 'before' | 'after';
 }
 
-export interface AgLinearGaugeScale<TContext = ContextDefault>
-    extends FillsOptions,
-        FillOptions,
-        StrokeOptions,
-        LineDashOptions {
+export interface AgLinearGaugeScale<TContext = ContextDefault> extends AgLinearGaugeSeriesStyle, FillsOptions {
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
     min?: number;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
@@ -45,7 +43,7 @@ export interface AgLinearGaugeTooltipRendererParams
     value: number;
 }
 
-export interface AgLinearGaugeBarStyle extends FillsOptions, FillOptions, StrokeOptions, LineDashOptions {
+export interface AgLinearGaugeBarStyle extends AgLinearGaugeSeriesStyle, FillsOptions {
     /** Whether the bar should be shown. */
     enabled?: boolean;
     /** Width of the bar, or the height if `horizontal` is true. Defaults to the gauge thickness. */
@@ -56,7 +54,7 @@ export interface AgLinearGaugeBarStyle extends FillsOptions, FillOptions, Stroke
 
 export type AgLinearGaugeMarkerShape = AgMarkerShape | 'line';
 
-export interface AgLinearGaugeTarget extends FillOptions, StrokeOptions, LineDashOptions {
+export interface AgLinearGaugeTarget extends AgLinearGaugeSeriesStyle {
     /** Value to use to position the target */
     value: number;
     /** Text to use for the target label. */

@@ -4,6 +4,7 @@ import type {
     AgRangeAreaSeriesOptions,
     AgRangeAreaSeriesOptionsKeys,
     AgRangeAreaSeriesTooltipRendererParams,
+    AgSeriesMarkerStyle,
     PixelSize,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -17,6 +18,7 @@ export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSerie
     readonly yHighValue: number;
     readonly point: Readonly<_ModuleSupport.SizedPoint>;
     readonly enabled: boolean;
+    style?: AgSeriesMarkerStyle;
 }
 
 const {

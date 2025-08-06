@@ -1,4 +1,4 @@
-import type { AgMapShapeBackgroundOptions } from 'ag-charts-community';
+import type { AgMapShapeBackgroundOptions, AgMapShapeBackgroundThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
@@ -8,6 +8,7 @@ const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, Property, 
 export interface MapShapeBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
     readonly projectedGeometry: _ModuleSupport.Geometry;
+    style: AgMapShapeBackgroundThemeableOptions;
 }
 
 export class MapShapeBackgroundSeriesProperties extends SeriesProperties<AgMapShapeBackgroundOptions> {

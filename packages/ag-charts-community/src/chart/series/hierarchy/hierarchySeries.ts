@@ -1,4 +1,5 @@
 import { Logger, arraysEqual, clamp } from 'ag-charts-core';
+import type { FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -54,7 +55,8 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
         public readonly sumSize: number,
         public readonly depth: number | undefined,
         public readonly parent: This | undefined,
-        public readonly children: This[]
+        public readonly children: This[],
+        public readonly style: FillOptions & StrokeOptions
     ) {
         this.midPoint = { x: 0, y: 0 };
     }
@@ -185,8 +187,9 @@ export abstract class HierarchySeries<
                 maxColor = Math.max(maxColor, colorValue);
             }
 
+            const style = this.getItemStyle({ datumIndex: indexPath, datum, depth, colorValue }, isLeaf, false);
             return appendChildren(
-                new NodeClass(this, indexPath, datum, sizeValue, colorValue, sumSize, depth, parent, []),
+                new NodeClass(this, indexPath, datum, sizeValue, colorValue, sumSize, depth, parent, [], style),
                 children
             );
         };
@@ -202,7 +205,7 @@ export abstract class HierarchySeries<
         };
 
         const rootNode = appendChildren(
-            new NodeClass(this, [], undefined, 0, undefined, 0, undefined, undefined, []),
+            new NodeClass(this, [], undefined, 0, undefined, 0, undefined, undefined, [], {}),
             this.data
         );
 
@@ -309,11 +312,11 @@ export abstract class HierarchySeries<
             : [];
     }
 
-    protected getDatumIdFromData(node: TNodeClass) {
+    protected getDatumIdFromData(node: Pick<TNodeClass, 'datumIndex'>): string {
         return node.datumIndex.join(':');
     }
 
-    protected getDatumId(node: TNodeClass) {
+    protected getDatumId(node: Pick<TNodeClass, 'datumIndex'>): string {
         return this.getDatumIdFromData(node);
     }
 
@@ -385,4 +388,10 @@ export abstract class HierarchySeries<
     datumIndexForCategoryValue(_categoryValue: any): number[] | undefined {
         return;
     }
+
+    protected abstract getItemStyle(
+        datum: Partial<HierarchyNode>,
+        isLeaf: boolean,
+        isHighlight: boolean
+    ): FillOptions & StrokeOptions;
 }

@@ -499,9 +499,9 @@ export class SankeySeries extends FlowProportionSeries<
         );
     }
 
-    protected getLinkStyle(
+    protected override getLinkStyle(
         { datumIndex, datum }: Partial<SankeyLinkDatum>,
-        fromNodeDatumIndex: number,
+        fromNodeDatumIndex: FlowProportionNodeDatumIndex,
         isHighlight: boolean
     ) {
         const { id: seriesId, properties } = this;
@@ -516,13 +516,18 @@ export class SankeySeries extends FlowProportionSeries<
         } = properties;
         const { itemStyler } = properties.link;
 
-        const defaultColorStops = defaultColorRange[fromNodeDatumIndex % defaultColorRange.length].map((color) => ({
-            color,
-        }));
-        const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex % defaultPatternFills.length];
+        const defaultColorStops = defaultColorRange[fromNodeDatumIndex.index % defaultColorRange.length].map(
+            (color) => ({
+                color,
+            })
+        );
+        const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex.index % defaultPatternFills.length];
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(true, fills, strokes, fromNodeDatumIndex));
+        const baseStyle = mergeDefaults(
+            highlightStyle,
+            properties.getStyle(true, fills, strokes, fromNodeDatumIndex.index)
+        );
         const hasLinkFill = properties.link.fill != null;
         let style = getShapeStyle(
             baseStyle,
@@ -574,7 +579,7 @@ export class SankeySeries extends FlowProportionSeries<
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((link, datum) => {
-            const fromNodeDatumIndex = datum.fromNode.datumIndex.index;
+            const fromNodeDatumIndex = datum.fromNode.datumIndex;
             const style = this.getLinkStyle(datum, fromNodeDatumIndex, isHighlight);
 
             link.x1 = datum.x1;
@@ -620,7 +625,7 @@ export class SankeySeries extends FlowProportionSeries<
         let format: Required<NodeStyle>;
         if (seriesDatum.type === FlowProportionDatumType.Link) {
             const fromNodeDatumIndex = seriesDatum.fromNode.datumIndex;
-            format = this.getLinkStyle({ datumIndex, datum }, fromNodeDatumIndex.index, false);
+            format = this.getLinkStyle({ datumIndex, datum }, fromNodeDatumIndex, false);
         } else {
             format = this.getNodeStyle({ datumIndex, datum }, datumIndex.index, false);
         }

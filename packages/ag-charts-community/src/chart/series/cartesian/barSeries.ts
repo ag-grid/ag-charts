@@ -40,12 +40,17 @@ import { adjustLabelPlacement, updateLabelNode } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent } from '../../tooltip/tooltip';
-import { type PickFocusInputs, SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { HighlightState } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { applyShapeStyle } from '../shapeUtil';
-import { datumStylerProperties } from '../util';
-import { AbstractBarSeries, type AbstractBarSeriesAnimationData } from './abstractBarSeries';
+import { datumStylerProperties, getItemStyles } from '../util';
+import {
+    AbstractBarSeries,
+    type AbstractBarSeriesAnimationData,
+    type AbstractBarSeriesNodeDataContext,
+} from './abstractBarSeries';
 import {
     BAR_SPAN,
     BAR_X_MAX,
@@ -93,6 +98,11 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly clipBBox: BBox | undefined;
     readonly crisp: boolean;
     readonly label?: BarNodeLabelDatum;
+    style?: Required<AgBarSeriesStyle>;
+}
+
+interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarNodeDatum> {
+    styles: SeriesNodeStyleContext<AgBarSeriesStyle>;
 }
 
 type BarAnimationData = AbstractBarSeriesAnimationData<BarShape, BarNodeDatum>;
@@ -104,7 +114,8 @@ export class BarSeries extends AbstractBarSeries<
     AgBarSeriesOptions,
     BarSeriesProperties,
     BarNodeDatum,
-    BarNodeDatum
+    BarNodeDatum,
+    BarSeriesNodeDataContext
 > {
     static readonly className = 'BarSeries';
     static readonly type = 'bar' as const;
@@ -636,6 +647,7 @@ export class BarSeries extends AbstractBarSeries<
             scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
             groupScale: this.getScaling(this.groupScale),
+            styles: getItemStyles(this.getItemStyle.bind(this)),
         };
     }
 
@@ -650,7 +662,7 @@ export class BarSeries extends AbstractBarSeries<
         const highlightItem = nodeData.find(
             (nodeDatum) => nodeDatum.datum === highlightedItem.datum && !nodeDatum.phantom
         );
-        return highlightItem != null ? [highlightItem] : undefined;
+        return highlightItem != null ? [{ ...highlightItem }] : undefined;
     }
 
     protected override updateDatumSelection(opts: {
@@ -660,26 +672,30 @@ export class BarSeries extends AbstractBarSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemStyle(nodeDatum: BarNodeDatum, isHighlight: boolean): Required<AgBarSeriesStyle> {
+    private getItemStyle(
+        nodeDatum: BarNodeDatum | undefined,
+        isHighlight: boolean,
+        highlightState?: HighlightState
+    ): Required<AgBarSeriesStyle> {
         const { id: seriesId, properties } = this;
 
         const { xKey, yKey, itemStyler } = properties;
 
-        const { xValue, yValue, datum, datumIndex } = nodeDatum;
-
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
         let style = mergeDefaults(highlightStyle, properties.getStyle());
 
         if (itemStyler && nodeDatum != null) {
+            const { xValue, yValue, datum, datumIndex } = nodeDatum;
             const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
                 xDomain: this.getSeriesDomain(ChartAxisDirection.X),
                 yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
             }))!;
+
             const overrides = this.cachedDatumCallback(
                 createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+                    const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
 
                     return this.callWithContext(itemStyler, {
                         seriesId,
@@ -688,7 +704,7 @@ export class BarSeries extends AbstractBarSeries<
                         xValue,
                         yValue,
                         highlighted: isHighlight,
-                        highlightState,
+                        highlightState: highlightStateString,
                         ...style,
                     });
                 }
@@ -702,10 +718,25 @@ export class BarSeries extends AbstractBarSeries<
         return style;
     }
 
+    protected override updateDatumStyles(opts: {
+        datumSelection: Selection<BarShape, BarNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        opts.datumSelection.each((_, datum) => {
+            datum.style = this.getItemStyle(datum, opts.isHighlight);
+        });
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<BarShape, BarNodeDatum>;
         isHighlight: boolean;
     }) {
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
         const { shadow } = this.properties;
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const fillBBox = this.getShapeFillBBox();
@@ -713,7 +744,10 @@ export class BarSeries extends AbstractBarSeries<
         const direction = this.getBarDirection();
 
         opts.datumSelection.each((rect, datum) => {
-            const style = this.getItemStyle(datum, opts.isHighlight);
+            const style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex)];
+
             applyShapeStyle(rect, style, fillBBox);
 
             const cornerRadius = style.cornerRadius ?? 0;

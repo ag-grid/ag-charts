@@ -206,7 +206,19 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
-        const { xKey, yLowKey, yHighKey, connectMissingData, marker, interpolation } = this.properties;
+        const {
+            xKey,
+            yLowKey,
+            yHighKey,
+            connectMissingData,
+            marker,
+            interpolation,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+        } = this.properties;
         const rawData = processedData.dataSources.get(this.id) ?? [];
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -341,6 +353,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             lowStrokeData: { itemId: 'low', spans: lowSpans },
             scales: this.calculateScaling(),
             visible: this.visible,
+            styles: this.getMarkerStyles(marker, {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            }),
         };
 
         return context;
@@ -515,26 +534,45 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return datumSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
-    protected override updateDatumNodes(opts: {
+    protected override updateDatumStyles({
+        datumSelection,
+        isHighlight,
+    }: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
-        const { datumSelection, isHighlight } = opts;
         const { xKey, yLowKey, yHighKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity } =
             this.properties;
-        const fillBBox = this.getShapeFillBBox();
 
-        datumSelection.each((node, datum) => {
-            const params = { xKey, yHighKey, yLowKey };
-
-            const style = this.getMarkerStyle(marker, datum, params, { isHighlight }, undefined, {
+        datumSelection.each((_, datum) => {
+            datum.style = this.getMarkerStyle(marker, datum, { xKey, yHighKey, yLowKey }, { isHighlight }, undefined, {
                 fill,
                 fillOpacity,
                 stroke,
                 strokeWidth,
                 strokeOpacity,
             });
+        });
+    }
 
+    protected override updateDatumNodes(opts: {
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
+        isHighlight: boolean;
+    }) {
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
+
+        const { datumSelection, isHighlight } = opts;
+        const fillBBox = this.getShapeFillBBox();
+
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
+        datumSelection.each((node, datum) => {
+            const style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             this.applyMarkerStyle(style, node, datum.point, fillBBox);
         });
 
@@ -570,14 +608,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
             updateLabelNode(this, textNode, params, this.properties.label, datum);
         });
-    }
-
-    protected override getHighlightLabelData(
-        labelData: RangeAreaLabelDatum[],
-        highlightedItem: RangeAreaMarkerDatum
-    ): RangeAreaLabelDatum[] | undefined {
-        const labelItems = labelData.filter((ld) => ld.datum === highlightedItem.datum);
-        return labelItems.length > 0 ? labelItems : undefined;
     }
 
     protected override getHighlightData(
