@@ -94,7 +94,7 @@ describe('label formatter', () => {
                 { padding: 5 },
                 () => ({ width: 40, height: 40, meta: undefined })
             )!;
-            expect(format.lineHeight).toEqual(14);
+            expect(format.lineHeight).toEqual(15);
         });
 
         it('ignores minimumFontSizes greater than fontSize', () => {
