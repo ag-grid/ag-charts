@@ -1,3 +1,4 @@
+import type { _Widget } from 'ag-charts-community';
 import { createElement } from 'ag-charts-core';
 
 import type { LabelIcon } from '../../dom/elements';
@@ -79,6 +80,12 @@ export class Menu extends AnchoredPopover {
         if ('altText' in item) {
             row.setAriaLabel(this.ctx.localeManager.t(item.altText));
         }
+
+        row.addListener('click', ({ sourceEvent }: _Widget.MouseWidgetEvent<'click'>) => {
+            options.onPress?.(item);
+            sourceEvent.preventDefault();
+            sourceEvent.stopPropagation();
+        });
 
         return row;
     }
