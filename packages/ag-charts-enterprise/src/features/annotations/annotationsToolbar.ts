@@ -213,6 +213,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
 
         const index = this.buttons.findIndex((button) => button.value === menu);
         this.toolbar.toggleActiveButtonByIndex(index);
+        this.annotationMenu.setAnchor({ x: buttonBounds.x + buttonBounds.width + 6, y: buttonBounds.y });
         this.annotationMenu.show<AnnotationType>({
             items,
             ariaLabel: this.ctx.localeManager.t(ariaLabel),
@@ -220,7 +221,6 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
             sourceEvent: event.sourceEvent,
             onPress: this.onButtonPressMenuCreateAnnotation.bind(this, menu),
         });
-        this.annotationMenu.setAnchor({ x: buttonBounds.x + buttonBounds.width + 6, y: buttonBounds.y });
     }
 
     private onButtonPressMenuCreateAnnotation(
