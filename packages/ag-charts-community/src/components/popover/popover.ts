@@ -30,6 +30,8 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     extends BaseModuleInstance
     implements ModuleInstance
 {
+    protected menuWidget?: MenuWidget;
+
     protected readonly hideFns: Array<() => void> = [];
 
     private readonly moduleId: string;
@@ -53,7 +55,13 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         }
         this.element.setAttribute('role', 'presentation');
 
+        this.hideFns.push(() => this.destroyWidget());
         this.cleanup.register(() => ctx.domManager.removeChild(canvasOverlay, this.moduleId));
+    }
+
+    private destroyWidget() {
+        this.menuWidget?.destroy();
+        this.menuWidget = undefined;
     }
 
     public attachTo(popover: Popover) {
@@ -96,11 +104,13 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     }
 
     protected showWidget(widget: MenuWidget, options: Options) {
-        this.initPopoverElement(widget.getElement(), options);
         const { sourceEvent } = options;
         if (sourceEvent) {
+            this.destroyWidget();
+            this.initPopoverElement(widget.getElement(), options);
             widget.open({ sourceEvent });
             widget.addListener('close-widget', () => this.removeChildren());
+            this.menuWidget = widget;
         }
     }
 

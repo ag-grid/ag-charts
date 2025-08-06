@@ -26,8 +26,6 @@ type MenuRow = MenuItemWidget | MenuItemRadioWidget;
  * An anchored popover containing a list of pressable items.
  */
 export class Menu extends AnchoredPopover {
-    protected menuWidget?: MenuWidget;
-
     public show<Value = any>(options: MenuOptions<Value>): void {
         const menu = new MenuWidget('vertical');
         for (const item of options.items) {
@@ -35,9 +33,6 @@ export class Menu extends AnchoredPopover {
         }
         menu.addClass('ag-charts-menu');
         this.showWidget(menu, options);
-
-        this.menuWidget?.destroy();
-        this.menuWidget = menu;
     }
 
     private allocRow(options: MenuOptions, item: MenuItem): MenuRow {
