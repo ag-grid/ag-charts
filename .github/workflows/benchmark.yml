@@ -28,8 +28,6 @@ jobs:
     # Check permissions for issue_comment events
     check-permissions:
         runs-on: ubuntu-latest
-        # Always run this job, but it will be a no-op for non-issue_comment events
-        if: always()
         outputs:
             allowed: ${{ steps.check.outputs.allowed }}
         steps:
@@ -47,8 +45,9 @@ jobs:
         permissions:
             pull-requests: write
         needs: check-permissions
+        # Only run if permissions check passed (success) or was skipped (for non-issue_comment events)
         if: |
-            !cancelled() && (
+            needs.check-permissions.result == 'success' && (
                 github.event_name == 'workflow_dispatch' || 
                 github.event_name == 'schedule' ||
                 (github.event_name == 'issue_comment' && needs.check-permissions.outputs.allowed == 'true')

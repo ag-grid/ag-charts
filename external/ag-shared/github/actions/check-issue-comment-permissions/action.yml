@@ -30,6 +30,9 @@ runs:
           id: check
           shell: bash
           run: |
+              # Set error handling
+              set -euo pipefail
+              
               # For non-issue_comment events, always allow
               if [[ "${{ github.event_name }}" != "issue_comment" ]]; then
                 echo "allowed=true" >> $GITHUB_OUTPUT
@@ -50,6 +53,14 @@ runs:
               ASSOCIATION="${{ github.event.comment.author_association }}"
               ALLOWED_ASSOCIATIONS="${{ inputs.allowed_associations }}"
               
+              # Validate association is not empty
+              if [[ -z "$ASSOCIATION" ]]; then
+                echo "::error::Author association is empty - this is unexpected"
+                echo "allowed=false" >> $GITHUB_OUTPUT
+                echo "association=UNKNOWN" >> $GITHUB_OUTPUT
+                exit 1
+              fi
+              
               # Convert comma-separated list to array
               IFS=',' read -ra ALLOWED_ARRAY <<< "$ALLOWED_ASSOCIATIONS"
               
@@ -68,11 +79,14 @@ runs:
                 echo "allowed=true" >> $GITHUB_OUTPUT
                 echo "association=$ASSOCIATION" >> $GITHUB_OUTPUT
                 echo "✅ User has permission to run ${{ inputs.command }} (association: $ASSOCIATION)"
+                exit 0
               else
                 echo "allowed=false" >> $GITHUB_OUTPUT
                 echo "association=$ASSOCIATION" >> $GITHUB_OUTPUT
                 echo "❌ User does not have permission to run ${{ inputs.command }} (association: $ASSOCIATION)"
-                echo "::error::Unauthorized user attempted to run ${{ inputs.command }}"
+                echo "::error::Unauthorized user attempted to run ${{ inputs.command }} (association: $ASSOCIATION)"
+                # Exit with failure for unauthorized attempts on the target command
+                exit 1
               fi
 
         - name: Post denial message
