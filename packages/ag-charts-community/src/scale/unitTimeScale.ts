@@ -12,6 +12,7 @@ import {
 import { normalizeContinuousDomains } from './continuousScale';
 import { DiscreteTimeScale } from './discreteTimeScale';
 import type { NormalizedDomain, ScaleAlignment, ScaleTickParams, ScaleTickResult } from './scale';
+import { visibleTickSliceIndices } from './scaleUtil';
 
 const MAX_BANDS = 50e6; // Max array length is ~4bn
 
@@ -123,10 +124,22 @@ export class UnitTimeScale extends DiscreteTimeScale {
     ): ScaleTickResult<Date> | undefined {
         if (domain.length < 2) return;
 
-        const { bands, firstBandIndex } = this.calculateBands(domain, visibleRange, extend);
-        const milliseconds = this.interval ? intervalMilliseconds(this.interval) : Infinity;
+        let bands: Date[];
+        let firstBandIndex: number | undefined;
+        let bandsSliceIndices: [number, number] | undefined;
+
+        if (domain === this.domain && !extend) {
+            // Use cached values
+            ({ bands } = this.calculateBands(domain, [0, 1], false));
+            bandsSliceIndices = visibleTickSliceIndices(bands, false, visibleRange);
+            firstBandIndex = bandsSliceIndices[0];
+        } else {
+            ({ bands, firstBandIndex } = this.calculateBands(domain, visibleRange, extend));
+        }
 
         if (interval == null) return { ticks: bands, count: undefined, firstTickIndex: firstBandIndex };
+
+        const milliseconds = this.interval ? intervalMilliseconds(this.interval) : Infinity;
 
         const d0 = Math.min(domain[0].valueOf(), domain[1].valueOf());
         const d1 = Math.max(domain[0].valueOf(), domain[1].valueOf());
@@ -139,10 +152,11 @@ export class UnitTimeScale extends DiscreteTimeScale {
             intervalStartIndex = 0;
             intervalEndIndex = intervalTicks.length - 1;
         } else {
+            const i0 = bandsSliceIndices ? bandsSliceIndices[0] : 0;
+            const i1 = bandsSliceIndices ? bandsSliceIndices[1] : bands.length - 1;
             intervalTicks = bands; // Could be large array - avoid copying
-            intervalStartIndex = findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d0) ?? 0;
-            intervalEndIndex =
-                findMaxIndex(0, bands.length - 1, (index) => bands[index].valueOf() <= d1) ?? bands.length - 1;
+            intervalStartIndex = findMaxIndex(i0, i1, (index) => bands[index].valueOf() <= d0) ?? i0;
+            intervalEndIndex = findMaxIndex(i0, i1, (index) => bands[index].valueOf() <= d1) ?? i1;
         }
 
         const ticks: Date[] = [];
