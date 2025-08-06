@@ -20,8 +20,8 @@ const INSTALLATION_ID = args.installationId;
 // github releases can't be a number so all of our releases are prefixed with a "v"
 const releaseVersion = args.releaseVersion;
 const ghReleaseVersion = `r${releaseVersion}`;
+const ghReleaseTag = `release-${releaseVersion}`;
 
-const releaseBranch = args.releaseBranch;
 const artifactsPath = args.artifactsPath;
 
 const artifactFolders = ['dist/packages'];
@@ -72,8 +72,8 @@ async function createGitHubRelease() {
     const creationResult = await octokit.request('POST /repos/ag-grid/ag-charts/releases', {
         owner: 'ag-grid',
         repo: 'ag-charts',
-        tag_name: ghReleaseVersion,
-        target_commitish: releaseBranch,
+        make_latest: 'false',
+        tag_name: ghReleaseTag,
         name: ghReleaseVersion,
         body: `https://www.ag-grid.com/charts/changelog/?fixVersion=${releaseVersion}`,
         draft: false,
