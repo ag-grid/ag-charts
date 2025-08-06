@@ -555,7 +555,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         let style = baseStyle;
 
-        if (itemStyler != null) {
+        if (itemStyler != null && nodeDatum != null) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
