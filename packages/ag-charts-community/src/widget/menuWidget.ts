@@ -62,11 +62,10 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
 
     private readonly handleMouseEnter = (ev: WidgetEvent, current: MenuItemWidget) => {
         if (!current.hasPopup()) {
-            this.openSubMenu(ev, undefined)
+            this.openSubMenu(ev, undefined);
         }
         current.addListener('mousemove', () => current.focus({ preventScroll: true }));
     };
-
 
     public addSubMenu(): { subMenuButton: MenuItemWidget; subMenu: MenuWidget } {
         const subMenuButton = new MenuItemWidget();
