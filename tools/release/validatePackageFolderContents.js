@@ -14,7 +14,7 @@ const EXPECTED_PROD_FOLDER_CONTENTS = {
         'ag-charts-types.tgz',
         'ag-charts-vue3.tgz',
         'contents',
-        // 'sbom.json',
+        'sbom.json',
     ],
     'dist/packages/contents': [
         'ag-charts-angular',
