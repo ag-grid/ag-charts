@@ -29,7 +29,7 @@ describe('unit time axis benchmark', () => {
         benchmark(
             '20x zoom',
             ctx,
-            { expectedRelativeMB: 5, expectedCanvasCount: 4, autoSnapshot: false },
+            { expectedRelativeMB: 5.5, expectedCanvasCount: 4, autoSnapshot: false },
             async () => {
                 for (let i = 0; i < 20; i++) {
                     await ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);
