@@ -5,6 +5,8 @@ set -Eeuo pipefail
 excluded=("ag-charts-react" "ag-charts-vue3" "ag-charts-angular" "ag-charts-locale")
 frameworks=("ag-charts-react" "ag-charts-vue3" "ag-charts-angular")
 
+ENV=${1:-prod}
+
 validatePackageJsonExists()
 {
   local directory=$1
@@ -147,7 +149,7 @@ validateLocale()
 
 # check all expected modules & packages are there
 script_dir=$(dirname "$0")
-node $script_dir/validatePackageFolderContents.js
+node $script_dir/validatePackageFolderContents.js $ENV
 
 validateModules "dist/packages/contents"
 validateLocale "dist/packages/contents/ag-charts-locale/package"
