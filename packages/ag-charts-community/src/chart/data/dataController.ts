@@ -111,17 +111,15 @@ export class DataController {
                 getWindow<any[]>('processedData').push(processedData);
             }
 
-            if (processedData?.partialValidDataCount === 0) {
-                resolves.forEach((resolve) =>
-                    resolve({
-                        dataModel,
-                        processedData,
-                    })
-                );
-            } else if (processedData) {
-                this.splitResult(dataModel, processedData, ids, resolves);
+            if (processedData) {
+                for (const resolve of resolves) {
+                    resolve({ dataModel, processedData });
+                }
             } else {
-                rejects.forEach((cb) => cb(new Error(`AG Charts - no processed data generated`)));
+                const rejectError = new Error(`AG Charts - no processed data generated`);
+                for (const reject of rejects) {
+                    reject(rejectError);
+                }
             }
         }
 
@@ -163,22 +161,6 @@ export class DataController {
         }
 
         return grouped.map(DataController.mergeRequests);
-    }
-
-    private splitResult(
-        dataModel: DataModel<any>,
-        processedData: ProcessedData<any>,
-        scopes: string[],
-        resolves: ((result: Result<any, any, any>) => void)[]
-    ) {
-        for (let i = 0; i < scopes.length; i++) {
-            const resolve = resolves[i];
-
-            resolve({
-                dataModel,
-                processedData,
-            });
-        }
     }
 
     private static groupMatch({ data, opts }: RequestedProcessing<any, any, any>) {
