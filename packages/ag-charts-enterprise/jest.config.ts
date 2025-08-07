@@ -94,7 +94,7 @@ export default {
             ...commonConfig,
         },
         {
-            displayName: 'ag-charts-community - benchmarks',
+            displayName: 'ag-charts-enterprise - benchmarks',
             testMatch: benchmarks.map(pathFix),
             runner: 'jest-serial-runner',
             ...commonConfig,
