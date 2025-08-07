@@ -187,6 +187,8 @@ function defaultTimeoutMs(ctx: BenchmarkContext) {
 
 function runAutoSnapshot(ctx: BenchmarkContext, expectations: BenchmarkExpectations, currentTestName: string) {
     const { autoSnapshot } = expectations;
+    // Skip snapshots when BENCHMARK_SOFT_FAIL is enabled (overnight benchmark runs)
+    if (softFailMode) return;
     if (!(autoSnapshot ?? true)) return;
 
     const newImageData = mockCanvas.extractImageData(ctx.canvasCtx.ctx);
@@ -387,7 +389,7 @@ afterAll(() => {
     flushTimings();
 
     // If we're in soft-fail mode and have breaches, write them to a file
-    if (process.env.BENCHMARK_SOFT_FAIL === 'true' && expectationBreaches.length > 0) {
+    if (softFailMode && expectationBreaches.length > 0) {
         const breachesPath = path.join(__dirname, '../../../reports/benchmark-breaches.json');
 
         // Ensure reports directory exists
