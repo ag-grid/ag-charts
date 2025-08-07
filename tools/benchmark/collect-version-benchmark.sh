@@ -47,8 +47,9 @@ failed=false
 all=false
 data_file=packages/ag-charts-website/src/content/docs/benchmarks/_examples/summary/data.ts
 repeat_count=1
+latest_version=false
 
-while getopts "par:" opt; do
+while getopts "par:l" opt; do
   case $opt in
     p)
       pause=true
@@ -58,6 +59,9 @@ while getopts "par:" opt; do
       ;;
     r)
       repeat_count=$OPTARG
+      ;;
+    l)
+      latest_version=true
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -159,6 +163,11 @@ benchmark() {
 
             log_info "Benchmarking $version ($count of $repeat_count)"
             export AG_LIBRARY_VERSION=$(echo "$1" | sed 's/^origin\///')
+            if [[ $latest_version == "true" && $AG_LIBRARY_VERSION =~ ^[0-9a-f]{40}$ ]] ; then
+                export AG_BENCHMARK_LATEST_VERSION=1
+            else
+                export AG_BENCHMARK_LATEST_VERSION=0
+            fi
 
             # Run the benchmark with the current version of the files
             if (
