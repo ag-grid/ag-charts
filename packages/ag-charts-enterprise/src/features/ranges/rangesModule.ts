@@ -37,7 +37,7 @@ export const RangesModule: _ModuleSupport.Module = {
                         ariaLabel: 'toolbarRangeYearToDateAria',
                         value: (_start: Date | number, end: Date | number) => [
                             new Date(`${new Date(end).getFullYear()}-01-01`).getTime(),
-                            end,
+                            undefined,
                         ],
                     },
                     {
