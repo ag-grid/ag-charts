@@ -9,6 +9,7 @@
             "Bash(gh pr list:*)",
             "Bash(gh pr review:*)",
             "Bash(gh pr view:*)",
+            "Bash(find:*)",
             "Bash(git fetch:*)",
             "Bash(grep:*)",
             "Bash(jq:*)",
@@ -32,6 +33,7 @@
             "Bash(yarn test:*)",
             "WebFetch(domain:ag-grid.atlassian.net)",
             "WebFetch(domain:docs.anthropic.com)",
+            "WebFetch(domain:docs.github.com)",
             "WebFetch(domain:github.com)",
             "WebFetch(domain:localhost)",
             "mcp__ide__getDiagnostics",
@@ -43,8 +45,8 @@
             "mcp__sequential-thinking__sequentialthinking"
         ],
         "deny": []
-        "includeCoAuthoredBy": false,
     },
+    "includeCoAuthoredBy": false,
     "hooks": {
         "PostToolUse": [
             {
