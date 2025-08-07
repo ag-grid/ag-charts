@@ -8,12 +8,12 @@ on:
             compare-base:
                 description: 'Branch name to compare against'
                 type: string
-                default: b11.2.1
+                default: b12.1.1
                 required: true
             notify:
                 description: 'Notify Slack channel'
                 type: boolean
-                default: false
+                default: true
                 required: true
     schedule:
         - cron: '0 0 * * *' # Run daily at midnight UTC
