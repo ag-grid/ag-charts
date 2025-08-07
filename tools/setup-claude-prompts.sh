@@ -21,7 +21,6 @@ done
 
 # Check if claude command exists
 if ! command -v claude >/dev/null 2>&1; then
-    echo "claude command not found"
     exit 0
 fi
 
@@ -42,7 +41,7 @@ if [[ -f "tools/prompts/.mcp.json" && ! -f ".mcp.json" ]] ; then
     ln -sf "tools/prompts/.mcp.json" ".mcp.json"
 fi
 
-# Symlink other .md files to .claude/commands/
+# Symlink other .md files to .claude/{commands,agents}/
 for file in tools/prompts/commands/*.md; do
     ln -sf "../../$file" ".claude/commands/$(basename "$file")"
 done
