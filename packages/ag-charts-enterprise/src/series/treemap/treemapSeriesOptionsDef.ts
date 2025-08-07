@@ -1,16 +1,5 @@
 import { type AgTreemapSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import {
-    type OptionsDefs,
-    arrayOf,
-    color,
-    constant,
-    fillGradientDefaults,
-    fillImageDefaults,
-    fillPatternDefaults,
-    required,
-    string,
-    undocumented,
-} from 'ag-charts-core';
+import { type OptionsDefs, arrayOf, color, constant, required, string, undocumented } from 'ag-charts-core';
 
 const { commonSeriesOptionsDefs, treemapSeriesThemeableOptionsDef, without } = _ModuleSupport;
 
@@ -27,12 +16,6 @@ export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
     colorName: string,
 };
 
-// @ts-expect-error undocumented option
-treemapSeriesOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
-// @ts-expect-error undocumented option
-treemapSeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
-// @ts-expect-error undocumented option
-treemapSeriesOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);
 // @ts-expect-error undocumented option
 treemapSeriesOptionsDef.undocumentedGroupFills = undocumented(arrayOf(color));
 // @ts-expect-error undocumented option

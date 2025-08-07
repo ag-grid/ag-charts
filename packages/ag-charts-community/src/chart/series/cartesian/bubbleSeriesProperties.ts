@@ -1,9 +1,4 @@
-import type {
-    InternalAgColorType,
-    InternalAgGradientColor,
-    RequiredInternalAgImageFill,
-    RequiredInternalAgPatternColor,
-} from 'ag-charts-core';
+import type { InternalAgColorType } from 'ag-charts-core';
 import type {
     AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesOptions,
@@ -93,15 +88,6 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
 
     @ProxyProperty('marker.domain')
     domain?: [number, number];
-
-    @ProxyProperty('marker.fillGradientDefaults')
-    fillGradientDefaults!: InternalAgGradientColor;
-
-    @ProxyProperty('marker.fillPatternDefaults')
-    fillPatternDefaults!: RequiredInternalAgPatternColor;
-
-    @ProxyProperty('marker.fillImageDefaults')
-    fillImageDefaults!: RequiredInternalAgImageFill;
 
     @ProxyProperty('marker.fill')
     fill?: InternalAgColorType;

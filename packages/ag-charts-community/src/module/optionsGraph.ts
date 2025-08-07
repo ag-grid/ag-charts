@@ -77,6 +77,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     // If any of these keys are present in the resolved object then calling `clearSafe()` will not clear the graph.
     private static readonly UNSAFE_CLEAR_KEYS = new Set(['itemStyler']);
 
+    // A cache of values that persists between chart updates, use sparingly.
+    private static readonly valueCache = new Map();
+
     public readonly palette: PlainObject;
 
     // The current priority order in which to resolve options values.
@@ -96,8 +99,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     private resolvedAnnotations: PlainObject = {};
 
     // The current value referenced by operations that use `$1`.
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private value$1: PlainObject = {};
+    private readonly value$1: Map<string, unknown> = new Map();
 
     private readonly cachedPathVertices: Map<string, Vertex<unknown>> = new Map();
 
@@ -242,15 +244,13 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
     /**
      * Resolve partial options against the existing graph at a given path without overriding the existing user values.
+     * Returns an object with only those keys that were also present within `partialOptions`.
      */
     resolvePartial(path: Array<string>, partialOptions?: PlainObject) {
         if (!partialOptions) return;
 
         const partialKeys = Object.keys(partialOptions);
         if (partialKeys.length === 0) return {};
-
-        const userPartialOptions = {};
-        setPathSafe(userPartialOptions, path, partialOptions);
 
         const parentVertex = this.findVertexAtPath(path);
         if (!parentVertex) {
@@ -298,7 +298,26 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     }
 
     hasUserOption(path: Array<string>) {
-        return hasPathSafe(this.userOptions, path);
+        const hasUserOptionSimple = hasPathSafe(this.userOptions, path);
+        if (hasUserOptionSimple) return true;
+
+        // In some cases we expand the user options edge of the graph with additional values. These will not appear in
+        // the original object and must be found in the graph.
+        const pathVertex = this.findVertexAtPath(path);
+        if (pathVertex) {
+            return this.findNeighbour(pathVertex, USER_OPTIONS_EDGE) != null;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the value from the user options at the given path. This method is dangerous since it does not resolve
+     * through the graph, however is useful for operations that operate on their own path where attempting to
+     * resolve would cause an infinite loop.
+     */
+    dangerouslyGetUserOption(path: Array<string>) {
+        return getPathSafe(this.userOptions, path);
     }
 
     hasThemeOverride(path: Array<string>) {
@@ -347,6 +366,16 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         return getPathSafe(this.resolved!, path);
     }
 
+    getCachedValue(path: string[], key: string): unknown {
+        const cacheKey = [...path, key].join('.');
+        return OptionsGraph.valueCache.get(cacheKey);
+    }
+
+    setCachedValue(path: string[], key: string, value: unknown): void {
+        const cacheKey = [...path, key].join('.');
+        OptionsGraph.valueCache.set(cacheKey, value);
+    }
+
     resolveVertexValue(vertex: Vertex<unknown>, valueVertex: Vertex<unknown>) {
         this.resolveVertexDependencies(valueVertex);
 
@@ -375,8 +404,11 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
      */
     resolveValue$1(pathArray: Array<string>) {
         for (let i = pathArray.length; i >= 0; i--) {
-            const resolvedValue = getPathSafe(this.value$1, pathArray.slice(0, i));
-            if (resolvedValue != undefined) return resolvedValue;
+            const key = pathArray.slice(0, i).join('.');
+            const resolvedValue = this.value$1.get(key);
+            if (resolvedValue != undefined) {
+                return resolvedValue;
+            }
         }
     }
 
@@ -448,17 +480,18 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     }
 
     /**
-     * Graft a given operation and value onto `path` child of the target vertex.
+     * Graft a given operation and value onto `path` child of the target vertex. The `ontoObject` value is built onto
+     * the graph each time this function is called, at the given path, while `value` is used for value$1 where
+     * `ontoObject` is an operation that invokes value$1.
      */
-    graftValue(target: Vertex<unknown>, path: string, ontoObject: unknown, value: unknown) {
+    graftValue(target: Vertex<unknown>, path: string, ontoObject: unknown, value: unknown, edgeValue = this.graftEdge) {
         const pathArray = [...this.getPathArray(target), path];
 
-        // Set the value referenced by `$1`
-        setPathSafe(this.value$1, pathArray, value);
+        this.value$1.set(pathArray.join('.'), value);
 
         const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
 
-        this.buildGraphFromValue(target, pathVertex, this.graftEdge, pathArray, ontoObject);
+        this.buildGraphFromValue(target, pathVertex, edgeValue, pathArray, ontoObject);
         this.buildDependencyGraph();
     }
 

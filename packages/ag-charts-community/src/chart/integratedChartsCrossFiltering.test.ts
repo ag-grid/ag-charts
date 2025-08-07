@@ -37,6 +37,7 @@ describe('Integrated Charts Cross Filtering', () => {
                 overrides: {
                     pie: {
                         series: {
+                            strokeWidth: 8,
                             fills: {
                                 $if: [
                                     { $eq: [{ $value: '$index' }, 0] },

@@ -29,8 +29,6 @@ const {
     checkCrisp,
     createDatumId,
     applyShapeStyle,
-    getShapeStyle,
-    getShapeFill,
 } = _ModuleSupport;
 
 export type Bounds = {
@@ -470,8 +468,6 @@ export abstract class BaseFunnelSeries<
     private updateConnectorNodes(opts: {
         connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
     }) {
-        const { fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = this.properties;
-
         const fillBBox = this.getShapeFillBBox();
 
         opts.connectorSelection.each((connector, datum) => {
@@ -480,12 +476,10 @@ export abstract class BaseFunnelSeries<
 
             connector.setProperties(resetConnectorSelectionsFn(connector, datum));
 
-            const connectorFill = getShapeFill(fill, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
-
             applyShapeStyle(
                 connector,
                 {
-                    fill: connectorFill,
+                    fill,
                     stroke,
                     fillOpacity,
                     strokeOpacity,
@@ -596,20 +590,15 @@ export abstract class BaseFunnelSeries<
             this.properties.getStyle(datumIndex);
 
         return {
-            marker: getShapeStyle(
-                {
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                },
-                this.properties.fillGradientDefaults,
-                this.properties.fillPatternDefaults,
-                this.properties.fillImageDefaults
-            ),
+            marker: {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+            },
         };
     }
 

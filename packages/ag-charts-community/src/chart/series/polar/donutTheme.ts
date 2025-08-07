@@ -1,87 +1,13 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
-import { FONT_SIZE_RATIO } from '../../themes/constants';
-import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { LABEL_BOXING_DEFAULTS, SAFE_FILLS_OPERATION, singleSeriesHighlightStyle } from '../../themes/util';
+import { LABEL_BOXING_DEFAULTS, singleSeriesHighlightStyle } from '../../themes/util';
+import { pieTheme } from './pieTheme';
 
 export const donutTheme: ExtensibleTheme<'donut'> = {
+    ...pieTheme,
     series: {
-        title: {
-            enabled: true,
-            fontWeight: { $ref: 'fontWeight' },
-            fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
-            fontFamily: { $ref: 'fontFamily' },
-            color: { $ref: 'subtleTextColor' },
-            spacing: 5,
-        },
-        calloutLabel: {
-            ...LABEL_BOXING_DEFAULTS,
-            enabled: true,
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'textColor' },
-            offset: 3,
-            minAngle: 0.001,
-        },
-        sectorLabel: {
-            ...LABEL_BOXING_DEFAULTS,
-            enabled: true,
-            fontWeight: { $ref: 'fontWeight' },
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            color: { $ref: 'chartBackgroundColor' },
-            positionOffset: 0,
-            positionRatio: 0.5,
-        },
-        calloutLine: {
-            length: 10,
-            strokeWidth: 2,
-            colors: {
-                $map: [
-                    {
-                        $if: [
-                            {
-                                $or: [
-                                    { $isGradient: { $value: '$1' } },
-                                    { $isPattern: { $value: '$1' } },
-                                    { $isImage: { $value: '$1' } },
-                                ],
-                            },
-                            { $path: ['../../strokes/$index', { $ref: 'foregroundColor' }] },
-                            { $value: '$1' },
-                        ],
-                    },
-                    {
-                        $if: [
-                            { $eq: [{ $path: '../strokeWidth' }, 0] },
-                            { $path: '../fills' },
-                            { $path: '../strokes' },
-                        ],
-                    },
-                ],
-            },
-        },
-        fills: { $palette: 'fills' },
-        strokes: { $palette: 'strokes' },
-        // @ts-expect-error undocumented option
-        defaultColorRange: { $palette: 'gradients' },
-        defaultPatternFills: SAFE_FILLS_OPERATION,
-        fillOpacity: 1,
-        strokeOpacity: 1,
-        strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
-        lineDash: [0],
-        lineDashOffset: 0,
-        rotation: 0,
-        sectorSpacing: 1,
+        ...pieTheme.series,
         innerRadiusRatio: {
             $if: [{ $eq: [{ $path: ['./innerRadiusOffset', undefined] }, undefined] }, 0.7, undefined],
-        },
-        shadow: {
-            enabled: false,
-            color: DEFAULT_SHADOW_COLOUR,
-            xOffset: 3,
-            yOffset: 3,
-            blur: 5,
         },
         innerLabels: {
             $apply: {
@@ -95,5 +21,4 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         } as any,
         highlight: singleSeriesHighlightStyle(),
     },
-    legend: { enabled: true },
 };

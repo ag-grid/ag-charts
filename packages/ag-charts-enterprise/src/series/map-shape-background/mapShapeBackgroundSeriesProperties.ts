@@ -2,8 +2,7 @@ import type { AgMapShapeBackgroundOptions, AgMapShapeBackgroundThemeableOptions 
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, Property, SeriesProperties, makeSeriesTooltip } =
-    _ModuleSupport;
+const { Property, SeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 
 export interface MapShapeBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
@@ -17,15 +16,6 @@ export class MapShapeBackgroundSeriesProperties extends SeriesProperties<AgMapSh
 
     @Property
     fill: InternalAgColorType = 'black';
-
-    @Property
-    readonly fillGradientDefaults = new FillGradientDefaults();
-
-    @Property
-    readonly fillPatternDefaults = new FillPatternDefaults();
-
-    @Property
-    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity: number = 1;

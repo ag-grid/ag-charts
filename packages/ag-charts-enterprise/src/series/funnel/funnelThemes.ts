@@ -86,12 +86,27 @@ export const FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'funnel'>['themeTe
         direction: 'vertical',
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         spacingRatio: 0.25,
-        fills: [{ $palette: 'fill' }],
-        strokes: [{ $palette: 'stroke' }],
-        // @ts-expect-error undocumented option
-        fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
-        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-        fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
+        fills: {
+            $applyCycle: [
+                { $size: { $path: ['./data', { $path: '/data' }] } },
+                [{ $path: ['/0', undefined, { $palette: 'fills' }] }],
+                {
+                    $applySwitch: [
+                        { $path: ['/type', undefined, { $value: '$1' }] },
+                        { $value: '$1' },
+                        ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS],
+                        ['pattern', _ModuleSupport.FILL_PATTERN_SINGLE_DEFAULTS],
+                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                    ],
+                },
+            ],
+        } as any,
+        strokes: {
+            $applyCycle: [
+                { $size: { $path: ['./data', { $path: '/data' }] } },
+                [{ $path: ['/0', undefined, { $palette: 'strokes' }] }],
+            ],
+        } as any,
         label: {
             ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
             enabled: true,
