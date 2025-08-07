@@ -35,7 +35,6 @@ import {
     intervalNext,
     intervalPrevious,
     intervalRange,
-    intervalRangeStartIndex,
     intervalUnit,
 } from '../../util/time';
 import { lowestGranularityForInterval } from '../../util/timeFormatDefaults';
@@ -110,8 +109,7 @@ enum ParentLevelMode {
 }
 
 const DENSE_TICK_COUNT = 18;
-// Multiples of 2 & 3
-const TICK_STEP_VALUES = [1, 2, 3, 4, 6, 8, 9, 10, 12];
+const TICK_STEP_VALUES = [1, 2, 3, 4, 6, 8, 9, 10, 12]; // Multiples of 2 & 3
 
 export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>, D> {
     readonly id: string;
@@ -127,7 +125,6 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
         ticks: D[],
         primary: boolean,
         fractionDigits: number | undefined,
-        // eslint-disable-next-line sonarjs/use-type-alias
         timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,
         dateStyle: DateFormatterStyle
     ): (value: any, index: number) => string | undefined;
@@ -442,156 +439,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         return { tickData, index, autoRotation: 0 };
     }
 
-    private getTimeIntervalTicks(
-        visibleRange: [number, number],
-        tickCount: number,
-        maxTickCount: number,
-        tickParams: Readonly<ScaleTickParams<any>>,
-        timeInterval: AgTimeInterval | AgTimeIntervalUnit,
-        reverse: boolean
-    ) {
-        const parentInterval = intervalHierarchy(timeInterval);
-        if (parentInterval == null) return;
-
-        const { scale } = this.axis;
-        if (!TimeScale.is(scale) && !DiscreteTimeScale.is(scale)) return;
-
-        if (reverse) {
-            visibleRange = [1 - visibleRange[1], 1 - visibleRange[0]];
-        }
-
-        const dv0 = Math.min(scale.domain[0].valueOf(), scale.domain[scale.domain.length - 1].valueOf());
-        const dv1 = Math.max(scale.domain[0].valueOf(), scale.domain[scale.domain.length - 1].valueOf());
-
-        // Generate at least one tick outside the range on each side
-        let [dp0, dp1] = intervalExtent(new Date(dv0), new Date(dv1), visibleRange);
-        dp0 = intervalFloor(parentInterval, dp0);
-        if (dp0.valueOf() >= dv0) dp0 = intervalPrevious(parentInterval, dp0);
-        dp1 = intervalCeil(parentInterval, dp1);
-        if (dp1.valueOf() <= dv1) dp1 = intervalNext(parentInterval, dp1);
-        const primaryTicks = intervalRange(parentInterval, dp0, dp1);
-
-        const milliseconds = intervalMilliseconds(timeInterval);
-
-        let primaryTicksIndices: Set<number> | undefined = new Set<number>();
-        const skipFirstPrimaryTick = OrdinalTimeScale.is(scale);
-        const ticks = [];
-        const intervalTickParams = {
-            ...tickParams,
-            interval: timeInterval,
-        };
-        let parentLevelMode: ParentLevelMode;
-        let alignment: ScaleAlignment | undefined;
-        let ordinalTickStep = 0;
-        if (OrdinalTimeScale.is(scale)) {
-            const minimumTimeGranularity = this.axis.minimumTimeGranularity;
-            const timeIntervalGranularity = intervalUnit(timeInterval);
-            parentLevelMode =
-                minimumTimeGranularity != null &&
-                intervalMilliseconds(minimumTimeGranularity) >= intervalMilliseconds(timeIntervalGranularity)
-                    ? ParentLevelMode.OrdinalTimeStepTicks
-                    : ParentLevelMode.OrdinalTimeScaleTicks;
-            alignment = ScaleAlignment.Trailing;
-
-            // The tick algorithm will try lower tick counts when labels don't fit
-            // The tick count doesn't match exactly what we do here - so we just use it as a guideline
-            const tickDensity = tickCount / maxTickCount;
-            const baseTickStep = scale.bandCount(visibleRange) / (tickDensity * DENSE_TICK_COUNT);
-            ordinalTickStep = TICK_STEP_VALUES.findLast((t) => baseTickStep >= t) ?? 1;
-        } else if (
-            UnitTimeScale.is(scale) &&
-            (scale.interval == null || intervalMilliseconds(scale.interval) >= milliseconds)
-        ) {
-            parentLevelMode = ParentLevelMode.UnitTimeScaleTicks;
-        } else {
-            // Can be a unit time scale where the current interval is greater than the unit interval
-            parentLevelMode = ParentLevelMode.ContinuousTimeScaleTicks;
-            alignment = ScaleAlignment.Interpolate;
-        }
-
-        for (let i = 0; i < primaryTicks.length - 1; i += 1) {
-            const p0 = primaryTicks[i];
-            const p1 = primaryTicks[i + 1];
-
-            const first = i === 0;
-            const last = i === primaryTicks.length - 2;
-
-            const dp = p1.valueOf() - p0.valueOf();
-            const pVisibleRange: [number, number] = [
-                Math.max((dv0 - p0.valueOf()) / dp, 0),
-                Math.min((dv1 - p0.valueOf()) / dp, 1),
-            ];
-
-            let intervalTicks: Date[];
-            switch (parentLevelMode) {
-                case ParentLevelMode.ContinuousTimeScaleTicks:
-                    intervalTicks = createTimeScaleTicks(
-                        intervalTickParams.interval,
-                        [p0, p1],
-                        pVisibleRange,
-                        true
-                    ).ticks;
-                    break;
-                case ParentLevelMode.UnitTimeScaleTicks:
-                case ParentLevelMode.OrdinalTimeScaleTicks:
-                    const scaleTicks = scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, {
-                        extend: true,
-                        dropInitial: true,
-                    });
-                    intervalTicks = scaleTicks?.ticks ?? [];
-                    break;
-                case ParentLevelMode.OrdinalTimeStepTicks:
-                    intervalTicks = (scale as any as OrdinalTimeScale).stepTicks(
-                        ordinalTickStep,
-                        [p0, p1],
-                        undefined,
-                        !last
-                    );
-                    break;
-            }
-
-            dropFirstWhile(intervalTicks, (firstTick) => firstTick.valueOf() < p0.valueOf());
-
-            if (!last) {
-                dropLastWhile(intervalTicks, (lastTick) => {
-                    switch (parentLevelMode) {
-                        case ParentLevelMode.ContinuousTimeScaleTicks:
-                        case ParentLevelMode.OrdinalTimeScaleTicks:
-                            return lastTick.valueOf() + milliseconds > p1.valueOf();
-                        case ParentLevelMode.UnitTimeScaleTicks:
-                        case ParentLevelMode.OrdinalTimeStepTicks:
-                            return lastTick.valueOf() >= p1.valueOf();
-                    }
-                });
-            }
-
-            if (intervalTicks.length === 0) continue;
-
-            const firstTick = intervalTicks[0];
-            const firstTickDiff = compareDates(firstTick, p0);
-            const firstPrimary =
-                parentLevelMode === ParentLevelMode.ContinuousTimeScaleTicks
-                    ? firstTickDiff === 0
-                    : firstTickDiff <= milliseconds;
-
-            if (firstPrimary && (!skipFirstPrimaryTick || !first)) {
-                primaryTicksIndices.add(ticks.length);
-            }
-
-            ticks.push(...intervalTicks);
-        }
-
-        if (
-            primaryTicksIndices.size === 0 ||
-            // If there's only one primary tick and it's the first tick, don't show primary ticks
-            (primaryTicksIndices.size === 1 && primaryTicksIndices.has(0))
-        ) {
-            primaryTicksIndices = undefined;
-        }
-
-        return { ticks, tickCount: undefined, firstTickIndex: undefined, primaryTicksIndices, alignment };
-    }
-
     private getTicks({
         domain,
         reverse,
@@ -717,7 +564,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 }
 
                 const intervalTicks = timeInterval
-                    ? this.getTimeIntervalTicks(
+                    ? getTimeIntervalTicks(
+                          axis,
                           visibleRange,
                           tickCount,
                           maxTickCount,
@@ -727,13 +575,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                       )
                     : undefined;
                 if (intervalTicks) {
-                    ({
-                        ticks: rawTicks,
-                        tickCount: rawTickCount,
-                        firstTickIndex: rawFirstTickIndex,
-                        primaryTicksIndices,
-                        alignment,
-                    } = intervalTicks);
+                    ({ ticks: rawTicks, primaryTicksIndices, alignment } = intervalTicks);
                 } else {
                     const intervalTickParams =
                         UnitTimeScale.is(scale) && tickParams.interval == null && timeInterval != null
@@ -745,23 +587,24 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     rawTickCount = tickGeneration?.count;
                     rawFirstTickIndex = tickGeneration?.firstTickIndex;
                     if (TimeScale.is(scale) || DiscreteTimeScale.is(scale)) {
-                        const timeTickParams = tickParams as ScaleTickParams<
-                            AgTimeInterval | AgTimeIntervalUnit | number
-                        >;
                         const paramsInterval =
-                            typeof timeTickParams.interval === 'number'
-                                ? lowestGranularityForInterval(timeTickParams.interval)
-                                : timeTickParams.interval;
+                            typeof tickParams.interval === 'number'
+                                ? lowestGranularityForInterval(tickParams.interval)
+                                : tickParams.interval;
                         timeInterval ??= paramsInterval ?? tickGeneration?.timeInterval;
                     }
                 }
             }
         }
 
-        const fractionDigits = rawTicks.reduce(
-            (max, tick) => Math.max(max, typeof tick === 'number' ? countFractionDigits(tick) : 0),
-            0
-        );
+        let fractionDigits = 0;
+        for (const tick of rawTicks) {
+            if (typeof tick !== 'number') continue;
+            const value = countFractionDigits(tick);
+            if (value > fractionDigits) {
+                fractionDigits = value;
+            }
+        }
 
         if (!generatePrimaryTicks) {
             primaryTicksIndices = undefined;
@@ -809,29 +652,26 @@ function createTimeScaleTicks(
     domain: [Date, Date],
     visibleRange?: [number, number],
     extend?: boolean
-): { ticks: Date[]; firstTickIndex: number | undefined } {
+): Date[] {
     if (interval == null) {
-        return { ticks: domain, firstTickIndex: undefined };
+        return domain;
     }
-
-    const d0 = domain[0].valueOf();
-    const d1 = domain[1].valueOf();
 
     if (typeof interval !== 'number') {
         const epoch = domain[0];
         const alignedInterval: AgTimeInterval =
             typeof interval === 'string' ? { unit: interval, epoch } : { ...interval, epoch };
-        const ticks = intervalRange(alignedInterval, domain[0], domain[1], { visibleRange, extend });
-        const firstTickIndex = intervalRangeStartIndex(alignedInterval, domain[0], domain[1], { visibleRange, extend });
-        return { ticks, firstTickIndex };
+        return intervalRange(alignedInterval, domain[0], domain[1], { visibleRange, extend });
     }
 
     const ticks: Date[] = [];
+    const d0 = domain[0].valueOf();
+    const d1 = domain[1].valueOf();
     for (let intervalTickTime = d0; intervalTickTime <= d1; intervalTickTime += interval) {
         ticks.push(new Date(intervalTickTime));
     }
 
-    return { ticks, firstTickIndex: undefined };
+    return ticks;
 }
 
 function ticksEqual(a: unknown[], b: unknown[]) {
@@ -967,4 +807,148 @@ function axisTickFormatter<S extends Scale<D, number, TickInterval<S>>, D>(
         const formatter = isPrimary ? primaryFormatter : tickFormatter;
         return formatter?.(tick, index) ?? String(tick);
     };
+}
+
+function getTimeIntervalTicks<S extends Scale<D, number, TickInterval<S>>, D>(
+    axis: TickGenerationAxis<S, D>,
+    visibleRange: [number, number],
+    tickCount: number,
+    maxTickCount: number,
+    tickParams: Readonly<ScaleTickParams<any>>,
+    timeInterval: AgTimeInterval | AgTimeIntervalUnit,
+    reverse: boolean
+) {
+    const parentInterval = intervalHierarchy(timeInterval);
+    if (parentInterval == null) return;
+
+    const { scale } = axis;
+    if (!TimeScale.is(scale) && !DiscreteTimeScale.is(scale)) return;
+
+    if (reverse) {
+        visibleRange = [1 - visibleRange[1], 1 - visibleRange[0]];
+    }
+
+    const dv0 = Math.min(scale.domain[0].valueOf(), scale.domain[scale.domain.length - 1].valueOf());
+    const dv1 = Math.max(scale.domain[0].valueOf(), scale.domain[scale.domain.length - 1].valueOf());
+
+    // Generate at least one tick outside the range on each side
+    let [dp0, dp1] = intervalExtent(new Date(dv0), new Date(dv1), visibleRange);
+    dp0 = intervalFloor(parentInterval, dp0);
+    if (dp0.valueOf() >= dv0) dp0 = intervalPrevious(parentInterval, dp0);
+    dp1 = intervalCeil(parentInterval, dp1);
+    if (dp1.valueOf() <= dv1) dp1 = intervalNext(parentInterval, dp1);
+    const primaryTicks = intervalRange(parentInterval, dp0, dp1);
+
+    const milliseconds = intervalMilliseconds(timeInterval);
+
+    let primaryTicksIndices: Set<number> | undefined;
+    const skipFirstPrimaryTick = OrdinalTimeScale.is(scale);
+    const ticks = [];
+    const intervalTickParams = {
+        ...tickParams,
+        interval: timeInterval,
+    };
+    let parentLevelMode: ParentLevelMode;
+    let alignment: ScaleAlignment | undefined;
+    let ordinalTickStep = 0;
+    if (OrdinalTimeScale.is(scale)) {
+        const { minimumTimeGranularity } = axis;
+        const timeIntervalGranularity = intervalUnit(timeInterval);
+        parentLevelMode =
+            minimumTimeGranularity != null &&
+            intervalMilliseconds(minimumTimeGranularity) >= intervalMilliseconds(timeIntervalGranularity)
+                ? ParentLevelMode.OrdinalTimeStepTicks
+                : ParentLevelMode.OrdinalTimeScaleTicks;
+        alignment = ScaleAlignment.Trailing;
+
+        // The tick algorithm will try lower tick counts when labels don't fit
+        // The tick count doesn't match exactly what we do here - so we just use it as a guideline
+        const tickDensity = tickCount / maxTickCount;
+        const baseTickStep = scale.bandCount(visibleRange) / (tickDensity * DENSE_TICK_COUNT);
+        ordinalTickStep = TICK_STEP_VALUES.findLast((t) => baseTickStep >= t) ?? 1;
+    } else if (
+        UnitTimeScale.is(scale) &&
+        (scale.interval == null || intervalMilliseconds(scale.interval) >= milliseconds)
+    ) {
+        parentLevelMode = ParentLevelMode.UnitTimeScaleTicks;
+    } else {
+        // Can be a unit time scale where the current interval is greater than the unit interval
+        parentLevelMode = ParentLevelMode.ContinuousTimeScaleTicks;
+        alignment = ScaleAlignment.Interpolate;
+    }
+
+    for (let i = 0; i < primaryTicks.length - 1; i++) {
+        const p0 = primaryTicks[i];
+        const p1 = primaryTicks[i + 1];
+
+        const first = i === 0;
+        const last = i === primaryTicks.length - 2;
+
+        const dp = p1.valueOf() - p0.valueOf();
+        const pVisibleRange: [number, number] = [
+            Math.max((dv0 - p0.valueOf()) / dp, 0),
+            Math.min((dv1 - p0.valueOf()) / dp, 1),
+        ];
+
+        let intervalTicks: Date[];
+        switch (parentLevelMode) {
+            case ParentLevelMode.ContinuousTimeScaleTicks:
+                intervalTicks = createTimeScaleTicks(intervalTickParams.interval, [p0, p1], pVisibleRange, true);
+                break;
+            case ParentLevelMode.UnitTimeScaleTicks:
+            case ParentLevelMode.OrdinalTimeScaleTicks:
+                const scaleTicks = scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, {
+                    extend: true,
+                    dropInitial: true,
+                });
+                intervalTicks = scaleTicks?.ticks ?? [];
+                break;
+            case ParentLevelMode.OrdinalTimeStepTicks:
+                intervalTicks = (scale as any as OrdinalTimeScale).stepTicks(
+                    ordinalTickStep,
+                    [p0, p1],
+                    undefined,
+                    !last
+                );
+                break;
+        }
+
+        dropFirstWhile(intervalTicks, (firstTick) => firstTick.valueOf() < p0.valueOf());
+
+        if (!last) {
+            dropLastWhile(intervalTicks, (lastTick) => {
+                switch (parentLevelMode) {
+                    case ParentLevelMode.ContinuousTimeScaleTicks:
+                    case ParentLevelMode.OrdinalTimeScaleTicks:
+                        return lastTick.valueOf() + milliseconds > p1.valueOf();
+                    case ParentLevelMode.UnitTimeScaleTicks:
+                    case ParentLevelMode.OrdinalTimeStepTicks:
+                        return lastTick.valueOf() >= p1.valueOf();
+                }
+            });
+        }
+
+        if (intervalTicks.length === 0) continue;
+
+        const firstTick = intervalTicks[0];
+        const firstTickDiff = compareDates(firstTick, p0);
+        const firstPrimary =
+            parentLevelMode === ParentLevelMode.ContinuousTimeScaleTicks
+                ? firstTickDiff === 0
+                : firstTickDiff <= milliseconds;
+
+        if (firstPrimary && (!skipFirstPrimaryTick || !first)) {
+            primaryTicksIndices ??= new Set();
+            primaryTicksIndices.add(ticks.length);
+        }
+
+        ticks.push(...intervalTicks);
+    }
+
+    // If there's only one primary tick, and it's the first tick, don't show primary ticks
+    if (primaryTicksIndices?.size === 1 && primaryTicksIndices.has(0)) {
+        primaryTicksIndices = undefined;
+    }
+
+    return { ticks, primaryTicksIndices, alignment };
 }
