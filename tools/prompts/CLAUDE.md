@@ -106,6 +106,13 @@ nx e2e ag-charts-website
 -   Canvas rendering optimizations are critical
 -   Memory profiling available through benchmark suite
 
+### Benchmarks
+
+-   Benchmark tests are located in `packages/ag-charts-{community,enterprise}/benchmarks/`
+-   Benchmarks include visual snapshot comparisons by default
+-   The `BENCHMARK_SOFT_FAIL` environment variable is used in CI to disable snapshot comparisons for performance-only benchmark runs
+-   Enterprise benchmarks re-export community benchmark utilities via `packages/ag-charts-enterprise/benchmarks/benchmark.ts`
+
 ## Technical Requirements
 
 -   **Node.js**: ^20.10.0
