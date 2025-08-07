@@ -7,10 +7,12 @@ export interface OptionsGraphInterface {
 
     addEdge(from: VertexInterface, to: VertexInterface, edge?: string): void;
     addVertex(value: unknown): VertexInterface;
+    dangerouslyGetUserOption(path: Array<string>): unknown;
     findNeighbour(vertex: VertexInterface, edge: string): unknown;
     findNeighbourValue(vertex: VertexInterface, edge: string): unknown;
     findNeighbourWithValue(vertex: VertexInterface, value: unknown, edge?: string): VertexInterface | undefined;
     findVertexAtPath(path: Array<string>): VertexInterface | undefined;
+    getCachedValue(path: Array<string>, key: string): unknown;
     getResolvedPath(path: Array<string>): unknown;
     getParamValue(path: string): unknown;
     getPathArray(vertex: VertexInterface): Array<string>;
@@ -22,13 +24,14 @@ export interface OptionsGraphInterface {
         object: PlainObject,
         overridesPathArrays?: Array<Array<string> | undefined>
     ): void;
-    graftValue(target: VertexInterface, path: string, ontoObject: unknown, value: unknown): void;
+    graftValue(target: VertexInterface, path: string, ontoObject: unknown, value: unknown, edgeValue?: string): void;
     hasThemeOverride(path: Array<string>): boolean;
     hasUserOption(path: Array<string>): boolean;
     neighboursWithEdgeValue(vertex: VertexInterface, edge: string): Array<VertexInterface> | undefined;
     removeEdges(vertex: VertexInterface, edge: string): void;
     resolveValue$1(path: Array<string>): unknown;
     resolveVertexValue(vertex: VertexInterface, valueVertex: VertexInterface): unknown;
+    setCachedValue(path: Array<string>, key: string, value: unknown): void;
 }
 
 // The edge that connects two options keys, e.g. `parent` to `child` in the object `{ parent: { child: 'some value' } }`.

@@ -17,7 +17,6 @@ const {
     TransformableText,
     BBox,
     applyShapeStyle,
-    getShapeStyle,
     mergeDefaults,
 } = _ModuleSupport;
 
@@ -152,7 +151,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     ) {
         const { id: seriesId, properties, colorScale } = this;
 
-        const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
+        const { itemStyler } = properties;
         const rootIndex = nodeDatum.datumIndex?.[0] ?? 0;
 
         const highlightStyle = isHighlight ? properties.highlightStyle : undefined;
@@ -162,7 +161,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             baseStyle.fill = colorScale.convert(nodeDatum.colorValue);
         }
 
-        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+        let style = baseStyle;
 
         if (itemStyler != null && nodeDatum != null) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -186,12 +185,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             );
 
             if (overrides) {
-                style = getShapeStyle(
-                    mergeDefaults(overrides, style),
-                    fillGradientDefaults,
-                    fillPatternDefaults,
-                    fillImageDefaults
-                );
+                style = mergeDefaults(overrides, style);
             }
         }
 
@@ -579,21 +573,16 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const color = format.fill as InternalAgColorType;
 
-        const markerStyle = getShapeStyle(
-            {
-                shape: 'square' as const,
-                fill: color,
-                fillOpacity: 1,
-                stroke: undefined,
-                strokeWidth: 0,
-                strokeOpacity: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
-            },
-            properties.fillGradientDefaults,
-            properties.fillPatternDefaults,
-            properties.fillImageDefaults
-        );
+        const markerStyle = {
+            shape: 'square' as const,
+            fill: color,
+            fillOpacity: 1,
+            stroke: undefined,
+            strokeWidth: 0,
+            strokeOpacity: 1,
+            lineDash: [0],
+            lineDashOffset: 0,
+        };
 
         if (_ModuleSupport.isGradientFill(markerStyle.fill)) {
             markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };

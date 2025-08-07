@@ -393,7 +393,7 @@ export class ChartTheme {
                 ...LEGEND_CONTAINER_THEME,
                 enabled: {
                     $and: [
-                        { $greaterThan: [{ $size: [{ $path: '/series' }] }, 1] },
+                        { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
                         {
                             $or: [
                                 { $isChartType: 'cartesian' },
@@ -471,8 +471,8 @@ export class ChartTheme {
                                 { $isChartType: 'cartesian' },
                                 { $not: { $hasSeriesType: 'bubble' } },
                                 { $not: { $hasSeriesType: 'scatter' } },
-                                { $greaterThan: [{ $size: [{ $path: '/series' }] }, 1] },
-                                { $lessThan: [{ $size: [{ $path: '/series' }] }, 4] },
+                                { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
+                                { $lessThan: [{ $size: { $path: '/series' } }, 4] },
                             ],
                         },
                         'shared',

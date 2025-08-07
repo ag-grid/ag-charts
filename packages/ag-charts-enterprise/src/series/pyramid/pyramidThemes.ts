@@ -9,12 +9,24 @@ export const PYRAMID_SERIES_THEME: _ModuleSupport.SeriesModule<'pyramid'>['theme
         direction: 'vertical',
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         spacing: 2,
-        fills: { $palette: 'fills' },
-        strokes: { $palette: 'strokes' },
-        // @ts-expect-error undocumented option
-        fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
-        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-        fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
+        fills: {
+            $applyCycle: [
+                { $size: { $path: ['./data', { $path: '/data' }] } },
+                { $palette: 'fills' },
+                {
+                    $applySwitch: [
+                        { $path: ['/type', undefined, { $value: '$1' }] },
+                        { $value: '$1' },
+                        ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
+                        ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                    ],
+                },
+            ],
+        },
+        strokes: {
+            $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
+        },
         label: {
             ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
             enabled: true,
@@ -39,6 +51,7 @@ export const PYRAMID_SERIES_THEME: _ModuleSupport.SeriesModule<'pyramid'>['theme
             yOffset: 3,
             blur: 5,
         },
+        // @ts-expect-error undocumented option
         highlight: _ModuleSupport.singleSeriesHighlightStyle(),
     },
 };

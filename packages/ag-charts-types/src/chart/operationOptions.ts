@@ -4,6 +4,8 @@ import type { AgChartThemeParams } from './themeParamsOptions';
 export type WithThemeParams<T> = ExtendLiteralLeaves<T, Operation, ExcludeLeaves>;
 
 export type Operation =
+    | CacheOperation
+    | ChartOperation
     | ColorOperation
     | FontOperation
     | LocationOperation
@@ -68,6 +70,13 @@ type PaletteParam =
     | 'neutral.fill'
     | 'neutral.stroke';
 
+type CacheOperation = { $cacheMax: Leaf<number> };
+
+type ChartOperation =
+    | { $hasSeriesType: Leaf<string> }
+    | { $isChartType: Leaf<string> }
+    | { $isSeriesType: Leaf<string> };
+
 type ColorOperation =
     | { $foregroundBackgroundMix: Leaf<number> } // Ratio of background (0 to 1)
     | { $foregroundOpacity: Leaf<number> } // Opacity (0 to 1)
@@ -104,6 +113,7 @@ type NumericOperation =
 type TransformOperation =
     | { $apply: Leaf<object> | [Leaf<object>, Leaf<object[]>] } // Object to merge with each item in the array | Default if no user options supplied
     | { $applySwitch: any[] }
+    | { $applyCycle: any[] }
     | { $findFirstSiblingNotOperation: AnyLeaf } // Default value if no non-operation sibling found
     | { $map: [AnyLeaf | object, AnyLeaf] } // Operation to apply to each item in the array | Target array
     | { $merge: Leaf<object>[] } // Array of objects to merge

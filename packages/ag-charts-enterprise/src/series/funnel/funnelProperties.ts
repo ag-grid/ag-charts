@@ -12,18 +12,8 @@ import type { InternalAgColorType, RequireOptional } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 
-const {
-    FillGradientDefaults,
-    FillPatternDefaults,
-    FillImageDefaults,
-    Label,
-    DropShadow,
-    AbstractBarSeriesProperties,
-    BaseProperties,
-    makeSeriesTooltip,
-    AxisLabel,
-    Property,
-} = _ModuleSupport;
+const { Label, DropShadow, AbstractBarSeriesProperties, BaseProperties, makeSeriesTooltip, AxisLabel, Property } =
+    _ModuleSupport;
 
 class FunnelSeriesLabel extends Label<AgFunnelSeriesLabelFormatterParams> {}
 
@@ -86,15 +76,6 @@ export class FunnelProperties
     fills: AgColorType[] = [];
 
     @Property
-    readonly fillGradientDefaults = new FillGradientDefaults();
-
-    @Property
-    readonly fillPatternDefaults = new FillPatternDefaults();
-
-    @Property
-    readonly fillImageDefaults = new FillImageDefaults();
-
-    @Property
     fillOpacity: number = 1;
 
     @Property
@@ -136,9 +117,9 @@ export class FunnelProperties
     getStyle(index: number): Required<AgFunnelSeriesStyle> & { opacity: number } {
         const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
         return {
-            fill: fills[index % fills.length],
+            fill: fills[index],
             fillOpacity,
-            stroke: strokes[index % strokes.length],
+            stroke: strokes[index],
             strokeWidth,
             strokeOpacity,
             lineDash,

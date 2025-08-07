@@ -24,7 +24,6 @@ const {
     mergeDefaults,
     fromToMotion,
     seriesLabelFadeInAnimation,
-    getShapeStyle,
     getLabelStyles,
 } = _ModuleSupport;
 
@@ -478,12 +477,11 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         isHighlight: boolean
     ): Required<AgPyramidSeriesStyle> {
         const { id: seriesId, properties } = this;
-        const { stageKey, valueKey, itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } =
-            properties;
+        const { stageKey, valueKey, itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(datumIndex));
-        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+        let style = baseStyle;
 
         if (itemStyler != null && datumIndex != null) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -504,12 +502,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             );
 
             if (overrides) {
-                style = getShapeStyle(
-                    mergeDefaults(overrides, style),
-                    fillGradientDefaults,
-                    fillPatternDefaults,
-                    fillImageDefaults
-                );
+                style = mergeDefaults(overrides, style);
             }
         }
 
@@ -680,23 +673,18 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private legendItemSymbol(datumIndex: number) {
         const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
-        const fill = fills[datumIndex % fills.length] ?? 'black';
-        const stroke = strokes[datumIndex % strokes.length] ?? 'black';
+        const fill = fills[datumIndex] ?? 'black';
+        const stroke = strokes[datumIndex] ?? 'black';
         return {
-            marker: getShapeStyle(
-                {
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                },
-                this.properties.fillGradientDefaults,
-                this.properties.fillPatternDefaults,
-                this.properties.fillImageDefaults
-            ),
+            marker: {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+            },
         };
     }
 

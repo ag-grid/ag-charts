@@ -24,6 +24,8 @@ import {
 } from './optionsGraphUtils';
 
 export type Operation =
+    | CacheOperation
+    | ChartOperation
     | ColorOperation
     | FontOperation
     | LocationOperation
@@ -81,6 +83,36 @@ function getOperationTargetVertex(graph: OptionsGraphInterface, vertex: VertexIn
         case TransformOperation.Value:
             return vertex;
     }
+}
+
+// --- CACHE ---
+
+enum CacheOperation {
+    CacheMax = '$cacheMax',
+}
+
+const cacheOperations: Record<CacheOperation, OperationFns> = {
+    $cacheMax: cacheMaxOperation,
+};
+
+function cacheMaxOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [valueVertex] = values;
+
+    const pathArray = graph.getPathArray(vertex);
+    const cached = graph.getCachedValue(pathArray, CacheOperation.CacheMax);
+
+    const value = graph.resolveVertexValue(vertex, valueVertex);
+    if (typeof value !== 'number') return cached;
+
+    if (typeof cached !== 'number') {
+        graph.setCachedValue(pathArray, CacheOperation.CacheMax, value);
+        return value;
+    }
+
+    const maxValue = Math.max(cached, value);
+    graph.setCachedValue(pathArray, CacheOperation.CacheMax, maxValue);
+
+    return maxValue;
 }
 
 // --- CHART ---
@@ -392,7 +424,7 @@ function lessThanOperation(graph: OptionsGraphInterface, vertex: VertexInterface
 }
 
 function notOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const valueVertex = values[0];
+    const [valueVertex] = values;
     if (!valueVertex) return;
     return !graph.resolveVertexValue(vertex, valueVertex);
 }
@@ -421,7 +453,7 @@ function switchOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
         }
     }
 
-    return graph.getVertexValue(defaultValueVertex);
+    return graph.resolveVertexValue(vertex, defaultValueVertex);
 }
 
 // --- LOCATION ---
@@ -687,6 +719,7 @@ function refOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, va
 
 enum TransformOperation {
     Apply = '$apply',
+    ApplyCycle = '$applyCycle',
     ApplySwitch = '$applySwitch',
     ApplyTheme = '$applyTheme',
     FindFirstSiblingNotOperation = '$findFirstSiblingNotOperation',
@@ -700,6 +733,7 @@ enum TransformOperation {
 
 const transformOperations: Record<TransformOperation, OperationFns> = {
     $apply: applyOperation,
+    $applyCycle: applyCycleOperation,
     $applySwitch: applySwitchOperation,
     $applyTheme: applyThemeOperation,
     $findFirstSiblingNotOperation: findFirstSiblingNotOperationOperation,
@@ -720,7 +754,9 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
     const defaultValue = defaultValueVertex ? graph.getVertexValue(defaultValueVertex) : undefined;
     const children = graph.neighboursWithEdgeValue(vertex, PATH_EDGE);
 
-    if ((!children || children.length === 0) && defaultValue == null) {
+    const hasChildren = children && children.length > 0;
+
+    if (!hasChildren && defaultValue == null) {
         return RESOLVED_TO_BRANCH;
     }
 
@@ -731,7 +767,7 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         ? (graph.resolveVertexValue(vertex, overridesPathVertex2) as Array<string>)
         : undefined;
 
-    if ((!children || children.length === 0) && defaultValue != null) {
+    if (!hasChildren && defaultValue != null) {
         if (getOperation(defaultValue)) {
             const resolvedDefaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
             if (isPlainObject(resolvedDefaultValue)) {
@@ -742,7 +778,7 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         }
     }
 
-    if (!children) return RESOLVED_TO_BRANCH;
+    if (!hasChildren) return RESOLVED_TO_BRANCH;
 
     for (const child of children) {
         const childNeighbours = graph.neighboursWithEdgeValue(child, PATH_EDGE);
@@ -752,6 +788,35 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
             graph.addEdge(child, stubVertex, DEFAULTS_EDGE);
         } else {
             graph.graftObject(child, object, [overridesPath1, overridesPath2]);
+        }
+    }
+
+    return RESOLVED_TO_BRANCH;
+}
+
+function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [sizeVertex, defaultValuesVertex, operationVertex] = values;
+
+    const size = graph.resolveVertexValue(vertex, sizeVertex);
+    if (typeof size !== 'number') return;
+
+    const pathArray = graph.getPathArray(vertex);
+    const userOption = graph.dangerouslyGetUserOption(pathArray);
+    const hasThemeOverride = graph.hasThemeOverride(pathArray);
+    const graftEdge = userOption == null ? undefined : USER_OPTIONS_EDGE;
+
+    const cycledValues = userOption ?? graph.resolveVertexValue(vertex, defaultValuesVertex);
+    if (!Array.isArray(cycledValues)) return;
+
+    const operation = operationVertex ? graph.getVertexValue(operationVertex) : undefined;
+
+    for (let index = 0; index < size; index++) {
+        const value = cycledValues[index % cycledValues.length];
+        if (userOption || !hasThemeOverride) {
+            graph.graftValue(vertex, `${index}`, value, undefined, graftEdge);
+        }
+        if (operation) {
+            graph.graftValue(vertex, `${index}`, operation, value, graftEdge);
         }
     }
 
@@ -856,7 +921,7 @@ function findFirstSiblingNotOperationOperation(
 function mapOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [mapOperationVertex, mapValuesVertex] = values;
 
-    const mapOntoObject = graph.getVertexValue(mapOperationVertex);
+    const mapOperationValue = graph.getVertexValue(mapOperationVertex);
     const mapValues = graph.resolveVertexValue(vertex, mapValuesVertex);
     if (!Array.isArray(mapValues)) return;
 
@@ -869,7 +934,7 @@ function mapOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
 
     let index = 0;
     for (const value of mapValues) {
-        graph.graftValue(vertex, `${index}`, mapOntoObject, value);
+        graph.graftValue(vertex, `${index}`, mapOperationValue, value);
         index++;
     }
 
@@ -905,6 +970,7 @@ function sizeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, va
     const [valueVertex] = values;
     const value = graph.resolveVertexValue(vertex, valueVertex);
     if (!isObjectLike(value)) return 0;
+    if ('length' in value) return value.length;
     return Object.keys(value).length;
 }
 
@@ -982,13 +1048,14 @@ function mulOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
 }
 
 function roundOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const valueVertex = values[0];
+    const [valueVertex] = values;
     if (!valueVertex) return;
 
     return Math.round(Number(graph.resolveVertexValue(vertex, valueVertex)));
 }
 
 export const operations: Record<Operation, OperationFns> = {
+    ...cacheOperations,
     ...chartOperations,
     ...colorOperations,
     ...fontOperations,

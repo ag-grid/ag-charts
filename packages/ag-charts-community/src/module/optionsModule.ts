@@ -157,12 +157,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.removeLeftoverSymbols(this.userOptions);
         }
 
+        const dataChangedLength =
+            currentUserOptions instanceof ChartOptions &&
+            deltaOptions?.data !== undefined &&
+            deltaOptions?.data?.length !== currentUserOptions.userOptions.data?.length;
+
         let activeTheme, processedOptions, fastDelta, themeParameters, annotationThemes, googleFonts, optionsGraph;
         if (
             !stripSymbols &&
             deltaOptions !== undefined &&
             ChartOptions.isFastPathDelta(deltaOptions) &&
-            baseChartOptions != null
+            baseChartOptions != null &&
+            !dataChangedLength
         ) {
             ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
             themeParameters = baseChartOptions.themeParameters;

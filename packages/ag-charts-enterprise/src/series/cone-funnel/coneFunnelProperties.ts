@@ -9,16 +9,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import type { BaseFunnelProperties } from '../funnel/baseFunnelSeriesProperties';
 
-const {
-    FillGradientDefaults,
-    FillPatternDefaults,
-    FillImageDefaults,
-    Label,
-    AbstractBarSeriesProperties,
-    makeSeriesTooltip,
-    AxisLabel,
-    Property,
-} = _ModuleSupport;
+const { Label, AbstractBarSeriesProperties, makeSeriesTooltip, AxisLabel, Property } = _ModuleSupport;
 
 class ConeFunnelSeriesLabel extends Label<AgConeFunnelSeriesLabelFormatterParams> {
     @Property
@@ -45,15 +36,6 @@ export class ConeFunnelProperties
 
     @Property
     fills: AgColorType[] = [];
-
-    @Property
-    readonly fillGradientDefaults = new FillGradientDefaults();
-
-    @Property
-    readonly fillPatternDefaults = new FillPatternDefaults();
-
-    @Property
-    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     fillOpacity: number = 1;
@@ -85,9 +67,9 @@ export class ConeFunnelProperties
     getStyle(index: number): Required<AgConeFunnelSeriesStyle> & { opacity: number } {
         const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
         return {
-            fill: fills[index % fills.length],
+            fill: fills[index],
             fillOpacity,
-            stroke: strokes[index % strokes.length],
+            stroke: strokes[index],
             strokeWidth,
             strokeOpacity,
             lineDash,
