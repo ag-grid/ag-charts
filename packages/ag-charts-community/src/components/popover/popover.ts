@@ -5,7 +5,7 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { getLastFocus } from '../../util/keynavUtil';
 import type { Vec2 } from '../../util/vector';
-import type { MenuWidget } from '../../widget/menuWidget';
+import type { ExpandableWidget } from '../../widget/expandableWidget';
 
 const canvasOverlay = 'canvas-overlay';
 
@@ -30,7 +30,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     extends BaseModuleInstance
     implements ModuleInstance
 {
-    protected menuWidget?: MenuWidget;
+    protected widget?: ExpandableWidget;
 
     protected readonly hideFns: Array<() => void> = [];
 
@@ -60,8 +60,8 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     }
 
     private destroyWidget() {
-        this.menuWidget?.destroy();
-        this.menuWidget = undefined;
+        this.widget?.destroy();
+        this.widget = undefined;
     }
 
     public attachTo(popover: Popover) {
@@ -103,14 +103,14 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         return popover;
     }
 
-    protected showWidget(widget: MenuWidget, options: Options) {
+    protected showWidget(widget: ExpandableWidget, options: Options) {
         const { sourceEvent } = options;
         if (sourceEvent) {
             this.destroyWidget();
             this.initPopoverElement(widget.getElement(), options);
             widget.expand({ sourceEvent });
             widget.addListener('collapse-widget', () => this.removeChildren());
-            this.menuWidget = widget;
+            this.widget = widget;
         }
     }
 

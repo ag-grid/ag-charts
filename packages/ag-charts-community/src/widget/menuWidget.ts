@@ -8,6 +8,7 @@ import {
     getLastFocus,
     hasNoModifiers,
 } from '../util/keynavUtil';
+import type { ExpandEvent, ExpandOpts, ExpandableWidget } from './expandableWidget';
 import { MenuItemWidget } from './menuItemWidget';
 import type { RovingDirection } from './rovingDirection';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
@@ -21,8 +22,6 @@ interface ExpansionScope {
     close: () => void;
 }
 
-type ExpandEvent = Pick<WidgetEvent, 'sourceEvent'>;
-
 enum CollapseMode {
     CLOSE = '0',
     ABORT = '1',
@@ -32,7 +31,7 @@ enum CollapseMode {
 }
 const closeKeys = ['Escape', 'ArrowLeft'] as const;
 
-export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
+export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> implements ExpandableWidget<HTMLDivElement> {
     private expansionScope?: ExpansionScope;
 
     constructor(orientation: RovingDirection = 'vertical') {
@@ -109,7 +108,7 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
         expansionScope.expandedSubMenu = subMenu;
     }
 
-    public expand(event: ExpandEvent, opts?: { overrideFocusVisible?: boolean }): void {
+    public expand(event: ExpandEvent, opts?: ExpandOpts): void {
         if (this.expansionScope != null) return; // already open
 
         this.expansionScope = {

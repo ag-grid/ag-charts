@@ -80,7 +80,7 @@ export class Menu extends AnchoredPopover {
             options.onPress?.(item);
             sourceEvent.preventDefault();
             sourceEvent.stopPropagation();
-            this.menuWidget?.collapse();
+            this.widget?.collapse();
         });
 
         return row;
