@@ -94,6 +94,7 @@
         "ag-charts-website-benchmarks_high-perf-area_main.ts:generate-example",
         "ag-charts-website-benchmarks_high-perf-area-stacked_main.ts:generate-example",
         "ag-charts-website-benchmarks_high-perf-bar_main.ts:generate-example",
+        "ag-charts-website-benchmarks_high-perf-bar-stacked_main.ts:generate-example",
         "ag-charts-website-benchmarks_high-perf-line_main.ts:generate-example",
         "ag-charts-website-benchmarks_high-perf-ohlc_main.ts:generate-example",
         "ag-charts-website-benchmarks_high-perf-range-area_main.ts:generate-example",

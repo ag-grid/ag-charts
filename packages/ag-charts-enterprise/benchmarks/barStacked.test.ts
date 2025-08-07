@@ -9,13 +9,13 @@ if (!isAtOrAfterVersion(12, 1, 0)) {
     describe = originalDescribe.skip as any;
 }
 
-describe('stacked area benchmark', () => {
-    const ctx = setupBenchmark<AgCartesianChartOptions>('high-perf-area-stacked', { isEnterprise: true });
+describe('stacked bar benchmark', () => {
+    const ctx = setupBenchmark<AgCartesianChartOptions>('high-perf-bar-stacked', { isEnterprise: true });
 
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 160, expectedCanvasCount: 4, autoSnapshot: false },
+        { expectedRelativeMB: 220, expectedCanvasCount: 4, autoSnapshot: false },
         async () => {
             await ctx.create();
         },
@@ -30,7 +30,7 @@ describe('stacked area benchmark', () => {
         benchmark(
             '20x zoom',
             ctx,
-            { expectedRelativeMB: 5.5, expectedCanvasCount: 4, autoSnapshot: false },
+            { expectedRelativeMB: 7.5, expectedCanvasCount: 4, autoSnapshot: false },
             async () => {
                 for (let i = 0; i < 20; i++) {
                     await ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);

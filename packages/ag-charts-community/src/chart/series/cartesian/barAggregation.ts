@@ -2,8 +2,6 @@ import type { ScaleType } from '../../../scale/scale';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
-    AGGREGATION_INDEX_Y_MAX,
-    AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_SPAN,
     aggregationDomain,
     aggregationRangeFittingPoints,
@@ -11,19 +9,15 @@ import {
     createAggregationIndices,
 } from '../aggregation';
 
+const AGGREGATION_THRESHOLD = 1e3;
+
 export interface BarSeriesDataAggregationFilter {
     maxRange: number;
-    indexData: Int32Array;
-    indices: number[];
+    positiveIndices: number[];
+    positiveIndexData: Int32Array;
+    negativeIndices: number[];
+    negativeIndexData: Int32Array;
 }
-
-export const BAR_X_MIN = AGGREGATION_INDEX_X_MIN;
-export const BAR_X_MAX = AGGREGATION_INDEX_X_MAX;
-export const BAR_Y_MIN = AGGREGATION_INDEX_Y_MIN;
-export const BAR_Y_MAX = AGGREGATION_INDEX_Y_MAX;
-export const BAR_SPAN = AGGREGATION_SPAN;
-
-const AGGREGATION_THRESHOLD = 1e3;
 
 function getIndices(maxRange: number, indexData: Int32Array): number[] {
     return Array.from({ length: maxRange }, (_, index) => {
@@ -37,7 +31,8 @@ function getIndices(maxRange: number, indexData: Int32Array): number[] {
 export function aggregateBarData(
     scale: ScaleType,
     xValues: any[],
-    yValues: any[],
+    yStartValues: any[] | undefined,
+    yEndValues: any[],
     domain: number[],
     smallestKeyInterval: number | undefined
 ): BarSeriesDataAggregationFilter[] | undefined {
@@ -47,16 +42,48 @@ export function aggregateBarData(
 
     let maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval });
 
-    let { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange);
-    let indices = getIndices(maxRange, indexData);
+    let { indexData: positiveIndexData, valueData: positiveValueData } = createAggregationIndices(
+        xValues,
+        yEndValues,
+        yStartValues ?? yEndValues,
+        d0,
+        d1,
+        maxRange,
+        { positive: true }
+    );
+    let { indexData: negativeIndexData, valueData: negativeValueData } = createAggregationIndices(
+        xValues,
+        yEndValues,
+        yStartValues ?? yEndValues,
+        d0,
+        d1,
+        maxRange,
+        { positive: false }
+    );
 
-    const filters: BarSeriesDataAggregationFilter[] = [{ maxRange, indexData, indices }];
+    let positiveIndices = getIndices(maxRange, positiveIndexData);
+    let negativeIndices = getIndices(maxRange, negativeIndexData);
+
+    const filters: BarSeriesDataAggregationFilter[] = [
+        { maxRange, positiveIndices, positiveIndexData, negativeIndices, negativeIndexData },
+    ];
 
     while (maxRange > 64) {
-        ({ indexData, valueData, maxRange } = compactAggregationIndices(indexData, valueData, maxRange));
-        indices = getIndices(maxRange, indexData);
+        ({ indexData: positiveIndexData, valueData: positiveValueData } = compactAggregationIndices(
+            positiveIndexData,
+            positiveValueData,
+            maxRange
+        ));
+        ({
+            indexData: negativeIndexData,
+            valueData: negativeValueData,
+            maxRange,
+        } = compactAggregationIndices(negativeIndexData, negativeValueData, maxRange));
 
-        filters.push({ maxRange, indexData, indices });
+        positiveIndices = getIndices(maxRange, positiveIndexData);
+        negativeIndices = getIndices(maxRange, negativeIndexData);
+
+        filters.push({ maxRange, positiveIndices, positiveIndexData, negativeIndices, negativeIndexData });
     }
 
     filters.reverse();
