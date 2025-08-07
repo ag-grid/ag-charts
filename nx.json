@@ -241,7 +241,10 @@
       "options": {
         "commands": [
           "find {projectRoot}/benchmarks -name '*.test.ts' | xargs -L1 -P1 node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand"
-        ]
+        ],
+        "env": {
+          "AG_BENCHMARK_LATEST_VERSION": "1"
+        }
       },
       "parallelism": false,
       "configurations": {
