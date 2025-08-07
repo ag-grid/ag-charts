@@ -135,6 +135,13 @@ export const FILL_GRADIENT_LINEAR_HIERARCHY_DEFAULTS: WithThemeParams<RequiredIn
     } as any,
 };
 
+export const FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
+    ...FILL_GRADIENT_LINEAR_DEFAULTS,
+    colorStops: {
+        $map: [{ color: { $value: '$1' } }, { $path: ['/0', undefined, { $palette: 'gradients' }] }],
+    },
+};
+
 export const FILL_GRADIENT_LINEAR_SHADED_DEFAULTS = (
     key: string
 ): WithThemeParams<RequiredInternalAgGradientColor> => ({
@@ -232,6 +239,50 @@ export const FILL_PATTERN_DEFAULTS: WithThemeParams<RequiredInternalAgPatternCol
     scale: 1,
 };
 
+export const FILL_PATTERN_SINGLE_DEFAULTS: WithThemeParams<RequiredInternalAgPatternColor> = {
+    ...FILL_PATTERN_DEFAULTS,
+    stroke: {
+        $if: [
+            { $isGradient: { $palette: 'fill' } },
+            { $path: ['/0', undefined, { $palette: 'fillsFallback' }] },
+            {
+                $if: [
+                    { $isPattern: { $palette: 'fill' } },
+                    {
+                        $path: [
+                            '/stroke',
+                            { $path: ['/0', undefined, { $palette: 'fillsFallback' }] },
+                            { $path: ['/0', undefined, { $palette: 'fills' }] },
+                        ],
+                    },
+                    { $path: ['/0', undefined, { $palette: 'fills' }] },
+                ],
+            },
+        ],
+    },
+    fill: {
+        $if: [
+            {
+                $or: [{ $isGradient: { $palette: 'fill' } }, { $isImage: { $palette: 'fill' } }],
+            },
+            { $path: ['/0', undefined, { $palette: 'fillsFallback' }] },
+            {
+                $if: [
+                    { $isPattern: { $palette: 'fill' } },
+                    {
+                        $path: [
+                            '/fill',
+                            { $path: ['/0', undefined, { $palette: 'fillsFallback' }] },
+                            { $path: ['/0', undefined, { $palette: 'fills' }] },
+                        ],
+                    },
+                    { $path: ['/0', undefined, { $palette: 'fills' }] },
+                ],
+            },
+        ],
+    },
+};
+
 export const FILL_PATTERN_BLANK_DEFAULTS: RequiredInternalAgPatternColor = {
     type: 'pattern',
     pattern: 'forward-slanted-lines',
@@ -249,7 +300,7 @@ export const FILL_PATTERN_BLANK_DEFAULTS: RequiredInternalAgPatternColor = {
     scale: 1,
 };
 
-export const FILL_PATTERN_HIERARCHY_DEFAULTS = {
+export const FILL_PATTERN_HIERARCHY_DEFAULTS: WithThemeParams<RequiredInternalAgPatternColor> = {
     ...FILL_PATTERN_DEFAULTS,
     fill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },
     stroke: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] },

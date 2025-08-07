@@ -8,23 +8,38 @@ export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'
     series: {
         direction: 'vertical',
         fills: {
-            $if: [
-                { $eq: [{ $palette: 'type' }, 'inbuilt'] },
-                { $palette: 'secondSequentialColors' },
-                _ModuleSupport.SAFE_RANGE2_OPERATION,
+            $applyCycle: [
+                { $size: { $path: ['./data', { $path: '/data' }] } },
+                {
+                    $if: [
+                        { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+                        { $palette: 'secondSequentialColors' },
+                        _ModuleSupport.SAFE_RANGE2_OPERATION,
+                    ],
+                },
+                {
+                    $applySwitch: [
+                        { $path: ['/type', undefined, { $value: '$1' }] },
+                        { $value: '$1' },
+                        ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS],
+                        ['pattern', _ModuleSupport.FILL_PATTERN_SINGLE_DEFAULTS],
+                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                    ],
+                },
             ],
         },
         strokes: {
-            $if: [
-                { $eq: [{ $palette: 'type' }, 'inbuilt'] },
-                { $palette: 'secondSequentialColors' },
-                _ModuleSupport.SAFE_RANGE2_OPERATION,
+            $applyCycle: [
+                { $size: { $path: ['./data', { $path: '/data' }] } },
+                {
+                    $if: [
+                        { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+                        { $palette: 'secondSequentialColors' },
+                        _ModuleSupport.SAFE_RANGE2_OPERATION,
+                    ],
+                },
             ],
         },
-        // @ts-expect-error undocumented option
-        fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
-        fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-        fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         label: {
             ..._ModuleSupport.LABEL_BOXING_DEFAULTS,

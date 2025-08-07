@@ -30,7 +30,6 @@ const {
     Text,
     Transformable,
     applyShapeStyle,
-    getShapeStyle,
     getLabelStyles,
     mergeDefaults,
 } = _ModuleSupport;
@@ -335,7 +334,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         isHighlight: boolean
     ) {
         const { id: seriesId, properties, colorScale, ctx } = this;
-        const { itemStyler, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
+        const { itemStyler } = properties;
         const rootIndex = nodeDatum.datumIndex?.[0] ?? 0;
 
         const fills = isLeaf ? properties.fills : properties.undocumentedGroupFills;
@@ -349,7 +348,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             baseStyle.fill = colorScale.convert(nodeDatum.colorValue);
         }
 
-        let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+        let style = baseStyle;
 
         if (itemStyler != null && nodeDatum != null) {
             const overrides = this.cachedDatumCallback(
@@ -374,12 +373,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             );
 
             if (overrides) {
-                style = getShapeStyle(
-                    mergeDefaults(overrides, style),
-                    fillGradientDefaults,
-                    fillPatternDefaults,
-                    fillImageDefaults
-                );
+                style = mergeDefaults(overrides, style);
             }
         }
 
@@ -785,21 +779,16 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
         const color = format.fill as InternalAgColorType;
 
-        const markerStyle = getShapeStyle(
-            {
-                shape: 'square' as const,
-                fill: color,
-                fillOpacity: 1,
-                stroke: undefined,
-                strokeWidth: 0,
-                strokeOpacity: 1,
-                lineDash: [0],
-                lineDashOffset: 0,
-            },
-            this.properties.fillGradientDefaults,
-            this.properties.fillPatternDefaults,
-            this.properties.fillImageDefaults
-        );
+        const markerStyle = {
+            shape: 'square' as const,
+            fill: color,
+            fillOpacity: 1,
+            stroke: undefined,
+            strokeWidth: 0,
+            strokeOpacity: 1,
+            lineDash: [0],
+            lineDashOffset: 0,
+        };
 
         if (_ModuleSupport.isGradientFill(markerStyle.fill)) {
             markerStyle.fill = { ...markerStyle.fill, gradient: 'linear', rotation: 0, reverse: false };

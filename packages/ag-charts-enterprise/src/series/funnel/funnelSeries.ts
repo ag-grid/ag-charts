@@ -24,7 +24,6 @@ const {
     Rect,
     motion,
     applyShapeStyle,
-    getShapeStyle,
     mergeDefaults,
 } = _ModuleSupport;
 
@@ -108,12 +107,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(datumIndex));
-        let style = getShapeStyle(
-            baseStyle,
-            properties.fillGradientDefaults,
-            properties.fillPatternDefaults,
-            properties.fillImageDefaults
-        );
+        let style = baseStyle;
 
         if (itemStyler != null) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -134,12 +128,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
             );
 
             if (overrides) {
-                style = getShapeStyle(
-                    mergeDefaults(overrides, style),
-                    properties.fillGradientDefaults,
-                    properties.fillPatternDefaults,
-                    properties.fillImageDefaults
-                );
+                style = mergeDefaults(overrides, style);
             }
         }
 

@@ -1,7 +1,13 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
 import { FONT_SIZE_RATIO } from '../../themes/constants';
 import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { LABEL_BOXING_DEFAULTS, SAFE_FILLS_OPERATION, multiSeriesHighlightStyle } from '../../themes/util';
+import {
+    FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    multiSeriesHighlightStyle,
+} from '../../themes/util';
 
 export const pieTheme: ExtensibleTheme<'pie'> = {
     series: {
@@ -61,11 +67,24 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
                 ],
             },
         },
-        fills: { $palette: 'fills' },
-        strokes: { $palette: 'strokes' },
-        // @ts-expect-error undocumented option
-        defaultColorRange: { $palette: 'gradients' },
-        defaultPatternFills: SAFE_FILLS_OPERATION,
+        fills: {
+            $applyCycle: [
+                { $cacheMax: { $size: { $path: ['./data', { $path: '/data' }] } } },
+                { $palette: 'fills' },
+                {
+                    $applySwitch: [
+                        { $path: ['/type', undefined, { $value: '$1' }] },
+                        { $value: '$1' },
+                        ['gradient', FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS],
+                        ['pattern', FILL_PATTERN_DEFAULTS],
+                        ['image', FILL_IMAGE_DEFAULTS],
+                    ],
+                },
+            ],
+        },
+        strokes: {
+            $applyCycle: [{ $cacheMax: { $size: { $path: ['./data', { $path: '/data' }] } } }, { $palette: 'strokes' }],
+        },
         fillOpacity: 1,
         strokeOpacity: 1,
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },

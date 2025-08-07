@@ -1,4 +1,4 @@
-import { type Has, type InternalAgColorType, Logger, modulus } from 'ag-charts-core';
+import { type Has, type InternalAgColorType, type InternalAgGradientColor, Logger, modulus } from 'ag-charts-core';
 import type {
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
@@ -49,7 +49,7 @@ import { SeriesNodeEvent, type SeriesNodePickMatch, SeriesNodePickMode } from '.
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { HighlightState } from '../seriesProperties';
 import type { SeriesNodeEventTypes } from '../seriesTypes';
-import { applyShapeStyle, getShapeFill } from '../shapeUtil';
+import { applyShapeStyle } from '../shapeUtil';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
 import { DonutSeriesProperties } from './donutSeriesProperties';
 import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
@@ -646,45 +646,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         return quadrantTextOpts[quadrantIndex];
     }
 
-    private getNodeFill(
-        fill: InternalAgColorType,
-        defaultColorRange: string[],
-        defaultPatternFill: string
-    ): InternalAgColorType {
-        return getShapeFill(
-            fill,
-            {
-                type: 'gradient',
-                bounds: 'series',
-                colorStops: defaultColorRange.map((color) => ({ color })),
-                gradient: 'radial',
-                rotation: 0,
-                reverse: true,
-                colorSpace: 'rgb',
-            },
-            {
-                type: 'pattern',
-                pattern: 'forward-slanted-lines',
-                fill: defaultPatternFill,
-                fillOpacity: 1,
-                backgroundFill: 'none',
-                backgroundFillOpacity: 1,
-                stroke: defaultPatternFill,
-                strokeOpacity: 1,
-                strokeWidth: 4,
-                rotation: 0,
-            } as any,
-            {
-                type: 'image',
-                backgroundFill: defaultPatternFill,
-                backgroundFillOpacity: 1,
-                fit: 'contain',
-                repeat: 'no-repeat',
-                rotation: 0,
-            }
-        );
-    }
-
     private getFillParams(
         fill: InternalAgColorType,
         innerRadius: number,
@@ -706,21 +667,11 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         highlightState?: HighlightState,
         legendItemValues?: string[]
     ) {
-        const {
-            angleKey,
-            radiusKey,
-            calloutLabelKey,
-            sectorLabelKey,
-            legendItemKey,
-            fills,
-            strokes,
-            defaultColorRange,
-            defaultPatternFills,
-            itemStyler,
-        } = this.properties;
+        const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, fills, strokes, itemStyler } =
+            this.properties;
 
-        const defaultStroke = strokes[datumIndex % strokes.length];
-        const defaultFill = fills[datumIndex % fills.length];
+        const defaultStroke = strokes[datumIndex];
+        const defaultFill = fills[datumIndex];
         const {
             fill,
             fillOpacity,
@@ -739,8 +690,6 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             },
             this.properties
         );
-        const defaultColors = defaultColorRange[datumIndex % defaultColorRange.length];
-        const defaultPatternFill = defaultPatternFills[datumIndex % defaultPatternFills.length];
 
         const sectorFill: InternalAgColorType = fill ?? 'black';
 
@@ -756,7 +705,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                         calloutLabelKey,
                         sectorLabelKey,
                         legendItemKey,
-                        fill: this.getNodeFill(sectorFill, defaultColors, defaultPatternFill),
+                        fill: sectorFill,
                         fillOpacity,
                         stroke,
                         strokeWidth,
@@ -776,7 +725,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         }
 
         return {
-            fill: this.getNodeFill(format?.fill ?? sectorFill, defaultColors, defaultPatternFill),
+            fill: format?.fill ?? sectorFill,
             fillOpacity: format?.fillOpacity ?? fillOpacity,
             stroke: format?.stroke ?? stroke,
             strokeWidth: format?.strokeWidth ?? strokeWidth,
@@ -991,7 +940,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
         this.innerCircleSelection.each((node, { radius }) => {
             node.setProperties({
-                fill: this.getNodeFill(this.properties.innerCircle?.fill, ['black'], 'black'),
+                fill: this.properties.innerCircle?.fill,
                 opacity: this.properties.innerCircle?.fillOpacity,
                 size: radius,
             });
@@ -1649,7 +1598,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         let { fill } = sectorFormat;
         const { stroke } = sectorFormat;
         if (isGradientFill(fill)) {
-            fill = { ...fill, gradient: 'linear', rotation: 0, reverse: false };
+            fill = { ...fill, gradient: 'linear', rotation: 0, reverse: false } as InternalAgGradientColor;
         }
 
         return {

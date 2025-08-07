@@ -10415,70 +10415,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
         "length": 10,
         "strokeWidth": 2,
       },
-      "defaultColorRange": [
-        [
-          "#2162aa",
-          "#5090dc",
-          "#7ec0ff",
-        ],
-        [
-          "#cc7100",
-          "#ffa03a",
-          "#ffd171",
-        ],
-        [
-          "#076f29",
-          "#459d55",
-          "#75cd82",
-        ],
-        [
-          "#008fb0",
-          "#34bfe1",
-          "#70f1ff",
-        ],
-        [
-          "#b19c00",
-          "#e1cc00",
-          "#fffe5d",
-        ],
-        [
-          "#6a3c9a",
-          "#9669cb",
-          "#c597fe",
-        ],
-        [
-          "#878787",
-          "#b5b5b5",
-          "#e5e5e5",
-        ],
-        [
-          "#8c2c79",
-          "#bd5aa7",
-          "#f088d7",
-        ],
-        [
-          "#5d3800",
-          "#8a6224",
-          "#b98f53",
-        ],
-        [
-          "#b91926",
-          "#ef5452",
-          "#ff867f",
-        ],
-      ],
-      "defaultPatternFills": [
-        "#5090dc",
-        "#ffa03a",
-        "#459d55",
-        "#34bfe1",
-        "#e1cc00",
-        "#9669cb",
-        "#b5b5b5",
-        "#bd5aa7",
-        "#8a6224",
-        "#ef5452",
-      ],
       "fillOpacity": 0.9,
       "fills": [
         "#fb7451",
@@ -10575,8 +10511,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
         "#603c88",
         "#575757",
         "#7d2f6d",
-        "#4f3508",
-        "#a82529",
       ],
       "title": {
         "color": "#707374",
@@ -11103,70 +11037,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
         "length": 10,
         "strokeWidth": 2,
       },
-      "defaultColorRange": [
-        [
-          "#2162aa",
-          "#5090dc",
-          "#7ec0ff",
-        ],
-        [
-          "#cc7100",
-          "#ffa03a",
-          "#ffd171",
-        ],
-        [
-          "#076f29",
-          "#459d55",
-          "#75cd82",
-        ],
-        [
-          "#008fb0",
-          "#34bfe1",
-          "#70f1ff",
-        ],
-        [
-          "#b19c00",
-          "#e1cc00",
-          "#fffe5d",
-        ],
-        [
-          "#6a3c9a",
-          "#9669cb",
-          "#c597fe",
-        ],
-        [
-          "#878787",
-          "#b5b5b5",
-          "#e5e5e5",
-        ],
-        [
-          "#8c2c79",
-          "#bd5aa7",
-          "#f088d7",
-        ],
-        [
-          "#5d3800",
-          "#8a6224",
-          "#b98f53",
-        ],
-        [
-          "#b91926",
-          "#ef5452",
-          "#ff867f",
-        ],
-      ],
-      "defaultPatternFills": [
-        "#5090dc",
-        "#ffa03a",
-        "#459d55",
-        "#34bfe1",
-        "#e1cc00",
-        "#9669cb",
-        "#b5b5b5",
-        "#bd5aa7",
-        "#8a6224",
-        "#ef5452",
-      ],
       "fillOpacity": 1,
       "fills": [
         "#49afda",
@@ -11230,8 +11100,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
         "#603c88",
         "#575757",
         "#7d2f6d",
-        "#4f3508",
-        "#a82529",
       ],
       "title": {
         "color": "#707374",
