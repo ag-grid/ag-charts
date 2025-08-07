@@ -9,7 +9,7 @@ import {
     type FontWeight,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { cachedTextMeasurer } from 'ag-charts-core';
+import { cachedTextMeasurer, createId } from 'ag-charts-core';
 
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
@@ -115,6 +115,8 @@ const verticalTargetPlacementRotation: Record<AgLinearGaugeTargetPlacement, numb
 };
 
 class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSupport.LinearScale, number> {
+    readonly id = createId(this);
+
     constructor(
         private readonly gauge: LinearGaugeSeries,
         private readonly ctx: _ModuleSupport.ModuleContext

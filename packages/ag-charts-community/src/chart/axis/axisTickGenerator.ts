@@ -90,22 +90,11 @@ export interface TickGenerationResult<D = any> {
     textAlign: CanvasTextAlign;
 }
 
-interface TickStrategyParams<D = any> {
-    readonly index: number;
-    readonly tickData: TickData<D>;
-    readonly primaryTickCount: AxisPrimaryTickCount | undefined;
-    readonly defaultTickMinSpacing: number;
-    readonly visibleRange: [number, number];
-    labelsOverlap(this: void): boolean;
-}
-
 interface TickStrategyResult<D = any> {
     index: number;
     tickData: TickData<D>;
     autoRotation: number;
 }
-
-type TickStrategy<D = any> = (params: TickStrategyParams<D>) => TickStrategyResult<D>;
 
 enum TickGenerationType {
     CREATE,
@@ -125,6 +114,7 @@ const DENSE_TICK_COUNT = 18;
 const TICK_STEP_VALUES = [1, 2, 3, 4, 6, 8, 9, 10, 12];
 
 export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>, D> {
+    readonly id: string;
     readonly scale: S;
     readonly label: ChartAxis['label'];
     readonly primaryLabel?: ChartAxis['label'];
@@ -202,7 +192,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const {
             label,
             primaryLabel,
-            interval: { minSpacing, maxSpacing },
+            interval: { values, minSpacing, maxSpacing },
         } = this.axis;
         const { parallel, fontFamily, fontSize, fontStyle, fontWeight } = label;
 
@@ -285,27 +275,37 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         let index = 0;
         let autoRotation = 0;
         let labelOverlap = true;
-        while (labelOverlap && index <= maxIterations) {
-            autoRotation = 0;
 
-            for (const strategy of this.getTickStrategies({
+        const tryAutoRotate = checkLabelOverlap && label.autoRotate && label.rotation == null;
+
+        let tickGenerationType: TickGenerationType;
+        if (values) {
+            tickGenerationType = TickGenerationType.VALUES;
+        } else if (secondaryAxis) {
+            tickGenerationType = TickGenerationType.CREATE_SECONDARY;
+        } else {
+            tickGenerationType = TickGenerationType.CREATE;
+        }
+
+        while (labelOverlap && index <= maxIterations) {
+            ({ tickData, index, autoRotation } = this.createTickData(
                 domain,
                 range,
                 reverse,
                 niceMode,
-                secondaryAxis,
-                sizeLimit,
-            })) {
-                ({ tickData, index, autoRotation } = strategy({
-                    index,
-                    tickData,
-                    primaryTickCount,
-                    defaultTickMinSpacing,
-                    visibleRange,
-                    labelsOverlap() {
-                        return getLabelOverlap(tickData, autoRotation);
-                    },
-                }));
+                visibleRange,
+                primaryTickCount,
+                defaultTickMinSpacing,
+                tickGenerationType,
+                index,
+                tickData,
+                sizeLimit
+            ));
+
+            if (tryAutoRotate) {
+                autoRotation = getLabelOverlap(tickData, autoRotation)
+                    ? normalizeAngle360FromDegrees(label.autoRotateAngle)
+                    : 0;
             }
 
             labelOverlap = getLabelOverlap(tickData, autoRotation);
@@ -331,70 +331,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         }
 
         return { tickData, rotation, textBaseline, textAlign };
-    }
-
-    private getTickStrategies({
-        domain,
-        range,
-        reverse,
-        niceMode,
-        secondaryAxis,
-        sizeLimit,
-    }: {
-        domain: D[];
-        range: [number, number];
-        reverse: boolean;
-        niceMode: NiceMode;
-        secondaryAxis: boolean;
-        sizeLimit: number | undefined;
-    }): TickStrategy[] {
-        const { label, interval } = this.axis;
-        const avoidLabelCollisions = label.enabled && label.avoidCollisions;
-        const autoRotate = label.autoRotate === true && label.rotation === undefined;
-
-        const strategies: TickStrategy[] = [];
-        let tickGenerationType: TickGenerationType;
-        if (interval.values) {
-            tickGenerationType = TickGenerationType.VALUES;
-        } else if (secondaryAxis) {
-            tickGenerationType = TickGenerationType.CREATE_SECONDARY;
-        } else {
-            tickGenerationType = TickGenerationType.CREATE;
-        }
-
-        const tickGenerationStrategy = ({
-            index,
-            tickData,
-            primaryTickCount,
-            defaultTickMinSpacing,
-            visibleRange,
-        }: TickStrategyParams) =>
-            this.createTickData(
-                domain,
-                range,
-                reverse,
-                niceMode,
-                visibleRange,
-                primaryTickCount,
-                defaultTickMinSpacing,
-                tickGenerationType,
-                index,
-                tickData,
-                sizeLimit
-            );
-
-        strategies.push(tickGenerationStrategy);
-
-        if (avoidLabelCollisions && autoRotate) {
-            const autoRotateStrategy = ({ index, tickData, labelsOverlap }: TickStrategyParams) => ({
-                index,
-                tickData,
-                autoRotation: labelsOverlap() ? normalizeAngle360FromDegrees(label.autoRotateAngle) : 0,
-            });
-            strategies.push(autoRotateStrategy);
-        }
-
-        return strategies;
     }
 
     private createTickData(
