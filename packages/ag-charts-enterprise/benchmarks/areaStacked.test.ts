@@ -5,7 +5,7 @@ import { AgCartesianChartOptions } from 'ag-charts-types';
 import { benchmark, isAtOrAfterVersion, setupBenchmark } from './benchmark';
 
 let describe = originalDescribe;
-if (!isAtOrAfterVersion(12, 1, 0)) {
+if (!isAtOrAfterVersion(12, 2, 0)) {
     describe = originalDescribe.skip as any;
 }
 
