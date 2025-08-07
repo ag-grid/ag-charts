@@ -8,6 +8,7 @@ import {
     getLastFocus,
     hasNoModifiers,
 } from '../util/keynavUtil';
+import { CollapseMode } from './collapseMode';
 import type { ExpandEvent, ExpandOpts, ExpandableWidget } from './expandableWidget';
 import { MenuItemWidget } from './menuItemWidget';
 import type { RovingDirection } from './rovingDirection';
@@ -22,13 +23,6 @@ interface ExpansionScope {
     close: () => void;
 }
 
-enum CollapseMode {
-    CLOSE = '0',
-    ABORT = '1',
-    DESTROY = '2',
-    PARENT_CLOSED = '3',
-    SIDLING_OPENED = '4',
-}
 const closeKeys = ['Escape', 'ArrowLeft'] as const;
 
 export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> implements ExpandableWidget<HTMLDivElement> {
@@ -146,7 +140,7 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         }
         removers.flush();
 
-        this.internalListener?.dispatch('collapse-widget', this, { type: 'collapse-widget' });
+        this.internalListener?.dispatch('collapse-widget', this, { type: 'collapse-widget', mode });
     }
 
     public collapse() {
