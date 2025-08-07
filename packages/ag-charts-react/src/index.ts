@@ -3,6 +3,7 @@ import {
     RefObject,
     createElement,
     forwardRef,
+    memo,
     useEffect,
     useImperativeHandle,
     useLayoutEffect,
@@ -24,6 +25,13 @@ interface BaseChartProps {
     className?: string;
 }
 
+function isEmpty<T extends object>(obj: T): boolean {
+    for (const _ in obj) {
+        return false;
+    }
+    return true;
+}
+
 function getOptions(options: AgChartOptions, containerRef: RefObject<HTMLElement | null>): AgChartOptions {
     return {
         ...options,
@@ -36,9 +44,11 @@ function ChartWithConstructor<Props extends BaseChartProps>(
     displayName: string
 ) {
     const Component = forwardRef<AgChartInstance, Props>(function AgChartsReact(props, ref) {
-        const { options, style, className } = props;
+        const { style, className, options: optionsProp, ...topLevelOptions } = props;
         const containerRef = useRef<HTMLDivElement>(null);
         const chartRef = useRef<AgChartInstance | undefined>();
+
+        const options = isEmpty(topLevelOptions) ? optionsProp : { ...topLevelOptions, ...optionsProp };
 
         // This fires earlier than ideal - so has a negative impact on mounting performance
         // but it's important we do this so refs work as expected
@@ -58,7 +68,7 @@ function ChartWithConstructor<Props extends BaseChartProps>(
                 // eslint-disable-next-line no-console
                 chartRef.current?.update(getOptions(options, containerRef)).catch((e) => console.error(e));
             }
-        }, [options]);
+        }); // Dependency array does nothing here - but the component is already memo'd
 
         // Note useLayoutEffect is called before useImperativeHandle
         useImperativeHandle(ref, () => chartRef.current!, []);
@@ -74,10 +84,10 @@ function ChartWithConstructor<Props extends BaseChartProps>(
 
     Component.displayName = displayName;
 
-    return Component;
+    return memo(Component);
 }
 
-export interface AgChartProps {
+export interface AgChartProps extends Omit<AgChartOptions, 'container'> {
     options: AgChartOptions;
     style?: CSSProperties;
     className?: string;
@@ -88,7 +98,7 @@ export const AgCharts = /*#__PURE__*/ ChartWithConstructor<AgChartProps>(
     'AgCharts'
 );
 
-export interface AgFinancialChartProps {
+export interface AgFinancialChartProps extends Omit<AgFinancialChartOptions, 'container'> {
     options: AgFinancialChartOptions;
     style?: CSSProperties;
     className?: string;
@@ -99,7 +109,7 @@ export const AgFinancialCharts = /*#__PURE__*/ ChartWithConstructor<AgFinancialC
     'AgFinancialCharts'
 );
 
-export interface AgGaugeProps {
+export interface AgGaugeProps extends Omit<AgGaugeOptions, 'container'> {
     options: AgGaugeOptions;
     style?: CSSProperties;
     className?: string;

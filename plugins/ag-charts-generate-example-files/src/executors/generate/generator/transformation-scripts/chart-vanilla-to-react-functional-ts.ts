@@ -94,8 +94,8 @@ function getTemplate(bindings: any, componentAttributes: string[]): string {
     return convertFunctionalTemplate(template);
 }
 
-function getComponentMetadata(bindings: any, id: string, property: any) {
-    const { optionsTypeInfo } = bindings;
+function getComponentMetadata(bindings: any, id: string, property: any, flattenOptions: boolean) {
+    const { optionsTypeInfo, optionsProperties } = bindings;
 
     const stateProperties = [];
     const componentAttributes = [];
@@ -106,7 +106,13 @@ function getComponentMetadata(bindings: any, id: string, property: any) {
         `const [${property.name}, set${toTitleCase(property.name)}] = useState<${chartOptionsType}>(${property.value});`
     );
 
-    componentAttributes.push(`options={${property.name}}`);
+    if (flattenOptions && optionsProperties.length > 0) {
+        new Set(optionsProperties).forEach((option: string) => {
+            componentAttributes.push(`${option}={${property.name}.${option}}`);
+        });
+    } else {
+        componentAttributes.push(`options={${property.name}}`);
+    }
 
     Object.entries(bindings.chartAttributes[id]).forEach(([key, value]) => {
         if (key === 'style') {
@@ -139,7 +145,8 @@ export async function vanillaToReactFunctionalTs(
         const { stateProperties, componentAttributes } = getComponentMetadata(
             bindings,
             placeholders[0],
-            properties.find((p) => p.name === 'options')
+            properties.find((p) => p.name === 'options'),
+            true
         );
 
         let template = getTemplate(bindings, componentAttributes);
@@ -190,7 +197,8 @@ export async function vanillaToReactFunctionalTs(
             const { stateProperties, componentAttributes } = getComponentMetadata(
                 bindings,
                 id,
-                properties.find((p) => p.name === propertyName)
+                properties.find((p) => p.name === propertyName),
+                false
             );
 
             indexFile = `${indexFile}

@@ -134,6 +134,20 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
             registered.push(propertyName);
             bindings.chartProperties[id] = propertyName;
             bindings.properties.push({ name: propertyName, value: code });
+
+            if (
+                propertyName === 'options' &&
+                propertyAssignment.initializer.kind === ts.SyntaxKind.ObjectLiteralExpression
+            ) {
+                for (const property of propertyAssignment.initializer.properties) {
+                    if (property.kind !== ts.SyntaxKind.PropertyAssignment) continue;
+
+                    const name = property.name.escapedText;
+                    if (name === 'container') continue;
+
+                    bindings.optionsProperties.push(name);
+                }
+            }
         },
     });
 
@@ -224,6 +238,7 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
         tsTree,
         {
             properties: [],
+            optionsProperties: [],
             chartProperties: {},
             externalEventHandlers: [],
             instanceMethods: [],
