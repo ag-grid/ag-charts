@@ -122,17 +122,18 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private show(widgetEvent: ContextMenuEvent['widgetEvent'], expandedItems: ContextMenuItem[]) {
+        const { sourceEvent } = widgetEvent;
         this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.style.display = 'block';
 
-        const overrideFocusVisible = widgetEvent.sourceEvent.pointerType === 'touch' ? false : undefined;
+        const overrideFocusVisible = sourceEvent.pointerType === 'touch' ? false : undefined;
         if (overrideFocusVisible !== undefined) {
             this.ctx.chartService.overrideFocusVisible(overrideFocusVisible);
         }
 
         this.createMenu(expandedItems);
         this.element.appendChild(this.menuWidget.getElement());
-        this.menuWidget.expand(widgetEvent, { overrideFocusVisible });
+        this.menuWidget.expand({ sourceEvent, overrideFocusVisible });
     }
 
     private hide() {

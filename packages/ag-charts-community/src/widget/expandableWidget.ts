@@ -1,10 +1,27 @@
+import type { ElementID } from 'ag-charts-core';
+
+import type { CollapseMode } from './collapseMode';
 import type { CollapseWidgetEvent, ExpandWidgetEvent } from './widgetEvents';
 
-export type ExpandEvent = {
-    readonly sourceEvent: Event;
-};
-export type ExpandOpts = {
+// Either a controller (e.g. Financial Charts toolbar buttons) or sourceEvent (e.g. Context menu) is required in order for ExpandableWidget.expand() to
+export type ExpandOpts =
+    | {
+          readonly sourceEvent: Event;
+          readonly controller?: never;
+          readonly overrideFocusVisible?: boolean;
+      }
+    | {
+          readonly sourceEvent?: never;
+          readonly controller: ExpansionControllerWidget<HTMLElement>;
+          readonly overrideFocusVisible?: boolean;
+      };
+
+export type ExpandControlledOpts = {
     readonly overrideFocusVisible?: boolean;
+};
+
+export type CollapseOpts = {
+    readonly mode: CollapseMode;
 };
 
 // Widget interface
@@ -18,6 +35,12 @@ interface WidgetProps<TElement extends HTMLElement> {
 }
 
 export interface ExpandableWidget<TElement extends HTMLElement = HTMLElement> extends WidgetProps<TElement> {
-    expand(event: ExpandEvent, opts?: ExpandOpts): void;
-    collapse(): void;
+    id?: ElementID;
+    expand(opts: ExpandOpts): void;
+    collapse(opts?: CollapseOpts): void;
+}
+
+export interface ExpansionControllerWidget<TElement extends HTMLElement> {
+    setControlled(controls: ExpandableWidget<TElement> | undefined): void;
+    expandControlled(opts?: ExpandControlledOpts): void;
 }

@@ -1,12 +1,23 @@
 import { setAttribute } from 'ag-charts-core';
 
 import { isButtonClickEvent } from '../util/keynavUtil';
+import type { ExpandOpts, ExpandableWidget, ExpansionControllerWidget } from './expandableWidget';
+import { ExpansionControllerImpl } from './expansionControllerImpl';
 import { Widget } from './widget';
 import type { WidgetEventMap as EventMap, KeyboardWidgetEvent } from './widgetEvents';
 
 type R = ReturnType<Widget['addListener']>;
 
-export class AbstractButtonWidget<TElement extends HTMLElement> extends Widget<TElement> {
+export class AbstractButtonWidget<TElement extends HTMLElement>
+    extends Widget<TElement>
+    implements ExpansionControllerWidget<TElement>
+{
+    private controllerImpl?: ExpansionControllerImpl<TElement>;
+    private lazyControllerImpl(): ExpansionControllerImpl<TElement> {
+        this.controllerImpl ??= new ExpansionControllerImpl<TElement>(this);
+        return this.controllerImpl;
+    }
+
     constructor(element: TElement, role?: 'menuitem' | 'menuitemradio') {
         super(element);
         setAttribute(this.elem, 'role', role);
@@ -25,6 +36,14 @@ export class AbstractButtonWidget<TElement extends HTMLElement> extends Widget<T
 
     setEnabled(enabled: boolean) {
         setAttribute(this.elem, 'aria-disabled', !enabled);
+    }
+
+    setControlled(controls: ExpandableWidget<TElement> | undefined): void {
+        return this.lazyControllerImpl().setControlled(controls);
+    }
+
+    expandControlled(opts?: ExpandOpts): void {
+        return this.lazyControllerImpl().expandControlled(opts);
     }
 
     override addListener<K extends keyof EventMap>(type: K, listener: (ev: EventMap[K], current: this) => unknown): R;
