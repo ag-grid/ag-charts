@@ -6,6 +6,7 @@ import { AgChartOptions } from 'ag-charts-types';
 import { VERSION } from '../src/version';
 
 const PACKAGE_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../package.json'), 'utf8')).version;
+const IS_LATEST_VERSION = process.env.AG_BENCHMARK_LATEST_VERSION === '1';
 
 export function isHistoricBenchmarkTest() {
     return PACKAGE_VERSION !== VERSION;
@@ -23,6 +24,8 @@ export function getVersion() {
 }
 
 export function isAtOrAfterVersion(major: number, minor: number, patch: number) {
+    if (IS_LATEST_VERSION) return true;
+
     const current = getVersion();
 
     if (major < current[0]) return true;
