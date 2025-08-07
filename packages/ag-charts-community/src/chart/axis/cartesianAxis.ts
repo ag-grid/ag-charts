@@ -373,14 +373,14 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected calculateTickLine(
-        { primary, tickId, translation: offset }: Pick<TickDatum, 'primary' | 'tickId' | 'translation'>,
+        { isPrimary, tickId, translation: offset }: Pick<TickDatum, 'isPrimary' | 'tickId' | 'translation'>,
         _index: number,
         direction: number,
         _ticks: TickDatum[]
     ): AxisLineDatum {
         const { horizontal, tick, primaryTick } = this;
 
-        const datumTick = primary && primaryTick?.enabled ? primaryTick : tick;
+        const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;
         const h = -direction * this.getTickSize(datumTick);
         const [x1, y1, x2, y2] = horizontal ? [offset, 0, offset, h] : [0, offset, h, offset];
         const { stroke, width: strokeWidth } = datumTick;
@@ -655,9 +655,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
-        const { tickId, tickLabel: text = '', translation, primary, textUntruncated } = datum;
-        const label = primary && primaryLabel?.enabled ? primaryLabel : this.label;
-        const tick = primary && primaryTick?.enabled ? primaryTick : this.tick;
+        const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated } = datum;
+        const label = isPrimary && primaryLabel?.enabled ? primaryLabel : this.label;
+        const tick = isPrimary && primaryTick?.enabled ? primaryTick : this.tick;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = scale;
         const sideFlag = this.label.getSideFlag();

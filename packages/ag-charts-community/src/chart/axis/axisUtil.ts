@@ -19,7 +19,7 @@ export interface TickDatum {
     tickId: string;
     translation: number;
     textUntruncated: string | undefined;
-    primary: boolean;
+    isPrimary: boolean;
 }
 
 export interface AxisLineDatum {

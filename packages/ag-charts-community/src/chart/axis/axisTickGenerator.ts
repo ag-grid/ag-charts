@@ -347,8 +347,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         sizeLimit: number | undefined
     ): TickStrategyResult {
         // Find the next tick data where the tick data is different from the previous tick data - and return the index of this data
-        const { interval } = this.axis;
-        const { step, values, minSpacing, maxSpacing } = interval;
+        const { axis } = this;
+        const { step, values, minSpacing, maxSpacing } = axis.interval;
         const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount(
             domain,
             range,
@@ -413,7 +413,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             timeInterval,
         } = nextTicks;
 
-        const ticks = this.formatTicks({
+        const ticks = formatTicks({
+            axis,
             range,
             niceDomain,
             rawTicks,
@@ -588,9 +589,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             primaryTicksIndices = undefined;
         }
 
-        let firstTickIndex: number | undefined;
-
-        return { ticks, tickCount: undefined, firstTickIndex, primaryTicksIndices, alignment };
+        return { ticks, tickCount: undefined, firstTickIndex: undefined, primaryTicksIndices, alignment };
     }
 
     private getTicks({
@@ -783,99 +782,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             timeInterval,
         };
     }
-
-    private formatTicks({
-        niceDomain,
-        range,
-        rawTicks,
-        rawFirstTickIndex = 0,
-        generatePrimaryTicks,
-        primaryTicksIndices,
-        alignment,
-        fractionDigits,
-        timeInterval,
-        sizeLimit = Infinity,
-    }: {
-        niceDomain: D[];
-        range: [number, number];
-        rawTicks: any[];
-        rawFirstTickIndex: number | undefined;
-        generatePrimaryTicks: boolean;
-        primaryTicksIndices: Set<number> | undefined;
-        alignment: ScaleAlignment | undefined;
-        fractionDigits: number;
-        timeInterval: AnyTimeInterval | undefined;
-        sizeLimit: number | undefined;
-    }) {
-        const { axis } = this;
-        const { label, scale } = axis;
-
-        const scaleDomain = scale.domain;
-        scale.domain = niceDomain; // Reset at end of function
-
-        const dateStyle: DateFormatterStyle = generatePrimaryTicks ? 'component' : 'long';
-        const axisTickFormatter = label.enabled
-            ? axis.tickFormatter(niceDomain, rawTicks, false, fractionDigits, timeInterval, dateStyle)
-            : undefined;
-        const parentInterval = timeInterval != null ? intervalHierarchy(timeInterval) : undefined;
-        const axisPrimaryTickFormatter = generatePrimaryTicks
-            ? axis.tickFormatter(niceDomain, rawTicks, true, fractionDigits, parentInterval, dateStyle)
-            : undefined;
-
-        const halfBandwidth = (scale.bandwidth ?? 0) / 2;
-        const ticks: TickDatum[] = [];
-        const continuous = TimeScale.is(scale) || DiscreteTimeScale.is(scale);
-        const idGenerator = createIdsGenerator();
-        const isVertical = axis.direction === ChartAxisDirection.Y;
-        const maxBand = (BandScale.is(scale) ? scale.bandwidth : null) ?? Infinity;
-        const wrapOptions: WrapOptions = {
-            font: label,
-            maxWidth: isVertical ? sizeLimit : maxBand,
-            maxHeight: isVertical ? maxBand : sizeLimit,
-            overflow: label.truncate ? 'ellipsis' : 'hide',
-            textWrap: label.wrapping,
-        };
-
-        for (let i = 0; i < rawTicks.length; i++) {
-            const tick = rawTicks[i];
-            const translation = scale.convert(tick, { alignment }) + halfBandwidth;
-
-            // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
-            // instead hide ticks based on their translation.
-            if (range.length > 0 && !axis.inRange(translation, 0.001)) continue;
-
-            const primary = primaryTicksIndices?.has(i) ?? false;
-            let tickLabel = primary ? axisPrimaryTickFormatter?.(tick, i) : axisTickFormatter?.(tick, i);
-            const inputText: string = tickLabel ?? String(tick);
-
-            if (label.avoidCollisions) {
-                tickLabel = wrapText(inputText, wrapOptions) || tickLabel;
-            }
-
-            let tickId: string;
-            const continuousValue = continuous ? tick?.valueOf() : undefined;
-            if (Number.isFinite(continuousValue)) {
-                tickId = idGenerator(`v:${continuousValue}`);
-            } else {
-                tickId = idGenerator(`l:${tickLabel}`);
-            }
-
-            // Create a tick id from the label, or as an increment of the last label if this tick label is blank
-            ticks.push({
-                index: i + rawFirstTickIndex,
-                tick,
-                tickId,
-                tickLabel,
-                textUntruncated: tickLabel != null && inputText !== tickLabel ? inputText : undefined,
-                translation: Math.floor(translation),
-                primary,
-            });
-        }
-
-        scale.domain = scaleDomain;
-
-        return ticks;
-    }
 }
 
 function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding: number = 0): boolean {
@@ -952,4 +858,113 @@ function ticksSpacing(ticks: TickDatum[]) {
         y0 = y1;
     }
     return spacing;
+}
+
+function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>({
+    axis,
+    niceDomain,
+    range,
+    rawTicks,
+    rawFirstTickIndex = 0,
+    generatePrimaryTicks,
+    primaryTicksIndices,
+    alignment,
+    fractionDigits,
+    timeInterval,
+    sizeLimit = Infinity,
+}: {
+    axis: TickGenerationAxis<S, D>;
+    niceDomain: D[];
+    range: [number, number];
+    rawTicks: any[];
+    rawFirstTickIndex: number | undefined;
+    generatePrimaryTicks: boolean;
+    primaryTicksIndices: Set<number> | undefined;
+    alignment: ScaleAlignment | undefined;
+    fractionDigits: number;
+    timeInterval: AnyTimeInterval | undefined;
+    sizeLimit: number | undefined;
+}): TickDatum[] {
+    const { label, scale } = axis;
+    const originalDomain = scale.domain;
+    const isVertical = axis.direction === ChartAxisDirection.Y;
+    const isContinuous = TimeScale.is(scale) || DiscreteTimeScale.is(scale);
+    const idGenerator = createIdsGenerator();
+    const ticks: TickDatum[] = [];
+
+    scale.domain = niceDomain; // Reset at the end of function
+
+    const halfBandwidth = (scale.bandwidth ?? 0) / 2;
+    const maxBand = BandScale.is(scale) ? scale.bandwidth ?? Infinity : Infinity;
+
+    const wrapOptions: WrapOptions = {
+        font: label,
+        maxWidth: isVertical ? sizeLimit : maxBand,
+        maxHeight: isVertical ? maxBand : sizeLimit,
+        overflow: label.truncate ? 'ellipsis' : 'hide',
+        textWrap: label.wrapping,
+    };
+
+    const axisFormatter = axisTickFormatter(
+        axis,
+        generatePrimaryTicks,
+        niceDomain,
+        rawTicks,
+        fractionDigits,
+        timeInterval
+    );
+
+    for (let i = 0; i < rawTicks.length; i++) {
+        const tick = rawTicks[i];
+        const translation = scale.convert(tick, { alignment }) + halfBandwidth;
+
+        if (range.length && !axis.inRange(translation, 0.001)) continue;
+
+        const isPrimary = primaryTicksIndices?.has(i) ?? false;
+        const inputText = axisFormatter(isPrimary, tick, i);
+        const wrappedLabel = label.avoidCollisions ? wrapText(inputText, wrapOptions) || null : null;
+        const tickLabel = wrappedLabel ?? inputText;
+
+        const tickValue = isContinuous ? tick?.valueOf() : null;
+        const tickId = Number.isFinite(tickValue) ? idGenerator(`v:${tickValue}`) : idGenerator(`l:${tickLabel}`);
+
+        ticks.push({
+            index: i + rawFirstTickIndex,
+            tick,
+            tickId,
+            tickLabel,
+            textUntruncated: tickLabel === inputText ? undefined : inputText,
+            translation: Math.floor(translation),
+            isPrimary,
+        });
+    }
+
+    scale.domain = originalDomain;
+
+    return ticks;
+}
+
+function axisTickFormatter<S extends Scale<D, number, TickInterval<S>>, D>(
+    axis: TickGenerationAxis<S, D>,
+    generatePrimaryTicks: boolean,
+    niceDomain: D[],
+    rawTicks: any[],
+    fractionDigits: number,
+    timeInterval: AnyTimeInterval | undefined
+) {
+    const dateStyle: DateFormatterStyle = generatePrimaryTicks ? 'component' : 'long';
+    const parentInterval = generatePrimaryTicks && timeInterval ? intervalHierarchy(timeInterval) : undefined;
+
+    const primaryFormatter = generatePrimaryTicks
+        ? axis.tickFormatter(niceDomain, rawTicks, true, fractionDigits, parentInterval, dateStyle)
+        : null;
+
+    const tickFormatter = axis.label.enabled
+        ? axis.tickFormatter(niceDomain, rawTicks, false, fractionDigits, timeInterval, dateStyle)
+        : null;
+
+    return (isPrimary: boolean, tick: D, index: number) => {
+        const formatter = isPrimary ? primaryFormatter : tickFormatter;
+        return formatter?.(tick, index) ?? String(tick);
+    };
 }
