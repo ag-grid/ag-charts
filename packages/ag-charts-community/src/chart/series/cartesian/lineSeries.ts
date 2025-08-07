@@ -493,10 +493,23 @@ export class LineSeries extends CartesianSeries<
     }) {
         let { nodeData } = opts;
         const { datumSelection } = opts;
-        const markersEnabled = this.properties.marker.enabled || this.contextNodeData?.crossFiltering === true;
+        const { marker } = this.properties;
+        let markersEnabled: boolean;
+        if (this.contextNodeData?.crossFiltering === true) {
+            markersEnabled = true;
+        } else if (!marker.enabled) {
+            markersEnabled = false;
+        } else if (marker.autoHide) {
+            const xAxis = this.axes[ChartAxisDirection.X];
+            const step = xAxis?.scale.step;
+            markersEnabled = step != null ? step >= marker.size : true;
+        } else {
+            markersEnabled = true;
+        }
+
         nodeData = markersEnabled ? nodeData : [];
 
-        if (this.properties.marker.isDirty()) {
+        if (marker.isDirty()) {
             datumSelection.clear();
             datumSelection.cleanup();
         }

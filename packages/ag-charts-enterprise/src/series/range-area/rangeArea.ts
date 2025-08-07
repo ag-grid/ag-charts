@@ -527,11 +527,23 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
     }) {
         const { nodeData, datumSelection } = opts;
-        if (this.properties.marker.isDirty()) {
+        const { marker } = this.properties;
+        let markersEnabled: boolean;
+        if (!marker.enabled) {
+            markersEnabled = false;
+        } else if (marker.autoHide) {
+            const xAxis = this.axes[ChartAxisDirection.X];
+            const step = xAxis?.scale.step;
+            markersEnabled = step != null ? step >= marker.size : true;
+        } else {
+            markersEnabled = true;
+        }
+
+        if (marker.isDirty()) {
             datumSelection.clear();
             datumSelection.cleanup();
         }
-        return datumSelection.update(this.properties.marker.enabled ? nodeData : []);
+        return datumSelection.update(markersEnabled ? nodeData : []);
     }
 
     protected override updateDatumStyles({
