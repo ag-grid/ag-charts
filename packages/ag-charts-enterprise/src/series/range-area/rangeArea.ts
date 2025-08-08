@@ -45,6 +45,7 @@ const {
     applyShapeStyle,
     processedDataIsAnimatable,
     simpleMemorize2,
+    markerEnabled,
 } = _ModuleSupport;
 
 const memoizedAggregateRangeAreaData = simpleMemorize2(aggregateRangeAreaData);
@@ -527,11 +528,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
     }) {
         const { nodeData, datumSelection } = opts;
-        if (this.properties.marker.isDirty()) {
+        const { processedData, axes, properties } = this;
+        const { marker } = properties;
+        const markersEnabled = markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
+
+        if (marker.isDirty()) {
             datumSelection.clear();
             datumSelection.cleanup();
         }
-        return datumSelection.update(this.properties.marker.enabled ? nodeData : []);
+        return datumSelection.update(markersEnabled ? nodeData : []);
     }
 
     protected override updateDatumStyles({

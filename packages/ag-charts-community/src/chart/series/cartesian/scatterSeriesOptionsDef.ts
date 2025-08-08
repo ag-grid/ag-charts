@@ -33,7 +33,7 @@ export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemea
     errorBar: errorBarThemeableOptionsDefs,
     maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
-    ...without(markerOptionsDefs, ['enabled']),
+    ...without(markerOptionsDefs, ['enabled', 'autoHide']),
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 

@@ -65,6 +65,7 @@ import {
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
+    markerEnabled,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
     resetMarkerFn,
@@ -952,9 +953,13 @@ export class AreaSeries extends CartesianSeries<
         datumSelection: Selection<Marker, MarkerSelectionDatum>;
     }) {
         const { nodeData, datumSelection } = opts;
-        const markersEnabled = this.properties.marker.enabled || this.contextNodeData?.crossFiltering === true;
+        const { contextNodeData, processedData, axes, properties } = this;
+        const { marker } = properties;
+        const markersEnabled =
+            contextNodeData?.crossFiltering === true ||
+            markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
 
-        if (this.properties.marker.isDirty()) {
+        if (marker.isDirty()) {
             datumSelection.clear();
             datumSelection.cleanup();
         }

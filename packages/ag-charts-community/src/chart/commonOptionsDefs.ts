@@ -612,6 +612,7 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     enabled: boolean,
     shape: shapeValidator,
     size: positiveNumber,
+    autoHide: boolean,
     itemStyler: callbackDefs<AgSeriesMarkerStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,

@@ -62,6 +62,7 @@ import {
 } from './lineUtil';
 import {
     computeMarkerFocusBounds,
+    markerEnabled,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
     resetMarkerFn,
@@ -493,10 +494,15 @@ export class LineSeries extends CartesianSeries<
     }) {
         let { nodeData } = opts;
         const { datumSelection } = opts;
-        const markersEnabled = this.properties.marker.enabled || this.contextNodeData?.crossFiltering === true;
+        const { contextNodeData, processedData, axes, properties } = this;
+        const { marker } = properties;
+        const markersEnabled =
+            contextNodeData?.crossFiltering === true ||
+            markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
+
         nodeData = markersEnabled ? nodeData : [];
 
-        if (this.properties.marker.isDirty()) {
+        if (marker.isDirty()) {
             datumSelection.clear();
             datumSelection.cleanup();
         }

@@ -4,14 +4,17 @@ import type { AgMarkerShape } from 'ag-charts-types';
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
+import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import type { Node } from '../../../scene/node';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Transformable } from '../../../scene/transformable';
+import { findRangeExtent } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
+import type { SeriesMarker } from '../seriesMarker';
 import type { ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import * as easing from './../../../motion/easing';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -114,4 +117,18 @@ export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
     const x = datum.point.x - paddedRadius - anchorX;
     const y = datum.point.y - paddedRadius - anchorY;
     return Transformable.toCanvas(series.contentGroup, new BBox(x, y, paddedSize, paddedSize));
+}
+
+export function markerEnabled(
+    dataCount: number,
+    scale: Scale<unknown, number, unknown>,
+    marker: Pick<SeriesMarker<unknown>, 'enabled' | 'autoHide' | 'size'>
+) {
+    if (!marker.enabled) return false;
+    if (marker.autoHide === false) return true;
+
+    const minSpacing = marker.autoHide === undefined ? 1 : marker.size;
+
+    const step = scale.step ?? findRangeExtent(scale.range) / Math.max(1, dataCount);
+    return step > minSpacing;
 }
