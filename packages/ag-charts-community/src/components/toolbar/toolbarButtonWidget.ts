@@ -1,15 +1,74 @@
-import { setAttribute } from 'ag-charts-core';
-import type { AgIconName } from 'ag-charts-types';
+import { type BaseAttributeTypeMap, setAttribute } from 'ag-charts-core';
+import type {
+    AgAnnotationOptionsToolbarButtonValue,
+    AgAnnotationOptionsToolbarSwitchValue,
+    AgAnnotationsToolbarButtonValue,
+    AgIconName,
+    AgRangesButtonValue,
+    AgZoomButtonValue,
+} from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import { getIconClassNames } from '../../util/dom';
 import { ButtonWidget } from '../../widget/buttonWidget';
+
+type ButtonValue =
+    | 'menu'
+    | AgAnnotationsToolbarButtonValue
+    | AgAnnotationOptionsToolbarButtonValue
+    | AgAnnotationOptionsToolbarSwitchValue
+    | AgZoomButtonValue
+    | AgRangesButtonValue;
 
 export interface ToolbarButtonWidgetOptions {
     icon?: AgIconName;
     label?: string;
     ariaLabel?: string;
     tooltip?: string;
+    value: ButtonValue;
+}
+
+type ButtonValueHasPopupRule = { readonly [K in Extract<ButtonValue, string>]: BaseAttributeTypeMap['aria-haspopup'] };
+const ARIA_HASPOPUP = {
+    'disjoint-channel': 'false',
+    'fibonacci-menu': 'menu',
+    'fibonacci-retracement': 'false',
+    'fibonacci-retracement-trend-based': 'false',
+    'fill-color': 'dialog',
+    'horizontal-line': 'false',
+    'line-color': 'dialog',
+    'line-menu': 'menu',
+    'line-stroke-width': 'menu',
+    'line-style-type': 'menu',
+    'measurer-menu': 'menu',
+    'pan-end': 'false',
+    'pan-left': 'false',
+    'pan-right': 'false',
+    'pan-start': 'false',
+    'parallel-channel': 'false',
+    'shape-menu': 'menu',
+    'text-color': 'dialog',
+    'text-menu': 'menu',
+    'text-size': 'menu',
+    'vertical-line': 'false',
+    'zoom-in': 'false',
+    'zoom-out': 'false',
+    callout: 'false',
+    clear: 'false',
+    comment: 'false',
+    delete: 'false',
+    line: 'false',
+    lock: 'false',
+    menu: 'menu',
+    note: 'false',
+    reset: 'false',
+    settings: 'dialog',
+    text: 'false',
+} as const satisfies ButtonValueHasPopupRule;
+
+function getAriaHasPopupOfValue(value :ButtonValue): BaseAttributeTypeMap['aria-haspopup'] {
+    if (typeof value !== 'string') return 'false'; // value is AgRangesButtonValue
+    return ARIA_HASPOPUP[value];
 }
 
 export class ToolbarButtonWidget extends ButtonWidget {
@@ -37,11 +96,12 @@ export class ToolbarButtonWidget extends ButtonWidget {
             innerHTML = `${innerHTML}<span class="ag-charts-toolbar__label">${label}</span>`;
         }
 
-        if (options.haspopup == null || options.haspopup == 'false') {
+        const haspopup = getAriaHasPopupOfValue(options.value);
+        if (haspopup == 'false') {
             this.setAriaHasPopup(undefined);
             this.setAriaExpanded(undefined);
         } else {
-            this.setAriaHasPopup(options.haspopup);
+            this.setAriaHasPopup(haspopup);
             this.setAriaExpanded(false);
         }
 
