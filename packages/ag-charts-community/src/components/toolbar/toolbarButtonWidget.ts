@@ -66,7 +66,7 @@ const ARIA_HASPOPUP = {
     text: 'false',
 } as const satisfies ButtonValueHasPopupRule;
 
-function getAriaHasPopupOfValue(value :ButtonValue): BaseAttributeTypeMap['aria-haspopup'] {
+function getAriaHasPopupOfValue(value: ButtonValue): BaseAttributeTypeMap['aria-haspopup'] {
     if (typeof value !== 'string') return 'false'; // value is AgRangesButtonValue
     return ARIA_HASPOPUP[value];
 }
