@@ -53,10 +53,8 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         }
         this.element.setAttribute('role', 'presentation');
 
-        this.cleanup.register(
-            () => ctx.domManager.removeChild(canvasOverlay, this.moduleId),
-            () => this.setOwnedWidget(undefined)
-        );
+        this.hideFns.push(() => this.setOwnedWidget(undefined));
+        this.cleanup.register(() => ctx.domManager.removeChild(canvasOverlay, this.moduleId));
     }
 
     private readonly setOwnedWidget: (owns: ExpandableWidget | undefined) => void = (() => {
