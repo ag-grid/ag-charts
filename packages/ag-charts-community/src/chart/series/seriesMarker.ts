@@ -66,7 +66,7 @@ export class SeriesMarker<TParams = never>
     lineDashOffset: number = 0;
 
     @Property
-    autoHide: boolean = false;
+    autoHide: boolean | undefined = undefined;
 
     @Property
     @SceneObjectChangeDetection({ equals: TRIPLE_EQ })

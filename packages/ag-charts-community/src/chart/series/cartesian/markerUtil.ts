@@ -125,8 +125,10 @@ export function markerEnabled(
     marker: Pick<SeriesMarker<unknown>, 'enabled' | 'autoHide' | 'size'>
 ) {
     if (!marker.enabled) return false;
-    if (!marker.autoHide) return true;
+    if (marker.autoHide === false) return true;
+
+    const minSpacing = marker.autoHide === undefined ? 1 : marker.size;
 
     const step = scale.step ?? findRangeExtent(scale.range) / Math.max(1, dataCount);
-    return step > marker.size;
+    return step > minSpacing;
 }
