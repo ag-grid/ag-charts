@@ -1,4 +1,4 @@
-import { type ITextMeasurer, type RequireOptional, isPlainObject } from 'ag-charts-core';
+import { type ITextMeasurer, type RequireOptional, buildDateFormatter, isPlainObject } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -22,7 +22,6 @@ import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
 import { normalizeAngle360FromDegrees } from '../util/angle';
 import { BaseProperties, Property } from '../util/properties';
 import { intervalHierarchy, intervalRange, intervalUnit } from '../util/time';
-import { buildDateFormatter } from '../util/timeFormat';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from './chartAxis';
 import { FormatManager } from './formatter/formatManager';
 

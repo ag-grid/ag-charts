@@ -9,6 +9,9 @@ export * from './interfaces/moduleDefinition';
 export * from './classes/eventEmitter';
 export * from './classes/lruCache';
 
+// Modules
+export * from './modules/format';
+
 // Options
 export * from './options/commonOptionsDefs';
 
@@ -30,7 +33,6 @@ export * from './utils/graph';
 export * from './utils/id';
 export * from './utils/iterators';
 export * from './utils/linkedList';
-export * from './utils/numberFormat';
 export * from './utils/numbers';
 export * from './utils/strings';
 export * from './utils/textMeasurer';
