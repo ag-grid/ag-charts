@@ -35,8 +35,6 @@ class ZoomButtonProperties extends ToolbarButtonProperties {
 
     @Property
     section!: string;
-
-    readonly haspopup = 'false' as const;
 }
 
 interface ZoomToolbarButtonOptions extends _ModuleSupport.ToolbarButtonOptions {

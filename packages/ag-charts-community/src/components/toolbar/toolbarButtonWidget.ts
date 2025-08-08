@@ -1,4 +1,4 @@
-import { type BaseAttributeTypeMap, setAttribute } from 'ag-charts-core';
+import { setAttribute } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
@@ -10,7 +10,6 @@ export interface ToolbarButtonWidgetOptions {
     label?: string;
     ariaLabel?: string;
     tooltip?: string;
-    haspopup: BaseAttributeTypeMap['aria-haspopup'];
 }
 
 export class ToolbarButtonWidget extends ButtonWidget {

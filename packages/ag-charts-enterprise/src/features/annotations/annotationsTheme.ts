@@ -3,7 +3,6 @@ import {
     type AgAnnotationOptionsToolbar,
     type AgAnnotationsThemeableOptions,
     type AgAnnotationsToolbar,
-    type AgAnnotationsToolbarButton,
     type AgChannelAnnotationTextStyles,
     type AgLineAnnotationTextStyles,
     type AgMeasurerAnnotationStatistics,
@@ -85,86 +84,67 @@ const measurer: WithThemeParams<AgMeasurerAnnotationStyles> = {
     statistics: { ...measurerStatistics },
 };
 
-type AgAnnotationsToolbarWithUndocumented = Omit<AgAnnotationsToolbar, 'buttons' | 'padding'> & {
-    buttons: (AgAnnotationsToolbarButton & { haspopup: 'menu' | 'false' })[];
-    padding: AgAnnotationsToolbar['padding'] | { $ref: 'chartPadding' };
-};
-
-const toolbar: AgAnnotationsToolbarWithUndocumented = {
+const toolbar: AgAnnotationsToolbar = {
     buttons: [
         {
             icon: 'text-annotation',
             tooltip: 'toolbarAnnotationsTextAnnotations',
             value: 'text-menu',
-            haspopup: 'menu',
         },
         {
             icon: 'trend-line-drawing',
             tooltip: 'toolbarAnnotationsLineAnnotations',
             value: 'line-menu',
-            haspopup: 'menu',
         },
         {
             icon: 'arrow-drawing',
             tooltip: 'toolbarAnnotationsShapeAnnotations',
             value: 'shape-menu',
-            haspopup: 'menu',
         },
         {
             icon: 'delete',
             tooltip: 'toolbarAnnotationsClearAll',
             value: 'clear',
-            haspopup: 'false',
         },
     ],
+    // @ts-expect-error undocumented option
     padding: { $ref: 'chartPadding' },
 };
 
-type AgAnnotationOptionsToolbarWithUndocumented = Omit<AgAnnotationOptionsToolbar, 'buttons'> & {
-    buttons: (NonNullable<AgAnnotationOptionsToolbar['buttons']>[number] & { haspopup: 'menu' | 'dialog' | 'false' })[];
-};
-
-const optionsToolbar: AgAnnotationOptionsToolbarWithUndocumented = {
+const optionsToolbar: AgAnnotationOptionsToolbar = {
     buttons: [
         {
             icon: 'text-annotation',
             tooltip: 'toolbarAnnotationsTextColor',
             value: 'text-color',
-            haspopup: 'dialog',
         },
         {
             icon: 'line-color',
             tooltip: 'toolbarAnnotationsLineColor',
             value: 'line-color',
-            haspopup: 'dialog',
         },
         {
             icon: 'fill-color',
             tooltip: 'toolbarAnnotationsFillColor',
             value: 'fill-color',
-            haspopup: 'dialog',
         },
         {
             tooltip: 'toolbarAnnotationsTextSize',
             value: 'text-size',
-            haspopup: 'menu',
         },
         {
             tooltip: 'toolbarAnnotationsLineStrokeWidth',
             value: 'line-stroke-width',
-            haspopup: 'menu',
         },
         {
             icon: 'line-style-solid',
             tooltip: 'toolbarAnnotationsLineStyle',
             value: 'line-style-type',
-            haspopup: 'menu',
         },
         {
             icon: 'settings',
             tooltip: 'toolbarAnnotationsSettings',
             value: 'settings',
-            haspopup: 'dialog',
         },
         {
             icon: 'unlocked',
@@ -175,13 +155,11 @@ const optionsToolbar: AgAnnotationOptionsToolbarWithUndocumented = {
                 tooltip: 'toolbarAnnotationsUnlock',
             },
             value: 'lock',
-            haspopup: 'false',
         },
         {
             icon: 'delete',
             tooltip: 'toolbarAnnotationsDelete',
             value: 'delete',
-            haspopup: 'false',
         },
     ],
 };

@@ -282,8 +282,6 @@ export const toolbarButtonOptionsDefs: OptionsDefs<ToolbarButton> = {
         'zoom-out'
     ),
 };
-// @ts-expect-error undocumented option
-toolbarButtonOptionsDefs.haspopup = undocumented(union('menu', 'dialog', 'false'));
 
 const formatter = or(string, callbackOf(string));
 

@@ -1,6 +1,5 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { CleanupRegistry, EventEmitter } from 'ag-charts-core';
-import type { BaseAttributeTypeMap, BoxBounds } from 'ag-charts-core';
+import { type BoxBounds, CleanupRegistry, EventEmitter } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 import { type AnnotationType } from './annotationTypes';
@@ -38,9 +37,6 @@ type AnnotationsToolbarButtonValue =
 class AnnotationsToolbarButtonProperties extends ToolbarButtonProperties {
     @Property
     value!: AnnotationsToolbarButtonValue;
-
-    @Property
-    haspopup: BaseAttributeTypeMap['aria-haspopup'] = 'false';
 }
 
 export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {

@@ -1,5 +1,5 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import { type BaseAttributeTypeMap, type BoxBounds, CleanupRegistry, EventEmitter } from 'ag-charts-core';
+import { type BoxBounds, CleanupRegistry, EventEmitter } from 'ag-charts-core';
 
 import { ColorPicker } from '../../components/color-picker/colorPicker';
 import {
@@ -60,9 +60,6 @@ class AnnotationOptionsButtonProperties extends ToolbarButtonProperties {
 
     @Property
     isMultiColor?: boolean;
-
-    @Property
-    haspopup: BaseAttributeTypeMap['aria-haspopup'] = 'false';
 }
 
 interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
@@ -480,11 +477,6 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     private updateButtonByIndex(index: number, change: Partial<AnnotationOptionsButtonOptions>) {
         const button = this.visibleButtons.at(index);
         if (!button) return;
-        this.toolbar.updateButtonByIndex(index, {
-            ...button.toJson(),
-            ...change,
-            value: change.value ?? button.value,
-            haspopup: change.haspopup ?? button.haspopup,
-        });
+        this.toolbar.updateButtonByIndex(index, { ...button.toJson(), ...change, value: change.value ?? button.value });
     }
 }
