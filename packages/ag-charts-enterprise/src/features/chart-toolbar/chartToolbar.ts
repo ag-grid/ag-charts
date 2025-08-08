@@ -45,7 +45,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         this.toolbar.layout(event.layoutBox);
     }
 
-    private onButtonPressed({ event, buttonBounds, buttonWidget, }: _ModuleSupport.ToolbarEventMap['button-pressed']) {
+    private onButtonPressed({ event, buttonBounds, buttonWidget }: _ModuleSupport.ToolbarEventMap['button-pressed']) {
         this.menu.setAnchor({ x: buttonBounds.x + buttonBounds.width + 6, y: buttonBounds.y });
         this.menu.show(buttonWidget, {
             items: menuItems,
