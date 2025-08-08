@@ -107,8 +107,8 @@ class FloatingAnnotationOptionsToolbar extends FloatingToolbar<
     AnnotationOptionsButtonOptions,
     any // TODO: AnnotationOptionsButtonWidget
 > {
-    protected override createButtonWidget(haspopup: AnnotationOptionsButtonOptions['haspopup']) {
-        return new AnnotationOptionsButtonWidget(this.localeManager, haspopup);
+    protected override createButtonWidget() {
+        return new AnnotationOptionsButtonWidget(this.localeManager);
     }
 }
 

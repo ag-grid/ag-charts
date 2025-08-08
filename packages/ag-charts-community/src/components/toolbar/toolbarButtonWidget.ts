@@ -16,15 +16,8 @@ export interface ToolbarButtonWidgetOptions {
 export class ToolbarButtonWidget extends ButtonWidget {
     public section?: string;
 
-    constructor(
-        private readonly localeManager: LocaleManager,
-        haspopup: BaseAttributeTypeMap['aria-haspopup']
-    ) {
+    constructor(private readonly localeManager: LocaleManager) {
         super();
-        if (haspopup != 'false') {
-            this.setAriaHasPopup(haspopup);
-            this.setAriaExpanded(false);
-        }
     }
 
     public update(options: ToolbarButtonWidgetOptions) {
@@ -43,6 +36,14 @@ export class ToolbarButtonWidget extends ButtonWidget {
         if (options.label != null) {
             const label = localeManager.t(options.label);
             innerHTML = `${innerHTML}<span class="ag-charts-toolbar__label">${label}</span>`;
+        }
+
+        if (options.haspopup == null || options.haspopup == 'false') {
+            this.setAriaHasPopup(undefined);
+            this.setAriaExpanded(undefined);
+        } else {
+            this.setAriaHasPopup(options.haspopup);
+            this.setAriaExpanded(false);
         }
 
         this.elem.innerHTML = innerHTML;
