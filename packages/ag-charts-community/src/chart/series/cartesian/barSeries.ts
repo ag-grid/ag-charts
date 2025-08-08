@@ -626,10 +626,8 @@ export class BarSeries extends AbstractBarSeries<
 
             const [start, end] = visibleRangeIndices(1, groups.length, xAxis.range, (groupIndex) => {
                 const group = groups[groupIndex];
-                const datumIndices = group.datumIndices[columnIndex];
-                const x0 = this.xCoordinateRange(xValues[datumIndices[0]])[0];
-                const x1 = this.xCoordinateRange(xValues[datumIndices[datumIndices.length - 1]])[1];
-                return [x0, x1];
+                const xValue = group.keys[0];
+                return this.xCoordinateRange(xValue);
             });
 
             for (let groupIndex = start; groupIndex < end; groupIndex += 1) {
