@@ -14,7 +14,7 @@ export class AbstractButtonWidget<TElement extends HTMLElement>
 {
     private controllerImpl?: ExpansionControllerImpl<TElement>;
     private lazyControllerImpl(): ExpansionControllerImpl<TElement> {
-        this.controllerImpl ??= new ExpansionControllerImpl<TElement>(this);
+        this.controllerImpl ??= new ExpansionControllerImpl<TElement>(this, () => this.internalListener);
         return this.controllerImpl;
     }
 
