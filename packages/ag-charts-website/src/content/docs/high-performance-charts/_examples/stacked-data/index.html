@@ -1,0 +1,20 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <select onchange="setSeries(event.target.value)">
+            <option value="area" selected>Area</option>
+            <option value="bar">Bar</option>
+            <option value="line">Line</option>
+        </select>
+        <select onchange="setAxes(event.target.value)">
+            <option value="time">Continuous Time</option>
+            <option value="ordinal-time">Ordinal Time</option>
+            <option value="ordinal-time-parent" selected>Ordinal Time (Parent Level)</option>
+            <option value="unit-time">Unit Time</option>
+        </select>
+        <button onclick="setData(1e3)">1k</button>
+        <button onclick="setData(1e4)">10k</button>
+        <button onclick="setData(1e5)">100k</button>
+        <button onclick="setData(1e6)">1m</button>
+    </div>
+</div>
+<div id="myChart"></div>

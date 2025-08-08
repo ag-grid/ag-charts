@@ -30,10 +30,18 @@ const options: AgCartesianChartOptions = {
     },
     series: [
         {
-            type: 'line',
+            type: 'area',
             xKey: 'timestamp',
-            yKey: 'close',
+            yKey: 'petrol',
             marker: { enabled: false },
+            stacked: true,
+        },
+        {
+            type: 'area',
+            xKey: 'timestamp',
+            yKey: 'diesel',
+            marker: { enabled: false },
+            stacked: true,
         },
     ],
     axes: [
@@ -52,49 +60,48 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function setSeries(type: string) {
-    let series: AgCartesianSeriesOptions;
+    let series: AgCartesianSeriesOptions[];
     switch (type) {
         case 'bar':
-            series = {
-                type,
-                xKey: 'timestamp',
-                yKey: 'close',
-            };
+            series = [
+                {
+                    type: 'bar',
+                    xKey: 'timestamp',
+                    yKey: 'petrol',
+                    stacked: true,
+                },
+                {
+                    type: 'bar',
+                    xKey: 'timestamp',
+                    yKey: 'diesel',
+                    stacked: true,
+                },
+            ];
             break;
         case 'area':
         case 'line':
-            series = {
-                type,
-                xKey: 'timestamp',
-                yKey: 'close',
-                marker: { enabled: false },
-            };
-            break;
-        case 'range-area':
-        case 'range-bar':
-            series = {
-                type,
-                xKey: 'timestamp',
-                yLowKey: 'low',
-                yHighKey: 'high',
-            };
-            break;
-        case 'candlestick':
-        case 'ohlc':
-            series = {
-                type,
-                xKey: 'timestamp',
-                lowKey: 'low',
-                highKey: 'high',
-                openKey: 'open',
-                closeKey: 'close',
-            };
+            series = [
+                {
+                    type: type,
+                    xKey: 'timestamp',
+                    yKey: 'petrol',
+                    marker: { enabled: false },
+                    stacked: true,
+                },
+                {
+                    type: type,
+                    xKey: 'timestamp',
+                    yKey: 'diesel',
+                    marker: { enabled: false },
+                    stacked: true,
+                },
+            ];
             break;
         default:
             return;
     }
 
-    options.series = [series];
+    options.series = series;
     chart.update(options);
 }
 

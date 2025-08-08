@@ -49,6 +49,9 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private miniChartAnimationPhase: 'initial' | 'ready' = 'initial';
 
+    // Should be available after the first layout.
+    protected seriesRect?: _ModuleSupport.BBox = undefined;
+
     @ActionOnSet<MiniChart>({
         changeValue(newValue: _ModuleSupport.ChartAxis[], oldValue: _ModuleSupport.ChartAxis[] = []) {
             const axisNodes = {
@@ -125,6 +128,8 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             // @todo(AG-10653) Enable when there is an id per series group, irrespective of series instance
             // series.addChartEventListeners();
         }
+
+        this.seriesRect = undefined; // Force re-layout
     }
 
     protected destroySeries(allSeries: _ModuleSupport.UnknownSeries[]): void {
@@ -304,7 +309,4 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         await Promise.all(this.series.map((series) => series.update({ seriesRect })));
     }
-
-    // Should be available after the first layout.
-    protected seriesRect?: _ModuleSupport.BBox;
 }

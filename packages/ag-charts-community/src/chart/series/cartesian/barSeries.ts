@@ -45,21 +45,20 @@ import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { applyShapeStyle } from '../shapeUtil';
-import { datumStylerProperties, getItemStyles } from '../util';
+import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
+import {
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_SPAN,
+} from './../aggregation';
 import {
     AbstractBarSeries,
     type AbstractBarSeriesAnimationData,
     type AbstractBarSeriesNodeDataContext,
 } from './abstractBarSeries';
-import {
-    BAR_SPAN,
-    BAR_X_MAX,
-    BAR_X_MIN,
-    BAR_Y_MAX,
-    BAR_Y_MIN,
-    type BarSeriesDataAggregationFilter,
-    aggregateBarData,
-} from './barAggregation';
+import { type BarSeriesDataAggregationFilter, aggregateBarData } from './barAggregation';
 import { BarSeriesProperties } from './barSeriesProperties';
 import {
     checkCrisp,
@@ -304,14 +303,18 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     private aggregateData(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
-        if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValue-raw`, processedData);
+
+        const isStacked = dataModel.hasColumnById(this, `yValue-start`);
+        const yStartValues = isStacked ? dataModel.resolveColumnById(this, `yValue-start`, processedData) : undefined;
+        const yEndValues = isStacked
+            ? dataModel.resolveColumnById(this, `yValue-end`, processedData)
+            : dataModel.resolveColumnById(this, `yValue-raw`, processedData);
 
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
@@ -319,7 +322,8 @@ export class BarSeries extends AbstractBarSeries<
         return memoizedAggregateBarData(
             xAxis.scale.type,
             xValues,
-            yValues,
+            yStartValues,
+            yEndValues,
             domain,
             processedData.reduced?.smallestKeyInterval
         );
@@ -346,8 +350,11 @@ export class BarSeries extends AbstractBarSeries<
         const groupOffset = groupScale.convert(String(groupScaleIndex));
         const barOffset = ContinuousScale.is(xScale) ? barWidth * -0.5 : 0;
 
+        const isStacked = dataModel.hasColumnById(this, `yValue-start`);
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yRawValues = dataModel.resolveColumnById(this, `yValue-raw`, processedData);
+        const yStartValues = isStacked ? dataModel.resolveColumnById(this, `yValue-start`, processedData) : undefined;
+        const yEndValues = isStacked ? dataModel.resolveColumnById(this, `yValue-end`, processedData) : undefined;
         const yFilterValues = this.crossFilteringEnabled()
             ? dataModel.resolveColumnById(this, `yFilterValue`, processedData)
             : undefined;
@@ -355,9 +362,14 @@ export class BarSeries extends AbstractBarSeries<
 
         const xPosition = (index: number): number => xScale.convert(xValues[index]) + groupOffset + barOffset;
 
+        const [r0, r1] = xScale.range;
+        const range = Math.abs(r1 - r0);
+        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
+
         const crisp =
-            this.properties.crisp ??
-            checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval);
+            dataAggregationFilter == null &&
+            (this.properties.crisp ??
+                checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval));
 
         const bboxBottom = yScale.convert(0);
         const nodeDatum = ({
@@ -553,36 +565,94 @@ export class BarSeries extends AbstractBarSeries<
             }
         };
 
-        const [r0, r1] = xScale.range;
-        const range = Math.abs(r1 - r0);
-        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
+        if (dataAggregationFilter != null) {
+            const { positiveIndices, positiveIndexData, negativeIndices, negativeIndexData } = dataAggregationFilter;
+            const sign = yReversed ? -1 : 1;
 
-        if (processedData.type === 'grouped') {
-            const width = barWidth;
+            for (let p = 0; p < 2; p += 1) {
+                const positive = p === 0;
+                const indices = positive ? positiveIndices : negativeIndices;
+                const indexData = positive ? positiveIndexData : negativeIndexData;
 
-            const stacked = dataModel.hasColumnById(this, `yValue-start`);
-            const yStartValues = stacked ? dataModel.resolveColumnById(this, `yValue-start`, processedData) : undefined;
-            const yEndValues = stacked ? dataModel.resolveColumnById(this, `yValue-end`, processedData) : undefined;
-            const yRangeIndex = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValue-range`) : -1;
+                const Y_MIN = positive ? AGGREGATION_INDEX_Y_MIN : AGGREGATION_INDEX_Y_MAX;
+                const Y_MAX = positive ? AGGREGATION_INDEX_Y_MAX : AGGREGATION_INDEX_Y_MIN;
 
-            for (const {
-                datumIndex,
-                group: { aggregation },
-            } of dataModel.forEachGroupDatum(this, processedData)) {
-                const x = xPosition(datumIndex);
+                const [start, end] = this.visibleRangeIndices('xValue', xAxis.range, indices);
 
-                const yRawValue = yRawValues[datumIndex];
-                const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
-                const yStart = stacked ? Number(yStartValues?.[datumIndex]) : 0;
-                const yEnd = stacked ? Number(yEndValues?.[datumIndex]) : yRawValue;
-                let yRange = yEnd;
-                if (stacked) {
-                    yRange = aggregation[yRangeIndex][isPositive ? 1 : 0];
+                for (let i = start; i < end; i += 1) {
+                    const aggIndex = i * AGGREGATION_SPAN;
+                    const xMinIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MIN];
+                    const xMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MAX];
+                    const yMinIndex = indexData[aggIndex + Y_MIN];
+                    const yMaxIndex = indexData[aggIndex + Y_MAX];
+
+                    if (xMinIndex === -1) continue;
+                    if (xValues[yMaxIndex] == null || xValues[yMinIndex] == null) continue;
+
+                    const x = xPosition(((xMinIndex + xMaxIndex) / 2) | 0);
+                    // The width of the shape is the width from the left of the first bar to the right of the second bar
+                    const width = Math.abs(xPosition(xMaxIndex) - xPosition(xMinIndex)) + barWidth;
+                    const bandCount = Math.abs(xMaxIndex - xMinIndex) + 1;
+                    // This means the density of the fill is higher than it would be if we drew the bars individually.
+                    // Adjust the opacity to account for this
+                    const opacity = BandScale.is(xScale)
+                        ? Math.min((xScale.bandwidth * Math.max(bandCount - 1, 1)) / (xScale.step * bandCount), 1)
+                        : 1;
+
+                    let yStart: number;
+                    let yEnd: number;
+                    let featherRatio = 0;
+                    if (isStacked) {
+                        yStart = Number(yStartValues![yMinIndex]);
+                        yEnd = Number(yEndValues![yMaxIndex]);
+                    } else {
+                        const yEndMax = Number(yRawValues[yMaxIndex]);
+                        const yEndMin = Number(yRawValues[yMinIndex]);
+
+                        yStart = 0;
+                        yEnd = yEndMax;
+
+                        featherRatio = (positive ? 1 : -1) * sign * (1 - yEndMin / yEndMax);
+                    }
+
+                    handleDatum(yMaxIndex, x, width, yStart, yEnd, yEnd, featherRatio, opacity);
                 }
-
-                handleDatum(datumIndex, x, width, yStart, yEnd, yRange);
             }
-        } else if (dataAggregationFilter == null) {
+        } else if (processedData.type === 'grouped') {
+            const width = barWidth;
+            const yRangeIndex = isStacked ? dataModel.resolveProcessedDataIndexById(this, `yValue-range`) : -1;
+            const columnIndex = processedData.columnScopes.findIndex((s) => s.has(this.id));
+            const { groups } = processedData;
+
+            const [start, end] = visibleRangeIndices(1, groups.length, xAxis.range, (groupIndex) => {
+                const group = groups[groupIndex];
+                const xValue = group.keys[0];
+                return this.xCoordinateRange(xValue);
+            });
+
+            for (let groupIndex = start; groupIndex < end; groupIndex += 1) {
+                const group = groups[groupIndex];
+                const { aggregation } = group;
+
+                const datumIndices = group.datumIndices[columnIndex];
+                if (datumIndices == null) continue;
+
+                for (const datumIndex of datumIndices) {
+                    const x = xPosition(datumIndex);
+
+                    const yRawValue = yRawValues[datumIndex];
+                    const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
+                    const yStart = isStacked ? Number(yStartValues?.[datumIndex]) : 0;
+                    const yEnd = isStacked ? Number(yEndValues?.[datumIndex]) : yRawValue;
+                    let yRange = yEnd;
+                    if (isStacked) {
+                        yRange = aggregation[yRangeIndex][isPositive ? 1 : 0];
+                    }
+
+                    handleDatum(datumIndex, x, width, yStart, yEnd, yRange);
+                }
+            }
+        } else {
             const invalidData = processedData.invalidData?.get(this.id);
             const width = barWidth;
             let [start, end] = this.visibleRangeIndices('xValue', xAxis.range);
@@ -599,44 +669,6 @@ export class BarSeries extends AbstractBarSeries<
                 const yEnd = Number(yRawValues[datumIndex]);
 
                 handleDatum(datumIndex, x, width, 0, yEnd, yEnd);
-            }
-        } else {
-            const { indexData, indices } = dataAggregationFilter;
-            const [start, end] = this.visibleRangeIndices('xValue', xAxis.range, indices);
-
-            const sign = yReversed ? -1 : 1;
-
-            for (let i = start; i < end; i += 1) {
-                const aggIndex = i * BAR_SPAN;
-                const xMinIndex = indexData[aggIndex + BAR_X_MIN];
-                const xMaxIndex = indexData[aggIndex + BAR_X_MAX];
-                const yMinIndex = indexData[aggIndex + BAR_Y_MIN];
-                const yMaxIndex = indexData[aggIndex + BAR_Y_MAX];
-
-                if (xMinIndex === -1) continue;
-
-                const x = xPosition(((xMinIndex + xMaxIndex) / 2) | 0);
-                // The width of the shape is the width from the left of the first bar to the right of the second bar
-                const width = Math.abs(xPosition(xMaxIndex) - xPosition(xMinIndex)) + barWidth;
-                const bandCount = Math.abs(xMaxIndex - xMinIndex);
-                // This means the density of the fill is higher than it would be if we drew the bars individually.
-                // Adjust the opacity to account for this
-                const opacity = BandScale.is(xScale)
-                    ? (xScale.bandwidth * Math.max(bandCount - 1, 1)) / (xScale.step * bandCount)
-                    : 1;
-
-                const yEndMax = xValues[yMaxIndex] != null ? Number(yRawValues[yMaxIndex]) : NaN;
-                const yEndMin = xValues[yMinIndex] != null ? Number(yRawValues[yMinIndex]) : NaN;
-
-                if (yEndMax > 0) {
-                    const featherRatio = yEndMin >= 0 ? sign * (1 - yEndMin / yEndMax) : sign;
-                    handleDatum(yMaxIndex, x, width, 0, yEndMax, yEndMax, featherRatio, opacity);
-                }
-
-                if (yEndMin < 0) {
-                    const featherRatio = yEndMax <= 0 ? -sign * (1 - yEndMax / yEndMin) : -sign;
-                    handleDatum(yMinIndex, x, width, 0, yEndMin, yEndMin, featherRatio, opacity);
-                }
             }
         }
 

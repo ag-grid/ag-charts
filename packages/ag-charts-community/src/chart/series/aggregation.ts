@@ -156,7 +156,8 @@ export function createAggregationIndices(
     yMinValues: any[],
     d0: number,
     d1: number,
-    maxRange: number
+    maxRange: number,
+    { positive }: { positive?: boolean } = {}
 ): {
     indexData: Int32Array;
     valueData: Float64Array;
@@ -170,14 +171,17 @@ export function createAggregationIndices(
         const xValue = xValues[datumIndex];
         if (xValue == null) continue;
 
+        const yMaxValue = yMaxValues[datumIndex];
+        const yMax: number = yMaxValue != null ? yMaxValue.valueOf() : NaN;
+
+        if (positive != null && yMax >= 0 !== positive) continue;
+
         const xRatio = continuous
             ? aggregationXRatioForXValue(xValue, d0, d1)
             : aggregationXRatioForDatumIndex(datumIndex, domainCount);
         const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
 
-        const yMaxValue = yMaxValues[datumIndex];
         const yMinValue = yMinValues[datumIndex];
-        const yMax: number = yMaxValue != null ? yMaxValue.valueOf() : NaN;
         const yMin: number = yMinValue != null ? yMinValue.valueOf() : NaN;
 
         const unset = indexData[aggIndex + AGGREGATION_INDEX_X_MIN] === -1;
