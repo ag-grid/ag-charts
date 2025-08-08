@@ -1,7 +1,7 @@
 import { clamp, getWindow } from 'ag-charts-core';
 
 import type { Vec2 } from '../../util/vector';
-import type { MenuWidget } from '../../widget/menuWidget';
+import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 import { Popover, type PopoverOptions } from './popover';
 
 export interface AnchoredPopoverOptions extends PopoverOptions {
@@ -37,8 +37,8 @@ export abstract class AnchoredPopover<
         }
     }
 
-    protected override showWidget(widget: MenuWidget, options: Options): void {
-        super.showWidget(widget, options);
+    protected override showWidget(controller: ExpansionControllerWidget, owns: ExpandableWidget, options: Options) {
+        super.showWidget(controller, owns, options);
         this.updateAnchor(options);
     }
 
