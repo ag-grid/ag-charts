@@ -1,4 +1,4 @@
-import type { BoxBounds } from 'ag-charts-core';
+import type { BaseAttributeTypeMap, BoxBounds } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { LocaleManager } from '../../locale/localeManager';
@@ -13,6 +13,8 @@ import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { ToolbarButtonWidget, type ToolbarButtonWidgetOptions } from './toolbarButtonWidget';
 
 const BUTTON_ACTIVE_CLASS = 'ag-charts-toolbar__button--active';
+
+type HasPopup = BaseAttributeTypeMap['aria-haspopup'];
 
 export interface ToolbarButtonOptions extends ToolbarButtonWidgetOptions {
     section?: string;
@@ -161,7 +163,7 @@ export abstract class BaseToolbar<
     }
 
     private createButton(index: number, button: ButtonOptions) {
-        const buttonWidget = this.createButtonWidget();
+        const buttonWidget = this.createButtonWidget(button.haspopup);
         buttonWidget.addClass('ag-charts-toolbar__button');
 
         buttonWidget.addListener('click', (event) => {
@@ -190,11 +192,11 @@ export abstract class BaseToolbar<
         return buttonWidget;
     }
 
-    protected abstract createButtonWidget(): ButtonWidget;
+    protected abstract createButtonWidget(haspopup: HasPopup): ButtonWidget;
 }
 
 export class Toolbar<ButtonOptions extends ToolbarButtonOptions> extends BaseToolbar<ButtonOptions> {
-    protected createButtonWidget() {
-        return new ToolbarButtonWidget(this.localeManager);
+    protected createButtonWidget(haspopup: HasPopup) {
+        return new ToolbarButtonWidget(this.localeManager, haspopup);
     }
 }

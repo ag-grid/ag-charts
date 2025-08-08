@@ -10,4 +10,6 @@ type RangesButtonValue =
 export class RangesButtonProperties extends ToolbarButtonProperties {
     @Property
     public value!: RangesButtonValue;
+
+    public readonly haspopup = 'false' as const;
 }

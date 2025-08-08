@@ -1,5 +1,5 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, CleanupRegistry, EventEmitter } from 'ag-charts-core';
+import { type BaseAttributeTypeMap, type BoxBounds, CleanupRegistry, EventEmitter } from 'ag-charts-core';
 
 import { ColorPicker } from '../../components/color-picker/colorPicker';
 import {
@@ -60,6 +60,9 @@ class AnnotationOptionsButtonProperties extends ToolbarButtonProperties {
 
     @Property
     isMultiColor?: boolean;
+
+    @Property
+    haspopup: BaseAttributeTypeMap['aria-haspopup'] = 'false';
 }
 
 interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
@@ -104,8 +107,8 @@ class FloatingAnnotationOptionsToolbar extends FloatingToolbar<
     AnnotationOptionsButtonOptions,
     any // TODO: AnnotationOptionsButtonWidget
 > {
-    protected override createButtonWidget() {
-        return new AnnotationOptionsButtonWidget(this.localeManager);
+    protected override createButtonWidget(haspopup: AnnotationOptionsButtonOptions['haspopup']) {
+        return new AnnotationOptionsButtonWidget(this.localeManager, haspopup);
     }
 }
 
@@ -477,6 +480,11 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     private updateButtonByIndex(index: number, change: Partial<AnnotationOptionsButtonOptions>) {
         const button = this.visibleButtons.at(index);
         if (!button) return;
-        this.toolbar.updateButtonByIndex(index, { ...button.toJson(), ...change, value: change.value ?? button.value });
+        this.toolbar.updateButtonByIndex(index, {
+            ...button.toJson(),
+            ...change,
+            value: change.value ?? button.value,
+            haspopup: change.haspopup ?? button.haspopup,
+        });
     }
 }

@@ -71,7 +71,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         const icon = menuItems.find((item) => item.value === chartType)?.icon;
 
         if (icon != null) {
-            this.toolbar.updateButtons([{ icon, tooltip: 'toolbarSeriesTypeDropdown' }]);
+            this.toolbar.updateButtons([{ icon, tooltip: 'toolbarSeriesTypeDropdown', haspopup: 'menu' }]);
         }
     }
 

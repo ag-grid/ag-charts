@@ -1,4 +1,4 @@
-import { setAttribute } from 'ag-charts-core';
+import { type BaseAttributeTypeMap, setAttribute } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
@@ -10,13 +10,21 @@ export interface ToolbarButtonWidgetOptions {
     label?: string;
     ariaLabel?: string;
     tooltip?: string;
+    haspopup: BaseAttributeTypeMap['aria-haspopup'];
 }
 
 export class ToolbarButtonWidget extends ButtonWidget {
     public section?: string;
 
-    constructor(private readonly localeManager: LocaleManager) {
+    constructor(
+        private readonly localeManager: LocaleManager,
+        haspopup: BaseAttributeTypeMap['aria-haspopup']
+    ) {
         super();
+        if (haspopup != 'false') {
+            this.setAriaHasPopup(haspopup);
+            this.setAriaExpanded(false);
+        }
     }
 
     public update(options: ToolbarButtonWidgetOptions) {

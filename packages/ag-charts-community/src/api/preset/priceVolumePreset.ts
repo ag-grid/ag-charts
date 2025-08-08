@@ -35,36 +35,42 @@ import { annotationsTheme } from './priceVolumePresetTheme';
 
 const chartTypes = ['ohlc', 'line', 'step-line', 'hlc', 'high-low', 'candlestick', 'hollow-candlestick'];
 
-const toolbarButtons: AgAnnotationsToolbarButton[] = [
+const toolbarButtons: (AgAnnotationsToolbarButton & { haspopup: 'menu' | 'false' })[] = [
     {
         icon: 'trend-line-drawing',
         tooltip: 'toolbarAnnotationsLineAnnotations',
         value: 'line-menu',
+        haspopup: 'menu',
     },
     {
         icon: 'fibonacci-retracement-drawing',
         tooltip: 'toolbarAnnotationsFibonacciAnnotations',
         value: 'fibonacci-menu',
+        haspopup: 'menu',
     },
     {
         icon: 'text-annotation',
         tooltip: 'toolbarAnnotationsTextAnnotations',
         value: 'text-menu',
+        haspopup: 'menu',
     },
     {
         icon: 'arrow-drawing',
         tooltip: 'toolbarAnnotationsShapeAnnotations',
         value: 'shape-menu',
+        haspopup: 'menu',
     },
     {
         icon: 'measurer-drawing',
         tooltip: 'toolbarAnnotationsMeasurerAnnotations',
         value: 'measurer-menu',
+        haspopup: 'menu',
     },
     {
         icon: 'delete',
         tooltip: 'toolbarAnnotationsClearAll',
         value: 'clear',
+        haspopup: 'false',
     },
 ];
 
