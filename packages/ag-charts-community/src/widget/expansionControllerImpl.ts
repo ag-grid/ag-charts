@@ -43,6 +43,10 @@ export class ExpansionControllerImpl<TElement extends HTMLElement> implements Ex
         }
     }
 
+    getControlled(): ExpandableWidget<TElement> | undefined {
+        return this.controls;
+    }
+
     expandControlled(opts?: ExpandControlledOpts): void {
         // Disabled buttons are focusable and can receive events, but have aria-disabled="true"
         if (!this.controller.isDisabled()) {

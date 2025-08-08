@@ -42,5 +42,6 @@ export interface ExpandableWidget<TElement extends HTMLElement = HTMLElement> ex
 
 export interface ExpansionControllerWidget<TElement extends HTMLElement> {
     setControlled(controls: ExpandableWidget<TElement> | undefined): void;
+    getControlled(): ExpandableWidget<TElement> | undefined;
     expandControlled(opts?: ExpandControlledOpts): void;
 }

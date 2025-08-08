@@ -42,6 +42,10 @@ export class AbstractButtonWidget<TElement extends HTMLElement>
         return this.lazyControllerImpl().setControlled(controls);
     }
 
+    getControlled(): ExpandableWidget<TElement> | undefined {
+        return this.lazyControllerImpl().getControlled();
+    }
+
     expandControlled(opts?: ExpandOpts): void {
         return this.lazyControllerImpl().expandControlled(opts);
     }
