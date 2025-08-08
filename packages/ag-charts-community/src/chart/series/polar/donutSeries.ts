@@ -32,6 +32,7 @@ import { DataModel, type ProcessedData, getMissCount } from '../../data/dataMode
 import {
     accumulativeValueProperty,
     animationValidation,
+    createDatumId,
     diff,
     keyProperty,
     normalisePropertyTo,
@@ -1799,6 +1800,28 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     }
 
     getDatumId(datumIndex: number) {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) {
+            return `${datumIndex}`;
+        }
+
+        const { calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
+
+        if (!processedData.reduced?.animationValidation?.uniqueKeys) {
+            return `${datumIndex}`;
+        }
+
+        if (legendItemKey) {
+            const legendItemKeys = dataModel.resolveKeysById(this, 'legendItemKey', processedData);
+            return createDatumId(legendItemKeys[datumIndex]);
+        } else if (calloutLabelKey) {
+            const calloutLabelKeys = dataModel.resolveKeysById(this, 'calloutLabelKey', processedData);
+            return createDatumId(calloutLabelKeys[datumIndex]);
+        } else if (sectorLabelKey) {
+            const sectorLabelKeys = dataModel.resolveKeysById(this, 'sectorLabelKey', processedData);
+            return createDatumId(sectorLabelKeys[datumIndex]);
+        }
+
         return `${datumIndex}`;
     }
 

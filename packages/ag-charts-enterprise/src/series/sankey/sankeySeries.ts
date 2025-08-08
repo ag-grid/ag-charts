@@ -390,7 +390,7 @@ export class SankeySeries extends FlowProportionSeries<
         nodeData: SankeyNodeDatum[];
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, SankeyNodeDatum>;
     }) {
-        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId([datum.type, datum.id]));
+        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.type, datum.id));
     }
 
     protected getNodeStyle(
@@ -495,7 +495,7 @@ export class SankeySeries extends FlowProportionSeries<
         datumSelection: _ModuleSupport.Selection<SankeyLink, SankeyLinkDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
-            createDatumId([datum.type, datum.index, datum.fromNode.id, datum.toNode.id])
+            createDatumId(datum.type, datum.index, datum.fromNode.id, datum.toNode.id)
         );
     }
 

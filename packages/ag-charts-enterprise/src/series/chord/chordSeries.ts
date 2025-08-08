@@ -375,7 +375,7 @@ export class ChordSeries extends FlowProportionSeries<
         nodeData: ChordNodeDatum[];
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, ChordNodeDatum>;
     }) {
-        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId([datum.type, datum.id]));
+        return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.type, datum.id));
     }
 
     protected override getNodeStyle(
@@ -395,7 +395,7 @@ export class ChordSeries extends FlowProportionSeries<
         if (itemStyler != null && datumIndex != null) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
-                createDatumId(datumIndex, 'node', isHighlight ? 'highlight' : 'node'),
+                createDatumId(datumIndex.index, 'node', isHighlight ? 'highlight' : 'node'),
                 () => {
                     const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
                     return this.callWithContext(itemStyler, {
@@ -453,7 +453,7 @@ export class ChordSeries extends FlowProportionSeries<
         datumSelection: _ModuleSupport.Selection<ChordLink, ChordLinkDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
-            createDatumId([datum.type, datum.index, datum.fromNode.id, datum.toNode.id])
+            createDatumId(datum.type, datum.index, datum.fromNode.id, datum.toNode.id)
         );
     }
 
@@ -477,7 +477,7 @@ export class ChordSeries extends FlowProportionSeries<
         if (itemStyler != null && datumIndex != null) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
-                createDatumId(datumIndex, 'link', isHighlight ? 'highlight' : 'node'),
+                createDatumId(datumIndex.index, 'link', isHighlight ? 'highlight' : 'node'),
                 () => {
                     const highlightState = this.getHighlightStateString(
                         activeHighlight,

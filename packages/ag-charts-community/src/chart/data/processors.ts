@@ -1,4 +1,4 @@
-import { clamp, isArray, isFiniteNumber, isNegative } from 'ag-charts-core';
+import { clamp, isFiniteNumber, isNegative } from 'ag-charts-core';
 
 import type { ScaleType } from '../../scale/scale';
 import { memo } from '../../util/memo';
@@ -592,8 +592,8 @@ export function diff(
             const updated = new Map<string, number>();
             const removed = new Map<string, number>();
 
-            const previousKeys = previousData.keys;
-            const keys = processedData.keys;
+            const previousKeys = previousData.keys.map((keyMap) => keyMap.get(id));
+            const keys = processedData.keys.map((keyMap) => keyMap.get(id));
 
             const previousColumns = previousData.columns;
             const columns = processedData.columns;
@@ -607,10 +607,10 @@ export function diff(
                 const hasPreviousDatum = i < previousData.input.count;
                 const hasDatum = i < processedData.input.count;
 
-                const prevKeys = hasPreviousDatum ? datumKeys(previousKeys, id, i) : undefined;
-                const prevId = prevKeys != null ? createDatumId(prevKeys) : '';
-                const dKeys = hasDatum ? datumKeys(keys, id, i) : undefined;
-                const datumId = dKeys != null ? createDatumId(dKeys) : '';
+                const prevKeys = hasPreviousDatum ? datumKeys(previousKeys, i) : undefined;
+                const prevId = prevKeys != null ? createDatumId(...prevKeys) : '';
+                const dKeys = hasDatum ? datumKeys(keys, i) : undefined;
+                const datumId = dKeys != null ? createDatumId(...dKeys) : '';
 
                 if (hasDatum && hasPreviousDatum && prevId === datumId) {
                     if (!columnsEqual(previousColumns, columns, indices, i, i)) {
@@ -659,23 +659,13 @@ export function diff(
     };
 }
 
-type KeyType = string | number | boolean | object;
-export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string | number | boolean)[]): any {
-    let result;
-    if (isArray(keys)) {
-        result = keys.map((key) => transformIntegratedCategoryValue(key)).join('___');
-    } else {
-        result = transformIntegratedCategoryValue(keys);
+type KeyType = string | number | boolean | undefined;
+export function createDatumId(...keys: KeyType[]): any {
+    if (keys.length === 1) {
+        const key = transformIntegratedCategoryValue(keys[0]);
+        const isPrimitive = typeof key === 'boolean' || typeof key === 'number' || typeof key === 'string';
+        // Avoid toString if not necessary
+        if (isPrimitive) return key;
     }
-
-    const primitiveType =
-        typeof result === 'string' ||
-        typeof result === 'number' ||
-        typeof result === 'boolean' ||
-        result instanceof Date;
-    if (primitiveType && extraKeys.length > 0) {
-        result += `___${extraKeys.join('___')}`;
-    }
-
-    return result;
+    return keys.map((key) => transformIntegratedCategoryValue(key)).join('___');
 }

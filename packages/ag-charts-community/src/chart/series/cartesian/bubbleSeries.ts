@@ -514,7 +514,7 @@ export class BubbleSeries extends CartesianSeries<
         const data = this.properties.marker.enabled ? nodeData : [];
         let getId: ((datum: BubbleScatterNodeDatum) => string) | undefined;
         if (sizeKey) {
-            getId = (datum) => createDatumId([datum.xValue, datum.yValue, datum.sizeValue, datum.label.text]);
+            getId = (datum) => createDatumId(datum.xValue, datum.yValue, datum.sizeValue, datum.label.text);
         }
         return datumSelection.update(data, undefined, getId);
     }
