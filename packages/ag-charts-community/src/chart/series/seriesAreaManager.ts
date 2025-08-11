@@ -180,8 +180,9 @@ export class SeriesAreaManager extends BaseManager {
     private readonly focus = {
         sortedSeries: [] as UnknownSeries[],
         series: undefined as UnknownSeries | undefined,
-        seriesIndex: 0,
-        datumIndex: 0,
+        // Initialise indices to NaN, so that maybeAnnouncePickedFocus can detect an uninitialise label.
+        seriesIndex: NaN,
+        datumIndex: NaN,
         datum: undefined as SeriesNodeDatum<unknown> | undefined,
     };
 
@@ -643,6 +644,8 @@ export class SeriesAreaManager extends BaseManager {
 
         const oldDatumIndex = focus.datumIndex - datumIndexDelta;
         const oldOtherIndex = focus.seriesIndex - otherIndexDelta;
+        if (isNaN(focus.datumIndex)) focus.datumIndex = 0;
+        if (isNaN(focus.seriesIndex)) focus.seriesIndex = 0;
 
         // Update focused series:
         focus.seriesIndex = clamp(0, focus.seriesIndex, visibleSeries.length - 1);
