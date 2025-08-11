@@ -6,7 +6,8 @@ import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Listeners } from '../../util/listeners';
 import { BaseProperties } from '../../util/properties';
-import type { ExpansionControllerWidget } from '../../widget/expandableWidget';
+import { CollapseMode } from '../../widget/collapseMode';
+import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 import type { RovingDirection } from '../../widget/rovingDirection';
 import { ToolbarWidget } from '../../widget/toolbarWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
@@ -42,6 +43,7 @@ export abstract class BaseToolbar<
     protected hasPrefix = false;
 
     private readonly buttonWidgets: Array<ButtonWidget> = [];
+    private expanded?: ExpandableWidget;
 
     protected readonly eventsHub: EventsHub;
     protected readonly localeManager: LocaleManager;
@@ -74,6 +76,7 @@ export abstract class BaseToolbar<
     }
 
     public clearButtons() {
+        this.expanded?.collapse({ mode: CollapseMode.DESTROY });
         for (const button of this.buttonWidgets) {
             button.destroy();
         }
@@ -178,6 +181,14 @@ export abstract class BaseToolbar<
         buttonWidget.addListener('focus', () => {
             const params: ToolbarEventMap<ButtonOptions>['button-focused'] = { button: { index } };
             this.events.dispatch('button-focused', params);
+        });
+        buttonWidget.addListener('expand-controlled-widget', (e) => {
+            this.expanded?.collapse({ mode: CollapseMode.SIDLING_OPENED });
+            this.expanded = e.controlled;
+            const removeListener = this.expanded.addListener('collapse-widget', () => {
+                this.expanded = undefined;
+                removeListener();
+            });
         });
 
         if (button.section) {

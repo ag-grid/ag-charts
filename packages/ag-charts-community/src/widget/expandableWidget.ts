@@ -13,6 +13,12 @@ export type ExpandWidgetEvent = {
     sourceEvent?: never;
 };
 
+export type ExpandControlledWidgetEvent = {
+    type: 'expand-controlled-widget';
+    controlled: ExpandableWidget;
+    sourceEvent?: never;
+};
+
 // Either a controller (e.g. Financial Charts toolbar buttons) or sourceEvent (e.g. Context menu) is required in order for ExpandableWidget.expand() to
 export type ExpandOpts =
     | {

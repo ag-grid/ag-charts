@@ -4,10 +4,15 @@ import { CollapseMode } from './collapseMode';
 import type {
     CollapseWidgetEvent,
     ExpandControlledOpts,
+    ExpandControlledWidgetEvent,
     ExpandableWidget,
     ExpansionControllerWidget,
 } from './expandableWidget';
 import type { Widget } from './widget';
+
+interface Dispatcher {
+    dispatch(type: 'expand-controlled-widget', current: Widget, event: ExpandControlledWidgetEvent): void;
+}
 
 export class ExpansionControllerImpl<TElement extends HTMLElement> implements ExpansionControllerWidget<TElement> {
     private readonly controller: Widget & ExpansionControllerWidget<TElement>;
@@ -15,6 +20,14 @@ export class ExpansionControllerImpl<TElement extends HTMLElement> implements Ex
 
     private readonly onExpanded = () => {
         this.controller.setAriaExpanded(true);
+        const dispatcher = this.getDispatcher();
+        if (dispatcher && this.controls) {
+            const event: ExpandControlledWidgetEvent = {
+                type: 'expand-controlled-widget',
+                controlled: this.controls,
+            };
+            dispatcher.dispatch('expand-controlled-widget', this.controller, event);
+        }
     };
 
     private readonly onCollapsed = (e: CollapseWidgetEvent) => {
@@ -24,7 +37,10 @@ export class ExpansionControllerImpl<TElement extends HTMLElement> implements Ex
         }
     };
 
-    constructor(controller: Widget & ExpansionControllerWidget<TElement>) {
+    constructor(
+        controller: Widget & ExpansionControllerWidget<TElement>,
+        private readonly getDispatcher: () => Dispatcher | undefined
+    ) {
         controller.setAriaExpanded(false);
         this.controller = controller;
     }

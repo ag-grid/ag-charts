@@ -1,4 +1,4 @@
-import type { CollapseWidgetEvent, ExpandWidgetEvent } from './expandableWidget';
+import type { CollapseWidgetEvent, ExpandControlledWidgetEvent, ExpandWidgetEvent } from './expandableWidget';
 
 type FocusWidgetEventType = 'blur' | 'focus';
 type KeyboardWidgetEventType = 'keyup' | 'keydown';
@@ -117,6 +117,7 @@ export type WidgetEventMap = {
     'drag-end': DragWidgetEvent<'drag-end'>;
     'collapse-widget': CollapseWidgetEvent;
     'expand-widget': ExpandWidgetEvent;
+    'expand-controlled-widget': ExpandControlledWidgetEvent;
 
     blur: FocusWidgetEvent<'blur'>;
     change: WidgetEvent;
