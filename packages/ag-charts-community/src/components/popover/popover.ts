@@ -5,6 +5,7 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { getLastFocus } from '../../util/keynavUtil';
 import type { Vec2 } from '../../util/vector';
+import type { MenuWidget } from '../../widget/menuWidget';
 
 const canvasOverlay = 'canvas-overlay';
 
@@ -29,6 +30,8 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     extends BaseModuleInstance
     implements ModuleInstance
 {
+    protected menuWidget?: MenuWidget;
+
     protected readonly hideFns: Array<() => void> = [];
 
     private readonly moduleId: string;
@@ -52,7 +55,13 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         }
         this.element.setAttribute('role', 'presentation');
 
+        this.hideFns.push(() => this.destroyWidget());
         this.cleanup.register(() => ctx.domManager.removeChild(canvasOverlay, this.moduleId));
+    }
+
+    private destroyWidget() {
+        this.menuWidget?.destroy();
+        this.menuWidget = undefined;
     }
 
     public attachTo(popover: Popover) {
@@ -75,12 +84,12 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         this.element.replaceChildren();
     }
 
-    protected showWithChildren(children: Array<HTMLElement>, options: Options) {
+    private initPopoverElement(popover: HTMLElement | undefined, options: Options): HTMLElement {
         if (!this.element.parentElement) {
             throw new Error('Can not show popover that has not been attached to a parent.');
         }
-
-        const popover = createElement('div', 'ag-charts-popover');
+        popover ??= createElement('div', 'ag-charts-popover');
+        popover.classList.toggle('ag-charts-popover', true);
 
         if (options.ariaLabel != null) {
             popover.setAttribute('aria-label', options.ariaLabel);
@@ -90,8 +99,24 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
             popover.classList.add(options.class);
         }
 
-        popover.replaceChildren(...children);
         this.element.replaceChildren(popover);
+        return popover;
+    }
+
+    protected showWidget(widget: MenuWidget, options: Options) {
+        const { sourceEvent } = options;
+        if (sourceEvent) {
+            this.destroyWidget();
+            this.initPopoverElement(widget.getElement(), options);
+            widget.open({ sourceEvent });
+            widget.addListener('close-widget', () => this.removeChildren());
+            this.menuWidget = widget;
+        }
+    }
+
+    protected showWithChildren(children: Array<HTMLElement>, options: Options) {
+        const popover = this.initPopoverElement(undefined, options);
+        popover.replaceChildren(...children);
 
         this.hideFns.push(() => this.removeChildren());
         if (options.onHide) {

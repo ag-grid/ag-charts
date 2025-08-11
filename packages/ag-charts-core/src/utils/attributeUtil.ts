@@ -14,6 +14,7 @@ type AriaRole =
     | 'listitem'
     | 'menu'
     | 'menuitem'
+    | 'menuitemradio'
     | 'radio'
     | 'radiogroup'
     | 'separator'
