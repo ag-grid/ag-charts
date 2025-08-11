@@ -200,6 +200,11 @@ const gallery = defineCollection({
     }),
 });
 
+const homepageGallery = defineCollection({
+    loader: glob({ base: './src/content/homepage-gallery', pattern: 'examples.json' }),
+    schema: z.record(z.string(), z.string()),
+});
+
 export const collections = {
     docs,
     apiMenu,
@@ -210,4 +215,5 @@ export const collections = {
     docsNav,
     metadata,
     gallery,
+    homepageGallery,
 };
