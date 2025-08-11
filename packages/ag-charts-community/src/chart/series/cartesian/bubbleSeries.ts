@@ -569,6 +569,7 @@ export class BubbleSeries extends CartesianSeries<
 
             if (dilation > 1) {
                 const fillOpacity = style.fillOpacity ?? 0;
+                // See /tools/bubble-aggregation
                 const opacityScale =
                     0.269669 +
                     0.000683 * count +
