@@ -1,6 +1,7 @@
 import type { RequireOptional } from 'ag-charts-core';
 import { isFiniteNumber } from 'ag-charts-core';
 import type {
+    AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
     AgBarSeriesOptions,
     AgBarSeriesStyle,
@@ -704,14 +705,45 @@ export class BarSeries extends AbstractBarSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
 
+    private makeItemStylerParams(
+        dataModel: NonNullable<typeof this.dataModel>,
+        processedData: NonNullable<typeof this.processedData>,
+        datumIndex: number,
+        xValue: string,
+        isHighlight: boolean,
+        style: Required<AgBarSeriesStyle>
+    ): AgBarSeriesItemStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+        const { xKey, yKey } = this.properties;
+
+        const datum = processedData.dataSources.get(seriesId)?.[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
+        const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
+            xDomain: this.getSeriesDomain(ChartAxisDirection.X),
+            yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
+        }))!;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+
+        return {
+            seriesId,
+            ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
+            datum,
+            xValue,
+            yValue,
+            highlighted: isHighlight,
+            highlightState: highlightStateString,
+            ...style,
+        };
+    }
+
     private getItemStyle(
         datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState?: HighlightState
     ): Required<AgBarSeriesStyle> {
-        const { id: seriesId, properties, dataModel, processedData } = this;
-
-        const { xKey, yKey, itemStyler } = properties;
+        const { properties, dataModel, processedData } = this;
+        const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         let style = mergeDefaults(highlightStyle, properties.getStyle());
@@ -722,25 +754,15 @@ export class BarSeries extends AbstractBarSeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(this.getDatumId({ xValue, phantom: false }), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const datum = processedData.dataSources.get(seriesId)?.[datumIndex];
-                    const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
-                    const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
-                        xDomain: this.getSeriesDomain(ChartAxisDirection.X),
-                        yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
-                    }))!;
-                    const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
-                        datum,
+                    const params = this.makeItemStylerParams(
+                        dataModel,
+                        processedData,
+                        datumIndex,
                         xValue,
-                        yValue,
-                        highlighted: isHighlight,
-                        highlightState: highlightStateString,
-                        ...style,
-                    });
+                        isHighlight,
+                        style
+                    );
+                    return this.callWithContext(itemStyler, params);
                 }
             );
 
@@ -874,7 +896,8 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } =
+            this.properties.getStyle();
 
         return {
             marker: {
