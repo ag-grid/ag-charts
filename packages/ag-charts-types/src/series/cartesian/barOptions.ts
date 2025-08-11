@@ -1,4 +1,9 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    DatumCallbackParams,
+    SeriesCallbackParams,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
@@ -47,6 +52,14 @@ export interface AgBarSeriesItemStylerParams<TDatum, TContext = ContextDefault>
     max: boolean;
 }
 
+export interface AgBarSeriesStylerParams<TDatum, TContext>
+    extends SeriesCallbackParams,
+        ContextCallbackParams<TContext>,
+        AgBarSeriesOptionsKeys<TDatum>,
+        Required<AgBarSeriesStyle> {
+    readonly stackGroup?: string;
+}
+
 export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
     cornerRadius?: PixelSize;
@@ -82,7 +95,7 @@ export interface AgBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgBarSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    styler?: Styler<AgBarSeriesItemStylerParams<TDatum, TContext>, AgBarSeriesStyle>;
+    styler?: Styler<AgBarSeriesStylerParams<TDatum, TContext>, AgBarSeriesStyle>;
     /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgBarSeriesItemStylerParams<TDatum, TContext>, AgBarSeriesStyle>;
     /** Configuration for the Error Bars. */

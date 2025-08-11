@@ -36,6 +36,15 @@ export interface DatumCallbackParams<TDatum> {
     highlightState?: HighlightState;
 }
 
+export interface SeriesCallbackParams {
+    /** The unique identifier of the series. */
+    seriesId: string;
+    /** Indicates whether the element is highlighted. */
+    highlighted: boolean;
+    /** The specific highlight state of the element. */
+    highlightState?: 'highlighted-series' | 'unhighlighted-series' | 'none';
+}
+
 export interface ContextCallbackParams<TContext> {
     /** Context for this callback. */
     context?: TContext;

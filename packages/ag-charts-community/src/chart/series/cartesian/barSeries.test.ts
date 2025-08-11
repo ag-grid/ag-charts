@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import type {
-    AgBarSeriesItemStylerParams,
     AgBarSeriesLabelPlacement,
     AgBarSeriesOptions,
     AgBarSeriesStyle,
+    AgBarSeriesStylerParams,
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
@@ -771,7 +771,7 @@ describe('BarSeries', () => {
     });
 
     describe('AG-11673 styler', () => {
-        type TParams = AgBarSeriesItemStylerParams<unknown, unknown>;
+        type TParams = AgBarSeriesStylerParams<unknown, unknown>;
         type TReturn = AgBarSeriesStyle;
         type TStyler = Styler<TParams, TReturn>;
         describe('init', () => {
