@@ -408,8 +408,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const getTooltipContent = <DatumIndex = unknown>(
             series: ISeries<DatumIndex, unknown, unknown>,
             datumIndex: DatumIndex,
-            removeThisDatum: unknown
-        ) => this.getTooltipContent(series, datumIndex, removeThisDatum);
+            removeThisDatum: unknown,
+            purpose: 'aria-label' | 'tooltip'
+        ) => this.getTooltipContent(series, datumIndex, removeThisDatum, purpose);
         return {
             fireEvent,
             getUpdateType,
@@ -433,12 +434,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     public getTooltipContent(
         series: ISeries<unknown, any, any>,
         datumIndex: unknown,
-        removeMeDatum: unknown
+        removeMeDatum: unknown,
+        purpose: 'aria-label' | 'tooltip'
     ): TooltipContent[] {
-        const baseTooltipContent =
-            series.properties.tooltip.enabled !== false
-                ? series.getTooltipContent(datumIndex, removeMeDatum)
-                : undefined;
+        const useTooltip = purpose === 'aria-label' || series.properties.tooltip.enabled !== false;
+        const baseTooltipContent = useTooltip ? series.getTooltipContent(datumIndex, removeMeDatum) : undefined;
         const tooltipContent = baseTooltipContent == null ? [] : [baseTooltipContent];
         if (this.tooltip.mode !== 'shared' || this.series.length === 1) {
             return tooltipContent;

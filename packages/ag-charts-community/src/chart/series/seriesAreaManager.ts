@@ -59,7 +59,8 @@ export interface SeriesAreaChartDependencies {
     getTooltipContent: <DatumIndex = unknown>(
         series: UnknownSeries,
         datumIndex: DatumIndex,
-        removeThisDatum: unknown
+        removeThisDatum: unknown,
+        purpose: 'aria-label' | 'tooltip'
     ) => TooltipContent[];
     chartType: ChartType;
     seriesRoot: TranslatableGroup;
@@ -1060,7 +1061,7 @@ export class SeriesAreaManager extends BaseManager {
             ) {
                 result = cachedTooltipContent.content;
             } else {
-                const content: TooltipContent[] = this.chart.getTooltipContent(series, datumIndex, datum);
+                const content: TooltipContent[] = this.chart.getTooltipContent(series, datumIndex, datum, purpose);
                 this.cachedTooltipContent = { series, datumIndex, content };
                 result = content;
             }
