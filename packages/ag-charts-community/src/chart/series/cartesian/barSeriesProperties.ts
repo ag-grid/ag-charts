@@ -74,6 +74,9 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     crisp?: boolean = undefined;
 
     @Property
+    styler?: Styler<AgBarSeriesItemStylerParams<unknown>, AgBarSeriesStyle>;
+
+    @Property
     itemStyler?: Styler<AgBarSeriesItemStylerParams<unknown>, AgBarSeriesStyle>;
 
     @Property
