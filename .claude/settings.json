@@ -54,7 +54,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "jq -r '.tool_input.file_path' | { read file_path; yarn nx format --files \"$file_path\"; fi; }"
+                        "command": "jq -r '.tool_input.file_path' | { read file_path; yarn nx format --files \"$file_path\" }"
                     }
                 ]
             }
