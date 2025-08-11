@@ -1,3 +1,5 @@
+import type { CollapseMode } from './collapseMode';
+
 type FocusWidgetEventType = 'blur' | 'focus';
 type KeyboardWidgetEventType = 'keyup' | 'keydown';
 type KeyboardSyntheticMouseWidgetEventType = 'click';
@@ -111,6 +113,7 @@ export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType>
 
 export type CollapseWidgetEvent = {
     type: 'collapse-widget';
+    mode: CollapseMode;
     sourceEvent?: never;
 };
 

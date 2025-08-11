@@ -8,6 +8,8 @@ import {
     getLastFocus,
     hasNoModifiers,
 } from '../util/keynavUtil';
+import { CollapseMode } from './collapseMode';
+import type { CollapseOpts, ExpandOpts, ExpandableWidget } from './expandableWidget';
 import { MenuItemWidget } from './menuItemWidget';
 import type { RovingDirection } from './rovingDirection';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
@@ -21,18 +23,9 @@ interface ExpansionScope {
     close: () => void;
 }
 
-type ExpandEvent = Pick<WidgetEvent, 'sourceEvent'>;
-
-enum CollapseMode {
-    CLOSE = '0',
-    ABORT = '1',
-    DESTROY = '2',
-    PARENT_CLOSED = '3',
-    SIDLING_OPENED = '4',
-}
 const closeKeys = ['Escape', 'ArrowLeft'] as const;
 
-export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
+export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> implements ExpandableWidget<HTMLDivElement> {
     private expansionScope?: ExpansionScope;
 
     constructor(orientation: RovingDirection = 'vertical') {
@@ -40,7 +33,7 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
     }
 
     protected override destructor() {
-        this.selfCollapse(CollapseMode.DESTROY);
+        this.collapse({ mode: CollapseMode.DESTROY });
     }
 
     public addSeparator(): Element {
@@ -74,28 +67,21 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
 
     public addSubMenu(): { subMenuButton: MenuItemWidget; subMenu: MenuWidget } {
         const subMenuButton = new MenuItemWidget();
-        const subMenuId = createElementId();
         const subMenu = new MenuWidget(this.orientation);
-        const accessibleOpener = (ev: WidgetEvent) => {
-            // Disabled buttons are focusable and can receive events, but have aria-disabled="true"
-            if (!subMenuButton.isDisabled()) {
-                this.expandSubMenu(ev, subMenu);
-            }
-        };
+        subMenu.id = createElementId();
+
+        const expand = () => subMenuButton.expandControlled();
         const arrowRightOpener = (ev: KeyboardWidgetEvent) => {
             if (hasNoModifiers(ev.sourceEvent) && ev.sourceEvent.code === 'ArrowRight') {
-                accessibleOpener(ev);
+                subMenuButton.expandControlled();
             }
         };
+
+        subMenuButton.setControlled(subMenu);
         subMenuButton.setAriaHasPopup('menu');
-        subMenuButton.setAriaExpanded(false);
-        subMenuButton.setAriaControls(subMenuId);
-        subMenuButton.addListener('click', accessibleOpener);
-        subMenuButton.addListener('mouseenter', accessibleOpener);
+        subMenuButton.addListener('click', expand);
+        subMenuButton.addListener('mouseenter', expand);
         subMenuButton.addListener('keydown', arrowRightOpener);
-        subMenu.addListener('expand-widget', () => subMenuButton.setAriaExpanded(false));
-        subMenu.addListener('collapse-widget', () => subMenuButton.setAriaExpanded(true));
-        subMenu.id = subMenuId;
         this.addChild(subMenuButton);
         return { subMenuButton, subMenu };
     }
@@ -104,19 +90,19 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
         const { expansionScope } = this;
         if (!expansionScope) return;
 
-        expansionScope.expandedSubMenu?.selfCollapse(CollapseMode.SIDLING_OPENED);
+        expansionScope.expandedSubMenu?.collapse({ mode: CollapseMode.SIDLING_OPENED });
         subMenu?.expand(ev);
         expansionScope.expandedSubMenu = subMenu;
     }
 
-    public expand(event: ExpandEvent, opts?: { overrideFocusVisible?: boolean }): void {
+    expand(opts: ExpandOpts): void {
         if (this.expansionScope != null) return; // already open
 
         this.expansionScope = {
-            lastFocus: getLastFocus(event.sourceEvent),
+            lastFocus: getLastFocus(opts.sourceEvent),
             expandedSubMenu: undefined,
-            abort: () => this.selfCollapse(CollapseMode.ABORT),
-            close: () => this.selfCollapse(CollapseMode.CLOSE),
+            abort: () => this.collapse({ mode: CollapseMode.ABORT }),
+            close: () => this.collapse({ mode: CollapseMode.CLOSE }),
             removers: new CleanupRegistry(),
         };
         const scope = this.expansionScope;
@@ -135,22 +121,20 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> {
         this.children[0]?.focus({ preventScroll: true });
     }
 
-    private selfCollapse(mode: CollapseMode) {
+    collapse(opts?: CollapseOpts): void {
+        const { mode = CollapseMode.CLOSE } = opts ?? {};
+
         if (this.expansionScope === undefined) return;
         const { lastFocus, removers, expandedSubMenu } = this.expansionScope;
         this.expansionScope = undefined; // stop re-entrance
 
-        expandedSubMenu?.selfCollapse(CollapseMode.PARENT_CLOSED);
+        expandedSubMenu?.collapse({ mode: CollapseMode.PARENT_CLOSED });
         setAttribute(lastFocus, 'aria-expanded', false);
         if (mode === CollapseMode.CLOSE) {
             lastFocus?.focus({ preventScroll: true });
         }
         removers.flush();
 
-        this.internalListener?.dispatch('collapse-widget', this, { type: 'collapse-widget' });
-    }
-
-    public collapse() {
-        this.selfCollapse(CollapseMode.CLOSE);
+        this.internalListener?.dispatch('collapse-widget', this, { type: 'collapse-widget', mode });
     }
 }
