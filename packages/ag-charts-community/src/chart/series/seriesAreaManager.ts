@@ -751,6 +751,7 @@ export class SeriesAreaManager extends BaseManager {
         // Update the bounds of the focus indicator:
         this.focusIndicator?.update(pick.movedBounds ?? pick.bounds, this.seriesRect, pick.clipFocusBox);
 
+        const tooltipContent = this.getTooltipContent(focus.series, datum.datumIndex, datum, 'aria-label');
         const keyboardEvent = makeKeyboardPointerEvent(focus.series, hoverRect, pick);
 
         // Update highlight/tooltip for keyboard users:
@@ -762,21 +763,21 @@ export class SeriesAreaManager extends BaseManager {
             this.highlight.pendingHoverEvent = undefined;
             this.highlight.stashedHoverEvent = undefined;
 
-            const tooltipContent = this.getTooltipContent(focus.series, datum.datumIndex, datum, 'aria-label');
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
             if (this.isTooltipEnabled(focus.series)) {
                 this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
             }
-            this.maybeAnnouncePickedFocus(
-                datumIndexDelta,
-                oldDatumIndex,
-                otherIndexDelta,
-                oldOtherIndex,
-                pick,
-                tooltipContent
-            );
         }
+
+        this.maybeAnnouncePickedFocus(
+            datumIndexDelta,
+            oldDatumIndex,
+            otherIndexDelta,
+            oldOtherIndex,
+            pick,
+            tooltipContent
+        );
 
         return PickedFocusStatus.SUCCESS;
     }
