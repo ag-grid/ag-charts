@@ -1,4 +1,4 @@
-import type { CollapseMode } from './collapseMode';
+import type { CollapseWidgetEvent, ExpandWidgetEvent } from './expandableWidget';
 
 type FocusWidgetEventType = 'blur' | 'focus';
 type KeyboardWidgetEventType = 'keyup' | 'keydown';
@@ -110,17 +110,6 @@ export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType>
           readonly originDeltaY: number;
           readonly sourceEvent: TouchEvent;
       };
-
-export type CollapseWidgetEvent = {
-    type: 'collapse-widget';
-    mode: CollapseMode;
-    sourceEvent?: never;
-};
-
-export type ExpandWidgetEvent = {
-    type: 'expand-widget';
-    sourceEvent?: never;
-};
 
 export type WidgetEventMap = {
     'drag-start': DragWidgetEvent<'drag-start'>;

@@ -1,7 +1,17 @@
 import type { ElementID } from 'ag-charts-core';
 
 import type { CollapseMode } from './collapseMode';
-import type { CollapseWidgetEvent, ExpandWidgetEvent } from './widgetEvents';
+
+export type CollapseWidgetEvent = {
+    type: 'collapse-widget';
+    mode: CollapseMode;
+    sourceEvent?: never;
+};
+
+export type ExpandWidgetEvent = {
+    type: 'expand-widget';
+    sourceEvent?: never;
+};
 
 // Either a controller (e.g. Financial Charts toolbar buttons) or sourceEvent (e.g. Context menu) is required in order for ExpandableWidget.expand() to
 export type ExpandOpts =

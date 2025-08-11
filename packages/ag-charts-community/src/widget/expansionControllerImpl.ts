@@ -1,9 +1,13 @@
 import type { RequireOptional } from 'ag-charts-core';
 
 import { CollapseMode } from './collapseMode';
-import type { ExpandControlledOpts, ExpandableWidget, ExpansionControllerWidget } from './expandableWidget';
+import type {
+    CollapseWidgetEvent,
+    ExpandControlledOpts,
+    ExpandableWidget,
+    ExpansionControllerWidget,
+} from './expandableWidget';
 import type { Widget } from './widget';
-import type { CollapseWidgetEvent } from './widgetEvents';
 
 export class ExpansionControllerImpl<TElement extends HTMLElement> implements ExpansionControllerWidget<TElement> {
     private readonly controller: Widget & ExpansionControllerWidget<TElement>;
