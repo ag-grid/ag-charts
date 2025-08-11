@@ -31,7 +31,7 @@ export class AbstractButtonWidget<TElement extends HTMLElement>
     }
 
     protected override destructor() {
-        // Nothing to destroy.
+        this.controllerImpl?.destroy();
     }
 
     setEnabled(enabled: boolean) {
