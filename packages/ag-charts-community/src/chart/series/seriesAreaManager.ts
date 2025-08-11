@@ -671,10 +671,12 @@ export class SeriesAreaManager extends BaseManager {
         // (bar/needle, targets). This allows the hierarchical and gauge charts to piggy-backon the base keyboard handling
         // implementation.
         this.focus.series = this.focus.sortedSeries[0];
-        const datumIndex = this.focus.datumIndex;
-        const otherIndex = this.focus.seriesIndex;
         const oldDatumIndex = this.focus.datumIndex - datumIndexDelta;
         const oldOtherIndex = this.focus.seriesIndex - otherIndexDelta;
+        if (isNaN(this.focus.datumIndex)) this.focus.datumIndex = 0;
+        if (isNaN(this.focus.seriesIndex)) this.focus.seriesIndex = 0;
+        const datumIndex = this.focus.datumIndex;
+        const otherIndex = this.focus.seriesIndex;
         return this.updatePickedFocus(
             datumIndex,
             datumIndexDelta,
