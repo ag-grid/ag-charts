@@ -942,7 +942,7 @@ export class RadialGaugeSeries
         needleData: RadialGaugeNeedleDatum[];
         needleSelection: _ModuleSupport.Selection<RadialGaugeNeedle, RadialGaugeNeedleDatum>;
     }) {
-        return opts.needleSelection.update(opts.needleData, undefined, () => createDatumId([]));
+        return opts.needleSelection.update(opts.needleData, undefined, () => createDatumId(0));
     }
 
     private updateNeedleNodes(opts: {

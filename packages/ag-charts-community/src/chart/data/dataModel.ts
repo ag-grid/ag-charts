@@ -238,15 +238,11 @@ function createArray<T>(length: number, value: T): T[] {
     return out;
 }
 
-export function datumKeys(
-    keys: ProcessedData<unknown>['keys'],
-    columnScope: ScopeId,
-    datumIndex: number
-): any[] | undefined {
+export function datumKeys(keys: Array<unknown[] | undefined>, datumIndex: number): any[] | undefined {
     const out: any = [];
 
     for (const k of keys) {
-        const key = k.get(columnScope)?.[datumIndex];
+        const key = k?.[datumIndex];
         if (key == null) return;
         out.push(key);
     }
@@ -1004,9 +1000,10 @@ export class DataModel<
         const domainAggValues = this.aggregates.map((): [number, number] => [Infinity, -Infinity]);
         processedData.domain.aggValues = domainAggValues;
 
-        const { keys, columns, dataSources } = processedData;
+        const { columns, dataSources } = processedData;
 
         const onlyScope = first(dataSources.keys());
+        const keys = processedData.keys.map((k) => k.get(onlyScope));
         const rawData = dataSources.get(onlyScope);
         processedData.aggregation = rawData?.map((_, datumIndex) => {
             const aggregation: [number, number][] = [];
@@ -1015,7 +1012,7 @@ export class DataModel<
                 const indices = this.valueGroupIdxLookup(def);
                 let groupAggValues = def.groupAggregateFunction?.() ?? [Infinity, -Infinity];
                 const valuesToAgg = indices.map((columnIndex) => columns[columnIndex][datumIndex] as D[K]);
-                const k = datumKeys(keys, onlyScope, datumIndex);
+                const k = datumKeys(keys, datumIndex);
                 const valuesAgg = k != null ? def.aggregateFunction(valuesToAgg, k) : undefined;
                 if (valuesAgg) {
                     groupAggValues =

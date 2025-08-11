@@ -588,7 +588,7 @@ export class MapMarkerSeries
         const { markerData, markerSelection } = opts;
 
         return markerSelection.update(markerData, undefined, (datum) =>
-            createDatumId([datum.index, datum.idValue, datum.lonValue, datum.latValue])
+            createDatumId(datum.index, datum.idValue, datum.lonValue, datum.latValue)
         );
     }
 

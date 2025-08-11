@@ -255,11 +255,11 @@ export class HistogramSeries extends CartesianSeries<
         const groups = new Map<string, { group: DataGroup; groupIndex: number }>();
         processedData.groups.forEach((group, groupIndex) => {
             const domain = group.keys;
-            groups.set(createDatumId(domain), { group, groupIndex });
+            groups.set(createDatumId(...domain), { group, groupIndex });
         });
 
         this.calculatedBins = calculatedBinDomains.map((domain): CalculatedBin => {
-            const g = groups.get(createDatumId(domain));
+            const g = groups.get(createDatumId(...domain));
 
             if (g) {
                 const { group, groupIndex } = g;
@@ -436,7 +436,9 @@ export class HistogramSeries extends CartesianSeries<
     }) {
         const { nodeData, datumSelection } = opts;
 
-        return datumSelection.update(nodeData, undefined, (datum: HistogramNodeDatum) => createDatumId(datum.domain));
+        return datumSelection.update(nodeData, undefined, (datum: HistogramNodeDatum) =>
+            createDatumId(...datum.domain)
+        );
     }
 
     private getItemStyle(
@@ -693,7 +695,7 @@ export class HistogramSeries extends CartesianSeries<
             this.ctx.animationManager,
             [data.datumSelection],
             fns,
-            (_, datum) => createDatumId(datum.domain),
+            (_, datum) => createDatumId(...datum.domain),
             dataDiff
         );
 

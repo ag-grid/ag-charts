@@ -445,7 +445,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
             })
             .ticks.map((t, index) => ({
                 index,
-                tickId: createDatumId(t, index),
+                tickId: createDatumId(index, ...t),
                 translation: Math.round(tickScale.convert(t)),
             }));
 
