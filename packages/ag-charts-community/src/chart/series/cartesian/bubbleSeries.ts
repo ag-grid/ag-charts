@@ -665,8 +665,7 @@ export class BubbleSeries extends CartesianSeries<
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        const nodeDatum = this.contextNodeData?.nodeData[datumIndex];
-        if (xValue == null || nodeDatum == null) return;
+        if (xValue == null) return;
 
         const data: TooltipContentDataRow[] = [];
 

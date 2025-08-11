@@ -29,7 +29,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
-            datum.style = this.getItemStyle(datum, isHighlight, undefined, datum.itemId);
+            datum.style = this.getItemStyle(datum.datumIndex, isHighlight, undefined, datum.itemId);
         });
     }
 

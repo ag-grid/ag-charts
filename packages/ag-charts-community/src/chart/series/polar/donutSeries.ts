@@ -663,7 +663,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     }
 
     private getItemStyle(
-        { datum, datumIndex = 0 }: Partial<PieDonutNodeDatum>,
+        { datum, datumIndex }: Pick<PieDonutNodeDatum, 'datum' | 'datumIndex'>,
         isHighlight: boolean,
         highlightState?: HighlightState,
         legendItemValues?: string[]

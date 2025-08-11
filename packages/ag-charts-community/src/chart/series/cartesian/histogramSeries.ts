@@ -442,13 +442,13 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     private getItemStyle(
-        nodeDatum: HistogramNodeDatum | undefined,
+        datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState?: HighlightState
     ): RequireOptional<AgHistogramSeriesStyle> {
         const { properties } = this;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         return mergeDefaults(highlightStyle, properties.getStyle());
     }
 
@@ -458,7 +458,7 @@ export class HistogramSeries extends CartesianSeries<
     }) {
         const { isHighlight } = opts;
         opts.datumSelection.each((_rect, datum) => {
-            datum.style = this.getItemStyle(datum, isHighlight);
+            datum.style = this.getItemStyle(datum.datumIndex, isHighlight);
         });
     }
 
@@ -557,7 +557,6 @@ export class HistogramSeries extends CartesianSeries<
         if (!dataModel || processedData?.type !== 'grouped' || !xAxis || !yAxis) {
             return;
         }
-        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
 
         const group = processedData.groups[datumIndex];
         const { aggregation, keys } = group;
@@ -621,7 +620,7 @@ export class HistogramSeries extends CartesianSeries<
                 yName,
                 xRange: [rangeMin, rangeMax] satisfies [number, number],
                 frequency,
-                ...this.getItemStyle(nodeDatum, false),
+                ...this.getItemStyle(datumIndex, false),
             }
         );
     }
