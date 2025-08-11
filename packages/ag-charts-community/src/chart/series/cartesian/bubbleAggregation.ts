@@ -245,6 +245,7 @@ export interface BubbleAggregationOptions {
 export interface GroupedAggregation {
     datumIndex: number;
     count: number;
+    area: number;
     dilation: number;
 }
 
@@ -291,6 +292,7 @@ function computeBubbleAggregationCountIndices(
                 groupedAggregation?.push({
                     datumIndex: item.primaryDatumIndex,
                     count: item.indices.length,
+                    area: (item.x1 - item.x0) * (item.y1 - item.y0),
                     dilation: clamp(1, item.scale / baseMinScale, dilation),
                 });
             } else if (item.children == null) {

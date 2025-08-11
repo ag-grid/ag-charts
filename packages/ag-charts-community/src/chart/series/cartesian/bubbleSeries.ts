@@ -1,4 +1,4 @@
-import { type Point, type RequireOptional, cachedTextMeasurer } from 'ag-charts-core';
+import { type Point, type RequireOptional, cachedTextMeasurer, clamp } from 'ag-charts-core';
 import {
     type AgBubbleSeriesLabelFormatterParams,
     type AgBubbleSeriesOptions,
@@ -79,6 +79,7 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     readonly anchor: Point;
     readonly count: number;
     readonly dilation: number;
+    readonly area: number;
     readonly selected: boolean | undefined;
     style?: AgSeriesMarkerStyle;
 }
@@ -375,7 +376,7 @@ export class BubbleSeries extends CartesianSeries<
         if (rawData == null) return;
 
         const padding = expandLabelPadding(label);
-        const handleDatum = (datumIndex: number, count: number, dilation: number) => {
+        const handleDatum = (datumIndex: number, count: number, dilation: number, area: number) => {
             const datum = rawData[datumIndex];
             const xDatum = xDataValues[datumIndex];
             const yDatum = yDataValues[datumIndex];
@@ -449,6 +450,7 @@ export class BubbleSeries extends CartesianSeries<
                 placement,
                 count,
                 dilation,
+                area,
                 selected,
             });
         };
@@ -456,7 +458,7 @@ export class BubbleSeries extends CartesianSeries<
         const { dataAggregation } = this;
         if (dataAggregation == null) {
             for (let datumIndex = 0; datumIndex < rawData.length; datumIndex++) {
-                handleDatum(datumIndex, 1, 1);
+                handleDatum(datumIndex, 1, 1, 0);
             }
         } else {
             const aggregationOptions = this.aggregationOptions(xAxis, yAxis);
@@ -472,11 +474,11 @@ export class BubbleSeries extends CartesianSeries<
                 aggregationOptions
             );
 
-            for (const { datumIndex, count, dilation } of groupedAggregation) {
-                handleDatum(datumIndex, count, dilation);
+            for (const { datumIndex, count, dilation, area } of groupedAggregation) {
+                handleDatum(datumIndex, count, dilation, area);
             }
             for (const datumIndex of singleDatumIndices) {
-                handleDatum(datumIndex, 1, 1);
+                handleDatum(datumIndex, 1, 1, 0);
             }
         }
 
@@ -511,12 +513,11 @@ export class BubbleSeries extends CartesianSeries<
             datumSelection.cleanup();
         }
 
-        const data = this.properties.marker.enabled ? nodeData : [];
         let getId: ((datum: BubbleScatterNodeDatum) => string) | undefined;
         if (sizeKey) {
             getId = (datum) => createDatumId(datum.xValue, datum.yValue, datum.sizeValue, datum.label.text);
         }
-        return datumSelection.update(data, undefined, getId);
+        return datumSelection.update(nodeData, undefined, getId);
     }
 
     override updateDatumStyles(opts: {
@@ -529,14 +530,10 @@ export class BubbleSeries extends CartesianSeries<
         const params = { xKey, yKey, sizeKey, labelKey };
 
         datumSelection.each((_, datum) => {
-            const { count, dilation } = datum;
-
-            const style = this.getMarkerStyle(marker, datum, params, {
+            datum.style = this.getMarkerStyle(marker, datum, params, {
                 isHighlight,
                 resolveItemStylerMarkerPath: false,
             });
-            style.fillOpacity = (1 - (1 - (style.fillOpacity ?? 1)) ** count) / Math.sqrt(dilation);
-            datum.style = style;
         });
     }
 
@@ -558,13 +555,30 @@ export class BubbleSeries extends CartesianSeries<
 
         datumSelection.each((node, datum, index) => {
             const {
-                count,
                 point: { size },
+                count,
+                area,
+                dilation,
             } = datum;
-            const style =
+            let style =
                 datum.style ??
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+
+            style = { ...style };
             style.size = size;
+
+            if (dilation > 1) {
+                const fillOpacity = style.fillOpacity ?? 0;
+                // See /tools/bubble-aggregation
+                const opacityScale =
+                    0.269669 +
+                    0.000683 * count +
+                    -37.534348 * area +
+                    0.004449 * count * area +
+                    -0.0 * count ** 2 +
+                    44.428603 * area ** 2;
+                style.fillOpacity = clamp(fillOpacity / dilation, (fillOpacity / 0.1) * opacityScale, 1);
+            }
 
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
             node.zIndex = aggregated ? [-count, index] : 0;
