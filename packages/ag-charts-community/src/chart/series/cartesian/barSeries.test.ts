@@ -1,11 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import type {
+    AgBarSeriesItemStylerParams,
     AgBarSeriesLabelPlacement,
     AgBarSeriesOptions,
+    AgBarSeriesStyle,
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
+    Styler,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
@@ -764,6 +767,42 @@ describe('BarSeries', () => {
             await waitForChartStability(chart);
             await chart.updateDelta({ data: DATA2 });
             await compare();
+        });
+    });
+
+    describe('AG-11673 styler', () => {
+        type TParams = AgBarSeriesItemStylerParams<unknown, unknown>;
+        type TReturn = AgBarSeriesStyle;
+        type TStyler = Styler<TParams, TReturn>;
+        describe('init', () => {
+            let styler: jest.Mock<TStyler>;
+            beforeEach(async () => {
+                styler = jest.fn<TStyler>((params: TParams): TReturn => {
+                    if (params.yKey === 'sales') return { fill: 'cyan' };
+                    else if (params.yKey === 'expenses') return { fill: 'magenta' };
+                    return {};
+                });
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data: [
+                            { month: 'January', sales: 1200, expenses: 800 },
+                            { month: 'February', sales: 1500, expenses: 950 },
+                            { month: 'March', sales: 1700, expenses: 1100 },
+                        ],
+                        series: [
+                            { type: 'bar', xKey: 'month', yKey: 'sales', styler },
+                            { type: 'bar', xKey: 'month', yKey: 'expenses', styler },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+            test('callbacks', () => {
+                expect(styler).toBeCalledTimes(2);
+            });
         });
     });
 });
