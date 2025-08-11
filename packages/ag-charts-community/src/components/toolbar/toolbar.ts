@@ -6,6 +6,7 @@ import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Listeners } from '../../util/listeners';
 import { BaseProperties } from '../../util/properties';
+import type { ExpansionControllerWidget } from '../../widget/expandableWidget';
 import type { RovingDirection } from '../../widget/rovingDirection';
 import { ToolbarWidget } from '../../widget/toolbarWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
@@ -22,6 +23,7 @@ export interface ToolbarEventMap<ButtonOptions extends ToolbarButtonOptions = To
         event: MouseWidgetEvent<'click'>;
         button: ButtonOptions & { index: number };
         buttonBounds: BoxBounds;
+        buttonWidget: ExpansionControllerWidget<HTMLElement>;
     };
     'button-focused': {
         button: { index: number };
@@ -165,10 +167,17 @@ export abstract class BaseToolbar<
         buttonWidget.addListener('click', (event) => {
             const buttonOptions = { index, ...(button instanceof BaseProperties ? button.toJson() : button) };
             const buttonBounds = this.getButtonWidgetBounds(buttonWidget);
-            this.events.dispatch('button-pressed', { event, button: buttonOptions, buttonBounds });
+            const params: ToolbarEventMap<ButtonOptions>['button-pressed'] = {
+                event,
+                button: buttonOptions,
+                buttonBounds,
+                buttonWidget,
+            };
+            this.events.dispatch('button-pressed', params);
         });
         buttonWidget.addListener('focus', () => {
-            this.events.dispatch('button-focused', { button: { index } });
+            const params: ToolbarEventMap<ButtonOptions>['button-focused'] = { button: { index } };
+            this.events.dispatch('button-focused', params);
         });
 
         if (button.section) {

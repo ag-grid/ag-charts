@@ -5,7 +5,7 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { getLastFocus } from '../../util/keynavUtil';
 import type { Vec2 } from '../../util/vector';
-import type { ExpandableWidget } from '../../widget/expandableWidget';
+import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 
 const canvasOverlay = 'canvas-overlay';
 
@@ -30,8 +30,6 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     extends BaseModuleInstance
     implements ModuleInstance
 {
-    protected widget?: ExpandableWidget;
-
     protected readonly hideFns: Array<() => void> = [];
 
     private readonly moduleId: string;
@@ -55,14 +53,17 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         }
         this.element.setAttribute('role', 'presentation');
 
-        this.hideFns.push(() => this.destroyWidget());
+        this.hideFns.push(() => this.setOwnedWidget(undefined));
         this.cleanup.register(() => ctx.domManager.removeChild(canvasOverlay, this.moduleId));
     }
 
-    private destroyWidget() {
-        this.widget?.destroy();
-        this.widget = undefined;
-    }
+    private readonly setOwnedWidget: (owns: ExpandableWidget | undefined) => void = (() => {
+        let ownedWidget: ExpandableWidget | undefined; // private member for this.setOwnedWidget()
+        return (owns: ExpandableWidget | undefined): void => {
+            ownedWidget?.destroy();
+            ownedWidget = owns;
+        };
+    })();
 
     public attachTo(popover: Popover) {
         if (this.element.parentElement) return;
@@ -103,15 +104,15 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         return popover;
     }
 
-    protected showWidget(widget: ExpandableWidget, options: Options) {
-        const { sourceEvent } = options;
-        if (sourceEvent) {
-            this.destroyWidget();
-            this.initPopoverElement(widget.getElement(), options);
-            widget.expand({ sourceEvent });
-            widget.addListener('collapse-widget', () => this.removeChildren());
-            this.widget = widget;
-        }
+    protected showWidget(controller: ExpansionControllerWidget, owns: ExpandableWidget, options: Options) {
+        this.setOwnedWidget(owns);
+        this.initPopoverElement(owns.getElement(), options);
+        owns.addListener('collapse-widget', () => {
+            controller.setControlled(undefined);
+            this.setOwnedWidget(undefined);
+        });
+        controller.setControlled(owns);
+        controller.expandControlled();
     }
 
     protected showWithChildren(children: Array<HTMLElement>, options: Options) {

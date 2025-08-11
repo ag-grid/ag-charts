@@ -2,6 +2,7 @@ import { createElement } from 'ag-charts-core';
 
 import type { LabelIcon } from '../../dom/elements';
 import { getIconClassNames } from '../../util/dom';
+import type { ExpansionControllerWidget } from '../../widget/expandableWidget';
 import { MenuItemRadioWidget, MenuItemWidget } from '../../widget/menuItemWidget';
 import { MenuWidget } from '../../widget/menuWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
@@ -9,7 +10,6 @@ import { AnchoredPopover, type AnchoredPopoverOptions } from '../popover/anchore
 
 export interface MenuOptions<Value = any> extends AnchoredPopoverOptions {
     items: Array<MenuItem<Value>>;
-    sourceEvent: Event;
     value?: Value;
     onPress?: (item: MenuItem<Value>) => void;
     menuItemRole?: 'menuitem' | 'menuitemradio';
@@ -26,13 +26,13 @@ type MenuRow = MenuItemWidget | MenuItemRadioWidget;
  * An anchored popover containing a list of pressable items.
  */
 export class Menu extends AnchoredPopover {
-    public show<Value = any>(options: MenuOptions<Value>): void {
+    public show<Value = any>(controller: ExpansionControllerWidget, options: MenuOptions<Value>): void {
         const menu = new MenuWidget('vertical');
         for (const item of options.items) {
-            menu.addChild(this.createRow(options, item));
+            menu.addChild(this.createRow(options, item, menu));
         }
         menu.addClass('ag-charts-menu');
-        this.showWidget(menu, options);
+        this.showWidget(controller, menu, options);
     }
 
     private allocRow(options: MenuOptions, item: MenuItem): MenuRow {
@@ -46,7 +46,7 @@ export class Menu extends AnchoredPopover {
         }
     }
 
-    private createRow<Value>(options: MenuOptions<Value>, item: MenuItem<Value>): MenuRow {
+    private createRow<Value>(options: MenuOptions<Value>, item: MenuItem<Value>, menu: MenuWidget): MenuRow {
         const active = item.value === options.value;
         const row = this.allocRow(options, item);
         row.addClass('ag-charts-menu__row');
@@ -80,7 +80,7 @@ export class Menu extends AnchoredPopover {
             options.onPress?.(item);
             sourceEvent.preventDefault();
             sourceEvent.stopPropagation();
-            this.widget?.collapse();
+            menu.collapse();
         });
 
         return row;

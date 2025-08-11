@@ -6,3 +6,4 @@ export * from './buttonWidget';
 export * from './sliderWidget';
 export * from './menuWidget';
 export * from './menuItemWidget';
+export * from './expandableWidget';

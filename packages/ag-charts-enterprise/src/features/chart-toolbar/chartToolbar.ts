@@ -45,9 +45,9 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         this.toolbar.layout(event.layoutBox);
     }
 
-    private onButtonPressed({ event, buttonBounds }: _ModuleSupport.ToolbarEventMap['button-pressed']) {
+    private onButtonPressed({ event, buttonBounds, buttonWidget }: _ModuleSupport.ToolbarEventMap['button-pressed']) {
         this.menu.setAnchor({ x: buttonBounds.x + buttonBounds.width + 6, y: buttonBounds.y });
-        this.menu.show({
+        this.menu.show(buttonWidget, {
             items: menuItems,
             menuItemRole: 'menuitemradio',
             ariaLabel: this.ctx.localeManager.t('toolbarSeriesTypeDropdown'),
@@ -71,7 +71,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         const icon = menuItems.find((item) => item.value === chartType)?.icon;
 
         if (icon != null) {
-            this.toolbar.updateButtons([{ icon, tooltip: 'toolbarSeriesTypeDropdown' }]);
+            this.toolbar.updateButtons([{ icon, tooltip: 'toolbarSeriesTypeDropdown', value: 'menu' }]);
         }
     }
 

@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import { type BoxBounds, CleanupRegistry, EventEmitter } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
@@ -142,6 +142,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         event,
         button,
         buttonBounds,
+        buttonWidget,
     }: _ModuleSupport.ToolbarEventMap<AnnotationsToolbarButtonOptions>['button-pressed']) {
         const axisScale = this.ctx.axisManager.getAxisContext(ChartAxisDirection.Y)[0].scale;
 
@@ -154,6 +155,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
                 this.onToolbarButtonPressShowMenu(
                     event,
                     buttonBounds,
+                    buttonWidget,
                     button.value,
                     'toolbarAnnotationsLineAnnotations',
                     LINE_ANNOTATION_ITEMS.filter((item) => (item.visible ? item.visible(axisScale) : true))
@@ -164,6 +166,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
                 this.onToolbarButtonPressShowMenu(
                     event,
                     buttonBounds,
+                    buttonWidget,
                     button.value,
                     'toolbarAnnotationsFibonacciAnnotations',
                     FIBONACCI_ANNOTATION_ITEMS
@@ -174,6 +177,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
                 this.onToolbarButtonPressShowMenu(
                     event,
                     buttonBounds,
+                    buttonWidget,
                     button.value,
                     'toolbarAnnotationsTextAnnotations',
                     TEXT_ANNOTATION_ITEMS
@@ -184,6 +188,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
                 this.onToolbarButtonPressShowMenu(
                     event,
                     buttonBounds,
+                    buttonWidget,
                     button.value,
                     'toolbarAnnotationsShapeAnnotations',
                     SHAPE_ANNOTATION_ITEMS
@@ -194,6 +199,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
                 this.onToolbarButtonPressShowMenu(
                     event,
                     buttonBounds,
+                    buttonWidget,
                     button.value,
                     'toolbarAnnotationsMeasurerAnnotations',
                     MEASURER_ANNOTATION_ITEMS
@@ -205,6 +211,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     private onToolbarButtonPressShowMenu(
         event: _ModuleSupport.MouseWidgetEvent<'click'>,
         buttonBounds: BoxBounds,
+        controller: _Widget.ExpansionControllerWidget,
         menu: AnnotationsToolbarButtonValue,
         ariaLabel: string,
         items: Array<_ModuleSupport.MenuItem<AnnotationType>>
@@ -214,7 +221,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         const index = this.buttons.findIndex((button) => button.value === menu);
         this.toolbar.toggleActiveButtonByIndex(index);
         this.annotationMenu.setAnchor({ x: buttonBounds.x + buttonBounds.width + 6, y: buttonBounds.y });
-        this.annotationMenu.show<AnnotationType>({
+        this.annotationMenu.show<AnnotationType>(controller, {
             items,
             ariaLabel: this.ctx.localeManager.t(ariaLabel),
             class: 'ag-charts-annotations__toolbar-menu',

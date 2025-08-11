@@ -266,6 +266,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     private onButtonPress({
         event,
         button,
+        buttonWidget,
     }: _ModuleSupport.ToolbarEventMap<AnnotationOptionsButtonOptions>['button-pressed']) {
         const datum = this.getActiveDatum();
         if (!datum) return;
@@ -275,11 +276,10 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         switch (button.value) {
             case AnnotationOptions.LineStyleType: {
                 const lineStyle = hasLineStyle(datum) ? getLineStyle(datum.lineDash, datum.lineStyle) : undefined;
-                this.lineStyleTypeMenu.show<AgAnnotationLineStyleType>({
+                this.lineStyleTypeMenu.show<AgAnnotationLineStyleType>(buttonWidget, {
                     items: LINE_STYLE_TYPE_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStyle'),
                     value: lineStyle,
-                    sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onLineStyleTypeMenuPress(item, datum),
                     class: 'ag-charts-annotations__line-style-type-menu',
                 });
@@ -288,11 +288,10 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
 
             case AnnotationOptions.LineStrokeWidth: {
                 const strokeWidth = hasLineStyle(datum) ? datum.strokeWidth : undefined;
-                this.lineStrokeWidthMenu.show<number>({
+                this.lineStrokeWidthMenu.show<number>(buttonWidget, {
                     items: LINE_STROKE_WIDTH_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStrokeWidth'),
                     value: strokeWidth,
-                    sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onLineStrokeWidthMenuPress(item, datum),
                     class: 'ag-charts-annotations__line-stroke-width-menu',
                 });
@@ -323,11 +322,10 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
 
             case AnnotationOptions.TextSize: {
                 const fontSize = isTextType(datum) ? datum.fontSize : undefined;
-                this.textSizeMenu.show<number>({
+                this.textSizeMenu.show<number>(buttonWidget, {
                     items: TEXT_SIZE_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsTextSize'),
                     value: fontSize,
-                    sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onTextSizeMenuPress(item, datum),
                     class: 'ag-charts-annotations__text-size-menu',
                 });
