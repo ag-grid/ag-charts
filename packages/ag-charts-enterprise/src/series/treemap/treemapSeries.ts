@@ -9,7 +9,6 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
-    type FontOptions,
     type InternalAgColorType,
     type RequireOptional,
     cachedTextMeasurer,
@@ -74,11 +73,6 @@ enum TextNodeTag {
 type ItemStyle = Pick<AgTreemapSeriesStyle, 'fill' | 'stroke'> &
     Omit<Required<AgTreemapSeriesStyle>, 'fill' | 'stroke'>;
 
-function getTextSize(text: string, style: FontOptions): { width: number; height: number } {
-    const { width, height } = cachedTextMeasurer(style).measureLines(text);
-    return { width, height };
-}
-
 function nodeSize(node: TreemapNode) {
     return node.children.length > 0 ? node.sumSize - node.sizeValue : node.sizeValue;
 }
@@ -137,7 +131,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         ) {
             return;
         } else {
-            const { height: fontHeight } = getTextSize(labelValue, font);
+            const { height: fontHeight } = cachedTextMeasurer(font).measureLines(labelValue);
             return Math.max(fontHeight, font.fontSize);
         }
     }

@@ -1,5 +1,7 @@
-import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
+import type { MultilineTextMetricsBox } from 'ag-charts-core';
+
 import type { FromToFns } from '../../motion/fromToMotion';
+import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
 import type { Group, TranslatableGroup } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
 import type { Rect } from '../../scene/shape/rect';
@@ -20,6 +22,7 @@ export interface TickDatum {
     translation: number;
     textUntruncated: string | undefined;
     isPrimary: boolean;
+    textMetrics: MultilineTextMetricsBox;
 }
 
 export interface AxisLineDatum {

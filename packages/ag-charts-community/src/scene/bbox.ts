@@ -1,4 +1,4 @@
-import { type BoxBounds, boxContains, boxesEqual, clamp } from 'ag-charts-core';
+import { type BoxBounds, boxCollides, boxContains, boxesEqual, clamp } from 'ag-charts-core';
 
 import { type Interpolating, interpolate } from '../util/interpolating';
 import type { DistantObject, NearestResult } from '../util/nearest';
@@ -92,12 +92,13 @@ export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
     }
 
     intersection(other: BBox) {
-        if (!this.collidesBBox(other)) return;
+        const { x, y, width, height } = other;
+        if (!boxCollides(this, x, y, width, height)) return;
 
-        const newX1 = clamp(other.x, this.x, other.x + other.width);
-        const newY1 = clamp(other.y, this.y, other.y + other.height);
-        const newX2 = clamp(other.x, this.x + this.width, other.x + other.width);
-        const newY2 = clamp(other.y, this.y + this.height, other.y + other.height);
+        const newX1 = clamp(x, this.x, x + width);
+        const newY1 = clamp(y, this.y, y + height);
+        const newX2 = clamp(x, this.x + this.width, x + width);
+        const newY2 = clamp(y, this.y + this.height, y + height);
 
         return new BBox(newX1, newY1, newX2 - newX1, newY2 - newY1);
     }

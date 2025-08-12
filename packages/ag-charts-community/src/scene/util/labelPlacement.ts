@@ -1,5 +1,6 @@
 import { type BoxBounds, boxCollides, boxContains } from 'ag-charts-core';
 
+import type { BBox } from '../bbox';
 import type { Point, SizedPoint } from '../point';
 
 export type LabelPlacement =
@@ -19,8 +20,8 @@ export interface MeasuredLabel {
 }
 
 export interface PlacedLabelDatum {
-    readonly point: Point;
-    readonly label: MeasuredLabel;
+    readonly label: string;
+    readonly bbox: BBox;
 }
 
 export interface PointLabelDatum {

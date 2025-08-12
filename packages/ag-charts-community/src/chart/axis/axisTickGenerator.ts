@@ -78,8 +78,6 @@ export interface TickGenerationParams<D = any> {
     labelX: number;
     sideFlag: ChartAxisLabelFlipFlag;
     sizeLimit: number | undefined;
-    removeOverflowLabels: boolean;
-    removeOverflowThreshold?: number;
 }
 
 export interface TickGenerationResult<D = any> {
@@ -87,12 +85,6 @@ export interface TickGenerationResult<D = any> {
     rotation: number;
     textBaseline: CanvasTextBaseline;
     textAlign: CanvasTextAlign;
-}
-
-interface TickStrategyResult<D = any> {
-    index: number;
-    tickData: TickData<D>;
-    autoRotation: number;
 }
 
 enum TickGenerationType {
@@ -125,7 +117,7 @@ export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>,
         ticks: D[],
         primary: boolean,
         fractionDigits: number | undefined,
-        timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,
+        timeInterval: AnyTimeInterval | undefined,
         dateStyle: DateFormatterStyle
     ): (value: any, index: number) => string | undefined;
 }
@@ -182,8 +174,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         regularFlipRotation,
         labelX,
         sideFlag,
-        removeOverflowLabels,
-        removeOverflowThreshold = 0,
         sizeLimit,
     }: TickGenerationParams<D>): TickGenerationResult<D> {
         const {
@@ -191,13 +181,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             primaryLabel,
             interval: { values, minSpacing, maxSpacing },
         } = this.axis;
-        const { parallel, fontFamily, fontSize, fontStyle, fontWeight } = label;
-
-        const secondaryAxis = primaryTickCount !== undefined;
-
         const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation(
             label.rotation,
-            parallel,
+            label.parallel,
             regularFlipRotation,
             parallelFlipRotation
         );
@@ -213,8 +199,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         const maxIterations = Number.isFinite(maxTickCount) ? maxTickCount : 10;
 
-        const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
-        const textMeasurer = cachedTextMeasurer({ fontFamily, fontSize, fontStyle, fontWeight });
+        const textMeasurer = cachedTextMeasurer(label);
+        const textBaseline = getTextBaseline(label.parallel, configuredRotation, sideFlag, parallelFlipFlag);
         const checkLabelOverlap = label.enabled && label.avoidCollisions;
 
         const initialRotation = configuredRotation + defaultRotation;
@@ -226,7 +212,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         const getLabelData = ({ ticks }: TickData, iterationRotation: number) => {
             updateLabelMatrix(iterationRotation);
-            return createLabelData(ticks, labelX, labelMatrix, textMeasurer, label);
+            return createLabelData(ticks, labelX, labelMatrix, label);
         };
 
         const getTimeLabelData = (tickData: TickData, iterationRotation: number) => {
@@ -247,7 +233,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             return createFixedLabelData({ width, height, spacing }, labelX, labelMatrix);
         };
 
-        const getLabelOverlap = (tickData: TickData, iterationRotation: number) => {
+        const getLabelOverlap = (tickData: TickData, iterationRotation = 0) => {
             if (!checkLabelOverlap) return false;
 
             const rotated = configuredRotation !== 0 || iterationRotation !== 0;
@@ -274,6 +260,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         let labelOverlap = true;
 
         const tryAutoRotate = checkLabelOverlap && label.autoRotate && label.rotation == null;
+        const secondaryAxis = primaryTickCount != null;
 
         let tickGenerationType: TickGenerationType;
         if (values) {
@@ -285,7 +272,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         }
 
         while (labelOverlap && index <= maxIterations) {
-            ({ tickData, index, autoRotation } = this.createTickData(
+            ({ tickData, index } = this.createTickData(
                 domain,
                 range,
                 reverse,
@@ -299,33 +286,14 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 sizeLimit
             ));
 
-            if (tryAutoRotate) {
-                autoRotation = getLabelOverlap(tickData, autoRotation)
-                    ? normalizeAngle360FromDegrees(label.autoRotateAngle)
-                    : 0;
-            }
+            autoRotation =
+                tryAutoRotate && getLabelOverlap(tickData) ? normalizeAngle360FromDegrees(label.autoRotateAngle) : 0;
 
             labelOverlap = getLabelOverlap(tickData, autoRotation);
         }
 
-        const textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
+        const textAlign = getTextAlign(label.parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
         const rotation = configuredRotation + autoRotation;
-
-        if (removeOverflowLabels && tickData.ticks.length > 2) {
-            const labelData = getLabelData(tickData, autoRotation);
-            const lastTick = tickData.ticks.at(-1);
-            const lastLabel = labelData.at(-1);
-            if (
-                lastTick != null &&
-                lastLabel != null &&
-                lastTick.translation + lastLabel.label.width / 2 > range[1] + removeOverflowThreshold
-            ) {
-                lastTick.tickLabel = undefined;
-                if (visibleRange[0] === 0 && visibleRange[1] === 1) {
-                    tickData.ticks[0].tickLabel = undefined;
-                }
-            }
-        }
 
         return { tickData, rotation, textBaseline, textAlign };
     }
@@ -342,7 +310,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         index: number,
         previousTickData: TickData,
         sizeLimit: number | undefined
-    ): TickStrategyResult {
+    ): {
+        index: number;
+        tickData: TickData<D>;
+    } {
         // Find the next tick data where the tick data is different from the previous tick data - and return the index of this data
         const { axis } = this;
         const { step, values, minSpacing, maxSpacing } = axis.interval;
@@ -355,12 +326,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             maxSpacing
         );
 
-        const maxIterations = tickCount - minTickCount;
         const countTicks = (i: number) => Math.max(tickCount - i, minTickCount);
-
-        const previousTicks = previousTickData.rawTicks;
-
         const regenerateTicks = step == null && values == null && countTicks(index) > minTickCount;
+        const previousTicks = previousTickData.rawTicks;
+        const maxIterations = tickCount - minTickCount;
 
         const getTickParams = {
             domain,
@@ -410,33 +379,30 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             timeInterval,
         } = nextTicks;
 
-        const ticks = formatTicks({
-            axis,
-            range,
-            niceDomain,
-            rawTicks,
-            rawFirstTickIndex,
-            generatePrimaryTicks,
-            primaryTicksIndices,
-            alignment,
-            fractionDigits,
-            timeInterval,
-            sizeLimit,
-        });
-
-        const tickData: TickData = {
-            tickDomain,
-            niceDomain,
-            rawTicks,
-            rawTickCount,
-            timeInterval,
-            fractionDigits,
-            ticks,
+        return {
+            tickData: {
+                tickDomain,
+                niceDomain,
+                rawTicks,
+                rawTickCount,
+                timeInterval,
+                fractionDigits,
+                ticks: formatTicks({
+                    axis,
+                    range,
+                    niceDomain,
+                    rawTicks,
+                    rawFirstTickIndex,
+                    generatePrimaryTicks,
+                    primaryTicksIndices,
+                    alignment,
+                    fractionDigits,
+                    timeInterval,
+                    sizeLimit,
+                }),
+            },
+            index: index + 1,
         };
-
-        index += 1;
-
-        return { tickData, index, autoRotation: 0 };
     }
 
     private getTicks({
@@ -494,7 +460,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         let rawTicks: any[] | undefined;
         let rawTickCount: number | undefined;
         let rawFirstTickIndex: number | undefined;
-        let timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined;
+        let timeInterval: AnyTimeInterval | undefined;
         let primaryTicksIndices: Set<number> | undefined;
         let alignment: ScaleAlignment | undefined;
 
@@ -548,7 +514,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     });
                 }
 
-                let minTimeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined;
+                let minTimeInterval: AnyTimeInterval | undefined;
                 if (OrdinalTimeScale.is(scale)) {
                     minTimeInterval = axis.minimumTimeGranularity;
                 } else if (UnitTimeScale.is(scale)) {
@@ -631,13 +597,8 @@ function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding: number = 
     const result: BoxBounds[] = [];
 
     for (const datum of data) {
-        const { x, y } = datum.point;
-        let { width, height } = datum.label;
-
-        width += padding;
-        height += padding;
-
-        if (result.some((l) => boxCollides(l, x, y, width, height))) {
+        const { x, y, width, height } = datum.bbox;
+        if (result.some((l) => boxCollides(l, x, y, width + padding, height + padding))) {
             return true;
         }
 
@@ -648,7 +609,7 @@ function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding: number = 
 }
 
 function createTimeScaleTicks(
-    interval: AgTimeInterval | AgTimeIntervalUnit | number,
+    interval: AnyTimeInterval | number,
     domain: [Date, Date],
     visibleRange?: [number, number],
     extend?: boolean
@@ -729,6 +690,7 @@ function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>({
     const originalDomain = scale.domain;
     const isVertical = axis.direction === ChartAxisDirection.Y;
     const isContinuous = TimeScale.is(scale) || DiscreteTimeScale.is(scale);
+    const measurer = cachedTextMeasurer(label);
     const idGenerator = createIdsGenerator();
     const ticks: TickDatum[] = [];
 
@@ -769,13 +731,14 @@ function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>({
         const tickId = Number.isFinite(tickValue) ? idGenerator(`v:${tickValue}`) : idGenerator(`l:${tickLabel}`);
 
         ticks.push({
-            index: i + rawFirstTickIndex,
             tick,
             tickId,
             tickLabel,
-            textUntruncated: tickLabel === inputText ? undefined : inputText,
-            translation: Math.floor(translation),
             isPrimary,
+            index: i + rawFirstTickIndex,
+            textUntruncated: tickLabel === inputText ? undefined : inputText,
+            textMetrics: measurer.measureLines(tickLabel),
+            translation: Math.floor(translation),
         });
     }
 
@@ -815,7 +778,7 @@ function getTimeIntervalTicks<S extends Scale<D, number, TickInterval<S>>, D>(
     tickCount: number,
     maxTickCount: number,
     tickParams: Readonly<ScaleTickParams<any>>,
-    timeInterval: AgTimeInterval | AgTimeIntervalUnit,
+    timeInterval: AnyTimeInterval,
     reverse: boolean
 ) {
     const parentInterval = intervalHierarchy(timeInterval);
