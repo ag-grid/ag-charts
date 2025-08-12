@@ -20,7 +20,7 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
-import { MockStyler, newFreezableMock } from '../../test/freezableMock';
+import { MockBarStyler, newFreezableMock } from '../../test/freezableMock';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -774,7 +774,7 @@ describe('BarSeries', () => {
     describe('AG-11673 styler', () => {
         type D = unknown;
         type C = unknown;
-        type M = MockStyler<D, C>;
+        type M = MockBarStyler<D, C>;
         let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
         const data = [
             { month: 'January', sales: 1200, expenses: 800 },
