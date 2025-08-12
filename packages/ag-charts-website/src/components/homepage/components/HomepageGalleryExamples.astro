@@ -60,8 +60,58 @@ const loadingId = 'homepageGalleryLoading';
         loadingId,
     }}
 >
-    let chartInstance;
-    let hasLoaded = false;
+    function createChartManager({ agCharts, onFirstLoad }) {
+        let chartInstance = null;
+        let currentChartIsGauge = false;
+        let chartState = 'init';
+
+        const isGauge = (chartType) => {
+            return chartType?.endsWith('gauge');
+        };
+        const createChart = ({ options }) => {
+            const createMethod = isGauge(options.type) ? 'createGauge' : 'create';
+            chartInstance = agCharts[createMethod](options);
+
+            if (chartState === 'init') {
+                chartInstance
+                    ?.waitForUpdate()
+                    .then(() => {
+                        chartState = 'active';
+                        onFirstLoad?.();
+                    })
+                    .catch(() => {});
+            }
+        };
+        const apply = ({ options }) => {
+            if (chartState === 'init') {
+                createChart({ options });
+                return;
+            }
+
+            const optionsIsGauge = isGauge(options.type);
+            const shouldDestroy = currentChartIsGauge !== optionsIsGauge;
+
+            if (shouldDestroy) {
+                chartInstance?.destroy();
+                createChart({ options });
+            } else {
+                chartInstance?.update(options);
+            }
+
+            currentChartIsGauge = optionsIsGauge;
+        };
+
+        return {
+            apply,
+        };
+    }
+
+    const chartManager = createChartManager({
+        agCharts: agCharts.AgCharts,
+        onFirstLoad: () => {
+            removeLoading();
+        },
+    });
     const buttons = document.querySelectorAll(`.${buttonsClass}`);
     function updateActiveButton(button) {
         buttons.forEach((btn) => btn.classList.remove(activeButtonClass));
@@ -83,59 +133,13 @@ const loadingId = 'homepageGalleryLoading';
         exampleData.updateExample();
     }
 
-    function isGaugeExample(exampleId) {
-        return exampleId.endsWith('-gauge');
-    }
-
-    function destroyChartInstance() {
-        if (chartInstance) {
-            chartInstance.destroy();
-            chartInstance = null;
-        }
-    }
-
-    function createChartInstance({ options, isGauge }) {
-        const createMethod = isGauge ? 'createGauge' : 'create';
-        chartInstance = agCharts.AgCharts[createMethod](options);
-
-        if (!hasLoaded) {
-            chartInstance.waitForUpdate().then(() => {
-                hasLoaded = true;
-                removeLoading();
-            });
-        }
-    }
-
-    function updateChartInstance({ options }) {
-        chartInstance.update(options);
-    }
-
-    function updateChart({ shouldDestroy, isGauge, options }) {
-        if (!chartInstance) {
-            createChartInstance({ options, isGauge });
-            return;
-        }
-
-        if (shouldDestroy) {
-            destroyChartInstance();
-            createChartInstance({ options, isGauge });
-        } else {
-            updateChartInstance({ options });
-        }
-    }
-
     function init() {
         let prevExampleId = initialExampleId;
         let currentExampleId = initialExampleId;
 
+        // Called from example `updateExample` function
         window[GLOBAL_UPDATE_FUNCTION_NAME] = (options) => {
-            const prevIsGauge = isGaugeExample(prevExampleId);
-            const curIsGauge = isGaugeExample(currentExampleId);
-            const shouldDestroy = prevIsGauge !== curIsGauge;
-
-            updateChart({
-                shouldDestroy,
-                isGauge: curIsGauge,
+            chartManager.apply({
                 options,
             });
         };
