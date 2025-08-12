@@ -6,7 +6,7 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import styles from './HomepageGalleryExamples.module.scss';
 import { getEntry, type CollectionEntry } from 'astro:content';
 import { getGalleryExamplesData } from '@components/homepage/components/gallery-examples/galleryExamplesData';
-import { GLOBAL_HOMEPAGE_EXAMPLES_VARIABLE, GLOBAL_UPDATE_FUNCTION_NAME } from '@components/homepage/constants';
+import { GLOBAL_UPDATE_EXAMPLES_VARIABLE, GLOBAL_UPDATE_FUNCTION_NAME } from '@components/homepage/constants';
 import { Icon, type IconName } from '@ag-website-shared/components/icon/Icon';
 import AgLoadingLogo from '@ag-website-shared/images/inline-svgs/ag-grid-logomark-loading.svg?react';
 
@@ -55,7 +55,7 @@ const loadingId = 'homepageGalleryLoading';
         initialExampleId,
         buttonsClass: styles.tabButton,
         activeButtonClass: styles.activeTabButton,
-        GLOBAL_HOMEPAGE_EXAMPLES_VARIABLE,
+        GLOBAL_UPDATE_EXAMPLES_VARIABLE,
         GLOBAL_UPDATE_FUNCTION_NAME,
         loadingId,
     }}
@@ -129,8 +129,7 @@ const loadingId = 'homepageGalleryLoading';
         const button = document.querySelector(`.${buttonsClass}[data-example-id="${exampleId}"]`);
         updateActiveButton(button);
 
-        const exampleData = window[GLOBAL_HOMEPAGE_EXAMPLES_VARIABLE][exampleId];
-        exampleData.updateExample();
+        window[GLOBAL_UPDATE_EXAMPLES_VARIABLE][exampleId]();
     }
 
     function init() {

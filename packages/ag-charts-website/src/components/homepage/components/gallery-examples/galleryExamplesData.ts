@@ -4,7 +4,7 @@ import { getGeneratedContents } from '@components/example-generator';
 import {
     EXAMPLE_CODE_END,
     EXAMPLE_CODE_START,
-    GLOBAL_HOMEPAGE_EXAMPLES_VARIABLE,
+    GLOBAL_UPDATE_EXAMPLES_VARIABLE,
     GLOBAL_UPDATE_FUNCTION,
 } from '@components/homepage/constants';
 import type { CollectionEntry } from 'astro:content';
@@ -107,12 +107,20 @@ export async function getGalleryExamplesJs({ galleryData, allGalleryData }: Gall
         replaceNewlineToken,
     });
 
+    // Extract `updateExample` and assign to key
+    const exampleKeys = Object.keys(examplesData);
+    const updateExamples: Record<string, string> = {};
+    for (const key of exampleKeys) {
+        const example = examplesData[key];
+        updateExamples[key] = example.updateExample;
+    }
+
     // Remove start and end quotation marks, so that the code is runnable and not a string
     const startRegex = new RegExp(`"${escape(EXAMPLE_CODE_START)}`, 'g');
     const endRegex = new RegExp(`${escape(EXAMPLE_CODE_END)}"`, 'g');
     const darkModeSnippet = getDarkModeSnippet({ chartAPI: 'agCharts.AgCharts' });
     const examplesString =
-        JSON.stringify(examplesData, null, 2)
+        JSON.stringify(updateExamples, null, 2)
             .replaceAll(startRegex, '')
             .replaceAll(endRegex, '')
             .replaceAll(replaceNewlineToken, '\n')
@@ -121,5 +129,5 @@ export async function getGalleryExamplesJs({ galleryData, allGalleryData }: Gall
         '\n' +
         darkModeSnippet;
 
-    return `window.${GLOBAL_HOMEPAGE_EXAMPLES_VARIABLE} = ${examplesString};`;
+    return `window.${GLOBAL_UPDATE_EXAMPLES_VARIABLE} = ${examplesString};`;
 }
