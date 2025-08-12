@@ -908,46 +908,33 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             }
         });
 
+        const { horizontal } = this;
         this.datumUnion.update(datumSelection, this.itemGroup, _ModuleSupport.Rect, (node, first, last) => {
-            const thickness: number = this.properties.thickness;
-            const barThickness: number = this.properties.bar.thickness ?? thickness;
-
-            const clipX =
-                first.clipBBox || last.clipBBox
-                    ? Math.min(first.clipBBox?.x ?? Infinity, last.clipBBox?.x ?? Infinity)
-                    : undefined;
-            const clipY =
-                first.clipBBox || last.clipBBox
-                    ? Math.min(first.clipBBox?.y ?? Infinity, last.clipBBox?.y ?? Infinity)
-                    : undefined;
             const left = Math.min(first.x, last.x);
             const right = Math.max(first.x + first.width, last.x + last.width);
             const top = Math.min(first.y, last.y);
             const bottom = Math.max(first.y + first.height, last.y + last.height);
             const width = right - left;
             const height = bottom - top;
+
             node.pointerEvents = _ModuleSupport.PointerEvents.None;
-            node.clipBBox ??= new BBox(NaN, NaN, NaN, NaN);
             node.x = left;
             node.y = top;
-            node.clipBBox.x = clipX ?? left;
-            node.clipBBox.y = clipY ?? top;
-            if (this.horizontal) {
-                node.height = node.clipBBox.height = height - (thickness - barThickness);
-                node.width = width;
-                node.clipBBox.width = node.width - (last.width - (last.clipBBox?.width ?? last.width));
-                node.topLeftCornerRadius = first.topLeftCornerRadius;
-                node.bottomLeftCornerRadius = first.bottomLeftCornerRadius;
-                node.topRightCornerRadius = last.topRightCornerRadius;
-                node.bottomRightCornerRadius = last.bottomRightCornerRadius;
+            node.width = width;
+            node.height = height;
+            node.topLeftCornerRadius = horizontal ? first.topLeftCornerRadius : last.topLeftCornerRadius;
+            node.topRightCornerRadius = last.topRightCornerRadius;
+            node.bottomRightCornerRadius = horizontal ? last.bottomRightCornerRadius : first.bottomRightCornerRadius;
+            node.bottomLeftCornerRadius = first.bottomLeftCornerRadius;
+
+            const firstClipBBox = first.clipBBox;
+            const lastClipBBox = last.clipBBox ?? firstClipBBox;
+            if (firstClipBBox && lastClipBBox) {
+                node.clipBBox = BBox.merge([firstClipBBox, lastClipBBox]).intersection(
+                    horizontal ? new BBox(left, -Infinity, width, Infinity) : new BBox(-Infinity, top, Infinity, height)
+                );
             } else {
-                node.width = node.clipBBox.width = width - (thickness - barThickness);
-                node.height = height;
-                node.clipBBox.height = node.height - (last.height - (last.clipBBox?.height ?? last.height));
-                node.topLeftCornerRadius = first.topLeftCornerRadius;
-                node.topRightCornerRadius = first.topRightCornerRadius;
-                node.bottomLeftCornerRadius = last.bottomLeftCornerRadius;
-                node.bottomRightCornerRadius = last.bottomRightCornerRadius;
+                node.clipBBox = undefined;
             }
         });
     }
