@@ -18,6 +18,7 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { BarShape } from '../../../scene/shape/barShape';
 import type { Text } from '../../../scene/shape/text';
+import type { CallbackParamRules } from '../../../util/callbackCache';
 import { simpleMemorize2 } from '../../../util/memo';
 import { mergeDefaults } from '../../../util/object';
 import { LogAxis } from '../../axis/logAxis';
@@ -714,7 +715,7 @@ export class BarSeries extends AbstractBarSeries<
         style: Required<AgBarSeriesStyle>
     ): AgBarSeriesItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
-        const { xKey, yKey } = this.properties;
+        const { xKey, yKey, stackGroup } = this.properties;
 
         const datum = processedData.dataSources.get(seriesId)?.[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
@@ -731,10 +732,11 @@ export class BarSeries extends AbstractBarSeries<
             datum,
             xValue,
             yValue,
+            stackGroup,
             highlighted: isHighlight,
             highlightState: highlightStateString,
             ...style,
-        };
+        } satisfies CallbackParamRules<AgBarSeriesItemStylerParams<unknown, unknown>>;
     }
 
     private getItemStyle(
