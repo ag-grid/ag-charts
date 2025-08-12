@@ -8,7 +8,6 @@ import type {
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
-    Styler,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
@@ -20,6 +19,7 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
+import { MockStyler, newFreezableMock } from '../../test/freezableMock';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -771,17 +771,19 @@ describe('BarSeries', () => {
     });
 
     describe('AG-11673 styler', () => {
-        type TParams = AgBarSeriesStylerParams<unknown, unknown>;
-        type TReturn = AgBarSeriesStyle;
-        type TStyler = Styler<TParams, TReturn>;
+        type D = unknown;
+        type C = unknown;
+        type M = MockStyler<D, C>;
         describe('init', () => {
-            let styler: jest.Mock<TStyler>;
+            let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
             beforeEach(async () => {
-                styler = jest.fn<TStyler>((params: TParams): TReturn => {
-                    if (params.yKey === 'sales') return { fill: 'cyan' };
-                    else if (params.yKey === 'expenses') return { fill: 'magenta' };
-                    return {};
-                });
+                styler = newFreezableMock<D, C, M>(
+                    (params: AgBarSeriesStylerParams<D, C>): AgBarSeriesStyle | undefined => {
+                        if (params.yKey === 'sales') return { fill: 'cyan' };
+                        else if (params.yKey === 'expenses') return { fill: 'magenta' };
+                        return {};
+                    }
+                );
                 chart = AgCharts.create(
                     prepareTestOptions({
                         data: [
@@ -790,8 +792,8 @@ describe('BarSeries', () => {
                             { month: 'March', sales: 1700, expenses: 1100 },
                         ],
                         series: [
-                            { type: 'bar', xKey: 'month', yKey: 'sales', styler },
-                            { type: 'bar', xKey: 'month', yKey: 'expenses', styler },
+                            { type: 'bar', xKey: 'month', yKey: 'sales', styler: styler.frozen },
+                            { type: 'bar', xKey: 'month', yKey: 'expenses', styler: styler.frozen },
                         ],
                     })
                 );

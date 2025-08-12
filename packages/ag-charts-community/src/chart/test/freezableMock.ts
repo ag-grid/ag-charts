@@ -12,6 +12,7 @@ import type {
     AgContextMenuItem,
 } from 'ag-charts-types';
 
+export type MockStyler<TDatum, TContext> = NonNullable<AgBarSeriesThemeableOptions<TDatum, TContext>['styler']>;
 export type MockItemStyler<TDatum, TContext> = NonNullable<AgBarSeriesThemeableOptions<TDatum, TContext>['itemStyler']>;
 export type MockAxisLabelFormatter<_TDatum, TContext> = NonNullable<
     NonNullable<AgCartesianAxisOptions<TContext>['label']>['formatter']
@@ -62,6 +63,7 @@ export type MockOverlayRenderer<TDatum, TContext> = NonNullable<
 >;
 
 export type MockAPICallback<TDatum, TContext> =
+    | MockStyler<TDatum, TContext>
     | MockItemStyler<TDatum, TContext>
     | MockAxisLabelFormatter<TDatum, TContext>
     | MockSeriesLabelFormatter<TDatum, TContext>
