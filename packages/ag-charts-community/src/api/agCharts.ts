@@ -242,8 +242,8 @@ class AgChartsInternal {
         }
 
         if (chartOptions.optionsGraph) {
-            chart.ctx.optionsGraphService.updateCallback((path, partialOptions) => {
-                return chartOptions.optionsGraph?.resolvePartial(path, partialOptions);
+            chart.ctx.optionsGraphService.updateCallback((path, partialOptions, proxyPaths) => {
+                return chartOptions.optionsGraph?.resolvePartial(path, partialOptions, proxyPaths);
             });
         }
 

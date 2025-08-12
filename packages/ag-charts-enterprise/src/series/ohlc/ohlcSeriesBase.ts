@@ -477,24 +477,22 @@ export abstract class OhlcSeriesBase<
                 createDatumId(createDatumId(xValue), isHighlight ? 'highlight' : 'node'),
                 () => {
                     const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-                    const styles = this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        itemId,
-                        xKey,
-                        openKey,
-                        closeKey,
-                        highKey,
-                        lowKey,
-                        highlighted: isHighlight,
-                        highlightState: highlightStateString,
-                        ...style,
-                    });
-                    const resolved = this.ctx.optionsGraphService.resolvePartial(
+                    return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`, 'item', itemId],
-                        styles
+                        this.callWithContext(itemStyler, {
+                            seriesId,
+                            datum,
+                            itemId,
+                            xKey,
+                            openKey,
+                            closeKey,
+                            highKey,
+                            lowKey,
+                            highlighted: isHighlight,
+                            highlightState: highlightStateString,
+                            ...style,
+                        })
                     );
-                    return mergeDefaults(resolved, styles);
                 }
             );
 

@@ -10,6 +10,7 @@ import {
 import { chartTypes } from '../chart/factory/chartTypes';
 import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import type { ChartTheme } from '../chart/themes/chartTheme';
+import { Debug } from '../util/debug';
 import { deepClone } from '../util/json';
 import { simpleMemorize } from '../util/memo';
 import { pick, without } from '../util/object';
@@ -18,6 +19,7 @@ import { type Operation, getOperation, isOperation, operations } from './options
 import {
     AUTO_ENABLE_EDGE,
     AUTO_ENABLE_VALUE_EDGE,
+    CHILDREN_SOURCE_EDGE,
     DEFAULTS_EDGE,
     DEPENDENCY_EDGE,
     OPERATION_EDGE,
@@ -26,6 +28,7 @@ import {
     type OptionsGraphInterface,
     PATH_ARRAY_EDGE,
     PATH_EDGE,
+    PRUNE_EDGE,
     RESOLVED_TO_BRANCH,
     USER_OPTIONS_EDGE,
     USER_PARTIAL_OPTIONS_EDGE,
@@ -34,15 +37,21 @@ import {
     setPathSafe,
 } from './optionsGraphUtils';
 
+const debug = Debug.create('opts', 'options-graph');
+
 export const createOptionsGraph = simpleMemorize(createOptionsGraphFn);
 export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject) {
-    return new OptionsGraph(
-        theme.config,
-        options,
-        theme.params,
-        theme.palette,
-        theme.overrides,
-        theme.getTemplateParameters()
+    return debug.group(
+        'OptionsGraph.constructor()',
+        () =>
+            new OptionsGraph(
+                theme.config,
+                options,
+                theme.params,
+                theme.palette,
+                theme.overrides,
+                theme.getTemplateParameters()
+            )
     );
 }
 
@@ -105,6 +114,13 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
     private hasUnsafeClearKeys = false;
 
+    private userPartialOptions?: PlainObject;
+    private rollbackVertices: Array<Vertex<unknown, unknown>> = [];
+    private rollbackEdgesFrom: Array<Vertex<unknown, unknown>> = [];
+    private rollbackEdgesTo: Array<Vertex<unknown, unknown>> = [];
+    private rollbackEdgesValue: Array<string> = [];
+    private isRollingBack = false;
+
     constructor(
         private readonly config: PlainObject = {},
         private readonly userOptions: PlainObject = {},
@@ -113,7 +129,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         private readonly overrides: PlainObject | undefined = undefined,
         private readonly internalParams: Map<unknown, unknown> = new Map()
     ) {
-        super(PATH_EDGE, OPERATION_EDGE);
+        super(PATH_EDGE, OPERATION_EDGE, new Set([USER_PARTIAL_OPTIONS_EDGE, USER_OPTIONS_EDGE]));
 
         this.root = this.addVertex('root');
         this.params = this.addVertex('params');
@@ -132,17 +148,21 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         userOptions.axes ??= defaultAxes?.axes ?? [];
 
         // Build the initial user options, defaults, common and series overrides graphs on the root.
+        debug('build user');
         this.buildGraphFromObject(this.root, USER_OPTIONS_EDGE, without(userOptions, ['theme']));
+        debug('build defaults');
         this.buildGraphFromObject(this.root, DEFAULTS_EDGE, without(config[seriesType], OptionsGraph.COMPLEX_KEYS));
 
         // Build series overrides before common overrides as series take priority
         const seriesOverrides = overrides ? without(overrides[seriesType], OptionsGraph.COMPLEX_KEYS) : {};
         if (Object.keys(seriesOverrides).length > 0) {
+            debug('build series overrides');
             this.buildGraphFromObject(this.root, OVERRIDES_EDGE, seriesOverrides);
         }
 
         const commonOverrides = overrides ? without(overrides.common, OptionsGraph.COMPLEX_KEYS) : {};
         if (Object.keys(commonOverrides).length > 0) {
+            debug('build common overrides');
             this.buildGraphFromObject(
                 this.root,
                 OVERRIDES_EDGE,
@@ -152,6 +172,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
         // Build the theme parameters graph.
         if (params) {
+            debug('build params');
             this.buildGraphFromObject(this.params, DEFAULTS_EDGE, params);
         }
 
@@ -161,6 +182,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         const axesVertex = this.findNeighbourWithValue(this.root, 'axes', PATH_EDGE);
         const seriesVertex = this.findNeighbourWithValue(this.root, 'series', PATH_EDGE);
         if (axesVertex) {
+            debug('build axes');
             this.buildGraphFromObject(axesVertex, DEFAULTS_EDGE, {
                 $applyTheme: [
                     ['/$seriesType/axes/$axisType/$position', '/$seriesType/axes/$axisType'],
@@ -174,6 +196,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             });
         }
         if (seriesVertex) {
+            debug('build series');
             this.buildGraphFromObject(seriesVertex, DEFAULTS_EDGE, {
                 $applyTheme: ['/$seriesType/series', { seriesType: { $path: ['./type', 'line'] } }],
             });
@@ -185,6 +208,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             OptionsGraph.ANNOTATIONS_OPTIONS_KEYS
         );
         if (Object.keys(annotationsTypeConfig).length > 0) {
+            debug('build annotations type config');
             this.buildGraphFromObject(this.annotations, DEFAULTS_EDGE, annotationsTypeConfig);
         }
 
@@ -193,16 +217,19 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             OptionsGraph.ANNOTATIONS_OPTIONS_KEYS
         );
         if (Object.keys(annotationsTypeOverrides).length > 0) {
+            debug('build annotations type overrides');
             this.buildGraphFromObject(this.annotations, OVERRIDES_EDGE, annotationsTypeOverrides);
         }
 
         const annotationsConfig = pick(config[seriesType]?.annotations ?? {}, OptionsGraph.ANNOTATIONS_OPTIONS_KEYS);
         if (Object.keys(annotationsConfig).length > 0) {
+            debug('build annotations config');
             this.buildGraphFromObject(this.root, DEFAULTS_EDGE, { annotations: annotationsConfig });
         }
 
         const annotationsOverrides = pick(overrides?.common?.annotations ?? {}, OptionsGraph.ANNOTATIONS_OPTIONS_KEYS);
         if (Object.keys(annotationsOverrides).length > 0) {
+            debug('build annotations overrides');
             this.buildGraphFromObject(this.root, OVERRIDES_EDGE, { annotations: annotationsOverrides });
         }
 
@@ -222,16 +249,25 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     }
 
     resolve() {
-        this.resolved = {};
-        this.resolvedParams = {};
-        this.resolvedAnnotations = {};
+        return debug.group('OptionsGraph.resolve()', () => {
+            this.resolved = {};
+            this.resolvedParams = {};
+            this.resolvedAnnotations = {};
 
-        this.resolveVertex(this.params, this.resolvedParams);
-        this.resolveVertex(this.annotations, this.resolvedAnnotations);
+            debug('resolve params');
+            this.resolveVertex(this.params, this.resolvedParams);
+            debug('resolve annotations');
+            this.resolveVertex(this.annotations, this.resolvedAnnotations);
 
-        this.resolveVertex(this.root);
+            debug('resolve root');
+            this.resolveVertex(this.root);
+            debug('resolved root', this.resolved);
 
-        return this.resolved;
+            debug('vertex count', this.getVertexCount());
+            debug('edge count', this.getEdgeCount());
+
+            return this.resolved;
+        });
     }
 
     resolveParams() {
@@ -242,14 +278,38 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         return this.resolvedAnnotations;
     }
 
+    override addVertex(value: unknown): Vertex<unknown, unknown> {
+        const vertex = super.addVertex(value);
+        if (this.isRollingBack) {
+            this.rollbackVertices.push(vertex);
+        }
+        return vertex;
+    }
+
+    override addEdge(from: Vertex<unknown, unknown>, to: Vertex<unknown, unknown>, edge: string): void {
+        const hasEdge = (this.neighboursWithEdgeValue(from, edge)?.indexOf(to) ?? -1) !== -1;
+        if (this.isRollingBack && !hasEdge) {
+            this.rollbackEdgesFrom.push(from);
+            this.rollbackEdgesTo.push(to);
+            this.rollbackEdgesValue.push(edge);
+        }
+        super.addEdge(from, to, edge);
+    }
+
     /**
      * Resolve partial options against the existing graph at a given path without overriding the existing user values.
      * Returns an object with only those keys that were also present within `partialOptions`.
      */
-    resolvePartial(path: Array<string>, partialOptions?: PlainObject) {
+    resolvePartial(path: Array<string>, partialOptions?: PlainObject, proxyPaths?: Record<string, Array<string>>) {
         if (!partialOptions) return;
 
         const partialKeys = Object.keys(partialOptions);
+
+        if (debug.check()) {
+            // eslint-disable-next-line no-console
+            console.groupCollapsed(`OptionsGraph.resolvePartial() - ${path.join('.')} [${partialKeys}]`);
+        }
+
         if (partialKeys.length === 0) return {};
 
         const parentVertex = this.findVertexAtPath(path);
@@ -258,15 +318,40 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         }
         const pathArrayVertex = this.findNeighbour(parentVertex, PATH_ARRAY_EDGE);
 
-        // Temporarily use the 'userPartial' edge in-place of 'user' when building and resolving this partial graph.
+        this.userPartialOptions = {};
+        setPathSafe(this.userPartialOptions, path, partialOptions);
+
+        // Copy the given paths into the correct option structure to be built into the graph.
+        if (proxyPaths) {
+            for (const proxyFrom of Object.keys(proxyPaths)) {
+                const proxyTo = proxyPaths[proxyFrom];
+                const proxyValue = getPathSafe(partialOptions, [proxyFrom]);
+                if (proxyValue != null) {
+                    setPathSafe(partialOptions, proxyTo, proxyValue);
+                    setPathSafe(this.userPartialOptions, [...path, ...proxyTo], proxyValue);
+                    delete partialOptions[proxyFrom];
+                    delete this.userPartialOptions[proxyFrom];
+                }
+            }
+        }
+
+        // Default to grafting new values onto the 'userPartial' edge, however some operations force this onto other
+        // edges so as to not override any user partial vertices.
         this.graftEdge = USER_PARTIAL_OPTIONS_EDGE;
-        this.edgePriority = [USER_PARTIAL_OPTIONS_EDGE, USER_OPTIONS_EDGE, OVERRIDES_EDGE, DEFAULTS_EDGE];
+
+        // Temporarily use the 'userPartial' edge in-place of 'user' when building and resolving this partial graph.
+        this.edgePriority = [USER_PARTIAL_OPTIONS_EDGE, ...OptionsGraph.EDGE_PRIORITY];
+
+        this.snapshot();
 
         this.buildGraphFromObject(parentVertex, USER_PARTIAL_OPTIONS_EDGE, partialOptions, pathArrayVertex);
 
         // Refresh all the pending processing edges within the given partial options.
-        for (const key of Object.keys(partialOptions)) {
-            const childVertex = this.findNeighbourWithValue(parentVertex, key, PATH_EDGE);
+        for (const key of partialKeys) {
+            const childVertex = proxyPaths?.[key]
+                ? this.findVertexAtPath([...path, ...proxyPaths[key]])
+                : this.findNeighbourWithValue(parentVertex, key, PATH_EDGE);
+
             if (childVertex) {
                 this.refreshPendingProcessingEdges(childVertex);
             }
@@ -277,13 +362,34 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         const resolved = {};
         this.resolveVertex(parentVertex, resolved);
 
-        this.clearGraphEdge(parentVertex, USER_PARTIAL_OPTIONS_EDGE);
+        this.rollback();
 
         this.graftEdge = OptionsGraph.GRAFT_EDGE;
-        this.edgePriority = [...OptionsGraph.EDGE_PRIORITY];
+        this.edgePriority = OptionsGraph.EDGE_PRIORITY;
+        this.userPartialOptions = undefined;
+
+        // Copy the resolved values from the correct option structure back into the given paths.
+        if (proxyPaths) {
+            for (const proxyFrom of Object.keys(proxyPaths)) {
+                const proxyTo = proxyPaths[proxyFrom];
+                const proxyValue = getPathSafe(resolved, [...path, ...proxyTo]);
+                setPathSafe(resolved, [...path, proxyFrom], proxyValue);
+            }
+        }
 
         // Only pick the keys that have been requested to prevent overwriting other values with the graph.
-        return pick(getPathSafe(resolved, path) as PlainObject, partialKeys);
+        const partial = pick(getPathSafe(resolved, path) as PlainObject, partialKeys);
+
+        debug('vertex count', this.getVertexCount());
+        debug('edge count', this.getEdgeCount());
+        debug('resolved partial', partial);
+
+        if (debug.check()) {
+            // eslint-disable-next-line no-console
+            console.groupEnd();
+        }
+
+        return partial;
     }
 
     findVertexAtPath(path: Array<string>) {
@@ -305,7 +411,10 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         // the original object and must be found in the graph.
         const pathVertex = this.findVertexAtPath(path);
         if (pathVertex) {
-            return this.findNeighbour(pathVertex, USER_OPTIONS_EDGE) != null;
+            if (this.findNeighbour(pathVertex, USER_OPTIONS_EDGE) != null) return true;
+            if (this.findNeighbour(pathVertex, USER_PARTIAL_OPTIONS_EDGE) != null) return true;
+            const childrenSource = this.findNeighbourValue(pathVertex, CHILDREN_SOURCE_EDGE);
+            return childrenSource === USER_OPTIONS_EDGE || childrenSource === USER_PARTIAL_OPTIONS_EDGE;
         }
 
         return false;
@@ -317,6 +426,11 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
      * resolve would cause an infinite loop.
      */
     dangerouslyGetUserOption(path: Array<string>) {
+        if (this.userPartialOptions) {
+            const value = getPathSafe(this.userPartialOptions, path);
+            if (value != null) return value;
+        }
+
         return getPathSafe(this.userOptions, path);
     }
 
@@ -374,6 +488,10 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     setCachedValue(path: string[], key: string, value: unknown): void {
         const cacheKey = [...path, key].join('.');
         OptionsGraph.valueCache.set(cacheKey, value);
+    }
+
+    prune(vertex: Vertex<unknown>, edges: Array<string>) {
+        this.addEdge(vertex, this.addVertex(edges), PRUNE_EDGE);
     }
 
     resolveVertexValue(vertex: Vertex<unknown>, valueVertex: Vertex<unknown>) {
@@ -462,9 +580,14 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     /**
      * Graft a given object onto the target vertex.
      */
-    graftObject(target: Vertex<unknown>, object: PlainObject, overridesPathArrays?: Array<Array<string> | undefined>) {
+    graftObject(
+        target: Vertex<unknown>,
+        object: PlainObject,
+        overridesPathArrays?: Array<Array<string> | undefined>,
+        edgeValue = this.graftEdge
+    ) {
         const pathArrayVertex = this.findNeighbour(target, PATH_ARRAY_EDGE);
-        this.buildGraphFromObject(target, this.graftEdge, object, pathArrayVertex);
+        this.buildGraphFromObject(target, edgeValue, object, pathArrayVertex);
 
         if (this.overrides && overridesPathArrays) {
             for (const overridePathArray of overridesPathArrays) {
@@ -536,6 +659,10 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         const pathVertices = this.getVertexChildrenByKey(parentVertex);
         const pathArray = pathArrayVertex ? (this.getVertexValue(pathArrayVertex) as Array<string>) : [];
         let enabledVertex: Vertex<unknown> | undefined;
+
+        if (Array.isArray(object)) {
+            this.addEdge(parentVertex, this.addVertex(edgeValue), CHILDREN_SOURCE_EDGE);
+        }
 
         const childPathArray = [...pathArray];
         const pathArrayLength = pathArray.length;
@@ -745,42 +872,28 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         }
     }
 
-    /**
-     * Remove all edges associated with this vertex and its descendents through paths and operations.
-     */
-    private clearGraphEdge(vertex: Vertex<unknown>, edgeValue: string) {
-        this.removeEdges(vertex, edgeValue);
-        const pathNeighbours = this.neighboursWithEdgeValue(vertex, PATH_EDGE);
-        if (pathNeighbours) {
-            for (const child of pathNeighbours) {
-                this.clearGraphEdge(child, edgeValue);
-            }
-        }
-        const operationNeighbours = this.neighboursWithEdgeValue(vertex, OPERATION_EDGE);
-        if (operationNeighbours) {
-            for (const child of operationNeighbours) {
-                this.clearGraphEdge(child, edgeValue);
-            }
-        }
-        const operationValueNeighbours = this.neighboursWithEdgeValue(vertex, OPERATION_VALUE_EDGE);
-        if (operationValueNeighbours) {
-            for (const child of operationValueNeighbours) {
-                this.clearGraphEdge(child, edgeValue);
-            }
-        }
-    }
-
-    private resolveVertex(vertex: Vertex<unknown>, object: PlainObject = this.resolved!) {
+    private resolveVertex(vertex: Vertex<unknown>, object: PlainObject = this.resolved!, prune?: unknown) {
         const pathArray = this.getPathArray(vertex);
 
         // TODO: is it resolving the same vertex multiple times, is that a bug, or should it just skip it if already resolved?
+        // if (debug.check()) {
+        //     if (pathArray.length > 0 && object === this.resolved && getPathSafe(object, pathArray) != null) {
+        //         // eslint-disable-next-line no-console
+        //         console.warn('duplicate resolve', pathArray.join('.'), getPathSafe(object, pathArray));
+        //     }
+        // }
 
-        this.resolveVertexInEdgePriority(vertex, object, pathArray);
+        this.resolveVertexInEdgePriority(vertex, object, pathArray, prune);
         this.resolveVertexAutoEnable(vertex, object, pathArray);
-        this.resolveVertexChildren(vertex, object);
+        this.resolveVertexChildren(vertex, object, prune);
     }
 
-    private resolveVertexInEdgePriority(vertex: Vertex<unknown>, object: PlainObject, pathArray: Array<string>) {
+    private resolveVertexInEdgePriority(
+        vertex: Vertex<unknown>,
+        object: PlainObject,
+        pathArray: Array<string>,
+        prune?: unknown
+    ) {
         const children = this.neighboursWithEdgeValue(vertex, PATH_EDGE);
         const [highestPriority] = this.edgePriority;
 
@@ -793,9 +906,11 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             // Only allow setting values to `undefined` from the highest priority edge
             if (value == null && edgeValue !== highestPriority) continue;
 
-            // Avoid setting an array value when the vertex has children with specific array index values and this is
-            // not the highest priority edge
-            if (children && children.length > 0 && Array.isArray(value) && edgeValue !== highestPriority) continue;
+            // Avoid setting a value when the vertex has children and this is not the highest priority edge
+            if (children && children.length > 0 && edgeValue !== highestPriority) continue;
+
+            // Do not resolve edges that have been pruned
+            if (Array.isArray(prune) && prune.indexOf(edgeValue) >= 0) continue;
 
             this.hasUnsafeClearKeys ||=
                 value != null && OptionsGraph.UNSAFE_CLEAR_KEYS.has(pathArray[pathArray.length - 1]);
@@ -848,9 +963,11 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         }
     }
 
-    private resolveVertexChildren(vertex: Vertex<unknown>, object: PlainObject) {
+    private resolveVertexChildren(vertex: Vertex<unknown>, object: PlainObject, prune?: unknown) {
         const children = this.neighboursWithEdgeValue(vertex, PATH_EDGE);
         if (!children) return;
+
+        prune ??= this.findNeighbourValue(vertex, PRUNE_EDGE);
 
         for (const child of children) {
             const path = this.getVertexValue(child);
@@ -862,7 +979,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             // Prevent `_enabledFromTheme` from being resolved into the final object.
             if (path === '_enabledFromTheme') continue;
 
-            this.resolveVertex(child, object);
+            this.resolveVertex(child, object, prune);
         }
     }
 
@@ -871,6 +988,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         if (!dependencies) return;
 
         for (const dependency of dependencies) {
+            // TODO: should it check here to not resolve if already resolved?
             this.resolveVertex(dependency);
         }
     }
@@ -933,5 +1051,29 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
     private resolveValueOrSymbol(value: unknown) {
         return typeof value === 'symbol' && this.internalParams?.has(value) ? this.internalParams.get(value) : value;
+    }
+
+    private snapshot() {
+        debug(`snapshot`);
+        this.isRollingBack = true;
+    }
+
+    private rollback() {
+        debug(`rollback ${this.rollbackEdgesFrom.length} edges and ${this.rollbackVertices.length} vertices`);
+        for (let i = 0; i < this.rollbackEdgesFrom.length; i++) {
+            const from = this.rollbackEdgesFrom[i];
+            const to = this.rollbackEdgesTo[i];
+            const edgeValue = this.rollbackEdgesValue[i];
+            this.removeEdge(from, to, edgeValue);
+        }
+        for (const vertex of this.rollbackVertices) {
+            this.removeVertex(vertex);
+        }
+        this.cachedPathVertices.clear();
+        this.rollbackVertices = [];
+        this.rollbackEdgesFrom = [];
+        this.rollbackEdgesTo = [];
+        this.rollbackEdgesValue = [];
+        this.isRollingBack = false;
     }
 }

@@ -812,6 +812,7 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
 
     for (let index = 0; index < size; index++) {
         const value = cycledValues[index % cycledValues.length];
+        if (value == null) continue;
         if (userOption || !hasThemeOverride) {
             graph.graftValue(vertex, `${index}`, value, undefined, graftEdge);
         }
@@ -835,7 +836,7 @@ function applySwitchOperation(graph: OptionsGraphInterface, vertex: VertexInterf
             conditionValue === caseConditionValue ||
             (Array.isArray(caseConditionValue) && caseConditionValue.includes(conditionValue))
         ) {
-            graph.graftObject(vertex, caseResultValue);
+            graph.graftObject(vertex, caseResultValue, [], DEFAULTS_EDGE);
             return RESOLVED_TO_BRANCH;
         }
     }
@@ -991,7 +992,8 @@ function shallowOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
 
     // If the user has provided an option, do not resolve the values and just return the shallow copy.
     if (hasUserOption) {
-        return shallowValues;
+        graph.prune(vertex, [OVERRIDES_EDGE, DEFAULTS_EDGE]);
+        return RESOLVED_TO_BRANCH;
     }
 
     // Otherwise graft the shallow copy onto the graph and resolve the default array.
