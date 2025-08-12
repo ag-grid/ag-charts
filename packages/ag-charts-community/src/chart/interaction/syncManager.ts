@@ -44,7 +44,8 @@ export type SyncChartLike = {
     getTooltipContent(
         series: ISeries<unknown, unknown, unknown>,
         datumIndex: unknown,
-        removeThisDatum: unknown
+        removeThisDatum: unknown,
+        purpose: 'aria-label' | 'tooltip'
     ): TooltipContent[];
 };
 

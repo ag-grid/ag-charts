@@ -59,7 +59,8 @@ export interface SeriesAreaChartDependencies {
     getTooltipContent: <DatumIndex = unknown>(
         series: UnknownSeries,
         datumIndex: DatumIndex,
-        removeThisDatum: unknown
+        removeThisDatum: unknown,
+        purpose: 'aria-label' | 'tooltip'
     ) => TooltipContent[];
     chartType: ChartType;
     seriesRoot: TranslatableGroup;
@@ -180,8 +181,9 @@ export class SeriesAreaManager extends BaseManager {
     private readonly focus = {
         sortedSeries: [] as UnknownSeries[],
         series: undefined as UnknownSeries | undefined,
-        seriesIndex: 0,
-        datumIndex: 0,
+        // Initialise indices to NaN, so that maybeAnnouncePickedFocus can detect an uninitialise label.
+        seriesIndex: NaN,
+        datumIndex: NaN,
         datum: undefined as SeriesNodeDatum<unknown> | undefined,
     };
 
@@ -643,6 +645,8 @@ export class SeriesAreaManager extends BaseManager {
 
         const oldDatumIndex = focus.datumIndex - datumIndexDelta;
         const oldOtherIndex = focus.seriesIndex - otherIndexDelta;
+        if (isNaN(focus.datumIndex)) focus.datumIndex = 0;
+        if (isNaN(focus.seriesIndex)) focus.seriesIndex = 0;
 
         // Update focused series:
         focus.seriesIndex = clamp(0, focus.seriesIndex, visibleSeries.length - 1);
@@ -667,10 +671,12 @@ export class SeriesAreaManager extends BaseManager {
         // (bar/needle, targets). This allows the hierarchical and gauge charts to piggy-backon the base keyboard handling
         // implementation.
         this.focus.series = this.focus.sortedSeries[0];
-        const datumIndex = this.focus.datumIndex;
-        const otherIndex = this.focus.seriesIndex;
         const oldDatumIndex = this.focus.datumIndex - datumIndexDelta;
         const oldOtherIndex = this.focus.seriesIndex - otherIndexDelta;
+        if (isNaN(this.focus.datumIndex)) this.focus.datumIndex = 0;
+        if (isNaN(this.focus.seriesIndex)) this.focus.seriesIndex = 0;
+        const datumIndex = this.focus.datumIndex;
+        const otherIndex = this.focus.seriesIndex;
         return this.updatePickedFocus(
             datumIndex,
             datumIndexDelta,
@@ -748,6 +754,7 @@ export class SeriesAreaManager extends BaseManager {
         // Update the bounds of the focus indicator:
         this.focusIndicator?.update(pick.movedBounds ?? pick.bounds, this.seriesRect, pick.clipFocusBox);
 
+        const tooltipContent = this.getTooltipContent(focus.series, datum.datumIndex, datum, 'aria-label');
         const keyboardEvent = makeKeyboardPointerEvent(focus.series, hoverRect, pick);
 
         // Update highlight/tooltip for keyboard users:
@@ -759,21 +766,21 @@ export class SeriesAreaManager extends BaseManager {
             this.highlight.pendingHoverEvent = undefined;
             this.highlight.stashedHoverEvent = undefined;
 
-            const tooltipContent = this.getTooltipContent(focus.series, datum.datumIndex, datum, 'aria-label');
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
             if (this.isTooltipEnabled(focus.series)) {
                 this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
             }
-            this.maybeAnnouncePickedFocus(
-                datumIndexDelta,
-                oldDatumIndex,
-                otherIndexDelta,
-                oldOtherIndex,
-                pick,
-                tooltipContent
-            );
         }
+
+        this.maybeAnnouncePickedFocus(
+            datumIndexDelta,
+            oldDatumIndex,
+            otherIndexDelta,
+            oldOtherIndex,
+            pick,
+            tooltipContent
+        );
 
         return PickedFocusStatus.SUCCESS;
     }
@@ -1056,7 +1063,7 @@ export class SeriesAreaManager extends BaseManager {
             ) {
                 result = cachedTooltipContent.content;
             } else {
-                const content: TooltipContent[] = this.chart.getTooltipContent(series, datumIndex, datum);
+                const content: TooltipContent[] = this.chart.getTooltipContent(series, datumIndex, datum, purpose);
                 this.cachedTooltipContent = { series, datumIndex, content };
                 result = content;
             }
