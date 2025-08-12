@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import type {
+    AgBarSeriesItemStylerParams,
     AgBarSeriesLabelPlacement,
     AgBarSeriesOptions,
     AgBarSeriesStyle,
@@ -774,39 +775,42 @@ describe('BarSeries', () => {
         type D = unknown;
         type C = unknown;
         type M = MockStyler<D, C>;
+        let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        const data = [
+            { month: 'January', sales: 1200, expenses: 800 },
+            { month: 'February', sales: 1500, expenses: 950 },
+            { month: 'March', sales: 1700, expenses: 1100 },
+        ];
+        beforeEach(() => {
+            styler = newFreezableMock<D, C, M>(
+                (params: AgBarSeriesStylerParams<D, C>): AgBarSeriesStyle | undefined => {
+                    if (params.yKey === 'sales')
+                        return {
+                            fill: 'cyan',
+                            lineDash: [3, 3],
+                            lineDashOffset: 5,
+                            stroke: 'blue',
+                            strokeWidth: 7,
+                        };
+                    else if (params.yKey === 'expenses')
+                        return {
+                            fill: 'magenta',
+                            fillOpacity: 0.5,
+                            cornerRadius: 15,
+                        };
+                    return {};
+                }
+            );
+        });
         describe('init', () => {
-            let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
             let c1: C;
             let c2: C;
             beforeEach(async () => {
-                styler = newFreezableMock<D, C, M>(
-                    (params: AgBarSeriesStylerParams<D, C>): AgBarSeriesStyle | undefined => {
-                        if (params.yKey === 'sales')
-                            return {
-                                fill: 'cyan',
-                                lineDash: [3, 3],
-                                lineDashOffset: 5,
-                                stroke: 'blue',
-                                strokeWidth: 7,
-                            };
-                        else if (params.yKey === 'expenses')
-                            return {
-                                fill: 'magenta',
-                                fillOpacity: 0.5,
-                                cornerRadius: 15,
-                            };
-                        return {};
-                    }
-                );
                 c1 = { name: 'sales context' };
                 c2 = { name: 'expenses context' };
                 chart = AgCharts.create(
                     prepareTestOptions({
-                        data: [
-                            { month: 'January', sales: 1200, expenses: 800 },
-                            { month: 'February', sales: 1500, expenses: 950 },
-                            { month: 'March', sales: 1700, expenses: 1100 },
-                        ],
+                        data,
                         series: [
                             { type: 'bar', xKey: 'month', yKey: 'sales', styler: styler.frozen, context: c1 },
                             { type: 'bar', xKey: 'month', yKey: 'expenses', styler: styler.frozen, context: c2 },
@@ -876,6 +880,50 @@ describe('BarSeries', () => {
                     expect(mock).nthCalledWith(11, { ...params2, highlightState: 'unhighlighted-series' });
                     expect(mock).nthCalledWith(12, { ...params2, highlightState: 'unhighlighted-item' });
                 });
+            });
+        });
+        describe('priorities', () => {
+            beforeEach(async () => {
+                const itemStyler = (params: AgBarSeriesItemStylerParams<D, C>): AgBarSeriesStyle => {
+                    if (params.xValue === 'February') {
+                        if (params.yKey === 'sales') {
+                            return { fill: 'gold', cornerRadius: 0 };
+                        } else {
+                            return { fill: 'grey', cornerRadius: 0 };
+                        }
+                    }
+                    return {};
+                };
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'sales',
+                                fill: 'lime', // ignored
+                                cornerRadius: 45, // ignored only for February
+                                itemStyler,
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'expenses',
+                                fill: 'olive', // ignored
+                                stroke: 'navy', // not ignored
+                                strokeWidth: 3, // not ignored
+                                itemStyler,
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
             });
         });
     });
