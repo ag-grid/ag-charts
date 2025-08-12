@@ -781,8 +781,20 @@ describe('BarSeries', () => {
             beforeEach(async () => {
                 styler = newFreezableMock<D, C, M>(
                     (params: AgBarSeriesStylerParams<D, C>): AgBarSeriesStyle | undefined => {
-                        if (params.yKey === 'sales') return { fill: 'cyan' };
-                        else if (params.yKey === 'expenses') return { fill: 'magenta' };
+                        if (params.yKey === 'sales')
+                            return {
+                                fill: 'cyan',
+                                lineDash: [3, 3],
+                                lineDashOffset: 5,
+                                stroke: 'blue',
+                                strokeWidth: 7,
+                            };
+                        else if (params.yKey === 'expenses')
+                            return {
+                                fill: 'magenta',
+                                fillOpacity: 0.5,
+                                cornerRadius: 15,
+                            };
                         return {};
                     }
                 );
