@@ -1,6 +1,7 @@
 import {
     type OptionsDefs,
     boolean,
+    callbackDefs,
     constant,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
@@ -12,7 +13,7 @@ import {
     strokeOptionsDef,
     undocumented,
 } from 'ag-charts-core';
-import type { AgLineSeriesOptions, AgLineSeriesThemeableOptions } from 'ag-charts-types';
+import type { AgLineSeriesOptions, AgLineSeriesStylerResult, AgLineSeriesThemeableOptions } from 'ag-charts-types';
 
 import {
     commonSeriesOptionsDefs,
@@ -21,11 +22,18 @@ import {
     errorBarThemeableOptionsDefs,
     interpolationOptionsDefs,
     markerOptionsDefs,
+    markerStyleOptionsDefs,
     seriesLabelOptionsDefs,
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef);
+
+const lineStyler = callbackDefs<AgLineSeriesStylerResult>({
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    marker: markerStyleOptionsDefs,
+});
 
 export const lineSeriesThemeableOptionsDef: OptionsDefs<AgLineSeriesThemeableOptions> = {
     title: string,
@@ -33,6 +41,7 @@ export const lineSeriesThemeableOptionsDef: OptionsDefs<AgLineSeriesThemeableOpt
     connectMissingData: boolean,
     interpolation: interpolationOptionsDefs,
     label: seriesLabelOptionsDefs,
+    styler: lineStyler,
     marker: markerOptionsDefs,
     tooltip: tooltipOptionsDefs,
     errorBar: errorBarThemeableOptionsDefs,
