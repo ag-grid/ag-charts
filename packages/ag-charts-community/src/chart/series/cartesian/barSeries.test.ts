@@ -776,6 +776,8 @@ describe('BarSeries', () => {
         type M = MockStyler<D, C>;
         describe('init', () => {
             let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
+            let c1: C;
+            let c2: C;
             beforeEach(async () => {
                 styler = newFreezableMock<D, C, M>(
                     (params: AgBarSeriesStylerParams<D, C>): AgBarSeriesStyle | undefined => {
@@ -784,6 +786,8 @@ describe('BarSeries', () => {
                         return {};
                     }
                 );
+                c1 = { name: 'sales context' };
+                c2 = { name: 'expenses context' };
                 chart = AgCharts.create(
                     prepareTestOptions({
                         data: [
@@ -792,8 +796,8 @@ describe('BarSeries', () => {
                             { month: 'March', sales: 1700, expenses: 1100 },
                         ],
                         series: [
-                            { type: 'bar', xKey: 'month', yKey: 'sales', styler: styler.frozen },
-                            { type: 'bar', xKey: 'month', yKey: 'expenses', styler: styler.frozen },
+                            { type: 'bar', xKey: 'month', yKey: 'sales', styler: styler.frozen, context: c1 },
+                            { type: 'bar', xKey: 'month', yKey: 'expenses', styler: styler.frozen, context: c2 },
                         ],
                     })
                 );
@@ -802,8 +806,69 @@ describe('BarSeries', () => {
             test('snapshot', async () => {
                 await compare();
             });
-            test('callbacks', () => {
-                expect(styler).toBeCalledTimes(2);
+            describe('callbacks', () => {
+                test('context', () => {
+                    styler.expect().nthCalledWithContext(0, c1);
+                    styler.expect().nthCalledWithContext(1, c2);
+                    styler.expect().nthCalledWithContext(2, c1);
+                    styler.expect().nthCalledWithContext(3, c1);
+                    styler.expect().nthCalledWithContext(4, c1);
+                    styler.expect().nthCalledWithContext(5, c1);
+                    styler.expect().nthCalledWithContext(6, c1);
+                    styler.expect().nthCalledWithContext(7, c2);
+                    styler.expect().nthCalledWithContext(8, c2);
+                    styler.expect().nthCalledWithContext(9, c2);
+                    styler.expect().nthCalledWithContext(10, c2);
+                    styler.expect().nthCalledWithContext(11, c2);
+                    styler.expect().toHaveBeenCalledTimes(12);
+                });
+                test('params', () => {
+                    const params1 = {
+                        cornerRadius: 0,
+                        fill: '#f3622d',
+                        fillOpacity: 1,
+                        highlighted: false,
+                        lineDash: [ 0 ],
+                        lineDashOffset: 0,
+                        seriesId: 'BarSeries-1',
+                        stackGroup: undefined,
+                        stroke: '#aa4520',
+                        strokeOpacity: 1,
+                        strokeWidth: 0,
+                        xKey: 'month',
+                        yKey: 'sales',
+                        context: c1
+                    } as const;
+                    const params2 = {
+                        cornerRadius: 0,
+                        fill: '#fba71b',
+                        fillOpacity: 1,
+                        highlighted: false,
+                        lineDash: [ 0 ],
+                        lineDashOffset: 0,
+                        seriesId: 'BarSeries-2',
+                        stackGroup: undefined,
+                        stroke: '#b07513',
+                        strokeOpacity: 1,
+                        strokeWidth: 0,
+                        xKey: 'month',
+                        yKey: 'expenses',
+                        context: { name: 'expenses context' }
+                    };
+                    const { mock } = styler;
+                    expect(mock).nthCalledWith(1, { ...params1, highlightState: 'none' });
+                    expect(mock).nthCalledWith(2, { ...params2, highlightState: 'none' });
+                    expect(mock).nthCalledWith(3, { ...params1, highlightState: 'none' });
+                    expect(mock).nthCalledWith(4, { ...params1, highlightState: 'highlighted-item' });
+                    expect(mock).nthCalledWith(5, { ...params1, highlightState: 'highlighted-series' });
+                    expect(mock).nthCalledWith(6, { ...params1, highlightState: 'unhighlighted-series' });
+                    expect(mock).nthCalledWith(7, { ...params1, highlightState: 'unhighlighted-item' });
+                    expect(mock).nthCalledWith(8, { ...params2, highlightState: 'none' });
+                    expect(mock).nthCalledWith(9, { ...params2, highlightState: 'highlighted-item' });
+                    expect(mock).nthCalledWith(10, { ...params2, highlightState: 'highlighted-series' });
+                    expect(mock).nthCalledWith(11, { ...params2, highlightState: 'unhighlighted-series' });
+                    expect(mock).nthCalledWith(12, { ...params2, highlightState: 'unhighlighted-item' });
+                });
             });
         });
     });
