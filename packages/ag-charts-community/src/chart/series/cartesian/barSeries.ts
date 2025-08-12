@@ -5,6 +5,7 @@ import type {
     AgBarSeriesLabelFormatterParams,
     AgBarSeriesOptions,
     AgBarSeriesStyle,
+    AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
 } from 'ag-charts-types';
 
@@ -44,7 +45,7 @@ import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { HighlightState } from '../seriesProperties';
+import { HighlightState, toHighlightString } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
@@ -706,6 +707,44 @@ export class BarSeries extends AbstractBarSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
 
+    private makeStylerParams(
+        highlighted: boolean,
+        highlightStateEnum?: HighlightState
+    ): AgBarSeriesStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+        const {
+            cornerRadius,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            stackGroup,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            xKey,
+            yKey,
+        } = this.properties;
+        const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+
+        return {
+            cornerRadius,
+            fill,
+            fillOpacity,
+            highlightState,
+            highlighted,
+            lineDash,
+            lineDashOffset,
+            seriesId,
+            stackGroup,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            xKey,
+            yKey,
+        } satisfies CallbackParamRules<AgBarSeriesStylerParams<unknown, unknown>>;
+    }
+
     private makeItemStylerParams(
         dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
@@ -739,6 +778,39 @@ export class BarSeries extends AbstractBarSeries<
         } satisfies CallbackParamRules<AgBarSeriesItemStylerParams<unknown, unknown>>;
     }
 
+    private getStyle(
+        highlighted: boolean,
+        highlightState?: HighlightState
+    ): Required<AgBarSeriesStyle> & { opacity: number } {
+        const {
+            cornerRadius,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            styler,
+        } = this.properties;
+        let stylerResult: AgBarSeriesStyle = {};
+        if (styler) {
+            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            stylerResult = this.callWithContext(styler, stylerParams) ?? {};
+        }
+        return {
+            cornerRadius: stylerResult.cornerRadius ?? cornerRadius,
+            fill: stylerResult.fill ?? fill,
+            fillOpacity: stylerResult.fillOpacity ?? fillOpacity,
+            lineDash: stylerResult.lineDash ?? lineDash,
+            lineDashOffset: stylerResult.lineDashOffset ?? lineDashOffset,
+            opacity: 1,
+            stroke: stylerResult.stroke ?? stroke,
+            strokeOpacity: stylerResult.strokeOpacity ?? strokeOpacity,
+            strokeWidth: stylerResult.strokeWidth ?? strokeWidth,
+        };
+    }
+
     private getItemStyle(
         datumIndex: number | undefined,
         isHighlight: boolean,
@@ -748,7 +820,7 @@ export class BarSeries extends AbstractBarSeries<
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        let style = mergeDefaults(highlightStyle, properties.getStyle());
+        let style = mergeDefaults(highlightStyle, this.getStyle(isHighlight, highlightState));
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
             const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
@@ -898,8 +970,10 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } =
-            this.properties.getStyle();
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
+            false,
+            HighlightState.None
+        );
 
         return {
             marker: {

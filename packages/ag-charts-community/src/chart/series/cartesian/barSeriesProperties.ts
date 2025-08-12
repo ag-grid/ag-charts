@@ -5,6 +5,7 @@ import type {
     AgBarSeriesLabelPlacement,
     AgBarSeriesOptions,
     AgBarSeriesStyle,
+    AgBarSeriesStylerParams,
     AgBarSeriesTooltipRendererParams,
     PixelSize,
     Styler,
@@ -74,7 +75,7 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
     crisp?: boolean = undefined;
 
     @Property
-    styler?: Styler<AgBarSeriesItemStylerParams<unknown>, AgBarSeriesStyle>;
+    styler?: Styler<AgBarSeriesStylerParams<unknown, unknown>, AgBarSeriesStyle>;
 
     @Property
     itemStyler?: Styler<AgBarSeriesItemStylerParams<unknown>, AgBarSeriesStyle>;
@@ -90,19 +91,4 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
 
     @Property
     sparklineMode: boolean = false;
-
-    getStyle(): Required<AgBarSeriesStyle> & { opacity: number } {
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = this;
-        return {
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            cornerRadius,
-            opacity: 1,
-        };
-    }
 }
