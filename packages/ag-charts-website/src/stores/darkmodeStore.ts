@@ -35,7 +35,7 @@ const updateHtml = (darkmode: boolean | undefined) => {
         iframe.contentWindow?.postMessage(darkModeEvent);
     });
 
-    // Send on event on page for charts that are embeded on the page
+    // Send on event on page for charts that are embedded on the page
     window.dispatchEvent(new CustomEvent('message', { detail: darkModeEvent }));
 };
 

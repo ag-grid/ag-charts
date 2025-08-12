@@ -90,6 +90,11 @@
     --chart-bg: #fff;
     --chart-border: #d0d5dd;
 
+    [data-dark-mode='true'] & {
+        --chart-bg: #192232;
+        --chart-border: #344054;
+    }
+
     position: relative;
     width: 100%;
     height: 630px;

@@ -1,4 +1,5 @@
 import { DARK_MODE_REGEX } from '@ag-website-shared/utils/extraCodeSnippets';
+import { getDarkModeSnippet } from '@ag-website-shared/utils/getDarkModeSnippet';
 import { getGeneratedContents } from '@components/example-generator';
 import {
     EXAMPLE_CODE_END,
@@ -39,6 +40,7 @@ async function getUpdateExampleFunction({
     }))!;
 
     let mainJs = generatedFiles['main.js']
+        // Remove dark mode snippets, so it can be added once later
         ?.replace(DARK_MODE_REGEX, '')
         // Update create methods with global update function
         .replace('AgCharts.create(options);', GLOBAL_UPDATE_FUNCTION)
@@ -108,12 +110,16 @@ export async function getGalleryExamplesJs({ galleryData, allGalleryData }: Gall
     // Remove start and end quotation marks, so that the code is runnable and not a string
     const startRegex = new RegExp(`"${escape(EXAMPLE_CODE_START)}`, 'g');
     const endRegex = new RegExp(`${escape(EXAMPLE_CODE_END)}"`, 'g');
-    const examplesString = JSON.stringify(examplesData, null, 2)
-        .replaceAll(startRegex, '')
-        .replaceAll(endRegex, '')
-        .replaceAll(replaceNewlineToken, '\n')
-        // Remove escaped quotes
-        .replaceAll('\\"', '"');
+    const darkModeSnippet = getDarkModeSnippet({ chartAPI: 'agCharts.AgCharts' });
+    const examplesString =
+        JSON.stringify(examplesData, null, 2)
+            .replaceAll(startRegex, '')
+            .replaceAll(endRegex, '')
+            .replaceAll(replaceNewlineToken, '\n')
+            // Remove escaped quotes
+            .replaceAll('\\"', '"') +
+        '\n' +
+        darkModeSnippet;
 
     return `window.${GLOBAL_HOMEPAGE_EXAMPLES_VARIABLE} = ${examplesString};`;
 }
