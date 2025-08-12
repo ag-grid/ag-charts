@@ -1,3 +1,5 @@
+const MAX_TICK_LAYOUT = 1_000;
+
 /**
  * The tree layout is calculated in abstract x/y coordinates, where the root is at (0, 0)
  * and the tree grows downward from the root.
@@ -244,6 +246,8 @@ function thirdWalk(v: TreeNode) {
 
 export function treeLayout(ticks: string[][]): TreeLayout {
     const layout = new TreeLayout();
+    if (ticks.length > MAX_TICK_LAYOUT) return layout;
+
     const root = ticksToTree(ticks);
 
     firstWalk(root);
