@@ -828,7 +828,7 @@ describe('BarSeries', () => {
                         fill: '#f3622d',
                         fillOpacity: 1,
                         highlighted: false,
-                        lineDash: [ 0 ],
+                        lineDash: [0],
                         lineDashOffset: 0,
                         seriesId: 'BarSeries-1',
                         stackGroup: undefined,
@@ -837,14 +837,14 @@ describe('BarSeries', () => {
                         strokeWidth: 0,
                         xKey: 'month',
                         yKey: 'sales',
-                        context: c1
+                        context: c1,
                     } as const;
                     const params2 = {
                         cornerRadius: 0,
                         fill: '#fba71b',
                         fillOpacity: 1,
                         highlighted: false,
-                        lineDash: [ 0 ],
+                        lineDash: [0],
                         lineDashOffset: 0,
                         seriesId: 'BarSeries-2',
                         stackGroup: undefined,
@@ -853,7 +853,7 @@ describe('BarSeries', () => {
                         strokeWidth: 0,
                         xKey: 'month',
                         yKey: 'expenses',
-                        context: { name: 'expenses context' }
+                        context: { name: 'expenses context' },
                     };
                     const { mock } = styler;
                     expect(mock).nthCalledWith(1, { ...params1, highlightState: 'none' });
