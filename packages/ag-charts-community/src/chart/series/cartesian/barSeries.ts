@@ -705,27 +705,29 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     private getItemStyle(
-        nodeDatum: BarNodeDatum | undefined,
+        datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState?: HighlightState
     ): Required<AgBarSeriesStyle> {
-        const { id: seriesId, properties } = this;
+        const { id: seriesId, properties, dataModel, processedData } = this;
 
         const { xKey, yKey, itemStyler } = properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         let style = mergeDefaults(highlightStyle, properties.getStyle());
 
-        if (itemStyler && nodeDatum != null) {
-            const { xValue, yValue, datum, datumIndex } = nodeDatum;
-            const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
-                xDomain: this.getSeriesDomain(ChartAxisDirection.X),
-                yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
-            }))!;
+        if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
+            const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
 
             const overrides = this.cachedDatumCallback(
-                createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
+                createDatumId(this.getDatumId({ xValue, phantom: false }), isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const datum = processedData.dataSources.get(seriesId)?.[datumIndex];
+                    const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
+                    const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
+                        xDomain: this.getSeriesDomain(ChartAxisDirection.X),
+                        yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
+                    }))!;
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                     const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
 
@@ -755,7 +757,7 @@ export class BarSeries extends AbstractBarSeries<
         isHighlight: boolean;
     }) {
         opts.datumSelection.each((_, datum) => {
-            datum.style = this.getItemStyle(datum, opts.isHighlight);
+            datum.style = this.getItemStyle(datum.datumIndex, opts.isHighlight);
         });
     }
 
@@ -832,18 +834,15 @@ export class BarSeries extends AbstractBarSeries<
         const { xKey, xName, yKey, yName, legendItemName, stackGroup, tooltip } = properties;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
-        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
 
-        if (!dataModel || !processedData || !xAxis || !yAxis || !nodeDatum) {
-            return;
-        }
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
 
         if (xValue == null) return;
-        const format = this.getItemStyle(nodeDatum, false);
+        const format = this.getItemStyle(datumIndex, false);
 
         return this.formatTooltipWithContext(
             tooltip,

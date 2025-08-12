@@ -538,7 +538,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private getItemStyle(
-        nodeDatum: WaterfallNodeDatum | undefined,
+        nodeDatum: Pick<WaterfallNodeDatum, 'datum' | 'datumIndex'> | undefined,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState,
         itemId: AgWaterfallSeriesItemType = 'total'

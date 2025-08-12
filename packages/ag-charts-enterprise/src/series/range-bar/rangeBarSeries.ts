@@ -516,31 +516,29 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private getItemStyle(
-        nodeDatum: RangeBarNodeDatum | undefined,
+        datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState
     ): Required<AgRangeBarSeriesStyle> {
-        const { id: seriesId, properties } = this;
+        const { id: seriesId, properties, dataModel, processedData } = this;
 
         const { xKey, yHighKey, yLowKey, itemStyler } = properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
         let style = baseStyle;
 
-        if (itemStyler != null && nodeDatum != null) {
+        if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
+            const datum = processedData.dataSources.get(seriesId)?.[datumIndex];
+            const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
             const overrides = this.cachedDatumCallback(
-                createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
+                createDatumId(this.getDatumId({ xValue }), isHighlight ? 'highlight' : 'node'),
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-                    const highlightStateString = this.getHighlightStateString(
-                        activeHighlight,
-                        isHighlight,
-                        nodeDatum.datumIndex
-                    );
+                    const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
                     return this.callWithContext(itemStyler, {
                         seriesId,
-                        datum: nodeDatum.datum,
+                        datum,
                         xKey,
                         yHighKey,
                         yLowKey,
@@ -567,7 +565,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
-            datum.style = this.getItemStyle(datum, isHighlight);
+            datum.style = this.getItemStyle(datum.datumIndex, isHighlight);
         });
     }
 
@@ -634,11 +632,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { xKey, xName, yName, yLowKey, yHighKey, yLowName, yHighName, tooltip, legendItemName } = properties;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
-        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
 
-        if (!dataModel || !processedData || !xAxis || !yAxis || !nodeDatum) {
-            return;
-        }
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const datum = processedData.dataSources.get(this.id)?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
@@ -647,7 +642,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (xValue == null) return;
 
-        const format = this.getItemStyle(nodeDatum, false);
+        const format = this.getItemStyle(datumIndex, false);
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
         return this.formatTooltipWithContext(
             tooltip,

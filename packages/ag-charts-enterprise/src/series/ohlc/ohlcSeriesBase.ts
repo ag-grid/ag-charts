@@ -453,22 +453,23 @@ export abstract class OhlcSeriesBase<
     }
 
     protected getItemStyle(
-        nodeDatum: OhlcNodeDatum | undefined,
+        datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState,
         itemId: 'up' | 'down' = 'up'
     ) {
-        const { id: seriesId, properties } = this;
+        const { id: seriesId, properties, dataModel, processedData } = this;
         const { itemStyler } = properties;
 
         const highlightStyle: FillOptions & StrokeOptions & LineDashOptions & { opacity?: number } =
-            this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
+            this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemId));
 
         let style = baseStyle;
 
-        if (itemStyler != null && nodeDatum != null) {
-            const { datumIndex, datum, xValue } = nodeDatum;
+        if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
+            const datum = processedData.dataSources.get(seriesId)?.[datumIndex];
+            const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
             const { xKey, openKey, closeKey, highKey, lowKey } = properties;
 
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -539,9 +540,7 @@ export abstract class OhlcSeriesBase<
         const itemId = closeValue >= openValue ? 'up' : 'down';
         const item = this.properties.item[itemId];
 
-        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
-
-        const format = this.getItemStyle(nodeDatum, false);
+        const format = this.getItemStyle(datumIndex, false);
 
         const marker = {
             fill: item.fill ?? item.stroke,

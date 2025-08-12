@@ -332,9 +332,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (xValue == null) return;
 
-        const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
-
-        const format = this.getItemStyle(nodeDatum, false);
+        const format = this.getItemStyle(datumIndex, false);
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [
             {
@@ -419,7 +417,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private getItemStyle(
-        nodeDatum: BoxPlotNodeDatum | undefined,
+        datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState
     ): Required<AgBoxPlotSeriesStyle> {
@@ -427,14 +425,14 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler } = properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         let style = mergeDefaults(highlightStyle, properties.getStyle());
 
-        if (itemStyler != null && nodeDatum != null) {
-            const { datumIndex, datum } = nodeDatum;
+        if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
+                    const datum = this.processedData?.dataSources.get(seriesId)?.[datumIndex];
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                     const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
                     return this.callWithContext(itemStyler, {
@@ -479,7 +477,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean;
     }) {
         datumSelection.each((_, nodeDatum) => {
-            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight);
+            nodeDatum.style = this.getItemStyle(nodeDatum.datumIndex, isHighlight);
         });
     }
 
