@@ -835,35 +835,30 @@ describe('BarSeries', () => {
                     styler.expect().toHaveBeenCalledTimes(12);
                 });
                 test('params', () => {
-                    const params1 = {
+                    const defaults = {
                         cornerRadius: 0,
-                        fill: '#f3622d',
                         fillOpacity: 1,
                         highlighted: false,
                         lineDash: [0],
                         lineDashOffset: 0,
-                        seriesId: 'BarSeries-1',
                         stackGroup: undefined,
-                        stroke: '#aa4520',
                         strokeOpacity: 1,
                         strokeWidth: 0,
                         xKey: 'month',
+                    } as const;
+                    const params1 = {
+                        ...defaults,
+                        fill: '#f3622d',
+                        seriesId: 'BarSeries-1',
+                        stroke: '#aa4520',
                         yKey: 'sales',
                         context: c1,
                     } as const;
                     const params2 = {
-                        cornerRadius: 0,
+                        ...defaults,
                         fill: '#fba71b',
-                        fillOpacity: 1,
-                        highlighted: false,
-                        lineDash: [0],
-                        lineDashOffset: 0,
                         seriesId: 'BarSeries-2',
-                        stackGroup: undefined,
                         stroke: '#b07513',
-                        strokeOpacity: 1,
-                        strokeWidth: 0,
-                        xKey: 'month',
                         yKey: 'expenses',
                         context: { name: 'expenses context' },
                     };
