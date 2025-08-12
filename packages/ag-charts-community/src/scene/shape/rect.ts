@@ -76,7 +76,12 @@ export const clippedRoundRect = (
         if (clipBBox == null) {
             path.rect(x, y, width, height);
         } else {
-            path.rect(clipBBox.x, clipBBox.y, clipBBox.width, clipBBox.height);
+            const x0 = Math.max(x, clipBBox.x);
+            const x1 = Math.min(x + width, clipBBox.x + clipBBox.width);
+            const y0 = Math.max(y, clipBBox.y);
+            const y1 = Math.min(y + height, clipBBox.y + clipBBox.height);
+
+            path.rect(x0, y0, x1 - x0, y1 - y0);
         }
         return;
     } else if (

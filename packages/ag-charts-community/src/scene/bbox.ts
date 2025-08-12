@@ -41,11 +41,11 @@ export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
             if (box.y < top) {
                 top = box.y;
             }
-            if (box.x + box.width > right) {
-                right = box.x + box.width;
+            if (end(box.x, box.width) > right) {
+                right = end(box.x, box.width);
             }
-            if (box.y + box.height > bottom) {
-                bottom = box.y + box.height;
+            if (end(box.y, box.height) > bottom) {
+                bottom = end(box.y, box.height);
             }
         }
         return new BBox(left, top, right - left, bottom - top);
@@ -70,8 +70,8 @@ export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
             height: this.height,
             top: this.y,
             left: this.x,
-            right: this.x + this.width,
-            bottom: this.y + this.height,
+            right: end(this.x, this.width),
+            bottom: end(this.y, this.height),
             toJSON() {
                 return {};
             },
@@ -92,22 +92,22 @@ export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
     }
 
     intersection(other: BBox) {
-        if (!this.collidesBBox(other)) return;
+        const x0 = Math.max(this.x, other.x);
+        const y0 = Math.max(this.y, other.y);
+        const x1 = Math.min(end(this.x, this.width), end(other.x, other.width));
+        const y1 = Math.min(end(this.y, this.height), end(other.y, other.height));
 
-        const newX1 = clamp(other.x, this.x, other.x + other.width);
-        const newY1 = clamp(other.y, this.y, other.y + other.height);
-        const newX2 = clamp(other.x, this.x + this.width, other.x + other.width);
-        const newY2 = clamp(other.y, this.y + this.height, other.y + other.height);
+        if (x0 > x1 || y0 > y1) return;
 
-        return new BBox(newX1, newY1, newX2 - newX1, newY2 - newY1);
+        return new BBox(x0, y0, x1 - x0, y1 - y0);
     }
 
     collidesBBox(other: BBox): boolean {
         return (
-            this.x < other.x + other.width &&
-            this.x + this.width > other.x &&
-            this.y < other.y + other.height &&
-            this.y + this.height > other.y
+            this.x < end(other.x, other.width) &&
+            end(this.x, this.width) > other.x &&
+            this.y < end(other.y, other.height) &&
+            end(this.y, this.height) > other.y
         );
     }
 
@@ -129,8 +129,8 @@ export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
             return 0;
         }
 
-        const dx = x - clamp(this.x, x, this.x + this.width);
-        const dy = y - clamp(this.y, y, this.y + this.height);
+        const dx = x - clamp(this.x, x, end(this.x, this.width));
+        const dy = y - clamp(this.y, y, end(this.y, this.height));
 
         return dx * dx + dy * dy;
     }
@@ -226,4 +226,9 @@ export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
             this.height * (1 - d) + other.height * d
         );
     }
+}
+
+function end(x: number, width: number) {
+    if (x === -Infinity && width === Infinity) return Infinity;
+    return x + width;
 }
