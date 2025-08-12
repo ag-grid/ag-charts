@@ -1,4 +1,4 @@
-import type { BoxPlotGroup } from './boxPlotGroup';
+import type { BoxPlotGroup } from './boxPlotNode';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 export function prepareBoxPlotFromTo(isVertical: boolean) {

@@ -7,7 +7,7 @@ import {
 import type { DeepRequired } from 'ag-charts-core';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
-import { BoxPlotGroup } from './boxPlotGroup';
+import { BoxPlotNode } from './boxPlotNode';
 import { BoxPlotSeriesProperties } from './boxPlotSeriesProperties';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
@@ -54,7 +54,7 @@ class BoxPlotSeriesNodeEvent<
 }
 
 export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
-    BoxPlotGroup,
+    BoxPlotNode,
     AgBoxPlotSeriesOptions,
     BoxPlotSeriesProperties,
     BoxPlotNodeDatum,
@@ -207,11 +207,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 maxValue: Math.round(yAxis.scale.convert(maxValue)),
             };
 
-            scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex))) + barOffset;
-
             const bandwidth = Math.round(barWidth);
+            scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex))) + barOffset + bandwidth / 2;
+
             const height = Math.abs(scaledValues.q3Value - scaledValues.q1Value);
-            const midX = scaledValues.xValue + bandwidth / 2;
+            const midX = scaledValues.xValue;
             const midY = Math.min(scaledValues.q3Value, scaledValues.q1Value) + height / 2;
 
             const midPoint = {
@@ -394,7 +394,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override animateEmptyUpdateReady({
         datumSelection,
-    }: _ModuleSupport.CartesianAnimationData<BoxPlotGroup, BoxPlotNodeDatum>) {
+    }: _ModuleSupport.CartesianAnimationData<BoxPlotNode, BoxPlotNodeDatum>) {
         const isVertical = this.isVertical();
         const { from, to } = prepareBoxPlotFromTo(isVertical);
         motion.resetMotion([datumSelection], resetBoxPlotSelectionsScalingCenterFn(isVertical));
@@ -409,7 +409,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: BoxPlotNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<BoxPlotNode, BoxPlotNodeDatum>;
         seriesIdx: number;
     }) {
         const data = opts.nodeData ?? [];
@@ -473,7 +473,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<BoxPlotNode, BoxPlotNodeDatum>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, nodeDatum) => {
@@ -485,7 +485,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<BoxPlotNode, BoxPlotNodeDatum>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -496,13 +496,36 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
-        datumSelection.each((boxPlotGroup, nodeDatum) => {
+        datumSelection.each((boxPlotNode, nodeDatum) => {
             const style = (nodeDatum.style ??
                 contextNodeData.styles[
                     this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex)
                 ]) as DeepRequired<AgBoxPlotHighlightStyleOptions>;
             const fillBBox = this.getShapeFillBBox();
-            boxPlotGroup.updateDatumStyles(nodeDatum, style, isVertical, isReversedValueAxis, fillBBox);
+            // boxPlotNode.updateDatumStyles(nodeDatum, style, isVertical, isReversedValueAxis, fillBBox);
+            boxPlotNode.fill = style.fill;
+            boxPlotNode.fillOpacity = style.fillOpacity;
+            boxPlotNode.stroke = style.stroke;
+            boxPlotNode.strokeWidth = style.strokeWidth;
+            boxPlotNode.strokeOpacity = style.strokeOpacity;
+            boxPlotNode.lineDash = style.lineDash;
+            boxPlotNode.lineDashOffset = style.lineDashOffset;
+            boxPlotNode.wickStroke = style.whisker.stroke;
+            boxPlotNode.wickStrokeWidth = style.whisker.strokeWidth;
+            boxPlotNode.wickStrokeOpacity = style.whisker.strokeOpacity;
+            boxPlotNode.wickLineDash = style.whisker.lineDash;
+            boxPlotNode.wickLineDashOffset = style.whisker.lineDashOffset;
+            boxPlotNode.cornerRadius = style.cornerRadius;
+
+            boxPlotNode.centerX = nodeDatum.scaledValues.xValue;
+            boxPlotNode.width = nodeDatum.bandwidth;
+            boxPlotNode.y = Math.min(nodeDatum.scaledValues.maxValue, nodeDatum.scaledValues.minValue);
+            boxPlotNode.yQ1 = nodeDatum.scaledValues.q1Value;
+            boxPlotNode.yMedian = nodeDatum.scaledValues.medianValue;
+            boxPlotNode.yQ3 = nodeDatum.scaledValues.q3Value;
+            boxPlotNode.height = Math.abs(nodeDatum.scaledValues.maxValue - nodeDatum.scaledValues.minValue);
+
+            boxPlotNode.capLengthRatio = style.cap.lengthRatio;
         });
     }
 
@@ -520,7 +543,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override nodeFactory() {
-        return new BoxPlotGroup();
+        return new BoxPlotNode();
     }
 
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
