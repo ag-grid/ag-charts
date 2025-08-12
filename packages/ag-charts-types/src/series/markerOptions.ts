@@ -21,8 +21,3 @@ export interface AgSeriesMarkerOptions<TDatum, TParams, TContext = ContextDefaul
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<AgSeriesMarkerStylerParams<TDatum, TContext> & TParams, AgSeriesMarkerStyle>;
 }
-
-export interface ISeriesMarker<TParams, TContext = ContextDefault>
-    extends AgSeriesMarkerOptions<unknown, TParams, TContext> {
-    getStyle: () => AgSeriesMarkerStyle;
-}

@@ -2,6 +2,7 @@ import { type Point, type RequireOptional, cachedTextMeasurer, clamp } from 'ag-
 import {
     type AgBubbleSeriesLabelFormatterParams,
     type AgBubbleSeriesOptions,
+    type AgBubbleSeriesOptionsKeys,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgSeriesMarkerStyle,
     type FillOptions,
@@ -488,7 +489,7 @@ export class BubbleSeries extends CartesianSeries<
             labelData: labelEnabled ? nodeData : [],
             scales: this.calculateScaling(),
             visible: this.visible,
-            styles: this.getMarkerStyles(marker),
+            styles: this.getMarkerStyles<AgBubbleSeriesOptionsKeys>(marker),
         };
     }
 
@@ -751,7 +752,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const marker = this.getMarkerStyle(this.properties.marker, {}, undefined, {
+        const marker = this.getMarkerStyle<AgBubbleSeriesOptionsKeys>(this.properties.marker, {}, undefined, {
             isHighlight: false,
             checkForHighlight: false,
             resolveItemStylerMarkerPath: false,

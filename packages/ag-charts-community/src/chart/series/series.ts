@@ -16,7 +16,6 @@ import type {
     AgSeriesVisibilityChange,
     FormatterParams,
     FormatterPropertyType,
-    ISeriesMarker,
     HighlightState as PublicHighlightState,
 } from 'ag-charts-types';
 
@@ -53,6 +52,7 @@ import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { SeriesType } from '../mapping/types';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
+import type { SeriesMarker } from './seriesMarker';
 import { HighlightState, type SeriesProperties, highlightStates, toHighlightString } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
@@ -1009,7 +1009,7 @@ export abstract class Series<
     }
 
     public getMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams>,
+        marker: SeriesMarker<TParams>,
         { datumIndex, datum, point }: Partial<TDatum>,
         params?: TParams,
         opts?: {
@@ -1059,7 +1059,7 @@ export abstract class Series<
         return markerStyle;
     }
 
-    public getMarkerStyles<TParams>(marker: ISeriesMarker<TParams>, inheritedStyle?: AgSeriesMarkerStyle) {
+    public getMarkerStyles<TParams>(marker: SeriesMarker<TParams>, inheritedStyle?: AgSeriesMarkerStyle) {
         return highlightStates.reduce(
             (styles, state) => {
                 styles[state] = this.getMarkerStyle(
