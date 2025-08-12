@@ -13,63 +13,15 @@ import ImageCarousel from '../components/homepage/components/hero/ImageCarousel'
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { Version } from '@ag-website-shared/components/whats-new/components/Version';
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
-import { HomepageGalleryExamples } from '@components/homepage/components/HomepageGalleryExamples';
+import HomepageGalleryExamples from '@components/homepage/components/HomepageGalleryExamples.astro';
 import HomepageDocsExample from '@components/homepage/components/HomepageDocsExample.astro';
 import { FrameworkTextAnimation } from '@ag-website-shared/components/framework-text-animation/FrameworkTextAnimation';
 
 const { blogPrefix } = whatsNewData['charts'];
 
 // All Gallery Examples
-const galleryEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
 const { data: FAQData } = (await getEntry('faqs', 'homepage')) as CollectionEntry<'faqs'>;
 const { data: versionsData } = (await getEntry('versions', 'ag-charts-versions')) as CollectionEntry<'versions'>;
-
-// Extract Specific Community Examples from Gallery
-const seriesExampleMap = {
-    bar: 'simple-horizontal-bar',
-    line: 'multiple-line-series',
-    area: 'stacked-area',
-    scatter: 'simple-scatter',
-    bubble: 'bubble-with-negative-values',
-    pie: 'simple-pie',
-    donut: 'simple-donut',
-    combination: 'bar-line-combination',
-    histogram: 'simple-histogram',
-    'range-bar': 'horizontal-range-bar',
-    'range-area': 'range-area-with-labels',
-    waterfall: 'simple-waterfall',
-    'box-plot': 'simple-box-plot',
-    candlestick: 'candlestick',
-    'radar-line': 'simple-radar-line',
-    'radar-area': 'simple-radar-area',
-    nightingale: 'simple-nightingale',
-    'radial-column': 'simple-radial-column',
-    'radial-bar': 'stacked-radial-bar',
-    sunburst: 'simple-sunburst',
-    treemap: 'simple-treemap',
-    heatmap: 'simple-heatmap',
-    sankey: 'sankey',
-    chord: 'chord',
-    'radial-gauge': 'simple-radial-gauge',
-    'linear-gauge': 'simple-linear-gauge',
-    funnel: 'simple-funnel',
-    'cone-funnel': 'simple-cone-funnel',
-    pyramid: 'simple-pyramid',
-};
-
-const exampleData = galleryEntry.data.series
-    .flatMap((seriesGroup) => seriesGroup)
-    .filter((series) => series.seriesName in seriesExampleMap)
-    .map((series) => {
-        const exampleName = seriesExampleMap[series.seriesName];
-        const example = series.examples.find((ex) => ex.name === exampleName);
-        return {
-            title: example.title,
-            exampleName: example.name,
-            buttonText: series.title,
-            icon: series.icon,
-        };
-    });
 
 const frameworksData = [
     {
@@ -155,7 +107,7 @@ const mapExampleHeights = 360;
                 '/react/quick-start/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta'
             )}
         >
-            <HomepageGalleryExamples client:load examples={exampleData} pageName={'bar'} />
+            <HomepageGalleryExamples />
         </LandingPageSection>
 
         <LandingPageSection

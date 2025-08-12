@@ -1,6 +1,7 @@
 import type { InternalFramework } from '@ag-grid-types';
 import Code from '@ag-website-shared/components/code/Code';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
+import { CONSOLE_LOG_REGEX, DARK_MODE_REGEX } from '@ag-website-shared/utils/extraCodeSnippets';
 import type { ExampleType, FileContents } from '@components/example-generator/types';
 import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
@@ -9,11 +10,6 @@ import { useEffect, useState } from 'react';
 import { E2E_STYLE_END, E2E_STYLE_START } from '../constants';
 import { CodeOptions } from './CodeOptions';
 import styles from './CodeViewer.module.scss';
-
-export const DARK_MODE_START = '/** DARK MODE START **/';
-export const DARK_MODE_END = '/** DARK MODE END **/';
-export const CONSOLE_LOG_START = '/** CONSOLE LOG START **/';
-export const CONSOLE_LOG_END = '/** CONSOLE LOG END **/';
 
 const ExtensionMap = {
     sh: 'bash',
@@ -34,13 +30,7 @@ export function stripOutExampleGeneratorCode(files: FileContents) {
     const mainFiles = ['main.js', 'main.ts', 'index.tsx', 'index.jsx', 'app.component.ts'];
     mainFiles.forEach((mainFile) => {
         if (files[mainFile]) {
-            const darkModeRegex = getSnippetRegex({ startDelimiter: DARK_MODE_START, endDelimiter: DARK_MODE_END });
-            const consoleLogRegex = getSnippetRegex({
-                startDelimiter: CONSOLE_LOG_START,
-                endDelimiter: CONSOLE_LOG_END,
-            });
-
-            files[mainFile] = files[mainFile].replace(darkModeRegex, '').replace(consoleLogRegex, '').trim() + '\n';
+            files[mainFile] = files[mainFile].replace(DARK_MODE_REGEX, '').replace(CONSOLE_LOG_REGEX, '').trim() + '\n';
         }
     });
 

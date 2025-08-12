@@ -1,6 +1,4 @@
-// NOTE: This is duplicated from `external/ag-website-shared/src/utils/getDarkModeSnippet.ts`
-export const DARK_MODE_START = '/** DARK MODE START **/';
-export const DARK_MODE_END = '/** DARK MODE END **/';
+import { DARK_MODE_END, DARK_MODE_START } from '@ag-website-shared/utils/extraCodeSnippets';
 
 export const getDarkModeSnippet = ({ chartAPI }: { chartAPI?: string } = {}) =>
     `${DARK_MODE_START}

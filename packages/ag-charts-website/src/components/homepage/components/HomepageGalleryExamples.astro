@@ -1,0 +1,166 @@
+---
+import { getCacheBustingUrl, getChartEnterpriseScriptPath } from '@utils/chartLibraryPaths';
+import { SITE_BASE_URL } from '@constants';
+import { pathJoin } from '@utils/pathJoin';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import styles from './HomepageGalleryExamples.module.scss';
+import { getEntry, type CollectionEntry } from 'astro:content';
+import { getGalleryExamplesData } from '@components/homepage/components/gallery-examples/galleryExamplesData';
+import { GLOBAL_UPDATE_EXAMPLES_VARIABLE, GLOBAL_UPDATE_FUNCTION_NAME } from '@components/homepage/constants';
+import { Icon, type IconName } from '@ag-website-shared/components/icon/Icon';
+import AgLoadingLogo from '@ag-website-shared/images/inline-svgs/ag-grid-logomark-loading.svg?react';
+
+const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
+const timeNow = Date.now();
+const chartScriptEnterprisePath = getCacheBustingUrl(getChartEnterpriseScriptPath(siteUrl), timeNow);
+
+const { data: galleryData } = (await getEntry('homepageGallery', 'examples')) as CollectionEntry<'homepageGallery'>;
+const { data: allGalleryData } = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
+const galleryExamplesData = await getGalleryExamplesData({
+    galleryData,
+    allGalleryData,
+});
+
+const initialExampleId = 'bar';
+const loadingId = 'homepageGalleryLoading';
+---
+
+<script src={chartScriptEnterprisePath}></script>
+<script src={urlWithBaseUrl('/homepage/examples.js')} type="module"></script>
+
+<div class={styles.container}>
+    <div class={styles.tabContainer}>
+        {
+            Object.keys(galleryExamplesData).map((id) => {
+                const example = galleryExamplesData[id];
+                return (
+                    <button class={styles.tabButton} data-example-id={id}>
+                        <Icon svgClasses={styles.tabButtonIcon} name={example.icon as IconName} />
+                        {example.buttonText}
+                    </button>
+                );
+            })
+        }
+    </div>
+    <div class={styles.exampleContainer}>
+        <div id="myChart"></div>
+        <div id={loadingId}>
+            <AgLoadingLogo />
+        </div>
+    </div>
+</div>
+
+<script
+    define:vars={{
+        initialExampleId,
+        buttonsClass: styles.tabButton,
+        activeButtonClass: styles.activeTabButton,
+        GLOBAL_UPDATE_EXAMPLES_VARIABLE,
+        GLOBAL_UPDATE_FUNCTION_NAME,
+        loadingId,
+    }}
+>
+    function createChartManager({ agCharts, onFirstLoad }) {
+        let chartInstance = null;
+        let currentChartIsGauge = false;
+        let chartState = 'init';
+
+        const isGauge = (chartType) => {
+            return chartType?.endsWith('gauge');
+        };
+        const createChart = ({ options }) => {
+            const createMethod = isGauge(options.type) ? 'createGauge' : 'create';
+            chartInstance = agCharts[createMethod](options);
+
+            if (chartState === 'init') {
+                chartInstance
+                    ?.waitForUpdate()
+                    .then(() => {
+                        chartState = 'active';
+                        onFirstLoad?.();
+                    })
+                    .catch(() => {});
+            }
+        };
+        const apply = ({ options }) => {
+            if (chartState === 'init') {
+                createChart({ options });
+                return;
+            }
+
+            const optionsIsGauge = isGauge(options.type);
+            const shouldDestroy = currentChartIsGauge !== optionsIsGauge;
+
+            if (shouldDestroy) {
+                chartInstance?.destroy();
+                createChart({ options });
+            } else {
+                chartInstance?.update(options);
+            }
+
+            currentChartIsGauge = optionsIsGauge;
+        };
+
+        return {
+            apply,
+        };
+    }
+
+    const chartManager = createChartManager({
+        agCharts: agCharts.AgCharts,
+        onFirstLoad: () => {
+            removeLoading();
+        },
+    });
+    const buttons = document.querySelectorAll(`.${buttonsClass}`);
+    function updateActiveButton(button) {
+        buttons.forEach((btn) => btn.classList.remove(activeButtonClass));
+        button.classList.add(activeButtonClass);
+    }
+
+    function removeLoading() {
+        const loadingElement = document.getElementById(loadingId);
+        if (loadingElement) {
+            loadingElement.remove();
+        }
+    }
+
+    function updateExample(exampleId) {
+        const button = document.querySelector(`.${buttonsClass}[data-example-id="${exampleId}"]`);
+        updateActiveButton(button);
+
+        window[GLOBAL_UPDATE_EXAMPLES_VARIABLE][exampleId]();
+    }
+
+    function init() {
+        let prevExampleId = initialExampleId;
+        let currentExampleId = initialExampleId;
+
+        // Called from example `updateExample` function
+        window[GLOBAL_UPDATE_FUNCTION_NAME] = (options) => {
+            chartManager.apply({
+                options,
+            });
+        };
+
+        buttons.forEach((button) => {
+            const { exampleId } = button.dataset;
+
+            button.addEventListener('click', () => {
+                prevExampleId = currentExampleId;
+                currentExampleId = exampleId;
+
+                updateExample(exampleId);
+            });
+
+            if (initialExampleId === exampleId) {
+                updateExample(exampleId);
+            }
+        });
+    }
+
+    // Initialise once DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+        init();
+    });
+</script>
