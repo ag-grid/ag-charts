@@ -720,6 +720,9 @@ describe('ChartOptions', () => {
       "stroke": "#a69400",
       "strokeWidth": 0,
     },
+    "segmentation": {
+      "key": "x",
+    },
     "stroke": "#e1cc00",
     "strokeOpacity": 1,
     "strokeWidth": 2,
@@ -774,6 +777,9 @@ describe('ChartOptions', () => {
       "size": 7,
       "stroke": "#603c88",
       "strokeWidth": 0,
+    },
+    "segmentation": {
+      "key": "x",
     },
     "stroke": "#9669cb",
     "strokeOpacity": 1,
@@ -1093,6 +1099,9 @@ describe('ChartOptions', () => {
       "stroke": "#a69400",
       "strokeWidth": 0,
     },
+    "segmentation": {
+      "key": "x",
+    },
     "stroke": "#e1cc00",
     "strokeOpacity": 1,
     "strokeWidth": 2,
@@ -1147,6 +1156,9 @@ describe('ChartOptions', () => {
       "size": 7,
       "stroke": "#603c88",
       "strokeWidth": 0,
+    },
+    "segmentation": {
+      "key": "x",
     },
     "stroke": "#9669cb",
     "strokeOpacity": 1,
@@ -1466,6 +1478,9 @@ describe('ChartOptions', () => {
       "stroke": "#a69400",
       "strokeWidth": 0,
     },
+    "segmentation": {
+      "key": "x",
+    },
     "stroke": "#e1cc00",
     "strokeOpacity": 1,
     "strokeWidth": 2,
@@ -1520,6 +1535,9 @@ describe('ChartOptions', () => {
       "size": 7,
       "stroke": "#603c88",
       "strokeWidth": 0,
+    },
+    "segmentation": {
+      "key": "x",
     },
     "stroke": "#9669cb",
     "strokeOpacity": 1,
