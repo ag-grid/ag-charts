@@ -858,7 +858,7 @@ describe('LineSeries', () => {
                 const itemStyler = (params: AgLineSeriesMarkerItemStylerParams<D, C>): AgSeriesMarkerStyle => {
                     if (params.xValue === 'February') {
                         if (params.yKey === 'sales') {
-                            return { fill: 'gold', shape: 'plus' };
+                            return { fill: 'gold', shape: 'plus', strokeWidth: 0 };
                         } else {
                             return { fill: 'grey', shape: 'cross' };
                         }
@@ -876,6 +876,7 @@ describe('LineSeries', () => {
                                 marker: {
                                     fill: 'lime', // ignored
                                     shape: 'square', // ignored
+                                    strokeWidth: 3, // ignored only for February
                                     itemStyler,
                                 },
                                 styler: styler.frozen,
