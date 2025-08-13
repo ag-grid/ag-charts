@@ -714,7 +714,9 @@ export class LineSeries extends CartesianSeries<
             { isHighlight: false, checkForHighlight: false },
             {
                 size: marker.size,
+                shape: marker.shape,
                 fill: marker.fill ?? color0,
+                fillOpacity: marker.fillOpacity,
                 stroke: marker.stroke ?? stroke ?? color0,
             }
         );
