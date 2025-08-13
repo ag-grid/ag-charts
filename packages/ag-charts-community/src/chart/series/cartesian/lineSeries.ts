@@ -3,6 +3,7 @@ import { isDefined } from 'ag-charts-core';
 import {
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgLineSeriesLabelFormatterParams,
+    type AgLineSeriesMarkerItemStylerParams,
     type AgLineSeriesOptions,
     type AgLineSeriesStylerParams,
     type AgLineSeriesStylerResult,
@@ -66,6 +67,7 @@ import {
 } from './lineUtil';
 import {
     computeMarkerFocusBounds,
+    getMarkerStyles,
     markerEnabled,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
@@ -448,7 +450,7 @@ export class LineSeries extends CartesianSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
             crossFiltering,
-            styles: this.getMarkerStyles(marker, {
+            styles: getMarkerStyles(this, marker, {
                 stroke,
                 strokeWidth,
                 strokeOpacity,
@@ -607,7 +609,7 @@ export class LineSeries extends CartesianSeries<
         });
     }
 
-    private makeStylerParams(
+    makeStylerParams(
         highlighted: boolean,
         highlightStateEnum?: HighlightState
     ): AgLineSeriesStylerParams<unknown, unknown> {

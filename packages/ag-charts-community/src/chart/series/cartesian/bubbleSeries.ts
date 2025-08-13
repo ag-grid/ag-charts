@@ -57,7 +57,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { computeMarkerFocusBounds, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
+import { computeMarkerFocusBounds, getMarkerStyles, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 
 type BubbleScatterAnimationData = CartesianAnimationData<Marker, BubbleScatterNodeDatum>;
 
@@ -489,7 +489,7 @@ export class BubbleSeries extends CartesianSeries<
             labelData: labelEnabled ? nodeData : [],
             scales: this.calculateScaling(),
             visible: this.visible,
-            styles: this.getMarkerStyles<AgBubbleSeriesOptionsKeys>(marker),
+            styles: getMarkerStyles<BubbleScatterNodeDatum, unknown, AgBubbleSeriesOptionsKeys>(this, marker),
         };
     }
 

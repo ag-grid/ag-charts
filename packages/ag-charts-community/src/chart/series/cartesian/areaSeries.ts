@@ -65,6 +65,7 @@ import {
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
+    getMarkerStyles,
     markerEnabled,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
@@ -849,7 +850,7 @@ export class AreaSeries extends CartesianSeries<
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
             crossFiltering,
-            styles: this.getMarkerStyles(marker, { stroke, strokeWidth, strokeOpacity }),
+            styles: getMarkerStyles(this, marker, { stroke, strokeWidth, strokeOpacity }),
         };
 
         return context;

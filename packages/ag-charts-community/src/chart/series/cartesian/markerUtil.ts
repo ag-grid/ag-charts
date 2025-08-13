@@ -1,5 +1,5 @@
 import { clamp } from 'ag-charts-core';
-import type { AgMarkerShape } from 'ag-charts-types';
+import type { AgMarkerShape, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
@@ -15,6 +15,7 @@ import type { AnimationManager } from '../../interaction/animationManager';
 import { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
 import type { SeriesMarker } from '../seriesMarker';
+import { type HighlightState, highlightStates } from '../seriesProperties';
 import type { ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import * as easing from './../../../motion/easing';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -91,13 +92,23 @@ interface MarkerNodeDatum extends SeriesNodeDatum<unknown> {
     readonly point: Point & SizedPoint;
 }
 
-interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<number, TDatum, unknown, unknown> {
+interface MarkerSeries<TDatum extends MarkerNodeDatum, TStylerParams>
+    extends ISeries<number, TDatum, unknown, unknown> {
     getNodeData(): { [index: number]: TDatum | undefined } | undefined;
     getFormattedMarkerStyle(datum: TDatum): { size: number; shape?: AgMarkerShape };
+    getMarkerStyle<TParams>(
+        marker: SeriesMarker<TParams>,
+        nodeDatum: object,
+        params?: TParams,
+        opts?: { highlightState?: HighlightState },
+        defaultOverrideStyle?: AgSeriesMarkerStyle & { size: number },
+        inheritedStyle?: AgSeriesMarkerStyle
+    ): AgSeriesMarkerStyle & { size: number };
+    makeStylerParams?(highlighted: boolean, highlightStateEnum?: HighlightState): TStylerParams;
 }
 
 export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
-    series: MarkerSeries<TDatum>,
+    series: MarkerSeries<TDatum, unknown>,
     { datumIndex }: PickFocusInputs
 ): BBox | undefined {
     const nodeData = series.getNodeData();
@@ -131,4 +142,25 @@ export function markerEnabled(
 
     const step = scale.step ?? findRangeExtent(scale.range) / Math.max(1, dataCount);
     return step > minSpacing;
+}
+
+export function getMarkerStyles<TDatum extends MarkerNodeDatum, TStylerParams, TItemStylerParams>(
+    series: MarkerSeries<TDatum, TStylerParams>,
+    marker: SeriesMarker<TItemStylerParams>,
+    inheritedStyle?: AgSeriesMarkerStyle
+) {
+    return highlightStates.reduce(
+        (styles, state) => {
+            styles[state] = series.getMarkerStyle(
+                marker,
+                {},
+                undefined,
+                { highlightState: state },
+                undefined,
+                inheritedStyle
+            );
+            return styles;
+        },
+        {} as Record<HighlightState, AgSeriesMarkerStyle>
+    );
 }
