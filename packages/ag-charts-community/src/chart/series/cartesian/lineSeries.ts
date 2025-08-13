@@ -4,6 +4,8 @@ import {
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgLineSeriesLabelFormatterParams,
     type AgLineSeriesOptions,
+    type AgLineSeriesStylerParams,
+    type AgLineSeriesStylerResult,
     type AgSeriesMarkerStyle,
 } from 'ag-charts-types';
 
@@ -16,6 +18,7 @@ import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
+import type { CallbackParamRules } from '../../../util/callbackCache';
 import { extent } from '../../../util/extent';
 import { simpleMemorize2 } from '../../../util/memo';
 import { mergeDefaults } from '../../../util/object';
@@ -42,6 +45,7 @@ import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { HighlightState, toHighlightString } from '../seriesProperties';
 import { datumStylerProperties } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
@@ -466,7 +470,7 @@ export class LineSeries extends CartesianSeries<
 
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = mergeDefaults(
             this.getHighlightStyle(),
-            this.properties
+            this.getStyle(false)
         );
 
         lineNode.setProperties({
@@ -515,7 +519,9 @@ export class LineSeries extends CartesianSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { xKey, yKey, marker, stroke, strokeWidth, strokeOpacity } = this.properties;
+        const { xKey, yKey, marker } = this.properties;
+        const stylerStyle = this.getStyle(isHighlight);
+        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
@@ -524,7 +530,7 @@ export class LineSeries extends CartesianSeries<
 
             const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
 
-            datum.style = this.getMarkerStyle(marker, datum, params, { isHighlight }, undefined, {
+            datum.style = this.getMarkerStyle(marker, datum, params, { isHighlight }, stylerStyle.marker, {
                 stroke,
                 strokeWidth,
                 strokeOpacity,
@@ -601,6 +607,41 @@ export class LineSeries extends CartesianSeries<
         });
     }
 
+    private makeStylerParams(
+        highlighted: boolean,
+        highlightStateEnum?: HighlightState
+    ): AgLineSeriesStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+        const { marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, xKey, yKey } = this.properties;
+        const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+
+        type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
+        type ResultRules = CallbackParamRules<AgLineSeriesStylerParams<unknown, unknown> & MarkerRules>;
+        return {
+            marker: {
+                fill: marker.fill,
+                fillOpacity: marker.fillOpacity,
+                size: marker.size,
+                shape: marker.shape,
+                stroke: marker.stroke,
+                strokeOpacity: marker.strokeOpacity,
+                strokeWidth: marker.strokeWidth,
+                lineDash: marker.lineDash,
+                lineDashOffset: marker.lineDashOffset,
+            },
+            highlightState,
+            highlighted,
+            lineDash,
+            lineDashOffset,
+            seriesId,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            xKey,
+            yKey,
+        } satisfies ResultRules;
+    }
+
     private makeLabelFormatterParams(): AgLineSeriesLabelFormatterParams {
         const { xKey, xName, yKey, yName, legendItemName } = this.properties;
         return { xKey, xName, yKey, yName, legendItemName } satisfies RequireOptional<AgLineSeriesLabelFormatterParams>;
@@ -624,9 +665,15 @@ export class LineSeries extends CartesianSeries<
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
         const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
 
-        const format = this.getMarkerStyle(this.properties.marker, { datumIndex, datum }, params, {
-            isHighlight: false,
-        }) as RequireOptional<AgSeriesMarkerStyle>;
+        const format = this.getMarkerStyle(
+            this.properties.marker,
+            { datumIndex, datum },
+            params,
+            {
+                isHighlight: false,
+            },
+            this.getStyle(false).marker
+        ) as RequireOptional<AgSeriesMarkerStyle>;
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -657,10 +704,10 @@ export class LineSeries extends CartesianSeries<
 
     private legendItemSymbol(): LegendSymbolOptions {
         const color0 = 'rgba(0, 0, 0, 0)';
-        const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.properties;
+        const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle(false);
 
         const markerStyle = this.getMarkerStyle(
-            marker,
+            this.properties.marker,
             {},
             undefined,
             { isHighlight: false, checkForHighlight: false },
@@ -674,7 +721,7 @@ export class LineSeries extends CartesianSeries<
         return {
             marker: {
                 ...markerStyle,
-                enabled: marker.enabled,
+                enabled: this.properties.marker.enabled,
             },
             line: {
                 stroke: stroke ?? color0,
@@ -831,16 +878,51 @@ export class LineSeries extends CartesianSeries<
         return new Marker();
     }
 
+    public getStyle(
+        highlighted: boolean,
+        highlightState?: HighlightState
+    ): Required<AgLineSeriesStylerResult> & { marker: Required<AgSeriesMarkerStyle> } {
+        const { styler, marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.properties;
+        const { size, shape, fill = 'transparent', fillOpacity } = marker;
+        let stylerResult: AgLineSeriesStylerResult = {};
+        if (styler) {
+            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            stylerResult = this.callWithContext(styler, stylerParams) ?? {};
+        }
+        stylerResult.marker ??= {};
+        return {
+            lineDash: stylerResult.lineDash ?? lineDash,
+            lineDashOffset: stylerResult.lineDashOffset ?? lineDashOffset,
+            stroke: stylerResult.stroke ?? stroke,
+            strokeOpacity: stylerResult.strokeOpacity ?? strokeOpacity,
+            strokeWidth: stylerResult.strokeWidth ?? strokeWidth,
+            marker: {
+                fill: stylerResult.marker.fill ?? fill,
+                fillOpacity: stylerResult.marker.fillOpacity ?? fillOpacity,
+                shape: stylerResult.marker.shape ?? shape,
+                size: stylerResult.marker.size ?? size,
+                lineDash: stylerResult.lineDash ?? marker.lineDash ?? lineDash,
+                lineDashOffset: stylerResult.lineDashOffset ?? marker.lineDashOffset ?? lineDashOffset,
+                stroke: stylerResult.stroke ?? marker.stroke ?? stroke,
+                strokeOpacity: stylerResult.strokeOpacity ?? marker.strokeOpacity ?? strokeOpacity,
+                strokeWidth: stylerResult.strokeWidth ?? marker.strokeWidth ?? strokeWidth,
+            } satisfies RequireOptional<AgSeriesMarkerStyle>,
+        } satisfies RequireOptional<AgLineSeriesStylerResult>;
+    }
+
     public getFormattedMarkerStyle(datum: LineNodeDatum) {
         const { xKey, yKey } = this.properties;
         const { xValue, yValue } = datum;
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const stylerStyle = this.getStyle(false);
         return this.getMarkerStyle(
             this.properties.marker,
             datum,
             datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
-            { isHighlight: true }
+            { isHighlight: true },
+            undefined,
+            stylerStyle
         );
     }
 

@@ -2,7 +2,10 @@ import type {
     AgLineSeriesLabelFormatterParams,
     AgLineSeriesMarkerItemStylerParams,
     AgLineSeriesOptions,
+    AgLineSeriesStylerParams,
+    AgLineSeriesStylerResult,
     AgLineSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-types';
 
 import { Property } from '../../../util/properties';
@@ -54,6 +57,9 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
 
     @Property
     interpolation: InterpolationProperties = new InterpolationProperties();
+
+    @Property
+    styler?: Styler<AgLineSeriesStylerParams<unknown, unknown>, AgLineSeriesStylerResult>;
 
     @Property
     readonly marker = new SeriesMarker<AgLineSeriesMarkerItemStylerParams>();

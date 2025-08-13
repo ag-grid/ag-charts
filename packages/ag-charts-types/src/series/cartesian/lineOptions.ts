@@ -64,7 +64,9 @@ export interface AgLineSeriesOptionsKeys<TDatum = DatumDefault> {
 export interface AgLineSeriesStylerParams<TDatum, TContext>
     extends AgLineSeriesOptionsKeys<TDatum>,
         SeriesCallbackParams,
-        ContextCallbackParams<TContext> {
+        ContextCallbackParams<TContext>,
+        Required<StrokeOptions>,
+        Required<LineDashOptions> {
     /** Current series styling options on markers. */
     marker?: AgSeriesMarkerStyle;
 }
