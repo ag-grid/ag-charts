@@ -1,6 +1,7 @@
 import {
     type OptionsDefs,
     boolean,
+    callbackDefs,
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
@@ -11,13 +12,14 @@ import {
     string,
     strokeOptionsDef,
 } from 'ag-charts-core';
-import type { AgAreaSeriesOptions, AgAreaSeriesThemeableOptions } from 'ag-charts-types';
+import type { AgAreaSeriesOptions, AgAreaSeriesStylerResult, AgAreaSeriesThemeableOptions } from 'ag-charts-types';
 
 import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     interpolationOptionsDefs,
     markerOptionsDefs,
+    markerStyleOptionsDefs,
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
     tooltipOptionsDefs,
@@ -25,11 +27,19 @@ import {
 
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
 
+const areaStyler = callbackDefs<AgAreaSeriesStylerResult>({
+    ...strokeOptionsDef,
+    ...fillOptionsDef,
+    ...lineDashOptionsDef,
+    marker: markerStyleOptionsDefs,
+});
+
 export const areaSeriesThemeableOptionsDef: OptionsDefs<AgAreaSeriesThemeableOptions> = {
     showInMiniChart: boolean,
     connectMissingData: boolean,
     interpolation: interpolationOptionsDefs,
     label: seriesLabelOptionsDefs,
+    styler: areaStyler,
     marker: markerOptionsDefs,
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
