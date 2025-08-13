@@ -161,6 +161,15 @@
     "**/micromatch": "4.0.8",
     "**/axios/form-data": "4.0.4",
     "**/http-proxy/follow-redirects": "1.15.4",
-    "npm-run-all/cross-spawn": "6.0.6"
+    "npm-run-all/cross-spawn": "6.0.6",
+    "dependency-cruiser/**/cross-spawn": "7.0.6",
+    "eslint/cross-spawn": "7.0.6",
+    "jest/**/cross-spawn": "7.0.6",
+    "patch-package/cross-spawn": "7.0.6",
+    "skia-canvas/**/cross-spawn": "7.0.6",
+    "@angular/cli/**/cross-spawn": "7.0.6",
+    "@angular-devkit/build-angular/**/cross-spawn": "7.0.6",
+    "@swc/cli/**/bin-version/execa/cross-spawn": "7.0.6",
+    "ng-packagr/**/cross-spawn": "7.0.6"
   }
 }
