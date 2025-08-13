@@ -134,10 +134,13 @@ export function markerEnabled(
     return step > minSpacing;
 }
 
+type SeriesStylerResult = { marker?: AgSeriesMarkerStyle } | undefined;
+type SeriesStyler<TStylerParams> = (params: TStylerParams) => SeriesStylerResult;
 type DefaultOverrideStyle = AgSeriesMarkerStyle & { size: number };
 
 interface MarkerSeriesStylerProps<TStylerParams> {
-    properties: { styler?: (params: TStylerParams) => { marker?: AgSeriesMarkerStyle } | undefined };
+    properties: { styler?: SeriesStyler<TStylerParams> };
+    callWithContext(styler: SeriesStyler<TStylerParams>, params: TStylerParams): SeriesStylerResult;
     getMarkerStyle<TParams>(
         marker: SeriesMarker<TParams>,
         nodeDatum: object,
@@ -159,7 +162,7 @@ export function getMarkerStyles<TStylerParams, TItemStylerParams>(
             let defaultOverrideStyle: DefaultOverrideStyle | undefined;
             if (series.properties.styler) {
                 const params = series.makeStylerParams(state === HighlightState.None, state);
-                const result = series.properties.styler(params);
+                const result = series.callWithContext(series.properties.styler, params);
                 if (result?.marker != null) {
                     defaultOverrideStyle = { ...result.marker, size: result.marker.size ?? marker.size };
                 }

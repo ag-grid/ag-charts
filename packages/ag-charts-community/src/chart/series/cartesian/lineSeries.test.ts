@@ -822,12 +822,16 @@ describe('LineSeries', () => {
                     styler.expect().nthCalledWithContext(4, c1);
                     styler.expect().nthCalledWithContext(5, c1);
                     styler.expect().nthCalledWithContext(6, c1);
-                    styler.expect().nthCalledWithContext(7, c2);
-                    styler.expect().nthCalledWithContext(8, c2);
+                    styler.expect().nthCalledWithContext(7, c1);
+                    styler.expect().nthCalledWithContext(8, c1);
                     styler.expect().nthCalledWithContext(9, c2);
                     styler.expect().nthCalledWithContext(10, c2);
                     styler.expect().nthCalledWithContext(11, c2);
-                    styler.expect().toHaveBeenCalledTimes(12);
+                    styler.expect().nthCalledWithContext(12, c2);
+                    styler.expect().nthCalledWithContext(13, c2);
+                    styler.expect().nthCalledWithContext(14, c2);
+                    styler.expect().nthCalledWithContext(15, c2);
+                    styler.expect().toHaveBeenCalledTimes(16);
                 });
                 test('params', () => {
                     const defaults = {} as const;
