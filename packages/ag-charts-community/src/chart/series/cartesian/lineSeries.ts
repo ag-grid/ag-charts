@@ -573,19 +573,13 @@ export class LineSeries extends CartesianSeries<
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, LineNodeDatum>; isHighlight?: boolean }) {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const params: AgLineSeriesLabelFormatterParams = this.makeLabelFormatterParams();
 
         opts.labelSelection.each((text, datum) => {
             const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
             const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datum.datumIndex);
 
-            const style = getLabelStyles(
-                this,
-                datum,
-                this.properties,
-                this.properties.label,
-                highlighted,
-                highlightState
-            );
+            const style = getLabelStyles(this, datum, params, this.properties.label, highlighted, highlightState);
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && datum?.labelText) {
                 text.fontStyle = fontStyle;
@@ -605,6 +599,11 @@ export class LineSeries extends CartesianSeries<
                 text.visible = false;
             }
         });
+    }
+
+    private makeLabelFormatterParams(): AgLineSeriesLabelFormatterParams {
+        const { xKey, xName, yKey, yName, legendItemName } = this.properties;
+        return { xKey, xName, yKey, yName, legendItemName } satisfies RequireOptional<AgLineSeriesLabelFormatterParams>;
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
