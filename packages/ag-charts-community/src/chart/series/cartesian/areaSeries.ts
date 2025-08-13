@@ -57,7 +57,6 @@ import {
     type AreaSeriesNodeDataContext,
     type LabelSelectionDatum,
     type MarkerSelectionDatum,
-    calculateSegments,
     plotAreaPathFill,
     prepareAreaPathAnimation,
 } from './areaUtil';
@@ -79,6 +78,7 @@ import {
     resetMarkerPositionFn,
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
+import { calculateSegments } from './util';
 
 const CROSS_FILTER_AREA_FILL_OPACITY_FACTOR = 0.125;
 const CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR = 0.25;
