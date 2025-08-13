@@ -11,13 +11,6 @@ export interface AgChartCallbackParams<TDatum = DatumDefault, TContext = Context
     context?: TContext;
 }
 
-export interface SeriesCallbackParams {
-    /** The data associated with the series. */
-    data: any;
-    /** The unique identifier of the series. */
-    seriesId: string;
-}
-
 export type HighlightState =
     | 'highlighted-item'
     | 'unhighlighted-item'
@@ -28,6 +21,15 @@ export type HighlightState =
 export interface DatumCallbackParams<TDatum> {
     /** The data point associated with the label. */
     datum: TDatum;
+    /** The unique identifier of the series. */
+    seriesId: string;
+    /** Indicates whether the element is highlighted. */
+    highlighted: boolean;
+    /** The specific highlight state of the element. */
+    highlightState?: HighlightState;
+}
+
+export interface SeriesCallbackParams {
     /** The unique identifier of the series. */
     seriesId: string;
     /** Indicates whether the element is highlighted. */

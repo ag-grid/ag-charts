@@ -1,8 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import type {
+    AgBarSeriesItemStylerParams,
     AgBarSeriesLabelPlacement,
     AgBarSeriesOptions,
+    AgBarSeriesStyle,
+    AgBarSeriesStylerParams,
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
@@ -17,6 +20,7 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
+import { MockStyler, newFreezableMock } from '../../test/freezableMock';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -764,6 +768,163 @@ describe('BarSeries', () => {
             await waitForChartStability(chart);
             await chart.updateDelta({ data: DATA2 });
             await compare();
+        });
+    });
+
+    describe('AG-11673 styler', () => {
+        type D = unknown;
+        type C = unknown;
+        type M = MockStyler<D, C>;
+        let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        const data = [
+            { month: 'January', sales: 1200, expenses: 800 },
+            { month: 'February', sales: 1500, expenses: 950 },
+            { month: 'March', sales: 1700, expenses: 1100 },
+        ];
+        beforeEach(() => {
+            styler = newFreezableMock<D, C, M>(
+                (params: AgBarSeriesStylerParams<D, C>): AgBarSeriesStyle | undefined => {
+                    if (params.yKey === 'sales')
+                        return {
+                            fill: 'cyan',
+                            lineDash: [3, 3],
+                            lineDashOffset: 5,
+                            stroke: 'blue',
+                            strokeWidth: 7,
+                        };
+                    else if (params.yKey === 'expenses')
+                        return {
+                            fill: 'magenta',
+                            fillOpacity: 0.5,
+                            cornerRadius: 15,
+                        };
+                    return {};
+                }
+            );
+        });
+        describe('init', () => {
+            let c1: C;
+            let c2: C;
+            beforeEach(async () => {
+                c1 = { name: 'sales context' };
+                c2 = { name: 'expenses context' };
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data,
+                        series: [
+                            { type: 'bar', xKey: 'month', yKey: 'sales', styler: styler.frozen, context: c1 },
+                            { type: 'bar', xKey: 'month', yKey: 'expenses', styler: styler.frozen, context: c2 },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+            describe('callbacks', () => {
+                test('context', () => {
+                    styler.expect().nthCalledWithContext(0, c1);
+                    styler.expect().nthCalledWithContext(1, c2);
+                    styler.expect().nthCalledWithContext(2, c1);
+                    styler.expect().nthCalledWithContext(3, c1);
+                    styler.expect().nthCalledWithContext(4, c1);
+                    styler.expect().nthCalledWithContext(5, c1);
+                    styler.expect().nthCalledWithContext(6, c1);
+                    styler.expect().nthCalledWithContext(7, c2);
+                    styler.expect().nthCalledWithContext(8, c2);
+                    styler.expect().nthCalledWithContext(9, c2);
+                    styler.expect().nthCalledWithContext(10, c2);
+                    styler.expect().nthCalledWithContext(11, c2);
+                    styler.expect().toHaveBeenCalledTimes(12);
+                });
+                test('params', () => {
+                    const defaults = {
+                        cornerRadius: 0,
+                        fillOpacity: 1,
+                        highlighted: false,
+                        lineDash: [0],
+                        lineDashOffset: 0,
+                        stackGroup: undefined,
+                        strokeOpacity: 1,
+                        strokeWidth: 0,
+                        xKey: 'month',
+                    } as const;
+                    const params1 = {
+                        ...defaults,
+                        fill: '#f3622d',
+                        seriesId: 'BarSeries-1',
+                        stroke: '#aa4520',
+                        yKey: 'sales',
+                        context: c1,
+                    } as const;
+                    const params2 = {
+                        ...defaults,
+                        fill: '#fba71b',
+                        seriesId: 'BarSeries-2',
+                        stroke: '#b07513',
+                        yKey: 'expenses',
+                        context: { name: 'expenses context' },
+                    };
+                    const { mock } = styler;
+                    expect(mock).nthCalledWith(1, { ...params1, highlightState: 'none' });
+                    expect(mock).nthCalledWith(2, { ...params2, highlightState: 'none' });
+                    expect(mock).nthCalledWith(3, { ...params1, highlightState: 'none' });
+                    expect(mock).nthCalledWith(4, { ...params1, highlightState: 'highlighted-item' });
+                    expect(mock).nthCalledWith(5, { ...params1, highlightState: 'highlighted-series' });
+                    expect(mock).nthCalledWith(6, { ...params1, highlightState: 'unhighlighted-series' });
+                    expect(mock).nthCalledWith(7, { ...params1, highlightState: 'unhighlighted-item' });
+                    expect(mock).nthCalledWith(8, { ...params2, highlightState: 'none' });
+                    expect(mock).nthCalledWith(9, { ...params2, highlightState: 'highlighted-item' });
+                    expect(mock).nthCalledWith(10, { ...params2, highlightState: 'highlighted-series' });
+                    expect(mock).nthCalledWith(11, { ...params2, highlightState: 'unhighlighted-series' });
+                    expect(mock).nthCalledWith(12, { ...params2, highlightState: 'unhighlighted-item' });
+                });
+            });
+        });
+        describe('priorities', () => {
+            beforeEach(async () => {
+                const itemStyler = (params: AgBarSeriesItemStylerParams<D, C>): AgBarSeriesStyle => {
+                    if (params.xValue === 'February') {
+                        if (params.yKey === 'sales') {
+                            return { fill: 'gold', cornerRadius: 0 };
+                        } else {
+                            return { fill: 'grey', cornerRadius: 0 };
+                        }
+                    }
+                    return {};
+                };
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'sales',
+                                fill: 'lime', // ignored
+                                cornerRadius: 45, // ignored only for February
+                                itemStyler,
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'bar',
+                                xKey: 'month',
+                                yKey: 'expenses',
+                                fill: 'olive', // ignored
+                                stroke: 'navy', // not ignored
+                                strokeWidth: 3, // not ignored
+                                itemStyler,
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
         });
     });
 });

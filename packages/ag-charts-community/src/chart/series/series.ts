@@ -53,7 +53,7 @@ import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { SeriesType } from '../mapping/types';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
-import { HighlightState, type SeriesProperties, highlightStates } from './seriesProperties';
+import { HighlightState, type SeriesProperties, highlightStates, toHighlightString } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type { INodeEvent, ISeries, NodeDataDependencies, SeriesNodeDatum, SeriesNodeEventTypes } from './seriesTypes';
@@ -625,21 +625,7 @@ export abstract class Series<
         datumIndex?: TDatumIndex,
         legendItemValues?: string[]
     ): PublicHighlightState {
-        const state = this.getHighlightState(datum, isHighlight, datumIndex, legendItemValues);
-
-        switch (state) {
-            case HighlightState.Item:
-                return 'highlighted-item';
-            case HighlightState.OtherItem:
-                return 'unhighlighted-item';
-            case HighlightState.Series:
-                return 'highlighted-series';
-            case HighlightState.OtherSeries:
-                return 'unhighlighted-series';
-            case HighlightState.None:
-            default:
-                return 'none';
-        }
+        return toHighlightString(this.getHighlightState(datum, isHighlight, datumIndex, legendItemValues));
     }
 
     protected onChangeHighlight(event: HighlightChangeEvent) {

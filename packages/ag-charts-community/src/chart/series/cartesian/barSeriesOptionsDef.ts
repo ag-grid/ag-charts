@@ -29,16 +29,19 @@ import {
 
 const highlight = multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef);
 
+const barStyler = callbackDefs<AgBarSeriesStyle>({
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    cornerRadius: positiveNumber,
+});
+
 export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
-    itemStyler: callbackDefs<AgBarSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        cornerRadius: positiveNumber,
-    }),
+    styler: barStyler,
+    itemStyler: barStyler,
     crisp: boolean,
     label: {
         ...seriesLabelOptionsDefs,
