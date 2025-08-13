@@ -411,6 +411,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         });
     }
 
+    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: _ModuleSupport.HighlightState): never {
+        throw new Error('not implemented');
+    }
+
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { angleKey, angleName, radiusKey, radiusName, tooltip, marker } = properties;

@@ -3,7 +3,6 @@ import { isDefined } from 'ag-charts-core';
 import {
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgLineSeriesLabelFormatterParams,
-    type AgLineSeriesMarkerItemStylerParams,
     type AgLineSeriesOptions,
     type AgLineSeriesStylerParams,
     type AgLineSeriesStylerResult,

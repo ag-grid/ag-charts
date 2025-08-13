@@ -624,6 +624,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
+    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: _ModuleSupport.HighlightState): never {
+        throw new Error('not implemented');
+    }
+
     override getTooltipContent(
         datumIndex: number,
         removeThisDatum: RangeAreaMarkerDatum | undefined

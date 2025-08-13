@@ -15,7 +15,7 @@ import type { AnimationManager } from '../../interaction/animationManager';
 import { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
 import type { SeriesMarker } from '../seriesMarker';
-import { type HighlightState, highlightStates } from '../seriesProperties';
+import { HighlightState, highlightStates } from '../seriesProperties';
 import type { ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import * as easing from './../../../motion/easing';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -92,23 +92,13 @@ interface MarkerNodeDatum extends SeriesNodeDatum<unknown> {
     readonly point: Point & SizedPoint;
 }
 
-interface MarkerSeries<TDatum extends MarkerNodeDatum, TStylerParams>
-    extends ISeries<number, TDatum, unknown, unknown> {
+interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<number, TDatum, unknown, unknown> {
     getNodeData(): { [index: number]: TDatum | undefined } | undefined;
     getFormattedMarkerStyle(datum: TDatum): { size: number; shape?: AgMarkerShape };
-    getMarkerStyle<TParams>(
-        marker: SeriesMarker<TParams>,
-        nodeDatum: object,
-        params?: TParams,
-        opts?: { highlightState?: HighlightState },
-        defaultOverrideStyle?: AgSeriesMarkerStyle & { size: number },
-        inheritedStyle?: AgSeriesMarkerStyle
-    ): AgSeriesMarkerStyle & { size: number };
-    makeStylerParams?(highlighted: boolean, highlightStateEnum?: HighlightState): TStylerParams;
 }
 
 export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
-    series: MarkerSeries<TDatum, unknown>,
+    series: MarkerSeries<TDatum>,
     { datumIndex }: PickFocusInputs
 ): BBox | undefined {
     const nodeData = series.getNodeData();
@@ -144,19 +134,43 @@ export function markerEnabled(
     return step > minSpacing;
 }
 
-export function getMarkerStyles<TDatum extends MarkerNodeDatum, TStylerParams, TItemStylerParams>(
-    series: MarkerSeries<TDatum, TStylerParams>,
+type DefaultOverrideStyle = AgSeriesMarkerStyle & { size: number };
+
+interface MarkerSeriesStylerProps<TStylerParams> {
+    properties: { styler?: (params: TStylerParams) => { marker?: AgSeriesMarkerStyle } | undefined };
+    getMarkerStyle<TParams>(
+        marker: SeriesMarker<TParams>,
+        nodeDatum: object,
+        params?: TParams,
+        opts?: { highlightState?: HighlightState },
+        defaultOverrideStyle?: DefaultOverrideStyle,
+        inheritedStyle?: AgSeriesMarkerStyle
+    ): AgSeriesMarkerStyle & { size: number };
+    makeStylerParams(highlighted: boolean, highlightStateEnum?: HighlightState): TStylerParams;
+}
+
+export function getMarkerStyles<TStylerParams, TItemStylerParams>(
+    series: MarkerSeriesStylerProps<TStylerParams>,
     marker: SeriesMarker<TItemStylerParams>,
     inheritedStyle?: AgSeriesMarkerStyle
 ) {
     return highlightStates.reduce(
         (styles, state) => {
+            let defaultOverrideStyle: DefaultOverrideStyle | undefined;
+            if (series.properties.styler) {
+                const params = series.makeStylerParams(state === HighlightState.None, state);
+                const result = series.properties.styler(params);
+                if (result?.marker != null) {
+                    defaultOverrideStyle = { ...result.marker, size: result.marker.size ?? marker.size };
+                }
+            }
+
             styles[state] = series.getMarkerStyle(
                 marker,
                 {},
                 undefined,
                 { highlightState: state },
-                undefined,
+                defaultOverrideStyle,
                 inheritedStyle
             );
             return styles;

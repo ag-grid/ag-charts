@@ -43,6 +43,7 @@ import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import type { HighlightState } from '../seriesProperties';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
 import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
@@ -1060,6 +1061,10 @@ export class AreaSeries extends CartesianSeries<
                 text.visible = false;
             }
         });
+    }
+
+    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: HighlightState): never {
+        throw new Error('not implemented');
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {

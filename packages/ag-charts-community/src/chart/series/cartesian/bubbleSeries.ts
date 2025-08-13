@@ -36,6 +36,7 @@ import { Marker } from '../../marker/marker';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import type { HighlightState } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import {
     type BubbleAggregation,
@@ -489,7 +490,7 @@ export class BubbleSeries extends CartesianSeries<
             labelData: labelEnabled ? nodeData : [],
             scales: this.calculateScaling(),
             visible: this.visible,
-            styles: getMarkerStyles<BubbleScatterNodeDatum, unknown, AgBubbleSeriesOptionsKeys>(this, marker),
+            styles: getMarkerStyles<unknown, AgBubbleSeriesOptionsKeys>(this, marker),
         };
     }
 
@@ -638,6 +639,10 @@ export class BubbleSeries extends CartesianSeries<
             text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
             text.setBoxing(style);
         });
+    }
+
+    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: HighlightState): never {
+        throw new Error('not implemented');
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
