@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AgTopologyChartOptions } from 'ag-charts-types';
 
-const { Chart, MercatorScale, NumberAxis, Property } = _ModuleSupport;
+const { Chart, MercatorScale, ChartAxisDirection, Property } = _ModuleSupport;
 
 function isTopologySeries(
     series: _ModuleSupport.Series<unknown, any, object, any>
@@ -19,21 +19,13 @@ export class TopologyChart extends Chart {
     static readonly className = 'TopologyChart';
     static readonly type = 'topology' as const;
 
-    private readonly xAxis: _ModuleSupport.NumberAxis;
-    private readonly yAxis: _ModuleSupport.NumberAxis;
-
     @Property
     topology?: _ModuleSupport.FeatureCollection;
 
     constructor(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
         super(options, resources);
 
-        this.xAxis = new NumberAxis(this.getModuleContext());
-        this.xAxis.position = 'bottom';
-        this.yAxis = new NumberAxis(this.getModuleContext());
-        this.yAxis.position = 'left';
-
-        this.ctx.zoomManager.updateAxes([this.xAxis, this.yAxis]);
+        this.ctx.zoomManager.updateAxes([ChartAxisDirection.X, ChartAxisDirection.Y]);
     }
 
     override getChartType() {
@@ -96,8 +88,8 @@ export class TopologyChart extends Chart {
             const x1 = viewBoxOriginX + viewBoxWidth;
             const y1 = viewBoxOriginY + viewBoxHeight;
 
-            const xZoom = this.ctx.zoomManager.getAxisZoom(this.xAxis.id);
-            const yZoom = this.ctx.zoomManager.getAxisZoom(this.yAxis.id);
+            const xZoom = this.ctx.zoomManager.getAxisZoom(ChartAxisDirection.X);
+            const yZoom = this.ctx.zoomManager.getAxisZoom(ChartAxisDirection.Y);
             const xSpan = (x1 - x0) / (xZoom.max - xZoom.min);
             const xStart = x0 - xSpan * xZoom.min;
             const ySpan = (y1 - y0) / (1 - yZoom.min - (1 - yZoom.max));
