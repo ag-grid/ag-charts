@@ -17,7 +17,7 @@ export interface CategoryScaling {
     range: [number, number];
     inset: number;
     step: number;
-    convert(domain: number): number;
+    convert(domain: any): number;
 }
 
 function isContinuousScaling(scaling: Scaling): scaling is ContinuousScaling {
