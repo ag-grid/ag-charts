@@ -901,11 +901,11 @@ export class LineSeries extends CartesianSeries<
                 fillOpacity: stylerResult.marker.fillOpacity ?? fillOpacity,
                 shape: stylerResult.marker.shape ?? shape,
                 size: stylerResult.marker.size ?? size,
-                lineDash: stylerResult.lineDash ?? marker.lineDash ?? lineDash,
-                lineDashOffset: stylerResult.lineDashOffset ?? marker.lineDashOffset ?? lineDashOffset,
-                stroke: stylerResult.stroke ?? marker.stroke ?? stroke,
-                strokeOpacity: stylerResult.strokeOpacity ?? marker.strokeOpacity ?? strokeOpacity,
-                strokeWidth: stylerResult.strokeWidth ?? marker.strokeWidth ?? strokeWidth,
+                lineDash: stylerResult.marker.lineDash ?? marker.lineDash ?? lineDash,
+                lineDashOffset: stylerResult.marker.lineDashOffset ?? marker.lineDashOffset ?? lineDashOffset,
+                stroke: stylerResult.marker.stroke ?? marker.stroke ?? stroke,
+                strokeOpacity: stylerResult.marker.strokeOpacity ?? marker.strokeOpacity ?? strokeOpacity,
+                strokeWidth: stylerResult.marker.strokeWidth ?? marker.strokeWidth ?? strokeWidth,
             } satisfies RequireOptional<AgSeriesMarkerStyle>,
         } satisfies RequireOptional<AgLineSeriesStylerResult>;
     }
