@@ -1,5 +1,3 @@
-const MAX_TICK_LAYOUT = 1_000;
-
 /**
  * The tree layout is calculated in abstract x/y coordinates, where the root is at (0, 0)
  * and the tree grows downward from the root.
@@ -53,6 +51,7 @@ class TreeNode {
 
     insertTick(tick: string[], index: number) {
         let root: TreeNode = this;
+        let endNode: TreeNode | undefined;
         for (let i = 0; i < tick.length; i++) {
             const pathPart = tick[i];
             const isNotLeaf = i !== tick.length - 1;
@@ -61,6 +60,7 @@ class TreeNode {
             if (existingNode && isNotLeaf) {
                 // the isNotLeaf check is to allow duplicate leafs
                 root = existingNode;
+                endNode = existingNode;
             } else {
                 const node = new TreeNode(pathPart, root, index);
                 node.index = children.length;
@@ -68,8 +68,10 @@ class TreeNode {
                 if (isNotLeaf) {
                     root = node;
                 }
+                endNode = node;
             }
         }
+        return endNode;
     }
 
     getLeftSibling(): TreeNode | undefined {
@@ -98,17 +100,21 @@ class TreeNode {
  * Converts an array of ticks, where each tick has an array of labels, to a label tree.
  * Ensures that every branch matches the depth of the tree by creating empty labels.
  */
-function ticksToTree(ticks: string[][]): TreeNode {
+function ticksToTree(ticks: string[][]): { root: TreeNode; tickNodes: Map<string[], TreeNode> } {
     const maxDepth = ticks.reduce((depth, tick) => (depth < tick.length ? tick.length : depth), 0);
     const root = new TreeNode();
+    const tickNodes = new Map<string[], TreeNode>();
     for (let i = 0; i < ticks.length; i++) {
         const tick = ticks[i];
         while (tick.length < maxDepth) {
             tick.push('');
         }
-        root.insertTick(tick, i);
+        const node = root.insertTick(tick, i);
+        if (node != null) {
+            tickNodes.set(tick, node);
+        }
     }
-    return root;
+    return { root, tickNodes };
 }
 
 // Shift the subtree.
@@ -244,17 +250,16 @@ function thirdWalk(v: TreeNode) {
     }
 }
 
-export function treeLayout(ticks: string[][]): TreeLayout {
+export function treeLayout(ticks: string[][]): { layout: TreeLayout; tickNodes: Map<string[], TreeNode> } {
     const layout = new TreeLayout();
-    if (ticks.length > MAX_TICK_LAYOUT) return layout;
 
-    const root = ticksToTree(ticks);
+    const { root, tickNodes } = ticksToTree(ticks);
 
     firstWalk(root);
     secondWalk(root, -root.prelim, layout);
     thirdWalk(root);
 
-    return layout;
+    return { layout, tickNodes };
 }
 
 export class TreeLayout {
