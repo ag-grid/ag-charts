@@ -875,7 +875,7 @@ describe('LineSeries', () => {
                                 yKey: 'sales',
                                 marker: {
                                     fill: 'lime', // ignored
-                                    shape: 'square', // ignored only for February
+                                    shape: 'square', // ignored
                                     itemStyler,
                                 },
                                 styler: styler.frozen,
@@ -886,7 +886,7 @@ describe('LineSeries', () => {
                                 yKey: 'expenses',
                                 marker: {
                                     fill: 'olive', // ignored
-                                    shape: 'square', // ignored only for February
+                                    shape: 'square', // ignored
                                     itemStyler,
                                 },
                                 stroke: 'navy', // ignored
