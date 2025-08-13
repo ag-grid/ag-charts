@@ -43,7 +43,7 @@ export interface AgAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
     connectMissingData?: boolean;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
-    segmentation: AgSeriesSegment;
+    segmentation?: AgSeriesSegment;
 }
 
 export interface AgSeriesSegment {
