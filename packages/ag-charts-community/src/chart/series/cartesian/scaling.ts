@@ -1,6 +1,6 @@
 import { arraysEqual } from 'ag-charts-core';
 
-export type Scaling = ContinuousScaling | CategoryScaling;
+export type Scaling = ContinuousScaling | CategoryScaling | LogScaling;
 
 export interface ContinuousScaling<T = 'continuous'> {
     type: T;
