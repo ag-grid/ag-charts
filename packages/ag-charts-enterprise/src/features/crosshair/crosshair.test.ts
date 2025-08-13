@@ -331,7 +331,7 @@ describe('Crosshair', () => {
         await compare();
     });
 
-    it('AG-15565', async () => {
+    it('AG-15565 draws area series crosshair in correct position', async () => {
         const data = [
             { month: 'Jan', subscriptions: 222, services: 250, products: 200 },
             { month: 'Feb', subscriptions: 240, services: 255, products: 210 },
