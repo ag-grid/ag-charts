@@ -3,6 +3,7 @@ import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
+import type { ScaleTickParams } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import type { ShapeColor } from '../../scene/shape/shape';
 import { TransformableText } from '../../scene/shape/text';
@@ -17,6 +18,8 @@ import type { LabelNodeDatum } from './axis';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
 import { CategoryAxis } from './categoryAxis';
 import { type TreeLayout, treeLayout } from './tree';
+
+export const MIN_GRIDLINE_SPACING = 5;
 
 type TreeNode = TreeLayout['nodes'][number];
 
@@ -427,7 +430,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         // As most super methods aren't called, we need to do this manually
         this.moduleCtx.animationManager.skipCurrentBatch();
 
-        const { tickScale, tick, gridLine, gridLength } = this;
+        const { tickScale, tick, gridLine, gridLength, visibleRange } = this;
         const { separatorLayout, spacing } = this.computedLayout;
 
         const { position, horizontal, gridPadding } = this;
@@ -435,19 +438,23 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const p1 = gridPadding;
         const p2 = direction * gridLength - gridPadding;
 
-        const ticks: GridLineStyleTickDatum[] = tickScale
-            .ticks({
+        let ticks: GridLineStyleTickDatum[];
+        if (tickScale.step > MIN_GRIDLINE_SPACING) {
+            const tickParams: ScaleTickParams<number> = {
                 nice: false,
                 interval: undefined,
                 tickCount: undefined,
                 minTickCount: 0,
                 maxTickCount: Infinity,
-            })
-            .ticks.map((t, index) => ({
+            };
+            ticks = tickScale.ticks(tickParams, undefined, visibleRange).ticks.map((t, index) => ({
                 index,
                 tickId: createDatumId(index, ...t),
                 translation: Math.round(tickScale.convert(t)),
             }));
+        } else {
+            ticks = [];
+        }
 
         this.gridLineGroupSelection.update(
             gridLine.enabled && gridLength ? this.calculateGridLines(ticks, p1, p2) : []
