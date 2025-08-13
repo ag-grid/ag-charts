@@ -15,6 +15,12 @@ export class Animation extends _ModuleSupport.BaseModuleInstance implements _Mod
     @Property
     public duration?: number;
 
+    @ObserveChanges<Animation>((target, newValue) => {
+        target.ctx.animationManager.maxAnimatableItems = newValue ?? Infinity;
+    })
+    @Property
+    public maxAnimatableItems?: number;
+
     constructor(protected readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 

@@ -33,6 +33,7 @@ function validAnimationDuration(testee?: number) {
  */
 export class AnimationManager {
     public defaultDuration = 1000;
+    public maxAnimatableItems = Infinity;
 
     private batch = new AnimationBatch(this.defaultDuration * 1.5);
 
