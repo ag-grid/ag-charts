@@ -5,7 +5,7 @@ import type { BBox } from '../bbox';
 import { SceneChangeDetection } from '../changeDetectable';
 import { ExtendedPath2D } from '../extendedPath2D';
 import type { ChildNodeCounts, RenderContext } from '../node';
-import { type CanvasContext, Shape } from './shape';
+import { Shape } from './shape';
 
 export class Path<D = any> extends Shape<D> implements DistantObject {
     static readonly className: string = 'Path';
@@ -169,7 +169,7 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
         super.render(renderCtx);
     }
 
-    drawPath(ctx: CanvasContext) {
+    drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
         this.fillStroke(ctx, this.path.getPath2D());
     }
 

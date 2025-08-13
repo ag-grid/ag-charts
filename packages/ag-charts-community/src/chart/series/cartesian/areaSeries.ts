@@ -892,12 +892,13 @@ export class AreaSeries extends CartesianSeries<
             animationEnabled,
         } = opts;
         const crossFiltering = this.contextNodeData?.crossFiltering === true;
+        const segments = this.contextNodeData?.segments;
 
         const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle(false));
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, fill, fillOpacity, opacity } = merged;
 
         strokePaths.setProperties({
-            segments: this.contextNodeData?.segments,
+            segments,
             fill: undefined,
             lineCap: 'round',
             lineJoin: 'round',
@@ -910,6 +911,7 @@ export class AreaSeries extends CartesianSeries<
             opacity,
             visible: visible || animationEnabled,
         });
+        strokePaths.datum = segments;
 
         applyShapeStyle(
             fillPaths,
@@ -922,13 +924,14 @@ export class AreaSeries extends CartesianSeries<
         );
 
         fillPaths.setProperties({
-            segments: this.contextNodeData?.segments,
+            segments,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
         });
+        fillPaths.datum = segments;
 
         updateClipPath(this, strokePaths);
         updateClipPath(this, fillPaths);
