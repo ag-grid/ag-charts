@@ -1186,7 +1186,7 @@ export abstract class CartesianSeries<
                 inset: scale.inset,
                 step: scale.step,
                 range: [range[0], range[1]],
-                convert: (d) => scale.convert(d),
+                convert: (d: any) => scale.convert(d),
             };
         }
     }
