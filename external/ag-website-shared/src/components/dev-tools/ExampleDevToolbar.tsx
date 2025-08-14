@@ -35,6 +35,7 @@ function EnvLink({
     framework: Framework;
     exampleName: string;
 }) {
+    const isGallery = useIsGallery();
     const openLinksInNewTab = useStoreSsr($openLinksInNewTab, false);
     const [isEnv, setIsEnv] = useState<boolean>(false);
     const [url, setUrl] = useState('');
@@ -46,17 +47,20 @@ function EnvLink({
         setIsEnv(config.hosts.includes(window.location.host) && !getIsArchive());
 
         const pageName = getPageNameFromPath(window.location.pathname);
-        const url = pathJoin(
-            `https://${siteHostBaseUrl}`,
-            urlWithPrefix({
-                framework,
-                url: `./${pageName}`,
-                siteBaseUrl: '/', // Gets added by `siteHostBaseUrl`
-            }),
-            `#example-${exampleName}`
-        );
+        const url = isGallery
+            ? pathJoin(`https://${siteHostBaseUrl}`, `/gallery/${pageName}`)
+            : pathJoin(
+                  `https://${siteHostBaseUrl}`,
+                  urlWithPrefix({
+                      framework,
+                      url: `./${pageName}`,
+                      siteBaseUrl: '/', // Gets added by `siteHostBaseUrl`
+                  }),
+                  `#example-${exampleName}`
+              );
+
         setUrl(url);
-    }, []);
+    }, [isGallery]);
 
     return (
         <li key={env} className={classNames(styles.exampleLink)}>
