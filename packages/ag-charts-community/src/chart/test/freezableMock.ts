@@ -1,5 +1,6 @@
 import { Caster } from 'ag-charts-test';
 import type {
+    AgAreaSeriesThemeableOptions,
     AgBarSeriesOptions,
     AgBarSeriesThemeableOptions,
     AgBaseChartListeners,
@@ -13,6 +14,10 @@ import type {
     AgLineSeriesThemeableOptions,
 } from 'ag-charts-types';
 
+export type MockAreaStyler<TDatum, TContext> = NonNullable<AgAreaSeriesThemeableOptions<TDatum, TContext>['styler']>;
+export type MockAreaItemStyler<TDatum, TContext> = NonNullable<
+    NonNullable<AgAreaSeriesThemeableOptions<TDatum, TContext>['marker']>['itemStyler']
+>;
 export type MockBarStyler<TDatum, TContext> = NonNullable<AgBarSeriesThemeableOptions<TDatum, TContext>['styler']>;
 export type MockBarItemStyler<TDatum, TContext> = NonNullable<
     AgBarSeriesThemeableOptions<TDatum, TContext>['itemStyler']
@@ -70,6 +75,8 @@ export type MockOverlayRenderer<TDatum, TContext> = NonNullable<
 >;
 
 export type MockAPICallback<TDatum, TContext> =
+    | MockAreaStyler<TDatum, TContext>
+    | MockAreaItemStyler<TDatum, TContext>
     | MockBarStyler<TDatum, TContext>
     | MockBarItemStyler<TDatum, TContext>
     | MockLineStyler<TDatum, TContext>

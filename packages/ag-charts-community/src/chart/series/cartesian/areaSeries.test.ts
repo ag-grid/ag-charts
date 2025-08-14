@@ -1,14 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import type {
+    AgAreaSeriesMarkerItemStylerParams,
     AgAreaSeriesOptions,
+    AgAreaSeriesStylerParams,
+    AgAreaSeriesStylerResult,
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
     AgColorRepeat,
     AgImageFillFit,
     AgPatternName,
+    AgSeriesMarkerStyle,
     AgUnitTimeAxisOptions,
+    HighlightState,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
@@ -24,6 +29,7 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
+import { MockAreaStyler, newFreezableMock } from '../../test/freezableMock';
 import type { CartesianOrPolarTestCase, ChartTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -1037,6 +1043,212 @@ describe('AreaSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    describe('AG-11673 styler', () => {
+        type D = unknown;
+        type C = unknown;
+        type M = MockAreaStyler<D, C>;
+        let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        const data = [
+            { month: 'January', sales: 1200, expenses: 800 },
+            { month: 'February', sales: 1500, expenses: 950 },
+            { month: 'March', sales: 1700, expenses: 1100 },
+        ];
+        beforeEach(() => {
+            styler = newFreezableMock<D, C, M>(
+                (params: AgAreaSeriesStylerParams<D, C>): AgAreaSeriesStylerResult | undefined => {
+                    if (params.yKey === 'sales')
+                        return {
+                            marker: {
+                                fill: 'cyan',
+                                shape: 'triangle',
+                                size: 50,
+                            },
+                            fill: 'skyblue',
+                            fillOpacity: 0.7,
+                            lineDash: [3, 3],
+                            lineDashOffset: 5,
+                            stroke: 'blue',
+                            strokeWidth: 7,
+                        };
+                    else if (params.yKey === 'expenses')
+                        return {
+                            marker: {
+                                fill: 'magenta',
+                                fillOpacity: 0.5,
+                                shape: 'star',
+                                size: 40,
+                            },
+                            fill: 'navy',
+                            fillOpacity: 0.4,
+                            stroke: 'purple',
+                        };
+                    return {};
+                }
+            );
+        });
+        describe('init', () => {
+            let c1: C;
+            let c2: C;
+            beforeEach(async () => {
+                c1 = { name: 'sales context' };
+                c2 = { name: 'expenses context' };
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data,
+                        series: [
+                            { type: 'area', xKey: 'month', yKey: 'sales', styler: styler.frozen, context: c1 },
+                            { type: 'area', xKey: 'month', yKey: 'expenses', styler: styler.frozen, context: c2 },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+            describe('callbacks', () => {
+                test('context', () => {
+                    styler.expect().nthCalledWithContext(0, c1);
+                    styler.expect().nthCalledWithContext(1, c2);
+                    styler.expect().nthCalledWithContext(2, c1);
+                    styler.expect().nthCalledWithContext(3, c1);
+                    styler.expect().nthCalledWithContext(4, c1);
+                    styler.expect().nthCalledWithContext(5, c1);
+                    styler.expect().nthCalledWithContext(6, c1);
+                    styler.expect().nthCalledWithContext(7, c1);
+                    styler.expect().nthCalledWithContext(8, c1);
+                    styler.expect().nthCalledWithContext(9, c2);
+                    styler.expect().nthCalledWithContext(10, c2);
+                    styler.expect().nthCalledWithContext(11, c2);
+                    styler.expect().nthCalledWithContext(12, c2);
+                    styler.expect().nthCalledWithContext(13, c2);
+                    styler.expect().nthCalledWithContext(14, c2);
+                    styler.expect().nthCalledWithContext(15, c2);
+                    styler.expect().toHaveBeenCalledTimes(16);
+                });
+                test('params', () => {
+                    const p1 = {
+                        context: { name: 'sales context' },
+                        lineDash: [0],
+                        lineDashOffset: 0,
+                        marker: {
+                            fill: '#f3622d',
+                            fillOpacity: 1,
+                            lineDash: [0],
+                            lineDashOffset: 0,
+                            shape: 'circle',
+                            size: 7,
+                            stroke: '#aa4520',
+                            strokeOpacity: 1,
+                            strokeWidth: 0,
+                        },
+                        seriesId: 'AreaSeries-1',
+                        stroke: '#f3622d',
+                        strokeOpacity: 1,
+                        strokeWidth: 2,
+                        xKey: 'month',
+                        yKey: 'sales',
+                    } as const;
+                    const p2 = {
+                        context: { name: 'expenses context' },
+                        lineDash: [0],
+                        lineDashOffset: 0,
+                        marker: {
+                            fill: '#fba71b',
+                            fillOpacity: 1,
+                            lineDash: [0],
+                            lineDashOffset: 0,
+                            shape: 'circle',
+                            size: 7,
+                            stroke: '#b07513',
+                            strokeOpacity: 1,
+                            strokeWidth: 0,
+                        },
+                        seriesId: 'AreaSeries-2',
+                        stroke: '#fba71b',
+                        strokeOpacity: 1,
+                        strokeWidth: 2,
+                        xKey: 'month',
+                        yKey: 'expenses',
+                    } as const;
+                    const params = (p: typeof p1 | typeof p2, highlighted: boolean, highlightState: HighlightState) => {
+                        return { ...p, highlighted, highlightState };
+                    };
+                    const { mock } = styler;
+                    expect(mock).nthCalledWith(1, params(p1, false, 'none'));
+                    expect(mock).nthCalledWith(2, params(p2, false, 'none'));
+                    expect(mock).nthCalledWith(3, params(p1, true, 'none'));
+                    expect(mock).nthCalledWith(4, params(p1, false, 'highlighted-item'));
+                    expect(mock).nthCalledWith(5, params(p1, false, 'highlighted-series'));
+                    expect(mock).nthCalledWith(6, params(p1, false, 'unhighlighted-series'));
+                    expect(mock).nthCalledWith(7, params(p1, false, 'unhighlighted-item'));
+                    expect(mock).nthCalledWith(8, params(p1, true, 'none'));
+                    expect(mock).nthCalledWith(9, params(p1, false, 'none'));
+                    expect(mock).nthCalledWith(10, params(p2, true, 'none'));
+                    expect(mock).nthCalledWith(11, params(p2, false, 'highlighted-item'));
+                    expect(mock).nthCalledWith(12, params(p2, false, 'highlighted-series'));
+                    expect(mock).nthCalledWith(13, params(p2, false, 'unhighlighted-series'));
+                    expect(mock).nthCalledWith(14, params(p2, false, 'unhighlighted-item'));
+                    expect(mock).nthCalledWith(15, params(p2, true, 'none'));
+                    expect(mock).nthCalledWith(16, params(p2, false, 'none'));
+                    styler.expect().toHaveBeenCalledTimes(16);
+                });
+            });
+        });
+        describe('priorities', () => {
+            beforeEach(async () => {
+                const itemStyler = (params: AgAreaSeriesMarkerItemStylerParams<D, C>): AgSeriesMarkerStyle => {
+                    if (params.xValue === 'February') {
+                        if (params.yKey === 'sales') {
+                            return { fill: 'gold', shape: 'plus', strokeWidth: 0 };
+                        } else {
+                            return { fill: 'grey', shape: 'cross' };
+                        }
+                    }
+                    return {};
+                };
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'area',
+                                xKey: 'month',
+                                yKey: 'sales',
+                                marker: {
+                                    fill: 'lime', // ignored
+                                    shape: 'square', // ignored
+                                    strokeWidth: 3, // ignored only for February
+                                    itemStyler,
+                                },
+                                fill: 'limegreen', // ignored
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'area',
+                                xKey: 'month',
+                                yKey: 'expenses',
+                                marker: {
+                                    fill: 'olive', // ignored
+                                    shape: 'square', // ignored
+                                    itemStyler,
+                                },
+                                fill: 'olivedrab', // ignored
+                                stroke: 'green', // ignored
+                                strokeWidth: 5, // not ignored
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
         });
     });
 });
