@@ -252,7 +252,7 @@ export class LineSeries extends CartesianSeries<
 
         const yExtent = this.domainForClippedRange(
             ChartAxisDirection.Y,
-            [this.yCumulativeKey(this.processedData!)],
+            [this.yCumulativeKey(processedData)],
             'xValue'
         );
 
@@ -313,9 +313,9 @@ export class LineSeries extends CartesianSeries<
 
         const {
             xKey,
-            yKey,
-            yFilterKey,
             xName,
+            yFilterKey,
+            yKey,
             yName,
             marker,
             label,
@@ -449,11 +449,7 @@ export class LineSeries extends CartesianSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
             crossFiltering,
-            styles: getMarkerStyles(this, marker, {
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-            }),
+            styles: getMarkerStyles(this, marker, { stroke, strokeWidth, strokeOpacity }),
         };
     }
 
@@ -469,10 +465,8 @@ export class LineSeries extends CartesianSeries<
         } = opts;
         const crossFiltering = this.contextNodeData?.crossFiltering === true;
 
-        const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = mergeDefaults(
-            this.getHighlightStyle(),
-            this.getStyle(false)
-        );
+        const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle(false));
+        const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = merged;
 
         lineNode.setProperties({
             fill: undefined,
@@ -530,7 +524,6 @@ export class LineSeries extends CartesianSeries<
             const { xValue, yValue } = datum;
 
             const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
-
             datum.style = this.getMarkerStyle(marker, datum, params, { isHighlight }, stylerStyle.marker, {
                 stroke,
                 strokeWidth,
@@ -704,7 +697,6 @@ export class LineSeries extends CartesianSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const color0 = 'rgba(0, 0, 0, 0)';
         const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle(false);
 
         const markerStyle = this.getMarkerStyle(
@@ -715,9 +707,9 @@ export class LineSeries extends CartesianSeries<
             {
                 size: marker.size,
                 shape: marker.shape,
-                fill: marker.fill ?? color0,
+                fill: marker.fill,
                 fillOpacity: marker.fillOpacity,
-                stroke: marker.stroke ?? stroke ?? color0,
+                stroke: marker.stroke,
             }
         );
 
@@ -727,7 +719,7 @@ export class LineSeries extends CartesianSeries<
                 enabled: this.properties.marker.enabled,
             },
             line: {
-                stroke: stroke ?? color0,
+                stroke,
                 strokeOpacity,
                 strokeWidth,
                 lineDash,
@@ -750,7 +742,7 @@ export class LineSeries extends CartesianSeries<
 
         return [
             {
-                legendType: 'category',
+                legendType,
                 id: seriesId,
                 itemId,
                 legendItemName,
