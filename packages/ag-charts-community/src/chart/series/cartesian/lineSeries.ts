@@ -818,6 +818,19 @@ export class LineSeries extends CartesianSeries<
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
             seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
         }
+
+        // The animation may clip spans
+        // When using smooth interpolation, the bezier spans are clipped using an approximation
+        // This can result in artefacting, which may be present on the final frame
+        // To remove this on the final frame, re-draw the series without animations
+        this.ctx.animationManager.animate({
+            id: this.id,
+            groupId: 'reset_after_animation',
+            phase: 'trailing',
+            from: {},
+            to: {},
+            onComplete: () => this.updateLinePaths(paths, contextData),
+        });
     }
 
     protected isLabelEnabled() {

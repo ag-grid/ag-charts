@@ -211,13 +211,28 @@ function spanAxisContext(newData: SpanContext, oldData: SpanContext): AxisContex
     return { axisValues, oldDataAxisIndices, newDataAxisIndices };
 }
 
-function clipSpan(span: Span, xValue0Index: number, xIndices: SpanIndices): Span {
+function clipSpan(
+    span: Span,
+    data: SpanContext,
+    axisValues: AxisValue[],
+    xValue0Index: number,
+    xIndices: SpanIndices
+): Span {
     if (xIndices.xValue1Index === xIndices.xValue0Index + 1) return span;
 
     const range = spanRange(span);
-    const step = (range[1].x - range[0].x) / (xIndices.xValue1Index - xIndices.xValue0Index);
-    const start = range[0].x + (xValue0Index - xIndices.xValue0Index) * step;
-    const end = start + step;
+    let start: number;
+    let end: number;
+    if (data.scales.x?.type === 'category') {
+        const step = (range[1].x - range[0].x) / (xIndices.xValue1Index - xIndices.xValue0Index);
+        start = range[0].x + (xValue0Index - xIndices.xValue0Index) * step;
+        end = start + step;
+    } else {
+        const xValue0 = axisValues[xValue0Index];
+        const xValue1 = axisValues[xValue0Index + 1];
+        start = scale(xValue0, data.scales.x);
+        end = scale(xValue1, data.scales.x);
+    }
     return clipSpanX(span, start, end);
 }
 
@@ -339,10 +354,21 @@ function alignSpanToContainingSpan(
     postData: SpanContext,
     postSpanIndices: SpanIndices
 ) {
+    const xScale = postData.scales.x;
+
     const startXValue0 = axisValues[postSpanIndices.xValue0Index];
-    const startDatum = preData.data.find((spanDatum) => toAxisValue(spanDatum.xValue0) === startXValue0);
     const endXValue1 = axisValues[postSpanIndices.xValue1Index];
-    const endDatum = preData.data.find((spanDatum) => toAxisValue(spanDatum.xValue1) === endXValue1);
+
+    let startDatum: SpanDatum | undefined;
+    let endDatum: SpanDatum | undefined;
+
+    if (xScale?.type === 'continuous' || xScale?.type === 'log') {
+        startDatum = preData.data.findLast((spanDatum) => toAxisValue(spanDatum.xValue0) <= startXValue0);
+        endDatum = preData.data.find((spanDatum) => toAxisValue(spanDatum.xValue1) >= endXValue1);
+    } else {
+        startDatum = preData.data.find((spanDatum) => toAxisValue(spanDatum.xValue0) === startXValue0);
+        endDatum = preData.data.find((spanDatum) => toAxisValue(spanDatum.xValue1) === endXValue1);
+    }
 
     if (startDatum == null || endDatum == null) return;
 
@@ -411,10 +437,13 @@ function appendSpanPhases(
     }
 
     const oldSpanDatum = oldData.data[oldIndices.datumIndex];
-    const clippedOldSpanOldScale = clipSpan(oldSpanDatum.span, xValue0Index, oldIndices);
+    const clippedOldSpanOldScale = clipSpan(oldSpanDatum.span, oldData, axisValues, xValue0Index, oldIndices);
 
     const newSpanDatum = newData.data[newIndices.datumIndex];
-    const clippedNewSpanNewScale = clipSpan(newSpanDatum.span, xValue0Index, newIndices);
+    const clippedNewSpanNewScale = clipSpan(newSpanDatum.span, newData, axisValues, xValue0Index, newIndices);
+
+    // if (xValue0Index === 1)
+    //     console.log(oldSpanDatum, newSpanDatum, clippedOldSpanOldScale, clippedNewSpanNewScale, oldIndices, newIndices);
 
     if (ordering === 1) {
         // Removed
@@ -496,6 +525,27 @@ function phaseAnimation(
     return out;
 }
 
+function replotXAnimation(newData: SpanContext, oldData: SpanContext) {
+    const removed: SpanInterpolationResult['removed'] = [];
+    const moved: SpanInterpolationResult['moved'] = [];
+    const added: SpanInterpolationResult['added'] = [];
+
+    for (let i = 0; i < oldData.data.length; i += 1) {
+        const oldSpan = oldData.data[i].span;
+        const newSpan = newData.data[i].span;
+
+        removed.push({ from: oldSpan, to: oldSpan });
+        moved.push({ from: oldSpan, to: newSpan });
+        added.push({ from: newSpan, to: newSpan });
+    }
+
+    return {
+        removed,
+        moved,
+        added,
+    };
+}
+
 function resetSpan(data: SpanContext, spanDatum: SpanDatum, collapseMode: CollapseMode) {
     const { span } = spanDatum;
     switch (collapseMode) {
@@ -542,7 +592,14 @@ export function pairUpSpans(
     if (!validateCategorySorting(newData, oldData)) return;
 
     const axisContext = spanAxisContext(newData, oldData);
-    return axisContext == null
-        ? resetAnimation(newData, oldData, collapseMode)
-        : phaseAnimation(axisContext, newData, oldData, collapseMode);
+    if (axisContext == null) {
+        return resetAnimation(newData, oldData, collapseMode);
+    } else if (
+        axisContext.axisValues.length ===
+        axisContext.oldDataAxisIndices.length + axisContext.newDataAxisIndices.length + 2
+    ) {
+        return replotXAnimation(newData, oldData);
+    } else {
+        return phaseAnimation(axisContext, newData, oldData, collapseMode);
+    }
 }
