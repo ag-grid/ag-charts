@@ -21,7 +21,8 @@ export class SegmentedPath extends Path {
         // Draw the gaps
         ctx.save();
         const inverse = new Path2D();
-        inverse.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        const margin = this.strokeWidth / 2;
+        inverse.rect(-margin, -margin, ctx.canvas.width + margin, ctx.canvas.height + margin);
         for (const s of this.segments) {
             inverse.rect(s.clipRect.x, s.clipRect.y, s.clipRect.width, s.clipRect.height);
         }
@@ -34,10 +35,16 @@ export class SegmentedPath extends Path {
             ctx.save();
 
             const segment = new Path();
+            segment.setProperties(styles);
+            segment.setProperties({
+                opacity: this.opacity,
+                lineCap: this.lineCap,
+                lineJoin: this.lineJoin,
+                pointerEvents: this.pointerEvents,
+            });
             segment.path = this.path;
             segment.fill = this.fill != null ? fill : 'none';
             segment.stroke = this.stroke != null ? stroke : 'none';
-            segment.setProperties(styles);
 
             const clipPath = new Path2D();
             clipPath.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
