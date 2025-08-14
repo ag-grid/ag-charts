@@ -1073,7 +1073,7 @@ describe('AreaSeries', () => {
                             stroke: 'blue',
                             strokeWidth: 7,
                         };
-                    else if (params.yKey === 'expenses')
+                    else if (params.yKey === 'expenses' || params.yKey === 'expenses2')
                         return {
                             marker: {
                                 fill: 'magenta',
@@ -1200,6 +1200,56 @@ describe('AreaSeries', () => {
                     expect(mock).nthCalledWith(16, params(p2, false, 'none'));
                     styler.expect().toHaveBeenCalledTimes(16);
                 });
+            });
+        });
+        describe('deriveMarkerEnabledFromStyler', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data: [
+                            { month: 'January', sales: 1200, sales2: 2400, expenses: 800, expenses2: 400 },
+                            { month: 'February', sales: 1500, sales2: 3000, expenses: 950, expenses2: 475 },
+                            { month: 'March', sales: 1700, sales2: 3400, expenses: 1100, expenses2: 550 },
+                        ],
+                        series: [
+                            {
+                                type: 'area',
+                                xKey: 'month',
+                                yKey: 'sales',
+                                // Do not draw markers, despite `styler` enabling markers.
+                                marker: { enabled: false },
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'area',
+                                xKey: 'month',
+                                yKey: 'sales2',
+                                // Draw default markers, despite `styler` not enabling markers.
+                                marker: { enabled: true },
+                                styler: () => undefined,
+                            },
+                            {
+                                type: 'area',
+                                xKey: 'month',
+                                yKey: 'expenses',
+                                // Draw markers, both `marker` and `styler` enable markers.
+                                marker: { enabled: true },
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'area',
+                                xKey: 'month',
+                                yKey: 'expenses2',
+                                // Draw markers, despite the `marker.enabled: false` default.
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
             });
         });
         describe('priorities', () => {
