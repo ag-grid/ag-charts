@@ -46,6 +46,7 @@ const {
     processedDataIsAnimatable,
     simpleMemorize2,
     markerEnabled,
+    getMarkerStyles,
 } = _ModuleSupport;
 
 const memoizedAggregateRangeAreaData = simpleMemorize2(aggregateRangeAreaData);
@@ -354,7 +355,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             lowStrokeData: { itemId: 'low', spans: lowSpans },
             scales: this.calculateScaling(),
             visible: this.visible,
-            styles: this.getMarkerStyles(marker, {
+            styles: getMarkerStyles(this, marker, {
                 fill,
                 fillOpacity,
                 stroke,
@@ -621,6 +622,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     ): RangeAreaMarkerDatum[] | undefined {
         const highlightItems = nodeData.filter((nodeDatum) => nodeDatum.datum === highlightedItem.datum);
         return highlightItems.length > 0 ? highlightItems : undefined;
+    }
+
+    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: _ModuleSupport.HighlightState): never {
+        throw new Error('not implemented');
     }
 
     override getTooltipContent(

@@ -608,10 +608,16 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.seriesGrouping = undocumented(defined);
 
-export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
-    enabled: boolean,
+export const markerStyleOptionsDefs: OptionsDefs<AgSeriesMarkerStyle> = {
     shape: shapeValidator,
     size: positiveNumber,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
+    enabled: boolean,
     autoHide: boolean,
     itemStyler: callbackDefs<AgSeriesMarkerStyle>({
         ...fillOptionsDef,
@@ -620,9 +626,7 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
         shape: shapeValidator,
         size: positiveNumber,
     }),
-    ...fillOptionsDef,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
+    ...markerStyleOptionsDefs,
 };
 
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {

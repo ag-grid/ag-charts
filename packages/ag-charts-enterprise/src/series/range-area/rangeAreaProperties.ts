@@ -6,6 +6,7 @@ import type {
     AgRangeAreaSeriesTooltipRendererParams,
     AgSeriesMarkerStyle,
     PixelSize,
+    Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
@@ -84,6 +85,9 @@ export class RangeAreaProperties extends CartesianSeriesProperties<AgRangeAreaSe
 
     @Property
     interpolation: _ModuleSupport.InterpolationProperties = new InterpolationProperties();
+
+    @Property
+    styler?: Styler<unknown, undefined>;
 
     @Property
     readonly shadow = new DropShadow().set({ enabled: false });

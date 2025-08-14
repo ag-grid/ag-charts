@@ -4,6 +4,7 @@ import type {
     AgRadarSeriesTooltipRendererParams,
     AgRadialSeriesOptionsKeys,
     AgSeriesMarkerStyle,
+    Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
@@ -54,6 +55,9 @@ export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends S
 
     @Property
     rotation: number = 0;
+
+    @Property
+    styler?: Styler<unknown, undefined>;
 
     @Property
     readonly marker = new SeriesMarker<AgRadialSeriesOptionsKeys>();

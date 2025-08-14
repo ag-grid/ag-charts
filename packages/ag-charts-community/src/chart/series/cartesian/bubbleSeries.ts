@@ -2,6 +2,7 @@ import { type Point, type RequireOptional, cachedTextMeasurer, clamp } from 'ag-
 import {
     type AgBubbleSeriesLabelFormatterParams,
     type AgBubbleSeriesOptions,
+    type AgBubbleSeriesOptionsKeys,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgSeriesMarkerStyle,
     type FillOptions,
@@ -35,6 +36,7 @@ import { Marker } from '../../marker/marker';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import type { HighlightState } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import {
     type BubbleAggregation,
@@ -56,7 +58,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { computeMarkerFocusBounds, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
+import { computeMarkerFocusBounds, getMarkerStyles, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 
 type BubbleScatterAnimationData = CartesianAnimationData<Marker, BubbleScatterNodeDatum>;
 
@@ -488,7 +490,7 @@ export class BubbleSeries extends CartesianSeries<
             labelData: labelEnabled ? nodeData : [],
             scales: this.calculateScaling(),
             visible: this.visible,
-            styles: this.getMarkerStyles(marker),
+            styles: getMarkerStyles<unknown, AgBubbleSeriesOptionsKeys>(this, marker),
         };
     }
 
@@ -639,6 +641,10 @@ export class BubbleSeries extends CartesianSeries<
         });
     }
 
+    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: HighlightState): never {
+        throw new Error('not implemented');
+    }
+
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties, ctx } = this;
         const { formatManager } = ctx;
@@ -751,7 +757,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const marker = this.getMarkerStyle(this.properties.marker, {}, undefined, {
+        const marker = this.getMarkerStyle<AgBubbleSeriesOptionsKeys>(this.properties.marker, {}, undefined, {
             isHighlight: false,
             checkForHighlight: false,
             resolveItemStylerMarkerPath: false,

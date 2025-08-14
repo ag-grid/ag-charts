@@ -4,6 +4,7 @@ import type {
     AgAreaSeriesMarkerItemStylerParams,
     AgAreaSeriesOptions,
     AgAreaSeriesTooltipRendererParams,
+    Styler,
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
@@ -56,6 +57,9 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgAreaSeries
 
     @Property
     interpolation: InterpolationProperties = new InterpolationProperties();
+
+    @Property
+    styler?: Styler<unknown, undefined>;
 
     @Property
     readonly shadow = new DropShadow();

@@ -1,11 +1,5 @@
 import type { InternalAgColorType, RequireOptional } from 'ag-charts-core';
-import type {
-    AgMarkerShape,
-    AgSeriesMarkerStyle,
-    AgSeriesMarkerStylerParams,
-    ISeriesMarker,
-    Styler,
-} from 'ag-charts-types';
+import type { AgMarkerShape, AgSeriesMarkerStyle, AgSeriesMarkerStylerParams, Styler } from 'ag-charts-types';
 
 import { SceneChangeDetection, SceneObjectChangeDetection, TRIPLE_EQ } from '../../scene/changeDetectable';
 import { ChangeDetectableProperties } from '../../scene/util/changeDetectableProperties';
@@ -13,10 +7,7 @@ import { objectsEqual } from '../../util/object';
 import { Property } from '../../util/properties';
 import { FillGradientDefaults, FillImageDefaults, FillPatternDefaults } from './seriesProperties';
 
-export class SeriesMarker<TParams = never>
-    extends ChangeDetectableProperties
-    implements ISeriesMarker<RequireOptional<TParams>>
-{
+export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
     @Property
     @SceneChangeDetection()
     enabled = true;
@@ -88,7 +79,7 @@ export class SeriesMarker<TParams = never>
             strokeOpacity,
             lineDash,
             lineDashOffset,
-        };
+        } satisfies RequireOptional<AgSeriesMarkerStyle>;
     }
 
     getDiameter(): number {

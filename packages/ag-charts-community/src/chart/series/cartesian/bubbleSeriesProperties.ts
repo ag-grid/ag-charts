@@ -114,6 +114,9 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     itemStyler?: Styler<BubbleSeriesItemStylerParams<unknown>, AgBubbleSeriesStyle>;
 
     @Property
+    styler?: Styler<unknown, undefined>;
+
+    @Property
     readonly label = new BubbleSeriesLabel();
 
     @Property

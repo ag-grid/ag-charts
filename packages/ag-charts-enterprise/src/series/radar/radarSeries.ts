@@ -31,6 +31,7 @@ const {
     Marker,
     mergeDefaults,
     updateLabelNode,
+    getMarkerStyles,
 } = _ModuleSupport;
 
 export interface RadarPathPoint {
@@ -254,7 +255,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             itemId: radiusKey,
             nodeData,
             labelData: nodeData,
-            styles: this.getMarkerStyles(marker, { stroke, strokeWidth, strokeOpacity }),
+            styles: getMarkerStyles(this, marker, { stroke, strokeWidth, strokeOpacity }),
         };
     }
 
@@ -408,6 +409,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 );
             }
         });
+    }
+
+    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: _ModuleSupport.HighlightState): never {
+        throw new Error('not implemented');
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
