@@ -1132,6 +1132,8 @@ describe('AreaSeries', () => {
                 test('params', () => {
                     const p1 = {
                         context: { name: 'sales context' },
+                        fill: '#f3622d',
+                        fillOpacity: 0.8,
                         lineDash: [0],
                         lineDashOffset: 0,
                         marker: {
@@ -1146,14 +1148,16 @@ describe('AreaSeries', () => {
                             strokeWidth: 0,
                         },
                         seriesId: 'AreaSeries-1',
-                        stroke: '#f3622d',
+                        stroke: '#aa4520',
                         strokeOpacity: 1,
-                        strokeWidth: 2,
+                        strokeWidth: 0,
                         xKey: 'month',
                         yKey: 'sales',
                     } as const;
                     const p2 = {
                         context: { name: 'expenses context' },
+                        fill: '#fba71b',
+                        fillOpacity: 0.8,
                         lineDash: [0],
                         lineDashOffset: 0,
                         marker: {
@@ -1168,9 +1172,9 @@ describe('AreaSeries', () => {
                             strokeWidth: 0,
                         },
                         seriesId: 'AreaSeries-2',
-                        stroke: '#fba71b',
+                        stroke: '#b07513',
                         strokeOpacity: 1,
-                        strokeWidth: 2,
+                        strokeWidth: 0,
                         xKey: 'month',
                         yKey: 'expenses',
                     } as const;
