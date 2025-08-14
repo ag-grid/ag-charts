@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import type {
-    AgAreaSeriesOptions,
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
     AgLineSeriesMarkerItemStylerParams,
+    AgLineSeriesOptions,
     AgLineSeriesStylerParams,
     AgLineSeriesStylerResult,
     AgSeriesMarkerStyle,
@@ -138,7 +138,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 ...examples.NORMALISED_STACKED_AREA,
                 series: [
                     {
-                        ...(examples.NORMALISED_STACKED_AREA.series?.[0] as AgAreaSeriesOptions),
+                        ...(examples.NORMALISED_STACKED_AREA.series?.[0] as AgLineSeriesOptions),
                         type: 'line',
                         normalizedTo: 100,
                     },
@@ -154,7 +154,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 ...examples.NORMALISED_STACKED_AREA,
                 series: [
                     {
-                        ...(examples.NORMALISED_STACKED_AREA.series?.[0] as AgAreaSeriesOptions),
+                        ...(examples.NORMALISED_STACKED_AREA.series?.[0] as AgLineSeriesOptions),
                         type: 'line',
                         normalizedTo: 100,
                         stacked: false,
