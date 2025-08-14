@@ -67,7 +67,7 @@ export function plotAreaPathFill({ path }: Path, { spans, phantomSpans }: AreaFi
         const { 0: sp0, 1: sp1 } = spanRange(span);
         const { 0: pp0, 1: pp1 } = spanRange(phantomSpan);
         if (pointsEq(sp, sp0) && pointsEq(pp, pp0)) {
-            plotSpan(path, span, SpanJoin.LineTo, false);
+            plotSpan(path, span, SpanJoin.Skip, false);
         } else {
             for (let j = i - 1; j >= phantomSpanIndex; j -= 1) {
                 plotSpan(path, phantomSpans[j].span, SpanJoin.LineTo, true);
