@@ -275,6 +275,20 @@ export class LineSeries extends CartesianSeries<
         );
     }
 
+    override getZoomRangeFittingItems(
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
+        minVisibleItems: number
+    ): { x: [number, number]; y: [number, number] | undefined } | undefined {
+        return this.zoomFittingVisibleItems(
+            'xValue',
+            [this.yCumulativeKey(this.processedData!)],
+            xVisibleRange,
+            yVisibleRange,
+            minVisibleItems
+        );
+    }
+
     override getVisibleItems(
         xVisibleRange: [number, number],
         yVisibleRange: [number, number] | undefined,

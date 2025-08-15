@@ -342,6 +342,20 @@ export class AreaSeries extends CartesianSeries<
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 
+    override getZoomRangeFittingItems(
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
+        minVisibleItems: number
+    ): { x: [number, number]; y: [number, number] | undefined } | undefined {
+        return this.zoomFittingVisibleItems(
+            'xValue',
+            [this.yCumulativeKey(this.processedData!)],
+            xVisibleRange,
+            yVisibleRange,
+            minVisibleItems
+        );
+    }
+
     override getVisibleItems(
         xVisibleRange: [number, number],
         yVisibleRange: [number, number] | undefined,

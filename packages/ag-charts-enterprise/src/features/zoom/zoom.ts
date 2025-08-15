@@ -721,6 +721,18 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         return this.shouldFlipXY ? this.anchorPointX : this.anchorPointY;
     }
 
+    private constrainZoom(newZoom: DefinedZoomState) {
+        const {
+            minVisibleItems,
+            ctx: { zoomManager },
+        } = this;
+
+        if (minVisibleItems === 0) return newZoom;
+
+        const constrainedZoom = zoomManager.constrainZoomToItemCount(newZoom, minVisibleItems);
+        return constrainedZoom ?? newZoom;
+    }
+
     private isZoomValid(newZoom: DefinedZoomState) {
         const {
             minVisibleItems,
@@ -770,6 +782,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private updateUnifiedZoom(zoom: DefinedZoomState) {
+        zoom = this.constrainZoom(zoom);
+
         if (!this.isZoomValid(zoom)) {
             // Ensure any lingering zoom interation elements (e.g. selection rect) are cleared
             this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER, { skipAnimations: true });

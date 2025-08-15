@@ -224,6 +224,20 @@ export abstract class OhlcSeriesBase<
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['highValue', 'lowValue'], 'xValue', visibleRange);
     }
 
+    override getZoomRangeFittingItems(
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
+        minVisibleItems: number
+    ): { x: [number, number]; y: [number, number] | undefined } | undefined {
+        return this.zoomFittingVisibleItems(
+            'xValue',
+            ['highValue', 'lowValue'],
+            xVisibleRange,
+            yVisibleRange,
+            minVisibleItems
+        );
+    }
+
     override getVisibleItems(
         xVisibleRange: [number, number],
         yVisibleRange: [number, number] | undefined,

@@ -446,8 +446,7 @@ export class ZoomManager extends BaseManager {
         return this.getPrimaryAxis(direction)?.id;
     }
 
-    public isVisibleItemsCountAtLeast(zoom: DefinedZoomState, minVisibleItems: number): boolean {
-        const { autoScaleYAxis } = this;
+    private getBoundSeries() {
         const xAxis = this.getPrimaryAxis(ChartAxisDirection.X);
         const yAxis = this.getPrimaryAxis(ChartAxisDirection.Y);
 
@@ -466,6 +465,40 @@ export class ZoomManager extends BaseManager {
         } else {
             boundSeries = new Set([...(xAxis?.boundSeries ?? []), ...(yAxis?.boundSeries ?? [])]);
         }
+
+        return boundSeries;
+    }
+
+    public constrainZoomToItemCount(zoom: DefinedZoomState, minVisibleItems: number): DefinedZoomState | undefined {
+        const { autoScaleYAxis } = this;
+        const shouldAutoscale = autoScaleYAxis.enabled && !autoScaleYAxis.manuallyAdjusted;
+
+        let xVisibleRange: [number, number] = [zoom.x.min, zoom.x.max];
+        let yVisibleRange: [number, number] | undefined = shouldAutoscale ? undefined : [zoom.y.min, zoom.y.max];
+        for (const series of this.getBoundSeries()) {
+            const nextZoom = series.getZoomRangeFittingItems(xVisibleRange, yVisibleRange, minVisibleItems);
+            if (nextZoom == null) return;
+
+            xVisibleRange = nextZoom.x;
+            yVisibleRange = nextZoom.y;
+        }
+
+        const xZoom: ZoomState = { min: xVisibleRange[0], max: xVisibleRange[1] };
+        let yZoom: ZoomState | undefined;
+
+        yZoom ??= this.getAutoScaleYZoom(xZoom);
+        if (yVisibleRange) {
+            yZoom = { min: yVisibleRange[0], max: yVisibleRange[1] };
+        }
+
+        if (yZoom == null) return;
+
+        return { x: xZoom, y: yZoom };
+    }
+
+    public isVisibleItemsCountAtLeast(zoom: DefinedZoomState, minVisibleItems: number): boolean {
+        const { autoScaleYAxis } = this;
+        const boundSeries = this.getBoundSeries();
 
         const xVisibleRange: [number, number] = [zoom.x.min, zoom.x.max];
         const yVisibleRange: [number, number] | undefined =
@@ -510,7 +543,7 @@ export class ZoomManager extends BaseManager {
         if (!autoScaleYAxis.enabled || autoScaleYAxis.manuallyAdjusted) return;
 
         const { padding } = autoScaleYAxis;
-        if (zoomX?.min === 0 && zoomX?.max === 1) {
+        if (zoomX.min === 0 && zoomX.max === 1) {
             return { min: 0, max: 1 };
         } else if (independentAxes) {
             return this.primaryAxisZoom(ChartAxisDirection.Y, zoomX, { padding });
