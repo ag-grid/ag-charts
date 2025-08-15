@@ -878,11 +878,11 @@ export abstract class CartesianSeries<
         }
 
         let xZoom: [number, number] | undefined;
-        if (Math.abs(r1 - r0) >= minVisibleItems) {
+        if (Math.abs(r1 - r0) >= minVisibleItems - 1) {
             xZoom = xVisibleRange;
         } else {
             const midPoint = (xVisibleRange[0] + xVisibleRange[1]) / 2;
-            while (Math.abs(r1 - r0) < minVisibleItems && (r0 > 0 || r1 < xValues.length - 1)) {
+            while (Math.abs(r1 - r0) < minVisibleItems - 1 && (r0 > 0 || r1 < xValues.length - 1)) {
                 if (r0 === 0) {
                     r1 += 1;
                 } else if (r1 === xValues.length - 1) {
@@ -899,10 +899,9 @@ export abstract class CartesianSeries<
                 }
             }
 
-            xZoom = [
-                this.xCoordinateRange(xValues[r0], pixelSize, r0)[0],
-                this.xCoordinateRange(xValues[r1], pixelSize, r1)[1],
-            ];
+            const x0 = this.xCoordinateRange(xValues[r0], pixelSize, r0)[0];
+            const x1 = this.xCoordinateRange(xValues[r1], pixelSize, r1)[1];
+            xZoom = [Math.min(xVisibleRange[0], x0), Math.max(xVisibleRange[1], x1)];
         }
 
         crossScale.range = crossScaleRange;
@@ -956,7 +955,7 @@ export abstract class CartesianSeries<
                     r1 -= 1;
                 }
 
-                const xItemsVisible = Math.abs(r1 - r0);
+                const xItemsVisible = Math.abs(r1 - r0) + 1;
 
                 crossScale.range = crossScaleRange;
 
