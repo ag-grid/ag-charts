@@ -534,8 +534,8 @@ export class AreaSeries extends CartesianSeries<
         let [startIndex, endIndex] = visibleRangeIndices(1, xValues.length, xAxis.range, (datumIndex) =>
             this.xCoordinateRange(xValues[datumIndex], 0)
         );
-        startIndex = Math.max(startIndex - 1, 0);
-        endIndex = Math.min(endIndex + 1, xValues.length);
+        startIndex = Math.max(startIndex - 2, 0);
+        endIndex = Math.min(endIndex + 2, xValues.length);
 
         let phantomSpans: LinePathSpan[];
         if (seriesBelowStackContext?.fillSpans) {
@@ -746,8 +746,8 @@ export class AreaSeries extends CartesianSeries<
         let endIndex = 0;
         const indices = dataAggregationFilter?.indices;
         [startIndex, endIndex] = this.visibleRangeIndices('xValue', xAxis.range, indices);
-        startIndex = Math.max(startIndex - 1, 0);
-        endIndex = Math.min(endIndex + 1, indices?.length ?? xValues.length);
+        startIndex = Math.max(startIndex - 2, 0);
+        endIndex = Math.min(endIndex + 2, indices?.length ?? xValues.length);
         // @todo(AG-13575) Remove this if block
         if (processedData.input.count < 1e3) {
             startIndex = 0;
