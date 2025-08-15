@@ -585,7 +585,13 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         // TODO: should overrides be handle better here? what about the enabledVertex?
         if (edgeValue === DEFAULTS_EDGE && !enabledVertex) return;
         if (edgeValue === USER_OPTIONS_EDGE && enabledVertex) return;
-        if (edgeValue !== DEFAULTS_EDGE && edgeValue !== USER_OPTIONS_EDGE && edgeValue !== OVERRIDES_EDGE) return;
+        if (
+            edgeValue !== DEFAULTS_EDGE &&
+            edgeValue !== USER_OPTIONS_EDGE &&
+            edgeValue !== USER_PARTIAL_OPTIONS_EDGE &&
+            edgeValue !== OVERRIDES_EDGE
+        )
+            return;
 
         let autoEnableVertex = this.findNeighbour(parentVertex, AUTO_ENABLE_EDGE);
         if (!autoEnableVertex) {
@@ -847,13 +853,15 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         const userOptionsEnabled = this.findNeighbourValue(autoEnableValueVertex, USER_OPTIONS_EDGE) as
             | PlainObject
             | undefined;
+        const userPartialOptionsEnabled = this.findNeighbourValue(autoEnableValueVertex, USER_PARTIAL_OPTIONS_EDGE) as
+            | PlainObject
+            | undefined;
 
-        if (
-            userOptionsEnabled &&
-            userOptionsEnabled.enabled == null &&
-            !defaultsEnabled?._enabledFromTheme &&
-            !overridesEnabled?._enabledFromTheme
-        ) {
+        const isUserEnabled: boolean =
+            (userOptionsEnabled != null && userOptionsEnabled.enabled == null) ||
+            (userPartialOptionsEnabled != null && userPartialOptionsEnabled.enabled == null);
+
+        if (isUserEnabled && !defaultsEnabled?._enabledFromTheme && !overridesEnabled?._enabledFromTheme) {
             setPathSafe(object, pathArray, true);
         }
     }
