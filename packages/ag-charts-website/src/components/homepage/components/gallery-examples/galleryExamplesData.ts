@@ -1,5 +1,4 @@
 import { DARK_MODE_REGEX } from '@ag-website-shared/utils/extraCodeSnippets';
-import { getDarkModeSnippet } from '@ag-website-shared/utils/getDarkModeSnippet';
 import { getGeneratedContents } from '@components/example-generator';
 import {
     EXAMPLE_CODE_END,
@@ -7,6 +6,7 @@ import {
     GLOBAL_UPDATE_EXAMPLES_VARIABLE,
     GLOBAL_UPDATE_FUNCTION,
 } from '@components/homepage/constants';
+import { getDarkModeSnippet } from '@utils/getDarkModeSnippet';
 import type { CollectionEntry } from 'astro:content';
 
 type GalleryData = {
