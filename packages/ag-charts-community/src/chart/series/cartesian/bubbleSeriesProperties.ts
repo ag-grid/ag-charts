@@ -4,6 +4,8 @@ import type {
     AgBubbleSeriesOptions,
     AgBubbleSeriesOptionsKeys,
     AgBubbleSeriesStyle,
+    AgBubbleSeriesStylerParams,
+    AgBubbleSeriesStylerResult,
     AgBubbleSeriesTooltipRendererParams,
     AgMarkerShape,
     BubbleSeriesItemStylerParams,
@@ -114,7 +116,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     itemStyler?: Styler<BubbleSeriesItemStylerParams<unknown>, AgBubbleSeriesStyle>;
 
     @Property
-    styler?: Styler<unknown, undefined>;
+    styler?: Styler<AgBubbleSeriesStylerParams<unknown, unknown>, AgBubbleSeriesStylerResult>;
 
     @Property
     readonly label = new BubbleSeriesLabel();

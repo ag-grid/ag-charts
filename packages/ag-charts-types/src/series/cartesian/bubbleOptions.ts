@@ -1,4 +1,9 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    DatumCallbackParams,
+    SeriesCallbackParams,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, LabelPlacement, PixelSize } from '../../chart/types';
@@ -33,6 +38,14 @@ export interface AgBubbleSeriesLabel<TDatum, TContext = ContextDefault>
 
 export interface AgBubbleSeriesStyle extends AgSeriesMarkerStyle {}
 
+export interface AgBubbleSeriesStylerParams<TDatum, TContext>
+    extends AgBubbleSeriesOptionsKeys<TDatum>,
+        SeriesCallbackParams,
+        ContextCallbackParams<TContext>,
+        AgBubbleSeriesStyle {}
+
+export interface AgBubbleSeriesStylerResult extends AgBubbleSeriesStyle {}
+
 export type BubbleSeriesItemStylerParams<
     TDatum = DatumDefault,
     TContext = ContextDefault,
@@ -58,6 +71,8 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     label?: AgBubbleSeriesLabel<TDatum, TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgBubbleSeriesTooltipRendererParams<TDatum, TContext>>;
+    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    styler?: Styler<AgBubbleSeriesStylerParams<TDatum, TContext>, AgBubbleSeriesStylerResult>;
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     itemStyler?: Styler<BubbleSeriesItemStylerParams<TDatum, TContext>, AgBubbleSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
