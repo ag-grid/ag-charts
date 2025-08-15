@@ -1,16 +1,18 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
         text: 'Vehicle Fuel Efficiency',
-        fontSize: 18,
     },
     subtitle: {
         text: 'USA 1987',
+    },
+    tooltip: {
+        mode: 'shared',
     },
     series: [
         {
@@ -42,17 +44,17 @@ const options: AgChartOptions = {
             gridLine: {
                 style: [
                     {
-                        stroke: 'rgb(216,216,216)',
-                        lineDash: [2],
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
                     },
                 ],
             },
             title: {
                 enabled: true,
                 text: 'Engine Size',
-            },
-            crosshair: {
-                enabled: false,
             },
         },
         {
@@ -62,15 +64,15 @@ const options: AgChartOptions = {
             gridLine: {
                 style: [
                     {
-                        stroke: 'rgb(216,216,216)',
-                        lineDash: [2],
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
                     },
                 ],
             },
             label: {
-                enabled: false,
-            },
-            crosshair: {
                 enabled: false,
             },
         },

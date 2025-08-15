@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Product Export and Import Amounts by Country',
@@ -23,11 +23,49 @@ const options: AgChartOptions = {
         xName: 'Product',
         yLowKey: 'exportAmount',
         yHighKey: 'importAmount',
-        yLowName: 'Lowest Cost',
-        yHighName: 'Highest Cost',
+        yLowName: 'Export',
+        yHighName: 'Import',
         yName: country,
-        cornerRadius: 2,
+        cornerRadius: 4,
+        highlightStyle: {
+            item: {
+                strokeWidth: 2,
+            },
+        },
+        tooltip: {
+            renderer: (params) => {
+                const { datum, yLowKey, yHighKey, yName } = params;
+                const exportVal = datum[yLowKey];
+                const importVal = datum[yHighKey];
+                const tradeBalance = importVal - exportVal;
+
+                return {
+                    heading: datum.product,
+                    title: yName,
+                    data: [
+                        {
+                            label: 'Export',
+                            value: `$${(exportVal / 1000000).toFixed(1)}M`,
+                        },
+                        {
+                            label: 'Import',
+                            value: `$${(importVal / 1000000).toFixed(1)}M`,
+                        },
+                        {
+                            label: 'Trade Balance',
+                            value: `${tradeBalance > 0 ? '+' : ''}$${(tradeBalance / 1000000).toFixed(1)}M`,
+                        },
+                    ],
+                };
+            },
+        },
     })),
+    tooltip: {
+        mode: 'shared',
+        position: {
+            placement: ['right', 'left', 'top', 'bottom'],
+        },
+    },
     axes: [
         {
             type: 'category',
@@ -40,6 +78,18 @@ const options: AgChartOptions = {
             },
             gridLine: {
                 enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
+            bandHighlight: {
+                enabled: true,
             },
         },
         {
@@ -49,10 +99,29 @@ const options: AgChartOptions = {
             min: 0,
             max: 35000000,
             interval: { values: [3000000, 32000000] },
+            title: {
+                text: 'Trade Volume (USD)',
+            },
+            label: {
+                formatter: ({ value }) => `$${(value / 1000000).toFixed(0)}M`,
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [3, 3],
+                    },
+                ],
+            },
         },
     ],
-    formatter: {
-        x: ({ value }) => `${Number(value) / 1000000}M`,
+    legend: {
+        position: 'bottom',
+        spacing: 20,
+        item: {
+            paddingX: 16,
+            paddingY: 8,
+        },
     },
 };
 

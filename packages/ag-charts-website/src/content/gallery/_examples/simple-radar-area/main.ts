@@ -1,12 +1,23 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
         text: 'KPIs by Department',
+    },
+    // Root-level formatter for consistency across all elements
+    formatter: {
+        radius: ({ value }) => `${value}%`,
+    },
+    // Shared tooltips for multi-series comparison
+    tooltip: {
+        mode: 'shared',
+        position: {
+            placement: ['top', 'bottom'],
+        },
     },
     series: [
         {
@@ -14,24 +25,48 @@ const options: AgChartOptions = {
             angleKey: 'department',
             radiusKey: 'quality',
             radiusName: 'Quality',
-            strokeWidth: 1,
-            fillOpacity: 0.1,
+            strokeWidth: 2,
+            fillOpacity: 0.3,
+            marker: {
+                enabled: true,
+                size: 6,
+                strokeWidth: 2,
+            },
+            label: {
+                enabled: true,
+            },
         },
         {
             type: 'radar-area',
             angleKey: 'department',
             radiusKey: 'efficiency',
             radiusName: 'Efficiency',
-            strokeWidth: 1,
-            fillOpacity: 0.1,
+            strokeWidth: 2,
+            fillOpacity: 0.3,
+            marker: {
+                enabled: true,
+                size: 6,
+                strokeWidth: 2,
+            },
+            label: {
+                enabled: true,
+            },
         },
         {
             type: 'radar-area',
             angleKey: 'department',
             radiusKey: 'revenueGrowth',
             radiusName: 'Revenue Growth',
-            strokeWidth: 1,
-            fillOpacity: 0.1,
+            strokeWidth: 2,
+            fillOpacity: 0.3,
+            marker: {
+                enabled: true,
+                size: 6,
+                strokeWidth: 2,
+            },
+            label: {
+                enabled: true,
+            },
         },
     ],
     axes: [
@@ -39,6 +74,11 @@ const options: AgChartOptions = {
             type: 'angle-category',
             gridLine: {
                 enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                    },
+                ],
             },
             line: {
                 enabled: false,
@@ -47,7 +87,12 @@ const options: AgChartOptions = {
         {
             type: 'radius-number',
             gridLine: {
-                enabled: false,
+                enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                    },
+                ],
             },
             line: {
                 enabled: false,

@@ -1,77 +1,177 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 const data = getData();
 
-const options: AgChartOptions = {
+// Define a professional color palette with meaning
+const colorPalette = {
+    Europe: { fill: '#2563eb', stroke: '#1e40af' }, // Blue - temperate
+    Asia: { fill: '#dc2626', stroke: '#991b1b' }, // Red - hot
+    'North America': { fill: '#059669', stroke: '#047857' }, // Green - varied
+    Africa: { fill: '#ea580c', stroke: '#c2410c' }, // Orange - warm
+    'South America': { fill: '#7c3aed', stroke: '#6d28d9' }, // Purple - tropical
+    Australia: { fill: '#0891b2', stroke: '#0e7490' }, // Cyan - unique
+};
+
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Average Temperatures By Continent',
+        text: 'Global Temperature Patterns by Continent',
+        spacing: 8,
     },
-    series: Object.entries(data).map(([continent, temperatures]) => ({
-        data: temperatures,
-        type: 'range-bar',
-        xKey: 'month',
-        xName: 'Month',
-        yName: continent,
-        yLowKey: 'lowTemperature',
-        yHighKey: 'highTemperature',
-        yLowName: 'Lowest',
-        yHighName: 'Highest',
-        cornerRadius: 2,
-    })),
+    subtitle: {
+        text: 'Monthly temperature ranges (2020) showing seasonal variations across regions',
+        spacing: 16,
+    },
+    footnote: {
+        text: 'Data: World Meteorological Organization. Ranges show typical monthly lows and highs.',
+        fontStyle: 'italic',
+        spacing: 12,
+    },
+    series: Object.entries(data).map(([continent, temperatures]) => {
+        const colors = colorPalette[continent as keyof typeof colorPalette] || { fill: '#6b7280', stroke: '#4b5563' };
+
+        return {
+            data: temperatures,
+            type: 'range-bar',
+            xKey: 'month',
+            xName: 'Month',
+            yName: continent,
+            yLowKey: 'lowTemperature',
+            yHighKey: 'highTemperature',
+            yLowName: 'Min Temp',
+            yHighName: 'Max Temp',
+            cornerRadius: 3,
+            fill: colors.fill,
+            stroke: colors.stroke,
+            strokeWidth: 0,
+            fillOpacity: 0.85,
+            highlightStyle: {
+                item: {
+                    fillOpacity: 1,
+                    stroke: colors.stroke,
+                    strokeWidth: 2,
+                    strokeOpacity: 1,
+                },
+                series: {
+                    dimOpacity: 0.3,
+                    strokeWidth: 1,
+                },
+            },
+        };
+    }),
+    tooltip: {
+        mode: 'shared',
+        delay: 100,
+    },
     axes: [
         {
             type: 'unit-time',
             position: 'bottom',
             paddingInner: 0.5,
-            groupPaddingInner: 0,
+            groupPaddingInner: 0.05,
+            bandHighlight: {
+                enabled: true,
+            },
+            label: {
+                formatter: ({ value }) => {
+                    const date = new Date(value);
+                    return date.toLocaleDateString('en-US', { month: 'short' });
+                },
+            },
             gridLine: {
                 enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
             line: {
                 enabled: false,
             },
             tick: {
-                size: 15,
+                size: 6,
             },
         },
         {
             type: 'number',
-            position: 'right',
+            position: 'left',
             gridLine: {
-                enabled: false,
+                enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                    },
+                    {
+                        strokeWidth: 0.5,
+                        lineDash: [3, 2],
+                    },
+                ],
             },
             label: {
-                spacing: 15,
+                formatter: ({ value }) => `${value}°C`,
             },
             crossLines: [
                 {
                     type: 'line',
                     value: 42,
-                    lineDash: [5, 7],
+                    stroke: '#ef4444',
+                    lineDash: [6, 3],
                     strokeOpacity: 0.5,
+                    strokeWidth: 2,
                     label: {
-                        text: '42° C',
-                        position: 'top',
+                        text: 'Extreme Heat\n(42°C)',
+                        position: 'right',
+                        padding: 8,
                     },
                 },
                 {
                     type: 'line',
                     value: 5,
-                    lineDash: [5, 7],
+                    stroke: '#3b82f6',
+                    lineDash: [6, 3],
                     strokeOpacity: 0.5,
+                    strokeWidth: 2,
                     label: {
-                        text: '5° C',
-                        position: 'bottom',
+                        text: 'Near Freezing\n(5°C)',
+                        position: 'right',
+                        padding: 8,
+                    },
+                },
+                {
+                    type: 'range',
+                    range: [20, 30],
+                    fill: '#10b981',
+                    fillOpacity: 0.03,
+                    stroke: '#10b981',
+                    strokeWidth: 0,
+                    label: {
+                        text: 'Optimal\nComfort Zone',
+                        position: 'right',
+                        padding: 8,
                     },
                 },
             ],
         },
     ],
-    formatter: {
-        y: '#{.0f}° C',
+    legend: {
+        position: 'bottom',
+        spacing: 40,
+        item: {
+            paddingX: 16,
+            paddingY: 8,
+            marker: {
+                size: 18,
+                shape: 'square',
+                strokeWidth: 0,
+            },
+            label: {},
+        },
     },
 };
 

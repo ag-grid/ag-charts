@@ -34,7 +34,6 @@ const options: AgChartOptions = {
                 lineDash: [0.5, 1.5],
             },
             label: {
-                fontWeight: 'bold',
                 color: '#888',
             },
         },

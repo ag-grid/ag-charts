@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -11,14 +11,47 @@ const options: AgChartOptions = {
     subtitle: {
         text: 'Millions USD',
     },
+    formatter: {
+        y: ({ value }) => `$${typeof value === 'number' ? value.toFixed(1) : value}M`,
+    },
+    tooltip: {
+        enabled: true,
+    },
     series: [
         {
             type: 'radial-bar',
             radiusKey: 'quarter',
             angleKey: 'services',
             angleName: 'Services',
-            stacked: true,
-            fillOpacity: 0.8,
+            fill: {
+                type: 'gradient',
+                colorStops: [
+                    {
+                        color: 'darkred',
+                        stop: 0,
+                    },
+                    {
+                        color: 'yellow',
+                        stop: 1.5,
+                    },
+                    {
+                        color: 'green',
+                        stop: 3.5,
+                    },
+                ],
+            },
+            tooltip: {
+                renderer: ({ datum, angleName }) => ({
+                    heading: datum.quarter,
+                    title: angleName || 'Services',
+                    data: [
+                        {
+                            label: 'Revenue',
+                            value: `$${datum.services.toFixed(1)}M`,
+                        },
+                    ],
+                }),
+            },
         },
     ],
     axes: [
@@ -27,7 +60,7 @@ const options: AgChartOptions = {
             innerRadiusRatio: 0,
             paddingOuter: 0.2,
             label: {
-                enabled: false,
+                enabled: true,
             },
             gridLine: {
                 enabled: false,
@@ -35,16 +68,12 @@ const options: AgChartOptions = {
         },
         {
             type: 'angle-number',
-            startAngle: 135,
-            endAngle: 360,
+            endAngle: 270,
             interval: {
                 step: 0.2,
             },
             gridLine: {
                 enabled: true,
-            },
-            label: {
-                formatter: ({ value }) => value.toFixed(1),
             },
         },
     ],

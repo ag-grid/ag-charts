@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -13,6 +13,12 @@ const options: AgChartOptions = {
     },
     footnote: {
         text: '2018 to 2023',
+    },
+    formatter: {
+        y: ({ value }) => `${(Number(value) * 100).toFixed(1)}%`,
+    },
+    tooltip: {
+        mode: 'shared',
     },
     theme: {
         overrides: {
@@ -78,6 +84,18 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             gridLine: {
+                enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
+            bandHighlight: {
                 enabled: true,
             },
         },

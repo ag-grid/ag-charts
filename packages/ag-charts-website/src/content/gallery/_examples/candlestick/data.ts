@@ -6,10 +6,25 @@ export interface DataType {
     close: number;
     adjClose: number;
     volume: number;
+    sma20?: number;
+    sma50?: number;
+    changePercent?: number;
+}
+
+function calculateSMA(data: DataType[], period: number): (number | undefined)[] {
+    const sma: (number | undefined)[] = [];
+    for (let i = 0; i < data.length; i++) {
+        const sum = [
+            ...data.slice(Math.max(0, i - period + 1), i + 1),
+            ...data.slice(0, Math.max(period - i, 0)),
+        ].reduce((acc, d) => acc + d.close, 0);
+        sma.push(sum / period);
+    }
+    return sma;
 }
 
 export function getData(): DataType[] {
-    return [
+    const rawData = [
         {
             date: new Date('2023-09-11'),
             open: 15409.769531,
@@ -1226,4 +1241,19 @@ export function getData(): DataType[] {
             volume: 4339930000,
         },
     ];
+
+    const sma20 = calculateSMA(rawData, 20);
+    const sma50 = calculateSMA(rawData, 50);
+
+    return rawData.map((d, i) => {
+        const prevClose = i > 0 ? rawData[i - 1].close : d.open;
+        const changePercent = ((d.close - prevClose) / prevClose) * 100;
+
+        return {
+            ...d,
+            sma20: sma20[i],
+            sma50: sma50[i],
+            changePercent,
+        };
+    });
 }

@@ -1,26 +1,29 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const month = new Intl.DateTimeFormat('en-GB', {
+const day = new Intl.DateTimeFormat('en-US', {
     month: 'short',
+    day: 'numeric',
 });
 
-const day = new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-});
+const data = getData();
 
-const options: AgChartOptions = {
+// Calculate average price range for reference line
+const avgRange = data.reduce((sum, d) => sum + (d.high - d.low), 0) / data.length;
+const avgPrice = data.reduce((sum, d) => sum + (d.high + d.low) / 2, 0) / data.length;
+
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
+    data,
     title: {
-        text: 'S&P 500 Index',
+        text: 'S&P 500 Index Daily Trading Range',
     },
     subtitle: {
-        text: 'Daily High and Low Prices',
+        text: 'High-Low Price Spread (Aug-Nov 2023)',
     },
     footnote: {
-        text: '1 Aug 2023 - 1 Nov 2023',
+        text: `Average daily range: $${avgRange.toFixed(2)}`,
     },
     series: [
         {
@@ -29,24 +32,43 @@ const options: AgChartOptions = {
             xName: 'Date',
             yLowKey: 'low',
             yHighKey: 'high',
+            yLowName: 'Low',
+            yHighName: 'High',
+            cornerRadius: 4,
             strokeWidth: 1,
-            cornerRadius: 3,
+            tooltip: {
+                renderer: ({ datum, xKey, yLowKey, yHighKey }) => {
+                    const date = new Date(datum[xKey]);
+                    const range = datum[yHighKey] - datum[yLowKey];
+                    const percentRange = ((range / datum[yLowKey]) * 100).toFixed(2);
+
+                    return {
+                        heading: day.format(date),
+                        title: 'Trading Data',
+                        data: [
+                            { label: 'High', value: `$${datum[yHighKey].toLocaleString()}` },
+                            { label: 'Low', value: `$${datum[yLowKey].toLocaleString()}` },
+                            { label: 'Range', value: `$${range.toFixed(2)} (${percentRange}%)` },
+                        ],
+                    };
+                },
+            },
+            highlight: {
+                highlightedItem: {
+                    strokeWidth: 2,
+                },
+            },
         },
     ],
     axes: [
         {
             type: 'ordinal-time',
             position: 'bottom',
-            interval: {
-                values: [
-                    new Date(2023, 7, 1),
-                    new Date(2023, 7, 15),
-                    new Date(2023, 8, 1),
-                    new Date(2023, 8, 15),
-                    new Date(2023, 9, 1),
-                    new Date(2023, 9, 15),
-                    new Date(2023, 10, 1),
-                ],
+            bandHighlight: {
+                enabled: true,
+            },
+            crosshair: {
+                strokeWidth: 0,
             },
             line: {
                 enabled: false,
@@ -54,28 +76,52 @@ const options: AgChartOptions = {
             gridLine: {
                 style: [
                     {
-                        stroke: 'rgb(216,216,216)',
+                        strokeWidth: 1,
                         lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0, // Alternating bands
                     },
                 ],
             },
         },
         {
             type: 'number',
-            position: 'right',
-            nice: false,
+            position: 'left',
+            title: {
+                text: 'Price ($)',
+            },
+            label: {
+                formatter: ({ value }) => `$${value.toLocaleString()}`,
+            },
+            nice: false, // Fit data snugly
             gridLine: {
                 style: [
                     {
-                        stroke: 'rgb(216,216,216)',
+                        strokeWidth: 1,
                         lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0, // Alternating bands
                     },
                 ],
             },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: avgPrice,
+                    strokeWidth: 2,
+                    lineDash: [5, 5],
+                    label: {
+                        text: `Avg: $${avgPrice.toFixed(0)}`,
+                    },
+                },
+            ],
         },
     ],
-    formatter: {
-        y: '#{,.0f}',
+    animation: {
+        enabled: true,
+        duration: 800,
     },
 };
 

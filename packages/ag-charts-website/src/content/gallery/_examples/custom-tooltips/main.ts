@@ -34,7 +34,6 @@ const options: AgChartOptions<DataType> = {
     },
     title: {
         text: 'WEEE Collected in UK',
-        fontSize: 18,
         spacing: 25,
     },
     footnote: {

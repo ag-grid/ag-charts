@@ -1,14 +1,14 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Migration Flows to Europe',
+        text: 'European Migration Patterns',
     },
     subtitle: {
-        text: 'Quarterly Overview (April - June 2023)',
+        text: 'Q2 2023 Monthly Arrival Distribution',
     },
     footnote: {
         text: 'Source: UN International Organization for Migration',
@@ -18,26 +18,56 @@ const options: AgChartOptions = {
         {
             type: 'box-plot',
             xKey: 'countryOfArrival',
-            xName: 'Country Of Arrival',
+            xName: 'Country',
             yName: 'Monthly Arrivals',
             minKey: 'min',
-            minName: 'Min',
+            minName: 'Minimum',
             q1Key: 'q1',
-            q1Name: 'Q1',
+            q1Name: 'First Quartile',
             medianKey: 'median',
             medianName: 'Median',
             q3Key: 'q3',
-            q3Name: 'Q3',
+            q3Name: 'Third Quartile',
             maxKey: 'max',
-            maxName: 'Max',
-            cornerRadius: 8,
-            stroke: 'white',
+            maxName: 'Maximum',
+            cornerRadius: 4,
+            fillOpacity: 0.7,
+            strokeWidth: 2,
             whisker: {
-                stroke: '#2b5c95',
-                strokeOpacity: 0.9,
+                strokeWidth: 1,
+                lineDash: [3, 3],
             },
             cap: {
-                lengthRatio: 0.8,
+                lengthRatio: 0.4,
+            },
+            tooltip: {
+                renderer: ({ datum, xKey, minKey, q1Key, medianKey, q3Key, maxKey }) => {
+                    const country = datum[xKey];
+                    const min = datum[minKey];
+                    const q1 = datum[q1Key];
+                    const median = datum[medianKey];
+                    const q3 = datum[q3Key];
+                    const max = datum[maxKey];
+                    const iqr = q3 - q1;
+
+                    return {
+                        title: country,
+                        data: [
+                            { label: 'Minimum', value: min.toLocaleString() },
+                            { label: 'Q1', value: q1.toLocaleString() },
+                            { label: 'Median', value: median.toLocaleString() },
+                            { label: 'Q3', value: q3.toLocaleString() },
+                            { label: 'Maximum', value: max.toLocaleString() },
+                            { label: 'IQR', value: iqr.toLocaleString() },
+                        ],
+                    };
+                },
+            },
+            highlight: {
+                highlightedItem: {
+                    fillOpacity: 1,
+                    strokeWidth: 3,
+                },
             },
         },
     ],
@@ -45,30 +75,50 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            paddingInner: 0.7,
-            paddingOuter: 0.2,
-            gridLine: {
+            title: {
+                text: 'Destination Country',
+            },
+            bandHighlight: {
                 enabled: true,
             },
-            line: {
-                enabled: false,
+            gridLine: {
+                style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },
             label: {
-                spacing: 10,
+                rotation: 0,
             },
         },
         {
             type: 'number',
             position: 'left',
-            interval: { values: [105, 385, 2714] },
-            line: {
-                enabled: false,
+            title: {
+                text: 'Number of Arrivals',
             },
+            gridLine: {
+                style: [{ strokeWidth: 1, lineDash: [3, 3] }, { strokeWidth: 0 }],
+            },
+            label: {
+                formatter: ({ value }) => {
+                    if (value >= 1000) {
+                        return `${(value / 1000).toFixed(1)}k`;
+                    }
+                    return value.toLocaleString();
+                },
+            },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 5000,
+                    strokeWidth: 2,
+                    lineDash: [5, 5],
+                    label: {
+                        position: 'top-right',
+                        text: 'Target: 5,000',
+                    },
+                },
+            ],
         },
     ],
-    formatter: {
-        y: '#{,.0f}',
-    },
 };
 
 AgCharts.create(options);

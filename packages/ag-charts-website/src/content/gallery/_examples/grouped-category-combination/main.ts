@@ -13,6 +13,12 @@ const options: AgCartesianChartOptions = {
     subtitle: {
         text: 'Detailed Profile per 100g Serving',
     },
+    tooltip: {
+        mode: 'shared',
+        position: {
+            placement: ['right', 'left', 'top', 'bottom'],
+        },
+    },
     theme: {
         overrides: {
             common: {
@@ -40,6 +46,17 @@ const options: AgCartesianChartOptions = {
                         tick: {
                             enabled: true,
                         },
+                        gridLine: {
+                            style: [
+                                {
+                                    strokeWidth: 1,
+                                    lineDash: [2, 2],
+                                },
+                                {
+                                    strokeWidth: 0,
+                                },
+                            ],
+                        },
                     },
                 },
             },
@@ -58,6 +75,12 @@ const options: AgCartesianChartOptions = {
                         size: 0,
                         shape: 'triangle',
                     },
+                },
+            },
+            bar: {
+                series: {
+                    cornerRadius: 3,
+                    strokeWidth: 1,
                 },
             },
         },
@@ -148,8 +171,10 @@ const options: AgCartesianChartOptions = {
         {
             position: 'bottom',
             type: 'grouped-category',
-            label: { fontSize: 10 },
             depthOptions: [{ tick: { enabled: false } }, { tick: { enabled: false } }],
+            bandHighlight: {
+                enabled: true,
+            },
         },
     ],
 };

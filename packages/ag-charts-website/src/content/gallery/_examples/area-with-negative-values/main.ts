@@ -1,58 +1,182 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Changes in UK Energy Stock',
+        text: 'SaaS Startup Journey to Profitability',
+    },
+    subtitle: {
+        text: 'From Launch Losses to Sustainable Growth (2022-2024)',
     },
     footnote: {
-        text: 'Source: Department for Business, Energy & Industrial Strategy',
+        text: 'Source: Corporate Financial Reports',
+    },
+    tooltip: {
+        mode: 'shared',
+    },
+    formatter: {
+        y: ({ value }) => `${value.toLocaleString()}`,
     },
     series: [
         {
             type: 'area',
             xKey: 'quarter',
-            yKey: 'naturalGas',
-            yName: 'Natural gas',
+            xName: 'Quarter',
+            yKey: 'productRevenue',
+            yName: 'Product Revenue',
+            fillOpacity: 0.7,
+            strokeWidth: 2,
+            highlight: {
+                highlightedItem: {
+                    strokeWidth: 3,
+                },
+            },
         },
         {
             type: 'area',
             xKey: 'quarter',
-            yKey: 'coal',
-            yName: 'Coal',
+            xName: 'Quarter',
+            yKey: 'serviceRevenue',
+            yName: 'Service Revenue',
+            fillOpacity: 0.7,
+            strokeWidth: 2,
+            highlight: {
+                highlightedItem: {
+                    strokeWidth: 3,
+                },
+            },
         },
         {
             type: 'area',
             xKey: 'quarter',
-            yKey: 'primaryOil',
-            yName: 'Primary oil',
+            xName: 'Quarter',
+            yKey: 'operatingCosts',
+            yName: 'Operating Costs',
+            fillOpacity: 0.7,
+            strokeWidth: 2,
+            highlight: {
+                highlightedItem: {
+                    strokeWidth: 3,
+                },
+            },
         },
         {
             type: 'area',
             xKey: 'quarter',
-            yKey: 'petroleum',
-            yName: 'Petroleum',
-        },
-        {
-            type: 'area',
-            xKey: 'quarter',
-            yKey: 'manufacturedFuels',
-            yName: 'Manufactured fuels',
+            xName: 'Quarter',
+            yKey: 'rdInvestment',
+            yName: 'R&D Investment',
+            fillOpacity: 0.7,
+            strokeWidth: 2,
+            highlight: {
+                highlightedItem: {
+                    strokeWidth: 3,
+                },
+            },
         },
     ],
     axes: [
         {
-            type: 'category',
+            type: 'grouped-category',
             position: 'bottom',
+            keys: ['quarter'],
+            paddingInner: 0,
+            groupPaddingInner: 0,
+            bandHighlight: {
+                enabled: true,
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
+            depthOptions: [{ label: { rotation: 0 } }, { label: { rotation: 0 } }],
+            crossLines: [
+                {
+                    type: 'range',
+                    range: [
+                        ['2022', 'Q1'],
+                        ['2022', 'Q3'],
+                    ],
+                    fillOpacity: 0.08,
+                    label: {
+                        text: 'Launch Phase',
+                        position: 'inside-bottom',
+                    },
+                },
+                {
+                    type: 'range',
+                    range: [
+                        ['2022', 'Q4'],
+                        ['2023', 'Q1'],
+                    ],
+                    fillOpacity: 0.08,
+                    label: {
+                        text: 'Product-Market Fit',
+                        position: 'inside-bottom',
+                    },
+                },
+                {
+                    type: 'range',
+                    range: [
+                        ['2023', 'Q2'],
+                        ['2023', 'Q3'],
+                    ],
+                    fillOpacity: 0.08,
+                    label: {
+                        text: 'Funding &\nDownturn',
+                        position: 'inside-bottom',
+                    },
+                },
+                {
+                    type: 'range',
+                    range: [
+                        ['2023', 'Q4'],
+                        ['2024', 'Q4'],
+                    ],
+                    fillOpacity: 0.08,
+                    label: {
+                        text: 'Scale & Profitability',
+                        position: 'inside-bottom',
+                    },
+                },
+                {
+                    type: 'line',
+                    value: ['2023', 'Q2'],
+                    strokeWidth: 2,
+                    lineDash: [6, 4],
+                    label: {
+                        text: 'Break Even',
+                        position: 'top',
+                    },
+                },
+            ],
         },
         {
             type: 'number',
             position: 'left',
             title: {
-                text: 'Thousand Tonnes of Oil Equivalent',
+                text: 'USD (Thousands)',
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
         },
     ],

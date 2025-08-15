@@ -9,8 +9,14 @@ import { yorkTopology } from './yorkTopology';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
+    title: {
+        text: 'York Cycle Network Infrastructure',
+    },
+    subtitle: {
+        text: 'Dedicated cycle lanes and traffic monitoring cameras',
+    },
     footnote: {
-        text: 'York Cycle Network',
+        text: 'Data: York City Council',
     },
     series: [
         {
@@ -29,6 +35,8 @@ const options: AgChartOptions = {
             idKey: 'name',
             topology: cycleRouteTopology,
             data: cycleRouteData,
+            strokeWidth: 2.5,
+            strokeOpacity: 0.9,
         },
         {
             type: 'map-marker',
@@ -37,13 +45,17 @@ const options: AgChartOptions = {
             topologyIdKey: 'RoadName',
             topology: cycleCounterTopology,
             data: cycleCounterData,
-            fillOpacity: 1,
+            fillOpacity: 0.95,
             shape: 'pin',
-            size: 15,
+            size: 18,
+            strokeWidth: 1.5,
+            strokeOpacity: 0.8,
         },
     ],
     legend: {
         enabled: true,
+        position: 'bottom',
+        spacing: 40,
     },
 };
 

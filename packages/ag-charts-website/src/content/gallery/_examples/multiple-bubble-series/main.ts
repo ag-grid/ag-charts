@@ -13,6 +13,14 @@ const options: AgChartOptions = {
     footnote: {
         text: 'Comparative Analysis of UK Food and Coffee Franchises',
     },
+    // Shared tooltips for better multi-series comparison
+    tooltip: {
+        enabled: true,
+        mode: 'shared',
+        position: {
+            placement: ['right', 'left', 'top', 'bottom'],
+        },
+    },
     series: [
         {
             type: 'bubble',
@@ -20,52 +28,143 @@ const options: AgChartOptions = {
             xKey: 'numberOfFranchises',
             xName: 'Number of Franchises',
             yKey: 'growthRate',
-            yName: 'Food Industry Growth Rate',
+            yName: 'Food Industry',
             sizeKey: 'licenseFee',
             sizeName: 'License Fee',
             labelKey: 'franchiseName',
             labelName: 'Franchise',
-            maxSize: 90,
-            itemStyler: ({ datum }) => ({ fillOpacity: datum.growthRate / 18 }),
-            label: { enabled: true },
-        },
+            maxSize: 80,
+            fillOpacity: 0.75,
+            strokeWidth: 2,
+            strokeOpacity: 0.9,
+            shadow: {
+                enabled: true,
+                xOffset: 2,
+                yOffset: 2,
+                blur: 5,
+            },
+            label: {
+                enabled: true,
+                formatter: (params: any) => {
+                    // Only show labels for significant franchises to reduce overlap
+                    if (params.datum.numberOfFranchises > 1500 || params.datum.growthRate > 16) {
+                        return params.datum.franchiseName;
+                    }
+                    return '';
+                },
+            },
+            tooltip: {
+                renderer: (params: any) => ({
+                    heading: params.datum.franchiseName,
+                    title: params.yName,
+                    data: [
+                        {
+                            label: 'Franchises',
+                            value: params.datum[params.xKey].toLocaleString('en-GB'),
+                        },
+                        {
+                            label: 'Growth Rate',
+                            value: `${params.datum[params.yKey]}%`,
+                        },
+                        {
+                            label: 'License Fee',
+                            value: `£${params.datum[params.sizeKey].toLocaleString('en-GB')}`,
+                        },
+                    ],
+                }),
+            },
+        } as any,
         {
             type: 'bubble',
             data: getCoffeeIndustryData(),
             xKey: 'numberOfFranchises',
             xName: 'Number of Franchises',
             yKey: 'growthRate',
-            yName: 'Coffee Industry Growth Rate',
+            yName: 'Coffee Industry',
             sizeKey: 'licenseFee',
             sizeName: 'License Fee',
             labelKey: 'franchiseName',
             labelName: 'Franchise',
-            maxSize: 90,
-            itemStyler: ({ datum }) => ({ fillOpacity: datum.growthRate / 24 }),
-            label: { enabled: true },
-        },
+            maxSize: 80,
+            fillOpacity: 0.75,
+            strokeWidth: 2,
+            strokeOpacity: 0.9,
+            shadow: {
+                enabled: true,
+                xOffset: 2,
+                yOffset: 2,
+                blur: 5,
+            },
+            label: {
+                enabled: true,
+                formatter: (params: any) => {
+                    // Only show labels for significant franchises to reduce overlap
+                    if (params.datum.numberOfFranchises > 3000 || params.datum.growthRate > 20) {
+                        return params.datum.franchiseName;
+                    }
+                    return '';
+                },
+            },
+            tooltip: {
+                renderer: (params: any) => ({
+                    heading: params.datum.franchiseName,
+                    title: params.yName,
+                    data: [
+                        {
+                            label: 'Franchises',
+                            value: params.datum[params.xKey].toLocaleString('en-GB'),
+                        },
+                        {
+                            label: 'Growth Rate',
+                            value: `${params.datum[params.yKey]}%`,
+                        },
+                        {
+                            label: 'License Fee',
+                            value: `£${params.datum[params.sizeKey].toLocaleString('en-GB')}`,
+                        },
+                    ],
+                }),
+            },
+        } as any,
     ],
     axes: [
         {
             position: 'bottom',
             type: 'number',
             nice: false,
-            min: -11000,
-            max: 50000,
+            min: -1000,
+            max: 32000,
             title: {
-                text: 'Number Of Franchises →',
+                text: 'Number of Franchises',
+            },
+            label: {
+                formatter: ({ value }) => {
+                    if (value === 0) return '0';
+                    return new Intl.NumberFormat('en-GB').format(value);
+                },
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [3, 3],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
             crossLines: [
                 {
                     type: 'line',
-                    value: 0,
-                    strokeWidth: 2,
-                    strokeOpacity: 0.5,
+                    value: 10000,
+                    strokeWidth: 1,
+                    strokeOpacity: 0.4,
+                    lineDash: [4, 4],
                     label: {
-                        text: '^',
+                        text: 'Market Threshold',
                         position: 'top',
-                        fontSize: 14,
-                        padding: 0,
+                        padding: 5,
                     },
                 },
             ],
@@ -74,15 +173,51 @@ const options: AgChartOptions = {
             position: 'left',
             type: 'number',
             title: {
-                text: 'Franchise Growth Rate',
+                text: 'Franchise Growth Rate (%)',
             },
             nice: false,
+            min: 0,
+            max: 26,
+            label: {
+                formatter: ({ value }) => `${value}%`,
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [3, 3],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 10,
+                    strokeWidth: 1,
+                    strokeOpacity: 0.3,
+                    lineDash: [4, 4],
+                    label: {
+                        text: 'Industry Average',
+                        position: 'right',
+                        padding: 5,
+                    },
+                },
+            ],
         },
     ],
-    formatter: {
-        x: '#{,.0f}',
-        y: '#{.0f}%',
-        size: (params) => `£${Math.round((params.value as number) / 1000)}k`,
+    // Legend configuration for better series identification
+    legend: {
+        position: 'bottom',
+        item: {
+            marker: {
+                shape: 'circle',
+                size: 12,
+                strokeWidth: 0,
+            },
+        },
     },
 };
 

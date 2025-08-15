@@ -1,39 +1,74 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-const numFormatter = new Intl.NumberFormat('en-US');
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+});
 
-const options: AgChartOptions<DataType> = {
+const totalRevenue = getData().reduce((sum, d) => sum + d.revenue, 0);
+
+const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Apple Pie',
+        text: 'Technology Revenue by Segment',
     },
     subtitle: {
-        text: 'Easy Apple Pie (Serves 4)',
+        text: 'Q4 2024 Revenue Distribution',
     },
     footnote: {
-        text: 'Bake the pie in the oven for 25 minutes at 180℃',
+        text: `Total Revenue: ${currencyFormatter.format(totalRevenue)}`,
     },
     series: [
         {
             data: getData(),
             type: 'pie',
-            calloutLabelKey: 'ingredient',
-            sectorLabelKey: 'weight',
-            angleKey: 'weight',
+            calloutLabelKey: 'segment',
+            sectorLabelKey: 'revenue',
+            angleKey: 'revenue',
             calloutLabel: {
-                offset: 10,
+                offset: 20,
+                minAngle: 5,
             },
-            title: {
-                text: 'Recipe',
+            sectorLabel: {
+                formatter: ({ datum, angleKey }) => {
+                    const value = datum[angleKey] as number;
+                    const percentage = ((value / totalRevenue) * 100).toFixed(1);
+                    return parseFloat(percentage) >= 5 ? `${percentage}%` : '';
+                },
+            },
+            strokeWidth: 1,
+            tooltip: {
+                enabled: true,
+                renderer: (params) => {
+                    const { datum, angleKey } = params;
+                    const value = datum[angleKey] as number;
+                    const percentage = ((value / totalRevenue) * 100).toFixed(1);
+                    return {
+                        title: datum.segment,
+                        data: [
+                            { label: 'Revenue', value: currencyFormatter.format(value) },
+                            { label: 'Market Share', value: `${percentage}%` },
+                        ],
+                    };
+                },
+            },
+            highlight: {
+                enabled: true,
+                highlightedItem: {
+                    strokeWidth: 2,
+                },
             },
         },
     ],
     legend: {
         enabled: false,
     },
-    formatter: (params) =>
-        typeof params.value === 'number' ? `${numFormatter.format(params.value)}g` : String(params.value),
+    animation: {
+        enabled: true,
+        duration: 800,
+    },
 };
 AgCharts.create(options);

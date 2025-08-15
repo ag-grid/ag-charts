@@ -75,7 +75,7 @@ const options: AgChartOptions = {
                 .map((t: any) => {
                     return { name: t.properties.city };
                 })
-                .filter(({ name }: any) => name != null),
+                .filter(({ name }: { name: string }) => name != null),
             idKey: 'name',
             title: 'Capital City',
             topologyIdKey: 'city',

@@ -1,15 +1,23 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { type RevenueData, getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgPolarChartOptions<RevenueData> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
         text: 'Revenue by Product Category',
     },
     subtitle: {
-        text: 'Millions USD',
+        text: 'Quarterly Performance (Millions USD)',
+    },
+    formatter: {
+        y: ({ value }) => {
+            if (typeof value === 'number') {
+                return `$${value.toFixed(1)}M`;
+            }
+            return String(value);
+        },
     },
     series: [
         {
@@ -17,24 +25,39 @@ const options: AgChartOptions = {
             angleKey: 'quarter',
             radiusKey: 'software',
             radiusName: 'Software',
-            fillOpacity: 0.6,
             stacked: true,
+            highlight: {
+                highlightedItem: {
+                    fillOpacity: 1,
+                    strokeWidth: 2,
+                },
+            },
         },
         {
             type: 'radial-column',
             angleKey: 'quarter',
             radiusKey: 'hardware',
             radiusName: 'Hardware',
-            fillOpacity: 0.4,
             stacked: true,
+            highlight: {
+                highlightedItem: {
+                    fillOpacity: 1,
+                    strokeWidth: 2,
+                },
+            },
         },
         {
             type: 'radial-column',
             angleKey: 'quarter',
             radiusKey: 'services',
             radiusName: 'Services',
-            fillOpacity: 0.2,
             stacked: true,
+            highlight: {
+                highlightedItem: {
+                    fillOpacity: 1,
+                    strokeWidth: 2,
+                },
+            },
         },
     ],
     axes: [
@@ -51,6 +74,14 @@ const options: AgChartOptions = {
             paddingInner: 0.2,
         },
     ],
+    legend: {
+        position: 'bottom',
+        item: {
+            marker: {
+                size: 16,
+            },
+        },
+    },
 };
 
 AgCharts.create(options);

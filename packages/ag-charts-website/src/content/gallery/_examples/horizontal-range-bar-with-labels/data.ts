@@ -1,46 +1,17 @@
-export interface DataType {
+export interface SalesData {
     category: string;
     sales2022: number;
     sales2023: number;
 }
 
-export function getData(): DataType[] {
+export function getData(): SalesData[] {
     return [
-        {
-            category: 'Fresh Produce',
-            sales2022: 1200000,
-            sales2023: 1300000,
-        },
-        {
-            category: 'Dairy',
-            sales2022: 900000,
-            sales2023: 950000,
-        },
-        {
-            category: 'Bakery',
-            sales2022: 800000,
-            sales2023: 820000,
-        },
-        {
-            category: 'Meat and Poultry',
-            sales2022: 1100000,
-            sales2023: 1150000,
-        },
-        {
-            category: 'Frozen Foods',
-            sales2022: 700000,
-            sales2023: 750000,
-        },
-        {
-            category: 'Beverages',
-            sales2022: 950000,
-            sales2023: 1000000,
-        },
-        {
-            category: 'Household Essentials',
-            sales2022: 610000,
-            sales2023: 630000,
-        },
-        // Add more categories as needed
+        { category: 'Fresh Produce', sales2022: 450, sales2023: 520 },
+        { category: 'Dairy & Eggs', sales2022: 380, sales2023: 480 },
+        { category: 'Bakery', sales2022: 320, sales2023: 360 },
+        { category: 'Meat & Fish', sales2022: 680, sales2023: 850 },
+        { category: 'Beverages', sales2022: 420, sales2023: 510 },
+        { category: 'Household', sales2022: 560, sales2023: 690 },
+        { category: 'Health & Beauty', sales2022: 290, sales2023: 340 },
     ];
 }

@@ -6,10 +6,10 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Revenue by Product Category',
+        text: 'Quarterly Revenue by Product Category',
     },
     subtitle: {
-        text: 'Millions USD',
+        text: 'FY 2023 Performance (Millions USD)',
     },
     series: [
         {
@@ -19,7 +19,6 @@ const options: AgChartOptions = {
             angleName: 'Software',
             stacked: true,
             strokeWidth: 1,
-            fillOpacity: 0.6,
         },
         {
             type: 'radial-bar',
@@ -28,7 +27,6 @@ const options: AgChartOptions = {
             angleName: 'Hardware',
             stacked: true,
             strokeWidth: 1,
-            fillOpacity: 0.6,
         },
         {
             type: 'radial-bar',
@@ -37,25 +35,43 @@ const options: AgChartOptions = {
             angleName: 'Services',
             stacked: true,
             strokeWidth: 1,
-            fillOpacity: 0.6,
         },
     ],
     axes: [
         {
             type: 'radius-category',
             innerRadiusRatio: 0.1,
-            paddingInner: 0.5,
+            paddingInner: 0.2,
         },
         {
             type: 'angle-number',
             line: {
                 enabled: false,
             },
+            gridLine: {
+                enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                ],
+            },
             label: {
                 enabled: false,
             },
         },
     ],
+    tooltip: {
+        enabled: true,
+        mode: 'shared',
+        position: {
+            placement: ['right', 'left', 'top', 'bottom'],
+        },
+    },
+    formatter: {
+        angle: ({ value }) => `$${value}M`,
+    },
 };
 
 AgCharts.create(options);

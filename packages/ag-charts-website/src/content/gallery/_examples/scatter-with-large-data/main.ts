@@ -18,10 +18,36 @@ const options: AgChartOptions = {
         xName: 'Chromosome',
         yKey: 'region',
         yName: `C${chromosome}`,
+        size: 7,
+        strokeWidth: 1.5,
+        fillOpacity: 0.8,
+        strokeOpacity: 1,
+        tooltip: {
+            renderer: ({ datum, yName }) => {
+                const region = datum.region;
+                const armType = region < 0 ? 'p' : 'q';
+                const position = Math.abs(region).toFixed(2);
+
+                return {
+                    heading: `Chromosome ${datum.chromosome}`,
+                    title: yName,
+                    data: [
+                        { label: 'Region', value: `${armType}${position}` },
+                        { label: 'Arm', value: region < 0 ? 'Short arm' : 'Long arm' },
+                        { label: 'Distance from centromere', value: `${Math.abs(region).toFixed(1)} cM` },
+                    ],
+                };
+            },
+        },
     })),
     seriesArea: {
         padding: {
             left: 20,
+        },
+    },
+    tooltip: {
+        position: {
+            placement: ['right', 'left', 'top', 'bottom'],
         },
     },
     axes: [
@@ -40,6 +66,8 @@ const options: AgChartOptions = {
                     type: 'line',
                     value: 0,
                     lineDash: [5, 6],
+                    strokeWidth: 2,
+                    strokeOpacity: 0.7,
                     label: {
                         text: 'Centromere',
                         position: 'left',
@@ -82,7 +110,7 @@ const options: AgChartOptions = {
     formatter: {
         y(params) {
             if (params.type !== 'number') return;
-            let pq = params.value < 0 ? 'p' : 'q';
+            const pq = params.value < 0 ? 'p' : 'q';
             return `${pq}${Math.abs(params.value).toFixed(params.fractionDigits)}`;
         },
     },

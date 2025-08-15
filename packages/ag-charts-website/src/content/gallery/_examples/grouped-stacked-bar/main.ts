@@ -1,23 +1,23 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Dolphins & Mirrors',
-        fontSize: 20,
     },
     subtitle: {
         text: 'Interactions of Dolphins With Marked Mirrors',
-        fontSize: 14,
     },
     footnote: {
         text: 'Source: Marine Mammal Behavior Research Lab',
-        fontSize: 12,
-        fontStyle: 'italic',
     },
     data: getData(),
+    tooltip: {
+        enabled: true,
+        mode: 'shared',
+    },
     legend: {
         position: {
             placement: 'top-right',
@@ -82,7 +82,6 @@ const options: AgChartOptions = {
             keys: ['dolphin'],
             title: {
                 text: 'Dolphin',
-                fontSize: 14,
             },
             paddingInner: 0.5,
             paddingOuter: 0.2,
@@ -103,9 +102,7 @@ const options: AgChartOptions = {
             interval: {
                 placement: 'between',
             },
-            label: {
-                fontSize: 12,
-            },
+            label: {},
         },
         {
             position: 'left',
@@ -113,10 +110,8 @@ const options: AgChartOptions = {
             keys: ['interactionDurationTM', 'interactionDurationYM'],
             title: {
                 text: 'Duration of Interaction (seconds)',
-                fontSize: 14,
             },
             label: {
-                fontSize: 12,
                 formatter: (params) => `${params.value.toFixed(1)}s`,
             },
             gridLine: {
@@ -136,12 +131,9 @@ const options: AgChartOptions = {
             type: 'number',
             title: {
                 text: 'Number of Looks',
-                fontSize: 14,
             },
             keys: ['numberOfLooksTM', 'numberOfLooksYM'],
-            label: {
-                fontSize: 12,
-            },
+            label: {},
             gridLine: {
                 style: [
                     {

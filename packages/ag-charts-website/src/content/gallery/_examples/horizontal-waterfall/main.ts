@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -11,6 +11,39 @@ const options: AgChartOptions = {
     subtitle: {
         text: 'All values in £ billions',
     },
+    tooltip: {
+        enabled: true,
+    },
+    axes: [
+        {
+            type: 'category',
+            position: 'left',
+            bandHighlight: {
+                enabled: true,
+            },
+        },
+        {
+            type: 'number',
+            position: 'bottom',
+            label: {
+                formatter: (params) => {
+                    const value = params.value as number;
+                    return `${value < 0 ? '-' : ''}£${Math.abs(value)} bn`;
+                },
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
+        },
+    ],
     series: [
         {
             type: 'waterfall',
@@ -32,42 +65,78 @@ const options: AgChartOptions = {
                 },
             ],
             line: {
-                enabled: false,
+                enabled: true,
+                strokeWidth: 2,
             },
             item: {
                 positive: {
-                    fillOpacity: 0.3,
-                    strokeWidth: 1,
-                    lineDash: [2],
+                    fillOpacity: 0.8,
+                    strokeWidth: 2,
                     label: {
                         enabled: true,
+                        formatter: (params) => {
+                            const value = params.value as number;
+                            return `+£${value} bn`;
+                        },
                     },
                 },
                 negative: {
-                    fillOpacity: 0.3,
-                    strokeWidth: 1,
-                    lineDash: [2],
+                    fillOpacity: 0.8,
+                    strokeWidth: 2,
                     label: {
                         enabled: true,
+                        formatter: (params) => {
+                            const value = Math.abs(params.value as number);
+                            return `-£${value} bn`;
+                        },
                     },
                 },
                 total: {
-                    fillOpacity: 0.3,
+                    fillOpacity: 0.9,
+                    strokeWidth: 2,
                     label: {
                         enabled: true,
                         placement: 'inside-center',
+                        formatter: (params) => {
+                            const value = params.value as number;
+                            return `£${value} bn`;
+                        },
                     },
+                },
+            },
+            tooltip: {
+                renderer: (params) => {
+                    const value = params.datum.amount;
+                    const absValue = Math.abs(value);
+                    const category = params.datum.financials;
+
+                    let typeLabel = 'Change';
+                    if (params.itemId === 'total') {
+                        typeLabel = 'Total Income';
+                    } else if (params.itemId === 'subtotal') {
+                        typeLabel = 'Total Expenditure';
+                    } else if (value > 0) {
+                        typeLabel = 'Income';
+                    } else {
+                        typeLabel = 'Expenditure';
+                    }
+
+                    return {
+                        heading: category,
+                        title: typeLabel,
+                        data: !isNaN(value)
+                            ? [
+                                  {
+                                      label: 'Amount',
+                                      value: `${value < 0 ? '-' : ''}£${absValue} billion`,
+                                  },
+                              ]
+                            : [],
+                    };
                 },
             },
         },
     ],
-    formatter: {
-        x: (params) => {
-            const value = params.value as number;
-            const positiveSign = params.source === 'axis-label' ? '' : '+';
-            return `${value < 0 ? '-' : positiveSign}£${Math.abs(value).toFixed(0)} bn`;
-        },
-    },
 };
 
 AgCharts.create(options);

@@ -1,117 +1,236 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
 
 import { getCurrencyData } from './data';
 import { cables, capitals, topology } from './topology';
 
-const currencyLayers: Record<string, { title: string; fill: string }> = {
-    euro: { title: 'Euro', fill: '#3F51B5' },
-    dollar: { title: 'Dollar', fill: '#8BC34A' },
-    franc: { title: 'Franc', fill: '#F44336' },
-    pound: { title: 'Pound', fill: '#2196F3' },
-    dinar: { title: 'Dinar', fill: '#9C27B0' },
-    peso: { title: 'Peso', fill: '#FFC107' },
-    rupee: { title: 'Rupee', fill: '#FF9800' },
-    rial: { title: 'Rial', fill: '#009688' },
+const currencyLayers: Record<string, { title: string; symbol: string; countries: number }> = {
+    dollar: { title: 'US Dollar ($)', symbol: '$', countries: 11 },
+    pound: { title: 'Pound Sterling (£)', symbol: '£', countries: 4 },
+    euro: { title: 'Euro (€)', symbol: '€', countries: 20 },
+    franc: { title: 'Franc', symbol: 'Fr', countries: 8 },
+    dinar: { title: 'Dinar', symbol: 'د', countries: 11 },
+    peso: { title: 'Peso', symbol: '₱', countries: 8 },
+    rupee: { title: 'Rupee', symbol: '₹', countries: 7 },
+    rial: { title: 'Rial', symbol: '﷼', countries: 3 },
 };
 
-const options: AgChartOptions = {
+const options: AgTopologyChartOptions = {
     container: document.getElementById('myChart'),
+    title: {
+        text: 'Global Currency Zones & Financial Centers',
+    },
+    subtitle: {
+        text: 'Major world currencies, stock exchanges, and submarine cable infrastructure',
+    },
     topology,
     series: [
         {
             type: 'map-shape-background',
-            fillOpacity: 0,
-            stroke: '#66879933',
+            fillOpacity: 0.05,
+            strokeWidth: 0.5,
+            strokeOpacity: 0.3,
         },
-        {
-            type: 'map-shape',
-            legendItemName: 'Shapes',
-            title: 'Other Currency',
-            data: topology.features
-                .map((t: any) => ({ name: t.properties.name }))
-                .filter(({ name }: { name: string }) => currencyLayers[name] == null),
-            idKey: 'name',
-            fill: '#668799',
-            fillOpacity: 0.4,
-            highlight: {
-                highlightedItem: {
-                    fillOpacity: 1,
-                },
-            },
-        },
-        ...Object.entries(currencyLayers).map(([currency, { title, fill }]) => ({
+        ...Object.entries(currencyLayers).map(([currency, { title, symbol, countries }]) => ({
             type: 'map-shape' as const,
-            legendItemName: 'Shapes',
-            showInLegend: false,
+            legendItemName: title,
             title,
             idKey: 'name',
-            data: getCurrencyData(currency),
-            fill,
-            fillOpacity: 0.4,
+            data: getCurrencyData(currency).map((d) => ({
+                ...d,
+                symbol,
+                countriesUsing: countries,
+            })),
+            fillOpacity: 0.6,
+            strokeWidth: 0.5,
+            strokeOpacity: 0.8,
             highlight: {
                 highlightedItem: {
                     fillOpacity: 1,
+                    strokeWidth: 2,
+                    strokeOpacity: 1,
                 },
             },
         })),
         {
+            type: 'map-shape',
+            legendItemName: 'Other Currencies',
+            title: 'Other Currency',
+            data: topology.features
+                .map((t: any) => ({
+                    name: t.properties.name,
+                    currency: 'Various local currencies',
+                }))
+                .filter(({ name }: { name: string }) => currencyLayers[name] == null),
+            idKey: 'name',
+            fillOpacity: 0.2,
+            strokeWidth: 0.5,
+            strokeOpacity: 0.3,
+            highlight: {
+                highlightedItem: {
+                    fillOpacity: 0.6,
+                    strokeWidth: 2,
+                    strokeOpacity: 1,
+                },
+            },
+        },
+        {
             type: 'map-line',
             topology: cables,
-            legendItemName: 'Lines',
+            legendItemName: 'Submarine Cables',
             data: cables.features.map((t: any) => {
-                return { name: t.properties.name };
+                return {
+                    name: t.properties.name,
+                    type: 'Submarine Cable',
+                    purpose: 'Global Internet Infrastructure',
+                };
             }),
             idKey: 'name',
             title: 'Submarine Cables',
-            stroke: '#546E7A',
-            strokeWidth: 0.5,
+            stroke: '#666',
+            strokeWidth: 1,
+            strokeOpacity: 0.4,
+            lineDash: [2, 2],
+            highlight: {
+                highlightedItem: {
+                    strokeWidth: 1.5,
+                    strokeOpacity: 1,
+                },
+            },
         },
         {
             type: 'map-marker',
             topology: capitals,
-            legendItemName: 'Markers',
+            legendItemName: 'Capital Cities',
             showInLegend: false,
             data: capitals.features
                 .map((t: any) => {
-                    return { name: t.properties.city };
+                    return {
+                        name: t.properties.city,
+                        country: t.properties.country || 'Unknown',
+                        type: 'Capital City',
+                    };
                 })
-                .filter(({ name }: any) => name != null),
+                .filter(({ name }: { name: string }) => name != null),
             idKey: 'name',
             title: 'Capital City',
             topologyIdKey: 'city',
-            size: 4,
-            fill: '#546E7A',
-            fillOpacity: 1,
-            strokeWidth: 0,
+            size: 3,
+            fillOpacity: 0.6,
+            strokeWidth: 1,
+            strokeOpacity: 0.8,
+            highlight: {
+                highlightedItem: {
+                    fillOpacity: 1,
+                    strokeWidth: 2,
+                },
+            },
+            tooltip: {
+                renderer: ({ datum }) => ({
+                    data: [{ label: `Country`, value: datum.country }],
+                }),
+            },
         },
         {
             type: 'map-marker',
-            legendItemName: 'Markers',
+            legendItemName: 'Stock Exchanges',
             title: 'Stock Exchange',
             data: [
-                { name: 'New York', lat: 40.707, long: -74.011 },
-                { name: 'Tokyo', lat: 35.681, long: 139.777 },
-                { name: 'London', lat: 51.515, long: -0.09 },
-                { name: 'Hong Kong', lat: 22.32, long: 114.171 },
-                { name: 'India', lat: 28.624, long: 77.214 },
+                {
+                    name: 'NYSE',
+                    city: 'New York',
+                    lat: 40.707,
+                    long: -74.011,
+                    marketCap: '$25.85T',
+                    tradingHours: '9:30 AM - 4:00 PM EST',
+                },
+                {
+                    name: 'TSE',
+                    city: 'Tokyo',
+                    lat: 35.681,
+                    long: 139.777,
+                    marketCap: '$6.54T',
+                    tradingHours: '9:00 AM - 3:00 PM JST',
+                },
+                {
+                    name: 'LSE',
+                    city: 'London',
+                    lat: 51.515,
+                    long: -0.09,
+                    marketCap: '$3.83T',
+                    tradingHours: '8:00 AM - 4:30 PM GMT',
+                },
+                {
+                    name: 'HKEX',
+                    city: 'Hong Kong',
+                    lat: 22.32,
+                    long: 114.171,
+                    marketCap: '$5.43T',
+                    tradingHours: '9:30 AM - 4:00 PM HKT',
+                },
+                {
+                    name: 'NSE',
+                    city: 'Mumbai',
+                    lat: 19.076,
+                    long: 72.877,
+                    marketCap: '$3.73T',
+                    tradingHours: '9:15 AM - 3:30 PM IST',
+                },
             ],
             latitudeKey: 'lat',
             longitudeKey: 'long',
             labelKey: 'name',
-            labelName: 'Name',
-            label: { enabled: false },
+            labelName: 'Exchange',
+            label: {
+                enabled: true,
+                border: {
+                    enabled: true,
+                    strokeWidth: 1,
+                },
+                padding: { top: 2, right: 5, bottom: 2, left: 5 },
+                fill: '#888',
+                fillOpacity: 0.7,
+                cornerRadius: 3,
+            },
             shape: 'pin',
-            size: 40,
+            size: 35,
             fill: '#EF5452',
-            fillOpacity: 1,
-            strokeWidth: 0,
+            fillOpacity: 0.9,
+            strokeWidth: 2,
+            strokeOpacity: 1,
+            highlight: {
+                highlightedItem: {
+                    fillOpacity: 1,
+                    strokeWidth: 3,
+                },
+            },
+            tooltip: {
+                renderer: ({ datum }) => ({
+                    title: `${datum.name} (Stock Exchange)`,
+                    data: [
+                        { label: `City`, value: datum.city },
+                        { label: `Market Cap`, value: datum.marketCap },
+                        { label: 'Trading Hours', value: datum.tradingHours },
+                    ],
+                }),
+            },
         },
     ],
     legend: {
         enabled: true,
+        position: 'right',
         item: {
             showSeriesStroke: true,
+            paddingY: 5,
+            marker: {
+                size: 12,
+            },
         },
+    },
+    zoom: {
+        enabled: true,
+        enableAxisDragging: false,
+        enablePanning: true,
+        enableScrolling: true,
     },
 };
 

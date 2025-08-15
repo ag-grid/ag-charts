@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-const options: AgChartOptions<DataType> = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -14,35 +14,58 @@ const options: AgChartOptions<DataType> = {
     footnote: {
         text: 'Source: Office for National Statistics',
     },
+    // Shared tooltips for better data comparison
+    tooltip: {
+        enabled: true,
+        mode: 'shared',
+        position: {
+            placement: ['right', 'left', 'top', 'bottom'],
+        },
+    },
     series: [
         {
             type: 'scatter',
             xKey: 'year',
             xName: 'Year',
             yKey: 'lifeExpectancy',
-            yName: 'Life Expectancy',
-            size: 4,
-            label: {
-                formatter: ({ datum }) => {
-                    return datum.year === 2023 || datum.year === 1768 ? `${datum.year}` : '';
-                },
-            },
+            yName: 'Duration',
+            title: 'Life Expectancy',
+            size: 5,
         },
         {
             type: 'scatter',
             xKey: 'year',
             xName: 'Year',
             yKey: 'numberOfDeaths',
-            yName: 'Number of Deaths',
-            size: 4,
+            yName: 'Count',
+            title: 'Number of Deaths',
+            size: 5,
+            strokeWidth: 1.5,
         },
     ],
     axes: [
         {
             position: 'bottom',
             type: 'number',
+            title: {
+                text: 'Year',
+            },
             gridLine: {
-                enabled: false,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
+            crosshair: {
+                enabled: true,
+                label: {
+                    format: 'd',
+                },
             },
             nice: false,
             min: 1762,
@@ -53,12 +76,29 @@ const options: AgChartOptions<DataType> = {
             type: 'number',
             position: 'right',
             keys: ['numberOfDeaths'],
-            interval: { values: [338984, 715246] },
+            title: {
+                text: 'Number of Deaths',
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
+            crosshair: {
+                enabled: true,
+                label: {
+                    formatter: ({ value }) => `${Math.round(value).toLocaleString('en-GB')}`,
+                },
+            },
+            // interval: { values: [338984, 715246] },
             label: {
-                formatter: ({ value }) =>
-                    `~${Math.round(value).toLocaleString('en-GB', {
-                        maximumFractionDigits: 0,
-                    })} Deaths`,
+                formatter: ({ value }) => `${Math.round(value).toLocaleString('en-GB')}`,
             },
             line: {
                 enabled: true,
@@ -67,19 +107,24 @@ const options: AgChartOptions<DataType> = {
         {
             type: 'number',
             position: 'left',
+            title: {
+                text: 'Life Expectancy (Years)',
+            },
             nice: false,
             min: 25,
             max: 85,
             keys: ['lifeExpectancy'],
-            interval: { values: [81.77, 29.22] },
+            crosshair: {
+                enabled: true,
+                label: {
+                    formatter: ({ value }) => `${Math.round(value)} Years`,
+                },
+            },
             line: {
                 enabled: true,
             },
             label: {
-                formatter: ({ value }) =>
-                    `~${Math.round(value).toLocaleString('en-GB', {
-                        maximumFractionDigits: 0,
-                    })} Years`,
+                formatter: ({ value }) => `${Math.round(value)} Years`,
             },
         },
     ],

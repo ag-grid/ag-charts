@@ -12,7 +12,7 @@ export interface DataType {
 export function getData(): DataType[] {
     return [
         {
-            player: 'Zidane\nIqbal',
+            player: 'Zidane Iqbal',
             age: 20,
             marketValue: 1.0,
             nationality: 'Iraq',
@@ -21,7 +21,7 @@ export function getData(): DataType[] {
             date: new Date(2023, 6, 1),
         },
         {
-            player: 'Mason\nMount',
+            player: 'Mason Mount',
             age: 24,
             marketValue: 60.0,
             nationality: 'England',
@@ -30,7 +30,7 @@ export function getData(): DataType[] {
             date: new Date(2023, 6, 5),
         },
         {
-            player: 'André\nOnana',
+            player: 'André Onana',
             age: 27,
             marketValue: 35.0,
             nationality: 'Cameroon',
@@ -39,7 +39,7 @@ export function getData(): DataType[] {
             date: new Date(2023, 6, 20),
         },
         {
-            player: 'Alex\nTelles',
+            player: 'Alex Telles',
             age: 30,
             marketValue: 7.5,
             nationality: 'Brazil',
@@ -48,7 +48,7 @@ export function getData(): DataType[] {
             date: new Date(2023, 6, 23),
         },
         {
-            player: 'Anthony\nElanga',
+            player: 'Anthony Elanga',
             age: 21,
             marketValue: 18.0,
             nationality: 'Sweden',
@@ -57,7 +57,7 @@ export function getData(): DataType[] {
             date: new Date(2023, 6, 25),
         },
         {
-            player: 'Rasmus\nHøjlund',
+            player: 'Rasmus Højlund',
             age: 20,
             marketValue: 45.0,
             nationality: 'Denmark',
@@ -75,7 +75,7 @@ export function getData(): DataType[] {
             date: new Date(2023, 7, 11),
         },
         {
-            player: 'Matej\nKovar',
+            player: 'Matej Kovar',
             age: 23,
             marketValue: 1.8,
             nationality: 'Czech Republic',
@@ -84,7 +84,7 @@ export function getData(): DataType[] {
             date: new Date(2023, 7, 15),
         },
         {
-            player: 'Dean\nHenderson',
+            player: 'Dean Henderson',
             age: 26,
             marketValue: 18.0,
             nationality: 'England',
@@ -93,7 +93,7 @@ export function getData(): DataType[] {
             date: new Date(2023, 7, 31),
         },
         {
-            player: 'Sofyan\nAmrabat',
+            player: 'Sofyan Amrabat',
             age: 27,
             marketValue: 30.0,
             nationality: 'Morocco',
@@ -102,7 +102,7 @@ export function getData(): DataType[] {
             date: new Date(2023, 8, 1),
         },
         {
-            player: 'Altay\nBayındır',
+            player: 'Altay Bayındır',
             age: 25,
             marketValue: 11.0,
             nationality: 'Turkey',

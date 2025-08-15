@@ -8,12 +8,10 @@ const options: AgCartesianChartOptions<DataType> = {
     theme: 'ag-default',
     title: {
         text: 'Total Visitors to Museums and Galleries',
-        fontSize: 20,
         fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
     },
     footnote: {
         text: 'Source: Department for Digital, Culture, Media & Sport',
-        fontSize: 12,
         fontStyle: 'italic',
     },
     series: [
@@ -26,7 +24,6 @@ const options: AgCartesianChartOptions<DataType> = {
             label: {
                 enabled: true,
                 placement: 'inside-center',
-                fontSize: 14,
             },
         },
     ],
@@ -36,10 +33,8 @@ const options: AgCartesianChartOptions<DataType> = {
             position: 'bottom',
             title: {
                 text: 'Year',
-                fontSize: 14,
             },
             label: {
-                fontSize: 12,
                 rotation: 0,
             },
             gridLine: {
@@ -54,10 +49,8 @@ const options: AgCartesianChartOptions<DataType> = {
             position: 'left',
             title: {
                 text: 'Total Visitors (Millions)',
-                fontSize: 14,
             },
             label: {
-                fontSize: 12,
                 formatter: (params) => {
                     const value = params.value as number;
                     return `${Math.round(value / 1_000_000)}M`;

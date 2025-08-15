@@ -57,7 +57,6 @@ const options: AgChartOptions = {
                 label: {
                     text: subject,
                     position: 'inside',
-                    fontSize: 11,
                 },
             })),
         },

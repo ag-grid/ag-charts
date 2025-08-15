@@ -4,6 +4,11 @@ import { DataType, getData } from './data';
 
 const data = getData();
 
+// Calculate statistics for reference lines
+const allSalaries = data.flatMap((d) => [d.low, d.high]);
+const avgSalary = allSalaries.reduce((a, b) => a + b, 0) / allSalaries.length;
+const medianSalary = allSalaries.sort((a, b) => a - b)[Math.floor(allSalaries.length / 2)];
+
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data,
@@ -12,6 +17,22 @@ const options: AgCartesianChartOptions<DataType> = {
     },
     subtitle: {
         text: 'Low and High Salary Brackets Across Various Departments',
+    },
+    // Root-level formatter for consistent currency formatting
+    formatter: {
+        y: (params) =>
+            (params.value as number).toLocaleString('en-GB', {
+                style: 'currency',
+                currency: 'GBP',
+                notation: 'compact',
+                compactDisplay: 'short',
+            }),
+    },
+    tooltip: {
+        enabled: true,
+        position: {
+            placement: ['right', 'left', 'top', 'bottom'],
+        },
     },
     series: [
         {
@@ -23,15 +44,60 @@ const options: AgCartesianChartOptions<DataType> = {
             yLowName: 'Low',
             yHighKey: 'high',
             yHighName: 'High',
-            cornerRadius: 5,
-            itemStyler: ({ datum, yHighKey }) => {
+            cornerRadius: 8,
+            itemStyler: ({ datum }) => {
+                const rangeSize = datum.high - datum.low;
+                const avgRange = data.reduce((sum, d) => sum + (d.high - d.low), 0) / data.length;
+                const opacity = 0.5 + (rangeSize / avgRange) * 0.5;
                 return {
-                    fillOpacity: getOpacity(datum, yHighKey, 0.4, 1),
+                    fillOpacity: Math.min(1, Math.max(0.3, opacity)),
                 };
             },
             label: {
                 placement: 'outside',
                 color: 'rgb(118,118,118)',
+            },
+            tooltip: {
+                renderer: ({ datum }) => {
+                    const low = datum['low'] as number;
+                    const high = datum['high'] as number;
+                    const range = high - low;
+                    const midpoint = (high + low) / 2;
+                    return {
+                        heading: datum['department']!,
+                        title: 'Salary Range',
+                        data: [
+                            {
+                                label: 'Minimum',
+                                value: low.toLocaleString('en-GB', {
+                                    style: 'currency',
+                                    currency: 'GBP',
+                                }),
+                            },
+                            {
+                                label: 'Maximum',
+                                value: high.toLocaleString('en-GB', {
+                                    style: 'currency',
+                                    currency: 'GBP',
+                                }),
+                            },
+                            {
+                                label: 'Range',
+                                value: range.toLocaleString('en-GB', {
+                                    style: 'currency',
+                                    currency: 'GBP',
+                                }),
+                            },
+                            {
+                                label: 'Midpoint',
+                                value: midpoint.toLocaleString('en-GB', {
+                                    style: 'currency',
+                                    currency: 'GBP',
+                                }),
+                            },
+                        ],
+                    };
+                },
             },
         },
     ],
@@ -39,7 +105,10 @@ const options: AgCartesianChartOptions<DataType> = {
         {
             type: 'category',
             position: 'bottom',
-            paddingInner: 0.5,
+            paddingInner: 0.4,
+            bandHighlight: {
+                enabled: true,
+            },
         },
         {
             type: 'number',
@@ -47,11 +116,52 @@ const options: AgCartesianChartOptions<DataType> = {
             gridLine: {
                 style: [
                     {
-                        stroke: 'rgb(216,216,216)',
-                        lineDash: [2, 2],
+                        strokeWidth: 1,
+                        lineDash: [3, 3],
+                    },
+                    {
+                        strokeWidth: 0,
                     },
                 ],
             },
+            crosshair: {
+                enabled: true,
+                strokeWidth: 1,
+                lineDash: [5, 5],
+                label: {
+                    enabled: true,
+                },
+            },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: avgSalary,
+                    strokeWidth: 1,
+                    lineDash: [4, 4],
+                    label: {
+                        text: `Average (${avgSalary.toLocaleString('en-GB', {
+                            style: 'currency',
+                            currency: 'GBP',
+                        })})`,
+                        position: 'left',
+                        padding: 5,
+                    },
+                },
+                {
+                    type: 'line',
+                    value: medianSalary,
+                    strokeWidth: 2,
+                    lineDash: [8, 4],
+                    label: {
+                        text: `Median (${medianSalary.toLocaleString('en-GB', {
+                            style: 'currency',
+                            currency: 'GBP',
+                        })})`,
+                        position: 'left',
+                        padding: 5,
+                    },
+                },
+            ],
         },
     ],
     seriesArea: {
@@ -59,32 +169,6 @@ const options: AgCartesianChartOptions<DataType> = {
             right: 25,
         },
     },
-    formatter: {
-        y: (params) =>
-            (params.value as number).toLocaleString('en-GB', {
-                style: 'currency',
-                currency: 'GBP',
-                notation: 'compact',
-                compactDisplay: 'short',
-            }),
-    },
 };
-
-function getOpacity(datum: DataType, key: keyof DataType, minOpacity: number, maxOpacity: number) {
-    const [min, max] = getDomain(key);
-    const value = Number(datum[key]);
-    let alpha = Math.round(((value - min) / (max - min)) * 10) / 10;
-    return map(alpha, 0, 1, minOpacity, maxOpacity);
-}
-
-function getDomain(key: keyof DataType) {
-    const min = Math.min(...data.map((d) => Number(d[key])));
-    const max = Math.max(...data.map((d) => Number(d[key])));
-    return [min, max];
-}
-
-function map(value: number, inMin: number, inMax: number, outMin: number, outMax: number) {
-    return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
-}
 
 AgCharts.create(options);

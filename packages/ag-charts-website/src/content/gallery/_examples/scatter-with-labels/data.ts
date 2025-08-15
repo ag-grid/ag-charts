@@ -1,4 +1,11 @@
-export function getData() {
+export interface NameData {
+    name: string;
+    popularity: number;
+    trend: number;
+    gender: string;
+}
+
+export function getData(): NameData[] {
     return [
         {
             name: 'Olivia',
