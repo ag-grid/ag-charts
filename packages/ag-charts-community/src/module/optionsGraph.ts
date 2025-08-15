@@ -246,7 +246,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
      * Resolve partial options against the existing graph at a given path without overriding the existing user values.
      * Returns an object with only those keys that were also present within `partialOptions`.
      */
-    resolvePartial(path: Array<string>, partialOptions?: PlainObject) {
+    resolvePartial(path: Array<string>, partialOptions?: PlainObject, opts?: { pick?: boolean }) {
         if (!partialOptions) return;
 
         const partialKeys = Object.keys(partialOptions);
@@ -282,8 +282,15 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.graftEdge = OptionsGraph.GRAFT_EDGE;
         this.edgePriority = [...OptionsGraph.EDGE_PRIORITY];
 
+        const pathed = getPathSafe(resolved, path) as PlainObject;
+
         // Only pick the keys that have been requested to prevent overwriting other values with the graph.
-        return pick(getPathSafe(resolved, path) as PlainObject, partialKeys);
+        const shouldPick: boolean = opts?.pick ?? true;
+        if (shouldPick) {
+            return pick(pathed, partialKeys);
+        } else {
+            return pathed;
+        }
     }
 
     findVertexAtPath(path: Array<string>) {
@@ -305,7 +312,10 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         // the original object and must be found in the graph.
         const pathVertex = this.findVertexAtPath(path);
         if (pathVertex) {
-            return this.findNeighbour(pathVertex, USER_OPTIONS_EDGE) != null;
+            return (
+                this.findNeighbour(pathVertex, USER_OPTIONS_EDGE) != null ||
+                this.findNeighbour(pathVertex, USER_PARTIAL_OPTIONS_EDGE) != null
+            );
         }
 
         return false;

@@ -1339,7 +1339,13 @@ export class AreaSeries extends CartesianSeries<
         let stylerResult: AgAreaSeriesStylerResult = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
-            stylerResult = this.callWithContext(styler, stylerParams) ?? {};
+            const cbResult = this.callWithContext(styler, stylerParams) ?? {};
+            const resolved = this.ctx.optionsGraphService.resolvePartial(
+                ['series', `${this.declarationOrder}`],
+                cbResult,
+                { pick: false }
+            );
+            stylerResult = resolved ?? {};
             enablesMarker = stylerResult.marker != null;
         }
         stylerResult.marker ??= {};
