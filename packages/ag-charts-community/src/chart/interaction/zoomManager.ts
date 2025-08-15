@@ -427,8 +427,8 @@ export class ZoomManager extends BaseManager {
         return this.axisZoomManagers.get(axisId)?.getZoom() ?? { min: 0, max: 1 };
     }
 
-    public getAxisZooms(): Record<string, { direction: ChartAxisDirection; zoom: ZoomState | undefined }> {
-        const axes: Record<string, { direction: ChartAxisDirection; zoom: ZoomState | undefined }> = {};
+    public getAxisZooms(): Record<string, { direction: ChartAxisDirection; zoom: ZoomState }> {
+        const axes: Record<string, { direction: ChartAxisDirection; zoom: ZoomState }> = {};
         for (const [axisId, axis] of this.axisZoomManagers.entries()) {
             axes[axisId] = {
                 direction: axis.direction,

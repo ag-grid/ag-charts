@@ -36,6 +36,7 @@ export class ZoomScroller {
             let newZoom = { ...zoom };
 
             const delta = scrollingStep * event.deltaY * (zoom.max - zoom.min);
+
             if (direction === _ModuleSupport.ChartAxisDirection.X && isScalingX) {
                 newZoom.max += delta;
                 newZoom = scaleZoomAxisWithAnchor(newZoom, zoom, anchorPointX, origin.x);
@@ -45,6 +46,9 @@ export class ZoomScroller {
             } else {
                 continue;
             }
+
+            // @todo(AG-15397) - We don't have a way to normalize this zoom yet, so we'll just discard the zoom event
+            if (newZoom.max < newZoom.min) continue;
 
             newZooms[axisId] = { direction, zoom: constrainAxis(newZoom) };
         }

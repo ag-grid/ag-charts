@@ -599,7 +599,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
             for (const [axisId, { direction, zoom: axisZoom }] of entries(newZooms)) {
-                updated &&= this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, axisZoom);
+                const constrainedZoom =
+                    direction === ChartAxisDirection.X
+                        ? this.constrainZoom({ x: axisZoom, y: { min: 1, max: 1 } }).x
+                        : axisZoom;
+                updated &&= this.updateAxisZoom(
+                    axisId,
+                    direction as _ModuleSupport.CartesianAxisDirection,
+                    constrainedZoom
+                );
             }
         } else {
             const newZoom = scroller.update(event, props, seriesRect, this.getZoom());
