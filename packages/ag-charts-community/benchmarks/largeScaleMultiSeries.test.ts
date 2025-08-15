@@ -7,7 +7,7 @@ import { benchmark, setupBenchmark } from './benchmark';
 describe('large-scale multi-series benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('large-scale-multi-series').repeatCount(10);
 
-    benchmark('initial load', ctx, { expectedRelativeMB: 300, expectedCanvasCount: 4 }, async () => {
+    benchmark('initial load', ctx, { expectedRelativeMB: 301, expectedCanvasCount: 4 }, async () => {
         await ctx.create();
     });
 

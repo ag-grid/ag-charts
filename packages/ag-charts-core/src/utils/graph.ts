@@ -3,6 +3,7 @@
  */
 export class AdjacencyListGraph<V, E = undefined> {
     private _vertexCount = 0;
+    private _edgeCount = 0;
 
     // Stores edges in a way to optimise lookup of vertices adjacent by edge value to a vertex. This is less optimal
     // for iteration of all edges and deletion of vertices & edges, however this is less useful for our case.
@@ -16,15 +17,27 @@ export class AdjacencyListGraph<V, E = undefined> {
     protected pendingProcessingEdgesFrom: Vertex<V>[] = [];
     protected pendingProcessingEdgesTo: Vertex<V>[] = [];
 
-    constructor(cachedNeighboursEdge?: E, processedEdge?: E) {
+    private readonly singleValueEdges?: Set<E>;
+
+    constructor(cachedNeighboursEdge?: E, processedEdge?: E, singleValueEdges?: Set<E>) {
         this.cachedNeighboursEdge = cachedNeighboursEdge;
         this.processedEdge = processedEdge;
+        this.singleValueEdges = singleValueEdges;
     }
 
     clear() {
         this._vertexCount = 0;
+        this._edgeCount = 0;
         this.pendingProcessingEdgesFrom = [];
         this.pendingProcessingEdgesTo = [];
+    }
+
+    getVertexCount() {
+        return this._vertexCount;
+    }
+
+    getEdgeCount() {
+        return this._edgeCount;
     }
 
     addVertex(value: V): Vertex<V> {
@@ -43,13 +56,18 @@ export class AdjacencyListGraph<V, E = undefined> {
         }
 
         // Optimize edges handling - single lookup with fallback
-        // edges ??= this._edges.get(from);
         const { edges } = from;
         const vertices = edges.get(edge);
         if (!vertices) {
             edges.set(edge, [to]);
+            this._edgeCount++;
         } else if (vertices.indexOf(to) === -1) {
-            vertices.push(to);
+            if (this.singleValueEdges?.has(edge)) {
+                edges.set(edge, [to]);
+            } else {
+                vertices.push(to);
+                this._edgeCount++;
+            }
         }
     }
 
@@ -65,13 +83,22 @@ export class AdjacencyListGraph<V, E = undefined> {
         // TODO: iterate all edges and their vertices to find and delete references to `vertex`
     }
 
-    removeEdge(from: Vertex<V>, to: Vertex<V>): void {
-        for (const [edge, adjacentVertices] of from.edges) {
-            const index = adjacentVertices.indexOf(to);
-            adjacentVertices.splice(index, 1);
-            if (adjacentVertices.length === 0) {
-                from.edges.delete(edge);
-            }
+    removeEdge(from: Vertex<V>, to: Vertex<V>, edge: E): void {
+        const neighbours = from.edges.get(edge);
+        if (!neighbours) return;
+
+        const index = neighbours.indexOf(to);
+        if (index === -1) return;
+
+        neighbours.splice(index, 1);
+        if (neighbours.length === 0) {
+            from.edges.delete(edge);
+        }
+
+        this._edgeCount--;
+
+        if (edge === this.cachedNeighboursEdge) {
+            from.readCachedNeighbours()?.delete(to.value);
         }
     }
 
