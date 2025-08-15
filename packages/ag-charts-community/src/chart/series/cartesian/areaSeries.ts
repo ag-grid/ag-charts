@@ -121,8 +121,6 @@ export class AreaSeries extends CartesianSeries<
 
     private dataAggregationFilters: AreaSeriesDataAggregationFilter[] | undefined = undefined;
 
-    private deriveMarkerEnabledFromStyler = false;
-
     readonly backgroundGroup = new Group({
         name: `${this.id}-background`,
         zIndex: SeriesZIndexMap.BACKGROUND,
@@ -959,12 +957,12 @@ export class AreaSeries extends CartesianSeries<
         const { marker, styler } = properties;
 
         // The `styler` callback is free to return `marker` styling (or not) at any point.
-        this.deriveMarkerEnabledFromStyler =
+        const deriveMarkerEnabledFromStyler: boolean =
             styler != null &&
             !this.ctx.optionsGraphService.hasUserOption(['series', `${this.declarationOrder}`, 'marker', 'enabled']);
 
         const markersEnabled =
-            this.deriveMarkerEnabledFromStyler ||
+            deriveMarkerEnabledFromStyler ||
             contextNodeData?.crossFiltering === true ||
             markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
 
@@ -987,7 +985,7 @@ export class AreaSeries extends CartesianSeries<
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
-        if (this.deriveMarkerEnabledFromStyler && !stylerStyle.enablesMarker) {
+        if (!stylerStyle.marker.enabled) {
             datumSelection.update([]);
             return;
         }
@@ -1170,7 +1168,7 @@ export class AreaSeries extends CartesianSeries<
 
     legendItemSymbol(): LegendSymbolOptions {
         const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle(false);
-        const useAreaFill = !this.properties.marker.enabled || this.properties.marker.fill === undefined;
+        const useAreaFill = !marker.enabled || marker.fill == null;
         const legendMarkerFill = useAreaFill ? fill : marker.fill;
 
         const markerStyle = this.getMarkerStyle(
@@ -1190,7 +1188,7 @@ export class AreaSeries extends CartesianSeries<
         return {
             marker: {
                 ...markerStyle,
-                enabled: this.properties.marker.enabled || strokeWidth <= 0,
+                enabled: marker.enabled || strokeWidth <= 0,
             },
             line: {
                 stroke,
@@ -1331,12 +1329,11 @@ export class AreaSeries extends CartesianSeries<
     public getStyle(
         highlighted: boolean,
         highlightState?: HighlightState
-    ): Required<AgAreaSeriesStylerResult> & { marker: Required<AgSeriesMarkerStyle> } & { enablesMarker: boolean } {
+    ): Required<AgAreaSeriesStylerResult> & { marker: Required<AgSeriesMarkerStyle> & { enabled: boolean } } {
         const { styler, marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
             this.properties;
         const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
-        let enablesMarker: boolean = false;
-        let stylerResult: AgAreaSeriesStylerResult = {};
+        let stylerResult: AgAreaSeriesStylerResult & { marker?: { enabled?: boolean } } = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlighted, highlightState);
             const cbResult = this.callWithContext(styler, stylerParams) ?? {};
@@ -1346,11 +1343,9 @@ export class AreaSeries extends CartesianSeries<
                 { pick: false }
             );
             stylerResult = resolved ?? {};
-            enablesMarker = stylerResult.marker != null;
         }
         stylerResult.marker ??= {};
         return {
-            enablesMarker,
             fill: stylerResult.fill ?? fill,
             fillOpacity: stylerResult.fillOpacity ?? fillOpacity,
             lineDash: stylerResult.lineDash ?? lineDash,
@@ -1359,6 +1354,7 @@ export class AreaSeries extends CartesianSeries<
             strokeOpacity: stylerResult.strokeOpacity ?? strokeOpacity,
             strokeWidth: stylerResult.strokeWidth ?? strokeWidth,
             marker: {
+                enabled: stylerResult.marker.enabled ?? marker.enabled,
                 fill: stylerResult.marker.fill ?? markerFill,
                 fillOpacity: stylerResult.marker.fillOpacity ?? markerFillOpacity,
                 shape: stylerResult.marker.shape ?? shape,
@@ -1368,8 +1364,8 @@ export class AreaSeries extends CartesianSeries<
                 stroke: stylerResult.marker.stroke ?? marker.stroke ?? stroke,
                 strokeOpacity: stylerResult.marker.strokeOpacity ?? marker.strokeOpacity ?? strokeOpacity,
                 strokeWidth: stylerResult.marker.strokeWidth ?? marker.strokeWidth ?? strokeWidth,
-            } satisfies RequireOptional<AgSeriesMarkerStyle>,
-        } satisfies RequireOptional<AgAreaSeriesStylerResult> & { enablesMarker: boolean };
+            } satisfies RequireOptional<AgSeriesMarkerStyle> & { enabled: boolean },
+        } satisfies RequireOptional<AgAreaSeriesStylerResult> & {marker: { enabled: boolean } } ;
     }
 
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
