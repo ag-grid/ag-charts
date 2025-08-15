@@ -1343,6 +1343,9 @@ export class AreaSeries extends CartesianSeries<
                 { pick: false }
             );
             stylerResult = resolved ?? {};
+            // if (cbResult.marker != null && stylerResult.marker != null) {
+            //     stylerResult.marker.enabled = true;
+            // }
         }
         stylerResult.marker ??= {};
         return {
@@ -1365,7 +1368,7 @@ export class AreaSeries extends CartesianSeries<
                 strokeOpacity: stylerResult.marker.strokeOpacity ?? marker.strokeOpacity ?? strokeOpacity,
                 strokeWidth: stylerResult.marker.strokeWidth ?? marker.strokeWidth ?? strokeWidth,
             } satisfies RequireOptional<AgSeriesMarkerStyle> & { enabled: boolean },
-        } satisfies RequireOptional<AgAreaSeriesStylerResult> & {marker: { enabled: boolean } } ;
+        } satisfies RequireOptional<AgAreaSeriesStylerResult> & { marker: { enabled: boolean } };
     }
 
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
