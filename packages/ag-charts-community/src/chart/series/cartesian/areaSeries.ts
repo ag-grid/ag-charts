@@ -957,9 +957,7 @@ export class AreaSeries extends CartesianSeries<
         const { marker, styler } = properties;
 
         // The `styler` callback is free to return `marker` styling (or not) at any point.
-        const deriveMarkerEnabledFromStyler: boolean =
-            styler != null &&
-            !this.ctx.optionsGraphService.hasUserOption(['series', `${this.declarationOrder}`, 'marker', 'enabled']);
+        const deriveMarkerEnabledFromStyler: boolean = styler != null;
 
         const markersEnabled =
             deriveMarkerEnabledFromStyler ||

@@ -5,7 +5,6 @@ type ResolvePartialOpts = { pick?: boolean; proxyPaths?: Record<string, Array<st
 
 interface Graph {
     resolvePartial(path: Array<string>, partialOptions?: PlainObject, opts?: ResolvePartialOpts): Resolved;
-    hasUserOption(path: Array<string>): boolean;
 }
 
 export class OptionsGraphService {
@@ -17,9 +16,5 @@ export class OptionsGraphService {
 
     resolvePartial(path: Array<string>, partialOptions?: PlainObject, opts?: ResolvePartialOpts): Resolved {
         return this.graph?.resolvePartial(path, partialOptions, opts);
-    }
-
-    hasUserOption(path: Array<string>): boolean {
-        return this.graph?.hasUserOption(path) ?? false;
     }
 }
