@@ -16,7 +16,6 @@ import type {
     AgSeriesVisibilityChange,
     FormatterParams,
     FormatterPropertyType,
-    ISeriesMarker,
     HighlightState as PublicHighlightState,
 } from 'ag-charts-types';
 
@@ -53,7 +52,8 @@ import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { SeriesType } from '../mapping/types';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
-import { HighlightState, type SeriesProperties, highlightStates } from './seriesProperties';
+import type { SeriesMarker } from './seriesMarker';
+import { HighlightState, type SeriesProperties, toHighlightString } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type { INodeEvent, ISeries, NodeDataDependencies, SeriesNodeDatum, SeriesNodeEventTypes } from './seriesTypes';
@@ -625,21 +625,7 @@ export abstract class Series<
         datumIndex?: TDatumIndex,
         legendItemValues?: string[]
     ): PublicHighlightState {
-        const state = this.getHighlightState(datum, isHighlight, datumIndex, legendItemValues);
-
-        switch (state) {
-            case HighlightState.Item:
-                return 'highlighted-item';
-            case HighlightState.OtherItem:
-                return 'unhighlighted-item';
-            case HighlightState.Series:
-                return 'highlighted-series';
-            case HighlightState.OtherSeries:
-                return 'unhighlighted-series';
-            case HighlightState.None:
-            default:
-                return 'none';
-        }
+        return toHighlightString(this.getHighlightState(datum, isHighlight, datumIndex, legendItemValues));
     }
 
     protected onChangeHighlight(event: HighlightChangeEvent) {
@@ -1023,7 +1009,7 @@ export abstract class Series<
     }
 
     public getMarkerStyle<TParams>(
-        marker: ISeriesMarker<TParams>,
+        marker: SeriesMarker<TParams>,
         { datumIndex, datum, point }: Partial<TDatum>,
         params?: TParams,
         opts?: {
@@ -1071,23 +1057,6 @@ export abstract class Series<
         }
 
         return markerStyle;
-    }
-
-    public getMarkerStyles<TParams>(marker: ISeriesMarker<TParams>, inheritedStyle?: AgSeriesMarkerStyle) {
-        return highlightStates.reduce(
-            (styles, state) => {
-                styles[state] = this.getMarkerStyle(
-                    marker,
-                    {},
-                    undefined,
-                    { highlightState: state },
-                    undefined,
-                    inheritedStyle
-                );
-                return styles;
-            },
-            {} as Record<HighlightState, AgSeriesMarkerStyle>
-        );
     }
 
     protected applyMarkerStyle(

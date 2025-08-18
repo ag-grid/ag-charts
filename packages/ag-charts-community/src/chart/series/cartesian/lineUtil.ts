@@ -87,7 +87,7 @@ export function plotLinePathStroke({ path }: Path, spans: LinePathSpan[]) {
     let lastPoint: Point | undefined;
     for (const { span } of spans) {
         const [start, end] = spanRange(span);
-        const join = lastPoint != null && pointsEq(lastPoint, start) ? SpanJoin.LineTo : SpanJoin.MoveTo;
+        const join = lastPoint != null && pointsEq(lastPoint, start) ? SpanJoin.Skip : SpanJoin.MoveTo;
         plotSpan(path, span, join, false);
         lastPoint = end;
     }
@@ -97,7 +97,7 @@ export function plotInterpolatedLinePathStroke(ratio: number, path: Path, spans:
     let lastPoint: Point | undefined;
     for (const span of spans) {
         const [start, end] = interpolatedSpanRange(span.from, span.to, ratio);
-        const join = lastPoint != null && pointsEq(lastPoint, start) ? SpanJoin.LineTo : SpanJoin.MoveTo;
+        const join = lastPoint != null && pointsEq(lastPoint, start) ? SpanJoin.Skip : SpanJoin.MoveTo;
         plotInterpolatedSpans(path.path, span.from, span.to, ratio, join, false);
         lastPoint = end;
     }

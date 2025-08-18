@@ -1,4 +1,4 @@
-import type { ContextCallbackParams } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, SeriesCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -29,6 +29,8 @@ export interface AgLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
     extends StrokeOptions,
         LineDashOptions,
         Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
+    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    styler?: Styler<AgLineSeriesStylerParams<TDatum, TContext>, AgLineSeriesStylerResult>;
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<TDatum, AgLineSeriesMarkerItemStylerParams<TDatum, TContext>, TContext>;
     /** Configuration for the line used in the series. */
@@ -57,6 +59,21 @@ export interface AgLineSeriesOptionsKeys<TDatum = DatumDefault> {
     xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-values from the data. */
     yKey: DatumKey<TDatum>;
+}
+
+export interface AgLineSeriesStylerParams<TDatum, TContext>
+    extends AgLineSeriesOptionsKeys<TDatum>,
+        SeriesCallbackParams,
+        ContextCallbackParams<TContext>,
+        Required<StrokeOptions>,
+        Required<LineDashOptions> {
+    /** Current series styling options on markers. */
+    marker?: AgSeriesMarkerStyle;
+}
+
+export interface AgLineSeriesStylerResult extends StrokeOptions, LineDashOptions {
+    /** Marker styling options. */
+    marker?: AgSeriesMarkerStyle;
 }
 
 export interface AgLineSeriesMarkerItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>

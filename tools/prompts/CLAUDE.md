@@ -124,6 +124,7 @@ nx e2e ag-charts-website
 
 -   **Example Generation**:
     -   Use `nx generate-examples ag-charts-website` to exercise example generation
+    -   Use `nx generate-thumbnails ag-charts-website` to exercise thumbnail generation
 
 ## Development Best Practices
 
@@ -205,6 +206,9 @@ nx e2e ag-charts-website
 
 ### Example Validation + Building
 
--   For gallery examples run: `nx run ag-charts-website-gallery_${exampleName}_main.ts:generate-example`
--   For docs examples run: `nx run ag-charts-website-${pageName}_${exampleName}_main.ts:generate-example`
--   For all examples also run: `nx validate-examples`.
+-   For gallery examples run: `nx run ag-charts-website-gallery_${exampleName}_main.ts:generate`
+    -   For typechecking examples run: `nx run ag-charts-website-gallery_${exampleName}_main.ts:typecheck`
+-   For docs examples run: `nx run ag-charts-website-${pageName}_${exampleName}_main.ts:generate`
+    -   For typechecking docs examples run: `nx run ag-charts-website-${pageName}_${exampleName}_main.ts:typecheck`
+-   For all examples also run: `nx validate-examples` (NOTE: This does a batch `typecheck` which is VERY fast compared to running individual `typecheck` targets).
+-   For adhoc examples to quickly test things or `-test` pages, adding `// @ag-skip-fws` to `main.ts` will disable framework (React, Angylar, Vue) variant generation.

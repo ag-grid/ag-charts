@@ -17,6 +17,7 @@ import type {
     InteractionRange,
     Opacity,
     PixelSize,
+    HighlightState as PublicHighlightState,
 } from 'ag-charts-types';
 
 import { mergeDefaults } from '../../util/object';
@@ -49,6 +50,24 @@ type HighlightMixins = {
     lineDashOffset: number;
     opacity: number;
 };
+
+export function toHighlightString(state: HighlightState): PublicHighlightState {
+    const unreachable = (a: never): never => a;
+    switch (state) {
+        case HighlightState.Item:
+            return 'highlighted-item';
+        case HighlightState.OtherItem:
+            return 'unhighlighted-item';
+        case HighlightState.Series:
+            return 'highlighted-series';
+        case HighlightState.OtherSeries:
+            return 'unhighlighted-series';
+        case HighlightState.None:
+            return 'none';
+        default:
+            return unreachable(state);
+    }
+}
 
 type HighlightOptions<TOpts extends object> = Partial<TOpts & HighlightMixins>;
 

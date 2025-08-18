@@ -1,5 +1,5 @@
 import { clamp } from 'ag-charts-core';
-import type { AgMarkerShape } from 'ag-charts-types';
+import type { AgMarkerShape, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
@@ -15,6 +15,7 @@ import type { AnimationManager } from '../../interaction/animationManager';
 import { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
 import type { SeriesMarker } from '../seriesMarker';
+import { HighlightState, highlightStates } from '../seriesProperties';
 import type { ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import * as easing from './../../../motion/easing';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -131,4 +132,52 @@ export function markerEnabled(
 
     const step = scale.step ?? findRangeExtent(scale.range) / Math.max(1, dataCount);
     return step > minSpacing;
+}
+
+type SeriesStylerResult = { marker?: AgSeriesMarkerStyle } | undefined;
+type SeriesStyler<TStylerParams> = (params: TStylerParams) => SeriesStylerResult;
+type DefaultOverrideStyle = AgSeriesMarkerStyle & { size: number };
+
+interface MarkerSeriesStylerProps<TStylerParams> {
+    properties: { styler?: SeriesStyler<TStylerParams> };
+    callWithContext(styler: SeriesStyler<TStylerParams>, params: TStylerParams): SeriesStylerResult;
+    getMarkerStyle<TParams>(
+        marker: SeriesMarker<TParams>,
+        nodeDatum: object,
+        params?: TParams,
+        opts?: { highlightState?: HighlightState },
+        defaultOverrideStyle?: DefaultOverrideStyle,
+        inheritedStyle?: AgSeriesMarkerStyle
+    ): AgSeriesMarkerStyle & { size: number };
+    makeStylerParams(highlighted: boolean, highlightStateEnum?: HighlightState): TStylerParams;
+}
+
+export function getMarkerStyles<TStylerParams, TItemStylerParams>(
+    series: MarkerSeriesStylerProps<TStylerParams>,
+    marker: SeriesMarker<TItemStylerParams>,
+    inheritedStyle?: AgSeriesMarkerStyle
+) {
+    return highlightStates.reduce(
+        (styles, state) => {
+            let defaultOverrideStyle: DefaultOverrideStyle | undefined;
+            if (series.properties.styler) {
+                const params = series.makeStylerParams(state === HighlightState.None, state);
+                const result = series.callWithContext(series.properties.styler, params);
+                if (result?.marker != null) {
+                    defaultOverrideStyle = { ...result.marker, size: result.marker.size ?? marker.size };
+                }
+            }
+
+            styles[state] = series.getMarkerStyle(
+                marker,
+                {},
+                undefined,
+                { highlightState: state },
+                defaultOverrideStyle,
+                inheritedStyle
+            );
+            return styles;
+        },
+        {} as Record<HighlightState, AgSeriesMarkerStyle>
+    );
 }

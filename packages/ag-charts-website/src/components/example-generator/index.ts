@@ -49,6 +49,7 @@ const getContentJsonPath = (params: GeneratedExampleParams) => {
 type GeneratedContents = {
     entryFileName: string;
     files: Record<string, string>;
+    generatedFiles: Record<string, string>;
     scriptFiles: string[];
 };
 

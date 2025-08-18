@@ -11,6 +11,7 @@ export const AnimationModule: _ModuleSupport.Module = {
     themeTemplate: {
         animation: {
             enabled: true,
+            maxAnimatableItems: 1_000,
         },
     },
 };

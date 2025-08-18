@@ -84,8 +84,11 @@ export abstract class DataModelSeries<
     }
 
     protected isProcessedDataAnimatable() {
-        const { processedData } = this;
+        const { processedData, ctx } = this;
         if (!processedData) return false;
+
+        const nodeData = this.getNodeData();
+        if (nodeData != null && nodeData.length > ctx.animationManager.maxAnimatableItems) return false;
 
         const validationResults = processedData.reduced?.animationValidation;
         if (!validationResults) return true;

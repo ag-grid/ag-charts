@@ -8,37 +8,7 @@ ignore:
                   Only used for building packages, so ReDos attack would only affect developer machines and CI
               expires: 2025-09-21T12:00:00.000Z
               created: 2025-07-15T11:28:00.000Z
-        - 'patch-package@8.0.0 > cross-spawn@7.0.3':
-              reason: >-
-                  Only used for building packages, so ReDos attack would only affect developer machines and CI
-              expires: 2025-09-21T12:00:00.000Z
-              created: 2025-07-15T11:28:00.000Z
-        - 'jest@29.7.0 > @jest/core@29.7.0 > jest-changed-files@29.7.0 > execa@5.1.1 > cross-spawn@7.0.3':
-              reason: >-
-                  Only used for testing, so ReDos attack would only affect developer machines and CI
-              expires: 2025-09-21T12:00:00.000Z
-              created: 2025-07-15T11:28:00.000Z
-        - 'eslint@9.14.0 > cross-spawn@7.0.5':
-              reason: >-
-                  Only used for testing, so ReDos attack would only affect developer machines and CI
-              expires: 2025-09-21T12:00:00.000Z
-              created: 2025-07-15T11:28:00.000Z
-        - 'dependency-cruiser@13.1.5 > glob@10.3.3 > foreground-child@3.1.1 > cross-spawn@7.0.3':
-              reason: >-
-                  Only used for development, so ReDos attack would only affect developer machines and CI
-              expires: 2025-09-21T12:00:00.000Z
-              created: 2025-07-15T11:28:00.000Z
-        - 'dependency-cruiser@13.1.5 > glob@10.3.3 > foreground-child@3.1.1 > cross-spawn@7.0.3':
-              reason: >-
-                  Only used for development, so ReDos attack would only affect developer machines and CI
-              expires: 2025-09-21T12:00:00.000Z
-              created: 2025-07-15T11:28:00.000Z
         - '@swc/cli@0.3.14 > @mole-inc/bin-wrapper@8.0.1 > bin-check@4.1.0 > execa@0.7.0 > cross-spawn@5.1.0':
-              reason: >-
-                  Only used for building, so ReDos attack would only affect developer machines and CI
-              expires: 2025-09-21T12:00:00.000Z
-              created: 2025-07-15T11:28:00.000Z
-        - '@swc/cli@0.3.14 > @mole-inc/bin-wrapper@8.0.1 > bin-version-check@5.1.0 > bin-version@6.0.0 > execa@5.1.1 > cross-spawn@7.0.3':
               reason: >-
                   Only used for building, so ReDos attack would only affect developer machines and CI
               expires: 2025-09-21T12:00:00.000Z

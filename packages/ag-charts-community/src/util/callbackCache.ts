@@ -1,6 +1,8 @@
-import { type AnyFn, Logger } from 'ag-charts-core';
+import { type AnyFn, Logger, type RequireOptional } from 'ag-charts-core';
 
 type Caller = { context?: unknown } | undefined;
+
+export type CallbackParamRules<P> = RequireOptional<Omit<P, 'context'>>;
 
 function needsContext<I>(caller: NonNullable<Caller>, _params: I[]): _params is (I & { context: unknown })[] {
     return 'context' in caller;

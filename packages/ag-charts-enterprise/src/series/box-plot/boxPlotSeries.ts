@@ -435,19 +435,22 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                     const datum = this.processedData?.dataSources.get(seriesId)?.[datumIndex];
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                     const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        xKey,
-                        minKey,
-                        q1Key,
-                        medianKey,
-                        q3Key,
-                        maxKey,
-                        highlighted: isHighlight,
-                        highlightState: highlightStateString,
-                        ...style,
-                    });
+                    return this.ctx.optionsGraphService.resolvePartial(
+                        ['series', `${this.declarationOrder}`],
+                        this.callWithContext(itemStyler, {
+                            seriesId,
+                            datum,
+                            xKey,
+                            minKey,
+                            q1Key,
+                            medianKey,
+                            q3Key,
+                            maxKey,
+                            highlighted: isHighlight,
+                            highlightState: highlightStateString,
+                            ...style,
+                        })
+                    );
                 }
             );
 

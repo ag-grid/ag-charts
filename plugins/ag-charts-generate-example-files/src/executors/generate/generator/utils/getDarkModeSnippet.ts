@@ -1,3 +1,4 @@
+// NOTE: This is duplicated from `external/ag-website-shared/src/utils/getDarkModeSnippet.ts`
 export const DARK_MODE_START = '/** DARK MODE START **/';
 export const DARK_MODE_END = '/** DARK MODE END **/';
 
@@ -63,8 +64,9 @@ if (darkmode) {
     }
 }
 window.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'color-scheme-change') {
-        darkmode = event.data.darkmode;
+    const data = event.data || event.detail;
+    if (data?.type === 'color-scheme-change') {
+        darkmode = data.darkmode;
         applyDarkmode();
     }
 });

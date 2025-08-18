@@ -578,4 +578,33 @@ describe('WaterfallSeries', () => {
             });
         });
     });
+
+    describe('itemStyler', () => {
+        it('complex fills', async () => {
+            const options = {
+                ...WATERFALL_COLUMN_OPTIONS,
+                series: [
+                    {
+                        ...WATERFALL_COLUMN_OPTIONS.series![0],
+                        item: {
+                            positive: {
+                                itemStyler: () => {
+                                    return { fill: { type: 'gradient' } };
+                                },
+                            },
+                            negative: {
+                                itemStyler: () => {
+                                    return { fill: { type: 'pattern' } };
+                                },
+                            },
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options as any);
+            await compare();
+        });
+    });
 });

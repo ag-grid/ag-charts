@@ -10,7 +10,7 @@ import { AgCharts } from '../api/agCharts';
 import type {
     MockAPICallback,
     MockAxisLabelFormatter,
-    MockItemStyler,
+    MockBarItemStyler,
     MockOverlayRenderer,
     MockSeriesLabelFormatter,
     MockTooltipRenderer,
@@ -56,7 +56,7 @@ describe('AG-13024 API context', () => {
     let seriesContext2: TContext;
     let axisContext: TContext;
     let rootContext: TContext;
-    let itemStyler: TFreezable<MockItemStyler<TDatum, TContext>>;
+    let itemStyler: TFreezable<MockBarItemStyler<TDatum, TContext>>;
     let axisLabelFormatter: TFreezable<MockAxisLabelFormatter<TDatum, TContext>>;
     let seriesLabelFormatter: TFreezable<MockSeriesLabelFormatter<TDatum, TContext>>;
     let tooltipRenderer: TFreezable<MockTooltipRenderer<TDatum, TContext>>;
@@ -85,7 +85,7 @@ describe('AG-13024 API context', () => {
         seriesContext2 = { name: '[2]: bmw' };
         axisContext = { name: 'X axis context' };
         rootContext = { name: 'root context' };
-        itemStyler = newFreezable<MockItemStyler<TDatum, TContext>>(
+        itemStyler = newFreezable<MockBarItemStyler<TDatum, TContext>>(
             (params: AgBarSeriesItemStylerParams<TDatum, TContext>) => {
                 params.context satisfies TContext | undefined;
                 return undefined;

@@ -458,6 +458,103 @@ describe('PieSeries', () => {
         });
     });
 
+    describe('itemStyler', () => {
+        it('complex fills', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { cat: 1, fox: 20, dog: 37 },
+                    { cat: 3, fox: 10, dog: 32 },
+                    { cat: 7, fox: 15, dog: 35 },
+                    { cat: 8, fox: 17, dog: 36 },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        radiusKey: 'dog',
+                        angleKey: 'fox',
+                        sectorLabelKey: 'fox',
+                        itemStyler: (params) => {
+                            if (params.datum.fox === 20) return { fill: { type: 'gradient' } };
+                            if (params.datum.fox === 10) return { fill: { type: 'pattern' } };
+                            if (params.datum.fox === 15) return { fill: { type: 'pattern', pattern: 'squares' } };
+                            if (params.datum.fox === 17) {
+                                return {
+                                    fill: { type: 'gradient', colorStops: [{ color: 'red' }, { color: 'blue' }] },
+                                };
+                            }
+                        },
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('complex fills over default fill', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { cat: 1, fox: 20, dog: 37 },
+                    { cat: 3, fox: 10, dog: 32 },
+                    { cat: 7, fox: 15, dog: 35 },
+                    { cat: 8, fox: 17, dog: 36 },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        radiusKey: 'dog',
+                        angleKey: 'fox',
+                        sectorLabelKey: 'fox',
+                        fills: ['red'],
+                        itemStyler: (params) => {
+                            if (params.datum.fox === 20) return { fill: { type: 'gradient' } };
+                            if (params.datum.fox === 10) return { fill: { type: 'pattern' } };
+                            if (params.datum.fox === 15) return { fill: { type: 'pattern', pattern: 'squares' } };
+                            if (params.datum.fox === 17) {
+                                return {
+                                    fill: { type: 'gradient', colorStops: [{ color: 'red' }, { color: 'blue' }] },
+                                };
+                            }
+                        },
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('complex fills over default gradient', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { cat: 1, fox: 20, dog: 37 },
+                    { cat: 3, fox: 10, dog: 32 },
+                    { cat: 7, fox: 15, dog: 35 },
+                    { cat: 8, fox: 17, dog: 36 },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        radiusKey: 'dog',
+                        angleKey: 'fox',
+                        sectorLabelKey: 'fox',
+                        fills: [{ type: 'gradient' }],
+                        itemStyler: (params) => {
+                            if (params.datum.fox === 20) return { fill: { type: 'gradient' } };
+                            if (params.datum.fox === 10) return { fill: { type: 'pattern' } };
+                            if (params.datum.fox === 15) return { fill: { type: 'pattern', pattern: 'squares' } };
+                            if (params.datum.fox === 17) {
+                                return {
+                                    fill: { type: 'gradient', colorStops: [{ color: 'pink' }, { color: 'orange' }] },
+                                };
+                            }
+                        },
+                    },
+                ],
+            });
+            await compare();
+        });
+    });
+
     describe('nodeClick', () => {
         const clicks: string[] = [];
         const doubleClicks: string[] = [];

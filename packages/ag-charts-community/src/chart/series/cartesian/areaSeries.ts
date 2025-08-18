@@ -43,6 +43,7 @@ import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import type { HighlightState } from '../seriesProperties';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
 import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
@@ -65,6 +66,7 @@ import {
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
+    getMarkerStyles,
     markerEnabled,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
@@ -532,8 +534,8 @@ export class AreaSeries extends CartesianSeries<
         let [startIndex, endIndex] = visibleRangeIndices(1, xValues.length, xAxis.range, (datumIndex) =>
             this.xCoordinateRange(xValues[datumIndex], 0)
         );
-        startIndex = Math.max(startIndex - 1, 0);
-        endIndex = Math.min(endIndex + 1, xValues.length);
+        startIndex = Math.max(startIndex - 2, 0);
+        endIndex = Math.min(endIndex + 2, xValues.length);
 
         let phantomSpans: LinePathSpan[];
         if (seriesBelowStackContext?.fillSpans) {
@@ -744,8 +746,8 @@ export class AreaSeries extends CartesianSeries<
         let endIndex = 0;
         const indices = dataAggregationFilter?.indices;
         [startIndex, endIndex] = this.visibleRangeIndices('xValue', xAxis.range, indices);
-        startIndex = Math.max(startIndex - 1, 0);
-        endIndex = Math.min(endIndex + 1, indices?.length ?? xValues.length);
+        startIndex = Math.max(startIndex - 2, 0);
+        endIndex = Math.min(endIndex + 2, indices?.length ?? xValues.length);
         // @todo(AG-13575) Remove this if block
         if (processedData.input.count < 1e3) {
             startIndex = 0;
@@ -849,7 +851,7 @@ export class AreaSeries extends CartesianSeries<
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
             crossFiltering,
-            styles: this.getMarkerStyles(marker, { stroke, strokeWidth, strokeOpacity }),
+            styles: getMarkerStyles(this, marker, { stroke, strokeWidth, strokeOpacity }),
         };
 
         return context;
@@ -1059,6 +1061,10 @@ export class AreaSeries extends CartesianSeries<
                 text.visible = false;
             }
         });
+    }
+
+    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: HighlightState): never {
+        throw new Error('not implemented');
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
