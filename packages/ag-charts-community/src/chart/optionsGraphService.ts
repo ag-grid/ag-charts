@@ -10,7 +10,7 @@ interface Graph {
 export class OptionsGraphService {
     private graph?: Graph;
 
-    setGraph(graph: Graph | undefined) {
+    setGraph(graph: Graph) {
         this.graph = graph;
     }
 

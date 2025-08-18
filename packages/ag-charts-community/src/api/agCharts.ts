@@ -241,7 +241,9 @@ class AgChartsInternal {
             }
         }
 
-        chart.ctx.optionsGraphService.setGraph(chartOptions.optionsGraph);
+        if (chartOptions.optionsGraph) {
+            chart.ctx.optionsGraphService.setGraph(chartOptions.optionsGraph);
+        }
 
         styles.forEach(([id, css]) => {
             chart.ctx.domManager.addStyles(id, css);
