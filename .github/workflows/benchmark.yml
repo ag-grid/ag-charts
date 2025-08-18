@@ -55,7 +55,7 @@ jobs:
         env:
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
             JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            BENCHMARK_SOFT_FAIL: 'true'
+            AG_BENCHMARK_SOFT_FAIL: 'true'
         steps:
             - name: Notify start
               id: notify-start

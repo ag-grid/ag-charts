@@ -140,6 +140,21 @@ function isCritical(result) {
     return false;
 }
 
+function calculatePercentageChange(before, after, minThreshold = 5 * 1024 * 1024) {
+    // Return null if the base is below minimum threshold (5MB by default)
+    if (Math.abs(before) < minThreshold) {
+        return null;
+    }
+    return Math.round(((after - before) / before) * 1000) / 10;
+}
+
+function formatPercentageChange(pctChange) {
+    if (pctChange === null) {
+        return 'N/A';
+    }
+    return `${pctChange > 0 ? '+' : ''}${pctChange}%`;
+}
+
 let result = [];
 for (const test of Object.keys(baseData.results)) {
     const base = baseData.results[test];
@@ -147,16 +162,21 @@ for (const test of Object.keys(baseData.results)) {
 
     if (!compare) continue;
 
+    const pctMemoryChange = calculatePercentageChange(base.relativeUsage, compare.relativeUsage);
+    const memoryDiffMB = Math.floor(compare.relativeUsage / 1024 ** 2) - Math.floor(base.relativeUsage / 1024 ** 2);
+
     result.push({
         test: cleanTestName(test),
         pctTimeChange: Math.round(((compare.timeMs - base.timeMs) / base.timeMs) * 1000) / 10,
-        pctMemoryChange: Math.round(((compare.relativeUsage - base.relativeUsage) / base.relativeUsage) * 1000) / 10,
+        pctMemoryChange,
+        memoryDiffMB,
         base,
         compare,
         beforeMB: Math.floor(base.relativeUsage / 1024 ** 2),
         afterMB: Math.floor(compare.relativeUsage / 1024 ** 2),
         beforeMs: timeFormat(base.timeMs),
         afterMs: timeFormat(compare.timeMs),
+        isReliable: base.relativeUsage >= 5 * 1024 * 1024 && compare.relativeUsage >= 5 * 1024 * 1024,
     });
 }
 
@@ -164,8 +184,15 @@ const baseline = result.filter(isBaseline);
 const critical = result.filter(isCritical);
 result = result.filter((r) => !isBaseline(r));
 
+// Filter out unreliable measurements for percentage ranking, but show them separately
+const reliableResults = result.filter((r) => r.isReliable);
+const unreliableResults = result.filter((r) => !r.isReliable);
+
 const rankedByTime = result.toSorted((a, b) => a.pctTimeChange - b.pctTimeChange);
-const rankedByMemory = result.toSorted((a, b) => a.pctMemoryChange - b.pctMemoryChange);
+const rankedByMemory =
+    reliableResults.length > 0
+        ? reliableResults.toSorted((a, b) => (a.pctMemoryChange || 0) - (b.pctMemoryChange || 0))
+        : result.toSorted((a, b) => a.memoryDiffMB - b.memoryDiffMB);
 
 // Load expectation breaches if they exist
 let expectationBreaches = [];
@@ -223,8 +250,39 @@ if (argv.format === 'table') {
     const rankedByMemoryOutput = argv.full
         ? rankedByMemory
         : [...rankedByMemory.slice(0, 5), {}, ...rankedByMemory.slice(-5)];
-    console.log('Memory');
-    console.table(rankedByMemoryOutput, ['test', 'pctMemoryChange', 'beforeMB', 'afterMB']);
+    console.log('Memory (top 5/bottom 5)');
+
+    // Prepare table data with formatted percentage changes
+    const memoryTableData = rankedByMemoryOutput.map((row) => {
+        if (!row.test) {
+            return {}; // Empty row for separator
+        }
+        return {
+            test: row.test,
+            '%': formatPercentageChange(row.pctMemoryChange),
+            'Before (MB)': row.beforeMB,
+            'After (MB)': row.afterMB,
+            ...(row.isReliable ? {} : { '⚠️': 'unreliable' }),
+        };
+    });
+
+    console.table(memoryTableData, ['test', '%', 'Before (MB)', 'After (MB)', '⚠️']);
+
+    if (unreliableResults.length > 0) {
+        console.log('\n⚠️  Unreliable Memory Measurements (small baseline < 5MB)');
+
+        const unreliableTableData = unreliableResults
+            .sort((a, b) => b.memoryDiffMB - a.memoryDiffMB)
+            .slice(0, 10)
+            .map((row) => ({
+                test: row.test,
+                'Diff (MB)': row.memoryDiffMB >= 0 ? `+${row.memoryDiffMB}` : row.memoryDiffMB.toString(),
+                'Before (MB)': row.beforeMB,
+                'After (MB)': row.afterMB,
+            }));
+
+        console.table(unreliableTableData, ['test', 'Diff (MB)', 'Before (MB)', 'After (MB)']);
+    }
 } else if (argv.format === 'json') {
     console.log(
         JSON.stringify(

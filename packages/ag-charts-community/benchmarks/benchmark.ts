@@ -5,6 +5,7 @@ import * as path from 'path';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
+    SizeMetadata,
     WheelDeltaMode,
     flushTimings,
     loadBuiltExampleOptions,
@@ -14,6 +15,7 @@ import {
     mouseMoveEvent,
     recordTiming,
     setupMockConsole,
+    sizeOf,
     wheelEvent,
 } from 'ag-charts-test';
 import { AgChartInstance, AgChartOptions } from 'ag-charts-types';
@@ -33,10 +35,12 @@ if (isHistoricBenchmarkTest()) {
 
 globalThis.agChartsDebugTimeout = 60_000; // Use Jest timeouts
 const repeatLimit = process.env.AG_BENCHMARK_REPEAT_LIMIT ? parseInt(process.env.AG_BENCHMARK_REPEAT_LIMIT) : undefined;
-const softFailMode = ['1', 'true'].includes(process.env.BENCHMARK_SOFT_FAIL ?? '0');
+const softFailMode = ['1', 'true'].includes(process.env.AG_BENCHMARK_SOFT_FAIL ?? '0');
+const debugMode = ['1', 'true'].includes(process.env.AG_BENCHMARK_DEBUG ?? '0');
 
 interface BenchmarkExpectations {
     expectedRelativeMB?: number;
+    expectedRetainedSizeMB?: number;
     expectedCanvasCount?: number;
     autoSnapshot?: boolean;
 }
@@ -52,7 +56,7 @@ interface ExpectationBreach {
 const expectationBreaches: ExpectationBreach[] = [];
 
 export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
-    chart?: AgChartInstance;
+    chart?: AgChartInstance<T>;
     options: T;
     nodePositions: { x: number; y: number }[][] = [];
     repeat = 1;
@@ -66,7 +70,7 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
     async create(extraOpts?: object) {
         if (this.chart) this.chart.destroy();
 
-        this.chart = AgCharts[this.createApi]({ ...this.options, ...extraOpts } as any);
+        this.chart = AgCharts[this.createApi]({ ...this.options, ...extraOpts } as any) as AgChartInstance<T>;
         await this.waitForUpdate();
     }
 
@@ -81,7 +85,7 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
 
     async updateDelta(options: Partial<T>) {
         if (isAtOrAfterVersion(10, 0, 0)) {
-            await this.chart?.updateDelta(options as T);
+            await this.chart?.updateDelta(options as any);
             return;
         }
         await (AgCharts as any).updateDelta(this.chart, this.options);
@@ -130,8 +134,8 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
         } else if (isAtOrAfterVersion(10, 3, 0)) {
             // Workaround differences in coordinate calculation between 10.0 and 11.0.
             selector = '.ag-charts-series-area';
-            offsetX = this.chart.chart.seriesAreaManager.seriesRect?.x ?? 0;
-            offsetY = this.chart.chart.seriesAreaManager.seriesRect?.y ?? 0;
+            offsetX = (this.chart as any).chart.seriesAreaManager.seriesRect?.x ?? 0;
+            offsetY = (this.chart as any).chart.seriesAreaManager.seriesRect?.y ?? 0;
         }
 
         const element = this.options.container?.querySelector(selector) as HTMLElement;
@@ -187,7 +191,7 @@ function defaultTimeoutMs(ctx: BenchmarkContext) {
 
 function runAutoSnapshot(ctx: BenchmarkContext, expectations: BenchmarkExpectations, currentTestName: string) {
     const { autoSnapshot } = expectations;
-    // Skip snapshots when BENCHMARK_SOFT_FAIL is enabled (overnight benchmark runs)
+    // Skip snapshots when AG_BENCHMARK_SOFT_FAIL is enabled (overnight benchmark runs)
     if (softFailMode) return;
     if (!(autoSnapshot ?? true)) return;
 
@@ -227,49 +231,87 @@ function runExpectations(
     expectations: BenchmarkExpectations,
     currentTestName: string,
     memory: ReturnType<typeof recordTiming>,
-    canvasInstances: unknown[]
+    canvasInstances: unknown[],
+    initialRetainedSize: number,
+    finalRetainedSizeResult: SizeMetadata | undefined
 ) {
-    const { expectedRelativeMB, expectedCanvasCount } = expectations;
-    const expected = {
-        expectedRelativeMB,
-        expectedCanvasCount,
-    };
-
+    const { expectedRelativeMB, expectedRetainedSizeMB, expectedCanvasCount } = expectations;
     const BYTES_PER_MB = 1024 ** 2;
-    const actual = {
-        expectedRelativeMB: memory.relativeMemoryUse / BYTES_PER_MB,
-        expectedCanvasCount: canvasInstances.length,
-    };
 
-    for (const key in expected) {
-        const actualValue = actual[key];
-        const expectedValue = expected[key];
+    // Handle expectedRetainedSizeMB for initial load tests
+    if (expectedRetainedSizeMB !== undefined && finalRetainedSizeResult) {
+        const actualRetainedSizeMB = finalRetainedSizeResult.size / BYTES_PER_MB;
 
-        if (actualValue < expectedValue * 0.8) {
+        if (actualRetainedSizeMB < expectedRetainedSizeMB * 0.8) {
             console.log(
-                `[${currentTestName}]: ${key} is much less than expected (expected: ${expectedValue}, actual: ${actualValue})`
+                `[${currentTestName}]: expectedRetainedSizeMB is much less than expected (expected: ${expectedRetainedSizeMB}, actual: ${actualRetainedSizeMB.toFixed(1)})`
             );
-            return;
+        } else if (actualRetainedSizeMB > expectedRetainedSizeMB) {
+            if (!softFailMode) {
+                expect(actualRetainedSizeMB).toBeLessThanOrEqual(expectedRetainedSizeMB);
+                return;
+            }
+            expectationBreaches.push({
+                testName: currentTestName,
+                type: 'memory',
+                expected: expectedRetainedSizeMB,
+                actual: actualRetainedSizeMB,
+            });
+            console.log(
+                `[${currentTestName}]: BREACH - expectedRetainedSizeMB exceeded expected (expected: ${expectedRetainedSizeMB}, actual: ${actualRetainedSizeMB.toFixed(1)})`
+            );
         }
+    }
 
-        if (actualValue <= expectedValue) return;
+    // Handle expectedRelativeMB for interaction tests (retained size difference)
+    if (expectedRelativeMB !== undefined && finalRetainedSizeResult) {
+        const fudgeFactorForSmallNumbers = 1; // 1MB absolute fudge factor for small numbers.
+        const retainedSizeDiffMB = (finalRetainedSizeResult.size - initialRetainedSize) / BYTES_PER_MB;
 
-        if (!softFailMode) {
-            // Normal mode - fail the test
-            expect(actualValue).toBeLessThanOrEqual(expectedValue);
-            return;
+        if (retainedSizeDiffMB + fudgeFactorForSmallNumbers < expectedRelativeMB * 0.8) {
+            console.log(
+                `[${currentTestName}]: expectedRelativeMB is much less than expected (expected: ${expectedRelativeMB}, actual: ${retainedSizeDiffMB.toFixed(1)})`
+            );
+        } else if (retainedSizeDiffMB > expectedRelativeMB) {
+            if (!softFailMode) {
+                expect(retainedSizeDiffMB).toBeLessThanOrEqual(expectedRelativeMB);
+                return;
+            }
+            expectationBreaches.push({
+                testName: currentTestName,
+                type: 'memory',
+                expected: expectedRelativeMB,
+                actual: retainedSizeDiffMB,
+            });
+            console.log(
+                `[${currentTestName}]: BREACH - expectedRelativeMB exceeded expected (expected: ${expectedRelativeMB}, actual: ${retainedSizeDiffMB.toFixed(1)})`
+            );
         }
+    }
 
-        // In soft-fail mode, collect breaches instead of failing
-        expectationBreaches.push({
-            testName: currentTestName,
-            type: key === 'expectedRelativeMB' ? 'memory' : 'canvasCount',
-            expected: expectedValue,
-            actual: actualValue,
-        });
-        console.log(
-            `[${currentTestName}]: BREACH - ${key} exceeded expected (expected: ${expectedValue}, actual: ${actualValue})`
-        );
+    // Handle canvas count expectations
+    if (expectedCanvasCount !== undefined) {
+        const actualCanvasCount = canvasInstances.length;
+
+        if (actualCanvasCount < expectedCanvasCount * 0.8) {
+            console.log(
+                `[${currentTestName}]: expectedCanvasCount is much less than expected (expected: ${expectedCanvasCount}, actual: ${actualCanvasCount})`
+            );
+        } else if (actualCanvasCount > expectedCanvasCount) {
+            if (!softFailMode) {
+                expect(actualCanvasCount).toBeLessThanOrEqual(expectedCanvasCount);
+                return;
+            }
+            expectationBreaches.push({
+                testName: currentTestName,
+                type: 'canvasCount',
+                expected: expectedCanvasCount,
+                actual: actualCanvasCount,
+            });
+            console.log(
+                `[${currentTestName}]: BREACH - expectedCanvasCount exceeded expected (expected: ${expectedCanvasCount}, actual: ${actualCanvasCount})`
+            );
+        }
     }
 }
 
@@ -290,25 +332,47 @@ export function benchmark(
         name,
         async () => {
             global.gc?.();
-            const memoryUsageBefore = process.memoryUsage();
 
             const { repeat: runCount = 1 } = ctx;
-            let duration = 0;
+
+            // Measure initial retained size for non-initial-load tests
+            let initialRetainedSize = 0;
+            if (ctx.chart) {
+                const initialResult = sizeOf(ctx.chart);
+                initialRetainedSize = initialResult.size;
+            }
+
+            // Execute the test
+            let totalDuration = 0;
+            const memoryBefore = process.memoryUsage();
+
             for (let i = 0; i < runCount; i++) {
                 const start = performance.now();
                 await callback();
                 const end = performance.now();
-                duration += end - start;
-
+                totalDuration += end - start;
                 global.gc?.();
             }
-
-            duration /= runCount;
 
             await new Promise((r) => setTimeout(r, 100));
             global.gc?.();
 
-            const memoryUsageAfter = process.memoryUsage();
+            const memoryAfter = process.memoryUsage();
+
+            // Measure final retained size
+            let finalRetainedSizeResult: SizeMetadata | undefined;
+            if (ctx.chart) {
+                finalRetainedSizeResult = sizeOf(ctx.chart);
+            }
+
+            if (debugMode && finalRetainedSizeResult) {
+                console.log(
+                    `Retained size: ${(finalRetainedSizeResult.size / (1024 * 1024)).toFixed(2)}MB`,
+                    finalRetainedSizeResult
+                );
+            }
+
+            // Get canvas information
             const canvasInstances = (
                 ctx.canvasCtx.getActiveCanvasInstances() as { width: number; height: number }[]
             ).concat(ctx.canvasCtx.getActiveOffscreenCanvasInstances());
@@ -318,12 +382,13 @@ export function benchmark(
                 throw new Error('Unable to resolve current test name.');
             }
 
+            // Record results
             const memory = recordTiming(testPath, currentTestName, {
-                timeMs: duration,
+                timeMs: totalDuration / runCount,
                 runCount,
                 memory: {
-                    before: memoryUsageBefore,
-                    after: memoryUsageAfter,
+                    before: memoryBefore,
+                    after: memoryAfter,
                     nativeAllocations: {
                         canvas: {
                             count: canvasInstances.length,
@@ -334,6 +399,8 @@ export function benchmark(
                         },
                     },
                 },
+                retainedSize: finalRetainedSizeResult,
+                initialRetainedSize,
             });
 
             if (isHistoricBenchmarkTest()) {
@@ -341,7 +408,15 @@ export function benchmark(
             }
 
             runAutoSnapshot(ctx, expectations, currentTestName);
-            runExpectations(ctx, expectations, currentTestName, memory, canvasInstances);
+            runExpectations(
+                ctx,
+                expectations,
+                currentTestName,
+                memory,
+                canvasInstances,
+                initialRetainedSize,
+                finalRetainedSizeResult
+            );
         },
         timeoutMs
     );
