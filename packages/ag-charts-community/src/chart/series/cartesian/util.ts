@@ -7,7 +7,8 @@ import type { ChartAxisDirection } from '../../chartAxisDirection';
 
 export function calculateSegments(
     segmentation: AgSeriesSegmentation,
-    scales: { [key in ChartAxisDirection]?: Scale<unknown, number> }
+    scales: { [key in ChartAxisDirection.X | ChartAxisDirection.Y]: Scale<unknown, number> },
+    applyOffset: boolean = true
 ) {
     const { key } = segmentation;
 
@@ -24,7 +25,7 @@ export function calculateSegments(
     const isXDirection = key === 'x';
     const scale = isXDirection ? xScale : yScale;
     const bandwidth = scale.bandwidth ?? 0;
-    const offset = ((scale.step ?? 0) - bandwidth) / 2;
+    const offset = applyOffset ? ((scale.step ?? 0) - bandwidth) / 2 : 0;
 
     return calculateStopStart(segmentation, scale).map(({ stop, start, ...style }) => {
         let x = isXDirection ? scale.convert(start) - offset : 0;
