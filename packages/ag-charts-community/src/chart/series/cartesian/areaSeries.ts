@@ -956,11 +956,10 @@ export class AreaSeries extends CartesianSeries<
         const { contextNodeData, processedData, axes, properties } = this;
         const { marker, styler } = properties;
 
-        // The `styler` callback is free to return `marker` styling (or not) at any point.
-        const deriveMarkerEnabledFromStyler: boolean = styler != null;
+        const resolvedMarkerEnabled: boolean = styler ? this.getStyle(false).marker.enabled : marker.enabled;
 
         const markersEnabled =
-            deriveMarkerEnabledFromStyler ||
+            resolvedMarkerEnabled ||
             contextNodeData?.crossFiltering === true ||
             markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
 
@@ -982,11 +981,6 @@ export class AreaSeries extends CartesianSeries<
         const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-
-        if (!stylerStyle.marker.enabled) {
-            datumSelection.update([]);
-            return;
-        }
 
         datumSelection.each((_, datum) => {
             const { xValue, yValue } = datum;

@@ -961,14 +961,18 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         const autoEnableValueVertex = this.neighboursWithEdgeValue(vertex, AUTO_ENABLE_VALUE_EDGE)?.[0];
         if (!autoEnableValueVertex) return;
 
+        const pathVertex = this.findVertexAtPath(pathArray);
         const defaultsEnabled = this.findNeighbourValue(autoEnableValueVertex, DEFAULTS_EDGE) as PlainObject;
         const overridesEnabled = this.findNeighbourValue(autoEnableValueVertex, OVERRIDES_EDGE) as PlainObject;
         const userOptionsEnabled = this.findNeighbourValue(autoEnableValueVertex, USER_OPTIONS_EDGE) as
             | PlainObject
             | undefined;
-        const userPartialOptionsEnabled = this.findNeighbourValue(autoEnableValueVertex, USER_PARTIAL_OPTIONS_EDGE) as
-            | PlainObject
-            | undefined;
+
+        // If `enabled` has been explicitly set in the user options then ignore the auto-enable value of userPartial.
+        const hasUserOptionEnabled = pathVertex && this.findNeighbour(pathVertex, USER_OPTIONS_EDGE) != null;
+        const userPartialOptionsEnabled = hasUserOptionEnabled
+            ? undefined
+            : (this.findNeighbourValue(autoEnableValueVertex, USER_PARTIAL_OPTIONS_EDGE) as PlainObject | undefined);
 
         const isUserEnabled: boolean =
             (userOptionsEnabled != null && userOptionsEnabled.enabled == null) ||
