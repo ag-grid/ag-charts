@@ -122,9 +122,9 @@ export class BoxPlotNode extends Scalable(Path) {
         x1 += strokeAlignment;
         min += min < crossCenter ? strokeAlignment : -strokeAlignment;
         max += max < crossCenter ? strokeAlignment : -strokeAlignment;
-        q1 += q1 < crossCenter ? strokeAlignment : -strokeAlignment;
-        median += median < crossCenter ? strokeAlignment : -strokeAlignment;
-        q3 += q3 < crossCenter ? strokeAlignment : -strokeAlignment;
+        q1 += q1 < crossCenter ? -strokeAlignment : strokeAlignment;
+        median += median < crossCenter ? -strokeAlignment : strokeAlignment;
+        q3 += q3 < crossCenter ? -strokeAlignment : strokeAlignment;
 
         return { center, x0, x1, min, max, q1, median, q3 };
     }
