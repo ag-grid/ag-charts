@@ -1,4 +1,4 @@
-import type { BoxPlotGroup } from './boxPlotNode';
+import type { BoxPlotNode } from './boxPlotNode';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 export function prepareBoxPlotFromTo(isVertical: boolean) {
@@ -10,7 +10,7 @@ export function prepareBoxPlotFromTo(isVertical: boolean) {
 
 export function resetBoxPlotSelectionsScalingCenterFn(
     isVertical: boolean
-): (node: BoxPlotGroup, datum: BoxPlotNodeDatum) => { scalingCenterY: number } | { scalingCenterX: number } {
+): (node: BoxPlotNode, datum: BoxPlotNodeDatum) => { scalingCenterY: number } | { scalingCenterX: number } {
     return (_node, datum) => {
         if (isVertical) {
             return { scalingCenterY: datum.scaledValues.medianValue };

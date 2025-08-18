@@ -22,10 +22,12 @@ const {
     animationValidation,
     computeBarFocusBounds,
     createDatumId,
+    HighlightState,
     ContinuousScale,
     ChartAxisDirection,
     motion,
     getItemStyles,
+    applyShapeFillBBox,
 } = _ModuleSupport;
 
 interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<BoxPlotNodeDatum> {
@@ -199,16 +201,16 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             }
 
             const scaledValues = {
-                xValue: Math.round(xAxis.scale.convert(xValue)),
-                minValue: Math.round(yAxis.scale.convert(minValue)),
-                q1Value: Math.round(yAxis.scale.convert(q1Value)),
-                medianValue: Math.round(yAxis.scale.convert(medianValue)),
-                q3Value: Math.round(yAxis.scale.convert(q3Value)),
-                maxValue: Math.round(yAxis.scale.convert(maxValue)),
+                xValue: xAxis.scale.convert(xValue),
+                minValue: yAxis.scale.convert(minValue),
+                q1Value: yAxis.scale.convert(q1Value),
+                medianValue: yAxis.scale.convert(medianValue),
+                q3Value: yAxis.scale.convert(q3Value),
+                maxValue: yAxis.scale.convert(maxValue),
             };
 
-            const bandwidth = Math.round(barWidth);
-            scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex))) + barOffset + bandwidth / 2;
+            const bandwidth = barWidth;
+            scaledValues.xValue += groupScale.convert(String(groupIndex)) + barOffset + bandwidth / 2;
 
             const height = Math.abs(scaledValues.q3Value - scaledValues.q1Value);
             const midX = scaledValues.xValue;
@@ -496,16 +498,17 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             return;
         }
         const isVertical = this.isVertical();
-        const isReversedValueAxis = this.getValueAxis()?.isReversed();
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
+        const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((boxPlotNode, nodeDatum) => {
             const style = (nodeDatum.style ??
                 contextNodeData.styles[
                     this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex)
                 ]) as DeepRequired<AgBoxPlotHighlightStyleOptions>;
-            const fillBBox = this.getShapeFillBBox();
-            // boxPlotNode.updateDatumStyles(nodeDatum, style, isVertical, isReversedValueAxis, fillBBox);
+            applyShapeFillBBox(boxPlotNode, style.fill, fillBBox);
+
             boxPlotNode.fill = style.fill;
             boxPlotNode.fillOpacity = style.fillOpacity;
             boxPlotNode.stroke = style.stroke;
@@ -520,15 +523,21 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             boxPlotNode.wickLineDashOffset = style.whisker.lineDashOffset;
             boxPlotNode.cornerRadius = style.cornerRadius;
 
-            boxPlotNode.centerX = nodeDatum.scaledValues.xValue;
-            boxPlotNode.width = nodeDatum.bandwidth;
-            boxPlotNode.y = Math.min(nodeDatum.scaledValues.maxValue, nodeDatum.scaledValues.minValue);
-            boxPlotNode.yQ1 = nodeDatum.scaledValues.q1Value;
-            boxPlotNode.yMedian = nodeDatum.scaledValues.medianValue;
-            boxPlotNode.yQ3 = nodeDatum.scaledValues.q3Value;
-            boxPlotNode.height = Math.abs(nodeDatum.scaledValues.maxValue - nodeDatum.scaledValues.minValue);
+            boxPlotNode.crisp = true;
+
+            boxPlotNode.horizontal = !isVertical;
+            boxPlotNode.center = nodeDatum.scaledValues.xValue;
+            boxPlotNode.thickness = nodeDatum.bandwidth;
+            boxPlotNode.min = nodeDatum.scaledValues.minValue;
+            boxPlotNode.q1 = nodeDatum.scaledValues.q1Value;
+            boxPlotNode.median = nodeDatum.scaledValues.medianValue;
+            boxPlotNode.q3 = nodeDatum.scaledValues.q3Value;
+            boxPlotNode.max = nodeDatum.scaledValues.maxValue;
 
             boxPlotNode.capLengthRatio = style.cap.lengthRatio;
+
+            // Ignore highlight style
+            boxPlotNode.strokeAlignment = (contextNodeData.styles[HighlightState.None].strokeWidth ?? 0) / 2;
         });
     }
 

@@ -1,34 +1,44 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { Path, ExtendedPath2D, SceneChangeDetection, SceneArrayChangeDetection, BBox, clippedRoundRect } =
-    _ModuleSupport;
+const {
+    Path,
+    Scalable,
+    ExtendedPath2D,
+    SceneChangeDetection,
+    SceneArrayChangeDetection,
+    BBox,
+    clippedRoundRect: baseClippedRoundRect,
+} = _ModuleSupport;
 
-export class BoxPlotNode extends Path {
+export class BoxPlotNode extends Scalable(Path) {
     private readonly wickPath = new ExtendedPath2D();
 
     @SceneChangeDetection()
-    centerX: number = 0;
+    horizontal: boolean = false;
 
     @SceneChangeDetection()
-    y: number = 0;
+    center: number = 0;
 
     @SceneChangeDetection()
-    width: number = 0;
+    thickness: number = 0;
 
     @SceneChangeDetection()
-    height: number = 0;
+    min: number = 0;
+
+    @SceneChangeDetection()
+    q1: number = 0;
+
+    @SceneChangeDetection()
+    median: number = 0;
+
+    @SceneChangeDetection()
+    q3: number = 0;
+
+    @SceneChangeDetection()
+    max: number = 0;
 
     @SceneChangeDetection()
     cornerRadius: number = 0;
-
-    @SceneChangeDetection()
-    yQ1: number = 0;
-
-    @SceneChangeDetection()
-    yMedian: number = 0;
-
-    @SceneChangeDetection()
-    yQ3: number = 0;
 
     @SceneChangeDetection()
     crisp: boolean = false;
@@ -55,8 +65,17 @@ export class BoxPlotNode extends Path {
     capLengthRatio: number = 1;
 
     protected override computeBBox(): _ModuleSupport.BBox | undefined {
-        const { centerX, y, width, height } = this;
-        return new BBox(centerX - width / 2, y, width, height);
+        const { horizontal, center, thickness, min, max } = this;
+        return horizontal
+            ? new BBox(Math.min(min, max), center - thickness / 2, Math.abs(max - min), thickness)
+            : new BBox(center - thickness / 2, Math.min(min, max), thickness, Math.abs(max - min));
+    }
+
+    override computeDefaultGradientFillBBox(): _ModuleSupport.BBox {
+        const { horizontal, center, thickness, q1, q3 } = this;
+        return horizontal
+            ? new BBox(Math.min(q1, q3), center - thickness / 2, Math.abs(q3 - q1), thickness)
+            : new BBox(center - thickness / 2, Math.min(q1, q3), thickness, Math.abs(q3 - q1));
     }
 
     override isPointInPath(x: number, y: number): boolean {
@@ -68,58 +87,46 @@ export class BoxPlotNode extends Path {
     }
 
     get midPoint(): { x: number; y: number } {
-        return { x: this.centerX, y: this.y + this.height / 2 };
+        return this.horizontal
+            ? { x: (this.min + this.max) / 2, y: this.center }
+            : { x: this.center, y: (this.min + this.max) / 2 };
     }
 
     protected alignedCoordinates() {
-        const { y, width, height, crisp, strokeAlignment } = this;
+        const { thickness, crisp, strokeAlignment } = this;
 
-        let { centerX, yQ1, yMedian, yQ3 } = this;
+        let { center, min, q1, median, q3, max } = this;
 
-        let x0 = centerX - width / 2;
-        let x1 = centerX + width / 2;
-        let y0 = y;
-        let y1 = y + height;
+        let x0 = center - thickness / 2;
+        let x1 = center + thickness / 2;
 
-        if (crisp && width > 1) {
-            centerX = this.align(centerX);
-            yQ1 = this.align(yQ1);
-            yQ3 = this.align(yQ3);
+        if (crisp && thickness > 1) {
+            min = this.align(min);
+            q1 = this.align(q1);
+            median = this.align(median);
+            q3 = this.align(q3);
+            max = min + this.align(min, max - min);
 
             // AG-13372 (1.25dpr comment)
-            const halfWidth = this.align(width / 2);
-            x0 = centerX - halfWidth;
-            x1 = centerX + halfWidth;
-            y0 = this.align(y);
-            y1 = y0 + this.align(y0, height);
+            const halfWidth = this.align(thickness / 2);
+            center = this.align(center);
+            x0 = center - halfWidth;
+            x1 = center + halfWidth;
         }
 
-        const centerY = (y0 + y1) / 2;
+        const crossCenter = (min + max) / 2;
 
-        // Align to an assumed 1px stroke width
-        centerX += strokeAlignment;
+        // Align to an assumed 1px stroke thickness
+        center += strokeAlignment;
         x0 += strokeAlignment;
         x1 += strokeAlignment;
-        y0 -= strokeAlignment;
-        y1 += strokeAlignment;
-        yQ1 += yQ1 < centerY ? strokeAlignment : -strokeAlignment;
-        yMedian += yMedian < centerY ? strokeAlignment : -strokeAlignment;
-        yQ3 += yQ3 < centerY ? strokeAlignment : -strokeAlignment;
+        min += min < crossCenter ? strokeAlignment : -strokeAlignment;
+        max += max < crossCenter ? strokeAlignment : -strokeAlignment;
+        q1 += q1 < crossCenter ? strokeAlignment : -strokeAlignment;
+        median += median < crossCenter ? strokeAlignment : -strokeAlignment;
+        q3 += q3 < crossCenter ? strokeAlignment : -strokeAlignment;
 
-        return { centerX, x0, x1, y0, y1, yQ1, yMedian, yQ3 };
-    }
-
-    protected override computeDefaultGradientFillBBox(): _ModuleSupport.BBox | undefined {
-        const { width, centerX, yQ1, yQ3 } = this;
-
-        const boxTop = Math.min(yQ1, yQ3);
-        const boxBottom = Math.max(yQ1, yQ3);
-        const rectHeight = boxBottom - boxTop;
-
-        const x0 = centerX - width / 2;
-        const x1 = centerX + width / 2;
-
-        return new BBox(x0, boxTop, x1 - x0, rectHeight);
+        return { center, x0, x1, min, max, q1, median, q3 };
     }
 
     override updatePath() {
@@ -138,8 +145,9 @@ export class BoxPlotNode extends Path {
             strokeAlignment,
             cornerRadius,
             capLengthRatio,
+            horizontal,
         } = this;
-        const { centerX, x0, x1, y0, y1, yQ1, yMedian, yQ3 } = this.alignedCoordinates();
+        const { center, x0, x1, min, max, q1, median, q3 } = this.alignedCoordinates();
 
         this.path.clear();
         this.wickPath.clear();
@@ -154,26 +162,28 @@ export class BoxPlotNode extends Path {
         const wickPath = needsWickPath ? this.wickPath : path;
 
         if (Math.abs(x1 - x0) <= 3) {
-            wickPath.moveTo(centerX, y0);
-            wickPath.lineTo(centerX, y1);
+            moveTo(wickPath, horizontal, center, min);
+            lineTo(wickPath, horizontal, center, max);
             return;
         }
 
-        const boxTop = Math.min(yQ1, yQ3);
-        const boxBottom = Math.max(yQ1, yQ3);
+        const wickTop = Math.min(min, max);
+        const wickBottom = Math.max(min, max);
+        const boxTop = Math.min(q1, q3);
+        const boxBottom = Math.max(q1, q3);
 
-        const capX0 = centerX - Math.abs((x1 - x0) * capLengthRatio) / 2;
-        const capX1 = centerX + Math.abs((x1 - x0) * capLengthRatio) / 2;
+        const capX0 = center - Math.abs((x1 - x0) * capLengthRatio) / 2;
+        const capX1 = center + Math.abs((x1 - x0) * capLengthRatio) / 2;
 
-        wickPath.moveTo(capX0, y0);
-        wickPath.lineTo(capX1, y0);
-        wickPath.moveTo(centerX, y0);
-        wickPath.lineTo(centerX, boxTop + strokeWidth / 2);
+        moveTo(wickPath, horizontal, capX0, wickTop);
+        lineTo(wickPath, horizontal, capX1, wickTop);
+        moveTo(wickPath, horizontal, center, wickTop);
+        lineTo(wickPath, horizontal, center, boxTop + strokeWidth / 2);
 
-        wickPath.moveTo(centerX, y1);
-        wickPath.lineTo(centerX, boxBottom - strokeWidth / 2);
-        wickPath.moveTo(capX0, y1);
-        wickPath.lineTo(capX1, y1);
+        moveTo(wickPath, horizontal, center, wickBottom);
+        lineTo(wickPath, horizontal, center, boxBottom - strokeWidth / 2);
+        moveTo(wickPath, horizontal, capX0, wickBottom);
+        lineTo(wickPath, horizontal, capX1, wickBottom);
 
         const boxStrokeAdjustment = strokeAlignment + strokeWidth / 2;
         const rectHeight = boxBottom - boxTop - 2 * boxStrokeAdjustment;
@@ -189,26 +199,28 @@ export class BoxPlotNode extends Path {
             };
             clippedRoundRect(
                 path,
+                horizontal,
                 rectX,
                 rectY,
                 rectWidth,
                 rectHeight,
                 cornerRadii,
-                new BBox(rectX, rectY, rectWidth, yMedian - rectY)
+                new BBox(rectX, rectY, rectWidth, median - rectY)
             );
             clippedRoundRect(
                 path,
+                horizontal,
                 rectX,
                 rectY,
                 rectWidth,
                 rectHeight,
                 cornerRadii,
-                new BBox(rectX, yMedian, rectWidth, rectY + rectHeight - yMedian)
+                new BBox(rectX, median, rectWidth, rectY + rectHeight - median)
             );
         } else {
             const boxMid = (boxTop + boxBottom) / 2;
-            path.moveTo(x0, boxMid);
-            path.lineTo(x1, boxMid);
+            moveTo(path, horizontal, x0, boxMid);
+            lineTo(path, horizontal, x1, boxMid);
         }
     }
 
@@ -246,5 +258,49 @@ export class BoxPlotNode extends Path {
         ctx.lineDashOffset = wickLineDashOffset;
 
         ctx.stroke(wickPath.getPath2D());
+    }
+}
+
+function moveTo(path: _ModuleSupport.ExtendedPath2D, horizontal: boolean, x: number, y: number) {
+    if (horizontal) {
+        // eslint-disable-next-line sonarjs/arguments-order
+        path.moveTo(y, x);
+    } else {
+        path.moveTo(x, y);
+    }
+}
+
+function lineTo(path: _ModuleSupport.ExtendedPath2D, horizontal: boolean, x: number, y: number) {
+    if (horizontal) {
+        // eslint-disable-next-line sonarjs/arguments-order
+        path.lineTo(y, x);
+    } else {
+        path.lineTo(x, y);
+    }
+}
+
+function clippedRoundRect(
+    path: _ModuleSupport.ExtendedPath2D,
+    horizontal: boolean,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    cornerRadii: _ModuleSupport.CornerRadii,
+    clipBBox: _ModuleSupport.BBox | undefined
+) {
+    if (horizontal) {
+        baseClippedRoundRect(
+            // eslint-disable-next-line sonarjs/arguments-order
+            path,
+            y,
+            x,
+            height,
+            width,
+            cornerRadii,
+            clipBBox != null ? new BBox(clipBBox.y, clipBBox.x, clipBBox.height, clipBBox.width) : undefined
+        );
+    } else {
+        baseClippedRoundRect(path, x, y, width, height, cornerRadii, clipBBox);
     }
 }
