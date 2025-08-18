@@ -45,6 +45,7 @@ export const createNodes: CreateNodes = [
                     tags: [`scope:${parentProject}`, 'type:generated-example'],
                     targets: {
                         ...createGenerateTarget(thumbnails),
+                        ...createTypecheckTarget(),
                         ...generateExampleFiles.createTask(parentProject, srcRelativeInputPath),
                         ...(thumbnails ? generateChartThumbnails.createTask(parentProject, srcRelativeInputPath) : {}),
                     },
@@ -70,6 +71,34 @@ function createGenerateTarget(thumbnails: boolean): { [targetName: string]: Targ
             inputs: [],
             outputs: [],
             cache: true,
+        },
+    };
+}
+
+function createTypecheckTarget(): { [targetName: string]: TargetConfiguration<any> } {
+    return {
+        typecheck: {
+            executor: 'nx:run-commands',
+            dependsOn: [
+                'ag-charts-community:build:types',
+                'ag-charts-enterprise:build:types',
+                'ag-charts-types:build:types',
+            ],
+            inputs: [
+                '{workspaceRoot}/packages/ag-charts-website/tsconfig.examples.json',
+                '{projectRoot}/*.ts',
+                'tsDeclarations',
+            ],
+            outputs: [],
+            cache: true,
+            options: {
+                parallel: false,
+                commands: [
+                    'echo \'{ "extends": "../../../../../tsconfig.examples.json", "include": ["**/*.ts"] }\' > {projectRoot}/tsconfig.json',
+                    'yarn tsc --noEmit -p {projectRoot}/tsconfig.example.json',
+                    'rm {projectRoot}/tsconfig.example.json',
+                ],
+            },
         },
     };
 }

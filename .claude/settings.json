@@ -20,6 +20,7 @@
             "Bash(nx dev)",
             "Bash(nx format:*)",
             "Bash(nx generate-examples:*)",
+            "Bash(nx generate-thumbnails:*)",
             "Bash(nx lint:*)",
             "Bash(nx run:*)",
             "Bash(nx show projects:*)",
@@ -54,7 +55,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "jq -r '.tool_input.file_path' | { read file_path; yarn nx format --files \"$file_path\" }"
+                        "command": "jq -r '.tool_input.file_path' | ( read file_path; yarn nx format --files \"$file_path\" )"
                     }
                 ]
             }
