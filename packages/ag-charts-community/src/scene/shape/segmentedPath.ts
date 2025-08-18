@@ -13,6 +13,11 @@ export class SegmentedPath extends Path {
     segments: Segment[] = [];
 
     override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D): void {
+        if (this.segments.length === 0) {
+            super.drawPath(ctx);
+            return;
+        }
+
         // Draw the gaps
         ctx.save();
         const inverse = new Path2D();

@@ -1,11 +1,14 @@
-import type { AgSeriesSegment } from 'ag-charts-types';
+import type { AgSeriesSegmentation } from 'ag-charts-types';
 
 import { BBox } from '../../../scene/bbox';
 import { findRangeExtent } from '../../../util/number';
 import type { ChartAxisDirection } from '../../chartAxisDirection';
 import { type Scaling } from './scaling';
 
-export function calculateSegments(segmentation: AgSeriesSegment, scales: { [key in ChartAxisDirection]?: Scaling }) {
+export function calculateSegments(
+    segmentation: AgSeriesSegmentation,
+    scales: { [key in ChartAxisDirection]?: Scaling }
+) {
     const { key } = segmentation;
 
     const yScale = scales['y'];
@@ -40,7 +43,7 @@ export function calculateSegments(segmentation: AgSeriesSegment, scales: { [key 
     });
 }
 
-function calculateStopStart(segmentation: AgSeriesSegment, scale: Scaling) {
+function calculateStopStart(segmentation: AgSeriesSegmentation, scale: Scaling) {
     const domainStart = scale.domain[0];
     const domainEnd = scale.domain.at(-1);
 

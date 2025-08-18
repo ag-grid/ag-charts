@@ -8,7 +8,7 @@ import type {
     AgHighlightOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
-    AgSeriesSegment,
+    AgSeriesSegmentation,
     LabelBoxOptions,
     WithThemeParams,
 } from 'ag-charts-types';
@@ -414,7 +414,7 @@ export const LEGEND_CONTAINER_THEME: any = {
     },
 };
 
-export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegment> = {
+export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
     key: 'x',
     segments: {
         $apply: [
@@ -435,17 +435,6 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegment> = {
                 lineDash: { $path: '../../../lineDash' },
                 lineDashOffset: { $path: '../../lineDashOffset' },
             },
-            [
-                {
-                    fill: { $path: '../../../fill' },
-                    stroke: { $path: '../../../stroke' },
-                    fillOpacity: { $path: '../../../fillOpacity' },
-                    strokeWidth: { $path: '../../../strokeWidth' },
-                    strokeOpacity: { $path: '../../../strokeOpacity' },
-                    lineDash: { $path: '../../../lineDash' },
-                    lineDashOffset: { $path: '../../lineDashOffset' },
-                },
-            ],
         ],
     },
 };
