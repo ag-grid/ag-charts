@@ -14,7 +14,7 @@ export function calculateSegments(
     const yScale = scales['y'];
     const xScale = scales['x'];
 
-    if (!yScale || !xScale) {
+    if (!yScale || !xScale || segmentation.segments.length === 0) {
         return;
     }
 

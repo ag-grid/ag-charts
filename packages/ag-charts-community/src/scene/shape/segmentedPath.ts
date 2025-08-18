@@ -10,10 +10,10 @@ export interface Segment extends StrokeOptions, FillOptions, LineDashOptions {
 
 export class SegmentedPath<D = any> extends Path<D> {
     @SceneRefChangeDetection()
-    segments: Segment[] = [];
+    segments?: Segment[];
 
     override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D): void {
-        if (this.segments.length === 0) {
+        if (!this.segments || this.segments.length === 0) {
             super.drawPath(ctx);
             return;
         }
