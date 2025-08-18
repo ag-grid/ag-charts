@@ -1341,9 +1341,6 @@ export class AreaSeries extends CartesianSeries<
                 { pick: false }
             );
             stylerResult = resolved ?? {};
-            // if (cbResult.marker != null && stylerResult.marker != null) {
-            //     stylerResult.marker.enabled = true;
-            // }
         }
         stylerResult.marker ??= {};
         return {
