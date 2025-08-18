@@ -53,23 +53,14 @@ function memoryUse(memory: BenchmarkMeasurement['memory'], format = false) {
 export function logTimings() {
     const timings = collectTimings((measurement) => {
         const memoryAnalysis = measurement.memory ? analyzeMemoryUsage(measurement.memory) : null;
+        const nativeMemory = memoryAnalysis ? memoryAnalysis.nativeMemory : 0;
+
         return {
             time: formatMillis(measurement.timeMs),
-            memoryUsage: measurement.memory ? formatBytes(getTotalMemoryUsage(measurement.memory)) : null,
-            heapUsed: measurement.memory ? formatBytes(measurement.memory.after.heapUsed) : null,
-            heapDiff: memoryAnalysis ? formatBytes(Math.abs(memoryAnalysis.jsHeapDiff)) : null,
-            heapDirection: memoryAnalysis && memoryAnalysis.jsHeapDiff >= 0 ? '↑' : '↓',
-            relativeUsage: memoryAnalysis ? formatBytes(memoryAnalysis.relativeMemoryUse) : null,
             retainedSize: measurement.retainedSize ? formatBytes(measurement.retainedSize.size) : null,
-            retainedPrimitives: measurement.retainedSize ? formatBytes(measurement.retainedSize.primitiveSize) : null,
-            retainedArrays: measurement.retainedSize ? formatBytes(measurement.retainedSize.arraySize) : null,
-            retainedCanvas: measurement.retainedSize ? formatBytes(measurement.retainedSize.canvasSize) : null,
-            retainedMaps: measurement.retainedSize ? formatBytes(measurement.retainedSize.mapSize) : null,
-            retainedSets: measurement.retainedSize ? formatBytes(measurement.retainedSize.setSize) : null,
-            retainedFunctions: measurement.retainedSize ? formatBytes(measurement.retainedSize.functionSize) : null,
+            canvasBytes: nativeMemory > 0 ? formatBytes(nativeMemory) : null,
             confidence: memoryAnalysis?.confidence,
             reliable: memoryAnalysis?.isReliable,
-            ...memoryUse(measurement.memory, true),
             runCount: measurement.runCount,
         };
     });

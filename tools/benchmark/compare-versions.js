@@ -162,8 +162,10 @@ for (const test of Object.keys(baseData.results)) {
 
     if (!compare) continue;
 
-    const pctMemoryChange = calculatePercentageChange(base.relativeUsage, compare.relativeUsage);
-    const memoryDiffMB = Math.floor(compare.relativeUsage / 1024 ** 2) - Math.floor(base.relativeUsage / 1024 ** 2);
+    const baseRetainedSize = base.retainedSize || base.relativeUsage; // Fallback for compatibility
+    const compareRetainedSize = compare.retainedSize || compare.relativeUsage;
+    const pctMemoryChange = calculatePercentageChange(baseRetainedSize, compareRetainedSize);
+    const memoryDiffMB = Math.floor(compareRetainedSize / 1024 ** 2) - Math.floor(baseRetainedSize / 1024 ** 2);
 
     result.push({
         test: cleanTestName(test),
@@ -172,11 +174,11 @@ for (const test of Object.keys(baseData.results)) {
         memoryDiffMB,
         base,
         compare,
-        beforeMB: Math.floor(base.relativeUsage / 1024 ** 2),
-        afterMB: Math.floor(compare.relativeUsage / 1024 ** 2),
+        beforeMB: Math.floor(baseRetainedSize / 1024 ** 2),
+        afterMB: Math.floor(compareRetainedSize / 1024 ** 2),
         beforeMs: timeFormat(base.timeMs),
         afterMs: timeFormat(compare.timeMs),
-        isReliable: base.relativeUsage >= 5 * 1024 * 1024 && compare.relativeUsage >= 5 * 1024 * 1024,
+        isReliable: baseRetainedSize >= 5 * 1024 * 1024 && compareRetainedSize >= 5 * 1024 * 1024,
     });
 }
 
@@ -250,7 +252,7 @@ if (argv.format === 'table') {
     const rankedByMemoryOutput = argv.full
         ? rankedByMemory
         : [...rankedByMemory.slice(0, 5), {}, ...rankedByMemory.slice(-5)];
-    console.log('Memory (top 5/bottom 5)');
+    console.log('Retained Memory (top 5/bottom 5)');
 
     // Prepare table data with formatted percentage changes
     const memoryTableData = rankedByMemoryOutput.map((row) => {
@@ -269,7 +271,7 @@ if (argv.format === 'table') {
     console.table(memoryTableData, ['test', '%', 'Before (MB)', 'After (MB)', '⚠️']);
 
     if (unreliableResults.length > 0) {
-        console.log('\n⚠️  Unreliable Memory Measurements (small baseline < 5MB)');
+        console.log('\n⚠️  Unreliable Retained Memory Measurements (small baseline < 5MB)');
 
         const unreliableTableData = unreliableResults
             .sort((a, b) => b.memoryDiffMB - a.memoryDiffMB)
