@@ -15,7 +15,7 @@ describe('ohlc series benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 225, expectedCanvasCount: 4, autoSnapshot: false },
+        { expectedRetainedSizeMB: 255, expectedCanvasCount: 2, autoSnapshot: false },
         async () => {
             await ctx.create();
         },

@@ -15,7 +15,7 @@ describe('range area benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 225, expectedCanvasCount: 4, autoSnapshot: false },
+        { expectedRetainedSizeMB: 224, expectedCanvasCount: 2, autoSnapshot: false },
         async () => {
             await ctx.create();
         },

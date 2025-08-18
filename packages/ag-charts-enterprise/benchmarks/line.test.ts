@@ -15,7 +15,7 @@ describe('line series benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 240, expectedCanvasCount: 4, autoSnapshot: false },
+        { expectedRetainedSizeMB: 44, expectedCanvasCount: 2, autoSnapshot: false },
         async () => {
             await ctx.create();
         },

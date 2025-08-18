@@ -1,4 +1,4 @@
-import { describe } from '@jest/globals';
+import { beforeEach, describe } from '@jest/globals';
 
 import { AgCartesianChartOptions } from 'ag-charts-types';
 
@@ -10,7 +10,7 @@ describe('large-dataset benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 270, expectedCanvasCount: 4 },
+        { expectedRetainedSizeMB: 210, expectedCanvasCount: 4 },
         async () => await ctx.create(),
         15_000
     );
@@ -24,7 +24,7 @@ describe('large-dataset benchmark', () => {
         benchmark(
             '1x legend toggle',
             ctx,
-            { expectedRelativeMB: 56, expectedCanvasCount: 4 },
+            { expectedRelativeMB: 40, expectedCanvasCount: 4 },
             async () => {
                 await ctx.legendToggle();
                 await ctx.legendToggle();
@@ -32,7 +32,7 @@ describe('large-dataset benchmark', () => {
             15_000
         );
 
-        benchmark('1x datum highlight', ctx, { expectedRelativeMB: 9, expectedCanvasCount: 9 }, async () => {
+        benchmark('1x datum highlight', ctx, { expectedRelativeMB: 9, expectedCanvasCount: 4 }, async () => {
             const point = ctx.nodePositions[0][1];
             await ctx.hover(point.x, point.y);
         });
@@ -40,7 +40,7 @@ describe('large-dataset benchmark', () => {
         benchmark(
             '4x datum highlight',
             ctx,
-            { expectedRelativeMB: 6, expectedCanvasCount: 9 },
+            { expectedRelativeMB: 6, expectedCanvasCount: 4 },
             async () => {
                 for (const point of ctx.nodePositions[0]) {
                     await ctx.hover(point.x, point.y);

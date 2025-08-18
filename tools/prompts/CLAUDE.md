@@ -113,6 +113,13 @@ nx e2e ag-charts-website
 -   The `BENCHMARK_SOFT_FAIL` environment variable is used in CI to disable snapshot comparisons for performance-only benchmark runs
 -   Enterprise benchmarks re-export community benchmark utilities via `packages/ag-charts-enterprise/benchmarks/benchmark.ts`
 
+#### Running Benchmarks
+
+-   Use `nx benchmark ag-charts-community -- -t "initial load"` to run all 'initial load' tests for the community package
+-   Use `nx benchmark ag-charts-enterprise -- -t "initial load"` to run all 'initial load' tests for the enterprise package  
+-   Due to the nx benchmark task construction using xargs, it's not possible to filter to specific test files - you must filter by test name pattern instead
+-   For debug output showing memory breakdown, use: `AG_BENCHMARK_DEBUG=1 nx benchmark <package> -- -t "<test pattern>"`
+
 ## Technical Requirements
 
 -   **Node.js**: ^20.10.0

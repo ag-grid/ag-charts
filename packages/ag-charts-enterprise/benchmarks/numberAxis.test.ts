@@ -15,7 +15,7 @@ describe('number axis benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 60, expectedCanvasCount: 4, autoSnapshot: false },
+        { expectedRetainedSizeMB: 103, expectedCanvasCount: 2, autoSnapshot: false },
         async () => {
             await ctx.create();
         }

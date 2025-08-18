@@ -15,7 +15,7 @@ describe('area series benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRelativeMB: 230, expectedCanvasCount: 4, autoSnapshot: false },
+        { expectedRetainedSizeMB: 42, expectedCanvasCount: 2, autoSnapshot: false },
         async () => {
             await ctx.create();
         },
