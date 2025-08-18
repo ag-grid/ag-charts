@@ -1,0 +1,371 @@
+# Axes Features
+
+## 🌈 Axis Bands & Grid Fills
+
+_Apply: 6 minutes, Impact: VERY HIGH_ ⭐ **STRONGLY RECOMMENDED**
+
+### Basic Configuration
+
+```typescript
+// Add visual depth with alternating background bands
+axes: [
+    {
+        type: 'number', // ⚠️ REQUIRED - axes[].type must always be specified
+        position: 'left',
+        gridLine: {
+            style: [
+                {
+                    // Don't set stroke/fill colors - theme handles them
+                    strokeWidth: 1,
+                    lineDash: [2, 2],
+                },
+                {
+                    // Alternating bands - theme provides appropriate colors
+                    strokeWidth: 0, // No grid line
+                },
+            ],
+        },
+    },
+];
+```
+
+### Why this matters
+
+-   Creates visual rhythm and improves data readability
+-   Helps users track values across the chart
+-   Adds professional polish without being distracting
+-   Works perfectly with dark/light mode themes
+
+## ✨ Axis Band Highlighting
+
+_Apply: 4 minutes, Impact: HIGH_ ⭐ **RECOMMENDED**
+
+### Configuration
+
+```typescript
+// Add interactive hover highlighting to axis bands
+axes: [
+    {
+        type: 'category', // ⚠️ REQUIRED - always specify axes[].type
+        position: 'bottom',
+        bandHighlight: {
+            enabled: true,
+            // Don't set fill - theme provides appropriate highlight color
+        },
+    },
+];
+```
+
+### Visual Benefits
+
+-   Provides instant visual feedback on hover
+-   Helps users focus on specific data points
+-   Creates a more interactive, engaging experience
+-   Particularly effective for bar/column charts with category axes
+-   Works seamlessly with axis bands for layered visual depth
+
+## 🏷️ Axis Label Formatting
+
+_Apply: 5 minutes, Impact: High_
+
+### ✅ PREFERRED: Root-level formatters (DRY approach)
+
+```typescript
+// Define formatters once at the root level
+const options = {
+    formatter: {
+        y: ({ value }) => `$${(value / 1000).toFixed(0)}K`, // Applied to all y-values
+        x: ({ value }) =>
+            value.toLocaleDateString('en-US', {
+                month: 'short',
+                year: 'numeric',
+            }), // Applied to all x-values (dates)
+    },
+    axes: [
+        {
+            type: 'number', // ⚠️ REQUIRED field
+            position: 'left',
+            // Automatically uses root formatter.y
+        },
+        {
+            type: 'time', // ⚠️ REQUIRED field
+            position: 'bottom',
+            // Automatically uses root formatter.x
+        },
+    ],
+    series: [
+        // All series labels and tooltips also use root formatters
+    ],
+};
+```
+
+### Only use axis-specific formatters when they differ:
+
+```typescript
+axes: [
+    {
+        type: 'number', // ⚠️ REQUIRED field
+        position: 'left',
+        label: {
+            // Only override if this axis needs different formatting
+            formatter: (params) => `${params.value}%`, // Specific to percentage axis
+        },
+    },
+];
+```
+
+## 📐 Snug Data Fitting with `nice: false`
+
+_Apply: 2 minutes, Impact: Medium_
+
+```typescript
+// For continuous axes (number, time, log), control axis range padding
+axes: [
+    {
+        type: 'number', // ⚠️ REQUIRED field
+        position: 'left',
+        nice: false, // ✅ Data fits exactly to min/max (no padding)
+        // Default nice: true adds padding for round numbers
+    },
+    {
+        type: 'time', // ⚠️ REQUIRED field
+        position: 'bottom',
+        nice: false, // ✅ Time scale starts/ends at data boundaries
+        // Useful for showing exact date ranges
+    },
+];
+```
+
+### When to use `nice: false`
+
+-   ✅ When you want the axis to start/end exactly at your data boundaries
+-   ✅ For time series that should show a specific date range
+-   ✅ When showing percentages that should end at exactly 100%
+-   ✅ For tightly controlled visualizations where padding looks awkward
+
+### When to keep `nice: true` (default)
+
+-   ✅ Most financial/business charts benefit from round numbers
+-   ✅ When axis labels should be "nice" values (0, 50, 100 vs 0, 47, 94)
+-   ✅ For better readability with clean axis tick values
+
+## 📏 Axis Enhancement
+
+_Apply: 10 minutes, Impact: HIGH_
+
+```typescript
+axes: [
+    {
+        type: 'number', // ⚠️ REQUIRED field
+        position: 'left',
+        nice: false, // ✅ Data fits snugly to scale (no extra padding)
+        title: {
+            text: 'Revenue ($M)', // ❌ Don't set fontSize
+            // Theme handles all font properties
+        },
+        label: {
+            // ❌ Don't set fontSize - theme handles it
+            formatter: (params) => `$${params.value}M`,
+        },
+        gridLine: { style: [{ lineDash: [2, 3] }] }, // Don't set stroke color
+        tick: { width: 1 }, // Don't set stroke color
+    },
+    {
+        type: 'category', // ⚠️ REQUIRED field
+        position: 'bottom',
+        bandHighlight: {
+            enabled: true,
+            // Don't set fill - theme provides the color
+        },
+        label: {
+            rotation: 45, // Angle labels if really needed
+            // ❌ Don't set fontSize
+        },
+    },
+];
+```
+
+## 🎨 Advanced Grid Line Styling
+
+_Apply: 6 minutes, Impact: HIGH_ ⭐ **RECOMMENDED**
+
+```typescript
+// Professional alternating bands - STRONGLY consider using this!
+gridLine: {
+    style: [
+        {
+            // Primary grid lines
+            strokeWidth: 1,
+            lineDash: [3, 3],
+            // Don't set stroke - theme handles grid colors
+        },
+        {
+            // Alternating background bands for visual clarity
+            strokeWidth: 0, // No line, just fill
+            // Don't set fill - theme provides appropriate band colors
+        },
+    ];
+}
+
+// Even more sophisticated with multiple styles:
+gridLine: {
+    style: [
+        { strokeWidth: 2 }, // Major grid lines (every 5th)
+        { strokeWidth: 0 }, // Subtle bands
+        { strokeWidth: 1, lineDash: [2, 2] }, // Minor grid lines
+    ];
+}
+
+// BEST PRACTICE: Combine with bandHighlight for maximum impact
+axes: [
+    {
+        type: 'category', // ⚠️ REQUIRED field
+        position: 'bottom',
+        gridLine: {
+            style: [
+                { strokeWidth: 1, lineDash: [2, 2] },
+                { strokeWidth: 0 }, // Background bands
+            ],
+        },
+        bandHighlight: {
+            enabled: true,
+        },
+    },
+];
+```
+
+### Visual Impact
+
+Axis bands dramatically improve chart readability by:
+
+-   Creating visual lanes that guide the eye
+-   Making it easier to estimate values between grid lines
+-   Adding depth without cluttering the data
+-   Working seamlessly with all themes and dark mode
+
+### Combined with bandHighlight
+
+Creates a layered visual experience where:
+
+-   Static bands provide consistent visual structure
+-   Hover highlighting adds interactive feedback
+-   Users can easily track and compare values
+-   Professional appearance suitable for dashboards
+
+## Common Axis Configuration Patterns
+
+### Financial Charts
+
+```typescript
+axes: [
+    {
+        type: 'number',
+        position: 'left',
+        label: {
+            formatter: (params) => `$${(params.value / 1e6).toFixed(1)}M`,
+        },
+        gridLine: {
+            style: [
+                { strokeWidth: 1, lineDash: [2, 2] },
+                { strokeWidth: 0 }, // Bands
+            ],
+        },
+    },
+];
+```
+
+### Time Series
+
+```typescript
+axes: [
+    {
+        type: 'time',
+        position: 'bottom',
+        nice: false, // Exact date range
+        label: {
+            formatter: (params) => {
+                const date = params.value;
+                return date.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                });
+            },
+        },
+    },
+];
+```
+
+### Category Axes with Many Items
+
+```typescript
+axes: [
+    {
+        type: 'category',
+        position: 'bottom',
+        bandHighlight: { enabled: true },
+        label: {
+            rotation: 45, // Only if labels overlap
+            autoRotate: true, // Automatic rotation when needed
+        },
+    },
+];
+```
+
+## ⚠️ Special Considerations for Radial/Polar Charts
+
+### Keep It Clean!
+
+Radial and polar charts can quickly become cluttered. Follow these guidelines:
+
+```typescript
+// ❌ AVOID - Too many axis elements in radial charts
+axes: [
+    {
+        type: 'angle-category',
+        gridLine: { enabled: true, style: [...] }, // Often clutters
+        label: { enabled: true, formatter: ... },  // Can overlap
+        crossLines: [...],                          // Usually overkill
+    },
+    {
+        type: 'radius-number',
+        gridLine: { enabled: true },               // Multiple circles can overwhelm
+        label: { enabled: true },                  // Often unnecessary
+    },
+];
+
+// ✅ BETTER - Minimal, focused approach
+axes: [
+    {
+        type: 'angle-category',
+        gridLine: { enabled: false },              // Clean look
+        label: {
+            enabled: true,                         // Only if essential
+            // Keep labels short to avoid overlap
+        },
+    },
+    {
+        type: 'radius-number',
+        gridLine: {
+            enabled: true,
+            style: [{ strokeWidth: 1 }],           // Subtle single style
+        },
+        label: { enabled: false },                 // Often not needed
+    },
+];
+```
+
+### Guidelines for Radial/Polar Charts:
+
+-   **Default to minimal**: Start with no grid lines or labels, add only if needed
+-   **Avoid cross lines**: They rarely add value in circular coordinates
+-   **Limit grid circles**: Too many concentric circles create visual noise
+-   **Consider removing axis labels**: The data itself often provides sufficient context
+-   **Use tooltips instead**: Let tooltips provide precise values rather than cluttering with labels
+
+## Important Notes
+
+-   **Always specify `type`**: This is a required field for all axes
+-   **Never hardcode colors**: Let the theme handle all color properties
+-   **Avoid font overrides**: Don't set fontSize, fontWeight, or fontFamily
+-   **Test with both themes**: Ensure bands and highlights work in light/dark mode
+-   **For radial/polar charts**: Less is more - minimize axis decorations

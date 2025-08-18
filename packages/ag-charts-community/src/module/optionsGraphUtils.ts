@@ -22,12 +22,14 @@ export interface OptionsGraphInterface {
     graftObject(
         target: VertexInterface,
         object: PlainObject,
-        overridesPathArrays?: Array<Array<string> | undefined>
+        overridesPathArrays?: Array<Array<string> | undefined>,
+        edgeValue?: string
     ): void;
     graftValue(target: VertexInterface, path: string, ontoObject: unknown, value: unknown, edgeValue?: string): void;
     hasThemeOverride(path: Array<string>): boolean;
     hasUserOption(path: Array<string>): boolean;
     neighboursWithEdgeValue(vertex: VertexInterface, edge: string): Array<VertexInterface> | undefined;
+    prune(vertex: VertexInterface, edges: Array<string>): void;
     removeEdges(vertex: VertexInterface, edge: string): void;
     resolveValue$1(path: Array<string>): unknown;
     resolveVertexValue(vertex: VertexInterface, valueVertex: VertexInterface): unknown;
@@ -59,6 +61,12 @@ export const DEPENDENCY_EDGE = 'dependency';
 // The edges that connect a branch to a potential auto-enable value.
 export const AUTO_ENABLE_EDGE = 'autoEnable';
 export const AUTO_ENABLE_VALUE_EDGE = 'autoEnableValue';
+
+// The edge that tracks if children should be pruned from the graph by edge value when resolving.
+export const PRUNE_EDGE = 'prune';
+
+// The edge that tracks the source edge of the children of an array, used to prevent merging user values over defaults.
+export const CHILDREN_SOURCE_EDGE = 'childrenSource';
 
 export function isRatio(value: unknown): value is number {
     return isNumber(value) && value >= 0 && value <= 1;

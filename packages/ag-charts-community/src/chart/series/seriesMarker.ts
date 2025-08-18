@@ -5,7 +5,6 @@ import { SceneChangeDetection, SceneObjectChangeDetection, TRIPLE_EQ } from '../
 import { ChangeDetectableProperties } from '../../scene/util/changeDetectableProperties';
 import { objectsEqual } from '../../util/object';
 import { Property } from '../../util/properties';
-import { FillGradientDefaults, FillImageDefaults, FillPatternDefaults } from './seriesProperties';
 
 export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
     @Property
@@ -24,15 +23,6 @@ export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
     @Property
     @SceneObjectChangeDetection({ equals: objectsEqual })
     fill?: InternalAgColorType;
-
-    @Property
-    readonly fillGradientDefaults = new FillGradientDefaults();
-
-    @Property
-    readonly fillPatternDefaults = new FillPatternDefaults();
-
-    @Property
-    readonly fillImageDefaults = new FillImageDefaults();
 
     @Property
     @SceneChangeDetection()

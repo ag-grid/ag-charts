@@ -943,6 +943,43 @@ describe('AreaSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+
+        it('complex fills', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'a', y: 100 },
+                    { x: 'b', y: -100 },
+                    { x: 'c', y: 200 },
+                    { x: 'd', y: 100 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: {
+                            size: 40,
+                            itemStyler: (params) => {
+                                if (params.first) return { fill: { type: 'gradient' } };
+                                if (params.min) return { fill: { type: 'pattern' } };
+                                if (params.max) return { fill: { type: 'pattern', pattern: 'squares' } };
+                                if (params.last) {
+                                    return {
+                                        fill: { type: 'gradient', colorStops: [{ color: 'red' }, { color: 'blue' }] },
+                                    };
+                                }
+                                return { fill: { type: 'gradient' } };
+                            },
+                        },
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 
     describe('CRT-859', () => {

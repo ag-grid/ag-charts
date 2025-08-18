@@ -546,7 +546,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { id: seriesId, properties } = this;
         const { datumIndex = 0, datum } = nodeDatum ?? {};
 
-        const item = properties.item[itemId === 'subtotal' ? 'total' : itemId];
+        const propertyItemId = itemId === 'subtotal' ? 'total' : itemId;
+        const item = properties.item[propertyItemId];
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemId));
 
@@ -561,17 +562,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
                     const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        itemId,
-                        datum,
-                        xKey,
-                        yKey,
-                        highlighted: isHighlight,
-                        highlightState: highlightStateString,
-                        ...style,
-                    });
+                    return this.ctx.optionsGraphService.resolvePartial(
+                        ['series', `${this.declarationOrder}`, 'item', propertyItemId],
+                        this.callWithContext(itemStyler, {
+                            seriesId,
+                            itemId,
+                            datum,
+                            xKey,
+                            yKey,
+                            highlighted: isHighlight,
+                            highlightState: highlightStateString,
+                            ...style,
+                        })
+                    );
                 }
             );
             if (overrides) {

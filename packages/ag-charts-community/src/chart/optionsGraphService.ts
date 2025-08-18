@@ -1,7 +1,7 @@
 import type { PlainObject } from 'ag-charts-core';
 
 type Resolved = Pick<PlainObject, string> | undefined;
-type ResolvePartialOpts = { pick?: boolean };
+type ResolvePartialOpts = { pick?: boolean, proxyPaths?: Record<string, Array<string>> };
 
 interface Graph {
     resolvePartial(path: Array<string>, partialOptions?: PlainObject, opts?: ResolvePartialOpts): Resolved;

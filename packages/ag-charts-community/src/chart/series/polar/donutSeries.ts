@@ -692,41 +692,44 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             this.properties
         );
 
-        const sectorFill: InternalAgColorType = fill ?? 'black';
-
         let format: PieDonutSeriesStyle | undefined;
         if (itemStyler) {
             format = this.cachedDatumCallback(
                 this.getDatumId(datumIndex) + (isHighlight ? '-highlight' : '-hide'),
-                () =>
-                    this.callWithContext(itemStyler, {
-                        datum,
-                        angleKey,
-                        radiusKey,
-                        calloutLabelKey,
-                        sectorLabelKey,
-                        legendItemKey,
-                        fill: sectorFill,
-                        fillOpacity,
-                        stroke,
-                        strokeWidth,
-                        strokeOpacity,
-                        lineDash,
-                        lineDashOffset,
-                        cornerRadius,
-                        highlighted: isHighlight,
-                        highlightState: this.getHighlightStateString(
-                            this.ctx.highlightManager?.getActiveHighlight(),
-                            isHighlight,
-                            datumIndex
-                        ),
-                        seriesId: this.id,
-                    })
+                () => {
+                    return this.ctx.optionsGraphService.resolvePartial(
+                        ['series', `${this.declarationOrder}`],
+                        this.callWithContext(itemStyler, {
+                            datum,
+                            angleKey,
+                            radiusKey,
+                            calloutLabelKey,
+                            sectorLabelKey,
+                            legendItemKey,
+                            fill,
+                            fillOpacity,
+                            stroke,
+                            strokeWidth,
+                            strokeOpacity,
+                            lineDash,
+                            lineDashOffset,
+                            cornerRadius,
+                            highlighted: isHighlight,
+                            highlightState: this.getHighlightStateString(
+                                this.ctx.highlightManager?.getActiveHighlight(),
+                                isHighlight,
+                                datumIndex
+                            ),
+                            seriesId: this.id,
+                        }),
+                        { fill: ['fills', `${datumIndex}`], stroke: ['strokes', `${datumIndex}`] }
+                    );
+                }
             );
         }
 
         return {
-            fill: format?.fill ?? sectorFill,
+            fill: format?.fill ?? fill,
             fillOpacity: format?.fillOpacity ?? fillOpacity,
             stroke: format?.stroke ?? stroke,
             strokeWidth: format?.strokeWidth ?? strokeWidth,

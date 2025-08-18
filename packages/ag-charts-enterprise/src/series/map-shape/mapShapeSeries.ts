@@ -489,13 +489,16 @@ export class MapShapeSeries
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                     const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
 
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        highlighted: isHighlight,
-                        highlightState,
-                        ...style,
-                    });
+                    return this.ctx.optionsGraphService.resolvePartial(
+                        ['series', `${this.declarationOrder}`],
+                        this.callWithContext(itemStyler, {
+                            seriesId,
+                            datum,
+                            highlighted: isHighlight,
+                            highlightState,
+                            ...style,
+                        })
+                    );
                 }
             );
 
