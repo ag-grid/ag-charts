@@ -10,9 +10,10 @@ import { UnitTimeScale } from '../../../scale/unitTimeScale';
 import { BBox } from '../../../scene/bbox';
 import { Group, TranslatableGroup } from '../../../scene/group';
 import type { Node, NodeWithOpacity } from '../../../scene/node';
+import { SegmentedGroup } from '../../../scene/segmentedGroup';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
-import { SegmentedPath } from '../../../scene/shape/segmentedPath';
+import { type Segment, SegmentedPath } from '../../../scene/shape/segmentedPath';
 import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
@@ -57,6 +58,7 @@ type CartesianSeriesOpts<
     propertyNames: SeriesDirectionKeysMapping<TProps>;
     datumSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
+    segmentedDataNodes: boolean;
     animationResetFns?: {
         path?: (path: Path<TDatum>) => Partial<Path<TDatum>>;
         datum?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
@@ -140,6 +142,7 @@ export interface CartesianSeriesNodeDataContext<
     scales: { [key in ChartAxisDirection]?: Scaling };
     animationValid?: boolean;
     visible: boolean;
+    segments?: Segment[];
 }
 
 export const RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD = 100;
@@ -166,7 +169,7 @@ export abstract class CartesianSeries<
 
     private readonly paths: SegmentedPath[];
     protected readonly dataNodeGroup = this.contentGroup.appendChild(
-        new Group({ name: `${this.id}-series-dataNodes`, zIndex: 1 })
+        new SegmentedGroup({ name: `${this.id}-series-dataNodes`, zIndex: 1 })
     );
     override readonly labelGroup = this.contentGroup.appendChild(
         new TranslatableGroup({ name: `${this.id}-series-labels` })
@@ -195,6 +198,7 @@ export abstract class CartesianSeries<
         pathsZIndexSubOrderOffset = [],
         datumSelectionGarbageCollection = true,
         animationAlwaysUpdateSelections = false,
+        segmentedDataNodes = true,
         animationResetFns,
         propertyKeys,
         propertyNames,
@@ -219,6 +223,7 @@ export abstract class CartesianSeries<
             animationResetFns,
             animationAlwaysUpdateSelections,
             datumSelectionGarbageCollection,
+            segmentedDataNodes,
         };
 
         this.paths = pathsPerSeries.map((path) => {
@@ -375,6 +380,13 @@ export abstract class CartesianSeries<
 
         this.contentGroup.batchedUpdate(() => {
             const dataChanged = this.updateSelections();
+            const segments = this.contextNodeData?.segments;
+            if (this.opts.segmentedDataNodes) {
+                this.dataNodeGroup.segments = segments;
+            } else {
+                this.dataNodeGroup.segments = undefined;
+            }
+
             this.updateNodes(itemHighlighted, resize || dataChanged);
         });
 
@@ -1175,6 +1187,7 @@ export abstract class CartesianSeries<
                 domain: [domain[0], domain[1]],
                 range: [range[0], range[1]],
                 convert: (d) => scale.convert(d),
+                bandwidth: scale.bandwidth,
             };
         } else if (scale instanceof BandScale) {
             const domain = scale instanceof UnitTimeScale ? scale.bands : scale.domain;
@@ -1187,6 +1200,7 @@ export abstract class CartesianSeries<
                 step: scale.step,
                 range: [range[0], range[1]],
                 convert: (d: any) => scale.convert(d),
+                bandwidth: scale.bandwidth,
             };
         }
     }

@@ -5,7 +5,7 @@ import { BBox } from '../bbox';
 import { SceneChangeDetection, SceneObjectChangeDetection } from '../changeDetectable';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { type Corner, drawCorner } from '../util/corner';
-import { Path } from './path';
+import { SegmentedPath } from './segmentedPath';
 import { type CanvasContext } from './shape';
 
 export interface CornerRadii {
@@ -239,7 +239,7 @@ export const clippedRoundRect = (
     path.closePath();
 };
 
-export class Rect<D = any> extends Path<D> implements DistantObject {
+export class Rect<D = any> extends SegmentedPath<D> implements DistantObject {
     static override readonly className: string = 'Rect';
 
     readonly borderPath = new ExtendedPath2D();

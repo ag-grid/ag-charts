@@ -1,5 +1,6 @@
 import {
     type ColorSpace,
+    type InternalAgColorType,
     Logger,
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
@@ -13,6 +14,8 @@ import type {
     AgGradientType,
     AgImageFillFit,
     AgPatternName,
+    AgSeriesSegmentation,
+    AgSeriesShapeSegmentOptions,
     CssColor,
     InteractionRange,
     Opacity,
@@ -21,7 +24,7 @@ import type {
 } from 'ag-charts-types';
 
 import { mergeDefaults } from '../../util/object';
-import { BaseProperties, Property } from '../../util/properties';
+import { BaseProperties, PropertiesArray, Property } from '../../util/properties';
 import type { SeriesTooltip } from './seriesTooltip';
 
 export enum HighlightState {
@@ -162,6 +165,43 @@ class SeriesHighlightStyle extends BaseProperties {
 class TextHighlightStyle extends BaseProperties {
     @Property
     color?: string = 'black';
+}
+
+export class SegmentOptions extends BaseProperties implements AgSeriesShapeSegmentOptions {
+    @Property
+    start?: number;
+
+    @Property
+    stop?: number;
+
+    @Property
+    fill: InternalAgColorType = '#c16068';
+
+    @Property
+    fillOpacity = 1;
+
+    @Property
+    stroke: string = '#874349';
+
+    @Property
+    strokeWidth = 2;
+
+    @Property
+    strokeOpacity = 1;
+
+    @Property
+    lineDash: number[] = [0];
+
+    @Property
+    lineDashOffset: number = 0;
+}
+
+export class Segmentation implements AgSeriesSegmentation {
+    @Property
+    key: 'x' | 'y' = 'x';
+
+    @Property
+    segments = new PropertiesArray<SegmentOptions>(SegmentOptions);
 }
 
 export class FillGradientDefaults

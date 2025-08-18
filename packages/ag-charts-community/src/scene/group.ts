@@ -360,7 +360,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         ctx.clip();
     }
 
-    private renderInContext(childRenderCtx: RenderContext) {
+    protected renderInContext(childRenderCtx: RenderContext) {
         const { ctx, stats } = childRenderCtx;
 
         if (this.dirtyZIndex) {

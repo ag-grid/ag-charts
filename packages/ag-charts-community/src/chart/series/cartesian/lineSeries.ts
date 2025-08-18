@@ -116,6 +116,7 @@ export class LineSeries extends CartesianSeries<
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
             datumSelectionGarbageCollection: false,
+            segmentedDataNodes: false,
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
@@ -457,8 +458,10 @@ export class LineSeries extends CartesianSeries<
         const crossFiltering =
             selectionValues?.some((selectionValue, index) => selectionValue === yRawValues[index]) ?? false;
 
-        const scales = this.calculateScaling();
-        const segments = calculateSegments(this.properties.segmentation, scales);
+        const segments = calculateSegments(this.properties.segmentation, {
+            [ChartAxisDirection.X]: xScale,
+            [ChartAxisDirection.Y]: yScale,
+        });
 
         return {
             itemId: yKey,

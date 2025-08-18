@@ -8,7 +8,7 @@ export interface Segment extends StrokeOptions, FillOptions, LineDashOptions {
     clipRect: BBox;
 }
 
-export class SegmentedPath extends Path {
+export class SegmentedPath<D = any> extends Path<D> {
     @SceneRefChangeDetection()
     segments: Segment[] = [];
 

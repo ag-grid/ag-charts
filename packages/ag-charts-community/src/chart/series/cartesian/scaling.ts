@@ -7,6 +7,7 @@ export interface ContinuousScaling<T = 'continuous'> {
     domain: [number, number];
     range: [number, number];
     convert(domain: number): number;
+    bandwidth: number | undefined;
 }
 
 export interface LogScaling extends ContinuousScaling<'log'> {}
@@ -18,6 +19,7 @@ export interface CategoryScaling {
     inset: number;
     step: number;
     convert(domain: any): number;
+    bandwidth: number | undefined;
 }
 
 function isContinuousScaling(scaling: Scaling): scaling is ContinuousScaling {

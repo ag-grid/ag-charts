@@ -141,6 +141,7 @@ export class AreaSeries extends CartesianSeries<
             pathsPerSeries: ['fill', 'stroke'],
             pathsZIndexSubOrderOffset: [0, 1000],
             datumSelectionGarbageCollection: false,
+            segmentedDataNodes: false,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
@@ -859,10 +860,11 @@ export class AreaSeries extends CartesianSeries<
             handleDatum(datumIndex);
         }
 
-        const { segmentation } = this.properties;
-
         const scales = this.calculateScaling();
-        const segments = calculateSegments(segmentation, scales);
+        const segments = calculateSegments(this.properties.segmentation, {
+            [ChartAxisDirection.X]: xScale,
+            [ChartAxisDirection.Y]: yScale,
+        });
 
         const context: AreaSeriesNodeDataContext = {
             itemId: yKey,

@@ -17,6 +17,7 @@ import { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { BarShape } from '../../../scene/shape/barShape';
+import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
 import type { CallbackParamRules } from '../../../util/callbackCache';
 import { simpleMemorize2 } from '../../../util/memo';
@@ -76,6 +77,7 @@ import {
 } from './cartesianSeries';
 import { calculateDataDiff } from './diffUtil';
 import { areScalingEqual } from './scaling';
+import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -104,6 +106,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
 
 interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarNodeDatum> {
     styles: SeriesNodeStyleContext<AgBarSeriesStyle>;
+    segments?: Segment[];
 }
 
 type BarAnimationData = AbstractBarSeriesAnimationData<BarShape, BarNodeDatum>;
@@ -683,14 +686,21 @@ export class BarSeries extends AbstractBarSeries<
             }
         }
 
+        const scales = this.calculateScaling();
+        const segments = calculateSegments(this.properties.segmentation, {
+            [ChartAxisDirection.X]: this.axes[ChartAxisDirection.X]?.scale,
+            [ChartAxisDirection.Y]: this.axes[ChartAxisDirection.Y]?.scale,
+        });
+
         return {
             itemId: yKey,
             nodeData: phantomNodes.length > 0 ? [...phantomNodes, ...nodes] : nodes,
             labelData: labels,
-            scales: this.calculateScaling(),
+            scales,
             visible: this.visible || animationEnabled,
             groupScale: this.getScaling(this.groupScale),
             styles: getItemStyles(this.getItemStyle.bind(this)),
+            segments,
         };
     }
 

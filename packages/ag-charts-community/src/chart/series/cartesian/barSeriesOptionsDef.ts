@@ -10,6 +10,7 @@ import {
     number,
     positiveNumber,
     required,
+    shapeSegmentation,
     string,
     strokeOptionsDef,
     undocumented,
@@ -56,6 +57,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+    segmentation: shapeSegmentation,
 };
 
 // @ts-expect-error undocumented option

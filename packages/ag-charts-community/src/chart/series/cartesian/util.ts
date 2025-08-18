@@ -1,13 +1,13 @@
 import type { AgSeriesSegmentation } from 'ag-charts-types';
 
+import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import { findRangeExtent } from '../../../util/number';
 import type { ChartAxisDirection } from '../../chartAxisDirection';
-import { type Scaling } from './scaling';
 
 export function calculateSegments(
     segmentation: AgSeriesSegmentation,
-    scales: { [key in ChartAxisDirection]?: Scaling }
+    scales: { [key in ChartAxisDirection]?: Scale<unknown, number> }
 ) {
     const { key } = segmentation;
 
@@ -23,12 +23,14 @@ export function calculateSegments(
 
     const isXDirection = key === 'x';
     const scale = isXDirection ? xScale : yScale;
+    const bandwidth = scale.bandwidth ?? 0;
+    const offset = ((scale.step ?? 0) - bandwidth) / 2;
 
     return calculateStopStart(segmentation, scale).map(({ stop, start, ...style }) => {
-        let x = isXDirection ? scale.convert(start) : 0;
-        let y = isXDirection ? 0 : scale.convert(start);
-        let width = isXDirection ? scale.convert(stop) - x : seriesWidth;
-        let height = isXDirection ? seriesHeight : scale.convert(stop) - y;
+        let x = isXDirection ? scale.convert(start) - offset : 0;
+        let y = isXDirection ? 0 : scale.convert(start) - offset;
+        let width = isXDirection ? scale.convert(stop) + 2 * offset + bandwidth - x : seriesWidth;
+        let height = isXDirection ? seriesHeight : scale.convert(stop) + 2 * offset + bandwidth - y;
 
         if (width < 0) {
             x += width;
@@ -43,7 +45,7 @@ export function calculateSegments(
     });
 }
 
-function calculateStopStart(segmentation: AgSeriesSegmentation, scale: Scaling) {
+function calculateStopStart(segmentation: AgSeriesSegmentation, scale: Scale<unknown, number>) {
     const domainStart = scale.domain[0];
     const domainEnd = scale.domain.at(-1);
 
