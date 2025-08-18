@@ -2,7 +2,7 @@ import type { ContextCallbackParams, SeriesCallbackParams, Styler } from '../../
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
+import type { AxisValue, ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type {
@@ -43,6 +43,19 @@ export interface AgAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
     connectMissingData?: boolean;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    segmentation: AgSeriesSegment;
+}
+
+export interface AgSeriesSegment {
+    key: 'x' | 'y';
+    segments: AgSeriesSegmentOptions[];
+}
+
+export interface AgSeriesSegmentOptions extends StrokeOptions, FillOptions, LineDashOptions {
+    /** The axis value at which the styles should start. This is the start of the axis domain by default. */
+    start?: AxisValue;
+    /** The axis value at which the styles should stop. This is the end of the axis domain by default. */
+    stop?: AxisValue;
 }
 
 export interface AgAreaSeriesOptionsKeys<TDatum = DatumDefault> {

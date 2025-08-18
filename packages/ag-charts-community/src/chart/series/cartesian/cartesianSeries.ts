@@ -5,7 +5,6 @@ import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
-import { LogScale } from '../../../scale/logScale';
 import type { Scale } from '../../../scale/scale';
 import { UnitTimeScale } from '../../../scale/unitTimeScale';
 import { BBox } from '../../../scene/bbox';
@@ -13,6 +12,7 @@ import { Group, TranslatableGroup } from '../../../scene/group';
 import type { Node, NodeWithOpacity } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
+import { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
@@ -164,7 +164,7 @@ export abstract class CartesianSeries<
 
     protected override readonly NodeEvent = CartesianSeriesNodeEvent;
 
-    private readonly paths: Path[];
+    private readonly paths: SegmentedPath[];
     protected readonly dataNodeGroup = this.contentGroup.appendChild(
         new Group({ name: `${this.id}-series-dataNodes`, zIndex: 1 })
     );
@@ -222,7 +222,7 @@ export abstract class CartesianSeries<
         };
 
         this.paths = pathsPerSeries.map((path) => {
-            return new Path({ name: `${this.id}-${path}` });
+            return new SegmentedPath({ name: `${this.id}-${path}` });
         });
 
         this.datumSelection = Selection.select(
@@ -1167,31 +1167,26 @@ export abstract class CartesianSeries<
     protected abstract isLabelEnabled(): boolean;
 
     protected getScaling(scale: Scale<any, any>): Scaling | undefined {
-        if (scale instanceof LogScale) {
-            const { range, domain } = scale;
-
-            return {
-                type: 'log',
-                convert: (d) => scale.convert(d),
-                domain: [domain[0], domain[1]],
-                range: [range[0], range[1]],
-            };
-        } else if (scale instanceof ContinuousScale) {
+        if (scale instanceof ContinuousScale) {
             const { range, domain } = scale;
 
             return {
                 type: 'continuous',
                 domain: [domain[0], domain[1]],
                 range: [range[0], range[1]],
+                convert: (d) => scale.convert(d),
             };
         } else if (scale instanceof BandScale) {
             const domain = scale instanceof UnitTimeScale ? scale.bands : scale.domain;
+            const range = scale.range;
 
             return {
                 type: 'category',
                 domain,
                 inset: scale.inset,
                 step: scale.step,
+                range: [range[0], range[1]],
+                convert: (d) => scale.convert(d),
             };
         }
     }

@@ -1,26 +1,27 @@
 import { arraysEqual } from 'ag-charts-core';
 
-export type Scaling = ContinuousScaling | CategoryScaling | LogScaling;
+export type Scaling = ContinuousScaling | CategoryScaling;
 
 export interface ContinuousScaling<T = 'continuous'> {
     type: T;
     domain: [number, number];
     range: [number, number];
-}
-
-export interface LogScaling extends ContinuousScaling<'log'> {
     convert(domain: number): number;
 }
+
+export interface LogScaling extends ContinuousScaling<'log'> {}
 
 export interface CategoryScaling {
     type: 'category';
     domain: readonly string[] | readonly Date[];
+    range: [number, number];
     inset: number;
     step: number;
+    convert(domain: number): number;
 }
 
 function isContinuousScaling(scaling: Scaling): scaling is ContinuousScaling {
-    return scaling.type === 'continuous' || scaling.type === 'log';
+    return scaling.type === 'continuous';
 }
 
 function isCategoryScaling(scaling: Scaling): scaling is CategoryScaling {

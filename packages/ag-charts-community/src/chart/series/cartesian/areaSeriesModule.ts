@@ -11,6 +11,7 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    SEGMENTATION_DEFAULTS,
     multiSeriesHighlightStyle,
 } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
@@ -53,6 +54,7 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
             strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
             lineDash: [0],
             lineDashOffset: 0,
+            segmentation: SEGMENTATION_DEFAULTS,
             shadow: {
                 enabled: false,
                 color: DEFAULT_SHADOW_COLOUR,
