@@ -1,19 +1,20 @@
 import type { PlainObject } from 'ag-charts-core';
 
-export type ResolvePartialCallback = (
-    path: Array<string>,
-    partialOptions?: PlainObject,
-    proxyPaths?: Record<string, Array<string>>
-) => any;
+type Resolved = Pick<PlainObject, string> | undefined;
+type ResolvePartialOpts = { pick?: boolean; proxyPaths?: Record<string, Array<string>> };
+
+interface Graph {
+    resolvePartial(path: Array<string>, partialOptions?: PlainObject, opts?: ResolvePartialOpts): Resolved;
+}
 
 export class OptionsGraphService {
-    private resolvePartialCallback?: ResolvePartialCallback;
+    private graph?: Graph;
 
-    updateCallback(resolvePartialCallback: ResolvePartialCallback) {
-        this.resolvePartialCallback = resolvePartialCallback;
+    setGraph(graph: Graph) {
+        this.graph = graph;
     }
 
-    resolvePartial(path: Array<string>, partialOptions?: PlainObject, proxyPaths?: Record<string, Array<string>>) {
-        return this.resolvePartialCallback?.(path, partialOptions, proxyPaths);
+    resolvePartial(path: Array<string>, partialOptions?: PlainObject, opts?: ResolvePartialOpts): Resolved {
+        return this.graph?.resolvePartial(path, partialOptions, opts);
     }
 }

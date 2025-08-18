@@ -3,6 +3,8 @@ import { isDefined } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
     type AgAreaSeriesOptions,
+    type AgAreaSeriesStylerParams,
+    type AgAreaSeriesStylerResult,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgSeriesMarkerStyle,
 } from 'ag-charts-types';
@@ -18,6 +20,7 @@ import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
+import type { CallbackParamRules } from '../../../util/callbackCache';
 import { extent } from '../../../util/extent';
 import { simpleMemorize2 } from '../../../util/memo';
 import { mergeDefaults } from '../../../util/object';
@@ -43,7 +46,7 @@ import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import type { HighlightState } from '../seriesProperties';
+import { HighlightState, toHighlightString } from '../seriesProperties';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
 import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
@@ -267,8 +270,8 @@ export class AreaSeries extends CartesianSeries<
             props.push(animationValidation());
         }
 
-        const { dataModel, processedData } = await this.requestDataModel<any, any>(dataController, data, {
-            props: props,
+        const { dataModel, processedData } = await this.requestDataModel<any>(dataController, data, {
+            props,
             groupByKeys: stacked,
             groupByData: !stacked,
         });
@@ -301,8 +304,8 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
-        const { processedData, dataModel, axes } = this;
-        if (!processedData || !dataModel) return [];
+        const { dataModel, processedData, axes } = this;
+        if (!dataModel || !processedData) return [];
 
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -699,11 +702,11 @@ export class AreaSeries extends CartesianSeries<
         if (!xAxis || !yAxis || !data || !dataModel || !processedData) return;
 
         const {
-            yKey,
             xKey,
             xName,
-            yName,
             yFilterKey,
+            yKey,
+            yName,
             marker,
             label,
             fill: seriesFill,
@@ -712,10 +715,8 @@ export class AreaSeries extends CartesianSeries<
             strokeWidth,
             strokeOpacity,
         } = this.properties;
-        const { scale: xScale } = xAxis;
-        const { scale: yScale } = yAxis;
-
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const xScale = xAxis.scale;
+        const yScale = yAxis.scale;
         const { isContinuousY } = this.getScaleInformation({ xScale, yScale });
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
@@ -729,6 +730,8 @@ export class AreaSeries extends CartesianSeries<
             : yRawValues;
         const yFilterValues =
             yFilterKey != null ? dataModel.resolveColumnById(this, 'yFilterRaw', processedData) : undefined;
+
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
         const labelData: LabelSelectionDatum[] = [];
         const markerData: MarkerSelectionDatum[] = [];
@@ -862,27 +865,22 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected override updatePathNodes(opts: { paths: Path[]; visible: boolean; animationEnabled: boolean }) {
-        const { visible, animationEnabled } = opts;
-        const [fill, stroke] = opts.paths;
+        const {
+            paths: [fillPaths, strokePaths],
+            visible,
+            animationEnabled,
+        } = opts;
         const crossFiltering = this.contextNodeData?.crossFiltering === true;
 
-        const {
-            strokeWidth,
-            stroke: strokeColor,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            fill: seriesFill,
-            fillOpacity,
-            opacity,
-        } = mergeDefaults(this.getHighlightStyle(), this.properties);
+        const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle(false));
+        const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, fill, fillOpacity, opacity } = merged;
 
-        stroke.setProperties({
+        strokePaths.setProperties({
             fill: undefined,
             lineCap: 'round',
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            stroke: strokeColor,
+            stroke,
             strokeWidth,
             strokeOpacity: strokeOpacity * (crossFiltering ? CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR : 1),
             lineDash,
@@ -892,16 +890,16 @@ export class AreaSeries extends CartesianSeries<
         });
 
         applyShapeStyle(
-            fill,
+            fillPaths,
             {
-                fill: seriesFill,
+                fill,
                 stroke: undefined,
                 fillOpacity: fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
             },
             this.getShapeFillBBox()
         );
 
-        fill.setProperties({
+        fillPaths.setProperties({
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             fillShadow: this.properties.shadow,
@@ -909,8 +907,8 @@ export class AreaSeries extends CartesianSeries<
             visible: visible || animationEnabled,
         });
 
-        updateClipPath(this, stroke);
-        updateClipPath(this, fill);
+        updateClipPath(this, strokePaths);
+        updateClipPath(this, fillPaths);
     }
 
     protected override updatePaths(opts: { contextData: AreaSeriesNodeDataContext; paths: Path[] }) {
@@ -956,8 +954,12 @@ export class AreaSeries extends CartesianSeries<
     }) {
         const { nodeData, datumSelection } = opts;
         const { contextNodeData, processedData, axes, properties } = this;
-        const { marker } = properties;
+        const { marker, styler } = properties;
+
+        const resolvedMarkerEnabled: boolean = styler ? this.getStyle(false).marker.enabled : marker.enabled;
+
         const markersEnabled =
+            resolvedMarkerEnabled ||
             contextNodeData?.crossFiltering === true ||
             markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
 
@@ -974,20 +976,21 @@ export class AreaSeries extends CartesianSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { xKey, yKey, marker, stroke, strokeWidth, strokeOpacity } = this.properties;
+        const { xKey, yKey, marker } = this.properties;
+        const stylerStyle = this.getStyle(isHighlight);
+        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
         datumSelection.each((_, datum) => {
             const { xValue, yValue } = datum;
+
             const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
-            const style = this.getMarkerStyle(marker, datum, params, { isHighlight }, undefined, {
+            datum.style = this.getMarkerStyle(marker, datum, params, { isHighlight }, stylerStyle.marker, {
                 stroke,
                 strokeWidth,
                 strokeOpacity,
             });
-
-            datum.style = style;
         });
     }
 
@@ -996,7 +999,9 @@ export class AreaSeries extends CartesianSeries<
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
-        if (!contextNodeData) return;
+        if (!contextNodeData) {
+            return;
+        }
 
         const { datumSelection, isHighlight } = opts;
         const fillBBox = this.getShapeFillBBox();
@@ -1019,43 +1024,33 @@ export class AreaSeries extends CartesianSeries<
         labelData: LabelSelectionDatum[];
         labelSelection: Selection<Text, LabelSelectionDatum>;
     }) {
-        const { labelData, labelSelection } = opts;
-
-        return labelSelection.update(labelData);
+        return opts.labelSelection.update(this.isLabelEnabled() ? opts.labelData : []);
     }
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, LabelSelectionDatum>; isHighlight?: boolean }) {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const params: AgAreaSeriesLabelFormatterParams = this.makeLabelFormatterParams();
 
         opts.labelSelection.each((text, datum) => {
-            const { x, y, labelText } = datum;
-
             const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
             const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datum.datumIndex);
 
-            const style = getLabelStyles(
-                this,
-                datum,
-                this.properties,
-                this.properties.label,
-                highlighted,
-                highlightState
-            );
-            const { enabled: labelEnabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
-            if (labelText && labelEnabled && this.visible) {
+            const style = getLabelStyles(this, datum, params, this.properties.label, highlighted, highlightState);
+            const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
+            if (enabled && datum?.labelText) {
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
                 text.fontSize = fontSize;
                 text.fontFamily = fontFamily;
                 text.textAlign = 'center';
                 text.textBaseline = 'bottom';
-                text.text = labelText;
-                text.x = x;
-                text.y = y - 10;
+                text.text = datum.labelText;
+                text.x = datum.x;
+                text.y = datum.y - 10;
                 text.fill = color;
-                text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
                 text.visible = true;
+                text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
                 text.setBoxing(style);
             } else {
                 text.visible = false;
@@ -1063,13 +1058,52 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: HighlightState): never {
-        throw new Error('not implemented');
+    makeStylerParams(
+        highlighted: boolean,
+        highlightStateEnum?: HighlightState
+    ): AgAreaSeriesStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+        const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, xKey, yKey } =
+            this.properties;
+        const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+
+        type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
+        type ResultRules = CallbackParamRules<AgAreaSeriesStylerParams<unknown, unknown> & MarkerRules>;
+        return {
+            marker: {
+                fill: marker.fill,
+                fillOpacity: marker.fillOpacity,
+                size: marker.size,
+                shape: marker.shape,
+                stroke: marker.stroke,
+                strokeOpacity: marker.strokeOpacity,
+                strokeWidth: marker.strokeWidth,
+                lineDash: marker.lineDash,
+                lineDashOffset: marker.lineDashOffset,
+            },
+            highlightState,
+            highlighted,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            seriesId,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            xKey,
+            yKey,
+        } satisfies ResultRules;
+    }
+
+    private makeLabelFormatterParams(): AgAreaSeriesLabelFormatterParams {
+        const { xKey, xName, yKey, yName } = this.properties;
+        return { xKey, xName, yKey, yName } satisfies RequireOptional<AgAreaSeriesLabelFormatterParams>;
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { xKey, xName, yKey, yName, tooltip, marker, legendItemName } = properties;
+        const { xKey, xName, yKey, yName, tooltip, legendItemName } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -1079,18 +1113,23 @@ export class AreaSeries extends CartesianSeries<
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
 
+        if (xValue == null) return;
+
         const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
             xDomain: this.getSeriesDomain(ChartAxisDirection.X),
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
         }))!;
+        const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
 
-        if (xValue == null) return;
-
-        const activeStyle = this.getMarkerStyle(
-            marker,
-            { datum, datumIndex },
-            datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain)
-        );
+        const format = this.getMarkerStyle(
+            this.properties.marker,
+            { datumIndex, datum },
+            params,
+            {
+                isHighlight: false,
+            },
+            this.getStyle(false).marker
+        ) as RequireOptional<AgSeriesMarkerStyle>;
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -1113,26 +1152,28 @@ export class AreaSeries extends CartesianSeries<
                 xName,
                 yKey,
                 yName,
-                ...(activeStyle as RequireOptional<AgSeriesMarkerStyle>),
+                ...format,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
     }
 
     legendItemSymbol(): LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker } = this.properties;
-        const useAreaFill = !marker.enabled || marker.fill === undefined;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle(false);
+        const useAreaFill = !marker.enabled || marker.fill == null;
         const legendMarkerFill = useAreaFill ? fill : marker.fill;
 
         const markerStyle = this.getMarkerStyle(
-            marker,
+            this.properties.marker,
             {},
             undefined,
             { isHighlight: false, checkForHighlight: false },
             {
                 size: marker.size,
+                shape: marker.shape,
                 fill: legendMarkerFill,
                 fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
+                stroke: marker.stroke,
             }
         );
 
@@ -1168,13 +1209,13 @@ export class AreaSeries extends CartesianSeries<
                 legendType,
                 id: seriesId,
                 itemId,
+                legendItemName,
                 seriesId,
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
                 label: {
                     text: legendItemName ?? yName ?? itemId,
                 },
                 symbol: this.legendItemSymbol(),
-                legendItemName,
                 hideInLegend: !showInLegend,
             },
         ];
@@ -1277,15 +1318,61 @@ export class AreaSeries extends CartesianSeries<
         return new Marker();
     }
 
+    public getStyle(
+        highlighted: boolean,
+        highlightState?: HighlightState
+    ): Required<AgAreaSeriesStylerResult> & { marker: Required<AgSeriesMarkerStyle> & { enabled: boolean } } {
+        const { styler, marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
+            this.properties;
+        const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
+        let stylerResult: AgAreaSeriesStylerResult & { marker?: { enabled?: boolean } } = {};
+        if (styler) {
+            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            const cbResult = this.callWithContext(styler, stylerParams) ?? {};
+            const resolved = this.ctx.optionsGraphService.resolvePartial(
+                ['series', `${this.declarationOrder}`],
+                cbResult,
+                { pick: false }
+            );
+            stylerResult = resolved ?? {};
+        }
+        stylerResult.marker ??= {};
+        return {
+            fill: stylerResult.fill ?? fill,
+            fillOpacity: stylerResult.fillOpacity ?? fillOpacity,
+            lineDash: stylerResult.lineDash ?? lineDash,
+            lineDashOffset: stylerResult.lineDashOffset ?? lineDashOffset,
+            stroke: stylerResult.stroke ?? stroke,
+            strokeOpacity: stylerResult.strokeOpacity ?? strokeOpacity,
+            strokeWidth: stylerResult.strokeWidth ?? strokeWidth,
+            marker: {
+                enabled: stylerResult.marker.enabled ?? marker.enabled,
+                fill: stylerResult.marker.fill ?? markerFill,
+                fillOpacity: stylerResult.marker.fillOpacity ?? markerFillOpacity,
+                shape: stylerResult.marker.shape ?? shape,
+                size: stylerResult.marker.size ?? size,
+                lineDash: stylerResult.marker.lineDash ?? marker.lineDash ?? lineDash,
+                lineDashOffset: stylerResult.marker.lineDashOffset ?? marker.lineDashOffset ?? lineDashOffset,
+                stroke: stylerResult.marker.stroke ?? marker.stroke ?? stroke,
+                strokeOpacity: stylerResult.marker.strokeOpacity ?? marker.strokeOpacity ?? strokeOpacity,
+                strokeWidth: stylerResult.marker.strokeWidth ?? marker.strokeWidth ?? strokeWidth,
+            } satisfies RequireOptional<AgSeriesMarkerStyle> & { enabled: boolean },
+        } satisfies RequireOptional<AgAreaSeriesStylerResult> & { marker: { enabled: boolean } };
+    }
+
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
-        const { xValue, yValue, xKey, yKey } = datum;
+        const { xKey, yKey } = this.properties;
+        const { xValue, yValue } = datum;
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const stylerStyle = this.getStyle(false);
         return this.getMarkerStyle(
             this.properties.marker,
             datum,
             datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
-            { isHighlight: true }
+            { isHighlight: true },
+            undefined,
+            stylerStyle
         );
     }
 

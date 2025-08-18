@@ -1,10 +1,10 @@
-import type { ContextCallbackParams } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, SeriesCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
-import type { AgSeriesMarkerOptions } from '../markerOptions';
+import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
@@ -27,6 +27,8 @@ export interface AgAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
         FillOptions,
         LineDashOptions,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
+    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    styler?: Styler<AgAreaSeriesStylerParams<TDatum, TContext>, AgAreaSeriesStylerResult>;
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<TDatum, AgAreaSeriesMarkerItemStylerParams<TDatum, TContext>, TContext>;
     /** Configuration for the line used in the series. */
@@ -48,6 +50,22 @@ export interface AgAreaSeriesOptionsKeys<TDatum = DatumDefault> {
     xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-values from the data. */
     yKey: DatumKey<TDatum>;
+}
+
+export interface AgAreaSeriesStylerParams<TDatum, TContext>
+    extends AgAreaSeriesOptionsKeys<TDatum>,
+        SeriesCallbackParams,
+        ContextCallbackParams<TContext>,
+        Required<StrokeOptions>,
+        Required<FillOptions>,
+        Required<LineDashOptions> {
+    /** Current series styling options on markers. */
+    marker?: AgSeriesMarkerStyle;
+}
+
+export interface AgAreaSeriesStylerResult extends StrokeOptions, FillOptions, LineDashOptions {
+    /** Marker styling options. */
+    marker?: AgSeriesMarkerStyle;
 }
 
 export interface AgAreaSeriesMarkerItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>

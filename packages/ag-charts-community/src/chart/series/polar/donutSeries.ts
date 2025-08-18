@@ -722,7 +722,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                             ),
                             seriesId: this.id,
                         }),
-                        { fill: ['fills', `${datumIndex}`], stroke: ['strokes', `${datumIndex}`] }
+                        { proxyPaths: { fill: ['fills', `${datumIndex}`], stroke: ['strokes', `${datumIndex}`] } }
                     );
                 }
             );
