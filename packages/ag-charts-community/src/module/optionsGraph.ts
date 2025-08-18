@@ -300,7 +300,11 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
      * Resolve partial options against the existing graph at a given path without overriding the existing user values.
      * Returns an object with only those keys that were also present within `partialOptions`.
      */
-    resolvePartial(path: Array<string>, partialOptions?: PlainObject, opts?: { proxyPaths?: Record<string, Array<string>>, pick?: boolean }) {
+    resolvePartial(
+        path: Array<string>,
+        partialOptions?: PlainObject,
+        opts?: { proxyPaths?: Record<string, Array<string>>; pick?: boolean }
+    ) {
         if (!partialOptions) return;
         const { proxyPaths } = opts ?? {};
 
