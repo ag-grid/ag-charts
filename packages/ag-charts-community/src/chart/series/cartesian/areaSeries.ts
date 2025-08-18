@@ -860,7 +860,6 @@ export class AreaSeries extends CartesianSeries<
             handleDatum(datumIndex);
         }
 
-        const scales = this.calculateScaling();
         const segments = calculateSegments(this.properties.segmentation, {
             [ChartAxisDirection.X]: xScale,
             [ChartAxisDirection.Y]: yScale,
@@ -872,7 +871,7 @@ export class AreaSeries extends CartesianSeries<
             strokeData: { itemId: yKey, spans: this.strokeSpans },
             labelData,
             nodeData: markerData,
-            scales,
+            scales: this.calculateScaling(),
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
             crossFiltering,

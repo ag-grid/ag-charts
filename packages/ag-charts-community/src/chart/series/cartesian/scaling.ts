@@ -6,24 +6,21 @@ export interface ContinuousScaling<T = 'continuous'> {
     type: T;
     domain: [number, number];
     range: [number, number];
-    convert(domain: number): number;
-    bandwidth: number | undefined;
 }
 
-export interface LogScaling extends ContinuousScaling<'log'> {}
+export interface LogScaling extends ContinuousScaling<'log'> {
+    convert(domain: number): number;
+}
 
 export interface CategoryScaling {
     type: 'category';
     domain: readonly string[] | readonly Date[];
-    range: [number, number];
     inset: number;
     step: number;
-    convert(domain: any): number;
-    bandwidth: number | undefined;
 }
 
 function isContinuousScaling(scaling: Scaling): scaling is ContinuousScaling {
-    return scaling.type === 'continuous';
+    return scaling.type === 'continuous' || scaling.type === 'log';
 }
 
 function isCategoryScaling(scaling: Scaling): scaling is CategoryScaling {

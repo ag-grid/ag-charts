@@ -5,6 +5,7 @@ import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
+import { LogScale } from '../../../scale/logScale';
 import type { Scale } from '../../../scale/scale';
 import { UnitTimeScale } from '../../../scale/unitTimeScale';
 import { BBox } from '../../../scene/bbox';
@@ -1179,28 +1180,31 @@ export abstract class CartesianSeries<
     protected abstract isLabelEnabled(): boolean;
 
     protected getScaling(scale: Scale<any, any>): Scaling | undefined {
-        if (scale instanceof ContinuousScale) {
+        if (scale instanceof LogScale) {
+            const { range, domain } = scale;
+
+            return {
+                type: 'log',
+                convert: (d) => scale.convert(d),
+                domain: [domain[0], domain[1]],
+                range: [range[0], range[1]],
+            };
+        } else if (scale instanceof ContinuousScale) {
             const { range, domain } = scale;
 
             return {
                 type: 'continuous',
                 domain: [domain[0], domain[1]],
                 range: [range[0], range[1]],
-                convert: (d) => scale.convert(d),
-                bandwidth: scale.bandwidth,
             };
         } else if (scale instanceof BandScale) {
             const domain = scale instanceof UnitTimeScale ? scale.bands : scale.domain;
-            const range = scale.range;
 
             return {
                 type: 'category',
                 domain,
                 inset: scale.inset,
                 step: scale.step,
-                range: [range[0], range[1]],
-                convert: (d: any) => scale.convert(d),
-                bandwidth: scale.bandwidth,
             };
         }
     }

@@ -686,7 +686,6 @@ export class BarSeries extends AbstractBarSeries<
             }
         }
 
-        const scales = this.calculateScaling();
         const segments = calculateSegments(this.properties.segmentation, {
             [ChartAxisDirection.X]: this.axes[ChartAxisDirection.X]?.scale,
             [ChartAxisDirection.Y]: this.axes[ChartAxisDirection.Y]?.scale,
@@ -696,7 +695,7 @@ export class BarSeries extends AbstractBarSeries<
             itemId: yKey,
             nodeData: phantomNodes.length > 0 ? [...phantomNodes, ...nodes] : nodes,
             labelData: labels,
-            scales,
+            scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
             groupScale: this.getScaling(this.groupScale),
             styles: getItemStyles(this.getItemStyle.bind(this)),

@@ -97,6 +97,7 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     @Property
     styler?: Styler<AgLineSeriesStylerParams<unknown, unknown>, AgLineSeriesStylerResult>;
 
+    @Property
     segmentation: AgSeriesSegmentation = new Segmentation();
 
     @Property
