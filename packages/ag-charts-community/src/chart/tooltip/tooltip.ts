@@ -496,7 +496,7 @@ export class Tooltip extends BaseProperties {
             }
             case 'right': {
                 bounds.top = canvasRect.height / 2 - tooltipHeight / 2 + yOffset;
-                bounds.left = canvasRect.width - tooltipWidth / 2 + xOffset;
+                bounds.left = canvasRect.width - tooltipWidth + xOffset;
                 return bounds;
             }
             case 'left': {
