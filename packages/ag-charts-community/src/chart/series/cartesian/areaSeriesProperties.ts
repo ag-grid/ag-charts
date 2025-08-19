@@ -3,6 +3,8 @@ import type {
     AgAreaSeriesLabelFormatterParams,
     AgAreaSeriesMarkerItemStylerParams,
     AgAreaSeriesOptions,
+    AgAreaSeriesStylerParams,
+    AgAreaSeriesStylerResult,
     AgAreaSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-types';
