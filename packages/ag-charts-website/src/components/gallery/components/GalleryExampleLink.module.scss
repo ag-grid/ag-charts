@@ -31,6 +31,20 @@
     #{$selector-darkmode} & {
         background-color: #192232; // Dark themes background color
     }
+
+    &.modified {
+        border-color: var(--color-brand-primary);
+        box-shadow: 0 0 0 1px var(--color-brand-primary);
+
+        .label {
+            border-top-color: var(--color-brand-primary);
+        }
+
+        &:hover {
+            border-color: var(--color-brand-primary);
+            box-shadow: 0 0 8px rgba(56, 146, 249, 0.3);
+        }
+    }
 }
 
 .layout-3-col {
@@ -46,6 +60,13 @@
     @media screen and (min-width: 1120px) {
         --columns: 3;
     }
+}
+
+.modifiedIndicator {
+    color: var(--color-brand-primary);
+    margin-left: $spacing-size-1;
+    font-weight: bold;
+    font-size: 14px;
 }
 
 @media screen and (max-width: $breakpoint-docs-nav-medium) {
