@@ -139,7 +139,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
     update() {
         const [r0, r1] = this.range;
         let { _paddingInner: paddingInner } = this;
-        const { _paddingOuter: paddingOuter, round, bands } = this;
+        const { _paddingOuter: paddingOuter, bands } = this;
         const bandCount = bands.length;
         if (bandCount === 0) return;
 
@@ -154,6 +154,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
             rawStep = rangeDistance / Math.max(1, bandCount - paddingInner + paddingOuter * 2);
         }
 
+        const round = this.round && Math.floor(rawStep) > 0;
         const step = round ? Math.floor(rawStep) : rawStep;
         let inset = r0 + (rangeDistance - step * (bandCount - paddingInner)) / 2;
         let bandwidth = step * (1 - paddingInner);
