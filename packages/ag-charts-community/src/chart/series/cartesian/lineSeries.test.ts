@@ -32,6 +32,7 @@ import {
     prepareTestOptions,
     repeat,
     setupMockCanvas,
+    setupMockConsole,
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
@@ -76,6 +77,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
             warnings: [
                 ['AG Charts - invalid value of type [undefined] for [LineSeries-1 / xValue] ignored:', '[undefined]'],
             ],
+            skipWarningsReversed: false,
         },
         LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
@@ -87,6 +89,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 ['AG Charts - invalid value of type [object] for [LineSeries-1 / xKey] ignored:', '[null]'],
                 ['AG Charts - invalid value of type [object] for [LineSeries-1 / xValue] ignored:', '[null]'],
             ],
+            skipWarningsReversed: false,
         },
         LINE_NUMBER_AXES_0_X_DOMAIN: {
             options: examples.LINE_NUMBER_AXES_0_X_DOMAIN,
@@ -170,6 +173,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
 };
 
 describe('LineSeries', () => {
+    setupMockConsole();
     const compare = async () => {
         await waitForChartStability(chart);
 

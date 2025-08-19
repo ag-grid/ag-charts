@@ -17,6 +17,7 @@ import {
     extractImageData,
     reverseAxes,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
 
@@ -493,6 +494,7 @@ function calculateAxisBBox(axis: ChartAxis): { x: number; y: number; width: numb
 }
 
 describe('Time Axis Examples', () => {
+    setupMockConsole();
     let chart: any;
     const ctx = setupMockCanvas();
 

@@ -4,6 +4,7 @@ import { cachedTextMeasurer, wrapText } from 'ag-charts-core';
 import type { TextWrap } from 'ag-charts-types';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
+import { setupMockConsole } from '../../util/test/mockConsole';
 import { IScene } from '../node';
 import { Text } from './text';
 
@@ -30,6 +31,8 @@ const BASE_OPTIONS = {
 };
 
 describe('Text', () => {
+    setupMockConsole();
+
     const canvasCtx = setupMockCanvas();
 
     describe('rendering', () => {

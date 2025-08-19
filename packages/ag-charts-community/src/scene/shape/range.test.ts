@@ -1,12 +1,15 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
+import { setupMockConsole } from '../../util/test/mockConsole';
 import { Translatable } from '../transformable';
 import { Range } from './range';
 
 const CANVAS_WIDTH = 1150;
 
 describe('Range', () => {
+    setupMockConsole();
+
     describe('rendering', () => {
         const canvasCtx = setupMockCanvas();
 

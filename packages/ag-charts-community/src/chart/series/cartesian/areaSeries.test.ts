@@ -44,6 +44,7 @@ import {
     prepareTestOptions,
     repeat,
     setupMockCanvas,
+    setupMockConsole,
     spyOnAnimationManager,
     tapAction,
     waitForChartStability,
@@ -103,11 +104,13 @@ const EXAMPLES: Record<
             warnings: [
                 ['AG Charts - invalid value of type [undefined] for [AreaSeries-1 / xValue] ignored:', '[undefined]'],
             ],
+            skipWarningsReversed: false,
         },
         AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
             assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['area'] }),
             warnings: [['AG Charts - invalid value of type [object] for [AreaSeries-1 / xValue] ignored:', '[null]']],
+            skipWarningsReversed: false,
         },
         STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,
@@ -121,6 +124,7 @@ const EXAMPLES: Record<
                     '[undefined]',
                 ],
             ],
+            skipWarningsReversed: false,
         },
         STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
@@ -134,6 +138,7 @@ const EXAMPLES: Record<
                     '[null]',
                 ],
             ],
+            skipWarningsReversed: false,
         },
         AREA__TIME_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.AREA_TIME_X_AXIS_NUMBER_Y_AXIS,
@@ -292,6 +297,7 @@ const INVALID_DATA_EXAMPLES: Record<string, ChartTestCase> = {
 };
 
 describe('AreaSeries', () => {
+    setupMockConsole();
     const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
         await waitForChartStability(chart);
 

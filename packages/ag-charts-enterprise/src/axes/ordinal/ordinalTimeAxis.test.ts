@@ -14,6 +14,7 @@ import {
     extractImageData,
     reverseAxes,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import type { ChartOrProxy } from 'ag-charts-community-test';
@@ -598,6 +599,7 @@ function calculateAxisBBox(axis: _ModuleSupport.ChartAxis): { x: number; y: numb
 }
 
 describe('Ordinal Time Axis Examples', () => {
+    setupMockConsole();
     let chart: any;
     const ctx = setupMockCanvas();
 

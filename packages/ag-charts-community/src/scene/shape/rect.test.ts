@@ -1,11 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
+import { setupMockConsole } from '../../util/test/mockConsole';
 import { BBox } from '../bbox';
 import { DropShadow } from '../dropShadow';
 import { Rect } from './rect';
 
 describe('Rect', () => {
+    setupMockConsole();
+
     describe('rendering', () => {
         const canvasCtx = setupMockCanvas({ height: 1000 });
 

@@ -6,6 +6,7 @@ import {
     deproxy,
     extractImageData,
     setupMockCanvas,
+    setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import type { AgCartesianChartOptions } from 'ag-charts-types';
@@ -69,6 +70,7 @@ const TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
 };
 
 describe('Time Axis Examples', () => {
+    setupMockConsole();
     let chart: any;
     const ctx = setupMockCanvas();
 
