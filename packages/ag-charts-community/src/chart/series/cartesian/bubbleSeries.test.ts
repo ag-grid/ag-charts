@@ -20,6 +20,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
     extractImageData,
+    hoverAction,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
@@ -554,6 +555,10 @@ describe('BubbleSeries', () => {
                 await waitForChartStability(chart);
             });
             test('snapshot', async () => {
+                await compare();
+            });
+            test('highlight', async () => {
+                await hoverAction(200, 165)(chart);
                 await compare();
             });
             describe('callbacks', () => {
