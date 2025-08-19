@@ -4,15 +4,12 @@ import {
     boolean,
     callbackDefs,
     constant,
-    fillOptionsDef,
-    lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
     number,
     positiveNumber,
     required,
     shapeHighlightOptionsDef,
     string,
-    strokeOptionsDef,
     union,
 } from 'ag-charts-core';
 import type {
@@ -30,12 +27,6 @@ import {
     tooltipOptionsDefs,
 } from '../../commonOptionsDefs';
 
-const bubbleStyler = callbackDefs<AgBubbleSeriesStylerResult>({
-    ...strokeOptionsDef,
-    ...fillOptionsDef,
-    ...lineDashOptionsDef,
-});
-
 export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeableOptions> = {
     title: string,
     domain: arrayOf(number),
@@ -46,7 +37,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
         ...seriesLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
-    styler: bubbleStyler,
+    styler: callbackDefs<AgBubbleSeriesStylerResult>(markerOptionsDefs),
     maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled', 'autoHide']),
