@@ -124,14 +124,12 @@ describe('Zoom', () => {
         }
     });
 
-    const compare = async (customSnapshotIdentifier?: string) => {
+    const compare = async () => {
         await waitForChartStability(chart);
-
         const imageData = extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot({
             failureThreshold: 0,
             failureThresholdType: 'percent',
-            customSnapshotIdentifier,
         });
     };
 
@@ -225,19 +223,19 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleClickAction(cx, cy)(chart);
-            await compare('reset');
+            await compare();
         });
         it('should reset the X axis zoom', async () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleClickAction(400, 578)(chart);
-            await compare('dblclick-x');
+            await compare();
         });
         it('should reset the Y axis zoom', async () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleClickAction(32, 300)(chart);
-            await compare('dblclick-y');
+            await compare();
         });
     });
 
@@ -246,19 +244,19 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleTapAction(cx, cy)(chart);
-            await compare('reset');
+            await compare();
         });
         it('should reset the X axis zoom', async () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleTapAction(400, 578)(chart);
-            await compare('dblclick-x');
+            await compare();
         });
         it('should reset the Y axis zoom', async () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleTapAction(32, 300)(chart);
-            await compare('dblclick-y');
+            await compare();
         });
     });
 
@@ -331,7 +329,7 @@ describe('Zoom', () => {
 
             it('should not zoom on mouseup', async () => {
                 await mouseUpAction(b.x, b.y)(chart);
-                await compare('reset');
+                await compare();
             });
         });
     });
@@ -486,7 +484,7 @@ describe('Zoom', () => {
         });
 
         test('init zoomed in', async () => {
-            await compare('two-fingers-init');
+            await compare();
         });
 
         test('zoom back out', async () => {
@@ -500,7 +498,7 @@ describe('Zoom', () => {
             await twoFingerStart(3, cx - 250, cy - 250, 4, cx + 250, cy + 250)(chart);
             await twoFingerMove(3, cx - 10, cy - 10, 4, cx + 10, cy + 10)(chart);
             await twoFingerEnd(3, cx - 10, cy - 10, 4, cx + 10, cy + 10)(chart);
-            await compare('reset');
+            await compare();
         });
 
         test('zoom and pan', async () => {
@@ -514,7 +512,7 @@ describe('Zoom', () => {
             await twoFingerStart(3, cx - 5, cy - 50, 4, cx + 5, cy + 50)(chart);
 
             await twoFingerMove(3, cx - 100, cy - 50, 4, cx + 100, cy + 50)(chart);
-            await compare('two-fingers-init'); // no change (clientX average unchanged)
+            await compare(); // no change (clientX average unchanged)
 
             await twoFingerMove(3, cx + 20, cy - 50, 4, cx + 100, cy + 50)(chart);
             await compare(); // pans left
@@ -526,7 +524,7 @@ describe('Zoom', () => {
         test('y overlap', async () => {
             await twoFingerStart(3, cx - 50, cy - 5, 4, cx + 50, cy + 5)(chart);
             await twoFingerMove(3, cx - 50, cy - 100, 4, cx + 50, cy + 100)(chart);
-            await compare('two-fingers-init'); // no change (clientY average unchanged)
+            await compare(); // no change (clientY average unchanged)
 
             await twoFingerMove(3, cx - 50, cy + 20, 4, cx + 50, cy + 100)(chart);
             await compare(); // pans down
