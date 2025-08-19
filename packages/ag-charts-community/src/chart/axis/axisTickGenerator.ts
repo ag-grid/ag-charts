@@ -193,11 +193,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             primaryLabel,
             interval: { values, minSpacing, maxSpacing },
         } = this.axis;
-        const { parallel, fontFamily, fontSize, fontStyle, fontWeight } = label;
 
         const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation(
             label.rotation,
-            parallel,
+            label.parallel,
             regularFlipRotation,
             parallelFlipRotation
         );
@@ -213,8 +212,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         const maxIterations = Number.isFinite(maxTickCount) ? maxTickCount : 10;
 
-        const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
-        const textMeasurer = cachedTextMeasurer({ fontFamily, fontSize, fontStyle, fontWeight });
+        const textBaseline = getTextBaseline(label.parallel, configuredRotation, sideFlag, parallelFlipFlag);
+        const textMeasurer = cachedTextMeasurer(label);
         const checkLabelOverlap = label.enabled && label.avoidCollisions;
 
         const initialRotation = configuredRotation + defaultRotation;
@@ -226,7 +225,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         const getLabelData = ({ ticks }: TickData, iterationRotation: number) => {
             updateLabelMatrix(iterationRotation);
-            return createLabelData(ticks, labelX, labelMatrix, textMeasurer, label);
+            return createLabelData(ticks, labelX, labelMatrix, label);
         };
 
         const getTimeLabelData = (tickData: TickData, iterationRotation: number) => {
@@ -306,7 +305,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             labelOverlap = getLabelOverlap(tickData, autoRotation);
         }
 
-        const textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
+        const textAlign = getTextAlign(label.parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
         const rotation = configuredRotation + autoRotation;
 
         if (removeOverflowLabels && tickData.ticks.length > 2) {

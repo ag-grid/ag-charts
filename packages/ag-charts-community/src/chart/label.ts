@@ -1,7 +1,19 @@
 import { type ITextMeasurer, type RequireOptional, buildDateFormatter, isPlainObject } from 'ag-charts-core';
-import type { AgChartLabelFormatterParams, AgChartLabelOptions, AgChartLabelStyleOptions, AgChartLabelStylerParams, AgTimeInterval, AgTimeIntervalUnit, ContextDefault, FontStyle, FontWeight, Formatter, Padding, PaddingOptions, Styler } from 'ag-charts-types';
-
-
+import type {
+    AgChartLabelFormatterParams,
+    AgChartLabelOptions,
+    AgChartLabelStyleOptions,
+    AgChartLabelStylerParams,
+    AgTimeInterval,
+    AgTimeIntervalUnit,
+    ContextDefault,
+    FontStyle,
+    FontWeight,
+    Formatter,
+    Padding,
+    PaddingOptions,
+    Styler,
+} from 'ag-charts-types';
 
 import type { ContextFormatter } from '../module/axisContext';
 import { BBox } from '../scene/bbox';
@@ -10,9 +22,9 @@ import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
 import { normalizeAngle360FromDegrees } from '../util/angle';
 import { BaseProperties, Property } from '../util/properties';
 import { intervalHierarchy, intervalRange, intervalUnit } from '../util/time';
+import type { TickDatum } from './axis/axisUtil';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from './chartAxis';
 import { FormatManager } from './formatter/formatManager';
-
 
 interface FormatterCache {
     type: string;
@@ -281,25 +293,18 @@ export function timeIntervalMaxLabelSize(
     };
 }
 
-export function createLabelData(
-    tickData: { tickLabel: string | undefined; translation: number }[],
-    labelX: number,
-    labelMatrix: Matrix,
-    textMeasurer: ITextMeasurer,
-    label: ChartAxisLabel
-) {
+export function createLabelData(tickData: TickDatum[], labelX: number, labelMatrix: Matrix, label: ChartAxisLabel) {
     const padding = expandLabelPadding(label);
     const xPadding = padding.left + padding.right;
     const yPadding = padding.top + padding.bottom;
     const labelData: PlacedLabelDatum[] = [];
 
-    for (const { tickLabel: text, translation } of tickData) {
+    for (const { tickLabel: text, textMetrics, translation } of tickData) {
         if (!text) continue;
 
         const { x, y } = labelMatrix.transformBBox(new BBox(labelX, translation, 0, 0));
-        const metrics = textMeasurer.measureLines(text);
-        const width = metrics.width + xPadding;
-        const height = metrics.height + yPadding;
+        const width = textMetrics.width + xPadding;
+        const height = textMetrics.height + yPadding;
         labelData.push({
             point: { x, y },
             label: { text, width, height },
