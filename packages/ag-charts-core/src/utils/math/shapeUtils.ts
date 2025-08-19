@@ -41,3 +41,22 @@ export function getMaxInnerRectSize(
         height: Math.abs((H * cos - W * sin) / denominator),
     };
 }
+
+export function rotatePoint(
+    x: number,
+    y: number,
+    angle: number, // in radians
+    originX: number = 0,
+    originY: number = 0
+): { x: number; y: number } {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+
+    const dx = x - originX;
+    const dy = y - originY;
+
+    return {
+        x: originX + dx * cos - dy * sin,
+        y: originY + dx * sin + dy * cos,
+    };
+}

@@ -18,8 +18,6 @@ import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { type Scale, ScaleAlignment, type ScaleTickParams } from '../../scale/scale';
 import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
-import { Matrix } from '../../scene/matrix';
-import { type PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { normalizeAngle360FromDegrees } from '../../util/angle';
 import { compareDates } from '../../util/date';
 import { findMinMax, findRangeExtent } from '../../util/number';
@@ -40,18 +38,17 @@ import {
 import { lowestGranularityForInterval } from '../../util/timeFormatDefaults';
 import type { ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
+import type { AxisInterval } from './axisInterval';
+import type { TickInterval } from './axisTick';
+import { NiceMode, type TickDatum } from './axisUtil';
 import {
     calculateLabelRotation,
     createFixedLabelData,
     createLabelData,
-    getLabelSpacing,
     getTextAlign,
     getTextBaseline,
     timeIntervalMaxLabelSize,
-} from '../label';
-import type { AxisInterval } from './axisInterval';
-import type { TickInterval } from './axisTick';
-import { NiceMode, type TickDatum } from './axisUtil';
+} from './tickGenerationUtils';
 
 export type AnyTimeInterval = AgTimeInterval | AgTimeIntervalUnit;
 
@@ -73,8 +70,7 @@ export interface TickGenerationParams<D = any> {
     primaryTickCount: AxisPrimaryTickCount | undefined;
     visibleRange: [number, number];
     niceMode: NiceMode;
-    parallelFlipRotation: number;
-    regularFlipRotation: number;
+    axisRotation: number;
     labelX: number;
     sideFlag: ChartAxisLabelFlipFlag;
     sizeLimit: number | undefined;
@@ -169,8 +165,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         defaultTickMinSpacing,
         visibleRange,
         niceMode,
-        parallelFlipRotation,
-        regularFlipRotation,
+        axisRotation,
         labelX,
         sideFlag,
         sizeLimit,
@@ -183,8 +178,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation(
             label.rotation,
             label.parallel,
-            regularFlipRotation,
-            parallelFlipRotation
+            axisRotation
         );
 
         const { maxTickCount } = this.estimateTickCount(
@@ -203,23 +197,17 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const checkLabelOverlap = label.enabled && label.avoidCollisions;
 
         const initialRotation = configuredRotation + defaultRotation;
-        const labelMatrix = new Matrix();
-        const updateLabelMatrix = (iterationRotation: number) => {
-            const labelRotation = initialRotation + iterationRotation;
-            Matrix.updateTransformMatrix(labelMatrix, 1, 1, labelRotation, 0, 0);
-        };
 
         const getLabelData = ({ ticks }: TickData, iterationRotation: number) => {
-            updateLabelMatrix(iterationRotation);
-            return createLabelData(ticks, labelX, labelMatrix, label);
+            const labelRotation = initialRotation + iterationRotation;
+            return createLabelData(ticks, labelX, labelRotation, label);
         };
 
         const getTimeLabelData = (tickData: TickData, iterationRotation: number) => {
             const { niceDomain, ticks, timeInterval } = tickData;
             if (timeInterval == null) return [];
 
-            updateLabelMatrix(iterationRotation);
-
+            const labelRotation = initialRotation + iterationRotation;
             const spacing = ticksSpacing(ticks);
             const { width, height } = timeIntervalMaxLabelSize(
                 label,
@@ -229,14 +217,14 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 textMeasurer
             );
 
-            return createFixedLabelData({ width, height, spacing }, labelX, labelMatrix);
+            return createFixedLabelData({ width, height, spacing }, labelX, labelRotation);
         };
 
         const getLabelOverlap = (tickData: TickData, iterationRotation = 0) => {
             if (!checkLabelOverlap) return false;
 
             const rotated = configuredRotation !== 0 || iterationRotation !== 0;
-            const labelSpacing = getLabelSpacing(label.minSpacing, rotated);
+            const labelSpacing = label.minSpacing ?? (rotated ? 0 : 10);
 
             return (
                 axisLabelsOverlap(getTimeLabelData(tickData, iterationRotation), labelSpacing) ||
@@ -592,18 +580,14 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     }
 }
 
-function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding: number = 0): boolean {
+function axisLabelsOverlap(data: readonly BoxBounds[], padding: number = 0): boolean {
     const result: BoxBounds[] = [];
-
-    for (const datum of data) {
-        const { x, y, width, height } = datum.bounds;
+    for (const { x, y, width, height } of data) {
         if (result.some((l) => boxCollides(l, x, y, width + padding, height + padding))) {
             return true;
         }
-
         result.push({ x, y, width, height });
     }
-
     return false;
 }
 

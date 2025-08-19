@@ -154,9 +154,6 @@ export abstract class RadiusAxis<
         fractionDigits: number;
         timeInterval: undefined;
     } {
-        const parallelFlipRotation = 0;
-        const regularFlipRotation = -Math.PI / 2;
-
         const visibleRange: [number, number] = [0, 1];
         const sideFlag = this.label.getSideFlag();
         const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
@@ -168,13 +165,12 @@ export abstract class RadiusAxis<
             reverse,
             niceMode,
             visibleRange,
-            primaryTickCount: undefined,
             defaultTickMinSpacing,
-            parallelFlipRotation,
-            regularFlipRotation,
             labelX,
             sideFlag,
+            axisRotation: 0,
             sizeLimit: undefined,
+            primaryTickCount: undefined,
         });
 
         const { tickData } = tickGenerationResult;

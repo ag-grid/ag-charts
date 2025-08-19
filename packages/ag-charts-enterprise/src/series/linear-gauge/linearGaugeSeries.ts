@@ -521,20 +521,18 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         // Required to generate ticks in horizontalLabelInset
         scale.range = horizontal ? [0, seriesRect.width] : [seriesRect.height, 0];
 
-        let parallelFlipRotation: number;
+        let axisRotation: number;
         let sideFlag: 1 | -1;
         if (horizontal) {
             sideFlag = 1;
-            parallelFlipRotation = Math.PI / 2;
+            axisRotation = Math.PI / 2;
         } else if (scaleProps.label.placement === 'before') {
             sideFlag = 1;
-            parallelFlipRotation = 0;
+            axisRotation = 0;
         } else {
             sideFlag = -1;
-            parallelFlipRotation = 0;
+            axisRotation = 0;
         }
-
-        const regularFlipRotation = parallelFlipRotation - Math.PI / 2;
 
         let x0: number;
         let x1: number;
@@ -581,8 +579,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             visibleRange: [0, 1],
             niceMode: NiceMode.Off,
             labelX: 0,
-            parallelFlipRotation,
-            regularFlipRotation,
+            axisRotation,
             sideFlag,
             sizeLimit: undefined,
         }).tickData;

@@ -12,11 +12,11 @@ import {
     lowestGranularityUnitForValue,
 } from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
-import { labelSpecifier } from '../label';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
 import { DiscreteTimeAxis } from './discreteTimeAxis';
+import { labelSpecifier } from './tickGenerationUtils';
 import { TimeAxisParentLevel, calculateDefaultUnit, normaliseTimeDataDomain } from './timeAxis';
 import { deriveTimeSpecifier } from './timeFormatUtil';
 
