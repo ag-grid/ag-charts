@@ -478,15 +478,15 @@ function rotatePoint(x: number, y: number, rotation: number): [number, number] {
     return [xRotated, yRotated];
 }
 
-function axisLabelsOverlap(data: readonly BoxBounds[], padding: number = 0): boolean {
+function axisLabelsOverlap(data: readonly BoxBounds[], spacing: number = 0): boolean {
     const result: BoxBounds[] = [];
 
     for (const datum of data) {
         const { x, y } = datum;
         let { width, height } = datum;
 
-        width += padding;
-        height += padding;
+        width += spacing;
+        height += spacing;
 
         if (result.some((l) => boxCollides(l, x, y, width, height))) {
             return true;

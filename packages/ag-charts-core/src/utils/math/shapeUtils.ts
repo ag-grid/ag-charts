@@ -1,4 +1,4 @@
-import type { Size } from '../boxBounds';
+import type { Point, Size } from '../boxBounds';
 
 /**
  * Calculates the maximum width and height of an inner rectangle that can be
@@ -48,7 +48,7 @@ export function rotatePoint(
     angle: number, // in radians
     originX: number = 0,
     originY: number = 0
-): { x: number; y: number } {
+): Point {
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
 

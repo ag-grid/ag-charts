@@ -75,6 +75,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     @Property
     position!: AgCartesianAxisPosition;
 
+    minimumTimeGranularity: AgTimeIntervalUnit | undefined = undefined;
+
     protected animationManager: AnimationManager;
 
     protected readonly headingLabelGroup = this.axisGroup.appendChild(

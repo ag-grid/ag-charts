@@ -74,7 +74,6 @@ export interface TickGenerationResult<D = any> {
 }
 
 export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>, D> {
-    readonly id: string;
     readonly scale: S;
     readonly label: ChartAxis['label'];
     readonly primaryLabel?: ChartAxis['label'];
