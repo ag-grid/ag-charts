@@ -1,9 +1,21 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartInstance, AgChartOptions, AgColorRepeat, AgImageFillFit, AgPatternName } from 'ag-charts-types';
+import type {
+    AgBubbleSeriesItemStylerParams,
+    AgBubbleSeriesStylerParams,
+    AgBubbleSeriesStylerResult,
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgChartOptions,
+    AgColorRepeat,
+    AgImageFillFit,
+    AgPatternName,
+    AgSeriesMarkerStyle,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import * as examples from '../../test/examples';
+import { MockBubbleStyler, newFreezableMock } from '../../test/freezableMock';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -445,5 +457,179 @@ describe('BubbleSeries', () => {
                 await compare();
             });
         }
+    });
+    describe('AG-11673 styler', () => {
+        type D = { height: number; weight: number; age: number; name: string };
+        type C = unknown;
+        type M = MockBubbleStyler<D, C>;
+        let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        const maleHeightWeight: D[] = [
+            { height: 174.4, weight: 65.6, age: 21, name: 'Liam' },
+            { height: 175.3, weight: 71.8, age: 23, name: 'Noah' },
+            { height: 193.5, weight: 80.7, age: 28, name: 'Oliver' },
+            { height: 186.5, weight: 75.6, age: 23, name: 'Elijah' },
+            { height: 187.2, weight: 78.8, age: 22, name: 'James' },
+            { height: 181.5, weight: 74.8, age: 21, name: 'Benjamin' },
+            { height: 184.7, weight: 86.4, age: 26, name: 'Lucas' },
+            { height: 175.1, weight: 62.1, age: 23, name: 'Ethan' },
+            { height: 184.1, weight: 81.6, age: 21, name: 'Alexander' },
+            { height: 184.5, weight: 78.4, age: 27, name: 'Mason' },
+        ];
+        const femaleHeightWeight: D[] = [
+            { height: 161.2, weight: 51.6, age: 22, name: 'Melody' },
+            { height: 167.5, weight: 59.8, age: 20, name: 'Ava' },
+            { height: 159.5, weight: 49.2, age: 19, name: 'Sophia' },
+            { height: 157.4, weight: 63.7, age: 25, name: 'Isabella' },
+            { height: 155.8, weight: 53.6, age: 21, name: 'Mia' },
+            { height: 170.2, weight: 59.1, age: 23, name: 'Amelia' },
+            { height: 159.1, weight: 47.6, age: 26, name: 'Harper' },
+            { height: 166.9, weight: 69.8, age: 22, name: 'Evelyn' },
+            { height: 176.2, weight: 66.8, age: 28, name: 'Abigail' },
+            { height: 160.2, weight: 75.2, age: 40, name: 'Charlotte' },
+        ];
+        beforeEach(() => {
+            styler = newFreezableMock<D, C, M>(
+                (params: AgBubbleSeriesStylerParams<D, C>): AgBubbleSeriesStylerResult | undefined => {
+                    // FIXME: there's no `params.title` value
+                    if (params.seriesId === 'BubbleSeries-1') {
+                        return {
+                            fill: {
+                                type: 'gradient',
+                                colorStops: [{ color: 'dodgerblue', stop: 0.1 }, { color: 'lightcyan' }],
+                            },
+                            stroke: 'lime', // not ignored (but no effect)
+                        };
+                    } else if (params.seriesId === 'BubbleSeries-2') {
+                        return { shape: 'heart', fill: 'fuchsia', lineDash: [5, 3] };
+                    }
+                    return {};
+                }
+            );
+        });
+        describe('init', () => {
+            let c1: C;
+            let c2: C;
+            beforeEach(async () => {
+                c1 = { name: 'male context' };
+                c2 = { name: 'female context' };
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        legend: { item: { marker: { size: 40 } } },
+                        series: [
+                            {
+                                type: 'bubble',
+                                title: 'Male',
+                                data: maleHeightWeight,
+                                xKey: 'height',
+                                yKey: 'weight',
+                                sizeKey: 'age',
+                                size: 30,
+                                maxSize: 100,
+                                context: c1,
+
+                                styler: styler.frozen,
+                                shape: 'star', // not ignored
+                                strokeWidth: 0, // not ignored
+                                fill: 'magenta', // ignored
+                            },
+                            {
+                                type: 'bubble',
+                                title: 'Female',
+                                data: femaleHeightWeight,
+                                xKey: 'height',
+                                yKey: 'weight',
+                                sizeKey: 'age',
+                                size: 30,
+                                maxSize: 100,
+                                context: c2,
+
+                                styler: styler.frozen,
+                                shape: 'plus', // ignored
+                                fillOpacity: 0.5, // not ignored
+                                strokeWidth: 3, // not ignored
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+            describe('callbacks', () => {
+                test('context', () => {
+                    styler.expect().toHaveBeenCalledTimes(0);
+                });
+                test('params', () => {
+                    styler.expect().toHaveBeenCalledTimes(0);
+                });
+            });
+        });
+        describe('priorities', () => {
+            beforeEach(async () => {
+                const itemStyler = (params: AgBubbleSeriesItemStylerParams<D, C>): AgSeriesMarkerStyle => {
+                    if (params.datum.name === 'Mason') {
+                        return { fillOpacity: 1, strokeWidth: 5 };
+                    }
+                    if (params.datum.name == 'Charlotte') {
+                        return {
+                            fill: {
+                                type: 'gradient',
+                                colorStops: [{ color: 'deeppink', stop: 0.1 }, { color: 'pink' }],
+                            },
+                        };
+                    }
+                    if (params.datum.name == 'Harper') {
+                        return {
+                            lineDash: [1, 0],
+                            shape: 'square',
+                        };
+                    }
+                    return {};
+                };
+                const opts: AgCartesianChartOptions<D, C> = {
+                    legend: { item: { marker: { size: 40 } } },
+                    series: [
+                        {
+                            type: 'bubble',
+                            title: 'Male',
+                            data: maleHeightWeight,
+                            xKey: 'height',
+                            yKey: 'weight',
+                            sizeKey: 'age',
+                            size: 30,
+                            maxSize: 100,
+
+                            styler: styler.frozen,
+                            itemStyler,
+                            shape: 'star', // not ignored
+                            strokeWidth: 0, // not ignored
+                            fill: 'magenta', // ignored
+                        },
+                        {
+                            type: 'bubble',
+                            title: 'Female',
+                            data: femaleHeightWeight,
+                            xKey: 'height',
+                            yKey: 'weight',
+                            sizeKey: 'age',
+                            size: 30,
+                            maxSize: 100,
+
+                            styler: styler.frozen,
+                            itemStyler,
+                            shape: 'plus', // ignored
+                            fillOpacity: 0.5, // not ignored
+                            strokeWidth: 3, // not ignored
+                        },
+                    ],
+                };
+                chart = AgCharts.create(prepareTestOptions(opts));
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
     });
 });

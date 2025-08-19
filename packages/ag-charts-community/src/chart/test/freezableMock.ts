@@ -7,6 +7,7 @@ import type {
     AgBaseChartOptions,
     AgBaseSeriesOptions,
     AgBaseThemeableChartOptions,
+    AgBubbleSeriesThemeableOptions,
     AgCartesianAxisOptions,
     AgChartLabelOptions,
     AgChartOptions,
@@ -21,6 +22,12 @@ export type MockAreaItemStyler<TDatum, TContext> = NonNullable<
 export type MockBarStyler<TDatum, TContext> = NonNullable<AgBarSeriesThemeableOptions<TDatum, TContext>['styler']>;
 export type MockBarItemStyler<TDatum, TContext> = NonNullable<
     AgBarSeriesThemeableOptions<TDatum, TContext>['itemStyler']
+>;
+export type MockBubbleStyler<TDatum, TContext> = NonNullable<
+    AgBubbleSeriesThemeableOptions<TDatum, TContext>['styler']
+>;
+export type MockBubbleItemStyler<TDatum, TContext> = NonNullable<
+    AgBubbleSeriesThemeableOptions<TDatum, TContext>['itemStyler']
 >;
 export type MockLineStyler<TDatum, TContext> = NonNullable<AgLineSeriesThemeableOptions<TDatum, TContext>['styler']>;
 export type MockLineMarkerItemStyler<TDatum, TContext> = NonNullable<
@@ -79,6 +86,8 @@ export type MockAPICallback<TDatum, TContext> =
     | MockAreaItemStyler<TDatum, TContext>
     | MockBarStyler<TDatum, TContext>
     | MockBarItemStyler<TDatum, TContext>
+    | MockBubbleStyler<TDatum, TContext>
+    | MockBubbleItemStyler<TDatum, TContext>
     | MockLineStyler<TDatum, TContext>
     | MockLineMarkerItemStyler<TDatum, TContext>
     | MockAxisLabelFormatter<TDatum, TContext>
