@@ -78,7 +78,8 @@ export interface AgLineSeriesStylerResult extends StrokeOptions, LineDashOptions
 
 export interface AgLineSeriesMarkerItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgLineSeriesOptionsKeys<TDatum>,
-        ContextCallbackParams<TContext> {
+        ContextCallbackParams<TContext>,
+        Required<AgSeriesMarkerStyle> {
     /** The x value of the datum. */
     xValue: any;
     /** The y value of the datum. */

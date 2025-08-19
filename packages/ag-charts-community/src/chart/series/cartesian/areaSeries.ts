@@ -2,6 +2,7 @@ import type { Point, RequireOptional } from 'ag-charts-core';
 import { isDefined } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
+    type AgAreaSeriesMarkerItemStylerParams,
     type AgAreaSeriesOptions,
     type AgAreaSeriesStylerParams,
     type AgAreaSeriesStylerResult,
@@ -990,21 +991,25 @@ export class AreaSeries extends CartesianSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { xKey, yKey, marker } = this.properties;
+        const { marker } = this.properties;
         const stylerStyle = this.getStyle(isHighlight);
         const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
-        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
         datumSelection.each((_, datum) => {
-            const { xValue, yValue } = datum;
-
-            const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
-            datum.style = this.getMarkerStyle(marker, datum, params, { isHighlight }, stylerStyle.marker, {
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-            });
+            const params = this.makeItemStylerParams(
+                this.dataModel!,
+                this.processedData!,
+                datum.datumIndex,
+                stylerStyle.marker
+            );
+            datum.style = this.getMarkerStyle<AgAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
+                marker,
+                datum,
+                params,
+                { isHighlight },
+                stylerStyle.marker,
+                { stroke, strokeWidth, strokeOpacity }
+            );
         });
     }
 
@@ -1110,6 +1115,27 @@ export class AreaSeries extends CartesianSeries<
         } satisfies ResultRules;
     }
 
+    private makeItemStylerParams(
+        dataModel: NonNullable<typeof this.dataModel>,
+        processedData: NonNullable<typeof this.processedData>,
+        datumIndex: number,
+        style: Required<AgSeriesMarkerStyle>
+    ): AgAreaSeriesMarkerItemStylerParams<unknown, unknown> {
+        const { xKey, yKey } = this.properties;
+
+        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
+        const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
+        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData);
+
+        return {
+            ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
+            xValue,
+            yValue,
+            ...style,
+        } satisfies CallbackParamRules<AgAreaSeriesMarkerItemStylerParams<unknown, unknown>>;
+    }
+
     private makeLabelFormatterParams(): AgAreaSeriesLabelFormatterParams {
         const { xKey, xName, yKey, yName } = this.properties;
         return { xKey, xName, yKey, yName } satisfies RequireOptional<AgAreaSeriesLabelFormatterParams>;
@@ -1129,20 +1155,15 @@ export class AreaSeries extends CartesianSeries<
 
         if (xValue == null) return;
 
-        const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
-            xDomain: this.getSeriesDomain(ChartAxisDirection.X),
-            yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
-        }))!;
-        const params = datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain);
+        const stylerStyle = this.getStyle(false);
+        const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
 
-        const format = this.getMarkerStyle(
+        const format = this.getMarkerStyle<AgAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
             this.properties.marker,
             { datumIndex, datum },
             params,
-            {
-                isHighlight: false,
-            },
-            this.getStyle(false).marker
+            { isHighlight: false },
+            stylerStyle.marker
         ) as RequireOptional<AgSeriesMarkerStyle>;
 
         return this.formatTooltipWithContext(
@@ -1375,15 +1396,18 @@ export class AreaSeries extends CartesianSeries<
     }
 
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
-        const { xKey, yKey } = this.properties;
-        const { xValue, yValue } = datum;
-        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
         const stylerStyle = this.getStyle(false);
+        const params = this.makeItemStylerParams(
+            this.dataModel!,
+            this.processedData!,
+            datum.datumIndex,
+            stylerStyle.marker
+        );
+
         return this.getMarkerStyle(
             this.properties.marker,
             datum,
-            datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
+            params,
             { isHighlight: true },
             undefined,
             stylerStyle
