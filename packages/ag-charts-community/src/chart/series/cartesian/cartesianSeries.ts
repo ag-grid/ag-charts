@@ -862,7 +862,6 @@ export abstract class CartesianSeries<
         // Fast path if we only need to look at the x axis
         const crossScale = crossAxis.scale;
         const crossScaleRange = crossScale.range;
-        // Make sure this is reset on return
         crossScale.range = [0, 1];
 
         let [r0, r1] = this.visibleRangeIndices(crossAxisKey, xVisibleRange, undefined, { sortOrder });
