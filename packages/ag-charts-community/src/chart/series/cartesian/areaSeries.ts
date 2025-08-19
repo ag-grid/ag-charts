@@ -752,8 +752,8 @@ export class AreaSeries extends CartesianSeries<
         const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
 
         let crossFiltering = false;
-        const { dataSources } = processedData;
-        const rawData = dataSources.get(this.id) ?? [];
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const invalidData = processedData.invalidData?.get(this.id);
 
         const [r0, r1] = xScale.range;
         const range = Math.abs(r1 - r0);
@@ -798,7 +798,7 @@ export class AreaSeries extends CartesianSeries<
             const yDatum = yRawValues[datumIndex];
             const yValueCumulative = yCumulativeValues[datumIndex];
 
-            const validPoint = Number.isFinite(yDatum);
+            const validPoint = Number.isFinite(yDatum) && invalidData?.[datumIndex] !== true;
 
             // marker data
             const point = createMarkerCoordinate(xDatum, +yValueCumulative, yDatum);

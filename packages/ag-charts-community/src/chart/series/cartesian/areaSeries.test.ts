@@ -1039,6 +1039,7 @@ describe('AreaSeries', () => {
                     strokeWidth: 1,
                     stacked: true,
                     interpolation: { type: 'smooth' },
+                    marker: { enabled: true },
                     ...overrides,
                 },
                 {
@@ -1049,6 +1050,7 @@ describe('AreaSeries', () => {
                     strokeWidth: 1,
                     stacked: true,
                     interpolation: { type: 'step', position: 'middle' },
+                    marker: { enabled: true },
                     ...overrides,
                 },
                 {
@@ -1059,6 +1061,7 @@ describe('AreaSeries', () => {
                     strokeWidth: 1,
                     stacked: true,
                     interpolation: { type: 'smooth' },
+                    marker: { enabled: true },
                     ...overrides,
                 },
             ],
