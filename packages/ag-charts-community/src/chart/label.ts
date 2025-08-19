@@ -26,6 +26,7 @@ import type { TickDatum } from './axis/axisUtil';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from './chartAxis';
 import { FormatManager } from './formatter/formatManager';
 
+
 interface FormatterCache {
     type: string;
     format: string;
