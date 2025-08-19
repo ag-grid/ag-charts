@@ -59,7 +59,7 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgAreaSeries
     interpolation: InterpolationProperties = new InterpolationProperties();
 
     @Property
-    styler?: Styler<unknown, undefined>;
+    styler?: Styler<AgAreaSeriesStylerParams<unknown, unknown>, AgAreaSeriesStylerResult>;
 
     @Property
     readonly shadow = new DropShadow();
