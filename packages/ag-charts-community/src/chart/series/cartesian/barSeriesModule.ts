@@ -10,7 +10,6 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
-    SEGMENTATION_DEFAULTS,
     multiSeriesHighlightStyle,
 } from '../../themes/util';
 import { BarSeries } from './barSeries';
@@ -78,7 +77,6 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
                 },
             },
             highlight: multiSeriesHighlightStyle(),
-            segmentation: SEGMENTATION_DEFAULTS,
         },
     },
 };

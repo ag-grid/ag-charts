@@ -10,7 +10,6 @@ import {
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SAFE_STROKE_FILL_OPERATION,
-    SEGMENTATION_DEFAULTS,
     multiSeriesHighlightStyle,
 } from '../../themes/util';
 import { LineSeries } from './lineSeries';
@@ -80,7 +79,6 @@ export const LineSeriesModule: SeriesModule<'line'> = {
                 },
             },
             highlight: multiSeriesHighlightStyle(),
-            segmentation: SEGMENTATION_DEFAULTS,
         },
     },
 };

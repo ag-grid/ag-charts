@@ -895,8 +895,21 @@ export class AreaSeries extends CartesianSeries<
         const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle(false));
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, fill, fillOpacity, opacity } = merged;
 
+        // TODO: move to theme
+        const strokeStyle = {
+            fill: undefined,
+            stroke,
+            strokeWidth,
+            strokeOpacity: strokeOpacity * (crossFiltering ? CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR : 1),
+            lineDash,
+            lineDashOffset,
+        };
+        const strokeSegments = segments?.map(({ clipRect, ...segmentStyle }) => ({
+            clipRect,
+            ...mergeDefaults(segmentStyle, strokeStyle),
+        }));
         strokePaths.setProperties({
-            segments,
+            segments: strokeSegments,
             fill: undefined,
             lineCap: 'round',
             lineJoin: 'round',
@@ -909,7 +922,7 @@ export class AreaSeries extends CartesianSeries<
             opacity,
             visible: visible || animationEnabled,
         });
-        strokePaths.datum = segments;
+        strokePaths.datum = strokeSegments;
 
         applyShapeStyle(
             fillPaths,
@@ -921,15 +934,26 @@ export class AreaSeries extends CartesianSeries<
             this.getShapeFillBBox()
         );
 
+        // TODO: move to theme
+        const fillStyle = {
+            fill,
+            stroke: undefined,
+            fillOpacity: fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
+        };
+        const fillSegments = segments?.map(({ clipRect, ...segmentStyle }) => ({
+            clipRect,
+            ...mergeDefaults(segmentStyle, fillStyle),
+        }));
+
         fillPaths.setProperties({
-            segments,
+            segments: fillSegments,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
         });
-        fillPaths.datum = segments;
+        fillPaths.datum = fillSegments;
 
         updateClipPath(this, strokePaths);
         updateClipPath(this, fillPaths);
