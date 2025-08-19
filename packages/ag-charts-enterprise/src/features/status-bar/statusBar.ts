@@ -328,10 +328,10 @@ export class StatusBar
             const negativeTextMeasurer = cachedTextMeasurer(this.negative);
 
             const maxValueWidth = Math.max(
-                positiveTextMeasurer.measureLines(formatter.format(domain[0])).width,
-                positiveTextMeasurer.measureLines(formatter.format(domain[1])).width,
-                negativeTextMeasurer.measureLines(formatter.format(domain[0])).width,
-                negativeTextMeasurer.measureLines(formatter.format(domain[1])).width
+                positiveTextMeasurer.textWidth(formatter.format(domain[0])),
+                positiveTextMeasurer.textWidth(formatter.format(domain[1])),
+                negativeTextMeasurer.textWidth(formatter.format(domain[0])),
+                negativeTextMeasurer.textWidth(formatter.format(domain[1]))
             );
 
             title.visible = true;

@@ -81,7 +81,7 @@ export function debugStats(
         detailedStats && memUsage ? memUsage : null,
     ].filter(isString);
     const measurer = new TextMeasurer(ctx);
-    const statsSize = new Map(stats.map((t) => [t, measurer.measureLines(t)]));
+    const statsSize = new Map(stats.map((t) => [t, measurer.measureText(t)]));
     const width = Math.max(...Array.from(statsSize.values(), (s) => s.width));
     const height = accumulate(statsSize.values(), (s) => s.height);
 

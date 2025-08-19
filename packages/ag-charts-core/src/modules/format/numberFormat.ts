@@ -1,6 +1,6 @@
-import { Logger } from '../globals';
-import { clamp } from './numbers';
-import { isString } from './typeGuards';
+import { Logger } from '../../globals';
+import { clamp } from '../../utils/numbers';
+import { isString } from '../../utils/typeGuards';
 
 interface FormatterOptions {
     prefix?: string;

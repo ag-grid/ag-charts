@@ -1,19 +1,7 @@
-import { type ITextMeasurer, type RequireOptional, isPlainObject } from 'ag-charts-core';
-import type {
-    AgChartLabelFormatterParams,
-    AgChartLabelOptions,
-    AgChartLabelStyleOptions,
-    AgChartLabelStylerParams,
-    AgTimeInterval,
-    AgTimeIntervalUnit,
-    ContextDefault,
-    FontStyle,
-    FontWeight,
-    Formatter,
-    Padding,
-    PaddingOptions,
-    Styler,
-} from 'ag-charts-types';
+import { type ITextMeasurer, type RequireOptional, buildDateFormatter, isPlainObject } from 'ag-charts-core';
+import type { AgChartLabelFormatterParams, AgChartLabelOptions, AgChartLabelStyleOptions, AgChartLabelStylerParams, AgTimeInterval, AgTimeIntervalUnit, ContextDefault, FontStyle, FontWeight, Formatter, Padding, PaddingOptions, Styler } from 'ag-charts-types';
+
+
 
 import type { ContextFormatter } from '../module/axisContext';
 import { BBox } from '../scene/bbox';
@@ -22,9 +10,9 @@ import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
 import { normalizeAngle360FromDegrees } from '../util/angle';
 import { BaseProperties, Property } from '../util/properties';
 import { intervalHierarchy, intervalRange, intervalUnit } from '../util/time';
-import { buildDateFormatter } from '../util/timeFormat';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from './chartAxis';
 import { FormatManager } from './formatter/formatManager';
+
 
 interface FormatterCache {
     type: string;
