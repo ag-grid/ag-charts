@@ -54,6 +54,8 @@ export type BubbleSeriesItemStylerParams<
     AgBubbleSeriesOptionsKeys<TDatum> &
     Required<AgBubbleSeriesStyle>;
 
+export type AgBubbleSeriesItemStylerParams<TDatum, TContext> = BubbleSeriesItemStylerParams<TDatum, TContext>;
+
 export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBubbleSeriesStyle,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
@@ -74,7 +76,7 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
     styler?: Styler<AgBubbleSeriesStylerParams<TDatum, TContext>, AgBubbleSeriesStylerResult>;
     /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
-    itemStyler?: Styler<BubbleSeriesItemStylerParams<TDatum, TContext>, AgBubbleSeriesStyle>;
+    itemStyler?: Styler<AgBubbleSeriesItemStylerParams<TDatum, TContext>, AgBubbleSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }

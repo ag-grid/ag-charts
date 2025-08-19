@@ -1,8 +1,10 @@
 import { type Point, type RequireOptional, cachedTextMeasurer, clamp } from 'ag-charts-core';
 import {
+    type AgBubbleSeriesItemStylerParams,
     type AgBubbleSeriesLabelFormatterParams,
     type AgBubbleSeriesOptions,
     type AgBubbleSeriesOptionsKeys,
+    type AgBubbleSeriesStylerParams,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgSeriesMarkerStyle,
     type FillOptions,
@@ -20,6 +22,7 @@ import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { LabelPlacement, MeasuredLabel, PlacedLabel } from '../../../scene/util/labelPlacement';
+import type { CallbackParamRules } from '../../../util/callbackCache';
 import { extent } from '../../../util/extent';
 import { formatValue } from '../../../util/format.util';
 import { rescaleVisibleRange } from '../../../util/visibleRange';
@@ -36,7 +39,7 @@ import { Marker } from '../../marker/marker';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import type { HighlightState } from '../seriesProperties';
+import { HighlightState, toHighlightString } from '../seriesProperties';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import {
     type BubbleAggregation,
@@ -58,7 +61,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { computeMarkerFocusBounds, getMarkerStyles, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
+import { computeMarkerFocusBounds, getMarkerOnlyStyles, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
 
 type BubbleScatterAnimationData = CartesianAnimationData<Marker, BubbleScatterNodeDatum>;
 
@@ -484,13 +487,15 @@ export class BubbleSeries extends CartesianSeries<
             }
         }
 
+        type StylerParams = AgBubbleSeriesStylerParams<unknown, unknown>;
+        type ItemStylerParams = AgBubbleSeriesItemStylerParams<unknown, unknown>;
         return {
             itemId: yKey,
             nodeData,
             labelData: labelEnabled ? nodeData : [],
             scales: this.calculateScaling(),
             visible: this.visible,
-            styles: getMarkerStyles<unknown, AgBubbleSeriesOptionsKeys>(this, marker),
+            styles: getMarkerOnlyStyles<StylerParams, ItemStylerParams>(this, marker),
         };
     }
 
@@ -643,8 +648,49 @@ export class BubbleSeries extends CartesianSeries<
         });
     }
 
-    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: HighlightState): never {
-        throw new Error('not implemented');
+    makeStylerParams(
+        highlighted: boolean,
+        highlightStateEnum?: HighlightState
+    ): AgBubbleSeriesStylerParams<unknown, unknown> {
+        const {
+            id: seriesId,
+            properties: {
+                size,
+                shape,
+                fill,
+                fillOpacity,
+                lineDash,
+                lineDashOffset,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                xKey,
+                yKey,
+                sizeKey,
+                labelKey,
+            },
+        } = this;
+        const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+
+        type ResultRules = CallbackParamRules<ReturnType<BubbleSeries['makeStylerParams']>>;
+        return {
+            highlightState,
+            highlighted,
+            size,
+            shape,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            seriesId,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            xKey,
+            yKey,
+            sizeKey,
+            labelKey,
+        } satisfies ResultRules;
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
