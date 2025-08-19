@@ -1,6 +1,6 @@
 import type { AgErrorBarThemeableOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport } from 'ag-charts-community';
-import { Logger, isDefined } from 'ag-charts-core';
+import { Logger, type Point, isDefined } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
@@ -38,7 +38,6 @@ type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
 type AnyScale = _ModuleSupport.Scale<any, any, any>;
 type HighlightNodeDatum = NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>;
 type PickNodeDatumResult = _ModuleSupport.PickNodeDatumResult;
-type Point = _ModuleSupport.Point;
 type SeriesDataEvent = _ModuleSupport.SeriesDataEvent;
 type PropertyDefinitionOpts = Parameters<_ModuleSupport.SeriesOptionInstance['getPropertyDefinitions']>[0];
 

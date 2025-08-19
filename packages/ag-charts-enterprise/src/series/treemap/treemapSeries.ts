@@ -10,6 +10,7 @@ import {
 } from 'ag-charts-community';
 import {
     type InternalAgColorType,
+    type Point,
     type RequireOptional,
     cachedTextMeasurer,
     calcLineHeight,
@@ -721,15 +722,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         });
     }
 
-    override pickNodesExactShape(point: _ModuleSupport.Point): TreemapNode[] {
+    override pickNodesExactShape(point: Point): TreemapNode[] {
         const nodes = super.pickNodesExactShape(point) as TreemapNode[];
         nodes.sort((a, b) => b.datumIndex.length - a.datumIndex.length);
         return nodes;
     }
 
-    protected override pickNodeClosestDatum(
-        point: _ModuleSupport.Point
-    ): _ModuleSupport.SeriesNodePickMatch | undefined {
+    protected override pickNodeClosestDatum(point: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         const exactMatch = this.pickNodesExactShape(point);
         if (exactMatch.length !== 0) {
             return { datum: exactMatch[0], distance: 0 };

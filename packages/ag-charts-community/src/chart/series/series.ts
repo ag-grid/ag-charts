@@ -4,6 +4,7 @@ import {
     EventEmitter,
     LRUCache,
     Logger,
+    type Point,
     type RequireOptional,
     createId,
     isEmptyObject,
@@ -32,7 +33,6 @@ import type { SeriesOptionInstance, SeriesOptionModule } from '../../module/opti
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
-import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { callWithContext } from '../../util/callbackCache';

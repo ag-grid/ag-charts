@@ -1,7 +1,6 @@
-import type { AnyFn, IsAny, RequireOptional } from 'ag-charts-core';
+import type { AnyFn, IsAny, Point, RequireOptional } from 'ag-charts-core';
 import type { AgChartLabelStyleOptions, AgChartLabelStylerParams, HighlightState, PixelSize } from 'ag-charts-types';
 
-import type { Point } from '../scene/point';
 import type { Text } from '../scene/shape/text';
 import { mergeDefaults } from '../util/object';
 import type { Label } from './label';

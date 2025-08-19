@@ -1,6 +1,6 @@
-import { type BoxBounds, boxCollides, boxContains } from 'ag-charts-core';
+import { type BoxBounds, type Point, boxCollides, boxContains } from 'ag-charts-core';
 
-import type { Point, SizedPoint } from '../point';
+import type { SizedPoint } from '../point';
 
 export type LabelPlacement =
     | 'top'

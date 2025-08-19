@@ -4,7 +4,7 @@ import {
     type AgRadialSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { isDefined } from 'ag-charts-core';
+import { type Point, isDefined } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';
@@ -583,9 +583,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         );
     }
 
-    protected override pickNodeClosestDatum(
-        point: _ModuleSupport.Point
-    ): _ModuleSupport.SeriesNodePickMatch | undefined {
+    protected override pickNodeClosestDatum(point: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         return this.pickNodeNearestDistantObject(point, this.itemSelection.nodes());
     }
 

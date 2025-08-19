@@ -1,5 +1,5 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import { type ITextMeasurer, Logger, cachedTextMeasurer } from 'ag-charts-core';
+import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer } from 'ag-charts-core';
 import type { AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -508,7 +508,7 @@ export class MapLineSeries extends TopologySeries<
         return this.contextNodeData?.labelData ?? [];
     }
 
-    override pickNodeClosestDatum({ x, y }: _ModuleSupport.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+    override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
 
@@ -524,9 +524,9 @@ export class MapLineSeries extends TopologySeries<
     }
 
     private _previousDatumMidPoint:
-        | { datum: _ModuleSupport.SeriesNodeDatum<unknown>; point: _ModuleSupport.Point | undefined }
+        | { datum: _ModuleSupport.SeriesNodeDatum<unknown>; point: Point | undefined }
         | undefined = undefined;
-    datumMidPoint(datum: _ModuleSupport.SeriesNodeDatum<unknown>): _ModuleSupport.Point | undefined {
+    datumMidPoint(datum: _ModuleSupport.SeriesNodeDatum<unknown>): Point | undefined {
         const { _previousDatumMidPoint } = this;
         if (_previousDatumMidPoint?.datum === datum) {
             return _previousDatumMidPoint.point;

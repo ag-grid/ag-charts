@@ -176,7 +176,7 @@ export * from './scene/changeDetectable';
 export type { RenderContext, ChildNodeCounts } from './scene/node';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
 export { Selection } from './scene/selection';
-export type { Point, SizedPoint } from './scene/point';
+export type { SizedPoint } from './scene/point';
 export { Gradient, type GradientParams } from './scene/gradient/gradient';
 export * from './scene/gradient/stops';
 export { LinearGradient } from './scene/gradient/linearGradient';

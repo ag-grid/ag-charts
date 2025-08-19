@@ -7,7 +7,7 @@ import type {
     FormatterParams,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { createId, setAttribute } from 'ag-charts-core';
+import { type Point, createId, setAttribute } from 'ag-charts-core';
 
 const { FormatManager, BaseProperties, Property } = _ModuleSupport;
 
@@ -99,7 +99,7 @@ export class CrosshairLabel extends CrosshairLabelProperties {
         this.element.setAttribute('data-axis-id', axisId);
     }
 
-    show(meta: _ModuleSupport.Point) {
+    show(meta: Point) {
         const { element } = this;
 
         const left = meta.x + this.xOffset;

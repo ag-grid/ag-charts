@@ -1,10 +1,9 @@
-import type { BoxBounds } from 'ag-charts-core';
+import type { BoxBounds, Point } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, FormatterParams } from 'ag-charts-types';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { Scale } from '../scale/scale';
 import type { Node } from '../scene/node';
-import type { Point } from '../scene/point';
 
 export type ContextFormatter<Params> = (
     fn: (params: Params) => string | undefined,

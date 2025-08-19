@@ -1,9 +1,9 @@
+import type { Point } from 'ag-charts-core';
 import type { AgMarkerShape, AgMarkerShapeFnParams } from 'ag-charts-types';
 
 import { BBox } from '../../scene/bbox';
 import { SceneChangeDetection, SceneObjectChangeDetection, TRIPLE_EQ } from '../../scene/changeDetectable';
 import { type NodeOptions } from '../../scene/node';
-import type { Point } from '../../scene/point';
 import { Path } from '../../scene/shape/path';
 import type { CanvasContext } from '../../scene/shape/shape';
 import { Rotatable, Scalable, Translatable } from '../../scene/transformable';

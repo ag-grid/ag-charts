@@ -4,7 +4,7 @@ import {
     type AgRangeBarSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { RequireOptional } from 'ag-charts-core';
+import type { Point, RequireOptional } from 'ag-charts-core';
 
 import { type RangeBarSeriesDataAggregationFilter, aggregateRangeBarData } from './rangeBarAggregation';
 import { RangeBarProperties } from './rangeBarProperties';
@@ -56,7 +56,7 @@ type Bounds = {
     height: number;
 };
 
-interface RangeBarNodeLabelDatum extends Readonly<_ModuleSupport.Point> {
+interface RangeBarNodeLabelDatum extends Readonly<Point> {
     datumIndex: number;
     text: string;
     textAlign: CanvasTextAlign;
@@ -66,9 +66,7 @@ interface RangeBarNodeLabelDatum extends Readonly<_ModuleSupport.Point> {
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
 }
 
-interface RangeBarNodeDatum
-    extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>,
-        Readonly<_ModuleSupport.Point> {
+interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>, Readonly<Point> {
     readonly index: number;
     readonly itemId: string;
     readonly yLowKey: string;

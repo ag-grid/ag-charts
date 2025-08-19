@@ -9,7 +9,7 @@ import {
     type FontWeight,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { cachedTextMeasurer } from 'ag-charts-core';
+import { type Point, cachedTextMeasurer } from 'ag-charts-core';
 
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
@@ -1279,7 +1279,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         );
     }
 
-    override pickNodeClosestDatum(point: _ModuleSupport.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+    override pickNodeClosestDatum(point: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         return pickGaugeNearestDatum(this, point);
     }
 

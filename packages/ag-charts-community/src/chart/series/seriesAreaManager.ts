@@ -1,4 +1,4 @@
-import { clamp, createId } from 'ag-charts-core';
+import { type Point, clamp, createId } from 'ag-charts-core';
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
 import type { HighlightChangeEvent, LayoutCompleteEvent } from '../../core/eventsHub';
@@ -6,7 +6,6 @@ import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
 import { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
-import type { Point } from '../../scene/point';
 import { Transformable } from '../../scene/transformable';
 import { BaseManager } from '../../util/baseManager';
 import { objectsEqual } from '../../util/object';

@@ -1,8 +1,7 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import { clamp, iterate } from 'ag-charts-core';
+import { type Point, clamp, iterate } from 'ag-charts-core';
 
 type SceneNode = _ModuleSupport.Node;
-type Point = _ModuleSupport.Point;
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum<unknown>;
 type SeriesNodePickMatch = _ModuleSupport.SeriesNodePickMatch;
 type SelectionNode = { node: _ModuleSupport.Path; datum: SeriesNodeDatum };

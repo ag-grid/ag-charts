@@ -8,7 +8,7 @@ import type {
     VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type InternalAgColorType, Logger } from 'ag-charts-core';
+import { type InternalAgColorType, Logger, type Point } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
 import { HeatmapSeriesProperties } from './heatmapSeriesProperties';
@@ -35,14 +35,14 @@ const {
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly point: Readonly<_ModuleSupport.SizedPoint>;
-    midPoint: Readonly<_ModuleSupport.Point>;
+    midPoint: Readonly<Point>;
     readonly width: number;
     readonly height: number;
     readonly colorValue: any;
     style: AgHeatmapSeriesStyle;
 }
 
-interface HeatmapLabelDatum extends _ModuleSupport.Point {
+interface HeatmapLabelDatum extends Point {
     datumIndex: number;
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     datum: any;
@@ -592,14 +592,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         addHitTestersToQuadtree(quadtree, this.datumNodesIter());
     }
 
-    protected override pickNodesExactShape(point: _ModuleSupport.Point): _ModuleSupport.SeriesNodeDatum<unknown>[] {
+    protected override pickNodesExactShape(point: Point): _ModuleSupport.SeriesNodeDatum<unknown>[] {
         const item = findQuadtreeMatch(this, point);
         return item != null && item.distance <= 0 ? [item.datum] : [];
     }
 
-    protected override pickNodeClosestDatum(
-        point: _ModuleSupport.Point
-    ): _ModuleSupport.SeriesNodePickMatch | undefined {
+    protected override pickNodeClosestDatum(point: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         return findQuadtreeMatch(this, point);
     }
 

@@ -1,4 +1,11 @@
-import { type Has, type InternalAgColorType, type InternalAgGradientColor, Logger, modulus } from 'ag-charts-core';
+import {
+    type Has,
+    type InternalAgColorType,
+    type InternalAgGradientColor,
+    Logger,
+    type Point,
+    modulus,
+} from 'ag-charts-core';
 import type {
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
@@ -14,7 +21,6 @@ import { BBox } from '../../../scene/bbox';
 import type { GradientParams } from '../../../scene/gradient/gradient';
 import { Group, TranslatableGroup } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
-import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
