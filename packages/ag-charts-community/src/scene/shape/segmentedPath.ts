@@ -35,6 +35,7 @@ export class SegmentedPath<D = any> extends Path<D> {
         for (const { clipRect, fill, stroke, ...styles } of this.segments) {
             ctx.save();
 
+            segment.path = this.path;
             segment.setProperties(styles);
             segment.setProperties({
                 opacity: this.opacity,

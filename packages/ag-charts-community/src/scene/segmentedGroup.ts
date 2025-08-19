@@ -43,6 +43,7 @@ export class SegmentedGroup extends TranslatableGroup {
 
             for (const child of this.children()) {
                 if (!child.visible || !(child instanceof Path)) continue;
+                segment.path = child.path; // needed for computing bbox for gradient fills
                 segment.setProperties({
                     opacity: child.opacity,
                     lineCap: child.lineCap,
