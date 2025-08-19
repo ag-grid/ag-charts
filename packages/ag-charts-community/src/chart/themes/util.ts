@@ -433,7 +433,7 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
                 strokeWidth: { $path: '../../../strokeWidth' },
                 strokeOpacity: { $path: '../../../strokeOpacity' },
                 lineDash: { $path: '../../../lineDash' },
-                lineDashOffset: { $path: '../../lineDashOffset' },
+                lineDashOffset: { $path: '../../../lineDashOffset' },
             },
         ],
     },

@@ -31,6 +31,7 @@ export class SegmentedGroup extends TranslatableGroup {
         ctx.restore();
 
         // Draw the segments
+        const segment = new Path();
         for (const { clipRect, ...styles } of this.segments) {
             ctx.save();
 
@@ -38,7 +39,6 @@ export class SegmentedGroup extends TranslatableGroup {
             clipPath.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
             ctx.clip(clipPath);
 
-            const segment = new Path();
             segment.setProperties(styles);
 
             for (const child of this.children()) {

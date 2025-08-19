@@ -31,10 +31,10 @@ export class SegmentedPath<D = any> extends Path<D> {
         ctx.restore();
 
         // Draw the segments
+        const segment = new Path();
         for (const { clipRect, fill, stroke, ...styles } of this.segments) {
             ctx.save();
 
-            const segment = new Path();
             segment.setProperties(styles);
             segment.setProperties({
                 opacity: this.opacity,
@@ -42,7 +42,6 @@ export class SegmentedPath<D = any> extends Path<D> {
                 lineJoin: this.lineJoin,
                 pointerEvents: this.pointerEvents,
             });
-            segment.path = this.path;
             segment.fill = this.fill != null ? fill : 'none';
             segment.stroke = this.stroke != null ? stroke : 'none';
 
@@ -50,7 +49,7 @@ export class SegmentedPath<D = any> extends Path<D> {
             clipPath.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
             ctx.clip(clipPath);
 
-            segment.drawPath(ctx);
+            segment.drawPath(ctx, this.path.getPath2D());
 
             ctx.restore();
         }
