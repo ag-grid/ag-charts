@@ -832,6 +832,82 @@ export abstract class CartesianSeries<
         return axisValues;
     }
 
+    protected zoomFittingVisibleItems(
+        crossAxisKey: string,
+        _axisKeys: string[],
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
+        minVisibleItems: number
+    ): { x: [number, number]; y: [number, number] | undefined } | undefined {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return;
+
+        // The provided visible ranges `[xy]VisibleRange` are relative to the unzoomed axis ranges `[xy]Axis.range`.
+        // `[xy]Axis.visibleRange` are relative to the zoomed scale ranges `[xy]Axis.scale.range`.
+        // So we need to scale the provided visible ranges relative to the zoomed scale range to find the min and max
+        // position in pixels that the visible range ratio covers.
+        const crossAxis = this.axes[ChartAxisDirection.X]!;
+
+        if (yVisibleRange != null) return;
+
+        const sortOrder = this.sortOrder(crossAxisKey);
+        if (sortOrder == null) return;
+
+        const xValues = this.keysOrValues(crossAxisKey);
+
+        if (minVisibleItems > xValues.length) {
+            return { x: [0, 1], y: undefined };
+        }
+
+        // Fast path if we only need to look at the x axis
+        const crossScale = crossAxis.scale;
+        const crossScaleRange = crossScale.range;
+        crossScale.range = [0, 1];
+
+        let [r0, r1] = this.visibleRangeIndices(crossAxisKey, xVisibleRange, undefined, { sortOrder });
+        r1 -= 1;
+
+        // @todo(AG-7083) - figure out how to determine this
+        const pixelSize = 0;
+        if (this.xCoordinateRange(xValues[r0], pixelSize, r0)[0] < xVisibleRange[0]) {
+            r0 += 1;
+        }
+        if (this.xCoordinateRange(xValues[r1], pixelSize, r1)[1] > xVisibleRange[1]) {
+            r1 -= 1;
+        }
+
+        let xZoom: [number, number] | undefined;
+        if (Math.abs(r1 - r0) >= minVisibleItems - 1) {
+            xZoom = xVisibleRange;
+        } else {
+            const midPoint = (xVisibleRange[0] + xVisibleRange[1]) / 2;
+            while (Math.abs(r1 - r0) < minVisibleItems - 1 && (r0 > 0 || r1 < xValues.length - 1)) {
+                if (r0 === 0) {
+                    r1 += 1;
+                } else if (r1 === xValues.length - 1) {
+                    r0 -= 1;
+                } else {
+                    const nextR0X = this.xCoordinateRange(xValues[r0 - 1], pixelSize, r0 - 1)[0];
+                    const nextR1X = this.xCoordinateRange(xValues[r1 + 1], pixelSize, r1 + 1)[1];
+
+                    if (Math.abs(nextR0X - midPoint) < Math.abs(nextR1X - midPoint)) {
+                        r0 -= 1;
+                    } else {
+                        r1 += 1;
+                    }
+                }
+            }
+
+            const x0 = this.xCoordinateRange(xValues[r0], pixelSize, r0)[0];
+            const x1 = this.xCoordinateRange(xValues[r1], pixelSize, r1)[1];
+            xZoom = [Math.min(xVisibleRange[0], x0), Math.max(xVisibleRange[1], x1)];
+        }
+
+        crossScale.range = crossScaleRange;
+
+        return { x: xZoom, y: undefined };
+    }
+
     protected countVisibleItems(
         crossAxisKey: string,
         axisKeys: string[],
@@ -864,19 +940,21 @@ export abstract class CartesianSeries<
                 const crossScaleRange = crossScale.range;
                 crossScale.range = [0, 1];
 
-                let [r0, r1] = this.visibleRangeIndices(crossAxisKey, xVisibleRange, undefined, { sortOrder });
-
                 const xValues = this.keysOrValues(crossAxisKey);
+
+                let [r0, r1] = this.visibleRangeIndices(crossAxisKey, xVisibleRange, undefined, { sortOrder });
+                r1 -= 1;
+
                 // @todo(AG-7083) - figure out how to determine this
                 const pixelSize = 0;
                 if (this.xCoordinateRange(xValues[r0], pixelSize, r0)[0] < xVisibleRange[0]) {
                     r0 += 1;
                 }
-                if (r1 < xValues.length && this.xCoordinateRange(xValues[r1], pixelSize, r1)[1] > xVisibleRange[1]) {
+                if (this.xCoordinateRange(xValues[r1], pixelSize, r1)[1] > xVisibleRange[1]) {
                     r1 -= 1;
                 }
 
-                const xItemsVisible = Math.abs(r1 - r0);
+                const xItemsVisible = Math.abs(r1 - r0) + 1;
 
                 crossScale.range = crossScaleRange;
 

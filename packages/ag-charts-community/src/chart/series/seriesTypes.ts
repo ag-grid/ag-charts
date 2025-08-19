@@ -50,6 +50,11 @@ export interface ISeries<TDatumIndex, TDatum, TProps, TLabel = TDatum> {
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): any[];
     getRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[];
+    getZoomRangeFittingItems(
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
+        minVisibleItems: number
+    ): { x: [number, number]; y: [number, number] | undefined } | undefined;
     getVisibleItems(
         xVisibleRange: [number, number],
         yVisibleRange: [number, number] | undefined,

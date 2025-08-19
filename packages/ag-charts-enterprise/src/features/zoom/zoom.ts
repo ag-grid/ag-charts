@@ -599,7 +599,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
             for (const [axisId, { direction, zoom: axisZoom }] of entries(newZooms)) {
-                updated &&= this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, axisZoom);
+                const constrainedZoom =
+                    direction === ChartAxisDirection.X
+                        ? this.constrainZoom({ x: axisZoom, y: { min: 1, max: 1 } }).x
+                        : axisZoom;
+                updated &&= this.updateAxisZoom(
+                    axisId,
+                    direction as _ModuleSupport.CartesianAxisDirection,
+                    constrainedZoom
+                );
             }
         } else {
             const newZoom = scroller.update(event, props, seriesRect, this.getZoom());
@@ -721,6 +729,18 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         return this.shouldFlipXY ? this.anchorPointX : this.anchorPointY;
     }
 
+    private constrainZoom(newZoom: DefinedZoomState) {
+        const {
+            minVisibleItems,
+            ctx: { zoomManager },
+        } = this;
+
+        if (minVisibleItems === 0) return newZoom;
+
+        const constrainedZoom = zoomManager.constrainZoomToItemCount(newZoom, minVisibleItems);
+        return constrainedZoom ?? newZoom;
+    }
+
     private isZoomValid(newZoom: DefinedZoomState) {
         const {
             minVisibleItems,
@@ -770,6 +790,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private updateUnifiedZoom(zoom: DefinedZoomState) {
+        zoom = this.constrainZoom(zoom);
+
         if (!this.isZoomValid(zoom)) {
             // Ensure any lingering zoom interation elements (e.g. selection rect) are cleared
             this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER, { skipAnimations: true });

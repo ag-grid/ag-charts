@@ -15,7 +15,7 @@ describe('sparkline benchmark', () => {
         createApi: '__createSparkline',
     }).repeatCount(500);
 
-    benchmark('initial load', ctx, { expectedRelativeMB: 15, expectedCanvasCount: 2 }, async () => {
+    benchmark('initial load', ctx, { expectedRelativeMB: 15.1, expectedCanvasCount: 2 }, async () => {
         await ctx.create({ pool: false });
     });
 

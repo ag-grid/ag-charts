@@ -544,6 +544,14 @@ export abstract class Series<
         return this.getSeriesRange(direction, visibleRange);
     }
 
+    getZoomRangeFittingItems(
+        _xVisibleRange: [number, number],
+        _yVisibleRange: [number, number] | undefined,
+        _minVisibleItems: number
+    ): { x: [number, number]; y: [number, number] | undefined } | undefined {
+        return undefined;
+    }
+
     getVisibleItems(
         _xVisibleRange: [number, number],
         _yVisibleRange: [number, number] | undefined,
