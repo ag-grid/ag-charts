@@ -67,7 +67,7 @@ export class DiscreteTimeAxis<
     }
 
     protected override calculateTickLine(
-        { primary, tickId, translation }: Pick<TickDatum, 'tickId' | 'translation' | 'primary'>,
+        { isPrimary, tickId, translation }: Pick<TickDatum, 'tickId' | 'translation' | 'isPrimary'>,
         index: number,
         direction: number,
         ticks: TickDatum[]
@@ -75,10 +75,10 @@ export class DiscreteTimeAxis<
         const { horizontal, interval, primaryTick, range, tick } = this;
 
         if (interval.placement !== 'between') {
-            return super.calculateTickLine({ primary, tickId, translation }, index, direction, ticks);
+            return super.calculateTickLine({ isPrimary, tickId, translation }, index, direction, ticks);
         }
 
-        const datumTick = primary && primaryTick?.enabled ? primaryTick : tick;
+        const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;
         const h = -direction * this.getTickSize(datumTick);
         const prevTick = ticks[index - 1];
         const offset = prevTick ? translation - (translation - prevTick.translation) / 2 : range[0];

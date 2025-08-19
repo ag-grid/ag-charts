@@ -137,7 +137,9 @@ export class UnitTimeScale extends DiscreteTimeScale {
             ({ bands, firstBandIndex } = this.calculateBands(domain, visibleRange, extend));
         }
 
-        if (interval == null) return { ticks: bands, count: undefined, firstTickIndex: firstBandIndex };
+        if (interval == null) {
+            return { ticks: bands, count: undefined, firstTickIndex: firstBandIndex };
+        }
 
         const milliseconds = this.interval ? intervalMilliseconds(this.interval) : Infinity;
 

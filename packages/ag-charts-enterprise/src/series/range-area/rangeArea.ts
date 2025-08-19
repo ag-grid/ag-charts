@@ -4,7 +4,7 @@ import {
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { RequireOptional } from 'ag-charts-core';
+import type { Point, RequireOptional } from 'ag-charts-core';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateRangeAreaData } from './rangeAreaAggregation';
 import { type RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
@@ -377,7 +377,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         series,
     }: {
         datumIndex: number;
-        point: _ModuleSupport.Point;
+        point: Point;
         value: any;
         yLowValue: any;
         yHighValue: any;

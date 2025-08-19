@@ -1,7 +1,7 @@
+import type { Point } from 'ag-charts-core';
 import type { AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
-import type { Point } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { SeriesNodeStyleContext } from '../series';

@@ -4,7 +4,7 @@ import {
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type RequireOptional, isFiniteNumber, isNumberEqual } from 'ag-charts-core';
+import { type Point, type RequireOptional, isFiniteNumber, isNumberEqual } from 'ag-charts-core';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
@@ -514,9 +514,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         ];
     }
 
-    protected override pickNodeClosestDatum(
-        hitPoint: _ModuleSupport.Point
-    ): _ModuleSupport.SeriesNodePickMatch | undefined {
+    protected override pickNodeClosestDatum(hitPoint: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         const { nodeData, centerX: cx, centerY: cy } = this;
         const { x, y } = hitPoint;
         const radius = this.radius;

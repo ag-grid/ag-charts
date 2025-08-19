@@ -1,4 +1,11 @@
-import { type Has, type InternalAgColorType, type InternalAgGradientColor, Logger, modulus } from 'ag-charts-core';
+import {
+    type Has,
+    type InternalAgColorType,
+    type InternalAgGradientColor,
+    Logger,
+    type Point,
+    modulus,
+} from 'ag-charts-core';
 import type {
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
@@ -14,7 +21,6 @@ import { BBox } from '../../../scene/bbox';
 import type { GradientParams } from '../../../scene/gradient/gradient';
 import { Group, TranslatableGroup } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
-import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
@@ -1215,26 +1221,21 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 const { startAngle, endAngle, outerRadius } = datum;
                 return { startAngle, endAngle, innerRadius, outerRadius };
             });
-            const labelsCollideSectors = boxes.some((box) => {
-                return sectors.some((sector) => boxCollidesSector(box, sector));
-            });
+            const labelsCollideSectors = boxes.some((box) => sectors.some((sector) => boxCollidesSector(box, sector)));
 
-            if (!labelsCollideLabelsByX && !labelsCollideLabelsByY && !labelsCollideSectors) {
-                return;
+            if (!labelsCollideLabelsByX && !labelsCollideLabelsByY && !labelsCollideSectors) return;
+
+            for (const d of labels) {
+                if (d.calloutLabel.textAlign !== 'center') continue;
+                const label = d.calloutLabel;
+                if (d.midCos < 0) {
+                    label.collisionTextAlign = 'right';
+                } else if (d.midCos > 0) {
+                    label.collisionTextAlign = 'left';
+                } else {
+                    label.collisionTextAlign = 'center';
+                }
             }
-
-            labels
-                .filter((d) => d.calloutLabel.textAlign === 'center')
-                .forEach((d) => {
-                    const label = d.calloutLabel;
-                    if (d.midCos < 0) {
-                        label.collisionTextAlign = 'right';
-                    } else if (d.midCos > 0) {
-                        label.collisionTextAlign = 'left';
-                    } else {
-                        label.collisionTextAlign = 'center';
-                    }
-                });
         };
 
         avoidYCollisions(leftLabels);

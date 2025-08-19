@@ -5,7 +5,7 @@ import type {
     AgWaterfallSeriesStyle,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { RequireOptional } from 'ag-charts-core';
+import type { Point, RequireOptional } from 'ag-charts-core';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -39,7 +39,7 @@ const {
     getItemStylesPerItemId,
 } = _ModuleSupport;
 
-type WaterfallNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
+type WaterfallNodeLabelDatum = Readonly<Point> & {
     readonly text: string;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
@@ -50,7 +50,7 @@ type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] 
     readonly y2: number;
 };
 
-interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_ModuleSupport.Point> {
+interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
     readonly itemId: AgWaterfallSeriesItemType;
     readonly cumulativeValue: number;

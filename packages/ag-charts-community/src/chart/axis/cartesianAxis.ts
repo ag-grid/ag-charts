@@ -259,10 +259,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         }
 
         const { range, reverse, defaultTickMinSpacing } = this;
-        const removeOverflowLabels =
-            this.label.avoidCollisions &&
-            this.horizontal &&
-            (ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale));
         const tickGenerationResult = this.tickGenerator.generateTicks({
             domain,
             range,
@@ -276,11 +272,29 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             labelX,
             sideFlag,
             sizeLimit: this.chartLayout?.sizeLimit,
-            removeOverflowLabels,
-            removeOverflowThreshold: this.chartLayout?.padding.right,
         });
 
         const { tickData } = tickGenerationResult;
+        const removeOverflowLabels =
+            this.label.avoidCollisions &&
+            this.horizontal &&
+            tickData.ticks.length > 2 &&
+            (ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale));
+
+        if (removeOverflowLabels) {
+            const removeOverflowThreshold = this.chartLayout?.padding.right ?? 0;
+            const lastTick = tickData.ticks.at(-1);
+            if (
+                lastTick?.tickLabel != null &&
+                lastTick.translation + lastTick.textMetrics.width / 2 > range[1] + removeOverflowThreshold
+            ) {
+                lastTick.tickLabel = undefined;
+                if (visibleRange[0] === 0 && visibleRange[1] === 1) {
+                    tickData.ticks[0].tickLabel = undefined;
+                }
+            }
+        }
+
         const { ticks, tickDomain, rawTicks, rawTickCount, fractionDigits, timeInterval, niceDomain } = tickData;
 
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult));
@@ -373,14 +387,14 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected calculateTickLine(
-        { primary, tickId, translation: offset }: Pick<TickDatum, 'primary' | 'tickId' | 'translation'>,
+        { isPrimary, tickId, translation: offset }: Pick<TickDatum, 'isPrimary' | 'tickId' | 'translation'>,
         _index: number,
         direction: number,
         _ticks: TickDatum[]
     ): AxisLineDatum {
         const { horizontal, tick, primaryTick } = this;
 
-        const datumTick = primary && primaryTick?.enabled ? primaryTick : tick;
+        const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;
         const h = -direction * this.getTickSize(datumTick);
         const [x1, y1, x2, y2] = horizontal ? [offset, 0, offset, h] : [0, offset, h, offset];
         const { stroke, width: strokeWidth } = datumTick;
@@ -655,9 +669,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
-        const { tickId, tickLabel: text = '', translation, primary, textUntruncated } = datum;
-        const label = primary && primaryLabel?.enabled ? primaryLabel : this.label;
-        const tick = primary && primaryTick?.enabled ? primaryTick : this.tick;
+        const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated } = datum;
+        const label = isPrimary && primaryLabel?.enabled ? primaryLabel : this.label;
+        const tick = isPrimary && primaryTick?.enabled ? primaryTick : this.tick;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = scale;
         const sideFlag = this.label.getSideFlag();

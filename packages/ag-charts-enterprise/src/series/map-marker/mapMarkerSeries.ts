@@ -1,5 +1,5 @@
 import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import { type ITextMeasurer, Logger, cachedTextMeasurer } from 'ag-charts-core';
+import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer } from 'ag-charts-core';
 import { type AgMapMarkerSeriesLabelFormatterParams, type AgMapMarkerSeriesOptions } from 'ag-charts-types';
 
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -698,7 +698,7 @@ export class MapMarkerSeries
         return this.contextNodeData?.labelData ?? [];
     }
 
-    override pickNodeClosestDatum(p: _ModuleSupport.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+    override pickNodeClosestDatum(p: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         const { x: x0, y: y0 } = p;
 
         let minDistanceSquared = Infinity;

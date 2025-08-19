@@ -1,6 +1,7 @@
+import type { Point } from 'ag-charts-core';
+
 import type { BBox } from '../bbox';
 import { SceneChangeDetection, SceneObjectChangeDetection } from '../changeDetectable';
-import type { Point } from '../point';
 import { SectorBox } from '../sectorBox';
 import {
     arcCircleIntersectionAngle,

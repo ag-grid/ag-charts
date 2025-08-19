@@ -1,8 +1,8 @@
-import type { InternalAgColorType } from 'ag-charts-core';
+import type { InternalAgColorType, Point } from 'ag-charts-core';
 import type { AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
-import type { Point, SizedPoint } from '../../../scene/point';
+import type { SizedPoint } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
 import type { SeriesNodeStyleContext } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';

@@ -4,7 +4,7 @@ import {
     type AgPyramidSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Writeable, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
+import { type Point, type Writeable, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
 
 import { FunnelConnector } from '../funnel/funnelConnector';
 import { PyramidProperties } from './pyramidProperties';
@@ -27,14 +27,14 @@ const {
     getLabelStyles,
 } = _ModuleSupport;
 
-type PyramidNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
+type PyramidNodeLabelDatum = Readonly<Point> & {
     readonly text: string;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
     readonly visible: boolean;
 };
 
-interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Readonly<_ModuleSupport.Point> {
+interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
     readonly xValue: string;
     readonly yValue: number;
@@ -656,7 +656,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return [NaN, NaN];
     }
 
-    override pickNodeClosestDatum({ x, y }: _ModuleSupport.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+    override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
 

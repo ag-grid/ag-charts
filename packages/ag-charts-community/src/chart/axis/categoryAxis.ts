@@ -175,7 +175,7 @@ export class CategoryAxis<
         if (this.interval.placement === 'between' && ticks.length > 0) {
             tickLines.push(
                 super.calculateTickLine(
-                    { primary: false, tickId: `after:${ticks.at(-1)?.tickId}`, translation: this.range[1] },
+                    { isPrimary: false, tickId: `after:${ticks.at(-1)?.tickId}`, translation: this.range[1] },
                     ticks.length,
                     direction,
                     ticks
@@ -187,7 +187,7 @@ export class CategoryAxis<
     }
 
     protected override calculateTickLine(
-        { primary, tickId, translation }: Pick<TickDatum, 'tickId' | 'translation' | 'primary'>,
+        { isPrimary, tickId, translation }: Pick<TickDatum, 'tickId' | 'translation' | 'isPrimary'>,
         index: number,
         direction: number,
         ticks: TickDatum[]
@@ -195,10 +195,10 @@ export class CategoryAxis<
         const { horizontal, interval, primaryTick, scale, tick } = this;
 
         if (interval.placement !== 'between') {
-            return super.calculateTickLine({ primary, tickId, translation }, index, direction, ticks);
+            return super.calculateTickLine({ isPrimary, tickId, translation }, index, direction, ticks);
         }
 
-        const datumTick = primary && primaryTick?.enabled ? primaryTick : tick;
+        const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;
         const h = -direction * this.getTickSize(datumTick);
         const halfStep = translation < scale.step ? Math.floor(scale.step / 2) : scale.step / 2;
         const offset = translation - halfStep;

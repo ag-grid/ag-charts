@@ -1,4 +1,5 @@
 import { type AgSeriesMarkerStyle, _ModuleSupport } from 'ag-charts-community';
+import type { Point } from 'ag-charts-core';
 
 import { type RangeAreaMarkerDatum } from './rangeAreaProperties';
 
@@ -12,7 +13,7 @@ const {
     areScalingEqual,
 } = _ModuleSupport;
 
-export interface RangeAreaLabelDatum extends Readonly<_ModuleSupport.Point> {
+export interface RangeAreaLabelDatum extends Readonly<Point> {
     datumIndex: number;
     text: string;
     textAlign: CanvasTextAlign;

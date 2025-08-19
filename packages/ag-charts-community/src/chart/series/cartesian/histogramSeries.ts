@@ -1,4 +1,4 @@
-import { type RequireOptional, isDate, isNumber } from 'ag-charts-core';
+import { type Point, type RequireOptional, isDate, isNumber } from 'ag-charts-core';
 import type {
     AgHistogramBinDatum,
     AgHistogramSeriesLabelFormatterParams,
@@ -11,7 +11,6 @@ import { fromToMotion } from '../../../motion/fromToMotion';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
-import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';

@@ -1,9 +1,10 @@
+import type { Point } from 'ag-charts-core';
+
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
 import type { PropertyDefinition } from '../chart/data/dataModel';
 import type { SeriesType } from '../chart/mapping/types';
 import type { SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { ScaleType } from '../scale/scale';
-import type { Point } from '../scene/point';
 import type { BaseOptionsModule, ModuleInstance } from './baseModule';
 import type { SeriesContext } from './moduleContext';
 

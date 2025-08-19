@@ -1,5 +1,5 @@
 import { type AgSunburstSeriesLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType } from 'ag-charts-core';
+import type { InternalAgColorType, Point } from 'ag-charts-core';
 import type { AgSunburstSeriesOptions, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -618,9 +618,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         return undefined;
     }
 
-    protected override pickNodeClosestDatum(
-        point: _ModuleSupport.Point
-    ): _ModuleSupport.SeriesNodePickMatch | undefined {
+    protected override pickNodeClosestDatum(point: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         return this.pickNodeNearestDistantObject(point, this.datumSelection.nodes());
     }
 

@@ -1,5 +1,5 @@
 import { type AgFunnelSeriesLabelFormatterParams, type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import type { RequireOptional } from 'ag-charts-core';
+import type { Point, RequireOptional } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -38,7 +38,7 @@ export type Bounds = {
     height: number;
 };
 
-export type FunnelNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
+export type FunnelNodeLabelDatum = Readonly<Point> & {
     datumIndex: number;
     text: string;
     textAlign: CanvasTextAlign;
@@ -49,7 +49,7 @@ export type FunnelNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
     visible: boolean;
 };
 
-export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_ModuleSupport.Point> {
+export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
     readonly itemId: string;
     readonly width: number;
