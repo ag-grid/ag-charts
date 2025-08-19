@@ -908,8 +908,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             // instead hide ticks based on their translation.
             if (range.length > 0 && !axis.inRange(translation, 0.001)) continue;
 
-            const primary = primaryTicksIndices?.has(i) ?? false;
-            let tickLabel = primary ? axisPrimaryTickFormatter?.(tick, i) : axisTickFormatter?.(tick, i);
+            const isPrimary = primaryTicksIndices?.has(i) ?? false;
+            let tickLabel = isPrimary ? axisPrimaryTickFormatter?.(tick, i) : axisTickFormatter?.(tick, i);
             const inputText: string = tickLabel ?? String(tick);
 
             if (label.avoidCollisions) {
@@ -932,7 +932,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 tickLabel,
                 textUntruncated: tickLabel != null && inputText !== tickLabel ? inputText : undefined,
                 translation: Math.floor(translation),
-                primary,
+                isPrimary,
             });
         }
 
