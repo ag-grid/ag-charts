@@ -217,7 +217,7 @@ export { Line } from './scene/shape/line';
 export { Range } from './scene/shape/range';
 export { Path } from './scene/shape/path';
 export { RadialColumnShape, getRadialColumnWidth } from './scene/shape/radialColumnShape';
-export { Rect, clippedRoundRect } from './scene/shape/rect';
+export { Rect, clippedRoundRect, type CornerRadii } from './scene/shape/rect';
 export { Sector } from './scene/shape/sector';
 export { Shape, type CanvasContext } from './scene/shape/shape';
 

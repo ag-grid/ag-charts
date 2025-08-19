@@ -8,7 +8,7 @@ import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
 import { type CanvasContext } from './shape';
 
-interface CornerRadii {
+export interface CornerRadii {
     topLeft: number;
     topRight: number;
     bottomRight: number;
