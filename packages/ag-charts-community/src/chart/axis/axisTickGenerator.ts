@@ -315,7 +315,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             if (
                 lastTick != null &&
                 lastLabel != null &&
-                lastTick.translation + lastLabel.label.width / 2 > range[1] + removeOverflowThreshold
+                lastTick.translation + lastLabel.bounds.width / 2 > range[1] + removeOverflowThreshold
             ) {
                 lastTick.tickLabel = undefined;
                 if (visibleRange[0] === 0 && visibleRange[1] === 1) {
@@ -878,8 +878,8 @@ function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding: number = 
     const result: BoxBounds[] = [];
 
     for (const datum of data) {
-        const { x, y } = datum.point;
-        let { width, height } = datum.label;
+        const { x, y } = datum.bounds;
+        let { width, height } = datum.bounds;
 
         width += padding;
         height += padding;

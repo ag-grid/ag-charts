@@ -295,19 +295,21 @@ export function timeIntervalMaxLabelSize(
 
 export function createLabelData(tickData: TickDatum[], labelX: number, labelMatrix: Matrix, label: ChartAxisLabel) {
     const padding = expandLabelPadding(label);
-    const xPadding = padding.left + padding.right;
-    const yPadding = padding.top + padding.bottom;
     const labelData: PlacedLabelDatum[] = [];
 
-    for (const { tickLabel: text, textMetrics, translation } of tickData) {
-        if (!text) continue;
+    const xPadding = padding.left + padding.right;
+    const yPadding = padding.top + padding.bottom;
+
+    for (const { tickLabel, textMetrics, translation } of tickData) {
+        if (!tickLabel) continue;
 
         const { x, y } = labelMatrix.transformBBox(new BBox(labelX, translation, 0, 0));
         const width = textMetrics.width + xPadding;
         const height = textMetrics.height + yPadding;
+
         labelData.push({
-            point: { x, y },
-            label: { text, width, height },
+            label: tickLabel,
+            bounds: { x, y, width, height },
         });
     }
 
@@ -316,16 +318,16 @@ export function createLabelData(tickData: TickDatum[], labelX: number, labelMatr
 
 export function createFixedLabelData(
     { width, height, spacing }: { width: number; height: number; spacing: number },
-    labelX: number,
+    labelOffset: number,
     labelMatrix: Matrix
 ): PlacedLabelDatum[] {
     const labelData: PlacedLabelDatum[] = [];
 
-    for (const translationY of [0, spacing]) {
-        const { x, y } = labelMatrix.transformBBox(new BBox(labelX, translationY, 0, 0));
+    for (const translation of [0, spacing]) {
+        const { x, y } = labelMatrix.transformBBox(new BBox(labelOffset, translation, 0, 0));
         labelData.push({
-            point: { x, y },
-            label: { text: undefined!, width, height },
+            label: undefined,
+            bounds: { x, y, width, height },
         });
     }
 

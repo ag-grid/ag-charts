@@ -19,8 +19,8 @@ export interface MeasuredLabel {
 }
 
 export interface PlacedLabelDatum {
-    readonly point: Point;
-    readonly label: MeasuredLabel;
+    readonly label: string | undefined;
+    readonly bounds: BoxBounds;
 }
 
 export interface PointLabelDatum {
