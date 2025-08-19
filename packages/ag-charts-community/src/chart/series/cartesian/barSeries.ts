@@ -686,10 +686,7 @@ export class BarSeries extends AbstractBarSeries<
             }
         }
 
-        const segments = calculateSegments(this.properties.segmentation, {
-            [ChartAxisDirection.X]: xScale,
-            [ChartAxisDirection.Y]: yScale,
-        });
+        const segments = calculateSegments(this.properties.segmentation, xAxis, yAxis, this.chart!.seriesRect!);
 
         return {
             itemId: yKey,
