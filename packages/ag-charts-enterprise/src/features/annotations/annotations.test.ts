@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
-import { extractImageData, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
+import { extractImageData, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('Annotations', () => {
+    setupMockConsole();
     let chart: any;
     const ctx = setupMockCanvas();
 

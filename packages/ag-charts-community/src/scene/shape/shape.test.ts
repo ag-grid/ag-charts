@@ -4,9 +4,12 @@ import { AgPatternName } from 'ag-charts-types';
 
 import { PATTERN_SNAPSHOT_DEFAULTS, looserSnapshotDefaults } from '../../chart/test/utils';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
+import { setupMockConsole } from '../../util/test/mockConsole';
 import { Rect } from './rect';
 
 describe('Shape', () => {
+    setupMockConsole();
+
     describe('rendering fills', () => {
         const canvasCtx = setupMockCanvas({ width: 1000, height: 1000 });
 
