@@ -5,51 +5,15 @@ import type {
     AgLineSeriesStylerParams,
     AgLineSeriesStylerResult,
     AgLineSeriesTooltipRendererParams,
-    AgSeriesLineSegmentOptions,
-    AgSeriesSegmentation,
     Styler,
 } from 'ag-charts-types';
 
-import { BaseProperties, PropertiesArray, Property } from '../../../util/properties';
+import { Property } from '../../../util/properties';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
-
-export class SegmentOptions extends BaseProperties implements AgSeriesLineSegmentOptions {
-    @Property
-    start?: number;
-
-    @Property
-    stop?: number;
-
-    @Property
-    fillOpacity = 1;
-
-    @Property
-    stroke: string = '#874349';
-
-    @Property
-    strokeWidth = 2;
-
-    @Property
-    strokeOpacity = 1;
-
-    @Property
-    lineDash: number[] = [0];
-
-    @Property
-    lineDashOffset: number = 0;
-}
-
-export class Segmentation implements AgSeriesSegmentation {
-    @Property
-    key: 'x' | 'y' = 'x';
-
-    @Property
-    segments = new PropertiesArray<SegmentOptions>(SegmentOptions);
-}
 
 export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions> {
     @Property
@@ -96,9 +60,6 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
 
     @Property
     styler?: Styler<AgLineSeriesStylerParams<unknown, unknown>, AgLineSeriesStylerResult>;
-
-    @Property
-    segmentation: AgSeriesSegmentation = new Segmentation();
 
     @Property
     readonly marker = new SeriesMarker<AgLineSeriesMarkerItemStylerParams>();

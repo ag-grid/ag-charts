@@ -1,4 +1,5 @@
 import { type Point, findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
+import type { AgSeriesSegmentation } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
@@ -34,7 +35,7 @@ import {
 } from '../dataModelSeries';
 import type { SeriesDirectionKeysMapping, SeriesNodePickMatch } from '../series';
 import { SeriesNodeEvent } from '../series';
-import { SeriesProperties } from '../seriesProperties';
+import { Segmentation, SeriesProperties } from '../seriesProperties';
 import type { ISeries, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
@@ -134,6 +135,9 @@ export abstract class CartesianSeriesProperties<T extends object> extends Series
 
     @Property
     pickOutsideVisibleMinorAxis = false;
+
+    @Property
+    segmentation: AgSeriesSegmentation = new Segmentation();
 }
 
 export interface CartesianSeriesNodeDataContext<
