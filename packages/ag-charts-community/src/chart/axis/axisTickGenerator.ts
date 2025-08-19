@@ -821,6 +821,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const ticks: TickDatum[] = [];
         const continuous = TimeScale.is(scale) || DiscreteTimeScale.is(scale);
         const idGenerator = createIdsGenerator();
+        const measurer = cachedTextMeasurer(label);
         const isVertical = axis.direction === ChartAxisDirection.Y;
         const maxBand = (BandScale.is(scale) ? scale.bandwidth : null) ?? Infinity;
         const wrapOptions: WrapOptions = {
@@ -861,7 +862,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 tick,
                 tickId,
                 tickLabel,
-                textUntruncated: tickLabel != null && inputText !== tickLabel ? inputText : undefined,
+                textUntruncated: tickLabel == null || tickLabel === inputText ? undefined : inputText,
+                textMetrics: measurer.measureLines(tickLabel ?? ''),
                 translation: Math.floor(translation),
                 isPrimary,
             });
