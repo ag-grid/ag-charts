@@ -259,10 +259,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         }
 
         const { range, reverse, defaultTickMinSpacing } = this;
-        const removeOverflowLabels =
-            this.label.avoidCollisions &&
-            this.horizontal &&
-            (ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale));
         const tickGenerationResult = this.tickGenerator.generateTicks({
             domain,
             range,
@@ -276,11 +272,29 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             labelX,
             sideFlag,
             sizeLimit: this.chartLayout?.sizeLimit,
-            removeOverflowLabels,
-            removeOverflowThreshold: this.chartLayout?.padding.right,
         });
 
         const { tickData } = tickGenerationResult;
+        const removeOverflowLabels =
+            this.label.avoidCollisions &&
+            this.horizontal &&
+            tickData.ticks.length > 2 &&
+            (ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale));
+
+        if (removeOverflowLabels) {
+            const removeOverflowThreshold = this.chartLayout?.padding.right ?? 0;
+            const lastTick = tickData.ticks.at(-1);
+            if (
+                lastTick?.tickLabel != null &&
+                lastTick.translation + lastTick.textMetrics.width / 2 > range[1] + removeOverflowThreshold
+            ) {
+                lastTick.tickLabel = undefined;
+                if (visibleRange[0] === 0 && visibleRange[1] === 1) {
+                    tickData.ticks[0].tickLabel = undefined;
+                }
+            }
+        }
+
         const { ticks, tickDomain, rawTicks, rawTickCount, fractionDigits, timeInterval, niceDomain } = tickData;
 
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult));

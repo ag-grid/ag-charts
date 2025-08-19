@@ -175,7 +175,6 @@ export abstract class RadiusAxis<
             labelX,
             sideFlag,
             sizeLimit: undefined,
-            removeOverflowLabels: false,
         });
 
         const { tickData } = tickGenerationResult;
