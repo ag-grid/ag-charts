@@ -19,6 +19,7 @@ const commonConfig = {
     resolver: undefined, // NX redirects CSS imports https://github.com/nrwl/nx/blob/7495f0664b19e8fa32ef693f43d709173b6a2bc4/packages/jest/plugins/resolver.ts#L43
     prettierPath: null,
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'html'],
+    testEnvironment: './jest.jsdom-env.cjs',
     preset: '../../jest.preset.js',
     transform: {
         '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],
