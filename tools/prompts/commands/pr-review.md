@@ -52,7 +52,7 @@ If `claude` is installed, this folder structure may also be symlinked from `%{RE
 
 ### Identifying single/specific PRs
 
-If I specify to review specific PRs ($ARGUMENTS), just perform review for them without searching in JIRA or GitHub.
+If I specify command arguments ($ARGUMENTS), just perform review for them without searching in JIRA or GitHub.
 
 ### Identifying all open PRs
 
@@ -161,7 +161,11 @@ For each PR, review and critique the following:
 -   If there is a code-reviewer agent, ask it to review the changes and provide a distinct detailed report in `${REPO_ROOT}/reports/pr-reviews/${PR_NUMBER}-${JIRA_ID:-none}-detailed-code-review.md` and link it in the main report.
 -   For examples and documentation changes, check for any offensive language or politically charged language that could be offensive to some users.
 
-## 6. Report Structure
+## 6. Common Report Feedback Refinement
+
+-   If performance is a concern, make sure to propose requesting `/benchmarks` to be run.
+
+## 7. Report Structure
 
 -   Status Section
 
