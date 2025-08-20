@@ -557,10 +557,22 @@ describe('BubbleSeries', () => {
             });
             describe('callbacks', () => {
                 test('context', () => {
-                    styler.expect().toHaveBeenCalledTimes(0);
+                    styler
+                        .expect()
+                        .nthCalledWithContext(0, c1)
+                        .nthCalledWithContext(1, c1)
+                        .nthCalledWithContext(2, c1)
+                        .nthCalledWithContext(3, c1)
+                        .nthCalledWithContext(4, c1)
+                        .nthCalledWithContext(5, c2)
+                        .nthCalledWithContext(6, c2)
+                        .nthCalledWithContext(7, c2)
+                        .nthCalledWithContext(8, c2)
+                        .nthCalledWithContext(9, c2)
+                        .toHaveBeenCalledTimes(10);
                 });
                 test('params', () => {
-                    styler.expect().toHaveBeenCalledTimes(0);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
         });
