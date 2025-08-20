@@ -112,47 +112,6 @@ const verticalTargetPlacementRotation: Record<AgLinearGaugeTargetPlacement, numb
     after: -90,
 };
 
-class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSupport.LinearScale, number> {
-    constructor(
-        private readonly gauge: LinearGaugeSeries,
-        private readonly ctx: _ModuleSupport.ModuleContext
-    ) {}
-
-    get scale() {
-        return this.gauge.scale;
-    }
-
-    get label() {
-        return this.gauge.properties.scale.label;
-    }
-
-    get interval() {
-        return this.gauge.properties.scale.interval;
-    }
-
-    tickFormatter(domain: number[], ticks: number[]): (value: number, index: number) => string {
-        const { format } = this.label;
-        let tickFormatter: ((value: number) => string) | undefined;
-        if (format != null) {
-            tickFormatter = tickFormat(ticks, typeof format === 'string' ? format : undefined);
-        }
-
-        return (value: number, index: number): string => {
-            const { formatter } = this.label;
-            let r: string | undefined = undefined;
-            if (formatter) {
-                r ??= formatWithContext(this.ctx, formatter, { value, index, domain, boundSeries: undefined! });
-            }
-            r ??= tickFormatter?.(value);
-            return r ?? this.gauge.formatLabel(value);
-        };
-    }
-
-    inRange(): boolean {
-        return true;
-    }
-}
-
 export class LinearGaugeSeries extends _ModuleSupport.Series<
     LinearGaugeNodeDatumIndex,
     LinearGaugeNodeDatum,
@@ -170,7 +129,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     private gaugeRect = BBox.NaN;
 
     public scale = new LinearScale();
-    private readonly axis: LinearGaugeAxis;
 
     public get range(): [number, number] {
         return this.horizontal ? [0, this.gaugeRect.width] : [0, this.gaugeRect.height];
@@ -224,7 +182,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
-        this.axis = new LinearGaugeAxis(this, moduleCtx);
         this.animationState = new StateMachine<GaugeAnimationState, GaugeAnimationEvent>('empty', {
             empty: {
                 update: {
@@ -492,6 +449,23 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return label.spacing + labelSize;
     }
 
+    private tickFormatter(domain: number[], ticks: number[]): (value: number, index: number) => string {
+        const { format, formatter } = this.properties.scale.label;
+        let tickFormatter: ((value: number) => string) | undefined;
+        if (format != null) {
+            tickFormatter = tickFormat(ticks, typeof format === 'string' ? format : undefined);
+        }
+
+        return (value: number, index: number): string => {
+            let r: string | undefined = undefined;
+            if (formatter) {
+                r ??= formatWithContext(this.ctx, formatter, { value, index, domain, boundSeries: undefined! });
+            }
+            r ??= tickFormatter?.(value);
+            return r ?? this.formatLabel(value);
+        };
+    }
+
     override createNodeData() {
         const { id: seriesId, properties, horizontal, scale, seriesRect } = this;
         const {
@@ -563,9 +537,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             tickData: { ticks: tickData },
         } = generateTicks({
             scale,
-            label: this.axis.label,
-            interval: this.axis.interval,
-            tickFormatter: (domain: number[], ticks: number[]) => this.axis.tickFormatter(domain, ticks),
+            label: this.properties.scale.label,
+            interval: this.properties.scale.interval,
+            tickFormatter: (domain: number[], ticks: number[]) => this.tickFormatter(domain, ticks),
             domain: scale.domain,
             range: this.range,
             reverse: false,

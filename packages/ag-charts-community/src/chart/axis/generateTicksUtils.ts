@@ -33,7 +33,7 @@ import {
     intervalRange,
     intervalUnit,
 } from '../../util/time';
-import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
+import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { expandLabelPadding } from '../label';
 import type { AxisInterval } from './axisInterval';
 import type { TickInterval } from './axisTick';
@@ -80,31 +80,6 @@ export interface TickData<D = any> {
     fractionDigits: number;
     ticks: TickDatum[];
     timeInterval: AnyTimeInterval | undefined;
-}
-
-export interface TickGenerationResult<D = any> {
-    tickData: TickData<D>;
-    rotation: number;
-    textBaseline: CanvasTextBaseline;
-    textAlign: CanvasTextAlign;
-}
-
-export interface TickGenerationAxis<S extends Scale<D, number, TickInterval<S>>, D> {
-    readonly scale: S;
-    readonly label: ChartAxis['label'];
-    readonly primaryLabel?: ChartAxis['label'];
-    readonly interval: AxisInterval<S>;
-    readonly inRange: ChartAxis['inRange'];
-    readonly direction?: ChartAxis['direction'];
-    readonly minimumTimeGranularity?: ChartAxis['minimumTimeGranularity'];
-    tickFormatter(
-        domain: D[],
-        ticks: D[],
-        primary: boolean,
-        fractionDigits: number | undefined,
-        timeInterval: AnyTimeInterval | undefined,
-        dateStyle: DateFormatterStyle
-    ): (value: any, index: number) => string | undefined;
 }
 
 enum ParentLevelMode {
@@ -276,7 +251,7 @@ export function withTemporaryDomain<S extends Scale<D, number, TickInterval<S>>,
     }
 }
 
-export function axisTickFormatter<S extends Scale<D, number, TickInterval<S>>, D>(
+function axisTickFormatter<S extends Scale<D, number, TickInterval<S>>, D>(
     labelEnabled: boolean,
     generatePrimaryTicks: boolean,
     niceDomain: D[],
@@ -551,7 +526,7 @@ export function getTextAlign(
     return 'start';
 }
 
-export function labelSpecifier(
+function labelSpecifier(
     format: ChartAxisLabel['format'] | undefined,
     timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined
 ): string | undefined {

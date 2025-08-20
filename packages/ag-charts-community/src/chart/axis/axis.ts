@@ -49,7 +49,7 @@ import { AxisLine } from './axisLine';
 import { AxisTick, type TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
 import { NiceMode } from './axisUtil';
-import type { AnyTimeInterval } from './tickGenerationUtils';
+import type { AnyTimeInterval } from './generateTicksUtils';
 
 export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties {
     color?: CssColor;

@@ -350,7 +350,7 @@ export abstract class RadiusAxis<
     // TODO - abstract out (shared with cartesian axis)
     private getTickLabelProps(
         datum: _ModuleSupport.TickDatum,
-        tickGenerationResult: _ModuleSupport.TickGenerationResult
+        tickGenerationResult: { rotation: number; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
     ): _ModuleSupport.LabelNodeDatum {
         const { label } = this;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;

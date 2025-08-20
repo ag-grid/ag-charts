@@ -41,7 +41,6 @@ import {
 } from './axisUtil';
 import { CartesianAxisLabel } from './cartesianAxisLabel';
 import { generateTicks } from './generateTicks';
-import { type TickGenerationResult } from './tickGenerationUtils';
 
 type AxisAnimationState = 'empty' | 'ready';
 type AxisAnimationEvent = { reset: undefined; resize: undefined; update: FromToDiff };
@@ -642,7 +641,10 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         };
     }
 
-    private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
+    private getTickLabelProps(
+        datum: TickDatum,
+        tickGenerationResult: { rotation: number; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
+    ): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
         const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated } = datum;
         const label = isPrimary && primaryLabel?.enabled ? primaryLabel : this.label;

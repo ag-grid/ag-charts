@@ -62,7 +62,7 @@ export * from './chart/chartAnimationPhase';
 export * from './chart/chartAxisDirection';
 export * from './chart/axis/axisUtil';
 export * from './chart/axis/generateTicks';
-export * from './chart/axis/tickGenerationUtils';
+export * from './chart/axis/generateTicksUtils';
 export * from './chart/data/dataModel';
 export * from './chart/data/dataController';
 export * from './chart/data/dataService';

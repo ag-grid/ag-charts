@@ -31,7 +31,13 @@ import {
     ticksSpacing,
     timeIntervalMaxLabelSize,
     withTemporaryDomain,
-} from './tickGenerationUtils';
+} from './generateTicksUtils';
+
+interface CountParams {
+    tickCount: number;
+    minTickCount: number;
+    maxTickCount: number;
+}
 
 enum TickGenerationType {
     CREATE,
@@ -117,19 +123,18 @@ function estimateScaleTickCount<TScale extends Scale<TDatum, number, TickInterva
     label,
     defaultTickMinSpacing,
     interval: { minSpacing, maxSpacing },
-}: GenerateTicksOptions<TScale, TDatum>) {
+}: GenerateTicksOptions<TScale, TDatum>): CountParams {
     const { defaultTickCount } = scale;
     const rangeExtent = findRangeExtent(range);
     const zoomExtent = findRangeExtent(visibleRange);
 
     if (CategoryScale.is(scale)) {
         const maxTickCount = domain.length;
-        let estimatedTickCount = Math.ceil(rangeExtent / (zoomExtent * label.fontSize));
-        estimatedTickCount = Math.min(estimatedTickCount, maxTickCount);
+        const estimatedTickCount = Math.ceil(rangeExtent / (zoomExtent * label.fontSize));
         return {
+            tickCount: Math.min(estimatedTickCount, maxTickCount),
             minTickCount: 0,
             maxTickCount,
-            tickCount: estimatedTickCount,
         };
     }
 
@@ -196,8 +201,8 @@ function createTickData<TScale extends Scale<TDatum, number, TickInterval<TScale
             niceDomain,
             rawTicks,
             rawTickCount,
-            timeInterval,
             fractionDigits,
+            timeInterval,
             ticks: formatTicks(options, {
                 niceDomain,
                 rawTicks,
@@ -216,7 +221,7 @@ function createTickData<TScale extends Scale<TDatum, number, TickInterval<TScale
 function getTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     options: GenerateTicksOptions<TScale, TDatum>,
     tickGenerationType: TickGenerationType,
-    countParams: { minTickCount: number; maxTickCount: number; tickCount: number }
+    countParams: CountParams
 ) {
     const {
         domain,
@@ -236,10 +241,8 @@ function getTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TD
         ...countParams,
     };
 
-    const tickParams = {
-        ...domainParams,
-        nice: niceMode === NiceMode.TickAndDomain || niceMode === NiceMode.TicksOnly,
-    };
+    const tickParams = { ...domainParams };
+    tickParams.nice ||= niceMode === NiceMode.TicksOnly;
 
     let secondaryAxisTicks: { domain: TDatum[]; ticks: number[] } | undefined;
     if (
