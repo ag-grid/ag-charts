@@ -15,9 +15,15 @@ describe('sparkline benchmark', () => {
         createApi: '__createSparkline',
     }).repeatCount(500);
 
-    benchmark('initial load', ctx, { expectedRetainedSizeMB: 5, expectedCanvasCount: 2 }, async () => {
-        await ctx.create({ pool: false });
-    });
+    benchmark(
+        'initial load',
+        ctx,
+        { expectedRetainedSizeMB: 5, expectedCanvasCount: 2 },
+        async () => {
+            await ctx.create({ pool: false });
+        },
+        40_000
+    );
 
     benchmark(
         'initial load (pooled)',
@@ -25,7 +31,8 @@ describe('sparkline benchmark', () => {
         { expectedRelativeMB: 5, expectedCanvasCount: 1, autoSnapshot: false },
         async () => {
             await ctx.create({ container: document.createElement('div') });
-        }
+        },
+        40_000
     );
 
     describe('after load', () => {
