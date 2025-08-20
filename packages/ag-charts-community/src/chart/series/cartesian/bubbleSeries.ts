@@ -5,6 +5,7 @@ import {
     type AgBubbleSeriesOptions,
     type AgBubbleSeriesOptionsKeys,
     type AgBubbleSeriesStylerParams,
+    type AgBubbleSeriesStylerResult,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgSeriesMarkerStyle,
     type FillOptions,
@@ -805,11 +806,18 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const marker = this.getMarkerStyle<AgBubbleSeriesOptionsKeys>(this.properties.marker, {}, undefined, {
-            isHighlight: false,
-            checkForHighlight: false,
-            resolveItemStylerMarkerPath: false,
-        });
+        const style = this.getStyle(false);
+        const marker = this.getMarkerStyle<AgBubbleSeriesOptionsKeys>(
+            this.properties.marker,
+            {},
+            undefined,
+            {
+                isHighlight: false,
+                checkForHighlight: false,
+                resolveItemStylerMarkerPath: false,
+            },
+            style satisfies RequireOptional<AgSeriesMarkerStyle>
+        );
         return {
             marker,
         };
@@ -850,6 +858,34 @@ export class BubbleSeries extends CartesianSeries<
 
     protected nodeFactory() {
         return new Marker();
+    }
+
+    public getStyle(highlighted: boolean, highlightState?: HighlightState): Required<AgBubbleSeriesStylerResult> {
+        const { properties } = this;
+
+        let stylerResult: AgBubbleSeriesStylerResult = {};
+        if (properties.styler) {
+            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            const cbResult = this.callWithContext(properties.styler, stylerParams) ?? {};
+            const resolved = this.ctx.optionsGraphService.resolvePartial(
+                ['series', `${this.declarationOrder}`],
+                cbResult,
+                { pick: false }
+            );
+            stylerResult = resolved ?? {};
+        }
+
+        return {
+            fill: stylerResult.fill ?? properties.fill!,
+            fillOpacity: stylerResult.fillOpacity ?? properties.fillOpacity,
+            lineDash: stylerResult.lineDash ?? properties.lineDash,
+            lineDashOffset: stylerResult.lineDashOffset ?? properties.lineDashOffset,
+            shape: stylerResult.shape ?? properties.shape,
+            size: stylerResult.size ?? properties.size,
+            stroke: stylerResult.stroke ?? properties.stroke!,
+            strokeOpacity: stylerResult.strokeOpacity ?? properties.strokeOpacity,
+            strokeWidth: stylerResult.strokeWidth ?? properties.strokeWidth,
+        };
     }
 
     public getFormattedMarkerStyle(datum: BubbleScatterNodeDatum) {
