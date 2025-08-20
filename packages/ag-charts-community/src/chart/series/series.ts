@@ -1025,6 +1025,7 @@ export abstract class Series<
             isHighlight?: boolean;
             checkForHighlight?: boolean;
             resolveItemStylerMarkerPath?: boolean;
+            resolveStylerMarkerPath?: 'marker' | 'marker-only';
         },
         defaultOverrideStyle: AgSeriesMarkerStyle & { size: number } = { size: point?.size ?? marker.size ?? 0 },
         inheritedStyle?: AgSeriesMarkerStyle
@@ -1035,7 +1036,19 @@ export abstract class Series<
             isHighlight = false,
             checkForHighlight = true,
             resolveItemStylerMarkerPath = true,
+            resolveStylerMarkerPath,
         } = opts ?? {};
+
+        if (resolveStylerMarkerPath) {
+            const resolvePath =
+                resolveStylerMarkerPath === 'marker'
+                    ? ['series', `${this.declarationOrder}`, 'marker']
+                    : ['series', `${this.declarationOrder}`];
+            const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, defaultOverrideStyle);
+            if (resolved) {
+                defaultOverrideStyle = { ...resolved, size: resolved.size ?? defaultOverrideStyle.size };
+            }
+        }
 
         const highlightStyle: AgSeriesMarkerStyle | undefined = checkForHighlight
             ? this.getHighlightStyle(isHighlight, datumIndex, highlightState)

@@ -145,7 +145,7 @@ interface MarkerSeriesStylerProps<TStylerParams, TStylerResult> {
         marker: SeriesMarker<TParams>,
         nodeDatum: object,
         params?: TParams,
-        opts?: { highlightState?: HighlightState },
+        opts?: { highlightState?: HighlightState; resolveStylerMarkerPath?: 'marker' | 'marker-only' },
         defaultOverrideStyle?: DefaultOverrideStyle,
         inheritedStyle?: AgSeriesMarkerStyle
     ): AgSeriesMarkerStyle & { size: number };
@@ -157,6 +157,7 @@ interface MarkerSeriesStylerProps<TStylerParams, TStylerResult> {
 // at the root of the object. That's why we use `readResult` callbacks to convert the callback result to a marker style.
 function getMarkerStylesImpl<TStylerParams, TStylerResult, TItemStylerParams>(
     readResult: (result: TStylerResult) => DefaultOverrideStyle | undefined,
+    resolveStylerMarkerPath: 'marker' | 'marker-only',
     series: MarkerSeriesStylerProps<TStylerParams, TStylerResult>,
     marker: SeriesMarker<TItemStylerParams>,
     inheritedStyle?: AgSeriesMarkerStyle
@@ -174,7 +175,10 @@ function getMarkerStylesImpl<TStylerParams, TStylerResult, TItemStylerParams>(
                 marker,
                 {},
                 undefined,
-                { highlightState: state },
+                {
+                    highlightState: state,
+                    resolveStylerMarkerPath,
+                },
                 defaultOverrideStyle,
                 inheritedStyle
             );
@@ -195,7 +199,7 @@ export function getMarkerStyles<TStylerParams, TItemStylerParams>(
             return { ...result.marker, size: result.marker.size ?? marker.size };
         }
     }
-    return getMarkerStylesImpl(readResult, series, marker, inheritedStyle);
+    return getMarkerStylesImpl(readResult, 'marker', series, marker, inheritedStyle);
 }
 
 type MarkerOnlyStylerResult = AgSeriesMarkerStyle | undefined;
@@ -209,5 +213,5 @@ export function getMarkerOnlyStyles<TStylerParams, TItemStylerParams>(
             return { ...result, size: result.size ?? marker.size };
         }
     }
-    return getMarkerStylesImpl(readResult, series, marker, inheritedStyle);
+    return getMarkerStylesImpl(readResult, 'marker-only', series, marker, inheritedStyle);
 }
