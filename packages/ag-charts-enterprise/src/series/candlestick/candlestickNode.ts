@@ -79,13 +79,14 @@ export class CandlestickNode extends OhlcBaseNode {
         wickPath.moveTo(centerX, y1);
         wickPath.lineTo(centerX, boxBottom - strokeWidth / 2);
 
-        const boxStrokeAdjustment = strokeAlignment + strokeWidth / 2;
-        const rectHeight = boxBottom - boxTop - 2 * boxStrokeAdjustment;
+        const horizontalBoxStrokeAdjustment = strokeWidth / 2 + strokeAlignment;
+        const verticalBoxStrokeAdjustment = strokeWidth / 2 - strokeAlignment;
+        const rectHeight = boxBottom - boxTop - 2 * verticalBoxStrokeAdjustment;
         if (rectHeight > 0) {
             path.rect(
-                x0 + boxStrokeAdjustment,
-                boxTop + boxStrokeAdjustment,
-                x1 - x0 - 2 * boxStrokeAdjustment,
+                x0 + horizontalBoxStrokeAdjustment,
+                boxTop + verticalBoxStrokeAdjustment,
+                x1 - x0 - 2 * horizontalBoxStrokeAdjustment,
                 rectHeight
             );
         } else {
