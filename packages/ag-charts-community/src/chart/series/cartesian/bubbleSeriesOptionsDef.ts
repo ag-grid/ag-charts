@@ -34,7 +34,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     tooltip: tooltipOptionsDefs,
     maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
-    ...without(markerOptionsDefs, ['enabled', 'autoHide']),
+    ...without(markerOptionsDefs, ['enabled']),
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
