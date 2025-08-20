@@ -2,7 +2,7 @@ import { SceneRefChangeDetection } from './changeDetectable';
 import { TranslatableGroup } from './group';
 import { type RenderContext } from './node';
 import { Path } from './shape/path';
-import type { Segment } from './shape/segmentedPath';
+import { type Segment, rect } from './shape/segmentedPath';
 
 export class SegmentedGroup extends TranslatableGroup {
     @SceneRefChangeDetection()
@@ -18,11 +18,11 @@ export class SegmentedGroup extends TranslatableGroup {
         // Draw the gaps
         ctx.save();
         const inverse = new Path2D();
-        inverse.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        rect(inverse, { x0: 0, y0: 0, x1: ctx.canvas.width, y1: ctx.canvas.height }, false);
         for (const s of this.segments) {
-            inverse.rect(s.clipRect.x, s.clipRect.y, s.clipRect.width, s.clipRect.height);
+            rect(inverse, s.clipRect);
         }
-        ctx.clip(inverse, 'evenodd');
+        ctx.clip(inverse);
 
         for (const child of this.children()) {
             if (!child.visible) continue;
@@ -36,7 +36,7 @@ export class SegmentedGroup extends TranslatableGroup {
             ctx.save();
 
             const clipPath = new Path2D();
-            clipPath.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
+            rect(clipPath, clipRect);
             ctx.clip(clipPath);
 
             segment.setProperties(styles);
@@ -48,7 +48,6 @@ export class SegmentedGroup extends TranslatableGroup {
                     opacity: child.opacity,
                     lineCap: child.lineCap,
                     lineJoin: child.lineJoin,
-                    pointerEvents: child.pointerEvents,
                 });
 
                 segment.drawPath(ctx, child.path.getPath2D());

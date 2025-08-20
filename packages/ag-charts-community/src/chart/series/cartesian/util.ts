@@ -1,14 +1,20 @@
+import type { Size } from 'ag-charts-core';
 import type { AgSeriesSegmentation } from 'ag-charts-types';
 
 import { BBox } from '../../../scene/bbox';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 
+function isAxisReversed(axis: ChartAxis) {
+    return axis.isReversed() !== axis.range[1] < axis.range[0];
+}
+
 export function calculateSegments(
     segmentation: AgSeriesSegmentation,
     xAxis: ChartAxis,
     yAxis: ChartAxis,
     seriesRect: BBox,
+    chartSize: Size,
     applyOffset: boolean = true
 ) {
     if (segmentation.segments.length === 0) {
@@ -21,29 +27,39 @@ export function calculateSegments(
     const isXDirection = direction === ChartAxisDirection.X;
     const bandwidth = scale.bandwidth ?? 0;
     const offset = applyOffset ? ((scale.step ?? 0) - bandwidth) / 2 : 0;
-    const domainStart = scale.domain[0];
-    const domainEnd = scale.domain.at(-1);
+
+    // The margin to use to ensure a clip path touches one side of the canvas,
+    // and either exceeds or touches the other side.
+    // It's required to use a margin here so a reverse-axis animation animates with the same center
+    const horizontalMargin = Math.max(seriesRect.x, chartSize.width - (seriesRect.x + seriesRect.width));
+    const verticalMargin = Math.max(seriesRect.y, chartSize.height - (seriesRect.y + seriesRect.height));
+
+    // Helper function to get default bounds
+    const getDefaultStart = () => {
+        if (isAxisReversed(isXDirection ? xAxis : yAxis)) {
+            return isXDirection ? seriesRect.width + horizontalMargin : seriesRect.height + verticalMargin;
+        }
+        return isXDirection ? -horizontalMargin : -verticalMargin;
+    };
+
+    const getDefaultStop = () => {
+        if (isAxisReversed(isXDirection ? xAxis : yAxis)) {
+            return isXDirection ? -horizontalMargin : -verticalMargin;
+        }
+        return isXDirection ? seriesRect.width + horizontalMargin : seriesRect.height + verticalMargin;
+    };
 
     return segmentation.segments.map(({ stop, start, ...style }) => {
-        const margin = (style.strokeWidth ?? 0) / 2;
+        // Calculate start and stop positions
+        const startPos = start == null ? getDefaultStart() : scale.convert(start) - offset;
+        const stopPos = stop == null ? getDefaultStop() : scale.convert(stop) + 2 * offset;
 
-        const startVal = start == null ? scale.convert(domainStart) - margin : scale.convert(start);
-        const stopVal = stop == null ? scale.convert(domainEnd) - margin : scale.convert(stop);
+        // Calculate dimensions based on direction
+        const x0 = isXDirection ? startPos : -horizontalMargin;
+        const y0 = isXDirection ? -verticalMargin : startPos;
+        const x1 = isXDirection ? stopPos + bandwidth : seriesRect.width + horizontalMargin;
+        const y1 = isXDirection ? seriesRect.height + verticalMargin : stopPos + bandwidth;
 
-        let x = isXDirection ? startVal - offset : -margin;
-        let y = isXDirection ? -margin : startVal - offset;
-        let width = isXDirection ? stopVal + 2 * offset + bandwidth - x : seriesRect.width + 2 * margin;
-        let height = isXDirection ? seriesRect.height + 2 * margin : stopVal + 2 * offset + bandwidth - y;
-
-        if (width < 0) {
-            x += width;
-            width = -width;
-        }
-        if (height < 0) {
-            y += height;
-            height = -height;
-        }
-
-        return { clipRect: new BBox(x, y, width, height), ...style };
+        return { clipRect: { x0, y0, x1, y1 }, ...style };
     });
 }

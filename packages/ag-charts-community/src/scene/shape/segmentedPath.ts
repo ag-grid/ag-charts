@@ -1,11 +1,17 @@
 import type { FillOptions, LineDashOptions, StrokeOptions } from 'ag-charts-types';
 
-import type { BBox } from '../bbox';
 import { SceneRefChangeDetection } from '../changeDetectable';
 import { Path } from './path';
 
+export interface ClipRect {
+    x0: number;
+    y0: number;
+    x1: number;
+    y1: number;
+}
+
 export interface Segment extends StrokeOptions, FillOptions, LineDashOptions {
-    clipRect: BBox;
+    clipRect: ClipRect;
 }
 
 export class SegmentedPath<D = any> extends Path<D> {
@@ -21,12 +27,11 @@ export class SegmentedPath<D = any> extends Path<D> {
         // Draw the gaps
         ctx.save();
         const inverse = new Path2D();
-        const margin = this.strokeWidth / 2;
-        inverse.rect(-margin, -margin, ctx.canvas.width + margin, ctx.canvas.height + margin);
+        rect(inverse, { x0: 0, y0: 0, x1: ctx.canvas.width, y1: ctx.canvas.height }, false);
         for (const s of this.segments) {
-            inverse.rect(s.clipRect.x, s.clipRect.y, s.clipRect.width, s.clipRect.height);
+            rect(inverse, s.clipRect);
         }
-        ctx.clip(inverse, 'evenodd');
+        ctx.clip(inverse);
         super.drawPath(ctx);
         ctx.restore();
 
@@ -49,7 +54,7 @@ export class SegmentedPath<D = any> extends Path<D> {
             segment.stroke = this.stroke != null ? stroke : 'none';
 
             const clipPath = new Path2D();
-            clipPath.rect(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
+            rect(clipPath, clipRect);
             ctx.clip(clipPath);
 
             segment.drawPath(ctx, this.path.getPath2D());
@@ -57,4 +62,24 @@ export class SegmentedPath<D = any> extends Path<D> {
             ctx.restore();
         }
     }
+}
+
+export function rect(path: Path2D, { x0, y0, x1, y1 }: ClipRect, clockwise = true) {
+    const minX = Math.min(x0, x1);
+    const minY = Math.min(y0, y1);
+    const maxX = Math.max(x0, x1);
+    const maxY = Math.max(y0, y1);
+
+    path.moveTo(minX, minY);
+    if (clockwise) {
+        path.lineTo(maxX, minY);
+        path.lineTo(maxX, maxY);
+        path.lineTo(minX, maxY);
+    } else {
+        path.lineTo(minX, maxY);
+        path.lineTo(maxX, maxY);
+        path.lineTo(maxX, minY);
+    }
+
+    path.closePath();
 }
