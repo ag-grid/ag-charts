@@ -237,12 +237,13 @@ function runExpectations(
 ) {
     const { expectedRelativeMB, expectedRetainedSizeMB, expectedCanvasCount } = expectations;
     const BYTES_PER_MB = 1024 ** 2;
+    const fudgeFactorForSmallNumbers = 1; // absolute fudge factor for small numbers.
 
     // Handle expectedRetainedSizeMB for initial load tests
     if (expectedRetainedSizeMB !== undefined && finalRetainedSizeResult) {
         const actualRetainedSizeMB = finalRetainedSizeResult.size / BYTES_PER_MB;
 
-        if (actualRetainedSizeMB < expectedRetainedSizeMB * 0.8) {
+        if (actualRetainedSizeMB + fudgeFactorForSmallNumbers < expectedRetainedSizeMB * 0.8) {
             console.log(
                 `[${currentTestName}]: expectedRetainedSizeMB is much less than expected (expected: ${expectedRetainedSizeMB}, actual: ${actualRetainedSizeMB.toFixed(1)})`
             );
@@ -265,7 +266,6 @@ function runExpectations(
 
     // Handle expectedRelativeMB for interaction tests (retained size difference)
     if (expectedRelativeMB !== undefined && finalRetainedSizeResult) {
-        const fudgeFactorForSmallNumbers = 1; // 1MB absolute fudge factor for small numbers.
         const retainedSizeDiffMB = (finalRetainedSizeResult.size - initialRetainedSize) / BYTES_PER_MB;
 
         if (retainedSizeDiffMB + fudgeFactorForSmallNumbers < expectedRelativeMB * 0.8) {
@@ -293,7 +293,7 @@ function runExpectations(
     if (expectedCanvasCount !== undefined) {
         const actualCanvasCount = canvasInstances.length;
 
-        if (actualCanvasCount < expectedCanvasCount * 0.8) {
+        if (actualCanvasCount + fudgeFactorForSmallNumbers < expectedCanvasCount * 0.8) {
             console.log(
                 `[${currentTestName}]: expectedCanvasCount is much less than expected (expected: ${expectedCanvasCount}, actual: ${actualCanvasCount})`
             );

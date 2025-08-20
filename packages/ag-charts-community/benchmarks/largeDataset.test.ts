@@ -32,7 +32,7 @@ describe('large-dataset benchmark', () => {
             15_000
         );
 
-        benchmark('1x datum highlight', ctx, { expectedRelativeMB: 9, expectedCanvasCount: 4 }, async () => {
+        benchmark('1x datum highlight', ctx, { expectedRelativeMB: 1, expectedCanvasCount: 4 }, async () => {
             const point = ctx.nodePositions[0][1];
             await ctx.hover(point.x, point.y);
         });
@@ -40,7 +40,7 @@ describe('large-dataset benchmark', () => {
         benchmark(
             '4x datum highlight',
             ctx,
-            { expectedRelativeMB: 6, expectedCanvasCount: 4 },
+            { expectedRelativeMB: 1, expectedCanvasCount: 4 },
             async () => {
                 for (const point of ctx.nodePositions[0]) {
                     await ctx.hover(point.x, point.y);

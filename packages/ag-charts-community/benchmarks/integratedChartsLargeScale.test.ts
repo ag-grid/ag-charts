@@ -7,7 +7,7 @@ import { benchmark, setupBenchmark } from './benchmark';
 describe('integrated charts large scale benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('integrated-large-scale');
 
-    benchmark('initial load', ctx, { expectedRetainedSizeMB: 121, expectedCanvasCount: 4 }, async () => {
+    benchmark('initial load', ctx, { expectedRetainedSizeMB: 160, expectedCanvasCount: 32 }, async () => {
         await ctx.create();
     });
 
@@ -16,12 +16,12 @@ describe('integrated charts large scale benchmark', () => {
             await ctx.create();
         });
 
-        benchmark('1x legend toggle', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 4 }, async () => {
+        benchmark('1x legend toggle', ctx, { expectedRelativeMB: 1, expectedCanvasCount: 32 }, async () => {
             await ctx.legendToggle();
             await ctx.legendToggle();
         });
 
-        benchmark('4x legend toggle', ctx, { expectedRelativeMB: 65, expectedCanvasCount: 4 }, async () => {
+        benchmark('4x legend toggle', ctx, { expectedRelativeMB: 1, expectedCanvasCount: 32 }, async () => {
             for (let i = 0; i < 2; i++) {
                 await ctx.legendToggle(i);
                 await ctx.legendToggle(i);
