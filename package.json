@@ -17,7 +17,7 @@
     "postinstall:nx-daemon-reset-metadata": "(test -e .nx/workspace-data/ && rm -rf .nx/workspace-data/) || echo \"Nx workspace not found\"",
     "postinstall:nx-plugin-build": "nx run-many -p ag-charts-generate-chart-thumbnail,ag-charts-generate-code-reference-files,ag-charts-generate-example-files,ag-charts-task-autogen -t build",
     "postinstall:nx-daemon-restart": "(test -e .nx/workspace-data/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\"",
-    "postinstall:setup-claude-prompts": "./tools/setup-claude-prompts.sh"
+    "postinstall:setup-prompts": "./tools/setup-prompts.sh"
   },
   "private": true,
   "engines": {

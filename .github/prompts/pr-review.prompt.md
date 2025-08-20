@@ -1,1 +1,0 @@
-../../tools/prompts/commands/pr-review.md

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -euxo pipefail
 
 # Setup Claude prompts by symlinking files from tools/prompts/ to appropriate locations
 # Only run if claude command is available
@@ -20,35 +20,42 @@ while getopts "u" opt; do
 done
 
 # Check if claude command exists
-if ! command -v claude >/dev/null 2>&1; then
-    exit 0
+if (command -v claude || command -v cursor-agent) >/dev/null 2>&1; then
+    # Create .claude/{commands,agents}/ directory if it doesn't exist
+    mkdir -p .claude/{commands,agents}/
+
+    # Symlink CLAUDE.md to root
+    if [[ -f "tools/prompts/CLAUDE.md" && ! -f "CLAUDE.md" ]] ; then
+        ln -sf "tools/prompts/CLAUDE.md" "CLAUDE.md"
+    fi
+
+    # Symlink .mcp.json to root
+    if [[ -f "tools/prompts/.mcp.json" && ! -f ".mcp.json" ]] ; then
+        ln -sf "tools/prompts/.mcp.json" ".mcp.json"
+    fi
+
+    # Symlink other .md files to .claude/{commands,agents}/
+    for file in tools/prompts/commands/*.md; do
+        ln -sf "../../$file" ".claude/commands/$(basename "$file")"
+    done
+
+    # Symlink other .md files to .claude/commands/
+    for file in tools/prompts/agents/*.md; do
+        ln -sf "../../$file" ".claude/agents/$(basename "$file")"
+    done
+
+    if command -v direnv >/dev/null 2>&1 && [ -d "$HOME/.claude-ag-grid/" ]; then
+        direnv allow
+    fi
 fi
 
-if command -v direnv >/dev/null 2>&1 && [ -d "$HOME/.claude-ag-grid/" ]; then
-    direnv allow
-fi
-
-# Create .claude/{commands,agents}/ directory if it doesn't exist
-mkdir -p .claude/{commands,agents}/
-
-# Symlink CLAUDE.md to root
-if [[ -f "tools/prompts/CLAUDE.md" && ! -f "CLAUDE.md" ]] ; then
-    ln -sf "tools/prompts/CLAUDE.md" "CLAUDE.md"
-fi
-
-# Symlink .mcp.json to root
-if [[ -f "tools/prompts/.mcp.json" && ! -f ".mcp.json" ]] ; then
-    ln -sf "tools/prompts/.mcp.json" ".mcp.json"
-fi
-
-# Symlink other .md files to .claude/{commands,agents}/
-for file in tools/prompts/commands/*.md; do
-    ln -sf "../../$file" ".claude/commands/$(basename "$file")"
-done
-
-# Symlink other .md files to .claude/commands/
-for file in tools/prompts/agents/*.md; do
-    ln -sf "../../$file" ".claude/agents/$(basename "$file")"
+mkdir -p .github/prompts/
+for prompt in pr-review.md; do
+    prompt_file="tools/prompts/commands/$prompt"
+    copilot_prompt=".github/prompts/${prompt%.md}.prompt.md"
+    if [[ -f "$prompt_file" && ! -f "$copilot_prompt" ]] ; then
+        ln -sf "$prompt_file" "$copilot_prompt"
+    fi
 done
 
 function add_mcp() {
