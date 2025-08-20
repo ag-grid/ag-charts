@@ -860,7 +860,15 @@ export class AreaSeries extends CartesianSeries<
             handleDatum(datumIndex);
         }
 
-        const segments = calculateSegments(this.properties.segmentation, xAxis, yAxis, this.chart!.seriesRect!, false);
+        const { width, height } = this.ctx.scene;
+        const segments = calculateSegments(
+            this.properties.segmentation,
+            xAxis,
+            yAxis,
+            this.chart!.seriesRect!,
+            { width, height },
+            false
+        );
 
         const context: AreaSeriesNodeDataContext = {
             itemId: yKey,

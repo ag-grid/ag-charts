@@ -458,7 +458,15 @@ export class LineSeries extends CartesianSeries<
         const crossFiltering =
             selectionValues?.some((selectionValue, index) => selectionValue === yRawValues[index]) ?? false;
 
-        const segments = calculateSegments(this.properties.segmentation, xAxis, yAxis, this.chart!.seriesRect!, false);
+        const { width, height } = this.ctx.scene;
+        const segments = calculateSegments(
+            this.properties.segmentation,
+            xAxis,
+            yAxis,
+            this.chart!.seriesRect!,
+            { width, height },
+            false
+        );
 
         return {
             itemId: yKey,
