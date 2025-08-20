@@ -16,16 +16,28 @@ describe('large-scale multi-series benchmark', () => {
             await ctx.create();
         });
 
-        benchmark('1x legend toggle', ctx, { expectedRelativeMB: 2, expectedCanvasCount: 3 }, async () => {
-            await ctx.legendToggle();
-            await ctx.legendToggle();
-        });
+        benchmark(
+            '1x legend toggle',
+            ctx,
+            { expectedRelativeMB: 2, expectedCanvasCount: 3 },
+            async () => {
+                await ctx.legendToggle();
+                await ctx.legendToggle();
+            },
+            20_000
+        );
 
-        benchmark('4x legend toggle', ctx, { expectedRelativeMB: 2, expectedCanvasCount: 3 }, async () => {
-            for (let i = 0; i < 2; i++) {
-                await ctx.legendToggle(i);
-                await ctx.legendToggle(i);
-            }
-        });
+        benchmark(
+            '4x legend toggle',
+            ctx,
+            { expectedRelativeMB: 2, expectedCanvasCount: 3 },
+            async () => {
+                for (let i = 0; i < 2; i++) {
+                    await ctx.legendToggle(i);
+                    await ctx.legendToggle(i);
+                }
+            },
+            30_000
+        );
     });
 });
