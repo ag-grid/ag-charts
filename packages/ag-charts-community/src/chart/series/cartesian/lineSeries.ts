@@ -490,7 +490,7 @@ export class LineSeries extends CartesianSeries<
 
         const segments = this.contextNodeData?.segments;
 
-        // TODO: move to theme
+        // @todo(AG-8108): move to theme
         const lineStyle = {
             fill: undefined,
             stroke,

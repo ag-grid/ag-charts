@@ -32,17 +32,19 @@ export class SegmentedPath<D = any> extends Path<D> {
 
         // Draw the segments
         const segment = new Path();
+        segment.setProperties({
+            opacity: this.opacity,
+            lineCap: this.lineCap,
+            lineJoin: this.lineJoin,
+            pointerEvents: this.pointerEvents,
+        });
+
         for (const { clipRect, fill, stroke, ...styles } of this.segments) {
             ctx.save();
 
             segment.path = this.path;
             segment.setProperties(styles);
-            segment.setProperties({
-                opacity: this.opacity,
-                lineCap: this.lineCap,
-                lineJoin: this.lineJoin,
-                pointerEvents: this.pointerEvents,
-            });
+
             segment.fill = this.fill != null ? fill : 'none';
             segment.stroke = this.stroke != null ? stroke : 'none';
 

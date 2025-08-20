@@ -895,7 +895,7 @@ export class AreaSeries extends CartesianSeries<
         const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle(false));
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, fill, fillOpacity, opacity } = merged;
 
-        // TODO: move to theme
+        // @todo(AG-8108): move to theme
         const strokeStyle = {
             fill: undefined,
             stroke,
@@ -934,7 +934,7 @@ export class AreaSeries extends CartesianSeries<
             this.getShapeFillBBox()
         );
 
-        // TODO: move to theme
+        // @todo(AG-8108): move to theme
         const fillStyle = {
             fill,
             stroke: undefined,
