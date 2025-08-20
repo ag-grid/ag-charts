@@ -21,14 +21,19 @@ ${REPO_ROOT}/tools/prompts # Partial relevant directory listing.
 
 If `claude` is installed, this folder structure may also be symlinked from `%{REPO_ROOT}/.claude/`.
 
-## 1. General Context
+## 1. IMPORTANT TOOLING REQUIREMENTS - STOP IF THERE ARE NOT MET
+
+-   GitHub CLI should be available to interrogate PRs and their details. (e.g. `gh pr list`).
+-   If not already loaded, you must read the `CLAUDE.md` file to understand the repo layout and tooling.
+
+## 2. General Context
 
 -   The `ag-charts` project is a monorepo with multiple packages.
 -   The `ag-charts-types` package is the public API contract for the `ag-charts` project.
 -   Release branches are named `b12.0.0` and follow semantic versioning.
     -   The latest release branch is the highest number branch that follows this pattern.
 
-## 2. Workflows and criteria
+## 3. Workflows and criteria
 
 ### General Workflow
 
@@ -75,7 +80,7 @@ Unless I explicitly ask you to review a specific PR:
     -   If these report instructions have changed since the report was generated, perform a re-review.
     -   Otherwise skip the report generation.
 
-## 3. Report output definitions
+## 4. Report output definitions
 
 ### Report file paths
 
@@ -88,7 +93,7 @@ Unless I explicitly ask you to review a specific PR:
 
 -   If a PR is closed, move the report to `${REPO_ROOT}/reports/pr-reviews-archive/`
 
-## 4. Report criteria
+## 5. Report criteria
 
 For each PR, review and critique the following:
 
@@ -151,7 +156,7 @@ For each PR, review and critique the following:
 -   If there is a code-reviewer agent, ask it to review the changes and provide a distinct detailed report in `${REPO_ROOT}/reports/pr-reviews/${PR_NUMBER}-${JIRA_ID:-none}-detailed-code-review.md` and link it in the main report.
 -   For examples and documentation changes, check for any offensive language or politically charged language that could be offensive to some users.
 
-## 5. Report Structure
+## 6. Report Structure
 
 -   Status Section
 
