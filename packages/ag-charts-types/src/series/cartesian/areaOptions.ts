@@ -70,7 +70,8 @@ export interface AgAreaSeriesStylerResult extends StrokeOptions, FillOptions, Li
 
 export interface AgAreaSeriesMarkerItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgAreaSeriesOptionsKeys<TDatum>,
-        ContextCallbackParams<TContext> {
+        ContextCallbackParams<TContext>,
+        Required<AgSeriesMarkerStyle> {
     /** The x value of the datum. */
     xValue: any;
     /** The y value of the datum. */
