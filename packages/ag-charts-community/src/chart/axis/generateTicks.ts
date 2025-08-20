@@ -1,4 +1,4 @@
-import { type BoxBounds, type WrapOptions, boxCollides, cachedTextMeasurer, countFractionDigits } from 'ag-charts-core';
+import { type BoxBounds, type WrapOptions, cachedTextMeasurer, countFractionDigits, rotatePoint } from 'ag-charts-core';
 import type { AgTimeIntervalUnit, DateFormatterStyle, PaddingOptions } from 'ag-charts-types';
 
 import { CategoryScale } from '../../scale/categoryScale';
@@ -23,6 +23,7 @@ import { NiceMode } from './axisUtil';
 import {
     type AnyTimeInterval,
     type TickData,
+    axisLabelsOverlap,
     calculateLabelRotation,
     formatTicks,
     getTextAlign,
@@ -51,9 +52,9 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
     defaultTickMinSpacing: number;
     primaryTickCount: AxisPrimaryTickCount | undefined;
 
-    rotation: number;
+    axisRotation: number;
+    labelOffset: number;
 
-    labelX: number;
     sideFlag: ChartAxisLabelFlipFlag;
 
     scale: TScale;
@@ -77,12 +78,12 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
 export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     options: GenerateTicksOptions<TScale, TDatum>
 ) {
-    const { domain, label, rotation, sideFlag } = options;
+    const { domain, label, axisRotation, sideFlag } = options;
     const { maxTickCount } = estimateScaleTickCount(options);
     const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation(
         label.rotation,
         label.parallel,
-        rotation
+        axisRotation
     );
 
     const maxIterations = Number.isFinite(maxTickCount) ? maxTickCount : 10;
@@ -424,13 +425,13 @@ function getLabelOverlap<TScale extends Scale<TDatum, number, TickInterval<TScal
     tickData: TickData,
     rotation = 0
 ): boolean {
-    const { label, labelX } = options;
+    const { label, labelOffset } = options;
     const padding = expandLabelPadding(label);
     const spacing = label.minSpacing ?? (rotation ? 0 : 10);
 
     return (
         axisLabelsOverlap(getTimeLabelData(options, tickData, rotation), spacing) ||
-        axisLabelsOverlap(getLabelData(tickData, labelX, rotation, padding), spacing)
+        axisLabelsOverlap(getLabelData(tickData, labelOffset, rotation, padding), spacing)
     );
 }
 
@@ -438,7 +439,7 @@ function getLabelData({ ticks }: TickData, labelX: number, labelRotation: number
     const labelData: BoxBounds[] = [];
     for (const { tickLabel, textMetrics, translation } of ticks) {
         if (!tickLabel) continue;
-        const [x, y] = rotatePoint(labelX, translation, labelRotation);
+        const { x, y } = rotatePoint(labelX, translation, labelRotation);
         labelData.push(new BBox(x, y, textMetrics.width, textMetrics.height).grow(labelPadding));
     }
     return labelData;
@@ -453,7 +454,7 @@ function getTimeLabelData<TScale extends Scale<TDatum, number, TickInterval<TSca
     if (timeInterval == null) return [];
 
     const spacing = ticksSpacing(ticks);
-    const { label, labelX, primaryLabel, domain } = options;
+    const { label, labelOffset, primaryLabel, domain } = options;
     const { width, height } = timeIntervalMaxLabelSize(
         label,
         primaryLabel,
@@ -464,36 +465,8 @@ function getTimeLabelData<TScale extends Scale<TDatum, number, TickInterval<TSca
 
     const labelData: BoxBounds[] = [];
     for (const translation of [0, spacing]) {
-        const [x, y] = rotatePoint(labelX, translation, labelRotation);
+        const { x, y } = rotatePoint(labelOffset, translation, labelRotation);
         labelData.push({ x, y, width, height });
     }
     return labelData;
-}
-
-function rotatePoint(x: number, y: number, rotation: number): [number, number] {
-    const cos = Math.cos(rotation);
-    const sin = Math.sin(rotation);
-    const xRotated = x * cos - y * sin;
-    const yRotated = x * sin + y * cos;
-    return [xRotated, yRotated];
-}
-
-function axisLabelsOverlap(data: readonly BoxBounds[], spacing: number = 0): boolean {
-    const result: BoxBounds[] = [];
-
-    for (const datum of data) {
-        const { x, y } = datum;
-        let { width, height } = datum;
-
-        width += spacing;
-        height += spacing;
-
-        if (result.some((l) => boxCollides(l, x, y, width, height))) {
-            return true;
-        }
-
-        result.push({ x, y, width, height });
-    }
-
-    return false;
 }
