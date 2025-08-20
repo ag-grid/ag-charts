@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -89,6 +90,10 @@ const readContentJson = async (params: GeneratedExampleParams): Promise<Generate
     }
 
     return applySubstitutions(result, DEFAULT_SUBSTITUTIONS);
+};
+
+export const hasGeneratedContents = (params: GeneratedExampleParams) => {
+    return existsSync(getContentJsonPath(params));
 };
 
 export const getGeneratedContentsFileList = async (params: GeneratedExampleParams) => {

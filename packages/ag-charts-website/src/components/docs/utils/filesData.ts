@@ -1,4 +1,5 @@
 import { getIsDev } from '@utils/env';
+import { existsSync } from 'fs';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -40,6 +41,12 @@ export const getFolderPath = ({ pageName, exampleName }: { pageName: string; exa
     const exampleFolderPath = path.join(examplesFolderPath, exampleName);
 
     return new URL(exampleFolderPath, import.meta.url);
+};
+
+export const hasExampleFolder = ({ pageName, exampleName }: { pageName: string; exampleName: string }): boolean => {
+    const exampleFolderPath = getFolderPath({ pageName, exampleName });
+
+    return existsSync(exampleFolderPath);
 };
 
 export const getInternalFrameworkExamples = async ({

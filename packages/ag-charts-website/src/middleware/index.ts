@@ -102,6 +102,18 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
 
     if (getIsDev() && basename(context.url.pathname) === 'contents.json') {
+        if (response.body === null || response.status !== 200) {
+            return new Response(
+                JSON.stringify({
+                    error: `No contents found for ${context.url.pathname}`,
+                }),
+                {
+                    status: response.status,
+                    headers: response?.headers,
+                }
+            );
+        }
+
         const body = await response.json();
         await formatContents(body);
 

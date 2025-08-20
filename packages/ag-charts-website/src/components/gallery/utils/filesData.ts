@@ -1,8 +1,9 @@
 import type { GalleryData, GalleryExample } from '@ag-grid-types';
 import { getContentRootFileUrl, getPublicFileUrl } from '@utils/pages';
 import { pathJoin } from '@utils/pathJoin';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import GithubSlugger from 'github-slugger';
+import path from 'path';
 
 import { getPageHashUrl } from './urlPaths';
 
@@ -89,6 +90,13 @@ export const getChartExampleTitle = ({
     });
 
     return example?.title;
+};
+
+export const hasExampleFolder = ({ exampleName }: { exampleName: string }): boolean => {
+    const contentRoot = getContentRootFileUrl();
+    const sourceExamplesPath = path.join(contentRoot.pathname, 'gallery', '_examples', exampleName);
+
+    return existsSync(sourceExamplesPath);
 };
 
 export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }) => {
