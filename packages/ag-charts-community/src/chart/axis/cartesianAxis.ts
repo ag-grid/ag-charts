@@ -26,8 +26,6 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
 import { expandLabelPadding } from '../label';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
-import type { AxisLabel } from './axisLabel';
-import { AxisTickGenerator, type TickGenerationResult } from './axisTickGenerator';
 import {
     type AxisFillDatum,
     type AxisLabelDatum,
@@ -42,6 +40,8 @@ import {
     resetAxisLineSelectionFn,
 } from './axisUtil';
 import { CartesianAxisLabel } from './cartesianAxisLabel';
+import { generateTicks } from './generateTicks';
+import { type TickGenerationResult } from './tickGenerationUtils';
 
 type AxisAnimationState = 'empty' | 'ready';
 type AxisAnimationEvent = { reset: undefined; resize: undefined; update: FromToDiff };
@@ -94,8 +94,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     private readonly tempText = new TransformableText({ debugDirty: false });
     private readonly tempCaption = new Caption();
-
-    private readonly tickGenerator = new AxisTickGenerator<S, D>(this as any);
 
     protected readonly animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
 
@@ -246,19 +244,29 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             };
         }
 
-        const { range, reverse, defaultTickMinSpacing } = this;
-        const tickGenerationResult = this.tickGenerator.generateTicks({
+        const { label, primaryLabel, scale, range, interval, reverse, defaultTickMinSpacing, minimumTimeGranularity } =
+            this;
+
+        const tickGenerationResult = generateTicks({
+            label,
+            scale,
+            interval,
+            primaryLabel,
             domain,
             range,
             reverse,
             niceMode,
             visibleRange,
             defaultTickMinSpacing,
-            labelX,
+            minimumTimeGranularity,
             sideFlag,
-            sizeLimit: this.chartLayout?.sizeLimit,
+            labelOffset: labelX,
             primaryTickCount: initialPrimaryTickCount,
             axisRotation: this.horizontal ? -0.5 * Math.PI : 0,
+            isVertical: this.direction === ChartAxisDirection.Y,
+            sizeLimit: this.chartLayout?.sizeLimit,
+            inRange: (translation: number) => this.inRange(translation, 0.001),
+            tickFormatter: (...args) => this.tickFormatter(...args),
         });
 
         const { tickData } = tickGenerationResult;
@@ -634,26 +642,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         };
     }
 
-    private getLabelBorderOffset(label: AxisLabel): number {
-        const padding = expandLabelPadding(label);
-
-        function unreachable(a: never): never {
-            return a;
-        }
-        switch (this.position) {
-            case 'top':
-                return padding.bottom;
-            case 'right':
-                return padding.left;
-            case 'bottom':
-                return padding.top;
-            case 'left':
-                return padding.right;
-            default:
-                unreachable(this.position);
-        }
-    }
-
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
         const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated } = datum;
@@ -662,8 +650,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = scale;
         const sideFlag = this.label.getSideFlag();
-        const borderOffset = -this.getLabelBorderOffset(label);
-        const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + seriesAreaPadding) + borderOffset;
+        const borderOffset = expandLabelPadding(label)[this.position];
+        const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + seriesAreaPadding) - borderOffset;
         const visible = text !== '';
 
         const x = horizontal ? translation : labelOffset;

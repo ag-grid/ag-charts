@@ -61,7 +61,6 @@ export * from './chart/background/backgroundModule';
 export * from './chart/chartAnimationPhase';
 export * from './chart/chartAxisDirection';
 export * from './chart/axis/axisUtil';
-export { AxisTickGenerator } from './chart/axis/axisTickGenerator';
 export * from './chart/axis/generateTicks';
 export * from './chart/axis/tickGenerationUtils';
 export * from './chart/data/dataModel';

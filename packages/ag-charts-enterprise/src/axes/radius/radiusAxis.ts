@@ -16,7 +16,7 @@ const {
     Path,
     Line,
     Selection,
-    AxisTickGenerator,
+    generateTicks,
     AxisGroupZIndexMap,
 } = _ModuleSupport;
 
@@ -48,7 +48,6 @@ export abstract class RadiusAxis<
         false
     );
 
-    private readonly tickGenerator = new AxisTickGenerator<S, D>(this as any);
     private generatedTicks: GeneratedTicks | undefined = undefined;
 
     protected readonly headingLabelGroup = this.axisGroup.appendChild(
@@ -159,14 +158,18 @@ export abstract class RadiusAxis<
         const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
 
         const { range, reverse, defaultTickMinSpacing } = this;
-        const tickGenerationResult = this.tickGenerator.generateTicks({
+        const tickGenerationResult = generateTicks({
+            scale: this.scale,
+            label: this.label,
+            interval: this.interval,
+            tickFormatter: (...args) => this.tickFormatter(...args),
             domain,
             range,
             reverse,
             niceMode,
             visibleRange,
             defaultTickMinSpacing,
-            labelX,
+            labelOffset: labelX,
             sideFlag,
             axisRotation: 0,
             sizeLimit: undefined,

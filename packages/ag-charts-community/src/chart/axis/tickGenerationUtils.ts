@@ -1,18 +1,18 @@
 import {
     type BoxBounds,
     type ITextMeasurer,
+    type WrapOptions,
     boxCollides,
     buildDateFormatter,
     cachedTextMeasurer,
     dropFirstWhile,
     dropLastWhile,
-    inRange,
     isPlainObject,
-    rotatePoint,
     wrapText,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
 
+import { BandScale } from '../../scale/bandScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { type Scale, ScaleAlignment, type ScaleTickParams } from '../../scale/scale';
@@ -38,9 +38,39 @@ import { expandLabelPadding } from '../label';
 import type { AxisInterval } from './axisInterval';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
-import type { GenerateTicksOptions } from './generateTicks';
 
 export type AnyTimeInterval = AgTimeInterval | AgTimeIntervalUnit;
+
+export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum> {
+    label: ChartAxisLabel;
+    scale: TScale;
+    domain: TDatum[];
+    range: [number, number];
+    visibleRange: [number, number];
+    niceMode: NiceMode;
+    reverse: boolean;
+    primaryTickCount: AxisPrimaryTickCount | undefined;
+    defaultTickMinSpacing: number;
+    axisRotation: number;
+    labelOffset: number;
+    sideFlag: ChartAxisLabelFlipFlag;
+    primaryLabel?: ChartAxisLabel;
+    interval: AxisInterval<TScale>;
+    minimumTimeGranularity?: AgTimeIntervalUnit;
+    sizeLimit?: number;
+    isVertical?: boolean;
+    inRange?: (value: number) => boolean;
+
+    tickFormatter(
+        this: void,
+        domain: TDatum[],
+        ticks: TDatum[],
+        primary: boolean,
+        fractionDigits: number | undefined,
+        timeInterval: AnyTimeInterval | undefined,
+        dateStyle: DateFormatterStyle
+    ): (value: any, index: number) => string | undefined;
+}
 
 export interface TickData<D = any> {
     niceDomain: D[];
@@ -50,20 +80,6 @@ export interface TickData<D = any> {
     fractionDigits: number;
     ticks: TickDatum[];
     timeInterval: AnyTimeInterval | undefined;
-}
-
-export interface TickGenerationParams<D = any> {
-    range: [number, number];
-    domain: D[];
-    reverse: boolean;
-    defaultTickMinSpacing: number;
-    primaryTickCount: AxisPrimaryTickCount | undefined;
-    visibleRange: [number, number];
-    niceMode: NiceMode;
-    rotation: number;
-    labelX: number;
-    sideFlag: ChartAxisLabelFlipFlag;
-    sizeLimit: number | undefined;
 }
 
 export interface TickGenerationResult<D = any> {
@@ -190,15 +206,15 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
         timeInterval: AnyTimeInterval | undefined;
     }
 ): TickDatum[] {
-    const { scale, label, range, tickFormatter, wrapOptions } = options;
+    const { scale, label, tickFormatter, inRange, isVertical, sizeLimit = Infinity } = options;
     const isContinuous = TimeScale.is(scale) || DiscreteTimeScale.is(scale);
     const measurer = cachedTextMeasurer(label);
     const idGenerator = createIdsGenerator();
     const ticks: TickDatum[] = [];
 
     withTemporaryDomain(scale, niceDomain, () => {
+        const maxBandwidth = BandScale.is(scale) ? scale.bandwidth ?? Infinity : Infinity;
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
-
         const axisFormatter = axisTickFormatter(
             label.enabled,
             generatePrimaryTicks,
@@ -208,12 +224,19 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             timeInterval,
             tickFormatter
         );
+        const wrapOptions: WrapOptions = {
+            font: label,
+            maxWidth: isVertical ? sizeLimit : maxBandwidth,
+            maxHeight: isVertical ? maxBandwidth : sizeLimit,
+            overflow: label.truncate ? 'ellipsis' : 'hide',
+            textWrap: label.wrapping,
+        };
 
         for (let i = 0; i < rawTicks.length; i++) {
             const tick = rawTicks[i];
             const translation = scale.convert(tick, { alignment }) + halfBandwidth;
 
-            if (range.length && !inRange(translation, range, 0.001)) continue;
+            if (inRange && !inRange(translation)) continue;
 
             const isPrimary = primaryTicksIndices?.has(i) ?? false;
             const inputText = axisFormatter(isPrimary, tick, i);
@@ -253,7 +276,7 @@ export function withTemporaryDomain<S extends Scale<D, number, TickInterval<S>>,
     }
 }
 
-function axisTickFormatter<S extends Scale<D, number, TickInterval<S>>, D>(
+export function axisTickFormatter<S extends Scale<D, number, TickInterval<S>>, D>(
     labelEnabled: boolean,
     generatePrimaryTicks: boolean,
     niceDomain: D[],
@@ -420,46 +443,6 @@ export function getTimeIntervalTicks<S extends Scale<D, number, TickInterval<S>>
     }
 
     return { ticks, primaryTicksIndices, alignment };
-}
-
-export function createLabelData(
-    tickData: TickDatum[],
-    labelOffset: number,
-    labelRotation: number,
-    label: ChartAxisLabel
-) {
-    const labelData: BoxBounds[] = [];
-    const padding = expandLabelPadding(label);
-
-    const xPadding = padding.left + padding.right;
-    const yPadding = padding.top + padding.bottom;
-
-    for (const { tickLabel, textMetrics, translation } of tickData) {
-        if (!tickLabel) continue;
-
-        const { x, y } = rotatePoint(labelOffset, translation, labelRotation);
-        const width = textMetrics.width + xPadding;
-        const height = textMetrics.height + yPadding;
-
-        labelData.push({ x, y, width, height });
-    }
-
-    return labelData;
-}
-
-export function createFixedLabelData(
-    { width, height, spacing }: { width: number; height: number; spacing: number },
-    labelOffset: number,
-    labelRotation: number
-): BoxBounds[] {
-    const labelData: BoxBounds[] = [];
-
-    for (const translation of [0, spacing]) {
-        const { x, y } = rotatePoint(labelOffset, translation, labelRotation);
-        labelData.push({ x, y, width, height });
-    }
-
-    return labelData;
 }
 
 export function timeIntervalMaxLabelSize(

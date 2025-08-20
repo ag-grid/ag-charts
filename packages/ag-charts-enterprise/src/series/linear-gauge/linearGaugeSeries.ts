@@ -3,8 +3,6 @@ import {
     type AgLinearGaugeOptions,
     type AgLinearGaugeTargetPlacement,
     type AgSeriesMarkerStyle,
-    type AgTimeInterval,
-    type AgTimeIntervalUnit,
     type FontStyle,
     type FontWeight,
     _ModuleSupport,
@@ -49,7 +47,7 @@ const {
     TransformableText,
     Marker,
     LinearScale,
-    AxisTickGenerator,
+    generateTicks,
     NiceMode,
     easing,
     findRangeExtent,
@@ -132,13 +130,7 @@ class LinearGaugeAxis implements _ModuleSupport.TickGenerationAxis<_ModuleSuppor
         return this.gauge.properties.scale.interval;
     }
 
-    tickFormatter(
-        domain: number[],
-        ticks: number[],
-        _primary: boolean,
-        _fractionDigits?: number,
-        _timeInterval?: AgTimeInterval | AgTimeIntervalUnit
-    ): (value: number, index: number) => string {
+    tickFormatter(domain: number[], ticks: number[]): (value: number, index: number) => string {
         const { format } = this.label;
         let tickFormatter: ((value: number) => string) | undefined;
         if (format != null) {
@@ -179,7 +171,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     public scale = new LinearScale();
     private readonly axis: LinearGaugeAxis;
-    private readonly tickGenerator: _ModuleSupport.AxisTickGenerator<_ModuleSupport.LinearScale, number>;
 
     public get range(): [number, number] {
         return this.horizontal ? [0, this.gaugeRect.width] : [0, this.gaugeRect.height];
@@ -234,8 +225,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
         this.axis = new LinearGaugeAxis(this, moduleCtx);
-        this.tickGenerator = new AxisTickGenerator<_ModuleSupport.LinearScale, number>(this.axis);
-
         this.animationState = new StateMachine<GaugeAnimationState, GaugeAnimationEvent>('empty', {
             empty: {
                 update: {
@@ -570,7 +559,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         scale.domain = [scaleProps.min, scaleProps.max];
         scale.range = horizontal ? [x0, x1] : [y0, y1];
 
-        const { ticks: tickData } = this.tickGenerator.generateTicks({
+        const {
+            tickData: { ticks: tickData },
+        } = generateTicks({
+            scale,
+            label: this.axis.label,
+            interval: this.axis.interval,
+            tickFormatter: (domain: number[], ticks: number[]) => this.axis.tickFormatter(domain, ticks),
             domain: scale.domain,
             range: this.range,
             reverse: false,
@@ -578,11 +573,10 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             defaultTickMinSpacing: 0,
             visibleRange: [0, 1],
             niceMode: NiceMode.Off,
-            labelX: 0,
+            labelOffset: 0,
             axisRotation,
             sideFlag,
-            sizeLimit: undefined,
-        }).tickData;
+        });
 
         const isReversed = false; // Can this be removed?
 
