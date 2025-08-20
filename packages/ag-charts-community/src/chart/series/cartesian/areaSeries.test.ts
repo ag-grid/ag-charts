@@ -1355,4 +1355,347 @@ describe('AreaSeries', () => {
             });
         });
     });
+
+    describe('segmentation', () => {
+        it('should render area series with segmentation styling on x-axis', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 20 },
+                    { x: 2, y: 15 },
+                    { x: 3, y: 25 },
+                    { x: 4, y: 30 },
+                    { x: 5, y: 35 },
+                    { x: 6, y: 40 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 0, stop: 2, fill: 'rgba(255, 0, 0, 0.3)', stroke: 'red', strokeWidth: 2 },
+                                { start: 2, stop: 4, fill: 'rgba(0, 0, 255, 0.3)', stroke: 'blue', strokeWidth: 3 },
+                                { start: 4, fill: 'rgba(0, 255, 0, 0.3)', stroke: 'green', strokeWidth: 2 },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render area series with segmentation styling on y-axis', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: 'B', y: 20 },
+                    { x: 'C', y: 15 },
+                    { x: 'D', y: 25 },
+                    { x: 'E', y: 30 },
+                    { x: 'F', y: 35 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                {
+                                    start: 10,
+                                    stop: 20,
+                                    fill: 'rgba(255, 165, 0, 0.4)',
+                                    stroke: 'orange',
+                                    strokeWidth: 2,
+                                    lineDash: [5, 5],
+                                },
+                                {
+                                    start: 20,
+                                    stop: 30,
+                                    fill: 'rgba(128, 0, 128, 0.4)',
+                                    stroke: 'purple',
+                                    strokeWidth: 3,
+                                },
+                                {
+                                    start: 30,
+                                    fill: 'rgba(0, 255, 255, 0.4)',
+                                    stroke: 'cyan',
+                                    strokeWidth: 2,
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render stacked area series with segmentation', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y1: 10, y2: 5 },
+                    { x: 1, y1: 20, y2: 15 },
+                    { x: 2, y1: 15, y2: 25 },
+                    { x: 3, y1: 25, y2: 20 },
+                    { x: 4, y1: 30, y2: 35 },
+                    { x: 5, y1: 35, y2: 30 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y1',
+                        stacked: true,
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 0, stop: 2.5, fill: 'rgba(255, 0, 0, 0.5)', stroke: 'red', strokeWidth: 1 },
+                                { start: 2.5, fill: 'rgba(0, 0, 255, 0.5)', stroke: 'blue', strokeWidth: 1 },
+                            ],
+                        },
+                    },
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y2',
+                        stacked: true,
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 0, stop: 3, fill: 'rgba(0, 255, 0, 0.4)', stroke: 'green', strokeWidth: 2 },
+                                { start: 3, fill: 'rgba(128, 0, 128, 0.4)', stroke: 'purple', strokeWidth: 2 },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render area series with pattern fill segmentation', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 20 },
+                    { x: 1, y: 30 },
+                    { x: 2, y: 25 },
+                    { x: 3, y: 35 },
+                    { x: 4, y: 40 },
+                    { x: 5, y: 45 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 0,
+                                    stop: 2,
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'vertical-lines',
+                                    },
+                                    stroke: 'red',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 2,
+                                    stop: 4,
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'horizontal-lines',
+                                    },
+                                    stroke: 'blue',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 4,
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'circles',
+                                    },
+                                    stroke: 'green',
+                                    strokeWidth: 2,
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'number', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should render area series with positive/negative segmentation', async () => {
+            const options: AgChartOptions = {
+                title: { text: 'Total PnL' },
+                data: [
+                    { date: '2019-04-05', pnl: 60 },
+                    { date: '2019-04-10', pnl: -110 },
+                    { date: '2019-04-15', pnl: -240 },
+                    { date: '2019-04-18', pnl: -585 },
+                    { date: '2019-04-21', pnl: -210 },
+                    { date: '2019-04-24', pnl: -595 },
+                    { date: '2020-03-17', pnl: -320 },
+                    { date: '2020-03-18', pnl: -165 },
+                    { date: '2020-03-19', pnl: -95 },
+                    { date: '2020-03-20', pnl: 15 },
+                    { date: '2020-03-26', pnl: 40 },
+                    { date: '2020-04-05', pnl: 90 },
+                    { date: '2020-04-12', pnl: 180 },
+                    { date: '2020-04-19', pnl: 420 },
+                    { date: '2020-05-03', pnl: 150 },
+                    { date: '2020-05-22', pnl: 170 },
+                ],
+                axes: [
+                    { type: 'ordinal-time', position: 'bottom', label: { rotation: 45 } },
+                    { type: 'number', position: 'left', min: -600, max: 600 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        interpolation: {
+                            type: 'smooth',
+                        },
+                        xKey: 'date',
+                        xName: 'Date',
+                        yKey: 'pnl',
+                        yName: 'PnL',
+                        marker: {
+                            enabled: true,
+                            itemStyler: ({ datum, yKey }) => {
+                                const v = datum[yKey];
+                                return {
+                                    fill: v >= 0 ? 'green' : 'red',
+                                    stroke: v >= 0 ? 'green' : 'red',
+                                };
+                            },
+                        },
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                {
+                                    start: 0,
+                                    fill: 'green',
+                                    fillOpacity: 0.2,
+                                    stroke: 'green',
+                                    strokeWidth: 3,
+                                },
+                                {
+                                    stop: 0,
+                                    fill: 'red',
+                                    fillOpacity: 0.3,
+                                    stroke: 'red',
+                                    strokeWidth: 3,
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render Apple revenue area chart with segmentation', async () => {
+            const options: AgChartOptions = {
+                title: {
+                    text: "Apple's Revenue by Product Category",
+                },
+                subtitle: {
+                    text: 'In Billion U.S. Dollars',
+                },
+                data: [
+                    {
+                        quarter: "Q1'18",
+                        iphone: 140,
+                        mac: 16,
+                        ipad: 14,
+                        wearables: 12,
+                        services: 20,
+                    },
+                    {
+                        quarter: "Q2'18",
+                        iphone: 124,
+                        mac: 20,
+                        ipad: 14,
+                        wearables: 12,
+                        services: 30,
+                    },
+                    {
+                        quarter: "Q3'18",
+                        iphone: 112,
+                        mac: 20,
+                        ipad: 18,
+                        wearables: 14,
+                        services: 36,
+                    },
+                    {
+                        quarter: "Q4'18",
+                        iphone: 118,
+                        mac: 24,
+                        ipad: 14,
+                        wearables: 14,
+                        services: 36,
+                    },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'quarter',
+                        yKey: 'iphone',
+                        yName: 'iPhone',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                {
+                                    stroke: 'red',
+                                    strokeWidth: 25,
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });

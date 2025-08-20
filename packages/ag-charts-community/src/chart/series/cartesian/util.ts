@@ -24,35 +24,35 @@ export function calculateSegments(
     const bandwidth = scale.bandwidth ?? 0;
     const offset = applyOffset ? ((scale.step ?? 0) - bandwidth) / 2 : 0;
     const isReversed = axis.isReversed() || axis.range[1] < axis.range[0];
-    const flag = isReversed ? -1 : 1;
+
+    const getDefaultStart = () => {
+        if (isReversed) {
+            return isXDirection ? chartSize.width : chartSize.height;
+        }
+        return isXDirection ? -seriesRect.x : -seriesRect.y;
+    };
+
+    const getDefaultStop = () => {
+        if (isReversed) {
+            return isXDirection ? -seriesRect.x : -seriesRect.y;
+        }
+        return isXDirection ? chartSize.width : chartSize.height;
+    };
 
     return segmentation.segments.map(({ stop, start, ...style }) => {
-        if (start == null) {
-            start = isXDirection ? -seriesRect.x : -seriesRect.y;
-        } else {
-            start = scale.convert(start) - offset;
-        }
+        const startPos = start == null ? getDefaultStart() : scale.convert(start) - offset;
+        const stopPos = stop == null ? getDefaultStop() : scale.convert(stop) + 2 * offset;
 
-        if (stop == null) {
-            stop = (isXDirection ? chartSize.width : chartSize.height) * flag;
-        } else {
-            stop = scale.convert(stop) + 2 * offset;
-        }
+        const x = isXDirection ? startPos : -seriesRect.x;
+        const y = isXDirection ? -seriesRect.y : startPos;
+        const width = isXDirection ? stopPos + bandwidth - startPos : chartSize.width;
+        const height = isXDirection ? chartSize.height : stopPos + bandwidth - startPos;
 
-        let x = isXDirection ? start : -seriesRect.x;
-        let y = isXDirection ? -seriesRect.y : start;
-        let width = isXDirection ? stop + bandwidth - x : chartSize.width;
-        let height = isXDirection ? chartSize.height : stop + bandwidth - y;
+        const finalX = width < 0 ? x + width : x;
+        const finalY = height < 0 ? y + height : y;
+        const finalWidth = Math.abs(width);
+        const finalHeight = Math.abs(height);
 
-        if (width < 0) {
-            x += width;
-            width = -width;
-        }
-        if (height < 0) {
-            y += height;
-            height = -height;
-        }
-
-        return { clipRect: new BBox(x, y, width, height), ...style };
+        return { clipRect: new BBox(finalX, finalY, finalWidth, finalHeight), ...style };
     });
 }

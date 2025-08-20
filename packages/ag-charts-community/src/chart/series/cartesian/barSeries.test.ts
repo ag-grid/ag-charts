@@ -1002,4 +1002,416 @@ describe('BarSeries', () => {
             });
         });
     });
+
+    describe('segmentation', () => {
+        it('should render bar series with segmentation styling on x-axis', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: 'B', y: 20 },
+                    { x: 'C', y: 15 },
+                    { x: 'D', y: 25 },
+                    { x: 'E', y: 30 },
+                    { x: 'F', y: 35 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                { start: 'A', stop: 'C', fill: 'red', stroke: 'darkred', strokeWidth: 2 },
+                                { start: 'C', stop: 'E', fill: 'blue', stroke: 'darkblue', strokeWidth: 2 },
+                                { start: 'E', fill: 'green', stroke: 'darkgreen', strokeWidth: 2 },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render bar series with segmentation styling on y-axis', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: 'B', y: 20 },
+                    { x: 'C', y: 15 },
+                    { x: 'D', y: 25 },
+                    { x: 'E', y: 30 },
+                    { x: 'F', y: 35 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                {
+                                    start: 10,
+                                    stop: 20,
+                                    fill: 'orange',
+                                    stroke: 'darkorange',
+                                    strokeWidth: 1,
+                                },
+                                {
+                                    start: 20,
+                                    stop: 30,
+                                    fill: 'purple',
+                                    stroke: 'indigo',
+                                    strokeWidth: 1,
+                                },
+                                {
+                                    start: 30,
+                                    fill: 'cyan',
+                                    stroke: 'teal',
+                                    strokeWidth: 1,
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render grouped bar series with segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'Q1', y1: 100, y2: 150 },
+                    { x: 'Q2', y1: 200, y2: 180 },
+                    { x: 'Q3', y1: 150, y2: 220 },
+                    { x: 'Q4', y1: 250, y2: 200 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y1',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                { start: 100, stop: 200, fill: 'lightcoral', stroke: 'red', strokeWidth: 1 },
+                                { start: 200, fill: 'lightblue', stroke: 'blue', strokeWidth: 1 },
+                            ],
+                        },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y2',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                { start: 150, stop: 200, fill: 'lightgreen', stroke: 'green', strokeWidth: 1 },
+                                { start: 200, fill: 'lightyellow', stroke: 'gold', strokeWidth: 1 },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render stacked bar series with segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'Q1', y1: 50, y2: 30 },
+                    { x: 'Q2', y1: 70, y2: 40 },
+                    { x: 'Q3', y1: 60, y2: 50 },
+                    { x: 'Q4', y1: 80, y2: 35 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y1',
+                        stacked: true,
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 'Q1',
+                                    stop: 'Q3',
+                                    fill: 'pink',
+                                    stroke: 'red',
+                                    strokeWidth: 1,
+                                },
+                                { start: 'Q3', fill: 'purple', stroke: 'blue', strokeWidth: 1 },
+                            ],
+                        },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y2',
+                        stacked: true,
+                        segmentation: {
+                            key: 'x',
+                            segments: [
+                                {
+                                    start: 'Q1',
+                                    stop: 'Q2',
+                                    fill: 'green',
+                                    stroke: 'green',
+                                    strokeWidth: 1,
+                                },
+                                {
+                                    start: 'Q2',
+                                    fill: 'lavender',
+                                    stroke: 'purple',
+                                    strokeWidth: 1,
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render horizontal bar series with segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'Category A', y: 100 },
+                    { x: 'Category B', y: 150 },
+                    { x: 'Category C', y: 120 },
+                    { x: 'Category D', y: 180 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        direction: 'horizontal',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                { start: 100, stop: 140, fill: 'gold', stroke: 'orange', strokeWidth: 2 },
+                                { start: 140, fill: 'mediumpurple', stroke: 'purple', strokeWidth: 2 },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'left' },
+                    { type: 'number', position: 'bottom' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render bar series with pattern fill segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'A', y: 25 },
+                    { x: 'B', y: 35 },
+                    { x: 'C', y: 30 },
+                    { x: 'D', y: 40 },
+                    { x: 'E', y: 45 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                {
+                                    start: 25,
+                                    stop: 35,
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'forward-slanted-lines',
+                                    },
+                                    stroke: 'red',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 35,
+                                    stop: 42,
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'squares',
+                                    },
+                                    stroke: 'blue',
+                                    strokeWidth: 2,
+                                },
+                                {
+                                    start: 42,
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'stars',
+                                    },
+                                    stroke: 'green',
+                                    strokeWidth: 2,
+                                },
+                            ],
+                        },
+                    },
+                ],
+                axes: [
+                    { type: 'category', position: 'bottom' },
+                    { type: 'number', position: 'left' },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should render Apple revenue by product with gradient fill segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                title: {
+                    text: "Apple's Revenue by Product Category",
+                },
+                subtitle: {
+                    text: 'In Billion U.S. Dollars',
+                },
+                data: [
+                    {
+                        quarter: "Q1'18",
+                        iphone: 140,
+                        mac: 16,
+                        ipad: 14,
+                        wearables: 12,
+                        services: 20,
+                    },
+                    {
+                        quarter: "Q2'18",
+                        iphone: 124,
+                        mac: 20,
+                        ipad: 14,
+                        wearables: 12,
+                        services: 30,
+                    },
+                    {
+                        quarter: "Q3'18",
+                        iphone: 112,
+                        mac: 20,
+                        ipad: 18,
+                        wearables: 14,
+                        services: 36,
+                    },
+                    {
+                        quarter: "Q4'18",
+                        iphone: 118,
+                        mac: 24,
+                        ipad: 14,
+                        wearables: 14,
+                        services: 36,
+                    },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'iphone',
+                        yName: 'iPhone',
+                        fill: { type: 'gradient' },
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                {
+                                    start: 50,
+                                    stop: 100,
+                                    fillOpacity: 0.8,
+                                },
+                                {
+                                    start: 100,
+                                    fillOpacity: 0.5,
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render Apple revenue single quarter bar chart with segmentation', async () => {
+            const options: AgCartesianChartOptions = {
+                title: {
+                    text: "Apple's Revenue by Product Category",
+                },
+                subtitle: {
+                    text: 'In Billion U.S. Dollars',
+                },
+                data: [
+                    {
+                        quarter: "Q1'18",
+                        iphone: 140,
+                        mac: 16,
+                        ipad: 14,
+                        wearables: 12,
+                        services: 20,
+                    },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'iphone',
+                        yName: 'iPhone',
+                        fill: { type: 'gradient' },
+                        strokeWidth: 10,
+                        stroke: 'yellow',
+                        segmentation: {
+                            key: 'y',
+                            segments: [
+                                {
+                                    start: 100,
+                                    fillOpacity: 0.6,
+                                },
+                            ],
+                        },
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });
