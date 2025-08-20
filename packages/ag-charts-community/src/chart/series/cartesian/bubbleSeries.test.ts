@@ -493,7 +493,13 @@ describe('BubbleSeries', () => {
                 (params: AgBubbleSeriesStylerParams<D, C>): AgBubbleSeriesStylerResult | undefined => {
                     // FIXME: there's no `params.title` value
                     if (params.seriesId === 'BubbleSeries-1') {
-                        return { fill: 'dodgerblue', stroke: 'lime' };
+                        return {
+                            fill: {
+                                type: 'gradient',
+                                colorStops: [{ color: 'dodgerblue', stop: 0.1 }, { color: 'lightcyan' }],
+                            },
+                            stroke: 'lime', // not ignored (but no effect)
+                        };
                     } else if (params.seriesId === 'BubbleSeries-2') {
                         return { shape: 'heart', fill: 'fuchsia', lineDash: [5, 3] };
                     }
