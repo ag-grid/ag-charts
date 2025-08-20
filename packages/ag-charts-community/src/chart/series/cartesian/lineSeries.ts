@@ -533,18 +533,20 @@ export class LineSeries extends CartesianSeries<
         const stylerStyle = this.getStyle(isHighlight);
         const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
-        datumSelection.each((_, datum) => {
-            const params = this.makeItemStylerParams(
-                this.dataModel!,
-                this.processedData!,
-                datum.datumIndex,
-                stylerStyle.marker
-            );
-            datum.style = this.getMarkerStyle(marker, datum, params, { isHighlight }, stylerStyle.marker, {
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-            });
+        datumSelection.each((node, datum) => {
+            if (!datumSelection.isGarbage(node)) {
+                const params = this.makeItemStylerParams(
+                    this.dataModel!,
+                    this.processedData!,
+                    datum.datumIndex,
+                    stylerStyle.marker
+                );
+                datum.style = this.getMarkerStyle(marker, datum, params, { isHighlight }, stylerStyle.marker, {
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                });
+            }
         });
     }
 
