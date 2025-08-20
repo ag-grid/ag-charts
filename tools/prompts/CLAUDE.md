@@ -6,6 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 AG Charts is a sophisticated TypeScript monorepo providing canvas-based JavaScript charting library with both community (MIT) and enterprise (commercial) versions. Built with Nx, it supports React, Angular, and Vue 3 frameworks.
 
+## Technology Stack
+
+For detailed information about preferred technologies and architectural constraints, see [`tools/prompts/technology-stack.md`](tools/prompts/technology-stack.md).
+
+**Key Constraint:** The main AG Charts libraries must have ZERO third-party runtime dependencies.
+
 ## Repository Conventions
 
 -   The main branch of this repo is `latest`

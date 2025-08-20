@@ -64,7 +64,7 @@ vitest.config.*.timestamp*
 
 # Ignore local AI.
 /.claude/
+/.github/prompts/
 /.mcp.json
 CLAUDE.md
-todos.md
 .tmp
