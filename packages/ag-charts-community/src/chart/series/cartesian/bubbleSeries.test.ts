@@ -493,13 +493,7 @@ describe('BubbleSeries', () => {
                 (params: AgBubbleSeriesStylerParams<D, C>): AgBubbleSeriesStylerResult | undefined => {
                     // FIXME: there's no `params.title` value
                     if (params.seriesId === 'BubbleSeries-1') {
-                        return {
-                            fill: {
-                                type: 'gradient',
-                                colorStops: [{ color: 'dodgerblue', stop: 0.1 }, { color: 'lightcyan' }],
-                            },
-                            stroke: 'lime', // not ignored (but no effect)
-                        };
+                        return { fill: 'dodgerblue', stroke: 'lime' };
                     } else if (params.seriesId === 'BubbleSeries-2') {
                         return { shape: 'heart', fill: 'fuchsia', lineDash: [5, 3] };
                     }
@@ -574,7 +568,14 @@ describe('BubbleSeries', () => {
             beforeEach(async () => {
                 const itemStyler = (params: AgBubbleSeriesItemStylerParams<D, C>): AgSeriesMarkerStyle => {
                     if (params.datum.name === 'Mason') {
-                        return { fillOpacity: 1, strokeWidth: 5 };
+                        return {
+                            fill: {
+                                type: 'pattern',
+                                pattern: 'stars',
+                            },
+                            fillOpacity: 1,
+                            strokeWidth: 5,
+                        };
                     }
                     if (params.datum.name == 'Charlotte') {
                         return {
