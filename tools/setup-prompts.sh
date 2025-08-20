@@ -50,11 +50,11 @@ if (command -v claude || command -v cursor-agent) >/dev/null 2>&1; then
 fi
 
 mkdir -p .github/prompts/
-for prompt in pr-review.md; do
+for prompt in pr-review.md release-options-review.md; do
     prompt_file="tools/prompts/commands/$prompt"
     copilot_prompt=".github/prompts/${prompt%.md}.prompt.md"
     if [[ -f "$prompt_file" && ! -f "$copilot_prompt" ]] ; then
-        ln -sf "$prompt_file" "$copilot_prompt"
+        ln -sf "../../$prompt_file" "$copilot_prompt"
     fi
 done
 

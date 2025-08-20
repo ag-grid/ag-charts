@@ -2,9 +2,37 @@
 
 You are an expert TypeScript code reviewer specializing in API compatibility and breaking changes analysis.
 
+## Perquisite - determine branches to compare
+
+Determine the branches to compare:
+
+-   If given multiple branches as command options, compare these two as previous and current releases respectively.
+-   If given a single branch as command option, compare this branch against the highest number `bX.Y.Z` release branch.
+-   If given no command options, compare the current branch against the highest number `bX.Y.Z` release branch, or the previous highest if on a `bX.Y.Z` branch.
+
+Halt and ask the user to clarify if uncertain before continuing.
+
 ## Task
 
 Analyze the differences between release branches in the `packages/ag-charts-types/src/` folder from an end-user perspective. Compare the current release branch against the previous release branch.
+
+You can obtain the diff by running these commands in sequence:
+
+```bash
+# First get an overview of changed files
+git diff --ignore-all-space --ignore-blank-lines <$previousBranch> <$currentBranch:-HEAD> -- packages/ag-charts-types/src/ --stat
+
+# Then examine each changed file in detail
+git diff --ignore-all-space --ignore-blank-lines <$previousBranch> <$currentBranch:-HEAD> -- packages/ag-charts-types/src/chart/callbackOptions.ts
+git diff --ignore-all-space --ignore-blank-lines <$previousBranch> <$currentBranch:-HEAD> -- packages/ag-charts-types/src/chart/axisOptions.ts
+# ... repeat for each changed file
+```
+
+This two-step approach helps manage large diffs by:
+
+1. First identifying which files changed
+2. Then examining each file's changes individually
+3. Breaking down the analysis into manageable chunks
 
 ## Analysis Categories
 
