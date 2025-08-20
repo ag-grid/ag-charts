@@ -8,6 +8,7 @@ import type {
     AgHighlightOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
+    AgSeriesSegmentation,
     LabelBoxOptions,
     WithThemeParams,
 } from 'ag-charts-types';
@@ -410,5 +411,30 @@ export const LEGEND_CONTAINER_THEME: any = {
     fillOpacity: 1,
     padding: {
         $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, { $isUserOption: ['./fill', 5, 0] }],
+    },
+};
+
+export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
+    key: 'x',
+    segments: {
+        $apply: [
+            {
+                fill: {
+                    $applySwitch: [
+                        { $path: 'type' },
+                        { $path: '../../../fill' },
+                        ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                        ['image', FILL_IMAGE_DEFAULTS],
+                        ['pattern', FILL_PATTERN_DEFAULTS],
+                    ],
+                },
+                stroke: { $path: '../../../stroke' },
+                fillOpacity: { $path: '../../../fillOpacity' },
+                strokeWidth: { $path: '../../../strokeWidth' },
+                strokeOpacity: { $path: '../../../strokeOpacity' },
+                lineDash: { $path: '../../../lineDash' },
+                lineDashOffset: { $path: '../../../lineDashOffset' },
+            },
+        ],
     },
 };

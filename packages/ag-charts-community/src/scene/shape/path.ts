@@ -5,7 +5,7 @@ import type { BBox } from '../bbox';
 import { SceneChangeDetection } from '../changeDetectable';
 import { ExtendedPath2D } from '../extendedPath2D';
 import type { ChildNodeCounts, RenderContext } from '../node';
-import { type CanvasContext, Shape } from './shape';
+import { Shape } from './shape';
 
 export class Path<D = any> extends Shape<D> implements DistantObject {
     static readonly className: string = 'Path';
@@ -15,11 +15,11 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
      * using custom Path2D class. Think of it as a TypeScript version
      * of the native Path2D (with some differences) that works in all browsers.
      */
-    readonly path = new ExtendedPath2D();
+    path = new ExtendedPath2D();
 
-    private _clipX: number = NaN;
-    private _clipY: number = NaN;
-    private _clipPath?: ExtendedPath2D;
+    protected _clipX: number = NaN;
+    protected _clipY: number = NaN;
+    protected _clipPath?: ExtendedPath2D;
 
     @SceneChangeDetection()
     clip: boolean = false;
@@ -169,8 +169,11 @@ export class Path<D = any> extends Shape<D> implements DistantObject {
         super.render(renderCtx);
     }
 
-    protected drawPath(ctx: CanvasContext) {
-        this.fillStroke(ctx, this.path.getPath2D());
+    drawPath(
+        ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+        path: Path2D = this.path.getPath2D()
+    ): void {
+        this.fillStroke(ctx, path);
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

@@ -18,6 +18,7 @@ import type { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
+import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
 import type { CallbackParamRules } from '../../../util/callbackCache';
 import { extent } from '../../../util/extent';
@@ -75,6 +76,7 @@ import {
     resetMarkerPositionFn,
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
+import { calculateSegments } from './util';
 
 const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
 
@@ -115,6 +117,7 @@ export class LineSeries extends CartesianSeries<
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
             datumSelectionGarbageCollection: false,
+            segmentedDataNodes: false,
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
@@ -456,6 +459,16 @@ export class LineSeries extends CartesianSeries<
         const crossFiltering =
             selectionValues?.some((selectionValue, index) => selectionValue === yRawValues[index]) ?? false;
 
+        const { width, height } = this.ctx.scene;
+        const segments = calculateSegments(
+            this.properties.segmentation,
+            xAxis,
+            yAxis,
+            this.chart!.seriesRect!,
+            { width, height },
+            false
+        );
+
         return {
             itemId: yKey,
             nodeData,
@@ -465,6 +478,7 @@ export class LineSeries extends CartesianSeries<
             visible: this.visible,
             crossFiltering,
             styles: getMarkerStyles(this, marker, { stroke, strokeWidth, strokeOpacity }),
+            segments,
         };
     }
 
@@ -472,7 +486,7 @@ export class LineSeries extends CartesianSeries<
         return this.properties.marker.isDirty();
     }
 
-    protected override updatePathNodes(opts: { paths: Path[]; visible: boolean; animationEnabled: boolean }) {
+    protected override updatePathNodes(opts: { paths: SegmentedPath[]; visible: boolean; animationEnabled: boolean }) {
         const {
             paths: [lineNode],
             visible,
@@ -483,7 +497,24 @@ export class LineSeries extends CartesianSeries<
         const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle(false));
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = merged;
 
+        const segments = this.contextNodeData?.segments;
+
+        // @todo(AG-8108): move to theme
+        const lineStyle = {
+            fill: undefined,
+            stroke,
+            strokeWidth,
+            strokeOpacity: strokeOpacity * (crossFiltering ? CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR : 1),
+            lineDash,
+            lineDashOffset,
+        };
+        const lineSegments = segments?.map(({ clipRect, ...segmentStyle }) => ({
+            clipRect,
+            ...mergeDefaults(segmentStyle, lineStyle),
+        }));
+
         lineNode.setProperties({
+            segments: lineSegments,
             fill: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
@@ -494,6 +525,8 @@ export class LineSeries extends CartesianSeries<
             lineDash,
             lineDashOffset,
         });
+
+        lineNode.datum = lineSegments;
 
         if (!animationEnabled) {
             lineNode.visible = visible;

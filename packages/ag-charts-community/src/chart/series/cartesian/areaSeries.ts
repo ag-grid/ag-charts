@@ -20,6 +20,7 @@ import { PointerEvents } from '../../../scene/node';
 import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
+import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
 import type { CallbackParamRules } from '../../../util/callbackCache';
 import { extent } from '../../../util/extent';
@@ -78,6 +79,7 @@ import {
     resetMarkerPositionFn,
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
+import { calculateSegments } from './util';
 
 const CROSS_FILTER_AREA_FILL_OPACITY_FACTOR = 0.125;
 const CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR = 0.25;
@@ -140,6 +142,7 @@ export class AreaSeries extends CartesianSeries<
             pathsPerSeries: ['fill', 'stroke'],
             pathsZIndexSubOrderOffset: [0, 1000],
             datumSelectionGarbageCollection: false,
+            segmentedDataNodes: false,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
@@ -726,7 +729,6 @@ export class AreaSeries extends CartesianSeries<
             label,
             fill: seriesFill,
             stroke: seriesStroke,
-            stroke,
             strokeWidth,
             strokeOpacity,
         } = this.properties;
@@ -859,6 +861,16 @@ export class AreaSeries extends CartesianSeries<
             handleDatum(datumIndex);
         }
 
+        const { width, height } = this.ctx.scene;
+        const segments = calculateSegments(
+            this.properties.segmentation,
+            xAxis,
+            yAxis,
+            this.chart!.seriesRect!,
+            { width, height },
+            false
+        );
+
         const context: AreaSeriesNodeDataContext = {
             itemId: yKey,
             fillData: { itemId: yKey, spans: this.fillSpans, phantomSpans: this.phantomSpans },
@@ -869,7 +881,8 @@ export class AreaSeries extends CartesianSeries<
             visible: this.visible,
             stackVisible: visibleSameStackCount > 0,
             crossFiltering,
-            styles: getMarkerStyles(this, marker, { stroke, strokeWidth, strokeOpacity }),
+            styles: getMarkerStyles(this, marker, { stroke: seriesStroke, strokeWidth, strokeOpacity }),
+            segments,
         };
 
         return context;
@@ -879,18 +892,33 @@ export class AreaSeries extends CartesianSeries<
         return this.properties.marker.isDirty();
     }
 
-    protected override updatePathNodes(opts: { paths: Path[]; visible: boolean; animationEnabled: boolean }) {
+    protected override updatePathNodes(opts: { paths: SegmentedPath[]; visible: boolean; animationEnabled: boolean }) {
         const {
             paths: [fillPaths, strokePaths],
             visible,
             animationEnabled,
         } = opts;
         const crossFiltering = this.contextNodeData?.crossFiltering === true;
+        const segments = this.contextNodeData?.segments;
 
         const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle(false));
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, fill, fillOpacity, opacity } = merged;
 
+        // @todo(AG-8108): move to theme
+        const strokeStyle = {
+            fill: undefined,
+            stroke,
+            strokeWidth,
+            strokeOpacity: strokeOpacity * (crossFiltering ? CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR : 1),
+            lineDash,
+            lineDashOffset,
+        };
+        const strokeSegments = segments?.map(({ clipRect, ...segmentStyle }) => ({
+            clipRect,
+            ...mergeDefaults(segmentStyle, strokeStyle),
+        }));
         strokePaths.setProperties({
+            segments: strokeSegments,
             fill: undefined,
             lineCap: 'round',
             lineJoin: 'round',
@@ -903,6 +931,7 @@ export class AreaSeries extends CartesianSeries<
             opacity,
             visible: visible || animationEnabled,
         });
+        strokePaths.datum = strokeSegments;
 
         applyShapeStyle(
             fillPaths,
@@ -914,13 +943,26 @@ export class AreaSeries extends CartesianSeries<
             this.getShapeFillBBox()
         );
 
+        // @todo(AG-8108): move to theme
+        const fillStyle = {
+            fill,
+            stroke: undefined,
+            fillOpacity: fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
+        };
+        const fillSegments = segments?.map(({ clipRect, ...segmentStyle }) => ({
+            clipRect,
+            ...mergeDefaults(segmentStyle, fillStyle),
+        }));
+
         fillPaths.setProperties({
+            segments: fillSegments,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             fillShadow: this.properties.shadow,
             opacity,
             visible: visible || animationEnabled,
         });
+        fillPaths.datum = fillSegments;
 
         updateClipPath(this, strokePaths);
         updateClipPath(this, fillPaths);

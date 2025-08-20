@@ -1,4 +1,5 @@
 import { type Point, findMaxIndex, findMinIndex, isFiniteNumber } from 'ag-charts-core';
+import type { AgSeriesSegmentation } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
@@ -11,8 +12,10 @@ import { UnitTimeScale } from '../../../scale/unitTimeScale';
 import { BBox } from '../../../scene/bbox';
 import { Group, TranslatableGroup } from '../../../scene/group';
 import type { Node, NodeWithOpacity } from '../../../scene/node';
+import { SegmentedGroup } from '../../../scene/segmentedGroup';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
+import { type Segment, SegmentedPath } from '../../../scene/shape/segmentedPath';
 import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
@@ -32,7 +35,7 @@ import {
 } from '../dataModelSeries';
 import type { SeriesDirectionKeysMapping, SeriesNodePickMatch } from '../series';
 import { SeriesNodeEvent } from '../series';
-import { SeriesProperties } from '../seriesProperties';
+import { Segmentation, SeriesProperties } from '../seriesProperties';
 import type { ISeries, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
@@ -57,6 +60,7 @@ type CartesianSeriesOpts<
     propertyNames: SeriesDirectionKeysMapping<TProps>;
     datumSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
+    segmentedDataNodes: boolean;
     animationResetFns?: {
         path?: (path: Path<TDatum>) => Partial<Path<TDatum>>;
         datum?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
@@ -131,6 +135,9 @@ export abstract class CartesianSeriesProperties<T extends object> extends Series
 
     @Property
     pickOutsideVisibleMinorAxis = false;
+
+    @Property
+    segmentation: AgSeriesSegmentation = new Segmentation();
 }
 
 export interface CartesianSeriesNodeDataContext<
@@ -140,6 +147,7 @@ export interface CartesianSeriesNodeDataContext<
     scales: { [key in ChartAxisDirection]?: Scaling };
     animationValid?: boolean;
     visible: boolean;
+    segments?: Segment[];
 }
 
 export const RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD = 100;
@@ -164,9 +172,9 @@ export abstract class CartesianSeries<
 
     protected override readonly NodeEvent = CartesianSeriesNodeEvent;
 
-    private readonly paths: Path[];
+    private readonly paths: SegmentedPath[];
     protected readonly dataNodeGroup = this.contentGroup.appendChild(
-        new Group({ name: `${this.id}-series-dataNodes`, zIndex: 1 })
+        new SegmentedGroup({ name: `${this.id}-series-dataNodes`, zIndex: 1 })
     );
     override readonly labelGroup = this.contentGroup.appendChild(
         new TranslatableGroup({ name: `${this.id}-series-labels` })
@@ -195,6 +203,7 @@ export abstract class CartesianSeries<
         pathsZIndexSubOrderOffset = [],
         datumSelectionGarbageCollection = true,
         animationAlwaysUpdateSelections = false,
+        segmentedDataNodes = true,
         animationResetFns,
         propertyKeys,
         propertyNames,
@@ -219,10 +228,11 @@ export abstract class CartesianSeries<
             animationResetFns,
             animationAlwaysUpdateSelections,
             datumSelectionGarbageCollection,
+            segmentedDataNodes,
         };
 
         this.paths = pathsPerSeries.map((path) => {
-            return new Path({ name: `${this.id}-${path}` });
+            return new SegmentedPath({ name: `${this.id}-${path}` });
         });
 
         this.datumSelection = Selection.select(
@@ -375,6 +385,13 @@ export abstract class CartesianSeries<
 
         this.contentGroup.batchedUpdate(() => {
             const dataChanged = this.updateSelections();
+            const segments = this.contextNodeData?.segments;
+            if (this.opts.segmentedDataNodes) {
+                this.dataNodeGroup.segments = segments;
+            } else {
+                this.dataNodeGroup.segments = undefined;
+            }
+
             this.updateNodes(itemHighlighted, resize || dataChanged);
         });
 

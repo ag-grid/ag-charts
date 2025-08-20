@@ -256,14 +256,31 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     }
 
     private createInterpolator(from: AnimationValue, to: AnimationValue) {
+        type InterpolatingFunction = (d: number) => number | string | Interpolating;
+        type InterpolatorTuple = [string, InterpolatingFunction];
+
         if (typeof to !== 'object' || isInterpolating(to)) {
             return this.interpolateValue(from, to);
+        } else if (Array.isArray(to)) {
+            const interpolatorValues: InterpolatingFunction[] = [];
+            for (let i = 0; i < to.length; i++) {
+                const interpolator = this.createInterpolator((from as typeof to)[i], to[i]);
+                if (interpolator != null) {
+                    interpolatorValues.push(interpolator);
+                }
+            }
+            return (d: number) => {
+                const out = [];
+                for (const interpolator of interpolatorValues) {
+                    out.push(interpolator(d));
+                }
+                return out;
+            };
         }
 
-        type InterpolatorTuple = [string, (d: number) => number | string | Interpolating];
         const interpolatorEntries: InterpolatorTuple[] = [];
         for (const key of Object.keys(to)) {
-            const interpolator = this.interpolateValue((from as typeof to)[key], to[key]);
+            const interpolator = this.createInterpolator((from as typeof to)[key], to[key]);
             if (interpolator != null) {
                 interpolatorEntries.push([key, interpolator]);
             }

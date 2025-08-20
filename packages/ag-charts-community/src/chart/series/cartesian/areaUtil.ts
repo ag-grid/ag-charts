@@ -4,6 +4,7 @@ import type { AgSeriesMarkerStyle } from 'ag-charts-types';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { SizedPoint } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
+import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { SeriesNodeStyleContext } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
@@ -55,6 +56,7 @@ export interface AreaSeriesNodeDataContext
     stackVisible: boolean;
     crossFiltering: boolean;
     styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+    segments?: Segment[];
 }
 
 export function plotAreaPathFill({ path }: Path, { spans, phantomSpans }: AreaFillPathDatum) {

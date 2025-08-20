@@ -9,6 +9,7 @@ import {
     number,
     required,
     shapeHighlightOptionsDef,
+    shapeSegmentation,
     string,
     strokeOptionsDef,
 } from 'ag-charts-core';
@@ -48,6 +49,7 @@ export const areaSeriesThemeableOptionsDef: OptionsDefs<AgAreaSeriesThemeableOpt
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     highlight,
+    segmentation: shapeSegmentation,
 };
 
 export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {

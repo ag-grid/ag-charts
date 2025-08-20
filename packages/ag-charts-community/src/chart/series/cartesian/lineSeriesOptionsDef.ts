@@ -5,6 +5,7 @@ import {
     constant,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
+    lineSegmentation,
     multiSeriesHighlightOptionsDef,
     number,
     required,
@@ -49,6 +50,7 @@ export const lineSeriesThemeableOptionsDef: OptionsDefs<AgLineSeriesThemeableOpt
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     highlight,
+    segmentation: lineSegmentation,
 };
 
 // @ts-expect-error undocumented option

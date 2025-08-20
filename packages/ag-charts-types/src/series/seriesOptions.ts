@@ -1,5 +1,5 @@
 import type { AgSeriesListeners } from '../chart/eventOptions';
-import type { ContextDefault, DatumDefault, InteractionRange, Opacity, PixelSize } from '../chart/types';
+import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity, PixelSize } from '../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './cartesian/commonOptions';
 
 export type AgSeriesHighlightMarkerStyle = FillOptions & StrokeOptions;
@@ -71,6 +71,20 @@ export interface AgBaseCartesianThemeableOptions<TDatum, TContext = ContextDefau
     /** Whether to include the series in the Mini Chart. */
     showInMiniChart?: boolean;
 }
+
+export interface AgSeriesSegmentation<SegmentOptions = AgSeriesShapeSegmentOptions> {
+    key: 'x' | 'y';
+    segments: SegmentOptions[];
+}
+
+export interface AgSeriesLineSegmentOptions extends StrokeOptions, LineDashOptions {
+    /** The axis value at which the styles should start. This is the start of the axis domain by default. */
+    start?: AxisValue;
+    /** The axis value at which the styles should stop. This is the end of the axis domain by default. */
+    stop?: AxisValue;
+}
+
+export interface AgSeriesShapeSegmentOptions extends AgSeriesLineSegmentOptions, FillOptions {}
 
 export interface AgBaseSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
