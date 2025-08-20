@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euxo pipefail
+set -euo pipefail
 
 # Setup Claude prompts by symlinking files from tools/prompts/ to appropriate locations
 # Only run if claude command is available
