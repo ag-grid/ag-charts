@@ -2,30 +2,51 @@
 
 You are an expert TypeScript code reviewer specializing in API compatibility and breaking changes analysis.
 
-## Perquisite - determine branches to compare
+## Help
 
-Determine the branches to compare:
+If the user provides a command option of `help`:
 
--   If given multiple branches as command options, compare these two as previous and current releases respectively.
--   If given a single branch as command option, compare this branch against the highest number `bX.Y.Z` release branch.
--   If given no command options, compare the current branch against the highest number `bX.Y.Z` release branch, or the previous highest if on a `bX.Y.Z` branch.
+-   Explain how to use this prompt.
+-   Explain if they are missing any prerequisites or tooling requirements.
+-   DO NOT proceed, exit the prompt immediately after these steps.
 
-Halt and ask the user to clarify if uncertain before continuing.
+## Prerequisite - determine branches to compare
+
+**Checklist:**
+
+-   [ ] Are you given multiple branches as command options?  
+         → Compare these two as previous and current releases respectively.
+-   [ ] Are you given a single branch as command option?  
+         → Compare this branch against the highest number `origin/bX.Y.Z` release branch.
+-   [ ] Are you given no command options?  
+         → Compare the current branch against the highest number `origin/bX.Y.Z` release branch, or the previous highest if on a `bX.Y.Z` branch.
+
+If you are uncertain about which branches to compare, **halt and ask the user to clarify before continuing.**
 
 ## Task
 
 Analyze the differences between release branches in the `packages/ag-charts-types/src/` folder from an end-user perspective. Compare the current release branch against the previous release branch.
 
+If you are confident and know how to use `gh` CLI to retrieve large diffs, you can skip the rest of this sub-section.
+
 You can obtain the diff by running these commands in sequence:
 
 ```bash
-# First get an overview of changed files
-git diff --ignore-all-space --ignore-blank-lines <$previousBranch> <$currentBranch:-HEAD> -- packages/ag-charts-types/src/ --stat
+# First get a detailed list of type changes into type-changes.diff
+git diff --ignore-all-space --ignore-blank-lines <$previousBranch> <$currentBranch:-HEAD> -- packages/ag-charts-types/src/ > type-changes.diff
 
-# Then examine each changed file in detail
+# If no changes detected, verify with a more thorough check
+if [ ! -s type-changes.diff ]; then
+    echo "No changes detected in initial scan, performing thorough check..."
+    git diff -U0 <$previousBranch> <$currentBranch:-HEAD> -- packages/ag-charts-types/src/
+fi
+
+# For examining specific files in detail
 git diff --ignore-all-space --ignore-blank-lines <$previousBranch> <$currentBranch:-HEAD> -- packages/ag-charts-types/src/chart/callbackOptions.ts
-git diff --ignore-all-space --ignore-blank-lines <$previousBranch> <$currentBranch:-HEAD> -- packages/ag-charts-types/src/chart/axisOptions.ts
 # ... repeat for each changed file
+
+# Cleanup the diff file before finishing
+rm type-changes.diff
 ```
 
 This two-step approach helps manage large diffs by:
@@ -114,6 +135,10 @@ Provide a structured analysis with:
     - User impact description
     - Migration guidance (for breaking changes)
 3. **Risk Assessment**: Rate the overall release risk (Low/Medium/High) with justification
+
+## Output Location
+
+Write the resulting report to `${repoRoot}/reports/release-options-review-${previousBranchShortName}-${currentBranchShortName}.md`.
 
 ## Example Analysis Format
 
