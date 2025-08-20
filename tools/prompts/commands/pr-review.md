@@ -24,6 +24,11 @@ If `claude` is installed, this folder structure may also be symlinked from `%{RE
 ## 1. IMPORTANT TOOLING REQUIREMENTS - STOP IF THERE ARE NOT MET
 
 -   GitHub CLI should be available to interrogate PRs and their details. (e.g. `gh pr list`).
+-   ChatGPT is NOT suitable for this task.
+    -   Claude Opus 4 is the best model for this task.
+    -   Claude Sonnet 4 is the next best.
+    -   Claude Opus 3 is the next best.
+    -   Claude Sonnet 3 is the next best.
 -   If not already loaded, you must read the `CLAUDE.md` file to understand the repo layout and tooling.
 
 ## 2. General Context
