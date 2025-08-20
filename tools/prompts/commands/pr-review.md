@@ -1,13 +1,30 @@
 # PR Review Instructions
 
-## General Context
+## 0. IMPORTANT FILE/PROMPT/AGENT LOCATIONS IF YOU ARE NOT CLAUDE CODE
+
+```bash
+${REPO_ROOT}/tools/prompts # Partial relevant directory listing.
+├── agents  # Files here are agents that you can invoke.
+│   ├── code-reviewer.md
+│   ├── data-viz-designer.md
+│   ├── example-tester.md
+│   └── visual-qa.md
+├── CLAUDE.md  # Context for working with the entire repo.
+└── commands  # Files here are commands that you can invoke.
+    ├── pr-review.md
+    └── previs.md
+```
+
+If `claude` is installed, this folder structure may also be symlinked from `%{REPO_ROOT}/.claude/`.
+
+## 1. General Context
 
 -   The `ag-charts` project is a monorepo with multiple packages.
 -   The `ag-charts-types` package is the public API contract for the `ag-charts` project.
 -   Release branches are named `b12.0.0` and follow semantic versioning.
     -   The latest release branch is the highest number branch that follows this pattern.
 
-## Workflows and criteria
+## 2. Workflows and criteria
 
 ### General Workflow
 
@@ -54,7 +71,7 @@ Unless I explicitly ask you to review a specific PR:
     -   If these report instructions have changed since the report was generated, perform a re-review.
     -   Otherwise skip the report generation.
 
-## Report output definitions
+## 3. Report output definitions
 
 ### Report file paths
 
@@ -67,7 +84,7 @@ Unless I explicitly ask you to review a specific PR:
 
 -   If a PR is closed, move the report to `${REPO_ROOT}/reports/pr-reviews-archive/`
 
-## Report criteria
+## 4. Report criteria
 
 For each PR, review and critique the following:
 
@@ -130,7 +147,7 @@ For each PR, review and critique the following:
 -   If there is a code-reviewer agent, ask it to review the changes and provide a distinct detailed report in `${REPO_ROOT}/reports/pr-reviews/${PR_NUMBER}-${JIRA_ID:-none}-detailed-code-review.md` and link it in the main report.
 -   For examples and documentation changes, check for any offensive language or politically charged language that could be offensive to some users.
 
-## Report Structure
+## 5. Report Structure
 
 -   Status Section
 
