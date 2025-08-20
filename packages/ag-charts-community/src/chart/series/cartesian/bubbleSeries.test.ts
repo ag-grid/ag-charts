@@ -584,6 +584,57 @@ describe('BubbleSeries', () => {
                 });
             });
         });
+        describe('fill types', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        legend: {},
+                        series: [
+                            {
+                                type: 'bubble',
+                                title: 'Male',
+                                data: maleHeightWeight,
+                                xKey: 'height',
+                                yKey: 'weight',
+                                sizeKey: 'age',
+                                size: 30,
+                                maxSize: 100,
+                                styler: () => {
+                                    return {
+                                        fill: {
+                                            type: 'gradient',
+                                            colorStops: [{ color: 'dodgerblue', stop: 0.1 }, { color: 'lightcyan' }],
+                                        },
+                                    };
+                                },
+                            },
+                            {
+                                type: 'bubble',
+                                title: 'Female',
+                                data: femaleHeightWeight,
+                                xKey: 'height',
+                                yKey: 'weight',
+                                sizeKey: 'age',
+                                size: 30,
+                                maxSize: 100,
+                                styler: () => {
+                                    return {
+                                        fill: {
+                                            type: 'pattern',
+                                            pattern: 'stars',
+                                        },
+                                    };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
         describe('priorities', () => {
             beforeEach(async () => {
                 const itemStyler = (params: AgBubbleSeriesItemStylerParams<D, C>): AgSeriesMarkerStyle => {
