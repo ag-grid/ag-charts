@@ -562,8 +562,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
         isHighlight: boolean;
     }) {
-        datumSelection.each((_, datum) => {
-            datum.style = this.getItemStyle(datum.datumIndex, isHighlight);
+        datumSelection.each((node, datum) => {
+            if (!datumSelection.isGarbage(node)) {
+                datum.style = this.getItemStyle(datum.datumIndex, isHighlight);
+            }
         });
     }
 

@@ -455,9 +455,11 @@ export class HistogramSeries extends CartesianSeries<
         datumSelection: Selection<Rect, HistogramNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { isHighlight } = opts;
-        opts.datumSelection.each((_rect, datum) => {
-            datum.style = this.getItemStyle(datum.datumIndex, isHighlight);
+        const { datumSelection, isHighlight } = opts;
+        datumSelection.each((node, datum) => {
+            if (!datumSelection.isGarbage(node)) {
+                datum.style = this.getItemStyle(datum.datumIndex, isHighlight);
+            }
         });
     }
 

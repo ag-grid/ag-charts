@@ -531,11 +531,13 @@ export class BubbleSeries extends CartesianSeries<
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
         const params = { xKey, yKey, sizeKey, labelKey };
 
-        datumSelection.each((_, datum) => {
-            datum.style = this.getMarkerStyle(marker, datum, params, {
-                isHighlight,
-                resolveItemStylerMarkerPath: false,
-            });
+        datumSelection.each((node, datum) => {
+            if (!datumSelection.isGarbage(node)) {
+                datum.style = this.getMarkerStyle(marker, datum, params, {
+                    isHighlight,
+                    resolveItemStylerMarkerPath: false,
+                });
+            }
         });
     }
 
