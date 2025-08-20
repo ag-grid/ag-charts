@@ -6,6 +6,59 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 AG Charts is a sophisticated TypeScript monorepo providing canvas-based JavaScript charting library with both community (MIT) and enterprise (commercial) versions. Built with Nx, it supports React, Angular, and Vue 3 frameworks.
 
+## Technology Stack
+
+### Core Technologies
+
+-   **TypeScript**: Primary development language with strict mode enabled across all packages
+-   **Node.js**: Runtime environment (^20.10.0 required)
+-   **Canvas API**: Custom high-performance rendering engine with scene graph architecture
+
+### Build & Development Tools
+
+-   **Nx**: Monorepo orchestration, caching, and task management (v20.3.1)
+-   **Yarn**: Package manager (v1.22.21 required)
+-   **SWC**: Fast TypeScript/JavaScript transpilation and Jest transforms
+-   **ESBuild**: High-performance bundling for production builds
+-   **Vite**: Development server and build tool for website
+
+### Testing Frameworks
+
+-   **Jest**: Unit testing with jsdom environment and visual snapshots
+-   **Playwright**: End-to-end testing for website interactions
+-   **Vitest**: Fast unit testing for website components
+-   **Custom Benchmarks**: Performance regression testing with memory profiling
+
+### Code Quality
+
+-   **ESLint**: Comprehensive linting with TypeScript rules, SonarJS, and custom AG Charts rules
+-   **Prettier**: Code formatting with import sorting
+-   **TypeScript Compiler**: Strict type checking with multiple build targets
+-   **Size Limit**: Bundle size monitoring and optimization
+
+### Documentation & Website
+
+-   **Astro**: Static site generator for documentation website (v5.8.2)
+-   **Markdoc**: Content authoring for documentation pages
+-   **React**: Interactive components within Astro site
+-   **Prism.js**: Syntax highlighting for code examples
+-   **Algolia**: Documentation search functionality
+
+### Framework Support
+
+-   **React**: Official wrapper package with hooks and components
+-   **Angular**: Official wrapper package with services and components
+-   **Vue 3**: Official wrapper package with composition API support
+-   **Vanilla JS**: Core library works without any framework dependencies
+
+### Key Dependencies
+
+-   **Nanostores**: Lightweight state management for website
+-   **Cheerio**: Server-side HTML parsing and manipulation
+-   **JSDOM**: DOM environment for testing
+-   **Sucrase**: Fast alternative TypeScript transpiler
+-   **PostCSS**: CSS processing and optimization
+
 ## Repository Conventions
 
 -   The main branch of this repo is `latest`
