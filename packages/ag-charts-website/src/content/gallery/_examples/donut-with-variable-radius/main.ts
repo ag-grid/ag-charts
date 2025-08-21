@@ -6,9 +6,10 @@ const data = getData();
 const numFormatter = new Intl.NumberFormat('en-US');
 
 const options: AgPolarChartOptions = {
+    // FIXME: Completely rework.
     container: document.getElementById('myChart'),
     title: {
-        text: 'Oxford Street Selfridges',
+        text: 'Oxford Street Department Store',
     },
     subtitle: {
         text: 'Total Product Value by Department',
@@ -20,32 +21,53 @@ const options: AgPolarChartOptions = {
             calloutLabelKey: 'category',
             calloutLabel: {
                 offset: 10,
+                avoidCollisions: true,
             },
             angleKey: 'value',
             radiusKey: 'value',
-            outerRadiusRatio: 0.8,
-            innerRadiusRatio: 0.6,
-            fillOpacity: 0.4,
-        },
-        {
-            data: data['departments'],
-            type: 'donut',
-            sectorLabelKey: 'department',
-            angleKey: 'value',
-            outerRadiusRatio: 0.6,
-            innerRadiusRatio: 0.4,
-            fillOpacity: 0.6,
-        },
-        {
-            data: data['stores'],
-            type: 'donut',
-            sectorLabelKey: 'store',
-            angleKey: 'total',
-            outerRadiusRatio: 0.4,
-            innerRadiusRatio: 0,
+            // outerRadiusRatio: 0.8,
+            innerRadiusRatio: 0.3,
+            fillOpacity: 0.5,
+            innerLabels: [
+                {
+                    text: 'Total Value',
+                    spacing: 4,
+                },
+                {
+                    text: '£40M',
+                    spacing: 4,
+                },
+            ],
+            legendItemKey: 'category',
+            cornerRadius: 3,
+            strokeWidth: 1,
+            highlight: {
+                highlightedItem: {
+                    strokeWidth: 3,
+                },
+            },
+            tooltip: {
+                renderer: (params) => {
+                    const value = params.datum[params.angleKey!] as number;
+                    const formattedValue =
+                        value < 1e9 ? `£${numFormatter.format(value / 1e6)}M` : `£${numFormatter.format(value / 1e9)}B`;
+
+                    return {
+                        heading: 'Total Product Value',
+                        title: params.datum[params.calloutLabelKey || params.sectorLabelKey || 'category'],
+                        data: [
+                            {
+                                label: 'Value',
+                                value: formattedValue,
+                            },
+                        ],
+                    };
+                },
+            },
         },
     ],
     legend: {
+        // Segments already labelled in the sectorLabel.
         enabled: false,
     },
     formatter: {

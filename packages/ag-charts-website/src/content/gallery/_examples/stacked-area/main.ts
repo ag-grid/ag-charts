@@ -1,10 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const interpolation = { type: 'smooth' } as const;
-
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -17,34 +15,34 @@ const options: AgChartOptions = {
         {
             type: 'area',
             xKey: 'date',
-            stacked: true,
             yKey: 'Science Museum',
             yName: 'Science Museum',
-            interpolation,
+            stacked: true,
+            interpolation: { type: 'smooth' },
         },
         {
             type: 'area',
             xKey: 'date',
-            stacked: true,
             yKey: 'National Media Museum',
             yName: 'National Media Museum',
-            interpolation,
+            stacked: true,
+            interpolation: { type: 'smooth' },
         },
         {
             type: 'area',
             xKey: 'date',
-            stacked: true,
             yKey: 'National Railway Museum',
             yName: 'National Railway Museum',
-            interpolation,
+            stacked: true,
+            interpolation: { type: 'smooth' },
         },
         {
             type: 'area',
             xKey: 'date',
-            stacked: true,
             yKey: 'Locomotion',
             yName: 'Locomotion',
-            interpolation,
+            stacked: true,
+            interpolation: { type: 'smooth' },
         },
         {
             type: 'area',
@@ -52,7 +50,7 @@ const options: AgChartOptions = {
             yKey: 'Museum of Science and Industry, Manchester',
             yName: 'Museum of Science and Industry, Manchester',
             stacked: true,
-            interpolation,
+            interpolation: { type: 'smooth' },
         },
         {
             type: 'area',
@@ -60,21 +58,35 @@ const options: AgChartOptions = {
             yKey: 'National Coal Mining Museum for England',
             yName: 'National Coal Mining Museum for England',
             stacked: true,
-            interpolation,
+            interpolation: { type: 'smooth' },
         },
     ],
     axes: [
         {
             type: 'unit-time',
             position: 'bottom',
+            label: {
+                format: '%b',
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
             crossLines: [
                 {
                     type: 'range',
-                    range: [new Date(2019, 5, 1), new Date(2019, 8, 1)],
-                    strokeWidth: 0,
+                    range: [new Date(2019, 6, 1), new Date(2019, 6, 31)],
+                    fillOpacity: 0.1,
                     label: {
-                        text: 'Peak Season\nJun - Sep',
-                        position: 'inside-top',
+                        text: 'Peak Season\nJuly-August',
+                        position: 'top',
                     },
                 },
             ],
@@ -82,15 +94,51 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'left',
-            title: {
-                text: 'Total visitors',
+            label: {
+                formatter: (params) => {
+                    const value = params.value as number;
+                    if (value >= 1000) {
+                        return `${Math.round(value / 1000)}k`;
+                    }
+                    return String(value);
+                },
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
         },
     ],
-    formatter: {
-        y: (params) => {
-            if (params.type !== 'number') return;
-            return (params.value / 1000).toFixed(params.fractionDigits) + 'k';
+    legend: {
+        position: 'bottom',
+        item: {
+            showSeriesStroke: false,
+        },
+    },
+    tooltip: {
+        // FIXME: Make format higher precision.
+        position: {
+            placement: ['right', 'left', 'top', 'bottom'],
+        },
+    },
+    theme: {
+        overrides: {
+            area: {
+                series: {
+                    fillOpacity: 0.7,
+                    strokeWidth: 2,
+                    highlight: {
+                        enabled: true,
+                    },
+                },
+            },
         },
     },
 };
