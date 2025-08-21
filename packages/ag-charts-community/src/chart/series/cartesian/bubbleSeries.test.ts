@@ -493,7 +493,13 @@ describe('BubbleSeries', () => {
                 (params: AgBubbleSeriesStylerParams<D, C>): AgBubbleSeriesStylerResult | undefined => {
                     // FIXME: there's no `params.title` value
                     if (params.seriesId === 'BubbleSeries-1') {
-                        return { fill: 'dodgerblue', stroke: 'lime' };
+                        return {
+                            fill: {
+                                type: 'gradient',
+                                colorStops: [{ color: 'dodgerblue', stop: 0.1 }, { color: 'lightcyan' }],
+                            },
+                            stroke: 'lime', // not ignored (but no effect)
+                        };
                     } else if (params.seriesId === 'BubbleSeries-2') {
                         return { shape: 'heart', fill: 'fuchsia', lineDash: [5, 3] };
                     }
@@ -576,6 +582,57 @@ describe('BubbleSeries', () => {
                 test('params', () => {
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
+            });
+        });
+        describe('fill types', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        legend: {},
+                        series: [
+                            {
+                                type: 'bubble',
+                                title: 'Male',
+                                data: maleHeightWeight,
+                                xKey: 'height',
+                                yKey: 'weight',
+                                sizeKey: 'age',
+                                size: 30,
+                                maxSize: 100,
+                                styler: () => {
+                                    return {
+                                        fill: {
+                                            type: 'gradient',
+                                            colorStops: [{ color: 'dodgerblue', stop: 0.1 }, { color: 'lightcyan' }],
+                                        },
+                                    };
+                                },
+                            },
+                            {
+                                type: 'bubble',
+                                title: 'Female',
+                                data: femaleHeightWeight,
+                                xKey: 'height',
+                                yKey: 'weight',
+                                sizeKey: 'age',
+                                size: 30,
+                                maxSize: 100,
+                                styler: () => {
+                                    return {
+                                        fill: {
+                                            type: 'pattern',
+                                            pattern: 'stars',
+                                        },
+                                    };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
             });
         });
         describe('priorities', () => {

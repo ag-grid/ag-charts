@@ -1302,6 +1302,46 @@ describe('AreaSeries', () => {
                 await compare();
             });
         });
+        describe('fill gradient stars', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareTestOptions({
+                        data: [
+                            { x: '1', y: 1200 },
+                            { x: '2', y: 1500 },
+                            { x: '3', y: 1700 },
+                        ],
+                        legend: {},
+                        series: [
+                            {
+                                type: 'area',
+                                xKey: 'x',
+                                yKey: 'y',
+                                styler: () => {
+                                    return {
+                                        marker: {
+                                            fill: {
+                                                type: 'gradient',
+                                                colorStops: [
+                                                    { color: 'dodgerblue', stop: 0.1 },
+                                                    { color: 'lightcyan' },
+                                                ],
+                                            },
+                                            size: 75,
+                                            shape: 'star',
+                                        },
+                                    };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
         describe('priorities', () => {
             beforeEach(async () => {
                 const itemStyler = (params: AgAreaSeriesMarkerItemStylerParams<D, C>): AgSeriesMarkerStyle => {
