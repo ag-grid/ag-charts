@@ -33,13 +33,13 @@ const options: AgCartesianChartOptions = {
             cornerRadius: 3,
             strokeWidth: 0,
             fillOpacity: 0.85,
-            highlightStyle: {
-                item: {
+            highlight: {
+                highlightedItem: {
                     fillOpacity: 1,
                     strokeWidth: 2,
                     strokeOpacity: 1,
                 },
-                series: {
+                highlightedSeries: {
                     dimOpacity: 0.3,
                     strokeWidth: 1,
                 },
