@@ -274,6 +274,59 @@ axes: [
 ];
 ```
 
+### Financial Chart Axis Positioning Convention
+
+_Apply: 2 minutes, Impact: VERY HIGH for financial data_ ⭐⭐ **INDUSTRY STANDARD**
+
+For financial and monetary data, follow standard industry conventions:
+
+```typescript
+axes: [
+    {
+        type: 'number',
+        position: 'right', // ✅ PREFERRED for price/monetary values
+        label: {
+            formatter: (params) => `$${(params.value / 1e6).toFixed(1)}M`,
+        },
+        title: {
+            text: 'Price ($)',
+        },
+        gridLine: {
+            style: [
+                { strokeWidth: 1, lineDash: [2, 2] },
+                { strokeWidth: 0 }, // Background bands
+            ],
+        },
+    },
+    {
+        type: 'time',
+        position: 'bottom',
+        // Date/time axis configuration
+    },
+];
+```
+
+### Why right-side positioning for financial data:
+
+-   **Industry standard convention** (Bloomberg, Reuters, trading platforms)
+-   **Users expect price values on the right** - matches professional tools
+-   **Aligns with reading direction** for price movements and trends
+-   **Consistent with financial charting tools** users are familiar with
+-   **Better for dual-axis charts** where volume often goes on the left
+
+### When to use right-side Y-axis:
+
+✅ **Stock prices, currency values, trading data**  
+✅ **Financial performance metrics (revenue, profit)**  
+✅ **Economic indicators and market data**  
+✅ **Any chart where the primary value represents money/price**
+
+### When to keep left-side positioning:
+
+✅ **Non-financial numerical data** (counts, percentages, measurements)  
+✅ **Charts with mixed data types** where money is secondary  
+✅ **Legacy charts** that users are accustomed to reading on the left
+
 ### Time Series
 
 ```typescript

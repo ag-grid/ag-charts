@@ -2,8 +2,6 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const formatNumber = (value: number, dp: number) => `£${value.toFixed(dp)}m`;
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -13,9 +11,12 @@ const options: AgChartOptions = {
     subtitle: {
         text: '£ million',
     },
+    tooltip: {
+        enabled: true,
+    },
     series: [
         {
-            type: 'heatmap',
+            type: 'heatmap' as const,
 
             xKey: 'month',
             xName: 'Month',
@@ -27,24 +28,24 @@ const options: AgChartOptions = {
             colorName: 'Revenue',
 
             label: {
-                color: 'white',
-                formatter: ({ value }) => formatNumber(value, 1),
+                enabled: true,
+                formatter: ({ value }: { value: number }) => `£${value.toFixed(1)}m`,
             },
         },
     ],
     axes: [
         {
             position: 'right',
-            type: 'category',
+            type: 'category' as const,
             tick: {
                 size: 20,
             },
         },
         {
             position: 'bottom',
-            type: 'category',
+            type: 'category' as const,
             label: {
-                enabled: false,
+                enabled: true, // Show quarter labels for better readability
             },
             line: {
                 enabled: false,
@@ -54,8 +55,12 @@ const options: AgChartOptions = {
     gradientLegend: {
         scale: {
             label: {
-                formatter: ({ value }) => formatNumber(Number(value), 0),
+                formatter: ({ value }: { value: number | string }) => `£${Number(value).toFixed(0)}m`,
             },
+        },
+        gradient: {
+            thickness: 15,
+            preferredLength: 400,
         },
     },
 };

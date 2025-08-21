@@ -141,6 +141,7 @@ const chart = AgCharts.createFinancialChart({
 
     // Professional styling
     theme: 'ag-financial-dark', // or 'ag-financial'
+    // ✅ Note: Financial charts automatically position price axis on right (industry standard)
 });
 ```
 

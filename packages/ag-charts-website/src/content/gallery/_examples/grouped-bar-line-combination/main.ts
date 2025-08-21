@@ -1,114 +1,118 @@
-import { AgMarkerShapeFnParams } from 'ag-charts-community';
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 const data = getData();
 
-const bar = ({ x, y, path, size }: AgMarkerShapeFnParams) => {
-    const halfSize = size / 2;
-    path.rect(x - halfSize / 2, y - halfSize, halfSize, size);
-};
-
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data,
     title: {
-        text: 'The Technology Industry',
+        text: 'Global Technology Ecosystem Overview',
     },
-    padding: {
-        left: 40,
-        right: 40,
+    subtitle: {
+        text: 'Regional comparison of tech infrastructure and investment metrics',
+    },
+    tooltip: {
+        enabled: true,
+        mode: 'shared',
+        position: {
+            placement: ['right', 'left', 'top', 'bottom'],
+        },
     },
     theme: {
         overrides: {
             common: {
                 legend: {
+                    position: 'bottom',
+                    spacing: 40,
                     item: {
+                        paddingX: 16,
+                        paddingY: 8,
                         marker: {
-                            shape: bar,
-                            strokeWidth: 0,
-                        },
-                        line: {
-                            strokeWidth: 0,
+                            size: 12,
                         },
                     },
                 },
                 axes: {
                     'grouped-category': {
-                        groupPaddingInner: 0,
-                        paddingInner: 0.4,
+                        groupPaddingInner: 0.2,
+                        paddingInner: 0.3,
+                        label: {
+                            formatter: (params) => {
+                                const parts = params.value;
+                                if (Array.isArray(parts) && parts.length === 3) {
+                                    // Display all parts: Continent, Country, City
+                                    return `${parts[2]}, ${parts[1]}`;
+                                }
+                                return String(params.value);
+                            },
+                        },
                     },
                     number: {
-                        thickness: 0,
                         gridLine: {
-                            enabled: false,
+                            style: [
+                                {
+                                    strokeWidth: 1,
+                                    lineDash: [2, 2],
+                                },
+                                {
+                                    strokeWidth: 0,
+                                },
+                            ],
                         },
                         label: {
-                            enabled: false,
+                            formatter: (params) => {
+                                const value = params.value;
+                                if (value >= 1000000) {
+                                    return `${(value / 1000000).toFixed(1)}M`;
+                                } else if (value >= 1000) {
+                                    return `${(value / 1000).toFixed(0)}K`;
+                                }
+                                return value.toFixed(0);
+                            },
                         },
                     },
                 },
             },
             bar: {
                 series: {
-                    fillOpacity: 0.4,
+                    fillOpacity: 0.85,
+                    strokeWidth: 0,
+                    highlight: {
+                        highlightedItem: {
+                            fillOpacity: 1,
+                        },
+                    },
                 },
             },
             line: {
                 series: {
+                    strokeWidth: 3,
+                    strokeOpacity: 1,
                     marker: {
-                        shape: bar,
-                        size: 10,
+                        enabled: true,
+                        size: 6,
+                        strokeWidth: 2,
+                    },
+                    highlight: {
+                        highlightedItem: {
+                            strokeWidth: 4,
+                        },
                     },
                 },
             },
         },
     },
     series: [
-        {
-            type: 'line',
-            xKey: 'location',
-            xName: 'Location',
-            yKey: 'startups',
-            yName: 'Startups',
-        },
-        {
-            type: 'line',
-            xKey: 'location',
-            xName: 'Location',
-            yKey: 'techCompanies',
-            yName: 'Tech Companies',
-        },
-        {
-            type: 'bar',
-            xKey: 'location',
-            xName: 'Location',
-            yKey: 'funding',
-            yName: 'Funding',
-            fillOpacity: 1,
-        },
-        {
-            type: 'bar',
-            xKey: 'location',
-            xName: 'Location',
-            yKey: 'employees',
-            yName: 'Employees',
-            fillOpacity: 1,
-        },
+        // Bar series - Infrastructure metrics
         {
             type: 'bar',
             xKey: 'location',
             xName: 'Location',
             yKey: 'researchInstitutions',
             yName: 'Research Institutions',
-        },
-        {
-            type: 'bar',
-            xKey: 'location',
-            xName: 'Location',
-            yKey: 'ventureCapitalFunds',
-            yName: 'Venture Capital Funds',
+            grouped: true,
         },
         {
             type: 'bar',
@@ -116,20 +120,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'incubators',
             yName: 'Incubators',
-        },
-        {
-            type: 'bar',
-            xKey: 'location',
-            xName: 'Location',
-            yKey: 'coWorkingSpaces',
-            yName: 'Co-working Spaces',
-        },
-        {
-            type: 'bar',
-            xKey: 'location',
-            xName: 'Location',
-            yKey: 'innovationHubs',
-            yName: 'Innovation Hubs',
+            grouped: true,
         },
         {
             type: 'bar',
@@ -137,47 +128,99 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'accelerators',
             yName: 'Accelerators',
+            grouped: true,
+        },
+        {
+            type: 'bar',
+            xKey: 'location',
+            xName: 'Location',
+            yKey: 'coWorkingSpaces',
+            yName: 'Co-working Spaces',
+            grouped: true,
+        },
+        // Line series - Growth metrics
+        {
+            type: 'line',
+            xKey: 'location',
+            xName: 'Location',
+            yKey: 'startups',
+            yName: 'Startups (Count)',
+            strokeWidth: 3,
+            marker: {
+                size: 7,
+            },
+        },
+        {
+            type: 'line',
+            xKey: 'location',
+            xName: 'Location',
+            yKey: 'funding',
+            yName: 'Funding ($M)',
+            strokeWidth: 3,
+            lineDash: [6, 3],
+            marker: {
+                size: 7,
+                shape: 'diamond',
+            },
         },
     ],
     axes: [
         {
             position: 'left',
             type: 'number',
-            keys: ['startups', 'techCompanies'],
-        },
-        {
-            position: 'left',
-            type: 'number',
-            keys: ['employees'],
-        },
-        {
-            position: 'left',
-            type: 'number',
-            keys: ['funding'],
+            keys: ['researchInstitutions', 'incubators', 'accelerators', 'coWorkingSpaces'],
             title: {
-                text: 'Number of Employees & Funding',
+                text: 'Infrastructure Count',
+            },
+            min: 0,
+            nice: true,
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
         },
         {
             position: 'right',
             type: 'number',
-            keys: [
-                'researchInstitutions',
-                'incubators',
-                'accelerators',
-                'ventureCapitalFunds',
-                'coWorkingSpaces',
-                'innovationHubs',
-            ],
+            keys: ['startups', 'funding'],
             title: {
-                text: 'Number of Institutions',
+                text: 'Startups & Funding',
+            },
+            min: 0,
+            nice: true,
+            label: {
+                formatter: (params) => {
+                    const value = params.value;
+                    if (value >= 10000) {
+                        return `${(value / 1000).toFixed(0)}K`;
+                    }
+                    return value.toFixed(0);
+                },
             },
         },
         {
-            position: 'top',
+            position: 'bottom',
             type: 'grouped-category',
+            bandHighlight: {
+                enabled: true,
+            },
         },
     ],
+    legend: {
+        position: 'bottom',
+        orientation: 'horizontal',
+        item: {
+            paddingX: 12,
+            paddingY: 8,
+        },
+    },
 };
 
 AgCharts.create(options);

@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
@@ -12,14 +12,14 @@ const volumeNumberFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 0,
 });
 
-const options: AgChartOptions<DataType> = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
         text: 'USD/GBP',
     },
     subtitle: {
-        text: 'CCY - CCY Price in GBP',
+        text: 'Foreign Exchange Rate',
         spacing: 20,
     },
     footnote: {
@@ -39,17 +39,25 @@ const options: AgChartOptions<DataType> = {
             closeKey: 'close',
             closeName: 'Close',
             tooltip: {
-                renderer({ datum }) {
-                    return [
-                        `<div class="status-bar">`,
-                        `<div class="status-bar-row">`,
-                        `<span class="label">O</span><span class="value">${numberFormatter.format(datum.open)}</span>`,
-                        `<span class="label">L</span><span class="value">${numberFormatter.format(datum.low)}</span>`,
-                        `<span class="label">H</span><span class="value">${numberFormatter.format(datum.high)}</span>`,
-                        `<span class="label">C</span><span class="value">${numberFormatter.format(datum.close)}</span>`,
-                        `</div>`,
-                        `</div>`,
-                    ].join('');
+                renderer({ datum, xKey }) {
+                    const change = datum.close - datum.open;
+                    const changePercent = (change / datum.open) * 100;
+                    const changeSymbol = change >= 0 ? '▲' : '▼';
+
+                    return {
+                        heading: (datum[xKey] as Date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                        }),
+                        title: `${changeSymbol} ${numberFormatter.format(Math.abs(change))} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`,
+                        data: [
+                            { label: 'Open', value: `£${numberFormatter.format(datum.open)}` },
+                            { label: 'High', value: `£${numberFormatter.format(datum.high)}` },
+                            { label: 'Low', value: `£${numberFormatter.format(datum.low)}` },
+                            { label: 'Close', value: `£${numberFormatter.format(datum.close)}` },
+                        ],
+                    };
                 },
             },
         },
@@ -66,6 +74,12 @@ const options: AgChartOptions<DataType> = {
             },
             gridLine: {
                 enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                ],
             },
             parentLevel: {
                 enabled: true,
@@ -84,22 +98,39 @@ const options: AgChartOptions<DataType> = {
                 {
                     type: 'line',
                     value: 0.8016,
-                    lineDash: [4, 3],
-                    stroke: 'red',
+                    lineDash: [6, 3],
+                    strokeWidth: 1.5,
+                    label: {
+                        text: 'Avg: 0.8016',
+                        position: 'top-left',
+                        padding: 4,
+                    },
                 },
             ],
+            gridLine: {
+                enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [1, 3],
+                    },
+                ],
+            },
         },
     ],
     tooltip: {
         position: {
             anchorTo: 'chart',
             placement: 'top-left',
-            xOffset: 10,
-            yOffset: 55,
+            xOffset: 0,
+            yOffset: 0,
         },
     },
     formatter: {
-        y: '#{,.4f}',
+        y: ({ value }) => `£${Number(value).toFixed(3)}`,
+    },
+    legend: {
+        enabled: false,
     },
 };
 AgCharts.create(options);

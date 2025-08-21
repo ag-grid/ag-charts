@@ -31,10 +31,41 @@ const options: AgChartOptions = {
                 up: {
                     fill: 'transparent',
                     stroke: '#2b5c95',
+                    strokeWidth: 1.5,
                 },
                 down: {
                     fill: '#5090dc',
                     stroke: '#2b5c95',
+                    strokeWidth: 1.5,
+                },
+            },
+            tooltip: {
+                renderer: ({ datum, xKey, openKey, closeKey, highKey, lowKey }) => {
+                    const date = new Date(datum[xKey]);
+                    const open = datum[openKey];
+                    const close = datum[closeKey];
+                    const high = datum[highKey];
+                    const low = datum[lowKey];
+                    const change = close - open;
+                    const changePercent = (change / open) * 100;
+
+                    return {
+                        heading: 'Price Data',
+                        title: date.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                        }),
+                        data: [
+                            { label: 'Open', value: `$${open.toLocaleString()}` },
+                            { label: 'High', value: `$${high.toLocaleString()}` },
+                            { label: 'Low', value: `$${low.toLocaleString()}` },
+                            { label: 'Close', value: `$${close.toLocaleString()}` },
+                            {
+                                label: 'Change',
+                                value: `${change >= 0 ? '+' : ''}$${change.toFixed(0)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(1)}%)`,
+                            },
+                        ],
+                    };
                 },
             },
         },
@@ -52,22 +83,75 @@ const options: AgChartOptions = {
             },
             gridLine: {
                 enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                ],
             },
+            crosshair: {
+                enabled: true,
+                strokeWidth: 0,
+                label: {
+                    enabled: true,
+                },
+            },
+            bandHighlight: {},
         },
         {
             type: 'number',
             position: 'right',
             interval: { step: 10000 },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
+            crosshair: {
+                enabled: true,
+                label: {
+                    enabled: true,
+                },
+            },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 20000,
+                    strokeWidth: 1,
+                    lineDash: [5, 5],
+                    label: {
+                        text: '$20K',
+                    },
+                },
+                {
+                    type: 'line',
+                    value: 60000,
+                    strokeWidth: 1,
+                    lineDash: [5, 5],
+                    label: {
+                        text: '$60K',
+                    },
+                },
+            ],
         },
     ],
     tooltip: {
         position: {
             anchorTo: 'pointer',
+            placement: ['right', 'left', 'top', 'bottom'],
+            xOffset: 20,
             yOffset: -20,
         },
     },
     formatter: {
-        y: '#{,.0f}',
+        y: '$#{,.0f}',
     },
 };
 AgCharts.create(options);

@@ -1,19 +1,14 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const formatter = new Intl.NumberFormat(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-});
-
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Social Media Market Share Over Time',
     },
     subtitle: {
-        text: 'Market Share of Popular Social Media Platforms from 2013 to 2023',
+        text: 'Market Share Range of Popular Social Media Platforms (2013-2023)',
     },
     series: Object.entries(getData()).map(([platform, data]) => ({
         data,
@@ -23,19 +18,43 @@ const options: AgChartOptions = {
         yName: platform,
         yLowKey: 'shareLow',
         yHighKey: 'shareHigh',
-        yLowName: 'Lowest Share',
-        yHighName: 'Highest Share',
-        strokeWidth: 0,
-        fillOpacity: 0.5,
+        yLowName: 'Min Share',
+        yHighName: 'Max Share',
+        strokeWidth: 1,
+        strokeOpacity: 0.4,
+        fillOpacity: 0.35,
         marker: {
-            enabled: true,
+            enabled: false,
+        },
+        highlight: {
+            highlightedDatum: {
+                strokeWidth: 2,
+                fillOpacity: 0.6,
+            },
+            highlightedSeries: {
+                enabled: true,
+                strokeWidth: 2,
+                fillOpacity: 0.5,
+                dimOpacity: 0.2,
+            },
         },
     })),
     axes: [
         {
             type: 'number',
             position: 'left',
-            interval: { step: 25 },
+            nice: true,
+            label: {
+                formatter: ({ value }) => `${value}%`,
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [3, 3],
+                    },
+                ],
+            },
             crossLines: [
                 {
                     type: 'line',
@@ -64,39 +83,42 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            crossLines: [
-                {
-                    type: 'range',
-                    range: ['2017', '2017'],
-                    lineDash: [6, 8],
-                    strokeOpacity: 0.5,
-                    label: {
-                        text: '2017',
+            bandHighlight: {
+                enabled: true,
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
                     },
-                },
-                {
-                    type: 'range',
-                    range: ['2020', '2020'],
-                    lineDash: [6, 8],
-                    strokeOpacity: 0.5,
-                    label: {
-                        text: '2020',
+                    {
+                        strokeWidth: 0,
                     },
-                },
-            ],
+                ],
+            },
         },
     ],
     seriesArea: {
         padding: {
-            left: 20,
-            bottom: 20,
+            left: 10,
+            bottom: 10,
+            right: 10,
+            top: 10,
         },
     },
     legend: {
-        position: 'top',
+        position: 'bottom',
+        item: {
+            paddingX: 16,
+            paddingY: 8,
+        },
+    },
+    tooltip: {
+        mode: 'shared',
     },
     formatter: {
-        y: '#{.0f}%',
+        y: '#{.1f}%',
     },
 };
 

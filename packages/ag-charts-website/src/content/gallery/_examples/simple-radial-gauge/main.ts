@@ -31,9 +31,7 @@ const options: AgGaugeOptions = {
     bar: {
         fillMode: 'discrete',
     },
-    label: {
-        fontSize: 20,
-    },
+    label: {},
     secondaryLabel: {
         text: 'Grid Performance',
     },
