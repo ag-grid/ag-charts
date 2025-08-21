@@ -49,7 +49,7 @@ const options: AgPolarChartOptions = {
         enabled: false,
     },
     formatter: {
-        angle(params) {
+        angle: (params) => {
             const value = params.value as number;
             return value < 1e9 ? `${numFormatter.format(value / 1e6)}M` : `${numFormatter.format(value / 1e9)}B`;
         },

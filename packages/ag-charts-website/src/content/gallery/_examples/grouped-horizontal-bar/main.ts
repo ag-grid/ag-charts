@@ -7,11 +7,9 @@ const options: AgChartOptions = {
     data: getData(),
     title: {
         text: 'Changes in Prison Population',
-        fontSize: 20,
     },
     footnote: {
         text: "Source: Ministry of Justice, HM Prison Service, and HM's Prison and Probation Service",
-        fontSize: 12,
         fontStyle: 'italic',
     },
     legend: {
@@ -138,11 +136,9 @@ const options: AgChartOptions = {
             max: 500,
             title: {
                 text: 'Change in Population',
-                fontSize: 14,
             },
             label: {
                 enabled: true,
-                fontSize: 12,
                 formatter: (params: { value: number }) => `${params.value > 0 ? '+' : ''}${params.value}`,
             },
             gridLine: {

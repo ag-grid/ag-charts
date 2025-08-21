@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
 
 import { londonBoroughData } from './londonBoroughData';
 import { londonBoroughTopology } from './londonBoroughTopology';
@@ -11,17 +11,42 @@ const sizeDomain = [0, 141537];
 const strokeWidth = 1;
 const maxStrokeWidth = 5;
 
-const options: AgChartOptions = {
+const tubeLineColours = {
+    Bakerloo: '#B26300',
+    'Hammersmith & City': '#F589A6',
+    Jubilee: '#838D93',
+    Victoria: '#039BE5',
+    District: '#007D32',
+    Metropolitan: '#9B0058',
+    Northern: '#000000',
+};
+
+const options: AgTopologyChartOptions = {
     container: document.getElementById('myChart'),
     topology: tubeTopology,
     title: {
         text: 'London Tube Lines',
+    },
+    subtitle: {
+        text: 'Passenger traffic by line section (daily ridership)',
     },
     padding: {
         top: 0,
         bottom: 0,
         right: 0,
         left: 0,
+    },
+    legend: {
+        enabled: true,
+        position: {
+            placement: 'right',
+            floating: true,
+        },
+        item: {
+            line: {
+                strokeWidth: 4,
+            },
+        },
     },
     series: [
         {
@@ -34,8 +59,8 @@ const options: AgChartOptions = {
             fill: '#0000',
             stroke: '#6687990C',
             strokeWidth: 1,
+            showInLegend: false,
             label: {
-                fontSize: 10,
                 minimumFontSize: 8,
                 color: '#66879933',
                 formatter: ({ value }) => {
@@ -53,132 +78,50 @@ const options: AgChartOptions = {
             fill: '#66879933',
             stroke: '#6687990C',
             strokeWidth: 1,
+            showInLegend: false,
             label: {
-                fontSize: 10,
+                enabled: true,
                 minimumFontSize: 8,
             },
+            highlight: {
+                highlightedItem: {
+                    strokeWidth: 2,
+                },
+            },
+            tooltip: {
+                renderer: ({ datum }) => {
+                    const borough = datum['name'];
+                    return {
+                        title: 'London Borough',
+                    };
+                },
+            },
         },
-        {
-            type: 'map-line',
-            title: 'Bakerloo',
-            data: tubeData['Bakerloo'],
+        ...Object.entries(tubeData).map(([line, data]) => ({
+            type: 'map-line' as const,
+            title: line,
+            data,
             idKey: 'section',
             sizeKey: 'passengers',
-            stroke: '#B26300',
+            stroke: tubeLineColours[line as keyof typeof tubeLineColours],
             sizeDomain,
-            strokeWidth,
-            maxStrokeWidth,
-        },
-        {
-            type: 'map-line',
-            title: 'Hammersmith & City',
-            data: tubeData['Hammersmith & City'],
-            idKey: 'section',
-            sizeKey: 'passengers',
-            stroke: '#F589A6',
-            sizeDomain,
-            strokeWidth,
-            maxStrokeWidth,
-        },
-        {
-            type: 'map-line',
-            title: 'Jubilee',
-            data: tubeData['Jubilee'],
-            idKey: 'section',
-            sizeKey: 'passengers',
-            stroke: '#838D93',
-            sizeDomain,
-            strokeWidth,
-            maxStrokeWidth,
-        },
-        {
-            type: 'map-line',
-            title: 'Victoria',
-            data: tubeData['Victoria'],
-            idKey: 'section',
-            sizeKey: 'passengers',
-            stroke: '#039BE5',
-            sizeDomain,
-            strokeWidth,
-            maxStrokeWidth,
-        },
-        {
-            type: 'map-line',
-            title: 'District',
-            data: tubeData['District'],
-            idKey: 'section',
-            sizeKey: 'passengers',
-            stroke: '#007D32',
-            sizeDomain,
-            strokeWidth,
-            maxStrokeWidth,
-        },
-        {
-            type: 'map-line',
-            title: 'Metropolitan',
-            data: tubeData['Metropolitan'],
-            idKey: 'section',
-            sizeKey: 'passengers',
-            stroke: '#9B0058',
-            sizeDomain,
-            strokeWidth,
-            maxStrokeWidth,
-        },
-        {
-            type: 'map-line',
-            title: 'Northern',
-            data: tubeData['Northern'],
-            idKey: 'section',
-            sizeKey: 'passengers',
-            stroke: 'black',
-            sizeDomain,
-            strokeWidth,
-            maxStrokeWidth,
-        },
-        {
-            type: 'map-line',
-            title: 'Piccadilly',
-            data: tubeData['Piccadilly'],
-            idKey: 'section',
-            sizeKey: 'passengers',
-            stroke: '#0019A8',
-            sizeDomain,
-            strokeWidth,
-            maxStrokeWidth,
-        },
-        {
-            type: 'map-line',
-            title: 'Waterloo & City',
-            data: tubeData['Waterloo & City'],
-            idKey: 'section',
-            sizeKey: 'passengers',
-            stroke: '#76D0BD',
-            sizeDomain,
-            strokeWidth,
-            maxStrokeWidth,
-        },
-        {
-            type: 'map-line',
-            title: 'Circle',
-            data: tubeData['Circle'],
-            idKey: 'section',
-            sizeKey: 'passengers',
-            stroke: '#FFC80A',
-            sizeDomain,
-            strokeWidth,
-            maxStrokeWidth,
-        },
-        {
-            type: 'map-line',
-            title: 'Central',
-            data: tubeData['Central'],
-            idKey: 'section',
-            sizeKey: 'passengers',
-            stroke: '#DC241F',
-            sizeDomain,
-            strokeWidth,
-            maxStrokeWidth,
-        },
+            strokeWidth: strokeWidth + 0.5,
+            maxStrokeWidth: maxStrokeWidth + 1,
+            highlight: {
+                highlightedItem: {
+                    strokeWidth: 8,
+                    strokeOpacity: 0.9,
+                },
+            },
+            tooltip: {
+                renderer: ({ datum }: { datum: any }) => {
+                    const passengers = (datum as any)['passengers'].toLocaleString();
+                    return {
+                        data: [{ label: `Passengers`, value: passengers }],
+                    };
+                },
+            },
+        })),
     ],
 };
 

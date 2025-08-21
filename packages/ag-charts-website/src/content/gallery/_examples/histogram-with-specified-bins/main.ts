@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgHistogramSeriesOptions } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
@@ -22,7 +22,7 @@ const gradeBoundaries: GradeBoundaries = {
     'A*': [258, 370],
 };
 
-const options: AgChartOptions<DataType> = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Student Performance Report',
@@ -33,43 +33,66 @@ const options: AgChartOptions<DataType> = {
     footnote: {
         text: 'Academic Performance of Students at Clifton School (2023)',
     },
-    padding: {
-        left: 0,
+    tooltip: {
+        mode: 'shared',
     },
-    series: Object.entries(getData()).map(([grade, gradeData], index) => ({
-        data: gradeData,
-        type: 'histogram',
-        xKey: 'score',
-        xName: grade,
-        yName: grade,
-        bins: [gradeBoundaries[grade as keyof typeof gradeBoundaries]],
-        areaPlot: true,
-        tooltip: {
-            renderer: ({ datum, xName }) => {
-                return {
-                    title: 'Grade ' + xName,
-                    data: [
-                        { label: 'Score', value: datum.domain.join(' - ') },
-                        { label: 'Frequency', value: String(datum.frequency) },
-                    ],
-                };
-            },
-        },
-        stroke: 'transparent',
-        strokeWidth: 2,
-        cornerRadius: 6,
-        fill: index % 2 === 0 ? { type: 'pattern' } : undefined,
-    })),
+    formatter: {
+        y: ({ value }) => (typeof value === 'number' ? value.toFixed(1) : String(value)),
+    },
+    series: Object.entries(getData()).map(
+        ([grade, gradeData], index) =>
+            ({
+                data: gradeData,
+                type: 'histogram',
+                xKey: 'score',
+                xName: grade,
+                yName: `Grade ${grade}`,
+                bins: [gradeBoundaries[grade as keyof typeof gradeBoundaries]],
+                areaPlot: true,
+                tooltip: {
+                    renderer: ({ datum, xName }) => {
+                        const [minScore, maxScore] = datum.domain;
+                        const scoreRange = minScore === maxScore ? `${minScore}` : `${minScore} - ${maxScore}`;
+
+                        return {
+                            heading: scoreRange,
+                            title: `Grade ${xName}`,
+                            data: [{ label: 'Students', value: datum.frequency.toFixed(0) }],
+                        };
+                    },
+                },
+                strokeWidth: 1,
+                cornerRadius: 4,
+                fill: index % 3 === 1 ? { type: 'pattern' } : undefined,
+            }) satisfies AgHistogramSeriesOptions<DataType>
+    ),
     axes: [
         {
             position: 'bottom',
             type: 'number',
             nice: false,
+            title: {
+                text: 'Exam Score',
+            },
             gridLine: {
-                enabled: false,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
             crosshair: {
-                enabled: false,
+                enabled: true,
+                strokeWidth: 1,
+                lineDash: [5, 5],
+                label: {
+                    enabled: true,
+                    formatter: ({ value }) => value.toFixed(0),
+                },
             },
         },
         {
@@ -78,13 +101,39 @@ const options: AgChartOptions<DataType> = {
             title: {
                 text: 'Frequency Density',
             },
-            label: {
-                enabled: false,
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
         },
     ],
     legend: {
-        position: 'top',
+        maxHeight: 240,
+        maxWidth: 280,
+        position: {
+            placement: 'top-right',
+            floating: true,
+            xOffset: -20,
+            yOffset: 20,
+        },
+        padding: 10,
+        border: {
+            enabled: true,
+        },
+        item: {
+            paddingX: 16,
+            paddingY: 8,
+            marker: {
+                size: 18,
+            },
+        },
     },
 };
 

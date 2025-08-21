@@ -24,12 +24,20 @@ export async function GET() {
         allGalleryData,
     });
 
-    const output = getIsDev() ? js : await minifyJs(js);
-
-    return new Response(output, {
-        status: 200,
-        headers: {
-            'Content-Type': 'application/javascript',
-        },
-    });
+    try {
+        const output = getIsDev() ? js : await minifyJs(js);
+        return new Response(output, {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/javascript',
+            },
+        });
+    } catch (e) {
+        return new Response(e instanceof Error ? e.message : 'Unknown error', {
+            status: 500,
+            headers: {
+                'Content-Type': 'application/javascript',
+            },
+        });
+    }
 }

@@ -7,12 +7,14 @@ import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-g
 import { GalleryExampleLink } from '@components/gallery/components/GalleryExampleLink';
 import { GalleryExampleThemeDropdown } from '@components/gallery/components/GalleryExampleThemeDropdown';
 import { GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
+import { getModifiedGalleryExamples } from '@components/gallery/utils/modifiedExamples';
 import styles from '@pages-styles/gallery.module.scss';
 
 const galleryDataEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
 const galleryData: GalleryData = galleryDataEntry?.data;
 const { series } = galleryData;
 const enableDprScaling = GALLERY_IMAGE_DPR_ENHANCEMENT;
+const modifiedExamples = getModifiedGalleryExamples();
 ---
 
 <Layout
@@ -65,6 +67,7 @@ const enableDprScaling = GALLERY_IMAGE_DPR_ENHANCEMENT;
                                                     exampleName={name}
                                                     id={i === 0 ? seriesName : null}
                                                     enableDprScaling={enableDprScaling}
+                                                    isModified={modifiedExamples.has(name)}
                                                 />
                                             ))}
                                     </>

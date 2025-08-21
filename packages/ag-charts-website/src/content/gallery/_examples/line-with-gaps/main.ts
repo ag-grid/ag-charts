@@ -11,11 +11,9 @@ const options: AgCartesianChartOptions = {
     },
     title: {
         text: 'Imported Banana Prices by Country',
-        fontSize: 20,
     },
     footnote: {
         text: 'Source: Department for Environment, Food and Rural Affairs',
-        fontSize: 12,
         fontStyle: 'italic',
     },
     legend: {
@@ -161,10 +159,8 @@ const options: AgCartesianChartOptions = {
             position: 'bottom',
             title: {
                 text: 'Week of Year',
-                fontSize: 14,
             },
             label: {
-                fontSize: 12,
                 rotation: 0,
                 minSpacing: 70,
                 formatter: (params) => {
@@ -180,10 +176,8 @@ const options: AgCartesianChartOptions = {
             position: 'left',
             title: {
                 text: 'Price (£ per kg)',
-                fontSize: 14,
             },
             label: {
-                fontSize: 12,
                 formatter: (params) => `£${params.value.toFixed(2)}`,
             },
             gridLine: {

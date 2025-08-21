@@ -26,6 +26,9 @@ const options: AgChartOptions<DataType> = {
             yKey: 'sales',
             yName: 'Sales',
             strokeWidth: 1,
+            label: {
+                enabled: true,
+            },
             fill: {
                 type: 'gradient',
                 colorStops: [
@@ -34,19 +37,22 @@ const options: AgChartOptions<DataType> = {
                     { color: '#2c6ed5', stop: 1 },
                 ],
             },
-            label: {
-                enabled: true,
-            },
         },
     ],
     axes: [
         {
             type: 'unit-time',
             position: 'bottom',
+            gridLine: {
+                style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
+            },
         },
         {
             type: 'number',
             position: 'left',
+            gridLine: {
+                style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
+            },
         },
     ],
     formatter: {

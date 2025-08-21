@@ -53,7 +53,7 @@ const options: AgChartOptions = {
         },
     },
     formatter: {
-        x(params) {
+        x: (params) => {
             if (params.type !== 'number') return;
             let fractionDigits = params.fractionDigits ?? 0;
             fractionDigits = Math.max(fractionDigits - 1, 0);

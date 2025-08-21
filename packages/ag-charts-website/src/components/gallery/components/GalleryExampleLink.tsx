@@ -10,19 +10,35 @@ interface Props {
     exampleName: string;
     id?: string;
     enableDprScaling: boolean;
+    isModified?: boolean;
 }
 
-export const GalleryExampleLink: FunctionComponent<Props> = ({ label, exampleName, id, enableDprScaling }) => {
+export const GalleryExampleLink: FunctionComponent<Props> = ({
+    label,
+    exampleName,
+    id,
+    enableDprScaling,
+    isModified,
+}) => {
     return (
         <a
-            className={classnames(styles.link, 'galleryExample', styles[`layout-3-col`], 'text-sm', 'text-secondary')}
+            className={classnames(styles.link, 'galleryExample', styles[`layout-3-col`], 'text-sm', 'text-secondary', {
+                [styles.modified]: isModified,
+            })}
             href={getPageUrl(exampleName)}
             id={id}
         >
             <div className={styles.image}>
                 <GalleryExampleImage label={label} exampleName={exampleName} enableDprScaling={enableDprScaling} />
             </div>
-            <span className={styles.label}>{label}</span>
+            <span className={styles.label}>
+                {label}
+                {isModified && (
+                    <span className={styles.modifiedIndicator} title="Modified on this branch">
+                        ●
+                    </span>
+                )}
+            </span>
         </a>
     );
 };

@@ -1,16 +1,22 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Trigonometric Functions',
     },
     subtitle: {
-        text: 'From -2π to 2π, one cycle within 2π',
+        text: 'Mathematical relationships from -2π to 2π',
     },
     data: getData(),
+    tooltip: {
+        enabled: true,
+        position: {
+            placement: ['right', 'left', 'top', 'bottom'],
+        },
+    },
     series: [
         {
             type: 'line',
@@ -49,6 +55,7 @@ const options: AgChartOptions = {
             yName: 'Cosecant',
             lineDash: [4, 1, 4],
             strokeWidth: 3,
+            strokeOpacity: 0.8,
             marker: {
                 enabled: false,
             },
@@ -60,6 +67,7 @@ const options: AgChartOptions = {
             yName: 'Secant',
             lineDash: [4, 1, 4],
             strokeWidth: 3,
+            strokeOpacity: 0.8,
             marker: {
                 enabled: false,
             },
@@ -71,6 +79,7 @@ const options: AgChartOptions = {
             yName: 'Cotangent',
             lineDash: [4, 1, 4],
             strokeWidth: 3,
+            strokeOpacity: 0.8,
             marker: {
                 enabled: false,
             },
@@ -82,13 +91,18 @@ const options: AgChartOptions = {
             type: 'number',
             min: -3,
             max: 3,
+            crosshair: {
+                enabled: true,
+                label: {
+                    enabled: true,
+                },
+            },
             crossLines: [
                 {
                     type: 'line',
                     value: 0,
                     label: {
                         text: '► X',
-                        fontSize: 15,
                         position: 'right',
                         padding: 0,
                     },
@@ -105,13 +119,18 @@ const options: AgChartOptions = {
             type: 'number',
             nice: false,
             interval: { step: Math.PI },
+            crosshair: {
+                enabled: true,
+                label: {
+                    enabled: true,
+                },
+            },
             crossLines: [
                 {
                     type: 'line',
                     value: 0,
                     label: {
                         text: 'Y\n▲',
-                        fontSize: 15,
                         position: 'top',
                         padding: 0,
                     },
@@ -119,13 +138,41 @@ const options: AgChartOptions = {
             ],
         },
     ],
+    legend: {
+        position: 'bottom',
+        item: {
+            paddingX: 16,
+            paddingY: 8,
+            marker: {
+                strokeWidth: 0,
+            },
+        },
+    },
     formatter: {
         x(params) {
             const value = params.value as number;
             if (params.source === 'axis-label') {
                 return `${Math.round(value / Math.PI)}π`;
             }
-            return value.toFixed(2);
+            // For tooltips and crosshairs
+            const piValue = value / Math.PI;
+            const formatted =
+                Math.abs(piValue) < 0.01
+                    ? '0'
+                    : Math.abs(piValue - 0.5) < 0.01
+                      ? 'π/2'
+                      : Math.abs(piValue + 0.5) < 0.01
+                        ? '-π/2'
+                        : Math.abs(piValue - 1) < 0.01
+                          ? 'π'
+                          : Math.abs(piValue + 1) < 0.01
+                            ? '-π'
+                            : Math.abs(piValue - 1.5) < 0.01
+                              ? '3π/2'
+                              : Math.abs(piValue + 1.5) < 0.01
+                                ? '-3π/2'
+                                : `${piValue.toFixed(2)}π`;
+            return formatted;
         },
     },
 };
