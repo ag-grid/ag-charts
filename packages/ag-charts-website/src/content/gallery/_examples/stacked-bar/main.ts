@@ -19,15 +19,12 @@ const options: AgCartesianChartOptions = {
     },
     title: {
         text: 'Station Entries',
-        fontSize: 20,
     },
     subtitle: {
         text: 'Victoria Line (2023)',
-        fontSize: 14,
     },
     footnote: {
         text: 'Source: Transport for London',
-        fontSize: 12,
         fontStyle: 'italic',
     },
     legend: {
@@ -93,11 +90,8 @@ const options: AgCartesianChartOptions = {
             paddingOuter: 0.1,
             title: {
                 text: 'Station',
-                fontSize: 14,
             },
-            label: {
-                fontSize: 12,
-            },
+            label: {},
             bandHighlight: {
                 enabled: true,
             },
@@ -118,11 +112,9 @@ const options: AgCartesianChartOptions = {
             position: 'left',
             title: {
                 text: 'Percentage of Daily Entries',
-                fontSize: 14,
             },
             label: {
                 enabled: true,
-                fontSize: 12,
                 formatter: (params) => `${params.value}%`,
             },
             gridLine: {

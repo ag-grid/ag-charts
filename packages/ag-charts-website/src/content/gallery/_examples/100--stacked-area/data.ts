@@ -1,5 +1,17 @@
 // Source: https://www.gov.uk/government/statistics/total-energy-section-1-energy-trends
-export function getData(): any[] {
+
+export interface EnergyData {
+    date: Date;
+    coal: number;
+    petroleum: number;
+    naturalGas: number;
+    bioenergyWaste: number;
+    nuclear: number;
+    windSolarHydro: number;
+    imported: number;
+}
+
+export function getData(): EnergyData[] {
     return [
         {
             date: new Date(2020, 0, 1),

@@ -6,14 +6,21 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Vehicle Fuel Efficiency',
-        fontSize: 18,
+        text: 'Vehicle Fuel Efficiency by Engine Size',
     },
     subtitle: {
-        text: 'USA 1987',
+        text: 'Average Highway MPG across Engine Displacement Categories · USA 1987',
     },
     footnote: {
-        text: 'Source: UCI',
+        text: 'Source: UCI Machine Learning Repository',
+    },
+    formatter: {
+        y: ({ value }) => {
+            if (typeof value === 'number') {
+                return `${value.toFixed(1)} mpg`;
+            }
+            return String(value);
+        },
     },
     series: [
         {
@@ -23,10 +30,30 @@ const options: AgChartOptions = {
             yKey: 'highway-mpg',
             yName: 'Highway MPG',
             aggregation: 'mean',
-            cornerRadius: 6,
+            cornerRadius: 8,
             fillOpacity: 0.7,
+            strokeWidth: 1,
             label: {
-                formatter: ({ value }) => value.toFixed(0),
+                enabled: true,
+                formatter: ({ value }) => value.toFixed(1),
+            },
+            tooltip: {
+                renderer: ({ datum }) => {
+                    const binStart = datum.domain[0];
+                    const binEnd = datum.domain[1];
+                    const meanValue = datum.frequency;
+
+                    return {
+                        title: `${binStart} - ${binEnd} in³`,
+                        content: `Average MPG: ${meanValue.toFixed(1)}`,
+                    };
+                },
+            },
+            highlight: {
+                highlightedItem: {
+                    fillOpacity: 1,
+                    strokeWidth: 3,
+                },
             },
         },
     ],
@@ -40,7 +67,28 @@ const options: AgChartOptions = {
             },
             title: {
                 enabled: true,
-                text: 'Engine Size (Cubic Inches)',
+                text: 'Engine Displacement (Cubic Inches)',
+            },
+            label: {
+                formatter: ({ value }) => `${value}`,
+            },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 200,
+                    strokeWidth: 1,
+                    lineDash: [6, 3],
+                    strokeOpacity: 0.4,
+                    label: {
+                        text: 'Large Engines',
+                        fontStyle: 'italic',
+                        padding: 5,
+                        position: 'inside-bottom-right',
+                    },
+                },
+            ],
+            crosshair: {
+                enabled: false,
             },
         },
         {
@@ -48,12 +96,44 @@ const options: AgChartOptions = {
             type: 'number',
             reverse: true,
             title: {
-                text: 'Highway MPG',
+                text: 'Average Highway MPG (Better →)',
             },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [3, 3],
+                    },
+                ],
+            },
+            crossLines: [
+                {
+                    type: 'range',
+                    range: [15, 25],
+                    fillOpacity: 0.05,
+                    label: {
+                        text: 'Typical Range',
+                        fontStyle: 'italic',
+                        position: 'inside-bottom-right',
+                    },
+                },
+            ],
         },
     ],
     legend: {
         enabled: false,
+    },
+    padding: {
+        top: 20,
+        right: 20,
+        bottom: 20,
+        left: 20,
+    },
+    tooltip: {
+        position: {
+            xOffset: 20,
+            yOffset: 20,
+        },
     },
 };
 

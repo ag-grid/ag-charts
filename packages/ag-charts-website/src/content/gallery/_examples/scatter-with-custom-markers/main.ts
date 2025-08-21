@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts, AgMarkerShapeFnParams, AgPath } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgMarkerShapeFnParams, AgPath } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -19,10 +19,16 @@ function npmLogo({ path, size, x, y }: AgMarkerShapeFnParams) {
     updatePath(pathData, path, size, x, y);
 }
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'AG Charts Popularity',
+        text: 'AG Charts Growth: Accelerating Adoption Through 2022',
+    },
+    subtitle: {
+        text: 'Monthly NPM downloads and daily website visits show strong correlation',
+    },
+    footnote: {
+        text: 'Data: NPM Registry & AG Charts Analytics | Jan 2020 - Oct 2022',
     },
     data: getData(),
     series: [
@@ -32,6 +38,7 @@ const options: AgChartOptions = {
             xName: 'Date',
             yKey: 'numberOfVisits',
             yName: 'Daily Website Visits',
+            title: 'Website Visits',
             shape: agChartsLogo,
             size: 20,
             fillOpacity: 1,
@@ -42,6 +49,7 @@ const options: AgChartOptions = {
             xName: 'Date',
             yKey: 'npmDownloads',
             yName: 'NPM Downloads',
+            title: 'NPM Downloads',
             shape: npmLogo,
             size: 20,
             fillOpacity: 1,
@@ -53,7 +61,15 @@ const options: AgChartOptions = {
             type: 'number',
             keys: ['numberOfVisits'],
             gridLine: {
-                enabled: false,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
             label: {
                 spacing: 15,
@@ -70,7 +86,15 @@ const options: AgChartOptions = {
                 text: 'NPM Downloads',
             },
             gridLine: {
-                enabled: false,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
             label: {
                 spacing: 15,
@@ -80,6 +104,15 @@ const options: AgChartOptions = {
             position: 'bottom',
             type: 'unit-time',
             gridLine: {
+                enabled: true,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [3, 3],
+                    },
+                ],
+            },
+            bandHighlight: {
                 enabled: true,
             },
             label: {
@@ -91,14 +124,33 @@ const options: AgChartOptions = {
         },
     ],
     legend: {
-        position: 'top',
+        position: 'bottom',
+        spacing: 20,
+    },
+    tooltip: {
+        enabled: true,
+        mode: 'shared',
+        position: {
+            placement: ['right', 'left', 'top', 'bottom'],
+        },
     },
     formatter: {
-        x: '%b %y',
+        x: (params) => {
+            if (!(params.value instanceof Date)) return String(params.value);
+            return params.value.toLocaleDateString('en-US', {
+                month: 'short',
+                year: '2-digit',
+            });
+        },
         y: (params) => {
             if (params.type !== 'number') return;
+            const value = params.value / 1000;
             const fractionDigits = params.source === 'tooltip' ? 1 : 0;
-            return `${(params.value / 1000).toFixed(fractionDigits)}K`;
+
+            if (value >= 100) {
+                return `${value.toFixed(fractionDigits)}K`;
+            }
+            return `${value.toFixed(fractionDigits)}K`;
         },
     },
 };

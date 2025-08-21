@@ -1,16 +1,16 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 const data = getData();
 
-const options: AgChartOptions = {
+const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Water Usage',
+        text: 'Water Usage Comparison',
     },
     subtitle: {
-        text: 'Daily Water Usage Per Person Per Day In Litres',
+        text: 'Daily Water Consumption Per Person by Region (Litres)',
     },
     series: [
         {
@@ -19,22 +19,88 @@ const options: AgChartOptions = {
             angleKey: 'value',
             sectorLabelKey: 'country',
             outerRadiusRatio: 1,
-            innerRadiusRatio: 0.6,
-            cornerRadius: 4,
-            fillOpacity: 0.9,
-        },
+            innerRadiusRatio: 0.62,
+            cornerRadius: 5,
+            fillOpacity: 0.85,
+            strokeWidth: 2,
+            strokeOpacity: 0.2,
+            calloutLabel: {
+                enabled: true,
+                minAngle: 20,
+            },
+            highlight: {
+                highlightedItem: {
+                    fillOpacity: 1,
+                    strokeWidth: 3,
+                    strokeOpacity: 0.5,
+                },
+            },
+            tooltip: {
+                renderer: ({ datum, angleKey, sectorLabelKey }) => ({
+                    heading: 'Water Usage Comparison',
+                    title: datum[sectorLabelKey!],
+                    data: [
+                        {
+                            label: 'Water Usage',
+                            value: `${datum[angleKey].toLocaleString()} litres/day`,
+                        },
+                        {
+                            label: 'Share',
+                            value: `${((datum[angleKey] / data['countries'].reduce((sum, d) => sum + d.value, 0)) * 100).toFixed(1)}%`,
+                        },
+                    ],
+                }),
+            },
+        } as AgDonutSeriesOptions,
         {
             data: data['continents'],
             type: 'donut',
             angleKey: 'value',
             sectorLabelKey: 'continent',
-            outerRadiusRatio: 0.5,
-            innerRadiusRatio: 0.1,
-            cornerRadius: 4,
-        },
+            outerRadiusRatio: 0.52,
+            innerRadiusRatio: 0.15,
+            cornerRadius: 3,
+            fillOpacity: 0.95,
+            strokeWidth: 2,
+            strokeOpacity: 0.15,
+            calloutLabel: {
+                enabled: true,
+                minAngle: 0,
+            },
+            highlight: {
+                highlightedItem: {
+                    fillOpacity: 1,
+                    strokeWidth: 3,
+                    strokeOpacity: 0.4,
+                },
+            },
+            tooltip: {
+                renderer: ({ datum, angleKey, sectorLabelKey }) => ({
+                    heading: 'Regional Overview',
+                    title: datum[sectorLabelKey!],
+                    data: [
+                        {
+                            label: 'Total Usage',
+                            value: `${datum[angleKey].toLocaleString()} litres/day`,
+                        },
+                        {
+                            label: 'Average per Country',
+                            value: `${(datum[angleKey] / 3).toFixed(0)} litres/day`,
+                        },
+                    ],
+                }),
+            },
+        } as AgDonutSeriesOptions,
     ],
     formatter: {
-        angle: '#{,.0f} Litres',
+        angle: '#{,.0f}L',
+    },
+    legend: {
+        enabled: false,
+    },
+    animation: {
+        enabled: true,
+        duration: 800,
     },
 };
 

@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: `Renewable Fuel Sources`,
@@ -23,8 +23,38 @@ const options: AgChartOptions = {
                     marker: {
                         enabled: false,
                     },
+                    strokeWidth: 2,
                 },
             },
+        },
+    },
+    // Shared tooltips for multi-series comparison - CRITICAL
+    tooltip: {
+        enabled: true,
+        mode: 'shared',
+        position: {
+            anchorTo: 'pointer',
+            placement: ['top-left', 'bottom-left', 'top-right', 'bottom-right'],
+        },
+    },
+    // Legend positioning with border for professional appearance
+    legend: {
+        position: {
+            placement: 'left-top',
+            floating: true,
+            xOffset: 20,
+            yOffset: 20,
+        },
+        border: {
+            enabled: true,
+            strokeWidth: 1,
+        },
+        cornerRadius: 8,
+        padding: 12,
+        item: {
+            marker: { size: 12 },
+            paddingX: 8,
+            paddingY: 4,
         },
     },
     series: [
@@ -70,12 +100,24 @@ const options: AgChartOptions = {
                 {
                     type: 'line',
                     value: new Date(2020, 0, 1),
+                    strokeWidth: 2,
+                    lineDash: [5, 5],
                     label: {
                         text: 'COVID-19 START',
                         padding: 10,
                     },
                 },
             ],
+            bandHighlight: {
+                enabled: true,
+            },
+            crosshair: {
+                enabled: true,
+                label: {
+                    enabled: true,
+                },
+                strokeWidth: 0,
+            },
         },
         {
             position: 'right',
@@ -83,10 +125,27 @@ const options: AgChartOptions = {
             title: {
                 text: `ktoe`,
             },
+            // Add alternating bands for better readability
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0, // Alternating bands
+                    },
+                ],
+            },
         },
     ],
     formatter: {
         y: (params) => `${(params.value as number) / 1000}K`,
+    },
+    // Zoom and pan capabilities for detailed exploration
+    zoom: {
+        enabled: true,
+        enableAxisDragging: true,
     },
 };
 

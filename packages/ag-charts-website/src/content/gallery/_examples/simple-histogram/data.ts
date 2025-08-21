@@ -1,7 +1,14 @@
+// UCI Machine Learning Repository - Automobile Data Set
 // https://datahub.io/machine-learning/autos#readme
-// https://pkgstore.datahub.io/machine-learning/autos/autos_json/data/8b17c4a98f7851fb204697f43a5185fe/autos_json.json
+// This dataset contains specifications of various automobiles from 1987
+// Engine sizes are measured in cubic inches (cu in)
+// Dataset includes a mix of compact, mid-size, and luxury vehicles
 
-export function getData(): any[] {
+export interface VehicleData {
+    'engine-size': number;
+}
+
+export function getData(): VehicleData[] {
     return [
         {
             'engine-size': 130,

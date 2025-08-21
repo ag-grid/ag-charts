@@ -13,17 +13,37 @@ const options: AgChartOptions = {
     footnote: {
         text: 'Source: American Time Use Survey (2012-2022)',
     },
+    tooltip: {
+        enabled: true,
+        mode: 'shared',
+        position: {
+            placement: ['right', 'left', 'top', 'bottom'],
+        },
+    },
     series: Object.entries(getData()).map(([ageGroup, data]) => ({
         data,
         type: 'line',
         xKey: 'year',
         yKey: 'estimate',
         yName: ageGroup,
+        interpolation: {
+            type: 'smooth',
+        },
         label: {
             enabled: true,
+            formatter: (params) => {
+                // Only show labels for first and last points
+                const currentYear = params.datum.year;
+                if (currentYear === '2012' || currentYear === '2022') {
+                    const value = params.value as number;
+                    return `${Math.round(value * 60)}m`;
+                }
+                return '';
+            },
         },
         marker: {
-            size: 10,
+            size: 7,
+            strokeWidth: 2,
         },
     })),
     axes: [
@@ -31,13 +51,16 @@ const options: AgChartOptions = {
             type: 'category',
             position: 'bottom',
             label: {
-                enabled: false,
+                autoRotate: true,
             },
             line: {
                 enabled: false,
             },
-            crosshair: {
+            bandHighlight: {
                 enabled: true,
+            },
+            crosshair: {
+                enabled: false,
             },
         },
         {
@@ -48,10 +71,18 @@ const options: AgChartOptions = {
             },
             interval: { step: 0.5 },
             gridLine: {
-                enabled: false,
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [3, 3],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
             tick: {
-                size: 20,
+                size: 10,
             },
             line: {
                 enabled: true,
@@ -59,13 +90,12 @@ const options: AgChartOptions = {
             crossLines: [
                 {
                     type: 'line',
-                    value: 0.75,
-                    strokeOpacity: 0.5,
+                    value: 1,
+                    strokeOpacity: 0.3,
                     lineDash: [6, 4],
                     label: {
-                        text: '>Year',
-                        fontSize: 13,
-                        padding: 0,
+                        text: '1 hour',
+                        padding: 5,
                         position: 'right',
                     },
                 },

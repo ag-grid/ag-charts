@@ -37,12 +37,10 @@ const options: AgChartOptions<DataType> = {
     },
     title: {
         text: 'Football Players Performance Analysis',
-        fontSize: 20,
         spacing: 30,
     },
     footnote: {
         text: 'Source: UEFA Champions League Statistics 2013-2023',
-        fontSize: 12,
         fontStyle: 'italic',
     },
     data,
@@ -103,7 +101,6 @@ const options: AgChartOptions<DataType> = {
             interval: { values: [2013, 2018, 2023] },
             title: {
                 text: 'Season',
-                fontSize: 14,
             },
             line: {
                 enabled: false,
@@ -114,9 +111,7 @@ const options: AgChartOptions<DataType> = {
             gridLine: {
                 enabled: true,
             },
-            label: {
-                fontSize: 12,
-            },
+            label: {},
         },
         {
             type: 'number',
@@ -127,12 +122,10 @@ const options: AgChartOptions<DataType> = {
             interval: { values: [0] },
             title: {
                 text: 'Number of Games',
-                fontSize: 14,
             },
             label: {
                 enabled: true,
                 formatter: ({ value }) => (Math.abs(value) > 0 ? `${Math.abs(value)}` : '0'),
-                fontSize: 11,
             },
             gridLine: {
                 style: [
@@ -155,8 +148,6 @@ const options: AgChartOptions<DataType> = {
                     label: {
                         text: 'LOSSES',
                         position: 'top',
-                        fontSize: 12,
-                        fontWeight: 'bold',
                     },
                 },
                 {
@@ -167,8 +158,6 @@ const options: AgChartOptions<DataType> = {
                     label: {
                         text: 'WINS',
                         position: 'top',
-                        fontSize: 12,
-                        fontWeight: 'bold',
                     },
                 },
             ],

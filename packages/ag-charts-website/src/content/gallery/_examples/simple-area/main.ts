@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
@@ -13,7 +13,7 @@ const longDateFormat = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
 });
 
-const options: AgChartOptions<DataType> = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -28,17 +28,31 @@ const options: AgChartOptions<DataType> = {
             xKey: 'date',
             yKey: 'newSignups',
             yName: 'Sign Ups',
-            fillOpacity: 1,
-            fill: {
-                type: 'image',
-                url: '${baseWWWUrl}/example-assets/docs-images/tile.png',
-                width: 50,
-                height: 50,
-                repeat: 'repeat',
-                backgroundFillOpacity: 0.3,
+            fillOpacity: 0.7,
+            strokeWidth: 2,
+            marker: {
+                enabled: false,
+            },
+            highlightStyle: {
+                item: {
+                    strokeWidth: 3,
+                },
             },
             interpolation: {
                 type: 'smooth',
+            },
+            tooltip: {
+                renderer: (params) => {
+                    const { datum, yKey, yName } = params;
+                    return {
+                        title: 'Engagement',
+                        heading: longDateFormat.format(datum.date),
+                        data: [
+                            { label: yName || 'Sign Ups', value: datum[yKey].toString() },
+                            { label: 'Active Users', value: datum.activeUsers.toLocaleString() },
+                        ],
+                    };
+                },
             },
         },
     ],
@@ -46,6 +60,24 @@ const options: AgChartOptions<DataType> = {
         {
             type: 'unit-time',
             position: 'bottom',
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
+            crosshair: {
+                enabled: true,
+                snap: true,
+                label: {
+                    enabled: true,
+                },
+            },
         },
         {
             type: 'number',
@@ -53,6 +85,29 @@ const options: AgChartOptions<DataType> = {
             title: {
                 text: 'Sign Ups',
             },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
+            },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 75,
+                    strokeWidth: 2,
+                    lineDash: [5, 5],
+                    label: {
+                        text: 'Target: 75',
+                        position: 'top',
+                    },
+                },
+            ],
         },
     ],
     formatter: {
@@ -70,6 +125,10 @@ const options: AgChartOptions<DataType> = {
                 })
                 .join('');
         },
+    },
+    animation: {
+        enabled: true,
+        duration: 800,
     },
 };
 

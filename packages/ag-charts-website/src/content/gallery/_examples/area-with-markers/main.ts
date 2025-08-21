@@ -11,6 +11,10 @@ const options: AgChartOptions = {
     subtitle: {
         text: 'Q4 Net New Subscription Revenue In Millions',
     },
+    tooltip: {
+        enabled: true,
+        mode: 'shared',
+    },
     theme: {
         overrides: {
             area: {
@@ -49,6 +53,9 @@ const options: AgChartOptions = {
             position: 'bottom',
             label: {
                 rotation: -90,
+            },
+            bandHighlight: {
+                enabled: true,
             },
             crossLines: [
                 {

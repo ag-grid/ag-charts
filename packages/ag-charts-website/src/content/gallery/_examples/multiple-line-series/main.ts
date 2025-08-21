@@ -34,15 +34,12 @@ const options: AgChartOptions<DataType> = {
     },
     title: {
         text: 'Time With Others On A Saturday',
-        fontSize: 20,
     },
     subtitle: {
         text: 'Average hours spent per day socialising on the weekend',
-        fontSize: 14,
     },
     footnote: {
         text: 'Source: American Time Use Survey 2022',
-        fontSize: 12,
         fontStyle: 'italic',
     },
     legend: {
@@ -98,13 +95,11 @@ const options: AgChartOptions<DataType> = {
             position: 'bottom',
             title: {
                 text: 'Age (years)',
-                fontSize: 14,
             },
             bandHighlight: {
                 enabled: true,
             },
             label: {
-                fontSize: 12,
                 minSpacing: 30,
             },
             gridLine: {
@@ -121,14 +116,11 @@ const options: AgChartOptions<DataType> = {
             type: 'number',
             title: {
                 text: 'Time Spent (hours)',
-                fontSize: 14,
             },
             max: 540,
             nice: false,
             interval: { values: [0, 180, 360, 540] },
-            label: {
-                fontSize: 12,
-            },
+            label: {},
             gridLine: {
                 style: [
                     {

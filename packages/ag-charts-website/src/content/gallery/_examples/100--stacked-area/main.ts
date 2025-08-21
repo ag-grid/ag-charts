@@ -1,20 +1,34 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { EnergyData, getData } from './data';
 
 const interpolation = { type: 'smooth' } as const;
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
         text: 'UK Energy Sources',
-        fontSize: 20,
     },
     footnote: {
         text: 'Source: Department for Business, Energy & Industrial Strategy',
-        fontSize: 12,
         fontStyle: 'italic',
+    },
+    theme: {
+        overrides: {
+            area: {
+                series: {
+                    strokeWidth: 1.5,
+                    fillOpacity: 0.88,
+                    highlight: {
+                        highlightedItem: {
+                            fillOpacity: 0.95,
+                            strokeWidth: 2,
+                        },
+                    },
+                },
+            },
+        },
     },
     series: [
         {
@@ -46,9 +60,6 @@ const options: AgChartOptions = {
             normalizedTo: 1,
             stacked: true,
             interpolation,
-            fill: {
-                type: 'pattern',
-            },
         },
         {
             type: 'area',
@@ -88,15 +99,20 @@ const options: AgChartOptions = {
             normalizedTo: 1,
             stacked: true,
             interpolation,
-            fill: {
-                type: 'pattern',
-            },
         },
     ],
     axes: [
         {
             type: 'unit-time',
             position: 'bottom',
+            crosshair: {
+                enabled: true,
+                strokeWidth: 1,
+                lineDash: [3, 3],
+                label: {
+                    enabled: true,
+                },
+            },
         },
         {
             type: 'number',
@@ -109,12 +125,27 @@ const options: AgChartOptions = {
             },
             title: {
                 text: 'Percentage of Total Energy',
-                fontSize: 14,
             },
         },
     ],
     legend: {
-        position: 'top',
+        position: 'bottom',
+        item: {
+            showSeriesStroke: false,
+            paddingX: 10,
+            paddingY: 8,
+        },
+    },
+    tooltip: {
+        position: {
+            placement: ['right', 'left', 'top', 'bottom'],
+        },
+        range: 'nearest',
+        showArrow: false,
+    },
+    animation: {
+        enabled: true,
+        duration: 800,
     },
     formatter: (params) => {
         const { value, type } = params;

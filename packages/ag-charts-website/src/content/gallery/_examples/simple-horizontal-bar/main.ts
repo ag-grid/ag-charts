@@ -8,15 +8,12 @@ const options: AgCartesianChartOptions<DataType> = {
     data,
     title: {
         text: 'Weekly Earnings by Profession',
-        fontSize: 20,
     },
     subtitle: {
         text: 'UK Average Weekly Pay with Confidence Intervals',
-        fontSize: 14,
     },
     footnote: {
         text: 'Source: Office for National Statistics',
-        fontSize: 12,
         fontStyle: 'italic',
     },
     series: [
@@ -37,7 +34,6 @@ const options: AgCartesianChartOptions<DataType> = {
             },
             label: {
                 enabled: true,
-                fontSize: 12,
                 formatter: (params) => `£${params.value}`,
             },
             itemStyler: ({ datum, yKey }) => ({
@@ -51,11 +47,8 @@ const options: AgCartesianChartOptions<DataType> = {
             position: 'left',
             title: {
                 text: 'Profession',
-                fontSize: 14,
             },
-            label: {
-                fontSize: 12,
-            },
+            label: {},
             bandHighlight: {
                 enabled: true,
             },
@@ -77,10 +70,8 @@ const options: AgCartesianChartOptions<DataType> = {
             title: {
                 enabled: true,
                 text: 'Weekly Earnings (£)',
-                fontSize: 14,
             },
             label: {
-                fontSize: 12,
                 formatter: (params) => `£${params.value.toLocaleString()}`,
             },
             gridLine: {

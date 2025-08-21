@@ -1,18 +1,21 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+// Calculate statistics for reference lines
+const data = getData();
+const engineSizes = data.map((d) => d['engine-size']);
+const mean = engineSizes.reduce((a, b) => a + b, 0) / engineSizes.length;
+
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
+    data: data,
     title: {
-        text: 'Engine Size Distribution',
-    },
-    subtitle: {
-        text: 'USA 1987',
+        text: 'Vehicle Engine Size Distribution',
+        spacing: 25,
     },
     footnote: {
-        text: 'Source: UCI',
+        text: `Source: UCI Machine Learning Repository • Sample Size: ${data.length} vehicles • USA 1987`,
     },
     series: [
         {
@@ -21,7 +24,29 @@ const options: AgChartOptions = {
             xName: 'Engine Size',
             stroke: 'transparent',
             strokeWidth: 2,
-            cornerRadius: 6,
+            cornerRadius: 4,
+            tooltip: {
+                renderer: (params) => {
+                    const { datum } = params;
+                    const binStart = Math.round(datum.domain[0]);
+                    const binEnd = Math.round(datum.domain[1]);
+                    const percentage = ((datum.frequency / data.length) * 100).toFixed(1);
+
+                    return {
+                        data: [
+                            { label: 'Engine Size Range', value: `${binStart} - ${binEnd} cu in` },
+                            { label: 'Vehicle Count', value: String(datum.frequency) },
+                            { label: 'Percentage', value: `${percentage}%` },
+                        ],
+                    };
+                },
+            },
+            highlight: {
+                enabled: true,
+                highlightedItem: {
+                    strokeWidth: 2,
+                },
+            },
         },
     ],
     axes: [
@@ -32,15 +57,37 @@ const options: AgChartOptions = {
             title: {
                 text: 'Engine Size (Cubic Inches)',
             },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: mean,
+                    strokeWidth: 2,
+                    lineDash: [5, 5],
+                    label: {
+                        text: `Mean: ${Math.round(mean)} cu in`,
+                    },
+                },
+            ],
+            crosshair: {
+                enabled: false,
+            },
         },
         {
             position: 'left',
             type: 'number',
-            gridLine: {
-                enabled: false,
-            },
             title: {
-                text: 'Frequency',
+                text: 'Number of Vehicles',
+            },
+            gridLine: {
+                style: [
+                    {
+                        strokeWidth: 1,
+                        lineDash: [2, 2],
+                    },
+                    {
+                        strokeWidth: 0,
+                    },
+                ],
             },
         },
     ],
