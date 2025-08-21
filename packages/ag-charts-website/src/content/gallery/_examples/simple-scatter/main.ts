@@ -116,7 +116,7 @@ const options: AgCartesianChartOptions<DataType> = {
     ],
     formatter: {
         x: '#{.0f} lbs',
-        y(params) {
+        y: (params) => {
             const value = params.value as number;
             return `${Math.floor(value / 12)}' ${Math.floor(value % 12)}"`;
         },

@@ -135,10 +135,10 @@ const options: AgChartOptions<DataType> = {
         },
     ],
     formatter: {
-        x(params) {
+        x: (params) => {
             return `${Math.round(Number(params.value))}`;
         },
-        y(params) {
+        y: (params) => {
             const value = params.value as number;
             if (params.source === 'axis-label') {
                 return `${Math.floor(value / 60)}h`;
