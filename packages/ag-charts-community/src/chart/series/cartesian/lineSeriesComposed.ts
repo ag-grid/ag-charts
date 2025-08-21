@@ -1,0 +1,898 @@
+import type { RequireOptional } from 'ag-charts-core';
+import {
+    type AgErrorBoundSeriesTooltipRendererParams,
+    type AgLineSeriesLabelFormatterParams,
+    type AgLineSeriesMarkerItemStylerParams,
+    type AgLineSeriesOptions,
+    type AgLineSeriesStylerParams,
+    type AgLineSeriesStylerResult,
+    type AgSeriesMarkerStyle,
+} from 'ag-charts-types';
+
+import type { ModuleContext } from '../../../module/moduleContext';
+import { fromToMotion } from '../../../motion/fromToMotion';
+import { pathMotion } from '../../../motion/pathMotion';
+import { resetMotion } from '../../../motion/resetMotion';
+import type { BBox } from '../../../scene/bbox';
+import type { Selection } from '../../../scene/selection';
+import type { Path } from '../../../scene/shape/path';
+import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
+import type { Text } from '../../../scene/shape/text';
+import type { CallbackParamRules } from '../../../util/callbackCache';
+import { extent } from '../../../util/extent';
+import { LogAxis } from '../../axis/logAxis';
+import { NumberAxis } from '../../axis/numberAxis';
+import { ChartAxisDirection } from '../../chartAxisDirection';
+import type { DataController } from '../../data/dataController';
+import type { ProcessedData } from '../../data/dataModel';
+import { fixNumericExtent } from '../../data/dataModel';
+import { createDatumId } from '../../data/processors';
+import { getLabelStyles } from '../../labelUtil';
+import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
+import { type LegendSymbolOptions } from '../../legend/legendSymbol';
+import { Marker } from '../../marker/marker';
+import { type TooltipContent } from '../../tooltip/tooltip';
+import { type PickFocusInputs, SeriesNodePickMode } from '../series';
+import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { HighlightState, toHighlightString } from '../seriesProperties';
+import { datumStylerProperties } from '../util';
+import { CartesianDataProcessorImpl } from '../utils/cartesianDataProcessor';
+import { LineInteractionHandler } from '../utils/interactionHandler';
+import { LineRenderStrategy } from '../utils/renderStrategies';
+import type { CartesianAnimationData } from './cartesianSeries';
+import {
+    CartesianSeries,
+    DEFAULT_CARTESIAN_DIRECTION_KEYS,
+    DEFAULT_CARTESIAN_DIRECTION_NAMES,
+} from './cartesianSeries';
+import { LineSeriesProperties } from './lineSeriesProperties';
+import {
+    type LineNodeDatum,
+    type LinePathSpan,
+    type LineSeriesNodeDataContext,
+    type LineSpanPointDatum,
+    interpolatePoints,
+    prepareLinePathAnimation,
+} from './lineUtil';
+import {
+    getMarkerStyles,
+    markerEnabled,
+    markerFadeInAnimation,
+    markerSwipeScaleInAnimation,
+    resetMarkerFn,
+    resetMarkerPositionFn,
+} from './markerUtil';
+import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation } from './pathUtil';
+import { calculateSegments } from './util';
+
+type LineAnimationData = CartesianAnimationData<Marker, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
+
+type SpanPoints = Array<LineSpanPointDatum[] | { skip: number }>;
+
+/**
+ * Composed LineSeries implementation using composition pattern
+ * Delegates data processing, rendering, and interaction to specialized components
+ */
+export class LineSeriesComposed extends CartesianSeries<
+    Marker,
+    AgLineSeriesOptions,
+    LineSeriesProperties,
+    LineNodeDatum,
+    LineNodeDatum,
+    LineSeriesNodeDataContext
+> {
+    static readonly className = 'LineSeriesComposed';
+    static readonly type = 'line' as const;
+
+    override properties = new LineSeriesProperties();
+
+    // Composition components
+    private readonly dataProcessor = new CartesianDataProcessorImpl();
+    private readonly renderer = new LineRenderStrategy();
+    private readonly interactionHandler = new LineInteractionHandler(this);
+
+    override get pickModeAxis() {
+        return this.properties.sparklineMode ? 'main' : 'main-category';
+    }
+
+    constructor(moduleCtx: ModuleContext) {
+        super({
+            moduleCtx,
+            propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
+            propertyNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
+            categoryKey: 'xValue',
+            pickModes: [
+                SeriesNodePickMode.AXIS_ALIGNED,
+                SeriesNodePickMode.NEAREST_NODE,
+                SeriesNodePickMode.EXACT_SHAPE_MATCH,
+            ],
+            datumSelectionGarbageCollection: false,
+            segmentedDataNodes: false,
+            animationResetFns: {
+                path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
+                label: resetLabelFn,
+                datum: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
+            },
+            clipFocusBox: false,
+        });
+    }
+
+    private isNormalized() {
+        return this.properties.normalizedTo != null;
+    }
+
+    override async processData(dataController: DataController) {
+        if (this.data == null) return;
+
+        // Delegate to data processor
+        await this.dataProcessor.processData(
+            {
+                id: this.id,
+                data: this.data,
+                visible: this.visible,
+                processedData: this.processedData,
+                dataModel: this.dataModel,
+                axes: this.axes,
+                seriesGrouping: this.seriesGrouping
+                    ? {
+                          groupIndex: String(this.seriesGrouping.groupIndex),
+                          stackCount: this.seriesGrouping.stackCount,
+                      }
+                    : undefined,
+                animationState: this.animationState,
+                requestDataModel: (dataCtrl, data, options) => this.requestDataModel(dataCtrl, data, options),
+            },
+            {
+                xKey: this.properties.xKey,
+                yKey: this.properties.yKey,
+                xName: this.properties.xName,
+                yName: this.properties.yName,
+                yFilterKey: this.properties.yFilterKey,
+                connectMissingData: this.properties.connectMissingData,
+                normalizedTo: this.properties.normalizedTo,
+                legendItemName: this.properties.legendItemName,
+                showInLegend: this.properties.showInLegend,
+            },
+            dataController
+        );
+    }
+
+    private yValueKey() {
+        return this.isNormalized() ? 'yValue' : 'yValueRaw';
+    }
+
+    private yCumulativeKey(processData: ProcessedData<any>) {
+        return processData.type === 'grouped' ? 'yValueCumulative' : this.yValueKey();
+    }
+
+    override xCoordinateRange(xValue: any, pixelSize: number): [number, number] {
+        const { marker } = this.properties;
+        const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
+        const r = marker.enabled ? 0.5 * marker.size * pixelSize : 0;
+        return [x - r, x + r];
+    }
+
+    override yCoordinateRange(yValues: any[], pixelSize: number): [number, number] {
+        const { marker } = this.properties;
+        const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
+        const r = marker.enabled ? 0.5 * marker.size * pixelSize : 0;
+        return [y - r, y + r];
+    }
+
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+        const { dataModel, processedData, axes } = this;
+        if (!dataModel || !processedData) return [];
+
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (direction === ChartAxisDirection.X) {
+            const xDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
+            const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
+            if (xDef?.def.type === 'value' && xDef.def.valueType === 'category') {
+                return domain;
+            }
+
+            return fixNumericExtent(extent(domain));
+        }
+
+        const yExtent = this.domainForClippedRange(
+            ChartAxisDirection.Y,
+            [this.yCumulativeKey(processedData)],
+            'xValue'
+        );
+
+        if (this.isNormalized() && yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
+            const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
+                ? [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]]
+                : [];
+            return fixNumericExtent(fixedYExtent);
+        } else {
+            return fixNumericExtent(yExtent);
+        }
+    }
+
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): number[] {
+        return this.domainForVisibleRange(
+            ChartAxisDirection.Y,
+            [this.yCumulativeKey(this.processedData!)],
+            'xValue',
+            visibleRange
+        );
+    }
+
+    override getZoomRangeFittingItems(
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
+        minVisibleItems: number
+    ): { x: [number, number]; y: [number, number] | undefined } | undefined {
+        return this.zoomFittingVisibleItems(
+            'xValue',
+            [this.yCumulativeKey(this.processedData!)],
+            xVisibleRange,
+            yVisibleRange,
+            minVisibleItems
+        );
+    }
+
+    override getVisibleItems(
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number] | undefined,
+        minVisibleItems: number
+    ): number {
+        return this.countVisibleItems(
+            'xValue',
+            [this.yCumulativeKey(this.processedData!)],
+            xVisibleRange,
+            yVisibleRange,
+            minVisibleItems
+        );
+    }
+
+    override createNodeData() {
+        const { dataModel, processedData, axes } = this;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
+
+        const {
+            xKey,
+            xName,
+            yFilterKey,
+            yKey,
+            yName,
+            marker,
+            label,
+            connectMissingData,
+            interpolation,
+            legendItemName,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+        } = this.properties;
+        const xScale = xAxis.scale;
+        const yScale = yAxis.scale;
+        const xOffset = (xScale.bandwidth ?? 0) / 2;
+        const yOffset = (yScale.bandwidth ?? 0) / 2;
+        const size = marker.enabled ? marker.size : 0;
+
+        const rawData = processedData.dataSources.get(this.id) ?? [];
+        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+        const yRawValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
+        const yCumulativeValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
+        const selectionValues =
+            yFilterKey != null ? dataModel.resolveColumnById(this, `yFilterRaw`, processedData) : undefined;
+
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+
+        const capDefaults = {
+            lengthRatioMultiplier: this.properties.marker.getDiameter(),
+            lengthMax: Infinity,
+        };
+
+        const nodeData: LineNodeDatum[] = [];
+        const spanPoints: SpanPoints = [];
+        const handleDatum = (datumIndex: number) => {
+            const datum = rawData[datumIndex];
+            const xDatum = xValues[datumIndex];
+            const yDatum = yRawValues[datumIndex];
+            const yCumulative = yCumulativeValues[datumIndex];
+            const selected = selectionValues?.[datumIndex];
+
+            const x = xScale.convert(xDatum) + xOffset;
+            const y = yScale.convert(yCumulative) + yOffset;
+
+            if (!Number.isFinite(x)) return;
+
+            if (yDatum != null) {
+                const labelText = label.enabled
+                    ? this.getLabelText<AgLineSeriesLabelFormatterParams>(yDatum, datum, yKey, 'y', yDomain, label, {
+                          value: yDatum,
+                          datum,
+                          xKey,
+                          yKey,
+                          xName,
+                          yName,
+                          legendItemName,
+                      })
+                    : undefined;
+
+                nodeData.push({
+                    series: this,
+                    datum,
+                    datumIndex,
+                    yKey,
+                    xKey,
+                    point: { x, y, size },
+                    midPoint: { x, y },
+                    cumulativeValue: yCumulative,
+                    yValue: yDatum,
+                    xValue: xDatum,
+                    capDefaults,
+                    labelText,
+                    selected,
+                });
+            }
+
+            const currentSpanPoints: LineSpanPointDatum[] | { skip: number } | undefined =
+                spanPoints[spanPoints.length - 1];
+            if (yDatum != null) {
+                const spanPoint: LineSpanPointDatum = {
+                    point: { x, y },
+                    xDatum,
+                    yDatum,
+                };
+
+                if (Array.isArray(currentSpanPoints)) {
+                    currentSpanPoints.push(spanPoint);
+                } else if (currentSpanPoints != null) {
+                    currentSpanPoints.skip += 1;
+                    spanPoints.push([spanPoint]);
+                } else {
+                    spanPoints.push([spanPoint]);
+                }
+            } else if (!connectMissingData) {
+                if (Array.isArray(currentSpanPoints) || currentSpanPoints == null) {
+                    spanPoints.push({ skip: 0 });
+                } else {
+                    currentSpanPoints.skip += 1;
+                }
+            }
+        };
+
+        const dataAggregationFilters = this.dataProcessor.getDataAggregationFilters();
+        const [r0, r1] = xScale.range;
+        const range = Math.abs(r1 - r0);
+        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
+
+        const indices = dataAggregationFilter?.indices;
+        let [start, end] = this.visibleRangeIndices('xValue', xAxis.range, indices);
+        start = Math.max(start - 1, 0);
+        end = Math.min(end + 1, indices?.length ?? xValues.length);
+        // @todo(AG-13575) Remove this if block
+        if (processedData.input.count < 1e3) {
+            start = 0;
+            end = processedData.input.count;
+        }
+        for (let i = start; i < end; i += 1) {
+            handleDatum(indices?.[i] ?? i);
+        }
+
+        const strokeSpans = spanPoints.flatMap((p): LinePathSpan[] => {
+            return Array.isArray(p) ? interpolatePoints(p, interpolation) : [];
+        });
+        const strokeData = { itemId: yKey, spans: strokeSpans };
+
+        const crossFiltering =
+            selectionValues?.some((selectionValue, index) => selectionValue === yRawValues[index]) ?? false;
+
+        const { width, height } = this.ctx.scene;
+        const segments = calculateSegments(
+            this.properties.segmentation,
+            xAxis,
+            yAxis,
+            this.chart!.seriesRect!,
+            { width, height },
+            false
+        );
+
+        return {
+            itemId: yKey,
+            nodeData,
+            labelData: nodeData,
+            strokeData,
+            scales: this.calculateScaling(),
+            visible: this.visible,
+            crossFiltering,
+            styles: getMarkerStyles(this, marker, { stroke, strokeWidth, strokeOpacity }),
+            segments,
+        };
+    }
+
+    protected override isPathOrSelectionDirty(): boolean {
+        return this.properties.marker.isDirty();
+    }
+
+    protected override updatePathNodes(opts: { paths: SegmentedPath[]; visible: boolean; animationEnabled: boolean }) {
+        // Delegate to renderer
+        this.renderer.updatePathNodes({
+            ...opts,
+            contextData: this.contextNodeData,
+            getHighlightStyle: () => this.getHighlightStyle(),
+            getStyle: (highlight: boolean) => this.getStyle(highlight),
+            series: this,
+        });
+    }
+
+    protected override updateDatumSelection(opts: {
+        nodeData: LineNodeDatum[];
+        datumSelection: Selection<Marker, LineNodeDatum>;
+    }) {
+        let { nodeData } = opts;
+        const { datumSelection } = opts;
+        const { contextNodeData, processedData, axes, properties } = this;
+        const { marker } = properties;
+        const markersEnabled =
+            contextNodeData?.crossFiltering === true ||
+            markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
+
+        nodeData = markersEnabled ? nodeData : [];
+
+        if (marker.isDirty()) {
+            datumSelection.clear();
+            datumSelection.cleanup();
+        }
+
+        return datumSelection.update(nodeData, undefined, (datum) => createDatumId(datum.xValue));
+    }
+
+    protected override updateDatumStyles(opts: {
+        datumSelection: Selection<Marker, LineNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        const { datumSelection, isHighlight } = opts;
+        const { marker } = this.properties;
+        const stylerStyle = this.getStyle(isHighlight);
+        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+
+        datumSelection.each((node, datum) => {
+            if (!datumSelection.isGarbage(node)) {
+                const params = this.makeItemStylerParams(
+                    this.dataModel!,
+                    this.processedData!,
+                    datum.datumIndex,
+                    stylerStyle.marker
+                );
+                datum.style = this.getMarkerStyle(marker, datum, params, { isHighlight }, stylerStyle.marker, {
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                });
+            }
+        });
+    }
+
+    protected override updateDatumNodes(opts: {
+        datumSelection: Selection<Marker, LineNodeDatum>;
+        isHighlight: boolean;
+    }) {
+        const { contextNodeData } = this;
+        if (!contextNodeData) {
+            return;
+        }
+
+        const { datumSelection, isHighlight } = opts;
+
+        const applyTranslation = this.ctx.animationManager.isSkipped();
+        const fillBBox = this.getShapeFillBBox();
+
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
+        datumSelection.each((node, datum) => {
+            const style =
+                datum.style ??
+                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            this.applyMarkerStyle(style, node, datum.point, fillBBox, {
+                applyTranslation,
+                selected: datum.selected,
+            });
+        });
+
+        if (!isHighlight) {
+            this.properties.marker.markClean();
+        }
+    }
+
+    protected override updateLabelSelection(opts: {
+        labelData: LineNodeDatum[];
+        labelSelection: Selection<Text, LineNodeDatum>;
+    }) {
+        return opts.labelSelection.update(this.isLabelEnabled() ? opts.labelData : []);
+    }
+
+    protected updateLabelNodes(opts: { labelSelection: Selection<Text, LineNodeDatum>; isHighlight?: boolean }) {
+        const { isHighlight = false } = opts;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const params: AgLineSeriesLabelFormatterParams = this.makeLabelFormatterParams();
+
+        opts.labelSelection.each((text, datum) => {
+            const highlighted = isHighlight || this.isSeriesHighlighted(activeHighlight);
+            const highlightState = this.getHighlightStateString(activeHighlight, highlighted, datum.datumIndex);
+
+            const style = getLabelStyles(this, datum, params, this.properties.label, highlighted, highlightState);
+            const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
+            if (enabled && datum?.labelText) {
+                text.fontStyle = fontStyle;
+                text.fontWeight = fontWeight;
+                text.fontSize = fontSize;
+                text.fontFamily = fontFamily;
+                text.textAlign = 'center';
+                text.textBaseline = 'bottom';
+                text.text = datum.labelText;
+                text.x = datum.point.x;
+                text.y = datum.point.y - 10;
+                text.fill = color;
+                text.visible = true;
+                text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
+                text.setBoxing(style);
+            } else {
+                text.visible = false;
+            }
+        });
+    }
+
+    makeStylerParams(
+        highlighted: boolean,
+        highlightStateEnum?: HighlightState
+    ): AgLineSeriesStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+        const { marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, xKey, yKey } = this.properties;
+        const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+
+        type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
+        type ResultRules = CallbackParamRules<AgLineSeriesStylerParams<unknown, unknown> & MarkerRules>;
+        return {
+            marker: {
+                fill: marker.fill,
+                fillOpacity: marker.fillOpacity,
+                size: marker.size,
+                shape: marker.shape,
+                stroke: marker.stroke,
+                strokeOpacity: marker.strokeOpacity,
+                strokeWidth: marker.strokeWidth,
+                lineDash: marker.lineDash,
+                lineDashOffset: marker.lineDashOffset,
+            },
+            highlightState,
+            highlighted,
+            lineDash,
+            lineDashOffset,
+            seriesId,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            xKey,
+            yKey,
+        } satisfies ResultRules;
+    }
+
+    private makeItemStylerParams(
+        dataModel: NonNullable<typeof this.dataModel>,
+        processedData: NonNullable<typeof this.processedData>,
+        datumIndex: number,
+        style: Required<AgSeriesMarkerStyle>
+    ): AgLineSeriesMarkerItemStylerParams<unknown, unknown> {
+        const { xKey, yKey } = this.properties;
+
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
+        const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
+        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData);
+
+        return {
+            ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
+            xValue,
+            yValue,
+            ...style,
+        } satisfies CallbackParamRules<AgLineSeriesMarkerItemStylerParams<unknown, unknown>>;
+    }
+
+    private makeLabelFormatterParams(): AgLineSeriesLabelFormatterParams {
+        const { xKey, xName, yKey, yName, legendItemName } = this.properties;
+        return { xKey, xName, yKey, yName, legendItemName } satisfies RequireOptional<AgLineSeriesLabelFormatterParams>;
+    }
+
+    override getTooltipContent(datumIndex: number): TooltipContent | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yKey, yName, tooltip, legendItemName } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
+
+        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
+
+        if (xValue == null) return;
+
+        const stylerStyle = this.getStyle(false);
+        const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
+
+        const format = this.getMarkerStyle(
+            this.properties.marker,
+            { datumIndex, datum },
+            params,
+            { isHighlight: false },
+            stylerStyle.marker
+        ) as RequireOptional<AgSeriesMarkerStyle>;
+
+        return this.formatTooltipWithContext(
+            tooltip,
+            {
+                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
+                symbol: this.legendItemSymbol(),
+                data: [
+                    {
+                        label: yName,
+                        fallbackLabel: yKey,
+                        value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
+                    },
+                ],
+            },
+            {
+                seriesId,
+                datum,
+                title: yName,
+                xKey,
+                xName,
+                yKey,
+                yName,
+                ...format,
+                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
+            }
+        );
+    }
+
+    private legendItemSymbol(): LegendSymbolOptions {
+        const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle(false);
+
+        const markerStyle = this.getMarkerStyle(
+            this.properties.marker,
+            {},
+            undefined,
+            { isHighlight: false, checkForHighlight: false },
+            {
+                size: marker.size,
+                shape: marker.shape,
+                fill: marker.fill,
+                fillOpacity: marker.fillOpacity,
+                stroke: marker.stroke,
+            }
+        );
+
+        return {
+            marker: {
+                ...markerStyle,
+                enabled: this.properties.marker.enabled,
+            },
+            line: {
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+            },
+        };
+    }
+
+    getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
+        if (legendType !== 'category') {
+            return [];
+        }
+
+        const {
+            id: seriesId,
+            ctx: { legendManager },
+            visible,
+        } = this;
+
+        const { yKey: itemId, yName, title, legendItemName, showInLegend } = this.properties;
+
+        return [
+            {
+                legendType,
+                id: seriesId,
+                itemId,
+                legendItemName,
+                seriesId,
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
+                label: {
+                    text: legendItemName ?? title ?? yName ?? itemId,
+                },
+                symbol: this.legendItemSymbol(),
+                hideInLegend: !showInLegend,
+            },
+        ];
+    }
+
+    protected override updatePaths(opts: { contextData: LineSeriesNodeDataContext; paths: Path[] }) {
+        // Delegate to renderer
+        this.renderer.updateNodes(opts.paths, opts.contextData, this.visible);
+    }
+
+    protected override animateEmptyUpdateReady(animationData: LineAnimationData) {
+        const { datumSelection, labelSelection, annotationSelections, contextData, paths } = animationData;
+        const { animationManager } = this.ctx;
+
+        this.renderer.updateNodes(paths, contextData, this.visible);
+        pathSwipeInAnimation(this, animationManager, ...paths);
+        resetMotion([datumSelection], resetMarkerPositionFn);
+        markerSwipeScaleInAnimation(this, animationManager, datumSelection);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+        seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
+    }
+
+    protected override animateReadyResize(animationData: LineAnimationData): void {
+        const { contextData, paths } = animationData;
+        this.renderer.updateNodes(paths, contextData, this.visible);
+
+        super.animateReadyResize(animationData);
+    }
+
+    protected override animateWaitingUpdateReady(animationData: LineAnimationData) {
+        const { animationManager } = this.ctx;
+        const {
+            datumSelection,
+            labelSelection: labelSelections,
+            annotationSelections,
+            contextData,
+            paths,
+            previousContextData,
+        } = animationData;
+        const [path] = paths;
+
+        if (contextData.visible === false && previousContextData?.visible === false) return;
+
+        this.resetDatumAnimation(animationData);
+        this.resetLabelAnimation(animationData);
+
+        const update = () => {
+            this.resetPathAnimation(animationData);
+            this.renderer.updateNodes(paths, contextData, this.visible);
+        };
+        const skip = () => {
+            animationManager.skipCurrentBatch();
+            update();
+        };
+
+        if (contextData == null || previousContextData == null) {
+            // Added series to existing chart case - fade in series.
+            update();
+
+            markerFadeInAnimation(this, animationManager, 'added', datumSelection);
+            pathFadeInAnimation(this, 'path_properties', animationManager, 'add', path);
+            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+            seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
+            return;
+        }
+
+        if (contextData.crossFiltering !== previousContextData.crossFiltering) {
+            skip();
+            return;
+        }
+
+        const fns = prepareLinePathAnimation(
+            contextData,
+            previousContextData,
+            this.processedData?.reduced?.diff?.[this.id]
+        );
+
+        if (fns === undefined) {
+            skip();
+            return;
+        } else if (fns.status === 'no-op') {
+            return;
+        }
+
+        fromToMotion(this.id, 'path_properties', animationManager, [path], fns.stroke.pathProperties);
+
+        if (fns.status === 'added') {
+            this.renderer.updateNodes(paths, contextData, this.visible);
+        } else if (fns.status === 'removed') {
+            this.renderer.updateNodes(paths, previousContextData, this.visible);
+        } else {
+            pathMotion(this.id, 'path_update', animationManager, [path], fns.stroke.path);
+        }
+
+        if (fns.hasMotion) {
+            markerFadeInAnimation(this, animationManager, undefined, datumSelection);
+            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
+            seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);
+        }
+
+        // The animation may clip spans
+        // When using smooth interpolation, the bezier spans are clipped using an approximation
+        // This can result in artefacting, which may be present on the final frame
+        // To remove this on the final frame, re-draw the series without animations
+        this.ctx.animationManager.animate({
+            id: this.id,
+            groupId: 'reset_after_animation',
+            phase: 'trailing',
+            from: {},
+            to: {},
+            onComplete: () => this.renderer.updateNodes(paths, contextData, this.visible),
+        });
+    }
+
+    protected isLabelEnabled() {
+        return this.properties.label.enabled;
+    }
+
+    override getBandScalePadding() {
+        return { inner: 1, outer: 0.1 };
+    }
+
+    protected nodeFactory() {
+        return new Marker();
+    }
+
+    public getStyle(
+        highlighted: boolean,
+        highlightState?: HighlightState
+    ): Required<AgLineSeriesStylerResult> & { marker: Required<AgSeriesMarkerStyle> } {
+        const { styler, marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.properties;
+        const { size, shape, fill = 'transparent', fillOpacity } = marker;
+        let stylerResult: AgLineSeriesStylerResult = {};
+        if (styler) {
+            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            stylerResult = this.callWithContext(styler, stylerParams) ?? {};
+        }
+        stylerResult.marker ??= {};
+        return {
+            lineDash: stylerResult.lineDash ?? lineDash,
+            lineDashOffset: stylerResult.lineDashOffset ?? lineDashOffset,
+            stroke: stylerResult.stroke ?? stroke,
+            strokeOpacity: stylerResult.strokeOpacity ?? strokeOpacity,
+            strokeWidth: stylerResult.strokeWidth ?? strokeWidth,
+            marker: {
+                fill: stylerResult.marker.fill ?? fill,
+                fillOpacity: stylerResult.marker.fillOpacity ?? fillOpacity,
+                shape: stylerResult.marker.shape ?? shape,
+                size: stylerResult.marker.size ?? size,
+                lineDash: stylerResult.marker.lineDash ?? marker.lineDash ?? lineDash,
+                lineDashOffset: stylerResult.marker.lineDashOffset ?? marker.lineDashOffset ?? lineDashOffset,
+                stroke: stylerResult.marker.stroke ?? marker.stroke ?? stroke,
+                strokeOpacity: stylerResult.marker.strokeOpacity ?? marker.strokeOpacity ?? strokeOpacity,
+                strokeWidth: stylerResult.marker.strokeWidth ?? marker.strokeWidth ?? strokeWidth,
+            } satisfies RequireOptional<AgSeriesMarkerStyle>,
+        } satisfies RequireOptional<AgLineSeriesStylerResult>;
+    }
+
+    public getFormattedMarkerStyle(datum: LineNodeDatum) {
+        const stylerStyle = this.getStyle(false);
+        const params = this.makeItemStylerParams(
+            this.dataModel!,
+            this.processedData!,
+            datum.datumIndex,
+            stylerStyle.marker
+        );
+
+        return this.getMarkerStyle(
+            this.properties.marker,
+            datum,
+            params,
+            { isHighlight: true },
+            undefined,
+            stylerStyle
+        );
+    }
+
+    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
+        // Delegate to interaction handler
+        return this.interactionHandler.computeFocusBounds(opts);
+    }
+
+    protected override hasItemStylers(): boolean {
+        return this.properties.marker.itemStyler != null || this.properties.label.itemStyler != null;
+    }
+}
