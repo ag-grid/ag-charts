@@ -40,8 +40,11 @@ const options: AgCartesianChartOptions = {
                     strokeOpacity: 1,
                 },
                 highlightedSeries: {
-                    dimOpacity: 0.3,
+                    fillOpacity: 0.3,
                     strokeWidth: 1,
+                },
+                unhighlightedSeries: {
+                    fillOpacity: 0.3,
                 },
             },
         };
